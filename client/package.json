@@ -23,13 +23,13 @@
     "@babel/preset-env": "^7.11.0",
     "babel-eslint": "^10.1.0",
     "babel-loader": "^8.0.6",
-    "eslint": "^6.8.0",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "eslint": "^6.8.0"
   },
   "dependencies": {
     "rrweb": "^0.9.0",
     "uuid": "^8.3.0",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^3.11.0"
   }
 }
