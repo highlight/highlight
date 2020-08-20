@@ -35,7 +35,6 @@ func addEvents(w http.ResponseWriter, r *http.Request) {
 	}
 	bs := string(body)
 	vid := r.Header.Get("X-Visit-ID")
-	log.Println(vid)
 	e := &EventsObject{Events: &bs, VisitID: &vid}
 	if res := DB.Create(e); res.Error != nil {
 		http.Error(w, "error reading body contents", http.StatusConflict)
@@ -72,7 +71,6 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, fmt.Sprintf("Error decoding data: %v", err), http.StatusNotFound)
 			return
 		}
-		log.Println(len(events["events"]))
 		allEvents["events"] = append(allEvents["events"], events["events"]...)
 	}
 	j, err := json.Marshal(allEvents)
