@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 
 	"github.com/rs/cors"
 
@@ -77,12 +78,21 @@ func health(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+var defaultPort = "8082"
+
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = defaultPort
+	}
+
+	SetupDB()
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/add-events", addEvents)
 	mux.HandleFunc("/get-events", getEvents)
 	mux.HandleFunc("/", health)
 	handler := cors.AllowAll().Handler(mux)
 	fmt.Println("listening...")
-	log.Fatal(http.ListenAndServe("localhost:8082", handler))
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
