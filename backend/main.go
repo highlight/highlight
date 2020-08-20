@@ -14,14 +14,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var DB *gorm.DB
-
-type EventsObject struct {
-	gorm.Model
-	Events  *string
-	VisitID *string
-}
-
 // Blindly pushes json Blobs to a database, keyed on the visit-id
 func addEvents(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
