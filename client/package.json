@@ -1,0 +1,35 @@
+{
+  "name": "webpack-js-library",
+  "version": "1.0.0",
+  "description": "webpack setup for writing a javascript library and making it availabe as script or npm package",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "webpack",
+    "dev": "webpack-dev-server --progress --colors --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vyasriday/webpack-js-library.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vyasriday/webpack-js-library/issues"
+  },
+  "homepage": "https://github.com/vyasriday/webpack-js-library#readme",
+  "devDependencies": {
+    "@babel/core": "^7.11.1",
+    "@babel/preset-env": "^7.11.0",
+    "babel-eslint": "^10.1.0",
+    "babel-loader": "^8.0.6",
+    "eslint": "^6.8.0",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  },
+  "dependencies": {
+    "rrweb": "^0.9.0",
+    "uuid": "^8.3.0",
+    "webpack-dev-server": "^3.11.0"
+  }
+}

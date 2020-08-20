@@ -1,0 +1,52 @@
+import React, { useEffect } from "react";
+import { useFetch } from "use-http";
+import { Route, useParams, BrowserRouter as Router } from "react-router-dom";
+import rrwebPlayer from "rrweb-player";
+
+function AppInternal() {
+	const { vid } = useParams();
+	const { loading, error, data = [] } = useFetch(
+		"http://localhost:8082/get-events?" +
+			new URLSearchParams({
+				vid: vid
+			}),
+		{},
+		[]
+	);
+
+	useEffect(() => {
+		// Update the document title using the browser API
+		document.getElementByClassjk(".replayer-wrapper").style.transform =
+			"rotate(7deg)";
+		if (data && data.events && data.events.length > 1) {
+			new rrwebPlayer({
+				target: document.getElementById("player"),
+				data: {
+					events: data.events,
+					autoPlay: true
+				}
+			});
+		}
+	}, [data]);
+
+	if (loading) {
+		return <p>loading...</p>;
+	}
+	if (error) {
+		return <p>{error.toString()}</p>;
+	}
+	console.log(data);
+	return <div id="player" />;
+}
+
+const App = props => {
+	return (
+		<Router>
+			<Route path="/:vid">
+				<AppInternal />
+			</Route>
+		</Router>
+	);
+};
+
+export default App;
