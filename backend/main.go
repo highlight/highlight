@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 
-	"github.com/jinzhu/gorm"
 	"github.com/rs/cors"
 
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -74,24 +72,16 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func health(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("healthy"))
+	return
+}
+
 func main() {
-	psqlConf := fmt.Sprintf(
-		"host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable",
-		os.Getenv("PSQL_HOST"),
-		os.Getenv("PSQL_USER"),
-		os.Getenv("PSQL_DB"),
-		os.Getenv("PSQL_PASSWORD"))
-
-	var err error
-	DB, err = gorm.Open("postgres", psqlConf)
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
-	}
-	DB.AutoMigrate(&EventsObject{})
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("/add-events", addEvents)
 	mux.HandleFunc("/get-events", getEvents)
+	mux.HandleFunc("/", health)
 	handler := cors.AllowAll().Handler(mux)
 	fmt.Println("listening...")
 	log.Fatal(http.ListenAndServe("localhost:8082", handler))
