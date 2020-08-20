@@ -3,6 +3,7 @@ import { v4 } from 'uuid';
 
 let events = [];
 let visitID = '';
+let backendURL = process.env.BACKEND_URI;
 
 window.addEventListener('load', function () {
 	visitID = v4();
@@ -25,7 +26,7 @@ function save() {
 	console.log(events);
 	const body = JSON.stringify({ events });
 	events = [];
-	fetch('http://localhost:8082/add-events', {
+	fetch(`${process.env.BACKEND_URI}/add-events`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
