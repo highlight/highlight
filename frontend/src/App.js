@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useFetch } from "use-http";
 import { Route, useParams, BrowserRouter as Router } from "react-router-dom";
 import { Replayer } from "rrweb";
