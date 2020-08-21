@@ -8,7 +8,7 @@ function AppInternal() {
 	const [replayer, setReplayer] = useState(undefined);
 
 	const { loading, error, data = [] } = useFetch(
-		"http://localhost:8082/get-events?" +
+		process.env.REACT_APP_BACKEND_URI + "/get-events?" +
 			new URLSearchParams({
 				vid: vid
 			}),
@@ -17,12 +17,10 @@ function AppInternal() {
 	);
 
 	useEffect(() => {
-		console.log(document.getElementsByClassName("replayer-wrapper").length);
 		if (data && data.events && data.events.length > 1) {
 			let r = new Replayer(data.events, {
 				root: document.getElementById("player")
 			});
-			console.log(r.getMetaData());
 			setReplayer(r);
 		}
 	}, [data]);
