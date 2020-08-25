@@ -156,7 +156,8 @@ const EventStream = props => {
           scroller.scrollTo(e.identifier.toString(), {
             smooth: true,
             containerId: "wrapper",
-            spy: true
+            spy: true,
+            offset: -150
           });
         }
       });
