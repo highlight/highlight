@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useFetch } from "use-http";
 import { Route, useParams, BrowserRouter as Router } from "react-router-dom";
 import { Replayer, mirror } from "rrweb";
-import { FaPlay } from "react-icons/fa";
-import { FaPause } from "react-icons/fa";
-import { FaHandPointUp } from "react-icons/fa";
+import { FaUndoAlt, FaHandPointUp, FaPlay, FaPause } from "react-icons/fa";
 import { useTimer } from "use-timer";
 import styles from "./App.module.css";
 import {
@@ -18,16 +16,17 @@ import {
 import BeatLoader from "react-spinners/BeatLoader";
 import { ReactComponent as JourneyLogo } from "./logo.svg";
 import { ReactComponent as WindowOptions } from "./window-options.svg";
+import Slider, { Range } from "rc-slider";
+
+import "rc-slider/assets/index.css";
 
 const AppInternal = props => {
   const { vid } = useParams();
   const [replayer, setReplayer] = useState(undefined);
   const [paused, setPaused] = useState(true);
+  const [time, setTime] = useState(0);
+  const [ticker, setTicker] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
-  const { time, start, pause, reset } = useTimer({
-    interval: 50,
-    step: 50
-  });
 
   const { loading, error, data = [] } = useFetch(
     process.env.REACT_APP_BACKEND_URI +
@@ -38,6 +37,26 @@ const AppInternal = props => {
     {},
     []
   );
+
+  useEffect(() => {
+    if (paused) {
+      clearInterval(ticker);
+      setTicker(undefined);
+      return;
+    }
+    if (!ticker) {
+      const ticker = setInterval(() => {
+        setTime(time => {
+          if (time < totalTime) {
+            return time + 50;
+          }
+          setPaused(true);
+          return time;
+        });
+      }, 50);
+      setTicker(ticker);
+    }
+  });
 
   useEffect(() => {
     if (data && data.events && data.events.length > 1) {
@@ -71,29 +90,9 @@ const AppInternal = props => {
           <div className={styles.rrwebPlayerWrapper}>
             <div className={styles.browserHeader}>
               <WindowOptions className={styles.windowOptions} />
-              <div
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  paddingLeft: 20
-                }}
-              >
-                <div
-                  style={{
-                    borderRadius: 10,
-                    backgroundColor: "white",
-                    width: "80%",
-                    height: "55%",
-                    marginRight: "auto",
-                    paddingLeft: 20,
-                    fontSize: 14,
-                    display: "grid"
-                  }}
-                >
-                  <span style={{ marginBottom: 3, alignSelf: "end" }}>
+              <div className={styles.urlAddressBarWrapper}>
+                <div className={styles.urlAddressBar}>
+                  <span className={styles.urlText}>
                     {mirror && mirror.map && mirror.map[1] && mirror.map[1].URL}
                   </span>
                 </div>
@@ -102,30 +101,49 @@ const AppInternal = props => {
             <div className={styles.rrwebPlayerDiv} id="player" />
           </div>
         </div>
-        <div className={styles.progressBar} />
+        <Slider
+          onChange={e => setTime(e)}
+          value={time}
+          max={totalTime}
+          disabled={false}
+          pushable={true}
+        />
         <div className={styles.toolbarSection}>
-          <div className={styles.playSection}>
+          <div
+            className={styles.playSection}
+            onClick={() => {
+              if (paused) {
+                replayer.play(time);
+                setPaused(false);
+              } else {
+                replayer.pause();
+                setPaused(true);
+              }
+            }}
+          >
             {paused ? (
-              <FaPlay
-                fill="black"
-                style={{ height: 25, width: 30 }}
-                onClick={() => {
-                  replayer.play();
-                  start();
-                  setPaused(false);
-                }}
-              />
+              <FaPlay fill="black" className={styles.playButtonStyle} />
             ) : (
-              <FaPause
-                fill="black"
-                style={{ height: 25, width: 30 }}
-                onClick={() => {
-                  replayer.pause();
-                  reset();
-                  setPaused(true);
-                }}
-              />
+              <FaPause fill="black" className={styles.playButtonStyle} />
             )}
+          </div>
+          <div
+            className={styles.undoSection}
+            onClick={() => {
+              const newTime = time - 7000 < 0 ? 0 : time - 7000;
+              if (paused) {
+                replayer.pause(newTime);
+                setTime(newTime);
+              } else {
+                replayer.play(newTime);
+                setTime(newTime);
+              }
+            }}
+          >
+            <FaUndoAlt fill="black" className={styles.undoButtonStyle} />
+          </div>
+          <div className={styles.timeSection}>
+            {millisToMinutesAndSeconds(time)}
           </div>
         </div>
       </div>
