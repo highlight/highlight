@@ -11,7 +11,7 @@ const browser = detect();
 
 window.addEventListener('load', function () {
   visitID = v4();
-  console.log(`page loaded, visitID: ${visitID}`);
+  console.log(`page loaded, remote: ${backendURL}, visitID: ${visitID}`);
   fetch(`https://geolocation-db.com/json/`)
     .then(res => res.json())
     .then(json => {
