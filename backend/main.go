@@ -35,7 +35,8 @@ func addEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 type EventsStruct struct {
-	events map[string][]*json.RawMessage
+	Events               []json.RawMessage `json:"events"`
+	VisitLocationDetails json.RawMessage   `json:"visitLocationDetails"`
 }
 
 // Gets all of the 'event' blobs, puts them together, and returns it to the frontend.
@@ -55,14 +56,15 @@ func getEvents(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "error reading body contents", http.StatusConflict)
 		return
 	}
-	allEvents := make(map[string][]*json.RawMessage)
+	allEvents := &EventsStruct{}
 	for _, eventObj := range eventObjs {
-		events := make(map[string][]*json.RawMessage)
-		if err := json.Unmarshal([]byte(*eventObj.Events), &events); err != nil {
+		events := &EventsStruct{}
+		if err := json.Unmarshal([]byte(*eventObj.Events), events); err != nil {
 			http.Error(w, fmt.Sprintf("Error decoding data: %v", err), http.StatusNotFound)
 			return
 		}
-		allEvents["events"] = append(allEvents["events"], events["events"]...)
+		allEvents.VisitLocationDetails = events.VisitLocationDetails
+		allEvents.Events = append(allEvents.Events, events.Events...)
 	}
 	j, err := json.Marshal(allEvents)
 	if err != nil {
