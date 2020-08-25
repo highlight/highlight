@@ -80,6 +80,7 @@ const AppInternal = props => {
       </div>
     );
   }
+  console.log(mirror);
   if (error) {
     return <p>{error.toString()}</p>;
   }
