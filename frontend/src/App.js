@@ -45,7 +45,6 @@ const AppInternal = props => {
       return;
     }
     if (!ticker) {
-      console.log("sup");
       const ticker = setInterval(() => {
         setTime(time => {
           if (time < totalTime) {
@@ -114,7 +113,7 @@ const AppInternal = props => {
             className={styles.playSection}
             onClick={() => {
               if (paused) {
-                replayer.play();
+                replayer.play(time);
                 setPaused(false);
               } else {
                 replayer.pause();
