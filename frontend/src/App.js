@@ -3,20 +3,12 @@ import { useFetch } from "use-http";
 import { Route, useParams, BrowserRouter as Router } from "react-router-dom";
 import { Replayer, mirror } from "rrweb";
 import { FaUndoAlt, FaHandPointUp, FaPlay, FaPause } from "react-icons/fa";
-import { useTimer } from "use-timer";
 import styles from "./App.module.css";
-import {
-  Link,
-  Element,
-  Events,
-  animateScroll as scroll,
-  scrollSpy,
-  scroller
-} from "react-scroll";
+import { Element, scroller } from "react-scroll";
 import BeatLoader from "react-spinners/BeatLoader";
 import { ReactComponent as JourneyLogo } from "./logo.svg";
 import { ReactComponent as WindowOptions } from "./window-options.svg";
-import Slider, { Range } from "rc-slider";
+import Slider from "rc-slider";
 
 import "rc-slider/assets/index.css";
 
@@ -56,7 +48,7 @@ const AppInternal = props => {
       }, 50);
       setTicker(ticker);
     }
-  });
+  }, [setTicker, paused, ticker, totalTime]);
 
   useEffect(() => {
     if (data && data.events && data.events.length > 1) {
@@ -80,7 +72,6 @@ const AppInternal = props => {
       </div>
     );
   }
-  console.log(mirror);
   if (error) {
     return <p>{error.toString()}</p>;
   }
@@ -207,7 +198,7 @@ const EventStream = props => {
         {events &&
           replayer &&
           events.map((e, i) => {
-            if (!isClick(e)) return;
+            if (!isClick(e)) return <></>;
             let clickStr =
               mirror.map[e.data.id] && mirror.map[e.data.id].localName;
             let timeSinceStart = e.timestamp - replayer.getMetaData().startTime;
