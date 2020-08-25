@@ -33,7 +33,7 @@ function save() {
     return;
   }
   const body = JSON.stringify({ visitLocationDetails, events });
-  console.log(events.length);
+  console.log(`sending ${events.length} events...`);
   events = [];
   fetch(`${process.env.BACKEND_URI}/add-events`, {
     method: 'POST',

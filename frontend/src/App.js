@@ -181,40 +181,37 @@ const EventStream = props => {
           )}
         </div>
       </div>
-      <div style={{ height: "100%" }}>
-        <div id="wrapper" className={styles.eventStreamContainer}>
-          <div className={styles.emptyScrollDiv}></div>
-          {events &&
-            replayer &&
-            events.map((e, i) => {
-              if (!isClick(e)) return;
-              let clickStr =
-                mirror.map[e.data.id] && mirror.map[e.data.id].localName;
-              let timeSinceStart =
-                e.timestamp - replayer.getMetaData().startTime;
-              return (
-                <Element name={i.toString()} key={i.toString()}>
-                  <div
-                    className={styles.streamElement}
-                    style={{
-                      backgroundColor: currClick === i && "#F2EDFF"
-                    }}
-                    key={i}
-                    id={i}
-                  >
-                    <div style={{ marginRight: 10 }}>
-                      <FaHandPointUp />
-                    </div>
-                    &nbsp;Clicked &nbsp;&nbsp;
-                    <div>{clickStr}</div>
-                    <div style={{ marginLeft: "auto" }}>
-                      {millisToMinutesAndSeconds(timeSinceStart)}
-                    </div>
+      <div id="wrapper" className={styles.eventStreamContainer}>
+        <div className={styles.emptyScrollDiv}></div>
+        {events &&
+          replayer &&
+          events.map((e, i) => {
+            if (!isClick(e)) return;
+            let clickStr =
+              mirror.map[e.data.id] && mirror.map[e.data.id].localName;
+            let timeSinceStart = e.timestamp - replayer.getMetaData().startTime;
+            return (
+              <Element name={i.toString()} key={i.toString()}>
+                <div
+                  className={styles.streamElement}
+                  style={{
+                    backgroundColor: currClick === i && "#F2EDFF"
+                  }}
+                  key={i}
+                  id={i}
+                >
+                  <div style={{ marginRight: 10 }}>
+                    <FaHandPointUp />
                   </div>
-                </Element>
-              );
-            })}
-        </div>
+                  &nbsp;Clicked &nbsp;&nbsp;
+                  <div>{clickStr}</div>
+                  <div style={{ marginLeft: "auto" }}>
+                    {millisToMinutesAndSeconds(timeSinceStart)}
+                  </div>
+                </div>
+              </Element>
+            );
+          })}
       </div>
     </>
   );
