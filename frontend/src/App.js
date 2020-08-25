@@ -166,20 +166,22 @@ const EventStream = props => {
   return (
     <>
       <div className={styles.locationBox}>
-        <div className={styles.innerLocationBox}>
-          <div style={{ color: "black" }}>
-            {visitLocationDetails.city}, {visitLocationDetails.postal},{" "}
-            {visitLocationDetails.country_name}
-          </div>
-          <div style={{ color: "black" }}>{startDate.toUTCString()}</div>
-          {visitLocationDetails.browser && (
+        {visitLocationDetails && (
+          <div className={styles.innerLocationBox}>
             <div style={{ color: "black" }}>
-              {visitLocationDetails.browser.os},
-              {visitLocationDetails.browser.name} &nbsp;-&nbsp;
-              {visitLocationDetails.browser.version}
+              {visitLocationDetails.city}, {visitLocationDetails.postal},{" "}
+              {visitLocationDetails.country_name}
             </div>
-          )}
-        </div>
+            <div style={{ color: "black" }}>{startDate.toUTCString()}</div>
+            {visitLocationDetails.browser && (
+              <div style={{ color: "black" }}>
+                {visitLocationDetails.browser.os},
+                {visitLocationDetails.browser.name} &nbsp;-&nbsp;
+                {visitLocationDetails.browser.version}
+              </div>
+            )}
+          </div>
+        )}
       </div>
       <div id="wrapper" className={styles.eventStreamContainer}>
         <div className={styles.emptyScrollDiv}></div>
