@@ -1,6 +1,7 @@
-package main
+package database
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -13,13 +14,37 @@ import (
 
 var DB *gorm.DB
 
+type EventsStruct struct {
+	Events               []json.RawMessage `json:"events"`
+	VisitLocationDetails json.RawMessage   `json:"visitLocationDetails"`
+}
+
 type EventsObject struct {
 	gorm.Model
 	Events  *string
 	VisitID *string
 }
 
-func SetupDB() {
+type Organization struct {
+	gorm.Model
+	Name   *string
+	Users  []User
+	Admins []Admin
+}
+
+type Admin struct {
+	gorm.Model
+	OrganizationID uint
+	PasswordHash   *string
+}
+
+type User struct {
+	gorm.Model
+	OrganizationID uint
+	EventsObjects  []EventsObject
+}
+
+func SetupDB() *gorm.DB {
 	psqlConf := fmt.Sprintf(
 		"host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable",
 		os.Getenv("PSQL_HOST"),
@@ -33,5 +58,5 @@ func SetupDB() {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	DB.AutoMigrate(&EventsObject{})
-
+	return DB
 }

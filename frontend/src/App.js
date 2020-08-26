@@ -135,7 +135,8 @@ const AppInternal = props => {
             <FaUndoAlt fill="black" className={styles.undoButtonStyle} />
           </div>
           <div className={styles.timeSection}>
-            {millisToMinutesAndSeconds(time)}
+            {millisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
+            {millisToMinutesAndSeconds(totalTime)}
           </div>
         </div>
       </div>
