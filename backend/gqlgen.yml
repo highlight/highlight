@@ -43,6 +43,10 @@ autobind:
 # modelgen, the others will be allowed when binding to fields. Configure them to
 # your liking
 models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.IntID
+      - github.com/99designs/gqlgen/graphql.ID
   Int:
     model:
       - github.com/99designs/gqlgen/graphql.Int

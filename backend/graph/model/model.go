@@ -4,35 +4,50 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/jinzhu/gorm/dialects/postgres"
 )
 
 var DB *gorm.DB
 
-type EventsObject struct {
-	gorm.Model
-	Events  *string
-	VisitID *string
+type Model struct {
+	ID        int        `gorm:"primary_key" json:"id"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
+	DeletedAt *time.Time `json:"deleted_at"`
 }
 
 type Organization struct {
-	gorm.Model
+	Model
 	Name   *string
 	Users  []User
 	Admins []Admin
 }
 
 type Admin struct {
-	gorm.Model
-	OrganizationID uint
-	PasswordHash   *string
+	Model
+	OrganizationID int
 }
 
 type User struct {
-	gorm.Model
-	OrganizationID uint
-	EventsObjects  []EventsObject
+	Model
+	OrganizationID int
+	Session        []Session
+}
+
+type Session struct {
+	Model
+	UserID        int            `json:"user_id"`
+	Details       postgres.Jsonb `json:"details"`
+	EventsObjects []EventsObject
+}
+
+type EventsObject struct {
+	Model
+	SessionID int
+	Events    postgres.Jsonb
 }
 
 func SetupDB() {

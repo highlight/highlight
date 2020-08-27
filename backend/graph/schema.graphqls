@@ -6,11 +6,16 @@ scalar Any
 
 type Session {
   id: ID!
-  events: [Any]
-  visitLocationDetails: Any
+  details: Any!
 }
 
 type Query {
-  session(id: String!): Session
+  session(id: ID!): Session
+  events(session_id: ID!): [Any]
 }
 
+type Mutation {
+  # Creates a new user (if it doesn't already exist), creates a new session, and returns the session id.
+  identifySession(org_id: ID!, details: Any!): ID
+  addEvents(session_id: ID!): ID
+}
