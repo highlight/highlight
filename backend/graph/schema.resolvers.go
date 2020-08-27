@@ -15,7 +15,7 @@ import (
 
 func (r *queryResolver) Session(ctx context.Context, id string) (*model.Session, error) {
 	eventObjs := []*database.EventsObject{}
-	if res := database.DB.Order("created_at asc").Where(&database.EventsObject{VisitID: &id}).Find(&eventObjs); res.Error != nil {
+	if res := database.DB.Order("created_at desc").Where(&database.EventsObject{VisitID: &id}).Find(&eventObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
 	session := &model.Session{}

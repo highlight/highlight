@@ -11,6 +11,6 @@ type Session {
 }
 
 type Query {
-  session(id: ID!): Session
+  session(id: String!): Session
 }
 

@@ -167,7 +167,7 @@ type Session {
 }
 
 type Query {
-  session(id: ID!): Session
+  session(id: String!): Session
 }
 
 `, BuiltIn: false},
@@ -197,7 +197,7 @@ func (ec *executionContext) field_Query_session_args(ctx context.Context, rawArg
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
