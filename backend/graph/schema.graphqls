@@ -1,0 +1,16 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+scalar Any
+
+type Session {
+  id: ID!
+  events: [Any]
+  visitLocationDetails: Any
+}
+
+type Query {
+  session(id: String!): Session
+}
+
