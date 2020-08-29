@@ -8,24 +8,27 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jay-khatri/fullstory/backend/graph/generated"
-	"github.com/jay-khatri/fullstory/backend/graph/model"
+	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
+	"github.com/jay-khatri/fullstory/backend/model"
+
 	e "github.com/pkg/errors"
 )
 
-func (r *mutationResolver) IdentifySession(ctx context.Context, orgID int, details interface{}) (*int, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int) (*int, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
+	org := &model.Organization{
+		Name: &name,
+	}
+	if err := r.DB.Create(org).Error; err != nil {
+		return nil, e.Wrap(err, "error creating org")
+	}
+	return org, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session)
 	if err := res.Error; err != nil || res.RecordNotFound() {
-		return nil, e.Wrap(err, "menu doesn't exist")
+		return nil, e.Wrap(err, "session doesn't exist")
 	}
 	return session, nil
 }
@@ -38,7 +41,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	allEvents := make(map[string][]interface{})
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(eventObj.Events.RawMessage), subEvents); err != nil {
+		if err := json.Unmarshal([]byte(eventObj.Events), subEvents); err != nil {
 			return nil, fmt.Errorf("error decoding event data: %v", err)
 		}
 		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)

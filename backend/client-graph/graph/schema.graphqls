@@ -1,0 +1,15 @@
+# CLIENT GRAPH
+
+scalar Any
+
+type Session {
+  id: ID!
+  user_id: ID!
+  organization_id: ID!
+  details: String
+}
+
+type Mutation {
+  identifySession(organization_id: ID!, details: String!): Session
+  addEvents(session_id: ID!, events: String!): ID
+}

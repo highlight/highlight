@@ -2,12 +2,13 @@ package model
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/gorm/dialects/postgres"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var DB *gorm.DB
@@ -50,7 +51,8 @@ type EventsObject struct {
 	Events    postgres.Jsonb
 }
 
-func SetupDB() {
+func SetupDB() *gorm.DB {
+	log.Println("setting up database")
 	psqlConf := fmt.Sprintf(
 		"host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable",
 		os.Getenv("PSQL_HOST"),
@@ -63,5 +65,6 @@ func SetupDB() {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	DB.AutoMigrate(&EventsObject{})
+	DB.AutoMigrate(&EventsObject{}, &Organization{}, &Admin{}, &User{}, &Session{})
+	return DB
 }

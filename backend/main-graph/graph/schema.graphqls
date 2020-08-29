@@ -1,0 +1,22 @@
+# MAIN GRAPH
+
+scalar Any
+
+type Session {
+  id: ID!
+  details: Any!
+}
+
+type Organization {
+  id: ID!
+  name: String!
+}
+
+type Query {
+  session(id: ID!): Session
+  events(session_id: ID!): [Any]
+}
+
+type Mutation {
+  createOrganization(name: String!): Organization
+}
