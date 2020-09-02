@@ -36,7 +36,6 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, organizationID i
 			return nil, e.Wrap(err, "error updating user")
 		}
 	}
-
 	session := &model.Session{UserID: user.ID, OrganizationID: organizationID, Details: details}
 	if err := r.DB.Create(session).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session")

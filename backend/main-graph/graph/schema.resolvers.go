@@ -10,7 +10,6 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-
 	e "github.com/pkg/errors"
 )
 
@@ -41,7 +40,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	allEvents := make(map[string][]interface{})
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(eventObj.Events), subEvents); err != nil {
+		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
 			return nil, fmt.Errorf("error decoding event data: %v", err)
 		}
 		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
@@ -49,8 +48,22 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	return allEvents["events"], nil
 }
 
-func (r *sessionResolver) Details(ctx context.Context, obj *model.Session) (interface{}, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) Users(ctx context.Context, organizationID int) ([]*model.User, error) {
+	users := []*model.User{}
+	res := r.DB.Where(&model.User{OrganizationID: organizationID}).Find(&users)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "no users found")
+	}
+	return users, nil
+}
+
+func (r *queryResolver) Sessions(ctx context.Context, userID int, organizationID int) ([]*model.Session, error) {
+	sessions := []*model.Session{}
+	res := r.DB.Where(&model.Session{UserID: userID, OrganizationID: organizationID}).Find(&sessions)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "no sessions found")
+	}
+	return sessions, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
@@ -59,9 +72,5 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-// Session returns generated.SessionResolver implementation.
-func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
-
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type sessionResolver struct{ *Resolver }

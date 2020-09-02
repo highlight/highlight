@@ -7,13 +7,18 @@ let visitLocationDetails = {};
 let start = Date.now();
 const browser = detect();
 
-class Highlight {
-	constructor() {
+window.Highlight = class Highlight {
+	constructor(organizationID) {
+		if (!organizationID) {
+			console.error('empty organization_id!');
+			return;
+		}
 		this.client = new ApolloClient({
 			uri: `${process.env.BACKEND_URI}/client`,
 			cache: new InMemoryCache(),
 			credentials: 'include',
 		});
+		this.organizationID = organizationID;
 		this.events = [];
 	}
 
@@ -21,7 +26,6 @@ class Highlight {
 		let response = await fetch(`https://geolocation-db.com/json/`);
 		let data = await response.json();
 		let details = JSON.stringify(data);
-		let test = 'hi';
 		let gr = await this.client.mutate({
 			mutation: gql`
 				mutation IdentifySession(
@@ -40,12 +44,12 @@ class Highlight {
 				}
 			`,
 			variables: {
-				organization_id: 1,
+				organization_id: this.organizationID,
 				details: details,
 			},
 		});
 		this.sessionID = gr.data.identifySession.id;
-		console.log(`created new session with data:`, gr.data);
+		console.log(`Created new session with data:`, gr.data);
 		setInterval(() => {
 			this._save();
 		}, 5 * 1000);
@@ -61,10 +65,8 @@ class Highlight {
 	// Reset the events array and push to a backend.
 	async _save() {
 		if (!this.sessionID.length) {
-			console.log('session id is empty');
 			return;
 		} else if (!this.events.length) {
-			console.log('no events');
 			return;
 		}
 		const eventsString = JSON.stringify({ events: this.events });
@@ -84,10 +86,4 @@ class Highlight {
 			},
 		});
 	}
-}
-
-window.addEventListener('load', function () {
-	console.log(`loaded highlight, remote is at ${process.env.BACKEND_URI}`);
-	const h = new Highlight();
-	h.initialize();
-});
+};

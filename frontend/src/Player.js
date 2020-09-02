@@ -1,26 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { useFetch } from "use-http";
-import { Route, useParams, BrowserRouter as Router } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Replayer, mirror } from "rrweb";
 import { FaUndoAlt, FaHandPointUp, FaPlay, FaPause } from "react-icons/fa";
 import styles from "./App.module.css";
 import { Element, scroller } from "react-scroll";
 import BeatLoader from "react-spinners/BeatLoader";
-import { ReactComponent as JourneyLogo } from "./logo.svg";
 import { ReactComponent as WindowOptions } from "./window-options.svg";
-import {
-  useQuery,
-  gql,
-  ApolloClient,
-  ApolloProvider,
-  InMemoryCache
-} from "@apollo/client";
+import { useQuery, gql } from "@apollo/client";
 import Slider from "rc-slider";
 
 import "rc-slider/assets/index.css";
 
 const Player = props => {
-  const { vid } = useParams();
+  const { session_id } = useParams();
   const [replayer, setReplayer] = useState(undefined);
   const [paused, setPaused] = useState(true);
   const [time, setTime] = useState(0);
@@ -29,10 +21,19 @@ const Player = props => {
 
   const { loading, error, data } = useQuery(gql`
     query GetSession {
-      session(id: "${vid}") {
-        events
-        visitLocationDetails
+      session(id: "${session_id}") {
+        details
       }
+    }
+  `);
+
+  const {
+    loading: sessionLoading,
+    error: sessionError,
+    data: sessionData
+  } = useQuery(gql`
+    query GetEvents {
+      events(session_id: "${session_id}")
     }
   `);
 
@@ -57,10 +58,9 @@ const Player = props => {
   }, [setTicker, paused, ticker, totalTime]);
 
   useEffect(() => {
-    if (data?.session?.events?.length > 1) {
+    if (sessionData?.events?.length > 1) {
       // Add an id field to each event so it can be referenced.
-      console.log(data.session);
-      const newEvents = data?.session?.events.map((e, i) => {
+      const newEvents = sessionData?.events.map((e, i) => {
         return { ...e, identifier: i };
       });
       let r = new Replayer(newEvents, {
@@ -69,14 +69,17 @@ const Player = props => {
       setTotalTime(r.getMetaData().totalTime);
       setReplayer(r);
     }
-  }, [data]);
+  }, [sessionData]);
 
-  if (loading) {
+  if (loading || sessionLoading) {
     return (
       <div className={styles.loadingWrapper}>
         <BeatLoader />
       </div>
     );
+  }
+  if (sessionError) {
+    return <p>{sessionError.toString()}</p>;
   }
   if (error) {
     return <p>{error.toString()}</p>;
@@ -149,8 +152,8 @@ const Player = props => {
       <div className={styles.playerRightSection}>
         <EventStream
           replayer={replayer}
-          events={data?.session?.events}
-          visitLocationDetails={data?.session?.visitLocationDetails}
+          events={sessionData?.events}
+          details={data?.session?.details}
           time={time}
         />
       </div>
@@ -163,10 +166,9 @@ const isClick = e => {
 };
 
 const EventStream = props => {
-  const { replayer, events, time, visitLocationDetails } = props;
+  const { replayer, events, time, details: detailsRaw } = props;
   const [currClick, setCurrClick] = useState(-1);
   useEffect(() => {
-    console.log(events);
     replayer &&
       replayer.on("event-cast", e => {
         if (isClick(e)) {
@@ -181,21 +183,20 @@ const EventStream = props => {
       });
   }, [replayer, time]);
   const startDate = new Date(events && events[0].timestamp);
+  const details = JSON.parse(detailsRaw);
   return (
     <>
       <div className={styles.locationBox}>
-        {visitLocationDetails && (
+        {details && (
           <div className={styles.innerLocationBox}>
             <div style={{ color: "black" }}>
-              {visitLocationDetails.city}, {visitLocationDetails.postal},{" "}
-              {visitLocationDetails.country_name}
+              {details.city}, {details.postal}, {details.country_name}
             </div>
             <div style={{ color: "black" }}>{startDate.toUTCString()}</div>
-            {visitLocationDetails.browser && (
+            {details.browser && (
               <div style={{ color: "black" }}>
-                {visitLocationDetails.browser.os},
-                {visitLocationDetails.browser.name} &nbsp;-&nbsp;
-                {visitLocationDetails.browser.version}
+                {details.browser.os},{details.browser.name} &nbsp;-&nbsp;
+                {details.browser.version}
               </div>
             )}
           </div>
@@ -206,7 +207,8 @@ const EventStream = props => {
         {events &&
           replayer &&
           events.map((e, i) => {
-            if (!isClick(e)) return <></>;
+            if (!isClick(e))
+              return <React.Fragment key={i.toString()}></React.Fragment>;
             let clickStr =
               mirror.map[e.data.id] && mirror.map[e.data.id].localName;
             let timeSinceStart = e.timestamp - replayer.getMetaData().startTime;

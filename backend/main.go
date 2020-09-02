@@ -21,12 +21,30 @@ import (
 )
 
 var (
-	allowedOrigins = []string{"http://localhost:5000"}
+	frontendURL = os.Getenv("FRONTEND_URI")
+	// TODO: fix this.
+	clientUrl_TEMPORARY_THIS_WONT_WORK = "http://localhost:5000"
 )
 
 func health(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("healthy"))
 	return
+}
+
+func validateOrigin(request *http.Request, origin string) bool {
+	if path := request.URL.Path; path == "/main" {
+		// From the highlight frontend, only the url is whitelisted.
+		if origin == frontendURL {
+			return true
+		}
+	} else if path == "/client" {
+		// From the client, we have to do some fancier logic with hitting the db.
+		// (at some point).
+		if origin == clientUrl_TEMPORARY_THIS_WONT_WORK {
+			return true
+		}
+	}
+	return false
 }
 
 var defaultPort = "8082"
@@ -53,9 +71,9 @@ func main() {
 			},
 		}))))
 	handler := cors.New(cors.Options{
-		AllowedOrigins:   allowedOrigins,
-		AllowCredentials: true,
-		AllowedHeaders:   []string{"id-token", "content-type"},
+		AllowOriginRequestFunc: validateOrigin,
+		AllowCredentials:       true,
+		AllowedHeaders:         []string{"content-type"},
 	}).Handler(mux)
 	fmt.Println("listening...")
 	log.Fatal(http.ListenAndServe(":"+port, handler))

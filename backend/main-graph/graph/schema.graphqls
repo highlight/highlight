@@ -4,7 +4,7 @@ scalar Any
 
 type Session {
   id: ID!
-  details: Any!
+  details: String!
 }
 
 type Organization {
@@ -12,9 +12,15 @@ type Organization {
   name: String!
 }
 
+type User {
+  id: ID!
+}
+
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
+  users(organization_id: ID!): [User]
+  sessions(user_id: ID!, organization_id: ID!): [Session]
 }
 
 type Mutation {

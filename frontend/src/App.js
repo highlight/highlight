@@ -1,22 +1,12 @@
-import React, { useState, useEffect } from "react";
-import { useFetch } from "use-http";
-import {
-  Switch,
-  Route,
-  useParams,
-  BrowserRouter as Router
-} from "react-router-dom";
-import { Replayer, mirror } from "rrweb";
-import { FaUndoAlt, FaHandPointUp, FaPlay, FaPause } from "react-icons/fa";
+import React from "react";
+import { Switch, Route, BrowserRouter as Router } from "react-router-dom";
 import styles from "./App.module.css";
-import { Element, scroller } from "react-scroll";
-import BeatLoader from "react-spinners/BeatLoader";
 import { ReactComponent as JourneyLogo } from "./logo.svg";
-import { ReactComponent as WindowOptions } from "./window-options.svg";
-import { ApolloClient, ApolloProvider, InMemoryCache } from "@apollo/client";
+import { ApolloProvider } from "@apollo/client";
 import Player from "./Player.js";
+import OrgPage from "./OrgPage.js";
+import UserPage from "./UserPage.js";
 import { client } from "./graph.js";
-import Slider from "rc-slider";
 
 const Header = props => {
   return (
@@ -31,9 +21,28 @@ const Header = props => {
 const App = props => {
   return (
     <div className={styles.appBody}>
-      <Router>
-        <ApolloProvider client={client}>
+      <Header />
+      <ApolloProvider client={client}>
+        <Router>
           <Switch>
+            <Route
+              path="/:organization_id/:user_id/:session_id"
+              component={props => (
+                <>
+                  <div className={styles.playerPageBody}>
+                    <Player {...props} />
+                  </div>
+                </>
+              )}
+            />
+            <Route
+              path="/:organization_id/:user_id"
+              component={props => <UserPage {...props} />}
+            />
+            <Route
+              path="/:organization_id"
+              component={props => <OrgPage {...props} />}
+            />
             <Route path="/:vid">
               <Header />
               <div className={styles.playerPageBody}>
@@ -44,8 +53,8 @@ const App = props => {
               <p>yo, waddup</p>
             </Route>
           </Switch>
-        </ApolloProvider>
-      </Router>
+        </Router>
+      </ApolloProvider>
     </div>
   );
 };
