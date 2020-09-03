@@ -49,7 +49,13 @@ window.Highlight = class Highlight {
 			},
 		});
 		this.sessionID = gr.data.identifySession.id;
-		console.log(`Created new session with data:`, gr.data);
+		console.log(
+			`Loaded Highlight
+Remote: ${process.env.BACKEND_URI}
+Session Data: 
+`,
+			gr.data
+		);
 		setInterval(() => {
 			this._save();
 		}, 5 * 1000);
@@ -71,7 +77,7 @@ window.Highlight = class Highlight {
 		}
 		const eventsString = JSON.stringify({ events: this.events });
 		console.log(
-			`sending ${this.events.length} events to ${process.env.BACKEND_URI}`
+			`Send (${this.events.length}) @ ${process.env.BACKEND_URI}`
 		);
 		this.events = [];
 		let gr = await this.client.mutate({

@@ -22,8 +22,6 @@ import (
 
 var (
 	frontendURL = os.Getenv("FRONTEND_URI")
-	// TODO: fix this.
-	clientUrl_TEMPORARY_THIS_WONT_WORK = "http://localhost:5000"
 )
 
 func health(w http.ResponseWriter, r *http.Request) {
@@ -38,11 +36,7 @@ func validateOrigin(request *http.Request, origin string) bool {
 			return true
 		}
 	} else if path == "/client" {
-		// From the client, we have to do some fancier logic with hitting the db.
-		// (at some point).
-		if origin == clientUrl_TEMPORARY_THIS_WONT_WORK {
-			return true
-		}
+		return true
 	}
 	return false
 }

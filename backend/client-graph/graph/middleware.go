@@ -3,15 +3,11 @@ package graph
 import (
 	"context"
 	"net/http"
-	"os"
 
-	"github.com/gorilla/sessions"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/redis"
 	e "github.com/pkg/errors"
 )
-
-var store = sessions.NewCookieStore([]byte(os.Getenv("SESSION_KEY")))
 
 func ClientMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
