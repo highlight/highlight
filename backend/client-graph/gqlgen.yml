@@ -35,7 +35,7 @@ resolver:
 # gqlgen will search for any type names in the schema in these go packages
 # if they match it will use them, otherwise it will generate them.
 autobind:
-  - "github.com/jay-khatri/fullstory/backend/graph/model"
+  - "github.com/jay-khatri/fullstory/backend/model"
 
 # This section declares type mapping between the GraphQL and go type systems
 #
@@ -43,6 +43,10 @@ autobind:
 # modelgen, the others will be allowed when binding to fields. Configure them to
 # your liking
 models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.IntID
+      - github.com/99designs/gqlgen/graphql.ID
   Int:
     model:
       - github.com/99designs/gqlgen/graphql.Int

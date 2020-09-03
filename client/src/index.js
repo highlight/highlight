@@ -1,51 +1,95 @@
 import { record } from 'rrweb';
-import { v4 } from 'uuid';
 import { detect } from 'detect-browser';
+import { InMemoryCache, gql, ApolloClient } from '@apollo/client/core';
 
-let events = [];
 let visitID = '';
-let backendURL = process.env.BACKEND_URI;
 let visitLocationDetails = {};
 let start = Date.now();
 const browser = detect();
 
-window.addEventListener('load', function () {
-  visitID = v4();
-  console.log(`page loaded, remote: ${backendURL}, visitID: ${visitID}`);
-  fetch(`https://geolocation-db.com/json/`)
-    .then(res => res.json())
-    .then(json => {
-      visitLocationDetails = json;
-      visitLocationDetails.browser = browser;
-    });
-});
+window.Highlight = class Highlight {
+	constructor(organizationID) {
+		if (!organizationID) {
+			console.error('empty organization_id!');
+			return;
+		}
+		this.client = new ApolloClient({
+			uri: `${process.env.BACKEND_URI}/client`,
+			cache: new InMemoryCache(),
+			credentials: 'include',
+		});
+		this.organizationID = organizationID;
+		this.events = [];
+	}
 
-record({
-  emit(event) {
-    // push event into the events array
-    events.push(event);
-  },
-});
+	async initialize() {
+		let response = await fetch(`https://geolocation-db.com/json/`);
+		let data = await response.json();
+		let details = JSON.stringify(data);
+		let gr = await this.client.mutate({
+			mutation: gql`
+				mutation IdentifySession(
+					$organization_id: ID!
+					$details: String!
+				) {
+					identifySession(
+						organization_id: $organization_id
+						details: $details
+					) {
+						id
+						user_id
+						organization_id
+						details
+					}
+				}
+			`,
+			variables: {
+				organization_id: this.organizationID,
+				details: details,
+			},
+		});
+		this.sessionID = gr.data.identifySession.id;
+		console.log(
+			`Loaded Highlight
+Remote: ${process.env.BACKEND_URI}
+Session Data: 
+`,
+			gr.data
+		);
+		setInterval(() => {
+			this._save();
+		}, 5 * 1000);
+		const emit = event => {
+			this.events.push(event);
+		};
+		emit.bind(this);
+		record({
+			emit,
+		});
+	}
 
-// Reset the events array and push to a backend.
-function save() {
-  if (!visitID.length || !events.length) {
-    return;
-  }
-  const body = JSON.stringify({ visitLocationDetails, events });
-  console.log(`sending ${events.length} events...`);
-  events = [];
-  fetch(`${process.env.BACKEND_URI}/add-events`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Visit-ID': visitID,
-    },
-    body,
-  });
-}
-
-// Run every 5 seconds.
-setInterval(() => {
-  save();
-}, 5 * 1000);
+	// Reset the events array and push to a backend.
+	async _save() {
+		if (!this.sessionID.length) {
+			return;
+		} else if (!this.events.length) {
+			return;
+		}
+		const eventsString = JSON.stringify({ events: this.events });
+		console.log(
+			`Send (${this.events.length}) @ ${process.env.BACKEND_URI}`
+		);
+		this.events = [];
+		let gr = await this.client.mutate({
+			mutation: gql`
+				mutation AddEvents($session_id: ID!, $events: String!) {
+					addEvents(session_id: $session_id, events: $events)
+				}
+			`,
+			variables: {
+				session_id: this.sessionID,
+				events: eventsString,
+			},
+		});
+	}
+};
