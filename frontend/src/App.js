@@ -1,14 +1,35 @@
 import React, { useState, useEffect } from "react";
-import Cotter from "cotter";
-import { Switch, Route, BrowserRouter as Router } from "react-router-dom";
+import {
+  Switch,
+  Route,
+  BrowserRouter as Router,
+  Redirect
+} from "react-router-dom";
 import styles from "./App.module.css";
 import { ApolloProvider } from "@apollo/client";
 import Player from "./Player.js";
 import OrgPage from "./OrgPage.js";
 import UserPage from "./UserPage.js";
 import { client } from "./graph.js";
-import {ReactComponent as HighlightLogo} from './static/highlight-logo.svg';
+import { ReactComponent as HighlightLogo } from "./static/highlight-logo.svg";
+import { useAuthState } from "react-firebase-hooks/auth";
 
+import BarLoader from "react-spinners/ClipLoader";
+import * as firebase from "firebase/app";
+import "firebase/auth";
+
+var firebaseConfig = {
+  apiKey: "AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68",
+  authDomain: "auth.highlight.run",
+  databaseURL: "https://highlight-f5c5b.firebaseio.com",
+  projectId: "highlight-f5c5b",
+  storageBucket: "highlight-f5c5b.appspot.com",
+  messagingSenderId: "263184175068",
+  appId: "1:263184175068:web:f8190c20320087d1c6c919"
+};
+
+firebase.initializeApp(firebaseConfig);
+var provider = new firebase.auth.GoogleAuthProvider();
 
 const Header = props => {
   return (
@@ -27,7 +48,7 @@ const App = props => {
       <ApolloProvider client={client}>
         <Router>
           <Switch>
-            <Route path="/">
+            <Route>
               <Login />
             </Route>
             <Route
@@ -55,24 +76,28 @@ const App = props => {
   );
 };
 
-const Login = props => {
-  const [payload, setpayload] = useState(null);
+const login = () => {
+  firebase.auth().signInWithRedirect(provider);
+};
 
+const logout = () => {
+  firebase.auth().signOut();
+};
+
+const Login = props => {
+  const [user, loading, error] = useAuthState(firebase.auth());
+  console.log(user);
   useEffect(() => {
-    var cotter = new Cotter("52f49943-fe7a-4b05-861e-7ffa6ad3071f"); // 👈 Specify your API KEY ID here
-    cotter
-      .signInWithLink()
-      .showEmailForm()
-      .then(response => {
-        setpayload(response); // show the response in our state
-      })
-      .catch(err => console.log(err));
-  }, []);
+    if (user) {
+      console.log(user.getIdToken());
+    }
+  }, [user]);
 
   return (
-    <div className={styles.signinWrapper}>
-      <div id="cotter-form-container" style={{ width: 300, height: 300 }} />
-    </div>
+    <>
+      {loading ? <p>loading</p> : <p>chicken</p>}
+      <button onClick={() => login()}>hi</button>
+    </>
   );
 };
 

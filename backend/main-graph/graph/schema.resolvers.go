@@ -66,6 +66,10 @@ func (r *queryResolver) Sessions(ctx context.Context, userID int, organizationID
 	return sessions, nil
 }
 
+func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 

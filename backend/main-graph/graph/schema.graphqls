@@ -16,11 +16,16 @@ type User {
   id: ID!
 }
 
+type Admin {
+  id: ID!
+}
+
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
   users(organization_id: ID!): [User]
   sessions(user_id: ID!, organization_id: ID!): [Session]
+  admin: Admin
 }
 
 type Mutation {

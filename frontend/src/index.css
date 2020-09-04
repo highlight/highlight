@@ -17,6 +17,10 @@ body {
   overflow: hidden;
 }
 
+.input_label {
+  visibility: hidden !important;
+}
+
 .replayer-wrapper {
   height: 100%;
   width: 100%;
