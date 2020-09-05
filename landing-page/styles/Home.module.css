@@ -151,6 +151,12 @@
   font-weight: 200;
 }
 
+.sideNote {
+  margin-top: 20px;
+  width: 100%;
+  font-weight: 200;
+}
+
 @font-face {
   font-family: AvenirNext;
   src: url(/font/AvenirNext-Heavy.ttf);
