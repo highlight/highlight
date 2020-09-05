@@ -12,11 +12,9 @@
 }
 
 .contentWrap {
+  flex-wrap: wrap;
   flex-grow: 1;
   display: flex;
-  padding: 10px;
-  height: 100%;
-  margin-top: -60px;
 }
 
 .formWrapper {
@@ -91,7 +89,6 @@
 .navbar {
   z-index: 10;
   width: 100%;
-  height: 60px;
 }
 
 .copyHeader {
@@ -151,7 +148,7 @@
 .copyBody {
   color: #666666;
   margin-top: 20px;
-  font-size: 25px;
+  font-size: 22px;
   font-weight: 200;
 }
 
@@ -189,4 +186,80 @@
   font-family: AvenirNext;
   src: url(/font/AvenirNext-UltraLight.ttf);
   font-weight: 100;
+}
+
+.pricingWrap {
+  flex-wrap: wrap;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pricingSubHeader {
+  font-size: 20px;
+  font-weight: 200;
+  width: 600px;
+  text-align: center;
+  color: #9e9e9e;
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+
+.pricingHeader {
+  font-size: 40px;
+  font-weight: 400;
+  width: 600px;
+  text-align: center;
+}
+
+.pricingCards {
+  display: flex;
+}
+
+.pricingCard {
+  padding: 20px;
+  margin: 20px;
+  display: flex;
+  width: 300px;
+  border: 1px solid #c0c0c0;
+  flex-direction: column;
+  border-radius: 10px;
+}
+
+.pricingTag {
+  display: flex;
+  border: none;
+  background-color: #5629c6;
+  display: inline-block;
+  padding: 7px;
+  padding-right: 10px;
+  padding-left: 10px;
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+}
+
+.price {
+  margin-top: 14px;
+  font-size: 38px;
+}
+
+.priceSubHeader {
+  font-size: 22px;
+  font-weight: 300;
+  color: #c0c0c0;
+}
+
+.featuresText {
+  margin-top: 14px;
+  font-weight: 300;
+  color: #9719d2;
+  font-size: 24px;
+}
+
+.featureItem {
+  margin-top: 7px;
+  font-size: 15px;
+  font-weight: 200;
 }
