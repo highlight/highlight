@@ -1,6 +1,6 @@
 .wrapper {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   max-width: 100vw;
   display: flex;
   margin: 0px;
@@ -19,7 +19,9 @@
 
 .formWrapper {
   display: flex;
-  height: 45px;
+  min-height: 45px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .requestInput {
@@ -52,18 +54,23 @@
   height: 300px;
 }
 
+.linkLink {
+  color: black;
+}
+
 .copySection {
   padding: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  width: 550px;
+  max-width: 550px;
 }
 
 .navbarLink {
   font-size: 18px;
   height: 100%;
+  color: black;
   display: flex;
   justify-content: center;
   align-items: center;

@@ -20,7 +20,7 @@ export default function Home() {
           </div>
           <RequestForm />
           <div className={styles.sideNote}>
-           Setup is just two lines of code.
+            And setup takes just two lines of code 😇.
           </div>
         </div>
         <div className={styles.gifSection}>
