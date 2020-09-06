@@ -1,0 +1,19 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: AvenirNext !important;
+}
+
+a {
+  color: black !important;
+  text-decoration: none;
+}
+
+.bg-light {
+  background-color: white !important;
+}
+
+* {
+  box-sizing: border-box;
+}
