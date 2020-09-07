@@ -10,6 +10,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+
 	e "github.com/pkg/errors"
 )
 
@@ -67,7 +68,32 @@ func (r *queryResolver) Sessions(ctx context.Context, userID int, organizationID
 }
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
-	panic(fmt.Errorf("not implemented"))
+	uid := fmt.Sprintf("%v", ctx.Value("uid"))
+	admin := &model.Admin{UID: &uid}
+	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		// If the user doesn't exist yet, we create
+		// one along with their own org.
+		fbuser, err := AuthClient.GetUser(context.Background(), uid)
+		if err != nil {
+			return nil, e.Wrap(err, "error retrieiving user from firebase api")
+		}
+		newOrg := model.Organization{Name: &fbuser.DisplayName}
+		if err := r.DB.Create(newOrg).Error; err != nil {
+			return nil, e.Wrap(err, "error creating new organization")
+		}
+		newAdmin := &model.Admin{
+			UID:           &uid,
+			Name:          &fbuser.DisplayName,
+			Email:         &fbuser.Email,
+			Organizations: []model.Organization{newOrg},
+		}
+		if err := r.DB.Create(newAdmin).Error; err != nil {
+			return nil, e.Wrap(err, "error creating new admin")
+		}
+		admin = newAdmin
+	}
+	return admin, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

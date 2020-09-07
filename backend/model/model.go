@@ -29,7 +29,10 @@ type Organization struct {
 
 type Admin struct {
 	Model
-	OrganizationID int
+	Name          *string
+	Email         *string
+	UID           *string `gorm:"uniqueIndex"`
+	Organizations []Organization
 }
 
 type User struct {
