@@ -18,6 +18,7 @@ type User {
 
 type Admin {
   id: ID!
+  name: String!
 }
 
 type Query {

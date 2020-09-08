@@ -62,6 +62,7 @@ const App = props => {
         <Switch>
           <Route>
             <p>logged in</p>
+            <p>{JSON.stringify(data)}</p>
           </Route>
           <Route
             path="/:organization_id/:user_id/:session_id"
