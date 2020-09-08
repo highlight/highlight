@@ -78,7 +78,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err != nil {
 			return nil, e.Wrap(err, "error retrieiving user from firebase api")
 		}
-		newOrg := model.Organization{Name: &fbuser.DisplayName}
+		newOrg := &model.Organization{Name: &fbuser.DisplayName}
 		if err := r.DB.Create(newOrg).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new organization")
 		}
@@ -86,7 +86,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			UID:           &uid,
 			Name:          &fbuser.DisplayName,
 			Email:         &fbuser.Email,
-			Organizations: []model.Organization{newOrg},
+			Organizations: []model.Organization{*newOrg},
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new admin")

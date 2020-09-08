@@ -29,9 +29,13 @@ func health(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateOrigin(request *http.Request, origin string) bool {
+	log.Println("here")
 	if path := request.URL.Path; path == "/main" {
 		// From the highlight frontend, only the url is whitelisted.
+		log.Println(origin)
+		log.Println(frontendURL)
 		if origin == frontendURL {
+			log.Println("returning")
 			return true
 		}
 	} else if path == "/client" {
@@ -65,8 +69,9 @@ func main() {
 	handler := cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
-		AllowedHeaders:         []string{"content-type"},
+		AllowedHeaders:         []string{"Content-Type", "Token"},
 	}).Handler(mux)
+
 	fmt.Println("listening...")
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }

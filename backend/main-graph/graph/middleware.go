@@ -26,7 +26,7 @@ func init() {
 
 func AdminMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("id-token")
+		token := r.Header.Get("token")
 		t, err := AuthClient.VerifyIDToken(context.Background(), token)
 		if err != nil {
 			http.Error(w, e.Wrap(err, "invalid id token").Error(), http.StatusInternalServerError)
