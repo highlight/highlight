@@ -13,10 +13,6 @@
   }
 }
 
-.rc-slider {
-  cursor: pointer;
-}
-
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -26,14 +22,6 @@
   justify-content: center;
   font-size: calc(10px + 2vmin);
   color: white;
-}
-
-iframe {
-  height: 400px;
-}
-
-.replayer-wrapper {
-  transform: none !important;
 }
 
 .App-link {
