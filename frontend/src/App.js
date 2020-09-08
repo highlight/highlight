@@ -52,6 +52,7 @@ const App = props => {
     query GetAdmin {
       admin {
         id
+        name
       }
     }
   `);
