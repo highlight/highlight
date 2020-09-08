@@ -1,14 +1,18 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./index.css";
-import App from "./App";
+import { AuthAppRouter } from "./App";
 import * as serviceWorker from "./serviceWorker";
+import { ApolloProvider } from "@apollo/client";
+import { client } from "./graph.js";
+import "./index.css";
 
 ReactDOM.render(
-	<React.StrictMode>
-		<App />
-	</React.StrictMode>,
-	document.getElementById("root")
+  <React.StrictMode>
+    <ApolloProvider client={client}>
+      <AuthAppRouter />
+    </ApolloProvider>
+  </React.StrictMode>,
+  document.getElementById("root")
 );
 
 // If you want your app to work offline and load faster, you can change

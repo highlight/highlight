@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/redis"
 	"github.com/rs/cors"
@@ -51,13 +50,12 @@ func main() {
 	redis.SetupRedis()
 	db := model.SetupDB()
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", playground.Handler("GraphQL playground", "/main"))
-	mux.Handle("/main", ha.GraphQL(mgenerated.NewExecutableSchema(
+	mux.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
 		mgenerated.Config{
 			Resolvers: &mgraph.Resolver{
 				DB: db,
 			},
-		})))
+		}))))
 	mux.Handle("/client", cgraph.ClientMiddleWare(ha.GraphQL(cgenerated.NewExecutableSchema(
 		cgenerated.Config{
 			Resolvers: &cgraph.Resolver{
@@ -67,8 +65,9 @@ func main() {
 	handler := cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
-		AllowedHeaders:         []string{"content-type"},
+		AllowedHeaders:         []string{"Content-Type", "Token"},
 	}).Handler(mux)
+
 	fmt.Println("listening...")
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
