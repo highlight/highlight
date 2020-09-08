@@ -53,6 +53,7 @@ const App = props => {
       admin {
         id
         name
+        email
       }
     }
   `);
