@@ -13,7 +13,7 @@ import "rc-slider/assets/index.css";
 
 const Player = () => {
 	const { session_id } = useParams();
-	const [replayer, setReplayer] = useState(undefined);
+	const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
 	const [paused, setPaused] = useState(true);
 	const [time, setTime] = useState(0);
 	const [ticker, setTicker] = useState(0);
@@ -31,20 +31,23 @@ const Player = () => {
 		loading: sessionLoading,
 		error: sessionError,
 		data: sessionData
-	} = useQuery(gql`
-    query GetEvents {
-      events(session_id: "${session_id}")
-    }
-  `);
+	} = useQuery<{ events: any[] }, { session_id: string }>(
+		gql`
+			query GetEvents($session_id: ID!) {
+				events(session_id: $session_id)
+			}
+		`,
+		{ variables: { session_id } }
+	);
 
 	useEffect(() => {
 		if (paused) {
 			clearInterval(ticker);
-			setTicker(undefined);
+			setTicker(-1);
 			return;
 		}
 		if (!ticker) {
-			const ticker = setInterval(() => {
+			const ticker = window.setInterval(() => {
 				setTime(time => {
 					if (time < totalTime) {
 						return time + 50;
@@ -58,13 +61,14 @@ const Player = () => {
 	}, [setTicker, paused, ticker, totalTime]);
 
 	useEffect(() => {
-		if (sessionData?.events?.length > 1) {
+		if (sessionData?.events?.length ?? 0 > 1) {
 			// Add an id field to each event so it can be referenced.
-			const newEvents = sessionData?.events.map((e, i) => {
-				return { ...e, identifier: i };
-			});
+			const newEvents: string[] =
+				sessionData?.events.map((e: any, i: number) => {
+					return JSON.stringify({ ...e, identifier: i });
+				}) ?? [];
 			let r = new Replayer(newEvents, {
-				root: document.getElementById("player")
+				root: document.getElementById("player") as HTMLElement
 			});
 			setTotalTime(r.getMetaData().totalTime);
 			setReplayer(r);
@@ -94,10 +98,7 @@ const Player = () => {
 							<div className={styles.urlAddressBarWrapper}>
 								<div className={styles.urlAddressBar}>
 									<span className={styles.urlText}>
-										{mirror &&
-											mirror.map &&
-											mirror.map[1] &&
-											mirror.map[1].URL}
+										{mirror?.map[1].baseURI}
 									</span>
 								</div>
 							</div>
@@ -105,22 +106,27 @@ const Player = () => {
 						<div className={styles.rrwebPlayerDiv} id="player" />
 					</div>
 				</div>
-				<Slider
-					onChange={e => setTime(e)}
+				{
+					/* lol https://github.com/Microsoft/TypeScript/issues/27552#issuecomment-495830020
+      // @ts-ignore */ /* prettier-ignore */
+					<Slider
+						onChange={(e: any) => setTime(e)}
 					value={time}
 					max={totalTime}
 					disabled={false}
 					pushable={true}
+					context={undefined}
 				/>
+				}
 				<div className={styles.toolbarSection}>
 					<div
 						className={styles.playSection}
 						onClick={() => {
 							if (paused) {
-								replayer.play(time);
+								replayer?.play(time);
 								setPaused(false);
 							} else {
-								replayer.pause();
+								replayer?.pause();
 								setPaused(true);
 							}
 						}}
@@ -142,10 +148,10 @@ const Player = () => {
 						onClick={() => {
 							const newTime = time - 7000 < 0 ? 0 : time - 7000;
 							if (paused) {
-								replayer.pause(newTime);
+								replayer?.pause(newTime);
 								setTime(newTime);
 							} else {
-								replayer.play(newTime);
+								replayer?.play(newTime);
 								setTime(newTime);
 							}
 						}}
@@ -164,8 +170,8 @@ const Player = () => {
 			<div className={styles.playerRightSection}>
 				<EventStream
 					replayer={replayer}
-					events={sessionData?.events}
-					details={data?.session?.details}
+					events={sessionData?.events ?? []}
+					detailsRaw={data?.session?.details}
 					time={time}
 				/>
 			</div>
@@ -173,16 +179,26 @@ const Player = () => {
 	);
 };
 
-const isClick = e => {
+const isClick = (e: any) => {
 	return e.type === 3 && e.data.type === 2;
 };
 
-const EventStream = props => {
-	const { replayer, events, time, details: detailsRaw } = props;
+const EventStream = ({
+	detailsRaw,
+	events,
+	time,
+	replayer
+}: {
+	detailsRaw: any;
+	events: any[];
+	time: number;
+	replayer: Replayer | undefined;
+}) => {
+	// const { replayer, events, time, details: detailsRaw } = props;
 	const [currClick, setCurrClick] = useState(-1);
 	useEffect(() => {
 		replayer &&
-			replayer.on("event-cast", e => {
+			replayer.on("event-cast", (e: any) => {
 				if (isClick(e)) {
 					setCurrClick(e.identifier);
 					scroller.scrollTo(e.identifier.toString(), {
@@ -231,7 +247,7 @@ const EventStream = props => {
 							);
 						let clickStr =
 							mirror.map[e.data.id] &&
-							mirror.map[e.data.id].localName;
+							mirror.map[e.data.id].nodeName;
 						let timeSinceStart =
 							e.timestamp - replayer.getMetaData().startTime;
 						return (
@@ -240,10 +256,12 @@ const EventStream = props => {
 									className={styles.streamElement}
 									style={{
 										backgroundColor:
-											currClick === i && "#F2EDFF"
+											currClick === i
+												? "#F2EDFF"
+												: "inherit"
 									}}
 									key={i}
-									id={i}
+									id={i.toString()}
 								>
 									<div style={{ marginRight: 10 }}>
 										<FaHandPointUp />
@@ -264,10 +282,10 @@ const EventStream = props => {
 	);
 };
 
-function millisToMinutesAndSeconds(millis) {
+function millisToMinutesAndSeconds(millis: any) {
 	var minutes = Math.floor(millis / 60000);
 	var seconds = ((millis % 60000) / 1000).toFixed(0);
-	return minutes + ":" + (seconds < 10 ? "0" : "") + seconds;
+	return minutes + ":" +  seconds;
 }
 
 export default Player;
