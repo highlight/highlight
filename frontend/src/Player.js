@@ -4,7 +4,7 @@ import { Replayer, mirror } from "rrweb";
 import { FaUndoAlt, FaHandPointUp, FaPlay, FaPause } from "react-icons/fa";
 import styles from "./App.module.css";
 import { Element, scroller } from "react-scroll";
-import BeatLoader from "react-spinners/BeatLoader";
+import { Spinner } from "./spinner.js";
 import { ReactComponent as WindowOptions } from "./window-options.svg";
 import { useQuery, gql } from "@apollo/client";
 import Slider from "rc-slider";
@@ -74,7 +74,7 @@ const Player = props => {
   if (loading || sessionLoading) {
     return (
       <div className={styles.loadingWrapper}>
-        <BeatLoader />
+        <Spinner />
       </div>
     );
   }

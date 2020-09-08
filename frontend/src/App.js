@@ -57,6 +57,7 @@ const App = props => {
       }
     }
   `);
+  if (error) return <p>{error.toString()}</p>;
   if (loading) return <Spinner />;
   return (
     <div className={styles.appBody}>
