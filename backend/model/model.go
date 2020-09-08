@@ -21,18 +21,17 @@ type Model struct {
 
 type Organization struct {
 	Model
-	Name          *string
-	Users         []User
-	Admins        []Admin
-	Organizations []Organization
+	Name   *string
+	Users  []User
+	Admins []Admin `gorm:"many2many:organization_admins;"`
 }
 
 type Admin struct {
 	Model
 	Name          *string
 	Email         *string
-	UID           *string `gorm:"uniqueIndex"`
-	Organizations []Organization
+	UID           *string        `gorm:"uniqueIndex"`
+	Organizations []Organization `gorm:"many2many:organization_admins;"`
 }
 
 type User struct {
