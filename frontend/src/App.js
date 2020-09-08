@@ -42,8 +42,7 @@ export const AuthAppRouter = props => {
       firebase.auth().signInWithRedirect(provider);
     }
   }, [user, loading, error]);
-  if (loading) return <Spinner />;
-  if (error) return <p>{error.toString()}</p>;
+  if (loading || error) return <Spinner />;
   return <App />;
 };
 
