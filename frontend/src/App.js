@@ -57,6 +57,7 @@ const App = props => {
       }
     }
   `);
+  if (loading) return <Spinner />;
   return (
     <div className={styles.appBody}>
       <Router>
