@@ -66,6 +66,18 @@ func (r *queryResolver) Sessions(ctx context.Context, userID int, organizationID
 	return sessions, nil
 }
 
+func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieiving user")
+	}
+	orgs := []*model.Organization{}
+	if err := r.DB.Model(&admin).Association("Organizations").Find(&orgs).Error; err != nil {
+		return nil, e.Wrap(err, "error getting associated organizations")
+	}
+	return orgs, nil
+}
+
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	uid := fmt.Sprintf("%v", ctx.Value("uid"))
 	admin := &model.Admin{UID: &uid}
@@ -77,8 +89,8 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err != nil {
 			return nil, e.Wrap(err, "error retrieiving user from firebase api")
 		}
-		newOrg := &model.Organization{Name: &fbuser.DisplayName}
-		if err := r.DB.Create(newOrg).Error; err != nil {
+		newOrg, err := r.Mutation().CreateOrganization(ctx, fbuser.DisplayName)
+		if err != nil {
 			return nil, e.Wrap(err, "error creating new organization")
 		}
 		newAdmin := &model.Admin{

@@ -1,0 +1,66 @@
+.setupWrapper {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding-left: 20px;
+}
+
+.snippetCard {
+	width: 40vw;
+	border: 1px solid #eaeaea;
+	min-width: 650px;
+	padding: 20px 40px 20px 40px;
+	border-radius: 8px;
+}
+
+.snippetHeading {
+	font-size: 30px;
+	font-weight: 300;
+}
+
+.snippetSubHeading {
+	margin-top: 10px;
+	font-size: 16px;
+	font-weight: 200;
+}
+
+.codeBlockWrapper {
+	margin-top: 12px;
+	width: 100%;
+	font-family: "Lucida Console", Monaco, Consolas, "Courier New", Courier,
+		"Lucida Sans Typewriter", "Lucida Typewriter", monospace !important;
+}
+
+.codeBlock {
+	word-wrap: break-word;
+	white-space: pre-line;
+	width: 100%;
+	border: 1px solid #e4e8eb;
+	max-width: 100%;
+	position: relative;
+	margin-top: 20px;
+	min-width: 100%;
+	resize: none;
+	background-color: #f9f9f9;
+	border-radius: 8px;
+	padding: 10px;
+	height: 100%;
+}
+
+.copyButton {
+	top: 0;
+	right: 0;
+	position: absolute;
+	margin: 5px;
+	cursor: pointer;
+}
+
+.copyDiv {
+	font-size: 8px;
+	padding: 10px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}

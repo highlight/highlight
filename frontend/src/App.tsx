@@ -7,8 +7,10 @@ import { Spinner } from "./spinner.js";
 import Player from "./Player";
 import OrgPage from "./OrgPage.js";
 import UserPage from "./UserPage.js";
+import { SetupPage } from "./pages/Setup/SetupPage";
 import { provider } from "./auth.js";
 import { ReactComponent as HighlightLogo } from "./static/highlight-logo.svg";
+import { FaUserCircle } from "react-icons/fa";
 
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useQuery, gql } from "@apollo/client";
@@ -16,9 +18,11 @@ import {
 	Switch,
 	Route,
 	BrowserRouter as Router,
-	RouteComponentProps
+	RouteComponentProps,
+	Redirect
 } from "react-router-dom";
 import * as firebase from "firebase/app";
+import { Menu, Dropdown } from "antd";
 
 const App = () => {
 	const { loading, error, data } = useQuery(gql`
@@ -30,16 +34,22 @@ const App = () => {
 			}
 		}
 	`);
-	if (error || loading) return <Spinner />;
+	const { loading: o_loading, error: o_error, data: o_data } = useQuery(gql`
+		query GetOrganizations {
+			organizations {
+				id
+			}
+		}
+	`);
+	if (error || loading || o_error || o_loading) return <Spinner />;
+	if (!o_data?.organizations?.length) return <Spinner />;
+
+	const current_org = o_data?.organizations[0].id;
 	return (
 		<div className={styles.appBody}>
 			<Router>
 				<Header />
 				<Switch>
-					<Route>
-						<p>logged in</p>
-						<p>{JSON.stringify(data)}</p>
-					</Route>
 					<Route
 						path="/:organization_id/:user_id/:session_id"
 						component={() => (
@@ -50,6 +60,9 @@ const App = () => {
 							</>
 						)}
 					/>
+					<Route path="/:organization_id/setup">
+						<SetupPage />
+					</Route>
 					<Route
 						path="/:organization_id/:user_id"
 						component={(props: RouteComponentProps) => (
@@ -62,6 +75,9 @@ const App = () => {
 							<OrgPage {...props} />
 						)}
 					/>
+					<Route path="/">
+						<Redirect to={`/${current_org}/setup`} />
+					</Route>
 				</Switch>
 			</Router>
 		</div>
@@ -80,22 +96,32 @@ export const AuthAppRouter = () => {
 };
 
 const Header = () => {
+	const menu = (
+		<Menu>
+			<Menu.Item
+				onClick={async () => {
+					try {
+						firebase.auth().signOut();
+					} catch (e) {
+						console.log(e);
+					}
+					client.cache.reset();
+				}}
+			>
+				Logout
+			</Menu.Item>
+		</Menu>
+	);
+
 	return (
 		<div className={styles.header}>
 			<div className={styles.logoWrapper}>
 				<HighlightLogo className={styles.logo} />
-				<button
-					onClick={async () => {
-						try {
-							firebase.auth().signOut();
-						} catch (e) {
-							console.log(e);
-						}
-						client.cache.reset();
-					}}
-				>
-					logout
-				</button>
+			</div>
+			<div className={styles.accountIconWrapper}>
+				<Dropdown overlay={menu}>
+					<FaUserCircle className={styles.accountIcon} />
+				</Dropdown>
 			</div>
 		</div>
 	);

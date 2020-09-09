@@ -1,13 +1,43 @@
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-weight: 300;
+  font-family: AvenirNext;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@font-face {
+  font-family: AvenirNext;
+  src: url(/font/AvenirNext-Heavy.ttf);
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: AvenirNext;
+  src: url(/font/AvenirNext-Bold.ttf);
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: AvenirNext;
+  src: url(/font/AvenirNext-DemiBold.ttf);
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: AvenirNext;
+  src: url(/font/AvenirNext-Medium.ttf);
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: AvenirNext;
+  src: url(/font/AvenirNext-Regular.ttf);
+  font-weight: 200;
+}
+
+@font-face {
+  font-family: AvenirNext;
+  src: url(/font/AvenirNext-UltraLight.ttf);
+  font-weight: 100;
 }

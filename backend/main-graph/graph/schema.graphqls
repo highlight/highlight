@@ -27,6 +27,7 @@ type Query {
   events(session_id: ID!): [Any]
   users(organization_id: ID!): [User]
   sessions(user_id: ID!, organization_id: ID!): [Session]
+  organizations: [Organization]
   admin: Admin
 }
 
