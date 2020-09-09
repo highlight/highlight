@@ -9,8 +9,25 @@
 .header {
   width: 100%;
   height: 8vh;
+  display: flex;
   background-color: white;
   border-bottom: 1px solid #eaeaea;
+}
+
+.accountIconWrapper {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}
+
+.accountIcon {
+  fill: #5629c6;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  margin: 30px;
 }
 
 .streamElement {
