@@ -26,7 +26,7 @@ import * as firebase from "firebase/app";
 import { Menu, Dropdown } from "antd";
 
 const App = () => {
-	const { loading, error, data } = useQuery(gql`
+	const { loading, error } = useQuery(gql`
 		query GetAdmin {
 			admin {
 				id
