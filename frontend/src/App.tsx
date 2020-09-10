@@ -19,13 +19,14 @@ import {
 	Route,
 	BrowserRouter as Router,
 	RouteComponentProps,
-	Redirect
+	Redirect,
+	Link,
 } from "react-router-dom";
 import * as firebase from "firebase/app";
 import { Menu, Dropdown } from "antd";
 
 const App = () => {
-	const { loading, error, data } = useQuery(gql`
+	const { loading, error } = useQuery(gql`
 		query GetAdmin {
 			admin {
 				id
@@ -118,10 +119,14 @@ const Header = () => {
 			<div className={styles.logoWrapper}>
 				<HighlightLogo className={styles.logo} />
 			</div>
-			<div className={styles.accountIconWrapper}>
-				<Dropdown overlay={menu}>
-					<FaUserCircle className={styles.accountIcon} />
-				</Dropdown>
+			<div className={styles.rightHeader}>
+				<Link to={`sessions`} className={styles.headerLink}>Sessions</Link>
+				<Link to={`setup`} className={styles.headerLink}>Setup</Link>
+				<div className={styles.accountIconWrapper}>
+					<Dropdown overlay={menu}>
+						<FaUserCircle className={styles.accountIcon} />
+					</Dropdown>
+				</div>
 			</div>
 		</div>
 	);
