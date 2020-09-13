@@ -13,6 +13,10 @@
   }
 }
 
+.replayer-wrapper {
+  position: absolute;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -26,6 +30,11 @@
 
 .App-link {
   color: #61dafb;
+}
+
+iframe {
+  background-color: white;
+  border: none;
 }
 
 @keyframes App-logo-spin {
