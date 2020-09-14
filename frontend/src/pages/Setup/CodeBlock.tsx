@@ -6,31 +6,30 @@ import CopyToClipboard from "react-copy-to-clipboard";
 
 import { FaCopy } from "react-icons/fa";
 
-export const CodeBlock = ({ text }: { text: string  }) => {
-	return (
-		<>
-			<div className={styles.codeBlockWrapper}>
-				<div className={styles.codeBlock}>
-					<div className={styles.copyButton}>
-						<CopyToClipboard
-							text={text}
-							onCopy={() => message.success("Copied Snippet", 5)}
-						>
-							<div className={styles.copyDiv}>
-								<FaCopy
-									style={{
-										marginRight: 3,
-										height: 14,
-										width: 14,
-										color: "grey"
-									}}
-								/>
-							</div>
-						</CopyToClipboard>
-					</div>
-					{text}
-				</div>
-			</div>
-		</>
-	);
+export const CodeBlock = ({ text }: { text: string }) => {
+  return (
+    <>
+      <div style={{ position: "relative" }}>
+        <div className={styles.copyButton}>
+          <CopyToClipboard
+            text={text}
+            onCopy={() => message.success("Copied Snippet", 5)}
+          >
+            <div className={styles.copyDiv}>
+              <FaCopy
+                style={{
+                  position: "absolute",
+                  marginRight: 3,
+                  height: 14,
+                  width: 14,
+                  color: "grey"
+                }}
+              />
+            </div>
+          </CopyToClipboard>
+        </div>
+        <div className={styles.codeBlockWrapper}>{text}</div>
+      </div>
+    </>
+  );
 };

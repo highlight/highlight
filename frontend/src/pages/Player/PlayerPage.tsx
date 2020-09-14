@@ -227,7 +227,7 @@ const EventStream = ({
         }
       });
   }, [replayer, time]);
-  const startDate = new Date(events && events[0].timestamp);
+  const startDate = new Date(events[0]?.timestamp);
   const details = JSON.parse(detailsRaw);
   return (
     <>
