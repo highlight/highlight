@@ -30,7 +30,7 @@ type Admin struct {
 	Model
 	Name          *string
 	Email         *string
-	UID           *string        `gorm:"uniqueIndex"`
+	UID           *string        `gorm:"unique_index"`
 	Organizations []Organization `gorm:"many2many:organization_admins;"`
 }
 
