@@ -10,6 +10,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+
 	e "github.com/pkg/errors"
 )
 
@@ -24,15 +25,17 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
-	session := &model.Session{}
-	res := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session)
-	if err := res.Error; err != nil || res.RecordNotFound() {
-		return nil, e.Wrap(err, "session doesn't exist")
+	session, err := r.isAdminSessionOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
 	}
 	return session, nil
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
+	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
 	eventObjs := []*model.EventsObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
@@ -49,6 +52,9 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int) ([]*model.Session, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
 	sessions := []*model.Session{}
 	res := r.DB.Where(&model.Session{OrganizationID: organizationID}).Order("created_at desc").Find(&sessions)
 	if err := res.Error; err != nil || res.RecordNotFound() {

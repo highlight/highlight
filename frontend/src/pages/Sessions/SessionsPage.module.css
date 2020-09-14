@@ -1,79 +1,79 @@
 .setupWrapper {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  padding-left: 20px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	padding-left: 20px;
 }
 
 .sessionsSection {
-  margin: 30px;
-  max-width: 700px;
-  width: 700px;
+	margin: 30px;
+	max-width: 700px;
+	width: 700px;
 }
 
 .sessionsHeader {
-  font-size: 35px;
-  font-weight: 400;
+	font-size: 35px;
+	font-weight: 300;
 }
 
 .sessionCard {
-  font-weight: 400;
-  height: 80px;
-  border: 1px solid #eaeaea;
-  border-radius: 8px;
-  margin-top: 14px;
-  margin-bottom: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px;
-  cursor: pointer;
+	font-weight: 400;
+	height: 80px;
+	border: 1px solid #eaeaea;
+	border-radius: 8px;
+	margin-top: 14px;
+	margin-bottom: 14px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 18px;
+	cursor: pointer;
 }
 
 .sessionTextSection {
-  width: 160px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+	width: 160px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .sessionTextWrapper {
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
+	display: flex;
+	width: 100%;
+	justify-content: space-between;
 }
 
 .playButton {
-  margin: 30px;
-  height: 45px;
-  width: 45px;
+	margin: 30px;
+	height: 45px;
+	width: 45px;
 }
 
 .regTitle {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 15px;
-  font-weight: 300;
-  color: black;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 15px;
+	font-weight: 300;
+	color: black;
 }
 
 .blueTitle {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 15px;
-  color: #5629c6;
-  font-weight: 400;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 15px;
+	color: #5629c6;
+	font-weight: 400;
 }
 
 .regSubTitle {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 3px;
-  font-size: 14px;
-  color: black;
-  font-weight: 200;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin-top: 3px;
+	font-size: 14px;
+	color: black;
+	font-weight: 200;
 }

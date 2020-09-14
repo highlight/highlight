@@ -27,11 +27,11 @@ var a=['script'];(function(b,e){var f=function(g){while(--g){b['push'](b['shift'
 </script>`}
         />
         <div className={styles.snippetSubHeading}>
-          To tag every session with the current user's identifier (name, email,
-          etc.) run the following code in your javascript app or in a subsequent
+          To tag every session with a user identifier (name, email, etc.), run
+          the following code in your javascript app or in a subsequent
           <span className={styles.codeBlockBasic}>{"<script/>"}</span> tag.
         </div>
-        <CodeBlock text={`window.H.identify(<identifier>)`} />
+        <CodeBlock text={`window.H.identify("<YOUR_IDENTIFIER>")`} />
       </div>
     </div>
   );
