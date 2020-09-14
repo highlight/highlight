@@ -35,6 +35,7 @@
 iframe {
   background-color: white;
   border: none;
+  z-index: -10;
 }
 
 @keyframes App-logo-spin {
