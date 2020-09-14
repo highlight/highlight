@@ -18,7 +18,6 @@ import {
   Switch,
   Route,
   BrowserRouter as Router,
-  RouteComponentProps,
   Redirect,
   Link
 } from "react-router-dom";
