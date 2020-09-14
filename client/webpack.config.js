@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require('webpack'); //to access built-in plugins
 
 module.exports = {
-	entry: path.resolve(__dirname, 'src/index.js'),
+	entry: path.resolve(__dirname, 'src/index.tsx'),
 	output: {
 		path: path.resolve(__dirname, 'dist'),
 		filename: 'index.js',
@@ -16,14 +16,14 @@ module.exports = {
 	module: {
 		rules: [
 			{
-				test: /\.(js)$/,
+				test: /\.tsx?$/,
+				use: 'ts-loader',
 				exclude: /node_modules/,
-				use: ['babel-loader'],
 			},
 		],
 	},
 	resolve: {
-		extensions: ['.js'],
+		extensions: ['.js', '.ts', '.tsx'],
 		modules: [path.resolve(__dirname, 'src'), 'node_modules'],
 	},
 	mode: 'development',

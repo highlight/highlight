@@ -48,18 +48,9 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	return allEvents["events"], nil
 }
 
-func (r *queryResolver) Users(ctx context.Context, organizationID int) ([]*model.User, error) {
-	users := []*model.User{}
-	res := r.DB.Where(&model.User{OrganizationID: organizationID}).Find(&users)
-	if err := res.Error; err != nil || res.RecordNotFound() {
-		return nil, e.Wrap(err, "no users found")
-	}
-	return users, nil
-}
-
-func (r *queryResolver) Sessions(ctx context.Context, userID int, organizationID int) ([]*model.Session, error) {
+func (r *queryResolver) Sessions(ctx context.Context, organizationID int) ([]*model.Session, error) {
 	sessions := []*model.Session{}
-	res := r.DB.Where(&model.Session{UserID: userID, OrganizationID: organizationID}).Find(&sessions)
+	res := r.DB.Where(&model.Session{OrganizationID: organizationID}).Order("created_at desc").Find(&sessions)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "no sessions found")
 	}

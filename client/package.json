@@ -31,6 +31,8 @@
     "detect-browser": "^5.1.1",
     "graphql": "^15.3.0",
     "rrweb": "^0.9.0",
+    "ts-loader": "^8.0.3",
+    "typescript": "^4.0.2",
     "uuid": "^8.3.0",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",

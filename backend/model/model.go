@@ -42,7 +42,9 @@ type User struct {
 
 type Session struct {
 	Model
-	UserID         int    `json:"user_id"`
+	UserID int `json:"user_id"`
+	// User provided identifier (see IdentifySession)
+	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
 	Details        string `json:"details"`
 	EventsObjects  []EventsObject

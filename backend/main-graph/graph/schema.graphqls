@@ -1,10 +1,14 @@
 # MAIN GRAPH
 
 scalar Any
+scalar Time
 
 type Session {
   id: ID!
   details: String!
+  user_id: ID!
+  identifier: String!
+  created_at: Time
 }
 
 type Organization {
@@ -25,8 +29,7 @@ type Admin {
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
-  users(organization_id: ID!): [User]
-  sessions(user_id: ID!, organization_id: ID!): [Session]
+  sessions(organization_id: ID!): [Session]
   organizations: [Organization]
   admin: Admin
 }

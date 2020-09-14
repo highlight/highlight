@@ -11,7 +11,7 @@ import (
 	e "github.com/pkg/errors"
 )
 
-func (r *mutationResolver) IdentifySession(ctx context.Context, organizationID int, details string) (*model.Session, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error) {
 	organization := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization)
 	if err := res.Error; err != nil || res.RecordNotFound() {
@@ -41,6 +41,18 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, organizationID i
 		return nil, e.Wrap(err, "error creating session")
 	}
 	return session, nil
+}
+
+func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string) (*int, error) {
+	res := r.DB.Model(&model.Session{}).Where(
+		&model.Session{Model: model.Model{ID: sessionID}},
+	).Updates(
+		&model.Session{Identifier: userIdentifier},
+	)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error updating user identifier")
+	}
+	return &sessionID, nil
 }
 
 func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events string) (*int, error) {
