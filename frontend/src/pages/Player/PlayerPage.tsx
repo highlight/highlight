@@ -55,11 +55,6 @@ export const Player = () => {
         Math.abs(widthDelta - 1) > Math.abs(heightDelta - 1)
           ? widthDelta
           : heightDelta;
-      console.log(targetHeight);
-      console.log(height * delta);
-      console.log(targetWidth);
-      console.log(width * delta);
-
       const endHeight = (targetHeight - height * delta) / 2;
       const endWidth = (targetWidth - width * delta) / 2;
       replayer?.wrapper?.setAttribute(
@@ -232,7 +227,7 @@ const EventStream = ({
         }
       });
   }, [replayer, time]);
-  const startDate = new Date(events && events[0].timestamp);
+  const startDate = new Date(events[0]?.timestamp);
   const details = JSON.parse(detailsRaw);
   return (
     <>

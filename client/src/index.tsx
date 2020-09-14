@@ -45,6 +45,7 @@ import {
         user_identifier: user_identifier,
       },
     });
+    console.log(`Identify (${user_identifier}) @ ${process.env.BACKEND_URI}`);
   }
 
   async initialize(organizationID: number) {
