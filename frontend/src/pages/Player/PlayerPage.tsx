@@ -55,14 +55,22 @@ export const Player = () => {
         Math.abs(widthDelta - 1) > Math.abs(heightDelta - 1)
           ? widthDelta
           : heightDelta;
+      console.log(targetHeight);
+      console.log(height * delta);
+      console.log(targetWidth);
+      console.log(width * delta);
+
+      const endHeight = (targetHeight - height * delta) / 2;
+      const endWidth = (targetWidth - width * delta) / 2;
       replayer?.wrapper?.setAttribute(
         "style",
         `
       transform: scale(${delta});
-      top: 20px;
-      left: 20px;
+      top: ${endHeight}px;
+      left: ${endWidth}px;
       `
       );
+
       setPlayerLoading(false);
     }, 1000);
   }, [replayer]);
