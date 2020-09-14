@@ -25,15 +25,6 @@ import * as firebase from "firebase/app";
 import { Menu, Dropdown } from "antd";
 
 const App = () => {
-	const { loading, error } = useQuery(gql`
-		query GetAdmin {
-			admin {
-				id
-				name
-				email
-			}
-		}
-	`);
 	const { loading: o_loading, error: o_error, data: o_data } = useQuery(gql`
 		query GetOrganizations {
 			organizations {
@@ -41,13 +32,7 @@ const App = () => {
 			}
 		}
 	`);
-	if (
-		error ||
-		loading ||
-		o_error ||
-		o_loading ||
-		!o_data?.organizations?.length
-	) {
+	if (o_error || o_loading || !o_data?.organizations?.length) {
 		return (
 			<div className={styles.loadingWrapper}>
 				<Spinner />
@@ -83,6 +68,26 @@ const App = () => {
 	);
 };
 
+export const AuthAdminRouter = () => {
+	const { loading, error } = useQuery(gql`
+		query GetAdmin {
+			admin {
+				id
+				name
+				email
+			}
+		}
+	`);
+	if (error || loading) {
+		return (
+			<div className={styles.loadingWrapper}>
+				<Spinner />
+			</div>
+		);
+	}
+	return <App />;
+};
+
 export const AuthAppRouter = () => {
 	const [user, loading, error] = useAuthState(firebase.auth());
 	useEffect(() => {
@@ -96,7 +101,7 @@ export const AuthAppRouter = () => {
 				<Spinner />
 			</div>
 		);
-	return <App />;
+	return <AuthAdminRouter />;
 };
 
 const Header = () => {

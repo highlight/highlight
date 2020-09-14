@@ -30,6 +30,7 @@ type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
   sessions(organization_id: ID!): [Session]
+  # gets all the organizations of a user
   organizations: [Organization]
   admin: Admin
 }
