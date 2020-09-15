@@ -38,7 +38,18 @@ export const SessionsPage = () => {
 				) : (
 					data?.sessions?.map(u => {
 						const created = new Date(u.created_at);
-						const d = JSON.parse(u.details);
+						let d: {
+							browser?: {
+								os?: string;
+								name?: string;
+							};
+							city?: string;
+							state?: string;
+							postal?: string;
+						} = {};
+						try {
+							d = JSON.parse(u?.details);
+						} catch (error) {}
 						return (
 							<Link
 								to={`${location.pathname}/${u.id}`}
