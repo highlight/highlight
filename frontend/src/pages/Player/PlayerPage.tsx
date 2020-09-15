@@ -54,16 +54,6 @@ export const Player = () => {
       const widthScale = (targetWidth - 80) / width;
       const heightScale = (targetHeight - 80) / height;
       const scale = widthDelta > heightDelta ? widthScale : heightScale;
-      console.log("width: ", width);
-      console.log("t-width: ", targetWidth);
-      console.log("height: ", height);
-      console.log("t-height: ", targetHeight);
-      console.log("widthDelta: ", widthDelta);
-      console.log("heightDelta", heightDelta);
-      console.log("widthScale: ", widthScale);
-      console.log("heightScale", heightScale);
-      console.log("scale", scale);
-
       const endHeight = (targetHeight - height * scale) / 2;
       const endWidth = (targetWidth - width * scale) / 2;
       replayer?.wrapper?.setAttribute(
