@@ -51,6 +51,10 @@ export const Player = () => {
       if (!width || !targetWidth || !height || !targetHeight) return;
       const widthDelta = (targetWidth - 80) / width;
       const heightDelta = (targetHeight - 80) / height;
+      console.log("width: ", width);
+      console.log("t-width: ", targetWidth);
+      console.log("height: ", height);
+      console.log("t-height: ", targetHeight);
       const delta =
         Math.abs(widthDelta - 1) > Math.abs(heightDelta - 1)
           ? widthDelta
