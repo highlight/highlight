@@ -63,6 +63,7 @@ export const Player = () => {
       console.log("widthScale: ", widthScale);
       console.log("heightScale", heightScale);
       console.log("scale", scale);
+
       const endHeight = (targetHeight - height * scale) / 2;
       const endWidth = (targetWidth - width * scale) / 2;
       replayer?.wrapper?.setAttribute(
