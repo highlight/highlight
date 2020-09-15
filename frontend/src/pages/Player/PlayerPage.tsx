@@ -49,24 +49,26 @@ export const Player = () => {
       const targetWidth = playerWrapperRef.current?.clientWidth;
       const targetHeight = playerWrapperRef.current?.clientHeight;
       if (!width || !targetWidth || !height || !targetHeight) return;
-      const widthDelta = (targetWidth - 80) / width;
-      const heightDelta = (targetHeight - 80) / height;
+      const widthDelta = width - targetWidth;
+      const heightDelta = height - targetHeight;
+      const widthScale = (targetWidth - 80) / width;
+      const heightScale = (targetHeight - 80) / height;
+      const scale = widthDelta > heightDelta ? widthScale : heightScale;
       console.log("width: ", width);
       console.log("t-width: ", targetWidth);
       console.log("height: ", height);
       console.log("t-height: ", targetHeight);
       console.log("widthDelta: ", widthDelta);
       console.log("heightDelta", heightDelta);
-      const delta =
-        Math.abs(widthDelta - 1) > Math.abs(heightDelta - 1)
-          ? widthDelta
-          : heightDelta;
-      const endHeight = (targetHeight - height * delta) / 2;
-      const endWidth = (targetWidth - width * delta) / 2;
+      console.log("widthScale: ", widthScale);
+      console.log("heightScale", heightScale);
+      console.log("scale", scale);
+      const endHeight = (targetHeight - height * scale) / 2;
+      const endWidth = (targetWidth - width * scale) / 2;
       replayer?.wrapper?.setAttribute(
         "style",
         `
-      transform: scale(${delta});
+      transform: scale(${scale});
       top: ${endHeight}px;
       left: ${endWidth}px;
       `

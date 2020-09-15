@@ -4,7 +4,6 @@ import { useQuery, gql } from "@apollo/client";
 import { useLocation } from "react-router-dom";
 import styles from "./SessionsPage.module.css";
 import { ReactComponent as PlayButton } from "../../static/play-button.svg";
-import { Spinner } from "../../components/Spinner/Spinner";
 import { Skeleton } from "antd";
 
 export const SessionsPage = () => {
