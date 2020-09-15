@@ -55,6 +55,8 @@ export const Player = () => {
       console.log("t-width: ", targetWidth);
       console.log("height: ", height);
       console.log("t-height: ", targetHeight);
+      console.log("widthDelta: ", widthDelta);
+      console.log("heightDelta", heightDelta);
       const delta =
         Math.abs(widthDelta - 1) > Math.abs(heightDelta - 1)
           ? widthDelta
