@@ -47,6 +47,7 @@ type Session struct {
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
 	Details        string `json:"details"`
+	Status         string `json:"status"`
 	EventsObjects  []EventsObject
 }
 

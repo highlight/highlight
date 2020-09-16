@@ -47,7 +47,8 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
-	redis.SetupRedis()
+	redis.SetupRedisStore()
+	redis.SetupRedisClient()
 	db := model.SetupDB()
 	mux := http.NewServeMux()
 	mux.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
@@ -59,7 +60,8 @@ func main() {
 	mux.Handle("/client", cgraph.ClientMiddleWare(ha.GraphQL(cgenerated.NewExecutableSchema(
 		cgenerated.Config{
 			Resolvers: &cgraph.Resolver{
-				DB: db,
+				DB:    db,
+				Redis: redis.Client,
 			},
 		}))))
 	handler := cors.New(cors.Options{

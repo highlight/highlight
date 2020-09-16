@@ -5,6 +5,8 @@ package graph
 
 import (
 	"context"
+	"strconv"
+	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
@@ -59,6 +61,9 @@ func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events 
 	obj := &model.EventsObject{SessionID: sessionID, Events: events}
 	if err := r.DB.Create(obj).Error; err != nil {
 		return nil, e.Wrap(err, "error creating events object")
+	}
+	if err := r.Redis.Set(context.Background(), "session_"+strconv.Itoa(sessionID), time.Now(), 0).Err(); err != nil {
+		return nil, err
 	}
 	id := obj.ID
 	return &id, nil
