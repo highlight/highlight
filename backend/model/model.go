@@ -50,8 +50,9 @@ type Session struct {
 	Status         string `json:"status"`
 	EventsObjects  []EventsObject
 	// Tells us if the session has been parsed by a worker.
-	Processed bool
-	Duration  time.Duration `json:"duration"`
+	Processed bool `json:"processed"`
+	// The length of a session.
+	Length int64 `json:"length"`
 }
 
 type EventsObject struct {

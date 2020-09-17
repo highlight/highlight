@@ -71,6 +71,7 @@ type ComplexityRoot struct {
 		Details    func(childComplexity int) int
 		ID         func(childComplexity int) int
 		Identifier func(childComplexity int) int
+		Length     func(childComplexity int) int
 		UserID     func(childComplexity int) int
 	}
 
@@ -230,6 +231,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Identifier(childComplexity), true
 
+	case "Session.length":
+		if e.complexity.Session.Length == nil {
+			break
+		}
+
+		return e.complexity.Session.Length(childComplexity), true
+
 	case "Session.user_id":
 		if e.complexity.Session.UserID == nil {
 			break
@@ -319,6 +327,7 @@ type Session {
   user_id: ID!
   identifier: String!
   created_at: Time
+  length: Int
 }
 
 type Organization {
@@ -340,6 +349,7 @@ type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
   sessions(organization_id: ID!): [Session]
+  # gets all the organizations of a user
   organizations: [Organization]
   admin: Admin
 }
@@ -1086,6 +1096,37 @@ func (ec *executionContext) _Session_created_at(ctx context.Context, field graph
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_length(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Session",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Length, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalOInt2int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -2400,6 +2441,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "created_at":
 			out.Values[i] = ec._Session_created_at(ctx, field, obj)
+		case "length":
+			out.Values[i] = ec._Session_length(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3058,6 +3101,15 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) unmarshalOInt2int64(ctx context.Context, v interface{}) (int64, error) {
+	res, err := graphql.UnmarshalInt64(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
+	return graphql.MarshalInt64(v)
 }
 
 func (ec *executionContext) marshalOOrganization2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v []*model.Organization) graphql.Marshaler {
