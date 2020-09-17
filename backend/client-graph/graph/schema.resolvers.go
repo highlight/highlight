@@ -5,11 +5,13 @@ package graph
 
 import (
 	"context"
-	"strconv"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
+
 	e "github.com/pkg/errors"
 )
 
@@ -62,9 +64,11 @@ func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events 
 	if err := r.DB.Create(obj).Error; err != nil {
 		return nil, e.Wrap(err, "error creating events object")
 	}
-	if err := r.Redis.Set(context.Background(), "session_"+strconv.Itoa(sessionID), time.Now(), 0).Err(); err != nil {
+	member := &redis.Z{Score: float64(time.Now().UTC().Unix()), Member: sessionID}
+	if err := r.Redis.ZAdd(ctx, "sessions", member).Err(); err != nil {
 		return nil, err
 	}
+	pp.Println("writing")
 	id := obj.ID
 	return &id, nil
 }

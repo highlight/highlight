@@ -11,6 +11,7 @@ require (
 	github.com/go-redis/redis/v8 v8.0.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/jinzhu/gorm v1.9.16
+	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/pkg/errors v0.8.1
 	github.com/rs/cors v1.7.0
 	github.com/sirupsen/logrus v1.6.0

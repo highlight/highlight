@@ -14,7 +14,7 @@ import (
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
-var whitelistedUID = "GoDjf1dw7GVLJQrCHht03NsCdWb2"
+var WhitelistedUID = "GoDjf1dw7GVLJQrCHht03NsCdWb2"
 
 type Resolver struct {
 	DB *gorm.DB
@@ -25,7 +25,7 @@ type Resolver struct {
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
 	uid := fmt.Sprintf("%v", ctx.Value("uid"))
 	// If the user is me (jaykhatrimail@gmail.com) or is the getmosaic.io account, whitelist.
-	if uid == whitelistedUID || org_id == 15 {
+	if uid == WhitelistedUID || org_id == 15 {
 		org := &model.Organization{}
 		res := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org)
 		if err := res.Error; err != nil || res.RecordNotFound() {
