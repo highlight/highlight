@@ -10,7 +10,6 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 
 	e "github.com/pkg/errors"
 )
@@ -68,7 +67,6 @@ func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events 
 	if err := r.Redis.ZAdd(ctx, "sessions", member).Err(); err != nil {
 		return nil, err
 	}
-	pp.Println("writing")
 	id := obj.ID
 	return &id, nil
 }
