@@ -10,7 +10,6 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 
 	e "github.com/pkg/errors"
 )
@@ -57,11 +56,10 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int) ([]*mo
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	sessions := []*model.Session{}
-	res := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Order("created_at desc").Find(&sessions)
+	res := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc").Find(&sessions)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "no sessions found")
 	}
-	pp.Println(sessions)
 	return sessions, nil
 }
 

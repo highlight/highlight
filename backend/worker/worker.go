@@ -19,60 +19,62 @@ type Worker struct {
 }
 
 func (w *Worker) Start() {
-	for range time.Tick(5 * time.Second) {
-		twentySecondsAgo := strconv.FormatInt(time.Now().Add(-20*time.Second).Unix(), 10)
-		by := &redis.ZRangeBy{Min: "-inf", Max: twentySecondsAgo}
-		result := rd.Client.ZRangeByScoreWithScores(context.Background(), "sessions", by)
-		if err := result.Err(); err != nil {
-			log.Errorf("error getting range: %v", err)
-			continue
+	go func() {
+		for range time.Tick(5 * time.Second) {
+			twentySecondsAgo := strconv.FormatInt(time.Now().Add(-20*time.Second).Unix(), 10)
+			by := &redis.ZRangeBy{Min: "-inf", Max: twentySecondsAgo}
+			result := rd.Client.ZRangeByScoreWithScores(context.Background(), "sessions", by)
+			if err := result.Err(); err != nil {
+				log.Errorf("error getting range: %v", err)
+				continue
+			}
+			for _, s := range result.Val() {
+				s := s
+				go func() {
+					// create a context object that can access any resolver method.
+					ctx := context.WithValue(context.Background(), "uid", mgraph.WhitelistedUID)
+					if err := rd.Client.ZRem(ctx, "sessions", s.Member).Err(); err != nil {
+						log.Errorf("error removing member %v: %v", s.Member, err)
+						return
+					}
+					sid, ok := s.Member.(string)
+					if !ok {
+						log.Errorf("error parsing session id '%v' from redis", sid)
+						return
+					}
+					sessionID, err := strconv.Atoi(sid)
+					if !ok {
+						log.Errorf("error parsing session id '%v' into int", sessionID)
+						return
+					}
+					events, err := w.R.Query().Events(ctx, sessionID)
+					if err != nil {
+						log.Errorf("error retrieving events: %v", err)
+						return
+					}
+					first, err := ParseEvent(events[0])
+					if err != nil {
+						log.Errorf("error parsing first event into map: %v", err)
+						return
+					}
+					last, err := ParseEvent(events[len(events)-1])
+					if err != nil {
+						log.Errorf("error parsing last event into map: %v", err)
+						return
+					}
+					diff := last.Timestamp.Sub(first.Timestamp).Milliseconds()
+					if err := w.R.DB.Model(&model.Session{}).Where(
+						&model.Session{Model: model.Model{ID: sessionID}},
+					).Updates(
+						&model.Session{Processed: true, Length: diff},
+					).Error; err != nil {
+						log.Errorf("error parsing last event into map: %v", err)
+						return
+					}
+				}()
+			}
 		}
-		for _, s := range result.Val() {
-			s := s
-			go func() {
-				// create a context object that can access any resolver method.
-				ctx := context.WithValue(context.Background(), "uid", mgraph.WhitelistedUID)
-				if err := rd.Client.ZRem(ctx, "sessions", s.Member).Err(); err != nil {
-					log.Errorf("error removing member %v: %v", s.Member, err)
-					return
-				}
-				sid, ok := s.Member.(string)
-				if !ok {
-					log.Errorf("error parsing session id '%v' from redis", sid)
-					return
-				}
-				sessionID, err := strconv.Atoi(sid)
-				if !ok {
-					log.Errorf("error parsing session id '%v' into int", sessionID)
-					return
-				}
-				events, err := w.R.Query().Events(ctx, sessionID)
-				if err != nil {
-					log.Errorf("error retrieving events: %v", err)
-					return
-				}
-				first, err := ParseEvent(events[0])
-				if err != nil {
-					log.Errorf("error parsing first event into map: %v", err)
-					return
-				}
-				last, err := ParseEvent(events[len(events)-1])
-				if err != nil {
-					log.Errorf("error parsing last event into map: %v", err)
-					return
-				}
-				diff := last.Timestamp.Sub(first.Timestamp).Milliseconds()
-				if err := w.R.DB.Model(&model.Session{}).Where(
-					&model.Session{Model: model.Model{ID: sessionID}},
-				).Updates(
-					&model.Session{Processed: true, Length: diff},
-				).Error; err != nil {
-					log.Errorf("error parsing last event into map: %v", err)
-					return
-				}
-			}()
-		}
-	}
+	}()
 }
 
 type Event struct {
