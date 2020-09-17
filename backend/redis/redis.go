@@ -44,5 +44,4 @@ func SetupRedisClient() {
 	if err != nil {
 		log.Fatalf(fmt.Sprintf("error connecting to redis instance w/ address %v: %v", os.Getenv("REDIS_ADDRESS"), err))
 	}
-
 }
