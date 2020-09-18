@@ -2,12 +2,12 @@ import React, { useEffect } from "react";
 import "./App.css";
 
 import styles from "./App.module.css";
-import { client } from "./graph.js";
+import { client } from "./util/graph";
 import { Spinner } from "./components/Spinner/Spinner";
 import { Player } from "./pages/Player/PlayerPage";
 import { SetupPage } from "./pages/Setup/SetupPage";
 import { SessionsPage } from "./pages/Sessions/SessionsPage";
-import { provider } from "./auth.js";
+import { provider } from "./util/auth";
 import { ReactComponent as HighlightLogo } from "./static/highlight-logo.svg";
 import { FaUserCircle } from "react-icons/fa";
 

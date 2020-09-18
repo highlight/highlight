@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/jay-khatri/fullstory/backend/redis"
+	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/rs/cors"
 
 	ha "github.com/99designs/gqlgen/handler"
@@ -14,6 +14,7 @@ import (
 	cgenerated "github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
 	mgenerated "github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
+	rd "github.com/jay-khatri/fullstory/backend/redis"
 	log "github.com/sirupsen/logrus"
 
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -47,19 +48,22 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
-	redis.SetupRedis()
+	rd.SetupRedisStore()
+	rd.SetupRedisClient()
 	db := model.SetupDB()
 	mux := http.NewServeMux()
+	main := &mgraph.Resolver{
+		DB: db,
+	}
 	mux.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
 		mgenerated.Config{
-			Resolvers: &mgraph.Resolver{
-				DB: db,
-			},
+			Resolvers: main,
 		}))))
 	mux.Handle("/client", cgraph.ClientMiddleWare(ha.GraphQL(cgenerated.NewExecutableSchema(
 		cgenerated.Config{
 			Resolvers: &cgraph.Resolver{
-				DB: db,
+				DB:    db,
+				Redis: rd.Client,
 			},
 		}))))
 	handler := cors.New(cors.Options{
@@ -67,6 +71,9 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"Content-Type", "Token"},
 	}).Handler(mux)
+
+	w := &worker.Worker{R: main}
+	w.Start()
 
 	fmt.Println("listening...")
 	log.Fatal(http.ListenAndServe(":"+port, handler))

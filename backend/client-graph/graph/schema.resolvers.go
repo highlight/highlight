@@ -5,9 +5,12 @@ package graph
 
 import (
 	"context"
+	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+
 	e "github.com/pkg/errors"
 )
 
@@ -59,6 +62,10 @@ func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events 
 	obj := &model.EventsObject{SessionID: sessionID, Events: events}
 	if err := r.DB.Create(obj).Error; err != nil {
 		return nil, e.Wrap(err, "error creating events object")
+	}
+	member := &redis.Z{Score: float64(time.Now().UTC().Unix()), Member: sessionID}
+	if err := r.Redis.ZAdd(ctx, "sessions", member).Err(); err != nil {
+		return nil, err
 	}
 	id := obj.ID
 	return &id, nil

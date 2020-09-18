@@ -1,10 +1,13 @@
 import React from "react";
+
 import { useParams, Link } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import { useLocation } from "react-router-dom";
-import styles from "./SessionsPage.module.css";
+import { MillisToMinutesAndSecondsVerbose } from "../../util/time";
 import { ReactComponent as PlayButton } from "../../static/play-button.svg";
 import { Skeleton } from "antd";
+
+import styles from "./SessionsPage.module.css";
 
 export const SessionsPage = () => {
 	const location = useLocation();
@@ -21,10 +24,11 @@ export const SessionsPage = () => {
 					user_id
 					identifier
 					created_at
+					length
 				}
 			}
 		`,
-		{ variables: { organization_id: organization_id } }
+		{ variables: { organization_id: organization_id }, pollInterval: 5000 }
 	);
 	if (error) {
 		return <p>{error.toString()}</p>;
@@ -89,7 +93,9 @@ export const SessionsPage = () => {
 												)}
 											</div>
 											<div className={styles.regSubTitle}>
-												30 min 20 sec
+												{MillisToMinutesAndSecondsVerbose(
+													u?.length
+												) || "30 min 20 sec"}
 											</div>
 										</div>
 										<div

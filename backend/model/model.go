@@ -47,7 +47,12 @@ type Session struct {
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
 	Details        string `json:"details"`
+	Status         string `json:"status"`
 	EventsObjects  []EventsObject
+	// Tells us if the session has been parsed by a worker.
+	Processed bool `json:"processed"`
+	// The length of a session.
+	Length int64 `json:"length"`
 }
 
 type EventsObject struct {
