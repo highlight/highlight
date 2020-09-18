@@ -73,9 +73,7 @@ func main() {
 	}).Handler(mux)
 
 	w := &worker.Worker{R: main}
-	log.Println("hi")
 	w.Start()
-	log.Println("hi")
 
 	fmt.Println("listening...")
 	log.Fatal(http.ListenAndServe(":"+port, handler))
