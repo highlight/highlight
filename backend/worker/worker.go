@@ -107,7 +107,6 @@ func ParseEvent(event interface{}) (*Event, error) {
 	i := int64(timeAsFloat)
 	// taken from: https://gist.github.com/alextanhongpin/3b6b2ee47665ac9c1c32c805b86380a6
 	res.Timestamp = time.Unix(i/1000, (i%1000)*1000*1000)
-	fmt.Println(res.Timestamp)
 	res.Data = data
 	res.Type = int(t)
 	return res, nil
