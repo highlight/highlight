@@ -83,7 +83,7 @@ func (w *Worker) Start() {
 					msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v```", session.ID, session.OrganizationID)}
 					err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
 					if err != nil {
-						fmt.Println(err)
+						log.Errorf("error sending slack hook: %v", err)
 					}
 				}()
 			}
