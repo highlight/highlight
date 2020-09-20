@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/slack-go/slack"
 
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
 	rd "github.com/jay-khatri/fullstory/backend/redis"
@@ -70,6 +71,19 @@ func (w *Worker) Start() {
 					).Error; err != nil {
 						log.Errorf("error parsing last event into map: %v", err)
 						return
+					}
+
+					session, err := w.R.Query().Session(ctx, sessionID)
+					if err != nil {
+						log.Errorf("error retrieving session: %v", err)
+						return
+					}
+
+					// Send a notification that the session was processed.
+					msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v```", session.ID, session.OrganizationID)}
+					err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+					if err != nil {
+						fmt.Println(err)
 					}
 				}()
 			}
