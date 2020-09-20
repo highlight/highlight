@@ -11,7 +11,6 @@ import fuzzy from "fuzzy";
 // @ts-ignore
 import written from "written-number";
 
-import * as chrono from "chrono-node";
 import parse from "parse-duration";
 import AutosizeInput from "react-input-autosize";
 
@@ -48,11 +47,6 @@ export const SessionsPage = () => {
   if (error) {
     return <p>{error.toString()}</p>;
   }
-  const renderResults = (s: string) => {
-    chrono.parseDate(s)?.toString();
-    setDateString(s);
-  };
-
   return (
     <div className={styles.setupWrapper}>
       <div className={styles.sessionsSection}>
@@ -74,7 +68,7 @@ export const SessionsPage = () => {
                   setParams(pcopy);
                 }}
               />
-              {p.final && (
+              {
                 <FaTimes
                   className={styles.timesIcon}
                   onClick={() => {
@@ -84,18 +78,19 @@ export const SessionsPage = () => {
                     setActiveParam(-1);
                   }}
                 />
-              )}
+              }
             </div>
           ))}
           <input
             placeholder={"Type or select a query below..."}
+            value={dateString}
             ref={mainInput}
             autoFocus
             onFocus={() => {
-              renderResults("");
+              setDateString("");
             }}
             onChange={e => {
-              renderResults(e.target.value);
+              setDateString(e.target.value);
             }}
             className={styles.searchInput}
           />
@@ -106,7 +101,7 @@ export const SessionsPage = () => {
             <>
               <OptionsFilter
                 title="DATES"
-                input={mainInput.current?.value ?? ""}
+                input={dateString}
                 obj={[
                   {
                     action: "last",
@@ -122,7 +117,7 @@ export const SessionsPage = () => {
               />
               <OptionsFilter
                 title="DURATION"
-                input={mainInput.current?.value ?? ""}
+                input={dateString}
                 obj={[
                   {
                     action: "more than",
@@ -142,44 +137,19 @@ export const SessionsPage = () => {
               />
             </>
           ) : (
-            <>
-              {!params[activeParam]?.value ? (
-                <span className={styles.optionsValue}>
-                  Enter a time duration (e.g. 24 days, 2 minutes){" "}
-                </span>
-              ) : (
-                <div>
-                  {fuzzy
-                    .filter(
-                      params[activeParam].value,
-                      generateDurationStrings(),
-                      {
-                        pre: `<strong style="color: #5629c6;">`,
-                        post: "</strong>"
-                      }
-                    )
-                    .map((f, i) => {
-                      console.log(parse(f.original));
-                      return (
-                        <div
-                          onClick={() => {
-                            var pcopy = JSON.parse(JSON.stringify(params));
-                            pcopy[activeParam].value = f.original;
-                            pcopy[activeParam].final = true;
-                            mainInput.current?.focus();
-                            setActiveParam(-1);
-                            setParams(pcopy);
-                          }}
-                          className={styles.optionsRow}
-                          key={i}
-                          dangerouslySetInnerHTML={{ __html: f.string }}
-                        />
-                      );
-                    })
-                    .slice(0, 5)}
-                </div>
-              )}
-            </>
+            <DateOptionsRender
+              defaultText={"Enter a time duration (e.g. 24 days, 2 minutes)"}
+              input={params[activeParam].value}
+              onClick={option => {
+                var pcopy = JSON.parse(JSON.stringify(params));
+                pcopy[activeParam].value = option;
+                pcopy[activeParam].final = true;
+                mainInput.current?.focus();
+                setActiveParam(-1);
+                setParams(pcopy);
+                setDateString("");
+              }}
+            />
           )}
         </div>
         {loading ? (
@@ -247,6 +217,45 @@ export const SessionsPage = () => {
   );
 };
 
+const DateOptionsRender = ({
+  defaultText,
+  input,
+  onClick
+}: {
+  defaultText: string;
+  input: string;
+  onClick: (option: string) => void;
+}) => {
+  const res = fuzzy.filter(input, generateDurationStrings(), {
+    pre: `<strong style="color: #5629c6;">`,
+    post: "</strong>"
+  });
+  if (!res?.length) {
+    return <span className={styles.optionsValue}>{defaultText}</span>;
+  }
+  return (
+    <>
+      {fuzzy
+        .filter(input, generateDurationStrings(), {
+          pre: `<strong style="color: #5629c6;">`,
+          post: "</strong>"
+        })
+        .filter((f, i) => parse(f.original))
+        .map((f, i) => {
+          return (
+            <div
+              onClick={() => onClick(f.original)}
+              className={styles.optionsRow}
+              key={i}
+              dangerouslySetInnerHTML={{ __html: f.string }}
+            />
+          );
+        })
+        .slice(0, 5)}
+    </>
+  );
+};
+
 const OptionsFilter = ({
   input,
   obj,
@@ -269,19 +278,25 @@ const OptionsFilter = ({
   return (
     <div className={styles.optionsSection}>
       <div className={styles.optionsTitle}>{title}</div>{" "}
-      {res.map(f => (
-        <div
-          className={styles.optionsRow}
-          onClick={() => onClick(f.original.action)}
-        >
-          <span
-            className={styles.optionsKey}
-            dangerouslySetInnerHTML={{ __html: f.string }}
-          />
-          : &nbsp;
-          <span className={styles.optionsValue}>{f.original.description}</span>
-        </div>
-      ))}
+      {res?.length ? (
+        res.map(f => (
+          <div
+            className={styles.optionsRow}
+            onClick={() => onClick(f.original.action)}
+          >
+            <span
+              className={styles.optionsKey}
+              dangerouslySetInnerHTML={{ __html: f.string }}
+            />
+            : &nbsp;
+            <span className={styles.optionsValue}>
+              {f.original.description}
+            </span>
+          </div>
+        ))
+      ) : (
+        <></>
+      )}
     </div>
   );
 };
