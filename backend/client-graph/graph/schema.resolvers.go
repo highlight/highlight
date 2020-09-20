@@ -43,6 +43,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID
 	if err := r.DB.Create(session).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session")
 	}
+
 	return session, nil
 }
 

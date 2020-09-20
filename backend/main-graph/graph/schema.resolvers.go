@@ -10,6 +10,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+
 	e "github.com/pkg/errors"
 )
 
@@ -81,6 +82,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		// If the user doesn't exist yet, we create
 		// one along with their own org.
+
 		fbuser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
 			return nil, e.Wrap(err, "error retrieiving user from firebase api")
