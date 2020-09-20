@@ -8,6 +8,7 @@ import { Spinner } from "../../components/Spinner/Spinner";
 import { MillisToMinutesAndSeconds } from "../../util/time";
 import { useQuery, gql } from "@apollo/client";
 import Slider from "rc-slider";
+import { Skeleton } from "antd";
 
 import "rc-slider/assets/index.css";
 
@@ -21,7 +22,7 @@ export const Player = () => {
 	const [playerLoading, setPlayerLoading] = useState(true);
 	const playerWrapperRef = useRef<HTMLDivElement>(null);
 
-	const { loading, error, data } = useQuery(gql`
+	const { loading: eventsLoading, error, data } = useQuery(gql`
     query GetSession {
       session(id: "${session_id}") {
         details
@@ -106,13 +107,6 @@ export const Player = () => {
 		}
 	}, [sessionData]);
 
-	if (loading || sessionLoading) {
-		return (
-			<div className={styles.loadingWrapper}>
-				<Spinner />
-			</div>
-		);
-	}
 	if (sessionError) {
 		return <p>{sessionError.toString()}</p>;
 	}
@@ -204,6 +198,8 @@ export const Player = () => {
 					events={sessionData?.events ?? []}
 					detailsRaw={data?.session?.details}
 					time={time}
+					eventsLoading={eventsLoading}
+					sessionLoading={sessionLoading}
 				/>
 			</div>
 		</div>
@@ -218,14 +214,17 @@ const EventStream = ({
 	detailsRaw,
 	events,
 	time,
-	replayer
+	replayer,
+	sessionLoading,
+	eventsLoading
 }: {
 	detailsRaw: any;
 	events: any[];
 	time: number;
 	replayer: Replayer | undefined;
+	sessionLoading: boolean;
+	eventsLoading: boolean;
 }) => {
-	// const { replayer, events, time, details: detailsRaw } = props;
 	const [currClick, setCurrClick] = useState(-1);
 	useEffect(() => {
 		replayer &&
@@ -242,24 +241,29 @@ const EventStream = ({
 			});
 	}, [replayer, time]);
 	const startDate = new Date(events[0]?.timestamp);
-	const details = JSON.parse(detailsRaw);
+	var details: any = {};
+	try {
+		details = JSON.parse(detailsRaw);
+	} catch (e) {}
 	return (
 		<>
 			<div className={styles.locationBox}>
-				{details && (
+				{sessionLoading ? (
+					<Skeleton />
+				) : (
 					<div className={styles.innerLocationBox}>
 						<div style={{ color: "black" }}>
-							{details.city}, {details.postal},{" "}
-							{details.country_name}
+							{details?.city}, {details?.state} &nbsp;
+							{details?.postal}
 						</div>
 						<div style={{ color: "black" }}>
 							{startDate.toUTCString()}
 						</div>
-						{details.browser && (
+						{details?.browser && (
 							<div style={{ color: "black" }}>
-								{details.browser.os},{details.browser.name}{" "}
+								{details?.browser?.os},{details?.browser?.name}{" "}
 								&nbsp;-&nbsp;
-								{details.browser.version}
+								{details?.browser?.version}
 							</div>
 						)}
 					</div>
@@ -267,7 +271,9 @@ const EventStream = ({
 			</div>
 			<div id="wrapper" className={styles.eventStreamContainer}>
 				<div className={styles.emptyScrollDiv}></div>
-				{events &&
+				{eventsLoading ? (
+					<Skeleton active />
+				) : (
 					replayer &&
 					events.map((e, i) => {
 						if (!isClick(e))
@@ -280,7 +286,7 @@ const EventStream = ({
 							mirror.map[e.data.id] &&
 							mirror.map[e.data.id].nodeName;
 						let timeSinceStart =
-							e.timestamp - replayer.getMetaData().startTime;
+							e?.timestamp - replayer?.getMetaData()?.startTime;
 						return (
 							<Element name={i.toString()} key={i.toString()}>
 								<div
@@ -307,7 +313,8 @@ const EventStream = ({
 								</div>
 							</Element>
 						);
-					})}
+					})
+				)}
 			</div>
 		</>
 	);
