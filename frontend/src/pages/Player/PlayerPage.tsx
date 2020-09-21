@@ -1,14 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Replayer, mirror } from "rrweb";
+import { Replayer, mirror, EventType, IncrementalSource } from "rrweb";
 import { FaUndoAlt, FaHandPointUp, FaPlay, FaPause } from "react-icons/fa";
-import styles from "../../App.module.css";
 import { Element, scroller } from "react-scroll";
 import { Spinner } from "../../components/Spinner/Spinner";
 import { MillisToMinutesAndSeconds } from "../../util/time";
 import { useQuery, gql } from "@apollo/client";
-import Slider from "rc-slider";
 import { Skeleton } from "antd";
+
+import Slider from "rc-slider";
+import styles from "../../App.module.css";
 
 import "rc-slider/assets/index.css";
 

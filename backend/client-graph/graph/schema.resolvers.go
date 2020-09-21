@@ -12,6 +12,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/model"
 
 	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error) {
@@ -63,11 +64,13 @@ func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events 
 	if err := r.DB.Create(obj).Error; err != nil {
 		return nil, e.Wrap(err, "error creating events object")
 	}
-	member := &redis.Z{Score: float64(time.Now().UTC().Unix()), Member: sessionID}
+	now := float64(time.Now().UTC().Unix())
+	member := &redis.Z{Score: now, Member: sessionID}
 	if err := r.Redis.ZAdd(ctx, "sessions", member).Err(); err != nil {
 		return nil, err
 	}
 	id := obj.ID
+	log.Infof("updating session '%v' with score `%f`", sessionID, now)
 	return &id, nil
 }
 
