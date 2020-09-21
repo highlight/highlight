@@ -23,6 +23,7 @@ func (w *Worker) Start() {
 	go func() {
 		for range time.Tick(5 * time.Second) {
 			twentySecondsAgo := strconv.FormatInt(time.Now().Add(-20*time.Second).Unix(), 10)
+			log.Infof("upper bound is: %v \n", twentySecondsAgo)
 			by := &redis.ZRangeBy{Min: "-inf", Max: twentySecondsAgo}
 			result := rd.Client.ZRangeByScoreWithScores(context.Background(), "sessions", by)
 			if err := result.Err(); err != nil {
@@ -48,6 +49,7 @@ func (w *Worker) Start() {
 						log.Errorf("error parsing session id '%v' into int", sessionID)
 						return
 					}
+					log.Infof("evaluating session '%v' with score: %f \n", sessionID, s.Score)
 					events, err := w.R.Query().Events(ctx, sessionID)
 					if err != nil {
 						log.Errorf("error retrieving events: %v", err)
