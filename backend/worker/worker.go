@@ -84,7 +84,10 @@ func (w *Worker) Start() {
 					}
 
 					// Send a notification that the session was processed.
-					msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v```", session.ID, session.OrganizationID)}
+					msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v\nurl: %v```",
+						session.ID,
+						session.OrganizationID,
+						fmt.Sprintf("https://app.highlight.run/%v/sessions/%v", session.OrganizationID, session.ID))}
 					err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
 					if err != nil {
 						log.Errorf("error sending slack hook: %v", err)
