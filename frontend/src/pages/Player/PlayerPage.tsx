@@ -272,7 +272,6 @@ const EventStream = ({
           events.filter(usefulEvent).map((e: eventWithTime, i: number) => {
             const mouseInteraction = e.data as mouseInteractionData;
             let eventStr = "";
-            console.log(mouseInteraction.type);
             switch (mouseInteraction.type) {
               case MouseInteractions.Click:
                 eventStr = "Click";
@@ -281,7 +280,7 @@ const EventStream = ({
                 eventStr = "Focus";
                 break;
             }
-            const node = mirror.map[mouseInteraction.id].__sn as elementNode;
+            const node = mirror.map[mouseInteraction.id]?.__sn as elementNode;
             let timeSinceStart =
               e?.timestamp - replayer?.getMetaData()?.startTime;
             return (
@@ -302,7 +301,7 @@ const EventStream = ({
                     <FaHandPointUp />
                   </div>
                   &nbsp;{eventStr} &nbsp;&nbsp;
-                  <div>{node.tagName}</div>
+                  <div>{node?.tagName}</div>
                   <div style={{ marginLeft: "auto" }}>
                     {MillisToMinutesAndSeconds(timeSinceStart)}
                   </div>
