@@ -84,12 +84,13 @@ export const AuthAdminRouter = () => {
       }
     }
   `);
+  const admin = data?.admin;
   useEffect(() => {
-    if (data?.admin) {
-      const { email, id, name } = data?.admin;
+    if (admin) {
+      const { email, id, name } = admin;
       (window as any).H.identify(email, { id, name });
     }
-  }, [data?.admin]);
+  }, [admin]);
   if (error || loading) {
     return (
       <div className={styles.loadingWrapper}>

@@ -1,11 +1,9 @@
 import React from "react";
 
 import { CodeBlock } from "./CodeBlock";
-import { Spinner } from "../../components/Spinner/Spinner";
 import { useParams } from "react-router-dom";
 
 import styles from "./SetupPage.module.css";
-import appStyles from "../../App.module.css";
 import useFetch from "use-http";
 import { Skeleton } from "antd";
 
