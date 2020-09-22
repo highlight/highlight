@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Replayer, mirror } from "rrweb";
+import { elementNode } from "rrweb-snapshot";
 import { FaUndoAlt, FaHandPointUp, FaPlay, FaPause } from "react-icons/fa";
 import styles from "../../App.module.css";
 import { Element, scroller } from "react-scroll";
@@ -9,20 +10,29 @@ import { MillisToMinutesAndSeconds } from "../../util/time";
 import { useQuery, gql } from "@apollo/client";
 import Slider from "rc-slider";
 import { Skeleton } from "antd";
+import {
+  event,
+  EventType,
+  MouseInteractions,
+  mouseInteractionData,
+  incrementalData,
+  eventWithTime,
+  IncrementalSource
+} from "./RrwebTypes";
 
 import "rc-slider/assets/index.css";
 
 export const Player = () => {
-	const { session_id } = useParams();
-	const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
-	const [paused, setPaused] = useState(true);
-	const [time, setTime] = useState(0);
-	const [ticker, setTicker] = useState(0);
-	const [totalTime, setTotalTime] = useState(0);
-	const [playerLoading, setPlayerLoading] = useState(true);
-	const playerWrapperRef = useRef<HTMLDivElement>(null);
+  const { session_id } = useParams();
+  const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
+  const [paused, setPaused] = useState(true);
+  const [time, setTime] = useState(0);
+  const [ticker, setTicker] = useState(0);
+  const [totalTime, setTotalTime] = useState(0);
+  const [playerLoading, setPlayerLoading] = useState(true);
+  const playerWrapperRef = useRef<HTMLDivElement>(null);
 
-	const { loading: eventsLoading, error, data } = useQuery(gql`
+  const { loading: eventsLoading, error, data } = useQuery(gql`
     query GetSession {
       session(id: "${session_id}") {
         details
@@ -30,111 +40,108 @@ export const Player = () => {
     }
   `);
 
-	const {
-		loading: sessionLoading,
-		error: sessionError,
-		data: sessionData
-	} = useQuery<{ events: any[] }, { session_id: string }>(
-		gql`
-			query GetEvents($session_id: ID!) {
-				events(session_id: $session_id)
-			}
-		`,
-		{ variables: { session_id } }
-	);
+  const {
+    loading: sessionLoading,
+    error: sessionError,
+    data: sessionData
+  } = useQuery<{ events: any[] }, { session_id: string }>(
+    gql`
+      query GetEvents($session_id: ID!) {
+        events(session_id: $session_id)
+      }
+    `,
+    { variables: { session_id } }
+  );
 
-	// This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
-	useEffect(() => {
-		window.setTimeout(() => {
-			const width = replayer?.wrapper?.getBoundingClientRect().width;
-			const height = replayer?.wrapper?.getBoundingClientRect().height;
-			const targetWidth = playerWrapperRef.current?.clientWidth;
-			const targetHeight = playerWrapperRef.current?.clientHeight;
-			if (!width || !targetWidth || !height || !targetHeight) return;
-			const widthDelta = width - targetWidth;
-			const heightDelta = height - targetHeight;
-			const widthScale = (targetWidth - 80) / width;
-			const heightScale = (targetHeight - 80) / height;
-			const scale = widthDelta > heightDelta ? widthScale : heightScale;
-			const endHeight = (targetHeight - height * scale) / 2;
-			const endWidth = (targetWidth - width * scale) / 2;
-			replayer?.wrapper?.setAttribute(
-				"style",
-				`
+  // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
+  useEffect(() => {
+    window.setTimeout(() => {
+      const width = replayer?.wrapper?.getBoundingClientRect().width;
+      const height = replayer?.wrapper?.getBoundingClientRect().height;
+      const targetWidth = playerWrapperRef.current?.clientWidth;
+      const targetHeight = playerWrapperRef.current?.clientHeight;
+      if (!width || !targetWidth || !height || !targetHeight) return;
+      const widthDelta = width - targetWidth;
+      const heightDelta = height - targetHeight;
+      const widthScale = (targetWidth - 80) / width;
+      const heightScale = (targetHeight - 80) / height;
+      const scale = widthDelta > heightDelta ? widthScale : heightScale;
+      const endHeight = (targetHeight - height * scale) / 2;
+      const endWidth = (targetWidth - width * scale) / 2;
+      replayer?.wrapper?.setAttribute(
+        "style",
+        `
       transform: scale(${scale});
       top: ${endHeight}px;
       left: ${endWidth}px;
       `
-			);
+      );
 
-			setPlayerLoading(false);
-		}, 1000);
-	}, [replayer]);
+      setPlayerLoading(false);
+    }, 1000);
+  }, [replayer]);
 
-	useEffect(() => {
-		if (paused) {
-			clearInterval(ticker);
-			setTicker(0);
-			return;
-		}
-		if (!ticker) {
-			const ticker = window.setInterval(() => {
-				setTime(time => {
-					if (time < totalTime) {
-						return time + 50;
-					}
-					setPaused(true);
-					return time;
-				});
-			}, 50);
-			setTicker(ticker);
-		}
-	}, [setTicker, paused, ticker, totalTime]);
+  useEffect(() => {
+    if (paused) {
+      clearInterval(ticker);
+      setTicker(0);
+      return;
+    }
+    if (!ticker) {
+      const ticker = window.setInterval(() => {
+        setTime(time => {
+          if (time < totalTime) {
+            return time + 50;
+          }
+          setPaused(true);
+          return time;
+        });
+      }, 50);
+      setTicker(ticker);
+    }
+  }, [setTicker, paused, ticker, totalTime]);
 
-	useEffect(() => {
-		if (sessionData?.events?.length ?? 0 > 1) {
-			// Add an id field to each event so it can be referenced.
-			const newEvents: string[] =
-				sessionData?.events.map((e: any, i: number) => {
-					return { ...e, identifier: i };
-				}) ?? [];
-			let r = new Replayer(newEvents, {
-				root: document.getElementById("player") as HTMLElement
-			});
-			setTotalTime(r.getMetaData().totalTime);
-			setReplayer(r);
-			r.getTimeOffset();
-		}
-	}, [sessionData]);
+  useEffect(() => {
+    if (sessionData?.events?.length ?? 0 > 1) {
+      // Add an id field to each event so it can be referenced.
+      const newEvents: string[] =
+        sessionData?.events.map((e: any, i: number) => {
+          return { ...e, identifier: i };
+        }) ?? [];
+      let r = new Replayer(newEvents, {
+        root: document.getElementById("player") as HTMLElement
+      });
+      setTotalTime(r.getMetaData().totalTime);
+      setReplayer(r);
+      r.getTimeOffset();
+    }
+  }, [sessionData]);
 
-	if (sessionError) {
-		return <p>{sessionError.toString()}</p>;
-	}
-	if (error) {
-		return <p>{error.toString()}</p>;
-	}
-	return (
-		<div className={styles.playerBody}>
-			<div className={styles.playerLeftSection}>
-				<div className={styles.rrwebPlayerSection}>
-					<div
-						className={styles.rrwebPlayerWrapper}
-						ref={playerWrapperRef}
-					>
-						<div
-							style={{
-								visibility: playerLoading ? "hidden" : "visible"
-							}}
-							className={styles.rrwebPlayerDiv}
-							id="player"
-						/>
-						{playerLoading && <Spinner />}
-					</div>
-				</div>
-				{
-					/* lol https://github.com/Microsoft/TypeScript/issues/27552#issuecomment-495830020
+  if (sessionError) {
+    return <p>{sessionError.toString()}</p>;
+  }
+  if (error) {
+    return <p>{error.toString()}</p>;
+  }
+  return (
+    <div className={styles.playerBody}>
+      <div className={styles.playerLeftSection}>
+        <div className={styles.rrwebPlayerSection}>
+          <div className={styles.rrwebPlayerWrapper} ref={playerWrapperRef}>
+            <div
+              style={{
+                visibility: playerLoading ? "hidden" : "visible"
+              }}
+              className={styles.rrwebPlayerDiv}
+              id="player"
+            />
+            {playerLoading && <Spinner />}
+          </div>
+        </div>
+        {
+          /* lol https://github.com/Microsoft/TypeScript/issues/27552#issuecomment-495830020
       // @ts-ignore */ /* prettier-ignore */
-					<Slider
+          <Slider
 						onChange={(e: any) => setTime(e)}
 					value={time}
 					max={totalTime}
@@ -142,180 +149,186 @@ export const Player = () => {
 					pushable={true}
 					context={undefined}
 				/>
-				}
-				<div className={styles.toolbarSection}>
-					<div
-						className={styles.playSection}
-						onClick={() => {
-							if (paused) {
-								replayer?.play(time);
-								setPaused(false);
-							} else {
-								replayer?.pause();
-								setPaused(true);
-							}
-						}}
-					>
-						{paused ? (
-							<FaPlay
-								fill="black"
-								className={styles.playButtonStyle}
-							/>
-						) : (
-							<FaPause
-								fill="black"
-								className={styles.playButtonStyle}
-							/>
-						)}
-					</div>
-					<div
-						className={styles.undoSection}
-						onClick={() => {
-							const newTime = time - 7000 < 0 ? 0 : time - 7000;
-							if (paused) {
-								replayer?.pause(newTime);
-								setTime(newTime);
-							} else {
-								replayer?.play(newTime);
-								setTime(newTime);
-							}
-						}}
-					>
-						<FaUndoAlt
-							fill="black"
-							className={styles.undoButtonStyle}
-						/>
-					</div>
-					<div className={styles.timeSection}>
-						{MillisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
-						{MillisToMinutesAndSeconds(totalTime)}
-					</div>
-				</div>
-			</div>
-			<div className={styles.playerRightSection}>
-				<EventStream
-					replayer={replayer}
-					events={sessionData?.events ?? []}
-					detailsRaw={data?.session?.details}
-					time={time}
-					eventsLoading={eventsLoading}
-					sessionLoading={sessionLoading}
-				/>
-			</div>
-		</div>
-	);
+        }
+        <div className={styles.toolbarSection}>
+          <div
+            className={styles.playSection}
+            onClick={() => {
+              if (paused) {
+                replayer?.play(time);
+                setPaused(false);
+              } else {
+                replayer?.pause();
+                setPaused(true);
+              }
+            }}
+          >
+            {paused ? (
+              <FaPlay fill="black" className={styles.playButtonStyle} />
+            ) : (
+              <FaPause fill="black" className={styles.playButtonStyle} />
+            )}
+          </div>
+          <div
+            className={styles.undoSection}
+            onClick={() => {
+              const newTime = time - 7000 < 0 ? 0 : time - 7000;
+              if (paused) {
+                replayer?.pause(newTime);
+                setTime(newTime);
+              } else {
+                replayer?.play(newTime);
+                setTime(newTime);
+              }
+            }}
+          >
+            <FaUndoAlt fill="black" className={styles.undoButtonStyle} />
+          </div>
+          <div className={styles.timeSection}>
+            {MillisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
+            {MillisToMinutesAndSeconds(totalTime)}
+          </div>
+        </div>
+      </div>
+      <div className={styles.playerRightSection}>
+        <EventStream
+          replayer={replayer}
+          events={
+            (sessionData?.events as Array<eventWithTime>) ??
+            ([] as Array<eventWithTime>)
+          }
+          detailsRaw={data?.session?.details}
+          time={time}
+          eventsLoading={eventsLoading}
+          sessionLoading={sessionLoading}
+        />
+      </div>
+    </div>
+  );
 };
-
-const isClick = (e: any) => {
-	return e.type === 3 && e.data.type === 2;
-};
-
 const EventStream = ({
-	detailsRaw,
-	events,
-	time,
-	replayer,
-	sessionLoading,
-	eventsLoading
+  detailsRaw,
+  events,
+  time,
+  replayer,
+  sessionLoading,
+  eventsLoading
 }: {
-	detailsRaw: any;
-	events: any[];
-	time: number;
-	replayer: Replayer | undefined;
-	sessionLoading: boolean;
-	eventsLoading: boolean;
+  detailsRaw: any;
+  events: any[];
+  time: number;
+  replayer: Replayer | undefined;
+  sessionLoading: boolean;
+  eventsLoading: boolean;
 }) => {
-	const [currClick, setCurrClick] = useState(-1);
-	useEffect(() => {
-		replayer &&
-			replayer.on("event-cast", (e: any) => {
-				if (isClick(e)) {
-					setCurrClick(e.identifier);
-					scroller.scrollTo(e.identifier.toString(), {
-						smooth: true,
-						containerId: "wrapper",
-						spy: true,
-						offset: -150
-					});
-				}
-			});
-	}, [replayer, time]);
-	const startDate = new Date(events[0]?.timestamp);
-	var details: any = {};
-	try {
-		details = JSON.parse(detailsRaw);
-	} catch (e) {}
-	return (
-		<>
-			<div className={styles.locationBox}>
-				{sessionLoading ? (
-					<Skeleton />
-				) : (
-					<div className={styles.innerLocationBox}>
-						<div style={{ color: "black" }}>
-							{details?.city}, {details?.state} &nbsp;
-							{details?.postal}
-						</div>
-						<div style={{ color: "black" }}>
-							{startDate.toUTCString()}
-						</div>
-						{details?.browser && (
-							<div style={{ color: "black" }}>
-								{details?.browser?.os},{details?.browser?.name}{" "}
-								&nbsp;-&nbsp;
-								{details?.browser?.version}
-							</div>
-						)}
-					</div>
-				)}
-			</div>
-			<div id="wrapper" className={styles.eventStreamContainer}>
-				<div className={styles.emptyScrollDiv}></div>
-				{eventsLoading ? (
-					<Skeleton active />
-				) : (
-					replayer &&
-					events.map((e, i) => {
-						if (!isClick(e))
-							return (
-								<React.Fragment
-									key={i.toString()}
-								></React.Fragment>
-							);
-						let clickStr =
-							mirror.map[e.data.id] &&
-							mirror.map[e.data.id].nodeName;
-						let timeSinceStart =
-							e?.timestamp - replayer?.getMetaData()?.startTime;
-						return (
-							<Element name={i.toString()} key={i.toString()}>
-								<div
-									className={styles.streamElement}
-									style={{
-										backgroundColor:
-											currClick === i
-												? "#F2EDFF"
-												: "inherit"
-									}}
-									key={i}
-									id={i.toString()}
-								>
-									<div style={{ marginRight: 10 }}>
-										<FaHandPointUp />
-									</div>
-									&nbsp;Clicked &nbsp;&nbsp;
-									<div>{clickStr}</div>
-									<div style={{ marginLeft: "auto" }}>
-										{MillisToMinutesAndSeconds(
-											timeSinceStart
-										)}
-									</div>
-								</div>
-							</Element>
-						);
-					})
-				)}
-			</div>
-		</>
-	);
+  const [currEvent, setCurrEvent] = useState(-1);
+  useEffect(() => {
+    replayer &&
+      replayer.on("event-cast", (e: any) => {
+        const event = e as eventWithTime;
+        if (usefulEvent(event)) {
+          setCurrEvent(event.timestamp);
+          scroller.scrollTo(event.timestamp.toString(), {
+            smooth: true,
+            containerId: "wrapper",
+            spy: true,
+            offset: -150
+          });
+        }
+      });
+  }, [replayer, time]);
+  const startDate = new Date(events[0]?.timestamp);
+  var details: any = {};
+  try {
+    details = JSON.parse(detailsRaw);
+  } catch (e) {}
+  return (
+    <>
+      <div className={styles.locationBox}>
+        {sessionLoading ? (
+          <Skeleton />
+        ) : (
+          <div className={styles.innerLocationBox}>
+            <div style={{ color: "black" }}>
+              {details?.city}, {details?.state} &nbsp;
+              {details?.postal}
+            </div>
+            <div style={{ color: "black" }}>{startDate.toUTCString()}</div>
+            {details?.browser && (
+              <div style={{ color: "black" }}>
+                {details?.browser?.os},{details?.browser?.name} &nbsp;-&nbsp;
+                {details?.browser?.version}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      <div id="wrapper" className={styles.eventStreamContainer}>
+        <div className={styles.emptyScrollDiv}></div>
+        {eventsLoading ? (
+          <Skeleton active />
+        ) : (
+          replayer &&
+          events.filter(usefulEvent).map((e: eventWithTime, i: number) => {
+            const mouseInteraction = e.data as mouseInteractionData;
+            let eventStr = "";
+            console.log(mouseInteraction.type);
+            switch (mouseInteraction.type) {
+              case MouseInteractions.Click:
+                eventStr = "Click";
+                break;
+              case MouseInteractions.Focus:
+                eventStr = "Focus";
+                break;
+            }
+            const node = mirror.map[mouseInteraction.id].__sn as elementNode;
+            let timeSinceStart =
+              e?.timestamp - replayer?.getMetaData()?.startTime;
+            return (
+              <Element
+                name={e.timestamp.toString()}
+                key={e.timestamp.toString()}
+              >
+                <div
+                  className={styles.streamElement}
+                  style={{
+                    backgroundColor:
+                      currEvent === e.timestamp ? "#F2EDFF" : "inherit"
+                  }}
+                  key={i}
+                  id={i.toString()}
+                >
+                  <div style={{ marginRight: 10 }}>
+                    <FaHandPointUp />
+                  </div>
+                  &nbsp;{eventStr} &nbsp;&nbsp;
+                  <div>{node.tagName}</div>
+                  <div style={{ marginLeft: "auto" }}>
+                    {MillisToMinutesAndSeconds(timeSinceStart)}
+                  </div>
+                </div>
+              </Element>
+            );
+          })
+        )}
+      </div>
+    </>
+  );
+};
+
+// used in filter() type methods to fetch events we want
+const usefulEvent = (e: eventWithTime): boolean => {
+  // If its not an 'incrementalSnapshot', discard.
+  if ((e as event).type !== EventType.IncrementalSnapshot) return false;
+  const snapshotEventData = e.data as incrementalData;
+  switch (snapshotEventData.source) {
+    case IncrementalSource.MouseInteraction:
+      switch (snapshotEventData.type) {
+        case MouseInteractions.Click:
+          return true;
+        case MouseInteractions.Focus:
+          return true;
+      }
+  }
+  return false;
 };
