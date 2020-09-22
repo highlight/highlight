@@ -5,12 +5,13 @@ package graph
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
 
+	redis "github.com/go-redis/redis/v8"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -47,11 +48,15 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID
 	return session, nil
 }
 
-func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string) (*int, error) {
+func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error) {
+	obj, ok := userObject.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error converting userObject interface type")
+	}
 	res := r.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: sessionID}},
 	).Updates(
-		&model.Session{Identifier: userIdentifier},
+		&model.Session{Identifier: userIdentifier, UserObject: obj},
 	)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error updating user identifier")
