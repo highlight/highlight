@@ -9,7 +9,7 @@ import appStyles from "../../App.module.css";
 import useFetch from "use-http";
 
 export const SetupPage = () => {
-	const { loading, error, data = "" } = useFetch(
+	const { loading, error, data = "" } = useFetch<string>(
 		process.env.REACT_APP_BUNDLE_URI + "/firstload.js",
 		{},
 		[]
