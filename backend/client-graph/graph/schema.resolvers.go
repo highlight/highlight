@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"time"
 
-	redis "github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
 
+	redis "github.com/go-redis/redis/v8"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
