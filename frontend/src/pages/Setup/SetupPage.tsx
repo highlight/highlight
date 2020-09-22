@@ -35,7 +35,7 @@ export const SetupPage = () => {
             <CodeBlock
               text={`<script>
 window['_h_debug'] = false;
-window['_h_script'] = 'https://static.highlight.run';
+window['_h_script'] = 'https://static.highlight.run/index.js';
 window['_h_org'] = ${organization_id};
 ${codeStr}
 </script>`}
