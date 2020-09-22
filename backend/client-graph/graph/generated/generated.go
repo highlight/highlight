@@ -43,7 +43,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Mutation struct {
 		AddEvents         func(childComplexity int, sessionID int, events string) int
-		IdentifySession   func(childComplexity int, sessionID int, userIdentifier string) int
+		IdentifySession   func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
 		InitializeSession func(childComplexity int, organizationID int, details string) int
 	}
 
@@ -60,7 +60,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error)
-	IdentifySession(ctx context.Context, sessionID int, userIdentifier string) (*int, error)
+	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
 	AddEvents(ctx context.Context, sessionID int, events string) (*int, error)
 }
 
@@ -101,7 +101,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.IdentifySession(childComplexity, args["session_id"].(int), args["user_identifier"].(string)), true
+		return e.complexity.Mutation.IdentifySession(childComplexity, args["session_id"].(int), args["user_identifier"].(string), args["user_object"].(interface{})), true
 
 	case "Mutation.initializeSession":
 		if e.complexity.Mutation.InitializeSession == nil {
@@ -220,7 +220,7 @@ type Session {
 
 type Mutation {
   initializeSession(organization_id: ID!, details: String!): Session
-  identifySession(session_id: ID!, user_identifier: String!): ID
+  identifySession(session_id: ID!, user_identifier: String!, user_object: Any): ID
   addEvents(session_id: ID!, events: String!): ID
 }
 `, BuiltIn: false},
@@ -276,6 +276,15 @@ func (ec *executionContext) field_Mutation_identifySession_args(ctx context.Cont
 		}
 	}
 	args["user_identifier"] = arg1
+	var arg2 interface{}
+	if tmp, ok := rawArgs["user_object"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("user_object"))
+		arg2, err = ec.unmarshalOAny2interface(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["user_object"] = arg2
 	return args, nil
 }
 
@@ -418,7 +427,7 @@ func (ec *executionContext) _Mutation_identifySession(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().IdentifySession(rctx, args["session_id"].(int), args["user_identifier"].(string))
+		return ec.resolvers.Mutation().IdentifySession(rctx, args["session_id"].(int), args["user_identifier"].(string), args["user_object"].(interface{}))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2353,6 +2362,21 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalOAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalAny(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOAny2interface(ctx context.Context, sel ast.SelectionSet, v interface{}) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalAny(v)
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

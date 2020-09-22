@@ -7,10 +7,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	redis "github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -47,7 +46,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID
 	return session, nil
 }
 
-func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string) (*int, error) {
+func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error) {
 	res := r.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: sessionID}},
 	).Updates(
