@@ -1,6 +1,8 @@
 package model
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -52,7 +54,22 @@ type Session struct {
 	// Tells us if the session has been parsed by a worker.
 	Processed bool `json:"processed"`
 	// The length of a session.
-	Length int64 `json:"length"`
+	Length     int64 `json:"length"`
+	UserObject JSONB `sql:"type:jsonb"`
+}
+
+type JSONB map[string]interface{}
+
+func (j JSONB) Value() (driver.Value, error) {
+	valueString, err := json.Marshal(j)
+	return string(valueString), err
+}
+
+func (j *JSONB) Scan(value interface{}) error {
+	if err := json.Unmarshal(value.([]byte), &j); err != nil {
+		return err
+	}
+	return nil
 }
 
 type EventsObject struct {

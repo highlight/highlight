@@ -30,7 +30,7 @@ import {
     this.events = [];
   }
 
-  async identify(user_identifier: string, user_object?: any) {
+  async identify(user_identifier: string, user_object = {}) {
     await this.client.mutate({
       mutation: gql`
         mutation identifySession(
@@ -52,7 +52,9 @@ import {
       },
     });
     console.log(
-      `Identify (${user_identifier}) w/ obj: ${user_object} @ ${process.env.BACKEND_URI}`
+      `Identify (${user_identifier}) w/ obj: ${JSON.stringify(user_object)} @ ${
+        process.env.BACKEND_URI
+      }`
     );
   }
 
