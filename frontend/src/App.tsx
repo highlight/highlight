@@ -73,7 +73,9 @@ const App = () => {
 };
 
 export const AuthAdminRouter = () => {
-  const { loading, error } = useQuery(gql`
+  const { loading, error, data } = useQuery<{
+    admin: { id: string; name: string; email: string };
+  }>(gql`
     query GetAdmin {
       admin {
         id
@@ -82,6 +84,12 @@ export const AuthAdminRouter = () => {
       }
     }
   `);
+  useEffect(() => {
+    if (data?.admin) {
+      const { email, id, name } = data?.admin;
+      (window as any).H.identify(email, { id, name });
+    }
+  }, [data?.admin]);
   if (error || loading) {
     return (
       <div className={styles.loadingWrapper}>
