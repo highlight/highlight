@@ -10,11 +10,11 @@ import useFetch from "use-http";
 
 export const SetupPage = () => {
 	const { loading, error, data = "" } = useFetch(
-		"https://static.highlight.run/firstload_obfuscated.js",
+		process.env.REACT_APP_BUNDLE_URI + "/firstload.js",
 		{},
 		[]
 	);
-	let { organization_id } = useParams();
+	const { organization_id } = useParams();
 
 	if (loading || error) {
 		return (
@@ -23,6 +23,8 @@ export const SetupPage = () => {
 			</div>
 		);
 	}
+
+	const codeStr = data.replace(/(\r\n|\n|\r)/gm, "");
 
 	return (
 		<div className={styles.setupWrapper}>
@@ -44,7 +46,7 @@ export const SetupPage = () => {
 window['_h_debug'] = false;
 window['_h_script'] = 'https://static.highlight.run';
 window['_h_org'] = ${organization_id};
-var a=['script'];(function(b,e){var f=function(g){while(--g){b['push'](b['shift']());}};f(++e);}(a,0x72));var b=function(c,d){c=c-0x0;var e=a[c];return e;};var script=document['createElement'](b('0x0'));script['setAttribute']('src',window['_h_script']+'/index.js?'+new Date()['getMilliseconds']()),script['setAttribute']('type','text/javascript'),document['getElementsByTagName']('head')[0x0]['appendChild'](script),script['addEventListener']('load',()=>{window['highlight_obj']=new Highlight(window['_h_debug']),highlight_obj['initialize'](window['_h_org']);}),window['H']={},window['H']['Identify']=c=>{var d=setInterval(function(){window['highlight_obj']&&window['highlight_obj']['ready']&&(clearInterval(d),window['highlight_obj']['identify'](c));},0xc8);};
+${codeStr}
 </script>`}
 				/>
 				<div className={styles.snippetSubHeading}>

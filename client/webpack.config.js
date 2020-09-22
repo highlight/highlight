@@ -16,6 +16,9 @@ module.exports = {
   devServer: {
     watchContentBase: true,
     writeToDisk: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
   },
   module: {
     rules: [
