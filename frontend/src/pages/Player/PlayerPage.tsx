@@ -3,12 +3,12 @@ import { useParams } from "react-router-dom";
 import { Replayer, mirror } from "rrweb";
 import { elementNode } from "rrweb-snapshot";
 import { FaUndoAlt, FaHandPointUp, FaPlay, FaPause } from "react-icons/fa";
-import styles from "../../App.module.css";
 import { Element, scroller } from "react-scroll";
 import { Spinner } from "../../components/Spinner/Spinner";
 import { MillisToMinutesAndSeconds } from "../../util/time";
 import { useQuery, gql } from "@apollo/client";
-import Slider from "rc-slider";
+import { ReactComponent as PointerIcon } from "../../static/pointer-up.svg";
+import { ReactComponent as HoverIcon } from "../../static/hover.svg";
 import { Skeleton } from "antd";
 import {
   event,
@@ -20,6 +20,9 @@ import {
   IncrementalSource
 } from "./RrwebTypes";
 
+import Slider from "rc-slider";
+
+import styles from "./PlayerPage.module.css";
 import "rc-slider/assets/index.css";
 
 export const Player = () => {
@@ -265,7 +268,7 @@ const EventStream = ({
       </div>
       <div id="wrapper" className={styles.eventStreamContainer}>
         <div className={styles.emptyScrollDiv}></div>
-        {eventsLoading ? (
+        {eventsLoading || !events.length ? (
           <Skeleton active />
         ) : (
           replayer &&
@@ -280,13 +283,15 @@ const EventStream = ({
                 eventStr = "Focus";
                 break;
             }
-            const node = mirror.map[mouseInteraction.id]?.__sn as elementNode;
+            const node = mirror.getNode(mouseInteraction.id);
+            console.log(node);
             let timeSinceStart =
               e?.timestamp - replayer?.getMetaData()?.startTime;
             return (
               <Element
                 name={e.timestamp.toString()}
                 key={e.timestamp.toString()}
+                className={styles.eventWrapper}
               >
                 <div
                   className={styles.streamElement}
@@ -297,11 +302,18 @@ const EventStream = ({
                   key={i}
                   id={i.toString()}
                 >
-                  <div style={{ marginRight: 10 }}>
-                    <FaHandPointUp />
+                  <div className={styles.iconWrapper}>
+                    {eventStr === "Click" ? (
+                      <PointerIcon className={styles.eventIcon} />
+                    ) : (
+                      <HoverIcon className={styles.eventIcon} />
+                    )}
                   </div>
-                  &nbsp;{eventStr} &nbsp;&nbsp;
-                  <div>{node?.tagName}</div>
+                  <div className={styles.eventText}>
+                    &nbsp;{eventStr} &nbsp;&nbsp;
+                  </div>
+                  <div>{(node as any)?.tagName}</div>
+                  <div>{JSON.stringify((node as any)?.attributes)}</div>
                   <div style={{ marginLeft: "auto" }}>
                     {MillisToMinutesAndSeconds(timeSinceStart)}
                   </div>
