@@ -50,7 +50,7 @@ ${codeStr}
 					To tag sessions with user specific identifiers (name, email,
 					etc.), you can call the
 					<span className={styles.codeBlockBasic}>
-						{"identify"}
+						{"H.identify(id: string, object: Object)"}
 					</span>{" "}
 					method in your javascript app. Here's an example:
 				</div>
