@@ -36,14 +36,6 @@ export const Player = () => {
   const [playerLoading, setPlayerLoading] = useState(true);
   const playerWrapperRef = useRef<HTMLDivElement>(null);
 
-  const { loading: eventsLoading, error, data } = useQuery(gql`
-    query GetSession {
-      session(id: "${session_id}") {
-        details
-      }
-    }
-  `);
-
   const {
     loading: sessionLoading,
     error: sessionError,
@@ -124,9 +116,6 @@ export const Player = () => {
   if (sessionError) {
     return <p>{sessionError.toString()}</p>;
   }
-  if (error) {
-    return <p>{error.toString()}</p>;
-  }
   return (
     <div className={styles.playerBody}>
       <div className={styles.playerLeftSection}>
@@ -201,35 +190,103 @@ export const Player = () => {
             (sessionData?.events as Array<eventWithTime>) ??
             ([] as Array<eventWithTime>)
           }
-          detailsRaw={data?.session?.details}
           time={time}
-          eventsLoading={eventsLoading}
-          sessionLoading={sessionLoading}
-        />
+        />{" "}
+        <MetadataBox></MetadataBox>
       </div>
     </div>
   );
 };
+
+const MetadataBox = () => {
+  const { session_id } = useParams();
+  const { loading, error, data } = useQuery<{
+    session: {
+      details: any;
+      user_id: number;
+      created_at: number;
+      user_object: any;
+      identifier: string;
+    };
+  }>(
+    gql`
+      query GetSession($id: ID!) {
+        session(id: $id) {
+          details
+          user_id
+          created_at
+          user_object
+          identifier
+        }
+      }
+    `,
+    { variables: { id: session_id } }
+  );
+  const { src, isLoading } = useImage({
+    srcList: `https://avatar.windsor.io/${data?.session.user_id}`,
+    useSuspense: false
+  });
+  const created = new Date(data?.session.created_at ?? 0);
+  var details: any = {};
+  try {
+    details = JSON.parse(data?.session?.details);
+  } catch (e) {}
+  return (
+    <div className={styles.locationBox}>
+      <div className={styles.innerLocationBox}>
+        {error || isLoading || loading ? (
+          <Skeleton active paragraph={{ rows: 2 }} />
+        ) : (
+          <>
+            <div className={styles.avatarWrapper}>
+              <img
+                style={{
+                  height: 60,
+                  width: 60,
+                  backgroundColor: "#F2EEFB",
+                  borderRadius: "50%"
+                }}
+                src={src}
+              />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 16, fontWeight: 400 }}>
+                <span>User#{data?.session.user_id}</span>
+                {data?.session.identifier && (
+                  <span>• {data?.session.identifier}</span>
+                )}
+              </div>
+              <div style={{ color: "#808080", fontSize: 13 }}>
+                <div>
+                  {details?.city}, {details?.state} &nbsp;
+                  {details?.postal}
+                </div>
+                <div>{created.toUTCString()}</div>
+                {details?.browser && (
+                  <div>
+                    {details?.browser?.os},&nbsp;{details?.browser?.name}{" "}
+                    &nbsp;-&nbsp;
+                    {details?.browser?.version}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const EventStream = ({
-  detailsRaw,
   events,
   time,
-  replayer,
-  sessionLoading,
-  eventsLoading
+  replayer
 }: {
-  detailsRaw: any;
   events: any[];
   time: number;
   replayer: Replayer | undefined;
-  sessionLoading: boolean;
-  eventsLoading: boolean;
 }) => {
-  const { src, isLoading } = useImage({
-    srcList: "https://avatar.windsor.io/abcd",
-    useSuspense: false
-  });
-
   const [currEvent, setCurrEvent] = useState(-1);
   useEffect(() => {
     replayer &&
@@ -246,40 +303,11 @@ const EventStream = ({
         }
       });
   }, [replayer, time]);
-  const startDate = new Date(events[0]?.timestamp);
-  var details: any = {};
-  try {
-    details = JSON.parse(detailsRaw);
-  } catch (e) {}
   return (
     <>
-      <div className={styles.locationBox}>
-        {sessionLoading || isLoading ? (
-          <Skeleton />
-        ) : (
-          <div className={styles.innerLocationBox}>
-            <div className={styles.avatarWrapper}>
-              <img style={{ height: 80, width: 80 }} src={src} />
-            </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ color: "black" }}>
-                {details?.city}, {details?.state} &nbsp;
-                {details?.postal}
-              </div>
-              <div style={{ color: "black" }}>{startDate.toUTCString()}</div>
-              {details?.browser && (
-                <div style={{ color: "black" }}>
-                  {details?.browser?.os},{details?.browser?.name} &nbsp;-&nbsp;
-                  {details?.browser?.version}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
       <div id="wrapper" className={styles.eventStreamContainer}>
         <div className={styles.emptyScrollDiv}></div>
-        {eventsLoading || !events.length ? (
+        {!events.length ? (
           <Skeleton active />
         ) : (
           replayer &&

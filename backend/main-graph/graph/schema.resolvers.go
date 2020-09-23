@@ -10,10 +10,9 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/slack-go/slack"
-
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -112,11 +111,32 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	return admin, nil
 }
 
+func (r *queryResolver) User(ctx context.Context, id int, sessionID int) (*model.User, error) {
+	_, err := r.isAdminSessionOwner(ctx, sessionID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	user := &model.User{}
+	res := r.DB.Where(&model.User{Model: model.Model{ID: id}}).First(&user)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "no user found")
+	}
+	return user, nil
+}
+
+func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
+	return obj.UserObject, nil
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// Session returns generated.SessionResolver implementation.
+func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type sessionResolver struct{ *Resolver }

@@ -93,7 +93,7 @@
 }
 
 .emptyScrollDiv {
-  height: 100px;
+  height: 130px;
   flex-direction: column;
 }
 
@@ -105,12 +105,13 @@
 
 .locationBox {
   border-bottom: 1px solid #eaeaea;
+  padding: 30px 20px 30px 20px;
   position: absolute;
   box-sizing: border-box;
   width: 350px;
+  height: 150px;
   display: flex;
   flex-direction: column;
-  height: 120px;
   background-color: white;
   z-index: 1;
 }
@@ -118,7 +119,9 @@
 .avatarWrapper {
   height: 100%;
   display: flex;
-  align-items: center;
+  margin-right: 10px;
+  width: 90px;
+  justify-content: center;
 }
 
 .appBody {

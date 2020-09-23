@@ -8,6 +8,7 @@ import (
 	"errors"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -37,6 +38,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Session() SessionResolver
 }
 
 type DirectiveRoot struct {
@@ -64,6 +66,7 @@ type ComplexityRoot struct {
 		Organizations func(childComplexity int) int
 		Session       func(childComplexity int, id int) int
 		Sessions      func(childComplexity int, organizationID int) int
+		User          func(childComplexity int, id int, sessionID int) int
 	}
 
 	Session struct {
@@ -73,6 +76,7 @@ type ComplexityRoot struct {
 		Identifier func(childComplexity int) int
 		Length     func(childComplexity int) int
 		UserID     func(childComplexity int) int
+		UserObject func(childComplexity int) int
 	}
 
 	User struct {
@@ -89,6 +93,10 @@ type QueryResolver interface {
 	Sessions(ctx context.Context, organizationID int) ([]*model.Session, error)
 	Organizations(ctx context.Context) ([]*model.Organization, error)
 	Admin(ctx context.Context) (*model.Admin, error)
+	User(ctx context.Context, id int, sessionID int) (*model.User, error)
+}
+type SessionResolver interface {
+	UserObject(ctx context.Context, obj *model.Session) (interface{}, error)
 }
 
 type executableSchema struct {
@@ -203,6 +211,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int)), true
 
+	case "Query.user":
+		if e.complexity.Query.User == nil {
+			break
+		}
+
+		args, err := ec.field_Query_user_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.User(childComplexity, args["id"].(int), args["session_id"].(int)), true
+
 	case "Session.created_at":
 		if e.complexity.Session.CreatedAt == nil {
 			break
@@ -244,6 +264,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.UserID(childComplexity), true
+
+	case "Session.user_object":
+		if e.complexity.Session.UserObject == nil {
+			break
+		}
+
+		return e.complexity.Session.UserObject(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -328,6 +355,7 @@ type Session {
   identifier: String!
   created_at: Time
   length: Int
+  user_object: Any
 }
 
 type Organization {
@@ -352,6 +380,7 @@ type Query {
   # gets all the organizations of a user
   organizations: [Organization]
   admin: Admin
+  user(id: ID!, session_id: ID!): User
 }
 
 type Mutation {
@@ -437,6 +466,30 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 		}
 	}
 	args["organization_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg1
 	return args, nil
 }
 
@@ -862,6 +915,44 @@ func (ec *executionContext) _Query_admin(ctx context.Context, field graphql.Coll
 	return ec.marshalOAdmin2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_user_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().User(rctx, args["id"].(int), args["session_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1127,6 +1218,37 @@ func (ec *executionContext) _Session_length(ctx context.Context, field graphql.C
 	res := resTmp.(int64)
 	fc.Result = res
 	return ec.marshalOInt2int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_user_object(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Session",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Session().UserObject(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(interface{})
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
@@ -2393,6 +2515,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_admin(ctx, field)
 				return res
 			})
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_user(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -2422,27 +2555,38 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Session_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "details":
 			out.Values[i] = ec._Session_details(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "user_id":
 			out.Values[i] = ec._Session_user_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "identifier":
 			out.Values[i] = ec._Session_identifier(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "created_at":
 			out.Values[i] = ec._Session_created_at(ctx, field, obj)
 		case "length":
 			out.Values[i] = ec._Session_length(ctx, field, obj)
+		case "user_object":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Session_user_object(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3237,6 +3381,13 @@ func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v in
 
 func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
 	return graphql.MarshalTime(v)
+}
+
+func (ec *executionContext) marshalOUser2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {
