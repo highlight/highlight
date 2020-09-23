@@ -10,6 +10,7 @@ import { useQuery, gql } from "@apollo/client";
 import { ReactComponent as PointerIcon } from "../../static/pointer-up.svg";
 import { ReactComponent as HoverIcon } from "../../static/hover.svg";
 import { Skeleton } from "antd";
+import { useImage } from "react-image";
 import {
   event,
   EventType,
@@ -108,8 +109,8 @@ export const Player = () => {
     if (sessionData?.events?.length ?? 0 > 1) {
       // Add an id field to each event so it can be referenced.
       const newEvents: string[] =
-        sessionData?.events.map((e: any, i: number) => {
-          return { ...e, identifier: i };
+        sessionData?.events.map(e => {
+          return { ...e };
         }) ?? [];
       let r = new Replayer(newEvents, {
         root: document.getElementById("player") as HTMLElement
@@ -224,6 +225,11 @@ const EventStream = ({
   sessionLoading: boolean;
   eventsLoading: boolean;
 }) => {
+  const { src, isLoading } = useImage({
+    srcList: "https://avatar.windsor.io/abcd",
+    useSuspense: false
+  });
+
   const [currEvent, setCurrEvent] = useState(-1);
   useEffect(() => {
     replayer &&
@@ -248,21 +254,26 @@ const EventStream = ({
   return (
     <>
       <div className={styles.locationBox}>
-        {sessionLoading ? (
+        {sessionLoading || isLoading ? (
           <Skeleton />
         ) : (
           <div className={styles.innerLocationBox}>
-            <div style={{ color: "black" }}>
-              {details?.city}, {details?.state} &nbsp;
-              {details?.postal}
+            <div className={styles.avatarWrapper}>
+              <img style={{ height: 80, width: 80 }} src={src} />
             </div>
-            <div style={{ color: "black" }}>{startDate.toUTCString()}</div>
-            {details?.browser && (
+            <div style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ color: "black" }}>
-                {details?.browser?.os},{details?.browser?.name} &nbsp;-&nbsp;
-                {details?.browser?.version}
+                {details?.city}, {details?.state} &nbsp;
+                {details?.postal}
               </div>
-            )}
+              <div style={{ color: "black" }}>{startDate.toUTCString()}</div>
+              {details?.browser && (
+                <div style={{ color: "black" }}>
+                  {details?.browser?.os},{details?.browser?.name} &nbsp;-&nbsp;
+                  {details?.browser?.version}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -283,8 +294,23 @@ const EventStream = ({
                 eventStr = "Focus";
                 break;
             }
-            const node = mirror.getNode(mouseInteraction.id);
-            console.log(node);
+            const node = mirror.map[mouseInteraction.id]?.__sn as elementNode;
+            var idString = node?.tagName;
+            if (node?.attributes) {
+              const attrs = node?.attributes;
+              if ("class" in attrs) {
+                idString = idString.concat("." + attrs.class);
+              }
+              if ("id" in attrs) {
+                idString = idString.concat("#" + attrs.id);
+              }
+              Object.keys(attrs)
+                .filter(key => !["class", "id"].includes(key))
+                .forEach(
+                  key => (idString += "[" + key + "=" + attrs[key] + "]")
+                );
+            }
+
             let timeSinceStart =
               e?.timestamp - replayer?.getMetaData()?.startTime;
             return (
@@ -297,7 +323,9 @@ const EventStream = ({
                   className={styles.streamElement}
                   style={{
                     backgroundColor:
-                      currEvent === e.timestamp ? "#F2EDFF" : "inherit"
+                      currEvent === e.timestamp ? "#F2EDFF" : "inherit",
+                    color: currEvent === e.timestamp ? "black" : "grey",
+                    fill: currEvent === e.timestamp ? "black" : "grey"
                   }}
                   key={i}
                   id={i.toString()}
@@ -312,8 +340,7 @@ const EventStream = ({
                   <div className={styles.eventText}>
                     &nbsp;{eventStr} &nbsp;&nbsp;
                   </div>
-                  <div>{(node as any)?.tagName}</div>
-                  <div>{JSON.stringify((node as any)?.attributes)}</div>
+                  <div className={styles.codeBlockWrapper}>{idString}</div>
                   <div style={{ marginLeft: "auto" }}>
                     {MillisToMinutesAndSeconds(timeSinceStart)}
                   </div>

@@ -10009,6 +10009,11 @@ react-icons@^3.11.0:
   dependencies:
     camelcase "^5.0.0"
 
+react-image@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/react-image/-/react-image-4.0.3.tgz#6fa722877660b67295298a914bff1ed87ad2cf83"
+  integrity sha512-19MUK9u1qaw9xys8XEsVkSpVhHctEBUeYFvrLTe1PN+4w5Co13AN2WA7xtBshPM6SthsOj77SlDrEAeOaJpf7g==
+
 react-input-autosize@^2.2.2:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/react-input-autosize/-/react-input-autosize-2.2.2.tgz#fcaa7020568ec206bc04be36f4eb68e647c4d8c2"
