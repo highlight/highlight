@@ -131,18 +131,12 @@ export const Player = () => {
             {playerLoading && <Spinner />}
           </div>
         </div>
-        {
-          /* lol https://github.com/Microsoft/TypeScript/issues/27552#issuecomment-495830020
-      // @ts-ignore */ /* prettier-ignore */
-          <Slider
-						onChange={(e: any) => setTime(e)}
-					value={time}
-					max={totalTime}
-					disabled={false}
-					pushable={true}
-					context={undefined}
-				/>
-        }
+        <Slider
+          onChange={(e: any) => setTime(e)}
+          value={time}
+          max={totalTime}
+          disabled={false}
+        />
         <div className={styles.toolbarSection}>
           <div
             className={styles.playSection}
