@@ -10,6 +10,7 @@ type Session {
   identifier: String!
   created_at: Time
   length: Int
+  user_object: Any
 }
 
 type Organization {

@@ -14,6 +14,24 @@
   border-bottom: 1px solid #eaeaea;
 }
 
+.codeBlockWrapper {
+  font-family: "Lucida Console", Monaco, Consolas, "Courier New", Courier,
+    "Lucida Sans Typewriter", "Lucida Typewriter", monospace !important;
+  border: 1px solid #e4e8eb;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  height: 30px;
+  padding-left: 10px;
+  line-height: 30px;
+  font-size: 12px;
+
+  width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  align-items: center;
+  text-overflow: ellipsis;
+}
+
 .accountIconWrapper {
   height: 100%;
   display: flex;
@@ -47,13 +65,16 @@
 
 .streamElement {
   height: 40px;
-  width: 100%;
   border-radius: 6px;
+  width: 100%;
   color: black;
   display: flex;
   padding-left: 10px;
   padding-right: 10px;
   align-items: center;
+  color: #767676;
+  margin-top: 3px;
+  margin-bottom: 3px;
 }
 
 .eventStreamContainer {
@@ -71,18 +92,43 @@
   width: 30px;
 }
 
+.emptyScrollDiv {
+  height: 130px;
+  flex-direction: column;
+}
+
+.innerLocationBox {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+
+.locationBox {
+  border-bottom: 1px solid #eaeaea;
+  padding: 30px 20px 30px 20px;
+  position: absolute;
+  box-sizing: border-box;
+  width: 350px;
+  height: 150px;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  z-index: 1;
+}
+
+.avatarWrapper {
+  height: 100%;
+  display: flex;
+  margin-right: 10px;
+  width: 90px;
+  justify-content: center;
+}
+
 .appBody {
   height: 100vh;
   width: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.playerBody {
-  height: 90vh;
-  width: 100%;
-  flex: 1;
-  display: flex;
 }
 
 .logoWrapper {
@@ -229,4 +275,37 @@
 .undoButtonStyle {
   height: 25px;
   width: 30px;
+}
+
+.playerBody {
+  height: 90vh;
+  width: 100%;
+  flex: 1;
+  display: flex;
+}
+
+.eventIcon {
+  transform: rotate(-20deg);
+}
+
+.eventWrapper {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+}
+
+.iconWrapper {
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.eventText {
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  margin-left: 10px;
+  width: 60px;
 }

@@ -55,7 +55,7 @@ type Session struct {
 	Processed bool `json:"processed"`
 	// The length of a session.
 	Length     int64 `json:"length"`
-	UserObject JSONB `sql:"type:jsonb"`
+	UserObject JSONB `json:"user_object" sql:"type:jsonb"`
 }
 
 type JSONB map[string]interface{}

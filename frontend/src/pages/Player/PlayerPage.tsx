@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import { Replayer, mirror } from "rrweb";
 import { elementNode } from "rrweb-snapshot";
 import { FaUndoAlt, FaHandPointUp, FaPlay, FaPause } from "react-icons/fa";
-import styles from "../../App.module.css";
 import { Element, scroller } from "react-scroll";
 import { Spinner } from "../../components/Spinner/Spinner";
 import { MillisToMinutesAndSeconds } from "../../util/time";
 import { useQuery, gql } from "@apollo/client";
-import Slider from "rc-slider";
+import { ReactComponent as PointerIcon } from "../../static/pointer-up.svg";
+import { ReactComponent as HoverIcon } from "../../static/hover.svg";
 import { Skeleton } from "antd";
+import { useImage } from "react-image";
 import {
   event,
   EventType,
@@ -20,6 +21,9 @@ import {
   IncrementalSource
 } from "./RrwebTypes";
 
+import Slider from "rc-slider";
+
+import styles from "./PlayerPage.module.css";
 import "rc-slider/assets/index.css";
 
 export const Player = () => {
@@ -31,14 +35,6 @@ export const Player = () => {
   const [totalTime, setTotalTime] = useState(0);
   const [playerLoading, setPlayerLoading] = useState(true);
   const playerWrapperRef = useRef<HTMLDivElement>(null);
-
-  const { loading: eventsLoading, error, data } = useQuery(gql`
-    query GetSession {
-      session(id: "${session_id}") {
-        details
-      }
-    }
-  `);
 
   const {
     loading: sessionLoading,
@@ -105,8 +101,8 @@ export const Player = () => {
     if (sessionData?.events?.length ?? 0 > 1) {
       // Add an id field to each event so it can be referenced.
       const newEvents: string[] =
-        sessionData?.events.map((e: any, i: number) => {
-          return { ...e, identifier: i };
+        sessionData?.events.map(e => {
+          return { ...e };
         }) ?? [];
       let r = new Replayer(newEvents, {
         root: document.getElementById("player") as HTMLElement
@@ -119,9 +115,6 @@ export const Player = () => {
 
   if (sessionError) {
     return <p>{sessionError.toString()}</p>;
-  }
-  if (error) {
-    return <p>{error.toString()}</p>;
   }
   return (
     <div className={styles.playerBody}>
@@ -138,18 +131,12 @@ export const Player = () => {
             {playerLoading && <Spinner />}
           </div>
         </div>
-        {
-          /* lol https://github.com/Microsoft/TypeScript/issues/27552#issuecomment-495830020
-      // @ts-ignore */ /* prettier-ignore */
-          <Slider
-						onChange={(e: any) => setTime(e)}
-					value={time}
-					max={totalTime}
-					disabled={false}
-					pushable={true}
-					context={undefined}
-				/>
-        }
+        <Slider
+          onChange={(e: any) => setTime(e)}
+          value={time}
+          max={totalTime}
+          disabled={false}
+        />
         <div className={styles.toolbarSection}>
           <div
             className={styles.playSection}
@@ -197,29 +184,102 @@ export const Player = () => {
             (sessionData?.events as Array<eventWithTime>) ??
             ([] as Array<eventWithTime>)
           }
-          detailsRaw={data?.session?.details}
           time={time}
-          eventsLoading={eventsLoading}
-          sessionLoading={sessionLoading}
-        />
+        />{" "}
+        <MetadataBox></MetadataBox>
       </div>
     </div>
   );
 };
+
+const MetadataBox = () => {
+  const { session_id } = useParams();
+  const { loading, error, data } = useQuery<{
+    session: {
+      details: any;
+      user_id: number;
+      created_at: number;
+      user_object: any;
+      identifier: string;
+    };
+  }>(
+    gql`
+      query GetSession($id: ID!) {
+        session(id: $id) {
+          details
+          user_id
+          created_at
+          user_object
+          identifier
+        }
+      }
+    `,
+    { variables: { id: session_id } }
+  );
+  const { src, isLoading } = useImage({
+    srcList: `https://avatar.windsor.io/${data?.session.user_id}`,
+    useSuspense: false
+  });
+  const created = new Date(data?.session.created_at ?? 0);
+  var details: any = {};
+  try {
+    details = JSON.parse(data?.session?.details);
+  } catch (e) {}
+  return (
+    <div className={styles.locationBox}>
+      <div className={styles.innerLocationBox}>
+        {error || isLoading || loading ? (
+          <Skeleton active paragraph={{ rows: 2 }} />
+        ) : (
+          <>
+            <div className={styles.avatarWrapper}>
+              <img
+                style={{
+                  height: 60,
+                  width: 60,
+                  backgroundColor: "#F2EEFB",
+                  borderRadius: "50%"
+                }}
+                src={src}
+              />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 16, fontWeight: 400 }}>
+                <span>User#{data?.session.user_id}</span>
+                {data?.session.identifier && (
+                  <span>• {data?.session.identifier}</span>
+                )}
+              </div>
+              <div style={{ color: "#808080", fontSize: 13 }}>
+                <div>
+                  {details?.city}, {details?.state} &nbsp;
+                  {details?.postal}
+                </div>
+                <div>{created.toUTCString()}</div>
+                {details?.browser && (
+                  <div>
+                    {details?.browser?.os},&nbsp;{details?.browser?.name}{" "}
+                    &nbsp;-&nbsp;
+                    {details?.browser?.version}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const EventStream = ({
-  detailsRaw,
   events,
   time,
-  replayer,
-  sessionLoading,
-  eventsLoading
+  replayer
 }: {
-  detailsRaw: any;
   events: any[];
   time: number;
   replayer: Replayer | undefined;
-  sessionLoading: boolean;
-  eventsLoading: boolean;
 }) => {
   const [currEvent, setCurrEvent] = useState(-1);
   useEffect(() => {
@@ -237,35 +297,11 @@ const EventStream = ({
         }
       });
   }, [replayer, time]);
-  const startDate = new Date(events[0]?.timestamp);
-  var details: any = {};
-  try {
-    details = JSON.parse(detailsRaw);
-  } catch (e) {}
   return (
     <>
-      <div className={styles.locationBox}>
-        {sessionLoading ? (
-          <Skeleton />
-        ) : (
-          <div className={styles.innerLocationBox}>
-            <div style={{ color: "black" }}>
-              {details?.city}, {details?.state} &nbsp;
-              {details?.postal}
-            </div>
-            <div style={{ color: "black" }}>{startDate.toUTCString()}</div>
-            {details?.browser && (
-              <div style={{ color: "black" }}>
-                {details?.browser?.os},{details?.browser?.name} &nbsp;-&nbsp;
-                {details?.browser?.version}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
       <div id="wrapper" className={styles.eventStreamContainer}>
         <div className={styles.emptyScrollDiv}></div>
-        {eventsLoading ? (
+        {!events.length ? (
           <Skeleton active />
         ) : (
           replayer &&
@@ -281,27 +317,52 @@ const EventStream = ({
                 break;
             }
             const node = mirror.map[mouseInteraction.id]?.__sn as elementNode;
+            var idString = node?.tagName;
+            if (node?.attributes) {
+              const attrs = node?.attributes;
+              if ("class" in attrs) {
+                idString = idString.concat("." + attrs.class);
+              }
+              if ("id" in attrs) {
+                idString = idString.concat("#" + attrs.id);
+              }
+              Object.keys(attrs)
+                .filter(key => !["class", "id"].includes(key))
+                .forEach(
+                  key => (idString += "[" + key + "=" + attrs[key] + "]")
+                );
+            }
+
             let timeSinceStart =
               e?.timestamp - replayer?.getMetaData()?.startTime;
             return (
               <Element
                 name={e.timestamp.toString()}
                 key={e.timestamp.toString()}
+                className={styles.eventWrapper}
               >
                 <div
                   className={styles.streamElement}
                   style={{
                     backgroundColor:
-                      currEvent === e.timestamp ? "#F2EDFF" : "inherit"
+                      currEvent === e.timestamp ? "#F2EDFF" : "inherit",
+                    color: currEvent === e.timestamp ? "black" : "grey",
+                    fill: currEvent === e.timestamp ? "black" : "grey"
                   }}
                   key={i}
                   id={i.toString()}
                 >
-                  <div style={{ marginRight: 10 }}>
-                    <FaHandPointUp />
+                  <div className={styles.iconWrapper}>
+                    {eventStr === "Click" ? (
+                      <PointerIcon className={styles.eventIcon} />
+                    ) : (
+                      <HoverIcon className={styles.eventIcon} />
+                    )}
                   </div>
-                  &nbsp;{eventStr} &nbsp;&nbsp;
-                  <div>{node?.tagName}</div>
+                  <div className={styles.eventText}>
+                    &nbsp;{eventStr} &nbsp;&nbsp;
+                  </div>
+                  <div className={styles.codeBlockWrapper}>{idString}</div>
                   <div style={{ marginLeft: "auto" }}>
                     {MillisToMinutesAndSeconds(timeSinceStart)}
                   </div>
