@@ -111,19 +111,6 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	return admin, nil
 }
 
-func (r *queryResolver) User(ctx context.Context, id int, sessionID int) (*model.User, error) {
-	_, err := r.isAdminSessionOwner(ctx, sessionID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
-	}
-	user := &model.User{}
-	res := r.DB.Where(&model.User{Model: model.Model{ID: id}}).First(&user)
-	if err := res.Error; err != nil || res.RecordNotFound() {
-		return nil, e.Wrap(err, "no user found")
-	}
-	return user, nil
-}
-
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
 	return obj.UserObject, nil
 }
@@ -140,3 +127,22 @@ func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) User(ctx context.Context, id int, sessionID int) (*model.User, error) {
+	_, err := r.isAdminSessionOwner(ctx, sessionID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	user := &model.User{}
+	res := r.DB.Where(&model.User{Model: model.Model{ID: id}}).First(&user)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "no user found")
+	}
+	return user, nil
+}

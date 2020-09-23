@@ -35,7 +35,6 @@ type Query {
   # gets all the organizations of a user
   organizations: [Organization]
   admin: Admin
-  user(id: ID!, session_id: ID!): User
 }
 
 type Mutation {
