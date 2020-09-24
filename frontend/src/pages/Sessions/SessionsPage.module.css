@@ -27,6 +27,7 @@
 .searchIcon {
   margin: 14px;
   color: #979696;
+  width: 20px;
 }
 
 .optionsTitle {
@@ -99,7 +100,6 @@
 .optionsSection {
   display: flex;
   flex-direction: column;
-  margin-bottom: 12px;
 }
 
 .dropdown {
