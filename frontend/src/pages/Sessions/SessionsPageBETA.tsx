@@ -130,7 +130,7 @@ export const SessionsPageBETA = () => {
           ) : (
             <DateOptionsRender
               defaultText={"Enter a time duration (e.g. 24 days, 2 minutes)"}
-              input={params[activeParam].value?.text ?? ""}
+              input={params[activeParam].current ?? ""}
               onSelect={(option: Duration) => {
                 var pcopy = [...paramsRef.current];
                 pcopy[activeParam].value = option;
