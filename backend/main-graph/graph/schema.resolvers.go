@@ -7,12 +7,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/slack-go/slack"
+
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -52,12 +54,28 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	return allEvents["events"], nil
 }
 
-func (r *queryResolver) Sessions(ctx context.Context, organizationID int) ([]*model.Session, error) {
+func (r *queryResolver) Sessions(ctx context.Context, organizationID int, params []interface{}) ([]*model.Session, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	sessions := []*model.Session{}
-	res := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc").Find(&sessions)
+	query := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc")
+	ps, err := model.DecodeAndValidateParams(params)
+	if err != nil {
+		return nil, e.Wrap(err, "error decoding params")
+	}
+	for _, p := range ps {
+		d := time.Duration(int64(time.Millisecond) * p.Value.Duration)
+		switch key := p.Key; key {
+		case "more than":
+			query = query.Where("length > ?", d.Milliseconds())
+		case "less than":
+			query = query.Where("length < ?", d.Milliseconds())
+		case "last":
+			query = query.Where("created_at > ?", time.Now().Add(-d))
+		}
+	}
+	res := query.Find(&sessions)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "no sessions found")
 	}

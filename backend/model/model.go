@@ -8,11 +8,52 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/mitchellh/mapstructure"
 
+	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
 var DB *gorm.DB
+
+type Param struct {
+	Key   string `json:"key"`
+	Value struct {
+		Text     string `json:"text"`
+		Duration int64  `json:"duration"`
+	} `json:"value"`
+}
+
+func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
+	ps := []*Param{}
+	keys := make(map[string]bool)
+	for _, param := range params {
+		var output *Param
+		cfg := &mapstructure.DecoderConfig{
+			Metadata: nil,
+			Result:   &output,
+			TagName:  "json",
+		}
+		decoder, err := mapstructure.NewDecoder(cfg)
+		if err != nil {
+			return nil, e.Wrap(err, "error creating decoder")
+		}
+		err = decoder.Decode(param)
+		if err != nil {
+			return nil, e.Wrap(err, "error decoding")
+		}
+		// If we've already seen the key, throw an error.
+		if val := keys[output.Key]; val {
+			return nil, fmt.Errorf("repeated param '%v' not suppported", val)
+		}
+		if dur := output.Value.Duration; dur <= 0 {
+			return nil, fmt.Errorf("invalid duration value: %v", dur)
+		}
+		keys[output.Key] = true
+		ps = append(ps, output)
+	}
+	return ps, nil
+}
 
 type Model struct {
 	ID        int        `gorm:"primary_key" json:"id"`

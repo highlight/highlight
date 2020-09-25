@@ -18,23 +18,28 @@ import AutosizeInput from "react-input-autosize";
 
 import styles from "./SessionsPage.module.css";
 
+type SearchParam = { key: string; current?: string; value?: Duration };
+type Duration = {
+  text: string;
+  duration: number;
+};
+
 export const SessionsPageBETA = () => {
   const location = useLocation();
   const mainInput = useRef<HTMLInputElement>(null);
-  const [params, setParams] = useState<
-    { key: string; current?: string; value?: Duration }[]
-  >([]);
+  const [params, setParams] = useState<SearchParam[]>([]);
   const paramsRef = useRef(params);
+  const [inputActive, setInputActive] = useState(true);
   const [activeParam, setActiveParam] = useState<number>(-1);
-  const [dateString, setDateString] = useState("");
+  const [mainInputText, setMainInputText] = useState("");
   const { organization_id } = useParams();
   const [getSessions, { loading, error, data }] = useLazyQuery<
     { sessions: any[] },
-    { organization_id: number }
+    { organization_id: number; params: SearchParam[] }
   >(
     gql`
-      query GetSessions($organization_id: ID!) {
-        sessions(organization_id: $organization_id) {
+      query GetSessions($organization_id: ID!, $params: [Any]) {
+        sessions(organization_id: $organization_id, params: $params) {
           id
           details
           user_id
@@ -44,11 +49,23 @@ export const SessionsPageBETA = () => {
         }
       }
     `,
-    { variables: { organization_id: organization_id }, pollInterval: 5000 }
+    {
+      pollInterval: 5000
+    }
   );
 
   useEffect(() => {
     paramsRef.current = params;
+    if (
+      paramsRef.current.filter(p => p.value?.duration).length == params.length
+    ) {
+      getSessions({
+        variables: {
+          organization_id: organization_id,
+          params: paramsRef.current
+        }
+      });
+    }
   }, [params]);
 
   if (error) {
@@ -64,11 +81,14 @@ export const SessionsPageBETA = () => {
               <div className={styles.optionKey}>{p?.key}:</div>
               <AutosizeInput
                 autoFocus
+                onBlur={() => setInputActive(false)}
+                onFocus={() => setInputActive(true)}
                 className={styles.optionInput}
                 autoComplete={"off"}
                 name="option-input"
                 value={p.value?.text || p.current}
                 onChange={function (event) {
+                  console.log(event);
                   var pcopy = [...params];
                   pcopy[i].current = event.target.value;
                   setActiveParam(i);
@@ -90,58 +110,61 @@ export const SessionsPageBETA = () => {
           ))}
           <input
             placeholder={"Type or select a query below..."}
-            value={dateString}
             ref={mainInput}
+            value={mainInputText}
+            onChange={e => setMainInputText(e.target.value)}
+            onBlur={() => setInputActive(false)}
+            onFocus={() => setInputActive(true)}
             autoFocus
-            onFocus={() => {
-              setDateString("");
-            }}
-            onChange={e => {
-              setDateString(e.target.value);
-            }}
             className={styles.searchInput}
           />
           <FaSearch className={styles.searchIcon} />
         </div>
-        <div className={styles.dropdown}>
-          {activeParam === -1 ? (
-            <OptionsFilter
-              input={dateString}
-              obj={[
-                {
-                  action: "last",
-                  description: "time duration (e.g. 24 days, 2 minutes)"
-                },
-                {
-                  action: "more than",
-                  description: "e.g. 10 hours, 2 minutes"
-                },
-                {
-                  action: "less than",
-                  description: "e.g. 10 hours, 2 minutes"
-                }
-              ]}
-              onSelect={(action: string) => {
-                var pcopy = [...paramsRef.current, { key: action }];
-                setParams(pcopy);
-                setActiveParam(pcopy.length - 1);
-              }}
-            />
-          ) : (
-            <DateOptionsRender
-              defaultText={"Enter a time duration (e.g. 24 days, 2 minutes)"}
-              input={params[activeParam].current ?? ""}
-              onSelect={(option: Duration) => {
-                var pcopy = [...paramsRef.current];
-                pcopy[activeParam].value = option;
-                mainInput.current?.focus();
-                setActiveParam(-1);
-                setParams(pcopy);
-                setDateString("");
-              }}
-            />
-          )}
-        </div>
+        {inputActive && (
+          <div className={styles.dropdown}>
+            {activeParam === -1 ? (
+              <OptionsFilter
+                input={mainInputText}
+                obj={[
+                  {
+                    action: "last",
+                    description: "time duration (e.g. 24 days, 2 minutes)"
+                  },
+                  {
+                    action: "more than",
+                    description: "e.g. 10 hours, 2 minutes"
+                  },
+                  {
+                    action: "less than",
+                    description: "e.g. 10 hours, 2 minutes"
+                  }
+                ]}
+                onSelect={(action: string) => {
+                  if (!action) return;
+                  if (paramsRef.current.filter(p => p.key === action).length)
+                    return;
+                  var pcopy = [...paramsRef.current, { key: action }];
+                  setParams(pcopy);
+                  setActiveParam(pcopy.length - 1);
+                  setMainInputText("");
+                }}
+              />
+            ) : (
+              <DateOptionsRender
+                defaultText={"Enter a time duration (e.g. 24 days, 2 minutes)"}
+                input={params[activeParam].current ?? ""}
+                onSelect={(option: Duration) => {
+                  if (!option) return;
+                  var pcopy = [...paramsRef.current];
+                  pcopy[activeParam].value = option;
+                  mainInput.current?.focus();
+                  setActiveParam(-1);
+                  setParams(pcopy);
+                }}
+              />
+            )}
+          </div>
+        )}
         {loading ? (
           <Skeleton />
         ) : (
@@ -215,7 +238,7 @@ type SelectionState = {
 // accepts a limit and incremements/decrements a count accordingly.
 // onClick(i) is called with the current count as input when enter is pressed.
 const useKeySelector = (l: number, onClick: (arg: any) => void): number => {
-  const [index, setIndex] = useState<number>(-1);
+  const [index, setIndex] = useState<number>(0);
   const [limit, setLimit] = useState<number>(l);
   const indexRef = useRef(index);
   const limitRef = useRef(limit);
@@ -231,6 +254,7 @@ const useKeySelector = (l: number, onClick: (arg: any) => void): number => {
   }, [l]);
   const onPress = (e: KeyboardEvent) => {
     if (e.key === "ArrowUp") {
+      e.preventDefault();
       setIndex(i => {
         const n = Math.max(i - 1, 0);
         indexRef.current = n;
@@ -238,6 +262,7 @@ const useKeySelector = (l: number, onClick: (arg: any) => void): number => {
       });
     }
     if (e.key === "ArrowDown") {
+      e.preventDefault();
       setIndex(i => {
         const n = Math.min(i + 1, limitRef.current - 1);
         indexRef.current = n;
@@ -245,6 +270,7 @@ const useKeySelector = (l: number, onClick: (arg: any) => void): number => {
       });
     }
     if (e.key === "Enter") {
+      e.preventDefault();
       onClick(indexRef.current);
     }
   };
@@ -263,7 +289,7 @@ const DateOptionsRender = ({
   const [results, setResults] = useState<fuzzy.FilterResult<Duration>[]>([]);
   const resultsRef = useRef(results);
   const index = useKeySelector(results.length, (i: number) => {
-    onSelect(resultsRef.current[i].original);
+    onSelect(resultsRef.current[i]?.original);
   });
 
   useEffect(() => {
@@ -288,7 +314,7 @@ const DateOptionsRender = ({
         .map((f, i) => {
           return (
             <div
-              onSelect={() => onSelect(f.original)}
+              onSelect={() => onSelect(f?.original)}
               className={styles.optionsRow}
               key={i}
               style={{
@@ -317,7 +343,7 @@ const OptionsFilter = ({
   >([]);
   const resultsRef = useRef(results);
   const index = useKeySelector(results.length, (i: number) => {
-    onSelect(resultsRef.current[i].original.action);
+    onSelect(resultsRef.current[i]?.original.action);
   });
 
   useEffect(() => {
@@ -341,7 +367,7 @@ const OptionsFilter = ({
           <div
             key={i}
             className={styles.optionsRow}
-            onClick={() => onSelect(f.original.action)}
+            onClick={() => onSelect(f?.original.action)}
             style={{
               backgroundColor: i === index ? "#F2EEFB" : "transparent"
             }}
@@ -361,11 +387,6 @@ const OptionsFilter = ({
       )}
     </div>
   );
-};
-
-type Duration = {
-  text: string;
-  duration: number;
 };
 
 const generateDurationObjects = (): Duration[] => {
