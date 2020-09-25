@@ -81,7 +81,6 @@ export const SessionsPageBETA = () => {
               <div className={styles.optionKey}>{p?.key}:</div>
               <AutosizeInput
                 autoFocus
-                onBlur={() => setInputActive(false)}
                 onFocus={() => setInputActive(true)}
                 className={styles.optionInput}
                 autoComplete={"off"}
@@ -113,7 +112,6 @@ export const SessionsPageBETA = () => {
             ref={mainInput}
             value={mainInputText}
             onChange={e => setMainInputText(e.target.value)}
-            onBlur={() => setInputActive(false)}
             onFocus={() => setInputActive(true)}
             autoFocus
             className={styles.searchInput}
@@ -160,6 +158,7 @@ export const SessionsPageBETA = () => {
                   mainInput.current?.focus();
                   setActiveParam(-1);
                   setParams(pcopy);
+                  setInputActive(false);
                 }}
               />
             )}
@@ -367,7 +366,10 @@ const OptionsFilter = ({
           <div
             key={i}
             className={styles.optionsRow}
-            onClick={() => onSelect(f?.original.action)}
+            onClick={() => {
+              onSelect(f?.original.action);
+              console.log("hi");
+            }}
             style={{
               backgroundColor: i === index ? "#F2EEFB" : "transparent"
             }}
