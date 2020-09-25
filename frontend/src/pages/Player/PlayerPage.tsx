@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Replayer, mirror } from "rrweb";
 import { elementNode } from "rrweb-snapshot";
-import { FaUndoAlt, FaHandPointUp, FaPlay, FaPause } from "react-icons/fa";
+import { FaUndoAlt, FaPlay, FaPause } from "react-icons/fa";
 import { Element, scroller } from "react-scroll";
 import { Spinner } from "../../components/Spinner/Spinner";
 import { MillisToMinutesAndSeconds } from "../../util/time";
@@ -128,7 +128,7 @@ export const Player = () => {
               className={styles.rrwebPlayerDiv}
               id="player"
             />
-            {playerLoading && <Spinner />}
+            {(playerLoading || sessionLoading) && <Spinner />}
           </div>
         </div>
         <Slider
@@ -245,6 +245,7 @@ const MetadataBox = () => {
                   backgroundColor: "#F2EEFB",
                   borderRadius: "50%"
                 }}
+                alt={"user profile pic"}
                 src={src}
               />
             </div>

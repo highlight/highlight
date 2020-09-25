@@ -1,10 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 
-// @ts-ignore
-import KeyHandler, { KEYPRESS } from "react-key-handler";
 import { useParams, Link } from "react-router-dom";
 import { useLazyQuery, gql } from "@apollo/client";
-import { useLocation } from "react-router-dom";
 import { MillisToMinutesAndSecondsVerbose } from "../../util/time";
 import { ReactComponent as PlayButton } from "../../static/play-button.svg";
 import { FaSearch, FaTimes } from "react-icons/fa";
@@ -25,7 +22,6 @@ type Duration = {
 };
 
 export const SessionsPageBETA = () => {
-  const location = useLocation();
   const mainInput = useRef<HTMLInputElement>(null);
   const [params, setParams] = useState<SearchParam[]>([]);
   const paramsRef = useRef(params);
@@ -57,7 +53,7 @@ export const SessionsPageBETA = () => {
   useEffect(() => {
     paramsRef.current = params;
     if (
-      paramsRef.current.filter(p => p.value?.duration).length == params.length
+      paramsRef.current.filter(p => p.value?.duration).length === params.length
     ) {
       getSessions({
         variables: {
@@ -66,7 +62,7 @@ export const SessionsPageBETA = () => {
         }
       });
     }
-  }, [params]);
+  }, [params, getSessions, organization_id]);
 
   if (error) {
     return <p>{error.toString()}</p>;
@@ -182,7 +178,7 @@ export const SessionsPageBETA = () => {
               d = JSON.parse(u?.details);
             } catch (error) {}
             return (
-              <Link to={`${location.pathname}/${u.id}`} key={u.id}>
+              <Link to={`/${organization_id}/sessions/${u.id}`} key={u.id}>
                 <div className={styles.sessionCard}>
                   <div className={styles.playButton}>
                     <PlayButton />
@@ -242,37 +238,37 @@ const useKeySelector = (l: number, onClick: (arg: any) => void): number => {
   const indexRef = useRef(index);
   const limitRef = useRef(limit);
   useEffect(() => {
+    const onPress = (e: KeyboardEvent) => {
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setIndex(i => {
+          const n = Math.max(i - 1, 0);
+          indexRef.current = n;
+          return n;
+        });
+      }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setIndex(i => {
+          const n = Math.min(i + 1, limitRef.current - 1);
+          indexRef.current = n;
+          return n;
+        });
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onClick(indexRef.current);
+      }
+    };
     document.addEventListener("keydown", onPress, false);
     return () => {
       document.removeEventListener("keydown", onPress, false);
     };
-  }, []);
+  }, [onClick]);
   useEffect(() => {
     limitRef.current = l;
     setLimit(l);
   }, [l]);
-  const onPress = (e: KeyboardEvent) => {
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setIndex(i => {
-        const n = Math.max(i - 1, 0);
-        indexRef.current = n;
-        return n;
-      });
-    }
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setIndex(i => {
-        const n = Math.min(i + 1, limitRef.current - 1);
-        indexRef.current = n;
-        return n;
-      });
-    }
-    if (e.key === "Enter") {
-      e.preventDefault();
-      onClick(indexRef.current);
-    }
-  };
   return indexRef.current;
 };
 
@@ -357,7 +353,7 @@ const OptionsFilter = ({
         extract: f => f.action
       })
     );
-  }, [input]);
+  }, [input, obj]);
 
   return (
     <div className={styles.optionsSection}>
@@ -418,36 +414,3 @@ const generateUnitOptions = (obj: {
   }
   return options;
 };
-
-// Hook
-function useKeyPress(targetKey: string) {
-  // State for keeping track of whether key is pressed
-  const [keyPressed, setKeyPressed] = useState(false);
-
-  // If pressed key is our target key then set to true
-  function downHandler({ key }: { key: string }) {
-    if (key === targetKey) {
-      setKeyPressed(true);
-    }
-  }
-
-  // If released key is our target key then set to false
-  const upHandler = ({ key }: { key: string }) => {
-    if (key === targetKey) {
-      setKeyPressed(false);
-    }
-  };
-
-  // Add event listeners
-  useEffect(() => {
-    window.addEventListener("keydown", downHandler);
-    window.addEventListener("keyup", upHandler);
-    // Remove event listeners on cleanup
-    return () => {
-      window.removeEventListener("keydown", downHandler);
-      window.removeEventListener("keyup", upHandler);
-    };
-  }, []); // Empty array ensures that effect is only run on mount and unmount
-
-  return keyPressed;
-}
