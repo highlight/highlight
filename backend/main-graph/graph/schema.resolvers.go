@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
@@ -65,14 +66,27 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, params
 		return nil, e.Wrap(err, "error decoding params")
 	}
 	for _, p := range ps {
-		d := time.Duration(int64(time.Millisecond) * p.Value.Duration)
 		switch key := p.Key; key {
 		case "more than":
+			d, err := toDuration(p.Value.Value)
+			if err != nil {
+				return nil, e.Wrap(err, "error convering duration to int")
+			}
 			query = query.Where("length > ?", d.Milliseconds())
 		case "less than":
+			d, err := toDuration(p.Value.Value)
+			if err != nil {
+				return nil, e.Wrap(err, "error convering duration to int")
+			}
 			query = query.Where("length < ?", d.Milliseconds())
 		case "last":
+			d, err := toDuration(p.Value.Value)
+			if err != nil {
+				return nil, e.Wrap(err, "error convering duration to int")
+			}
 			query = query.Where("created_at > ?", time.Now().Add(-d))
+		case "identifier":
+			query = query.Where("identifier = ?", p.Value.Value)
 		}
 	}
 	res := query.Find(&sessions)
@@ -80,6 +94,14 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, params
 		return nil, e.Wrap(err, "no sessions found")
 	}
 	return sessions, nil
+}
+
+func toDuration(duration string) (time.Duration, error) {
+	d, err := strconv.ParseInt(duration, 10, 64)
+	if err != nil || d <= 0 {
+		return time.Duration(0), e.Wrap(err, "error parsing duration integer")
+	}
+	return time.Duration(int64(time.Millisecond) * d), nil
 }
 
 func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {

@@ -53,7 +53,7 @@ func (w *Worker) Start() {
 					}
 					log.Infof("evaluating session '%v' with score: %f \n", sessionID, s.Score)
 					events, err := w.R.Query().Events(ctx, sessionID)
-					if err != nil {
+					if err != nil || len(events) <= 1 {
 						log.Errorf("error retrieving events: %v", err)
 						return
 					}
