@@ -27,6 +27,7 @@
 .searchIcon {
   margin: 14px;
   color: #979696;
+  width: 20px;
 }
 
 .optionsTitle {
@@ -88,6 +89,7 @@
   font-size: 16px;
   font-weight: 300;
   color: black;
+  color: #5629c6;
 }
 
 .optionsValue {
@@ -99,15 +101,12 @@
 .optionsSection {
   display: flex;
   flex-direction: column;
-  margin-bottom: 12px;
 }
 
 .dropdown {
   width: 100%;
   border: 1px solid #eaeaea;
-  position: fixed;
   max-width: 700px;
-  z-index: 100;
   background-color: white;
   border-radius: 8px;
   padding: 16px;

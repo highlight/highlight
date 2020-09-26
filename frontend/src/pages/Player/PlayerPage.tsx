@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Replayer, mirror } from "rrweb";
 import { elementNode } from "rrweb-snapshot";
-import { FaUndoAlt, FaHandPointUp, FaPlay, FaPause } from "react-icons/fa";
+import { FaUndoAlt, FaPlay, FaPause } from "react-icons/fa";
 import { Element, scroller } from "react-scroll";
 import { Spinner } from "../../components/Spinner/Spinner";
 import { MillisToMinutesAndSeconds } from "../../util/time";
@@ -128,7 +128,7 @@ export const Player = () => {
               className={styles.rrwebPlayerDiv}
               id="player"
             />
-            {playerLoading && <Spinner />}
+            {(playerLoading || sessionLoading) && <Spinner />}
           </div>
         </div>
         <Slider
@@ -186,7 +186,7 @@ export const Player = () => {
           }
           time={time}
         />{" "}
-        <MetadataBox></MetadataBox>
+        <MetadataBox />
       </div>
     </div>
   );
@@ -216,7 +216,7 @@ const MetadataBox = () => {
     `,
     { variables: { id: session_id } }
   );
-  const { src, isLoading } = useImage({
+  const { src, isLoading, error: imgError } = useImage({
     srcList: `https://avatar.windsor.io/${data?.session.user_id}`,
     useSuspense: false
   });
@@ -228,8 +228,13 @@ const MetadataBox = () => {
   return (
     <div className={styles.locationBox}>
       <div className={styles.innerLocationBox}>
-        {error || isLoading || loading ? (
+        {isLoading || loading ? (
           <Skeleton active paragraph={{ rows: 2 }} />
+        ) : error || imgError ? (
+          <p>
+            {imgError?.toString()}
+            {error?.toString()}
+          </p>
         ) : (
           <>
             <div className={styles.avatarWrapper}>
@@ -240,6 +245,7 @@ const MetadataBox = () => {
                   backgroundColor: "#F2EEFB",
                   borderRadius: "50%"
                 }}
+                alt={"user profile pic"}
                 src={src}
               />
             </div>
@@ -320,10 +326,10 @@ const EventStream = ({
             var idString = node?.tagName;
             if (node?.attributes) {
               const attrs = node?.attributes;
-              if ("class" in attrs) {
+              if ("class" in attrs && attrs.class.toString()) {
                 idString = idString.concat("." + attrs.class);
               }
-              if ("id" in attrs) {
+              if ("id" in attrs && attrs.id.toString()) {
                 idString = idString.concat("#" + attrs.id);
               }
               Object.keys(attrs)

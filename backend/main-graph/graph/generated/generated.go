@@ -65,7 +65,7 @@ type ComplexityRoot struct {
 		Events        func(childComplexity int, sessionID int) int
 		Organizations func(childComplexity int) int
 		Session       func(childComplexity int, id int) int
-		Sessions      func(childComplexity int, organizationID int) int
+		Sessions      func(childComplexity int, organizationID int, params []interface{}) int
 	}
 
 	Session struct {
@@ -89,7 +89,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model.Session, error)
 	Events(ctx context.Context, sessionID int) ([]interface{}, error)
-	Sessions(ctx context.Context, organizationID int) ([]*model.Session, error)
+	Sessions(ctx context.Context, organizationID int, params []interface{}) ([]*model.Session, error)
 	Organizations(ctx context.Context) ([]*model.Organization, error)
 	Admin(ctx context.Context) (*model.Admin, error)
 }
@@ -207,7 +207,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int)), true
+		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["params"].([]interface{})), true
 
 	case "Session.created_at":
 		if e.complexity.Session.CreatedAt == nil {
@@ -362,7 +362,7 @@ type Admin {
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
-  sessions(organization_id: ID!): [Session]
+  sessions(organization_id: ID!, params: [Any]): [Session]
   # gets all the organizations of a user
   organizations: [Organization]
   admin: Admin
@@ -451,6 +451,15 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 		}
 	}
 	args["organization_id"] = arg0
+	var arg1 []interface{}
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		arg1, err = ec.unmarshalOAny2ᚕinterface(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg1
 	return args, nil
 }
 
@@ -800,7 +809,7 @@ func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int))
+		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["params"].([]interface{}))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
