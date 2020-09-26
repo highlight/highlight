@@ -15,11 +15,20 @@ import AutosizeInput from "react-input-autosize";
 
 import styles from "./SessionsPage.module.css";
 
-type SearchParam = { key: string; current?: string; value?: Duration };
-type Duration = {
+type SearchParam = { key: string; current?: string; value?: Value };
+type DurationValue = {
+  type: "duration";
   text: string;
   duration: number;
 };
+
+type TextValue = {
+  type: "text";
+  text: string;
+  value: string;
+};
+
+type Value = DurationValue | TextValue;
 
 export const SessionsPageBETA = () => {
   const mainInput = useRef<HTMLInputElement>(null);
@@ -147,7 +156,7 @@ export const SessionsPageBETA = () => {
               <DateOptionsRender
                 defaultText={"Enter a time duration (e.g. 24 days, 2 minutes)"}
                 input={params[activeParam].current ?? ""}
-                onSelect={(option: Duration) => {
+                onSelect={(option: Value) => {
                   if (!option) return;
                   var pcopy = [...paramsRef.current];
                   pcopy[activeParam].value = option;
@@ -278,10 +287,10 @@ const DateOptionsRender = ({
   defaultText
 }: {
   input: string;
-  onSelect: (option: Duration) => void;
+  onSelect: (option: Value) => void;
   defaultText: string;
 }) => {
-  const [results, setResults] = useState<fuzzy.FilterResult<Duration>[]>([]);
+  const [results, setResults] = useState<fuzzy.FilterResult<Value>[]>([]);
   const resultsRef = useRef(results);
   const index = useKeySelector(results.length, (i: number) => {
     onSelect(resultsRef.current[i]?.original);
@@ -294,7 +303,7 @@ const DateOptionsRender = ({
   useEffect(() => {
     setResults(
       fuzzy
-        .filter<Duration>(input, generateDurationObjects(), {
+        .filter<Value>(input, generateDurationObjects(), {
           pre: `<strong style="color: #5629c6;">`,
           post: "</strong>",
           extract: f => f.text
@@ -387,7 +396,7 @@ const OptionsFilter = ({
   );
 };
 
-const generateDurationObjects = (): Duration[] => {
+const generateDurationObjects = (): DurationValue[] => {
   const units = [
     { unit: "day", count: 31 },
     { unit: "minute", count: 60 },
@@ -401,8 +410,8 @@ const generateDurationObjects = (): Duration[] => {
 const generateUnitOptions = (obj: {
   unit: string;
   count: number;
-}): Duration[] => {
-  var options: Duration[] = [];
+}): DurationValue[] => {
+  var options: DurationValue[] = [];
   for (var i = 1; i < obj.count + 1; i++) {
     var unitStr = i === 1 ? obj.unit : obj.unit + "s";
     const f = i.toString() + " " + unitStr;

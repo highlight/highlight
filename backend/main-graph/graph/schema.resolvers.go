@@ -73,6 +73,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, params
 			query = query.Where("length < ?", d.Milliseconds())
 		case "last":
 			query = query.Where("created_at > ?", time.Now().Add(-d))
+		case "identifier":
+			query = query.Where("identifier = ?", p.Value.Identifier)
 		}
 	}
 	res := query.Find(&sessions)

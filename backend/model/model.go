@@ -19,8 +19,9 @@ var DB *gorm.DB
 type Param struct {
 	Key   string `json:"key"`
 	Value struct {
-		Text     string `json:"text"`
-		Duration int64  `json:"duration"`
+		Text       string `json:"text"`
+		Duration   int64  `json:"duration"`
+		Identifier string `json:"identifier"`
 	} `json:"value"`
 }
 
