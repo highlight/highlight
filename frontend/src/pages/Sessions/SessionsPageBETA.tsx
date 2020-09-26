@@ -309,7 +309,7 @@ const DateOptionsRender = ({
         .map((f, i) => {
           return (
             <div
-              onSelect={() => onSelect(f?.original)}
+              onClick={() => onSelect(f?.original)}
               className={styles.optionsRow}
               key={i}
               style={{
