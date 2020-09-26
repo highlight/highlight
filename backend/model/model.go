@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/k0kubun/pp"
 	"github.com/mitchellh/mapstructure"
 
 	e "github.com/pkg/errors"
@@ -19,9 +20,8 @@ var DB *gorm.DB
 type Param struct {
 	Key   string `json:"key"`
 	Value struct {
-		Text       string `json:"text"`
-		Duration   int64  `json:"duration"`
-		Identifier string `json:"identifier"`
+		Text  string `json:"text"`
+		Value string `json:"value"`
 	} `json:"value"`
 }
 
@@ -35,6 +35,7 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 			Result:   &output,
 			TagName:  "json",
 		}
+		pp.Println(param)
 		decoder, err := mapstructure.NewDecoder(cfg)
 		if err != nil {
 			return nil, e.Wrap(err, "error creating decoder")
@@ -46,9 +47,6 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 		// If we've already seen the key, throw an error.
 		if val := keys[output.Key]; val {
 			return nil, fmt.Errorf("repeated param '%v' not suppported", val)
-		}
-		if dur := output.Value.Duration; dur <= 0 {
-			return nil, fmt.Errorf("invalid duration value: %v", dur)
 		}
 		keys[output.Key] = true
 		ps = append(ps, output)
