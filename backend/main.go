@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/jay-khatri/fullstory/backend/elastic"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/rs/cors"
@@ -50,10 +51,12 @@ func main() {
 	}
 	rd.SetupRedisStore()
 	rd.SetupRedisClient()
+	elastic.SetupElastic()
 	db := model.SetupDB()
 	mux := http.NewServeMux()
 	main := &mgraph.Resolver{
-		DB: db,
+		DB:      db,
+		Elastic: elastic.Client,
 	}
 	mux.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
 		mgenerated.Config{
@@ -62,8 +65,9 @@ func main() {
 	mux.Handle("/client", cgraph.ClientMiddleWare(ha.GraphQL(cgenerated.NewExecutableSchema(
 		cgenerated.Config{
 			Resolvers: &cgraph.Resolver{
-				DB:    db,
-				Redis: rd.Client,
+				DB:      db,
+				Elastic: elastic.Client,
+				Redis:   rd.Client,
 			},
 		}))))
 	handler := cors.New(cors.Options{
