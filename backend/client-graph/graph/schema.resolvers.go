@@ -53,13 +53,38 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	if !ok {
 		return nil, fmt.Errorf("error converting userObject interface type")
 	}
-	res := r.DB.Model(&model.Session{}).Where(
-		&model.Session{Model: model.Model{ID: sessionID}},
-	).Updates(
-		&model.Session{Identifier: userIdentifier, UserObject: obj},
-	)
+	fields := map[string]string{
+		"identifier": userIdentifier,
+	}
+	for k, v := range obj {
+		fields[k] = fmt.Sprintf("%v", v)
+	}
+	session := &model.Session{}
+	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil || res.RecordNotFound() {
-		return nil, e.Wrap(err, "error updating user identifier")
+		return nil, e.Wrap(err, "error receiving session")
+	}
+
+	modelFields := []model.Field{}
+
+	for fk, fv := range fields {
+		// Get the field with org_id, name, value
+		field := &model.Field{}
+		res = r.DB.Where(&model.Field{OrganizationID: session.OrganizationID, Name: fk, Value: fv}).First(&field)
+		// If the field doesn't exist, we create it.
+		if err := res.Error; err != nil || res.RecordNotFound() {
+			f := &model.Field{OrganizationID: session.OrganizationID, Name: fk, Value: fv}
+			if err := r.DB.Create(f).Error; err != nil {
+				return nil, e.Wrap(err, "error creating field")
+			}
+			field = f
+		}
+		modelFields = append(modelFields, *field)
+	}
+
+	re := r.DB.Model(&session).Association("Fields").Append(modelFields)
+	if err := re.Error; err != nil {
+		return nil, e.Wrap(err, "error updating fields")
 	}
 	return &sessionID, nil
 }
