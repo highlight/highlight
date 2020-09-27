@@ -145,7 +145,6 @@ export const SessionsPageBETA = () => {
 								]}
 								onSelect={(action: string) => {
 									if (!action) return;
-									console.log("here1");
 									if (
 										paramsRef.current.filter(
 											p => p.key === action
@@ -156,13 +155,9 @@ export const SessionsPageBETA = () => {
 										...paramsRef.current,
 										{ key: action }
 									];
-									console.log("yes1");
 									setParams(pcopy);
-									console.log("no1");
 									setActiveParam(pcopy.length - 1);
-									console.log("here1");
 									setMainInputText("");
-									console.log("done1");
 								}}
 							/>
 						) : params[activeParam]?.key === "id" ? (
