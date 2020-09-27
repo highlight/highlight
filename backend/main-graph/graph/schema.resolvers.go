@@ -10,10 +10,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jay-khatri/fullstory/backend/elastic"
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/slack-go/slack"
 
+	"github.com/k0kubun/pp"
+	es "github.com/olivere/elastic/v7"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -96,12 +99,17 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, params
 	return sessions, nil
 }
 
-func toDuration(duration string) (time.Duration, error) {
-	d, err := strconv.ParseInt(duration, 10, 64)
-	if err != nil || d <= 0 {
-		return time.Duration(0), e.Wrap(err, "error parsing duration integer")
+func (r *queryResolver) Identifiers(ctx context.Context, organizationID int, query string) ([]*string, error) {
+	q := es.NewBoolQuery()
+	q = q.Must(es.NewTermQuery("organization_id", strconv.Itoa(organizationID)))
+	res, err := r.Elastic.Search().Index(elastic.SessionIndexString).Query(q).From(0).Size(5).Pretty(true).Do(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying identifiers in ES")
 	}
-	return time.Duration(int64(time.Millisecond) * d), nil
+	pp.Println(res.Hits.Hits)
+	b := "hello"
+	ret := []*string{&b}
+	return ret, nil
 }
 
 func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
@@ -167,3 +175,17 @@ func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func toDuration(duration string) (time.Duration, error) {
+	d, err := strconv.ParseInt(duration, 10, 64)
+	if err != nil || d <= 0 {
+		return time.Duration(0), e.Wrap(err, "error parsing duration integer")
+	}
+	return time.Duration(int64(time.Millisecond) * d), nil
+}

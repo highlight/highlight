@@ -32,6 +32,7 @@ type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
   sessions(organization_id: ID!, params: [Any]): [Session]
+  identifiers(organization_id: ID!, query: String!): [String]
   # gets all the organizations of a user
   organizations: [Organization]
   admin: Admin

@@ -6,9 +6,11 @@ package graph
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
+	"github.com/jay-khatri/fullstory/backend/elastic"
 	"github.com/jay-khatri/fullstory/backend/model"
 
 	redis "github.com/go-redis/redis/v8"
@@ -60,6 +62,17 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error updating user identifier")
+	}
+	session := &model.Session{}
+	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).Find(session)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error updating user identifier")
+	}
+	pp.Println(session)
+	_, err := r.Elastic.Index().Index(elastic.SessionIndexString).
+		Id(strconv.Itoa(sessionID)).BodyJson(elastic.Session{Identifier: userIdentifier, OrganizationID: session.OrganizationID}).Do(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error updating elastic index")
 	}
 	return &sessionID, nil
 }
