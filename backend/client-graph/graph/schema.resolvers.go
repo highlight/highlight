@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 
 	redis "github.com/go-redis/redis/v8"
 	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error) {
@@ -65,8 +65,14 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		return nil, e.Wrap(err, "error receiving session")
 	}
 
-	modelFields := []model.Field{}
+	if session.Identifier != userIdentifier {
+		res := r.DB.Model(session).Updates(&model.Session{Identifier: userIdentifier})
+		if err := res.Error; err != nil || res.RecordNotFound() {
+			return nil, e.Wrap(err, "error adding user identifier to session")
+		}
+	}
 
+	modelFields := []model.Field{}
 	for fk, fv := range fields {
 		// Get the field with org_id, name, value
 		field := &model.Field{}
@@ -90,18 +96,22 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 }
 
 func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events string) (*int, error) {
-	obj := &model.EventsObject{SessionID: sessionID, Events: events}
-	if err := r.DB.Create(obj).Error; err != nil {
-		return nil, e.Wrap(err, "error creating events object")
+	eventsParsed := make(map[string][]interface{})
+	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
+		return nil, fmt.Errorf("error decoding event data: %v", err)
+	}
+	if len(eventsParsed["events"]) >= 0 {
+		obj := &model.EventsObject{SessionID: sessionID, Events: events}
+		if err := r.DB.Create(obj).Error; err != nil {
+			return nil, e.Wrap(err, "error creating events object")
+		}
 	}
 	now := float64(time.Now().UTC().Unix())
 	member := &redis.Z{Score: now, Member: sessionID}
 	if err := r.Redis.ZAdd(ctx, "sessions", member).Err(); err != nil {
 		return nil, err
 	}
-	id := obj.ID
-	log.Infof("updating session '%v' with score `%f`", sessionID, now)
-	return &id, nil
+	return &sessionID, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

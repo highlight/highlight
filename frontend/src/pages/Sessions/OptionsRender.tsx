@@ -21,49 +21,48 @@ export const IdentifierOptions = ({
 	const [results, setResults] = useState<fuzzy.FilterResult<Value>[]>([]);
 	const resultsRef = useRef(results);
 	const index = useKeySelector(results.length, (i: number) => {
-		onSelect(resultsRef.current[i]?.original);
+		onSelect(results[i]?.original);
 	});
-	// const [fieldSuggestion, { loading, error, data }] = useLazyQuery<
-	//     { field_suggestion: string[] },
-	//     { organization_id: number; field: string; query: string }
-	// >(
-	//     gql`
-	//         query GetFieldSuggestion(
-	//             $organization_id: ID!
-	//             $field: String!
-	//             $query: String!
-	//         ) {
-	//             field_suggestion(
-	//                 organization_id: $organization_id
-	//                 field: $field
-	//                 query: $query
-	//             )
-	//         }
-	//     `
-	// );
+	const [fieldSuggestion, { loading, error, data }] = useLazyQuery<
+		{ field_suggestion: string[] },
+		{ organization_id: number; field: string; query: string }
+	>(
+		gql`
+			query GetFieldSuggestion(
+				$organization_id: ID!
+				$field: String!
+				$query: String!
+			) {
+				field_suggestion(
+					organization_id: $organization_id
+					field: $field
+					query: $query
+				)
+			}
+		`
+	);
 
 	useEffect(() => {
-		resultsRef.current = results;
-	}, [results]);
+		fieldSuggestion({
+			variables: { field: "identifier", query: input, organization_id }
+		});
+	}, [input]);
 
 	useEffect(() => {
 		setResults(
-			fuzzy
-				.filter<Value>(input, generateDurationObjects(), {
+			fuzzy.filter<Value>(
+				input,
+				data?.field_suggestion.map(s => {
+					return { text: s, value: s };
+				}) ?? [],
+				{
 					pre: `<strong style="color: #5629c6;">`,
 					post: "</strong>",
 					extract: f => f.text
-				})
-				.slice(0, 5)
+				}
+			)
 		);
-		// fieldSuggestion({
-		//     variables: {
-		//         organization_id: organization_id,
-		//         field: "identifier",
-		//         query: input
-		//     }
-		// });
-	}, [input]);
+	}, [data, input]);
 
 	return (
 		<>
@@ -71,7 +70,10 @@ export const IdentifierOptions = ({
 				.map((f, i) => {
 					return (
 						<div
-							onClick={() => onSelect(f?.original)}
+							onClick={() => {
+								console.log(f);
+								onSelect(f?.original);
+							}}
 							className={styles.optionsRow}
 							key={i}
 							style={{
@@ -180,7 +182,6 @@ export const OptionsFilter = ({
 						className={styles.optionsRow}
 						onClick={() => {
 							onSelect(f?.original.action);
-							console.log("hi");
 						}}
 						style={{
 							backgroundColor:
@@ -241,7 +242,6 @@ const useKeySelector = (l: number, onClick: (arg: any) => void): number => {
 	const limitRef = useRef(limit);
 	useEffect(() => {
 		const onPress = (e: KeyboardEvent) => {
-			console.log("here");
 			if (e.key === "ArrowUp") {
 				e.preventDefault();
 				setIndex(i => {
@@ -262,7 +262,6 @@ const useKeySelector = (l: number, onClick: (arg: any) => void): number => {
 				e.preventDefault();
 				onClick(indexRef.current);
 			}
-			console.log("done");
 		};
 		document.addEventListener("keydown", onPress, false);
 		return () => {

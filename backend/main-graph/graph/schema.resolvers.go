@@ -61,7 +61,15 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, params
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	sessions := []*model.Session{}
-	query := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc")
+	query := r.DB.
+		Debug().
+		Table("session_fields").
+		Select("distinct(sessions.*, fields.name, fields.value)").
+		Joins("inner join sessions on session_fields.session_id = sessions.id inner join fields on session_fields.field_id = fields.id").
+		Where(&model.Session{OrganizationID: organizationID, Processed: true}).
+		Unscoped().
+		Where("length > ?", 1000).
+		Order("created_at desc")
 	ps, err := model.DecodeAndValidateParams(params)
 	if err != nil {
 		return nil, e.Wrap(err, "error decoding params")
@@ -88,29 +96,33 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, params
 			query = query.Where("created_at > ?", time.Now().Add(-d))
 		case "identifier":
 			query = query.Where("identifier = ?", p.Value.Value)
+		default:
+			query = query.Where("value = ?", p.Value.Value).Where("name = ?", p.Key)
 		}
 	}
-	res := query.Find(&sessions)
+	res := query.Limit(10).Find(&sessions)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "no sessions found")
+	}
+	for i := range sessions {
+		pp.Println(sessions[i].ID)
 	}
 	return sessions, nil
 }
 
 func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error) {
-	pp.Println(field)
-	pp.Println(organizationID)
-	pp.Println(query)
 	fields := []model.Field{}
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Name: field}).
+		Order(fmt.Sprintf(`levenshtein(value, '%v')`, query)).
+		Limit(5).
 		Find(&fields)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error querying field suggestion")
 	}
 	pp.Println(fields)
 	fieldStrings := []*string{}
-	for _, f := range fields {
-		fieldStrings = append(fieldStrings, &f.Value)
+	for i := range fields {
+		fieldStrings = append(fieldStrings, &fields[i].Value)
 	}
 	return fieldStrings, nil
 }
