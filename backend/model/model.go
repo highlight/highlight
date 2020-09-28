@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/k0kubun/pp"
 	"github.com/mitchellh/mapstructure"
 
 	e "github.com/pkg/errors"
@@ -131,7 +130,6 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 			Result:   &output,
 			TagName:  "json",
 		}
-		pp.Println(param)
 		decoder, err := mapstructure.NewDecoder(cfg)
 		if err != nil {
 			return nil, e.Wrap(err, "error creating decoder")

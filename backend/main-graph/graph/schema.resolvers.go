@@ -7,12 +7,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	"github.com/slack-go/slack"
 
 	e "github.com/pkg/errors"
@@ -61,15 +59,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, params
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	sessions := []*model.Session{}
-	query := r.DB.
-		Debug().
-		Table("session_fields").
-		Select("distinct(sessions.*, fields.name, fields.value)").
-		Joins("inner join sessions on session_fields.session_id = sessions.id inner join fields on session_fields.field_id = fields.id").
-		Where(&model.Session{OrganizationID: organizationID, Processed: true}).
-		Unscoped().
-		Where("length > ?", 1000).
-		Order("created_at desc")
+	query := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc")
 	ps, err := model.DecodeAndValidateParams(params)
 	if err != nil {
 		return nil, e.Wrap(err, "error decoding params")
@@ -96,16 +86,11 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, params
 			query = query.Where("created_at > ?", time.Now().Add(-d))
 		case "identifier":
 			query = query.Where("identifier = ?", p.Value.Value)
-		default:
-			query = query.Where("value = ?", p.Value.Value).Where("name = ?", p.Key)
 		}
 	}
 	res := query.Limit(10).Find(&sessions)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "no sessions found")
-	}
-	for i := range sessions {
-		pp.Println(sessions[i].ID)
 	}
 	return sessions, nil
 }
@@ -119,7 +104,6 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error querying field suggestion")
 	}
-	pp.Println(fields)
 	fieldStrings := []*string{}
 	for i := range fields {
 		fieldStrings = append(fieldStrings, &fields[i].Value)
@@ -190,17 +174,3 @@ func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func toDuration(duration string) (time.Duration, error) {
-	d, err := strconv.ParseInt(duration, 10, 64)
-	if err != nil || d <= 0 {
-		return time.Duration(0), e.Wrap(err, "error parsing duration integer")
-	}
-	return time.Duration(int64(time.Millisecond) * d), nil
-}
