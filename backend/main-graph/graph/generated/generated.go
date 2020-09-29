@@ -66,7 +66,7 @@ type ComplexityRoot struct {
 		FieldSuggestion func(childComplexity int, organizationID int, field string, query string) int
 		Organizations   func(childComplexity int) int
 		Session         func(childComplexity int, id int) int
-		Sessions        func(childComplexity int, organizationID int, params []interface{}) int
+		Sessions        func(childComplexity int, organizationID int, count int, params []interface{}) int
 	}
 
 	Session struct {
@@ -90,7 +90,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model.Session, error)
 	Events(ctx context.Context, sessionID int) ([]interface{}, error)
-	Sessions(ctx context.Context, organizationID int, params []interface{}) ([]*model.Session, error)
+	Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model.Session, error)
 	FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error)
 	Organizations(ctx context.Context) ([]*model.Organization, error)
 	Admin(ctx context.Context) (*model.Admin, error)
@@ -221,7 +221,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["params"].([]interface{})), true
+		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["params"].([]interface{})), true
 
 	case "Session.created_at":
 		if e.complexity.Session.CreatedAt == nil {
@@ -376,7 +376,7 @@ type Admin {
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
-  sessions(organization_id: ID!, params: [Any]): [Session]
+  sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
   # gets all the organizations of a user
   field_suggestion(organization_id: ID!, field: String!, query: String!): [String]
   organizations: [Organization]
@@ -499,15 +499,24 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 		}
 	}
 	args["organization_id"] = arg0
-	var arg1 []interface{}
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
-		arg1, err = ec.unmarshalOAny2ᚕinterface(ctx, tmp)
+	var arg1 int
+	if tmp, ok := rawArgs["count"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("count"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg1
+	args["count"] = arg1
+	var arg2 []interface{}
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		arg2, err = ec.unmarshalOAny2ᚕinterface(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg2
 	return args, nil
 }
 
@@ -857,7 +866,7 @@ func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["params"].([]interface{}))
+		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["count"].(int), args["params"].([]interface{}))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2910,6 +2919,21 @@ func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{})
 
 func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	res := graphql.MarshalIntID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")

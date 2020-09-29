@@ -5,15 +5,15 @@ import { useLazyQuery, gql } from "@apollo/client";
 import { MillisToMinutesAndSecondsVerbose } from "../../util/time";
 import { ReactComponent as PlayButton } from "../../static/play-button.svg";
 import { FaSearch, FaTimes } from "react-icons/fa";
-import { Skeleton } from "antd";
+import { useDebouncedCallback } from "use-debounce";
 import {
   Value,
   OptionsFilter,
   DateOptions,
   IdentifierOptions
 } from "./OptionsRender";
+import { Spinner } from "../../components/Spinner/Spinner";
 
-import fuzzy from "fuzzy";
 import AutosizeInput from "react-input-autosize";
 
 import styles from "./SessionsPage.module.css";
@@ -21,20 +21,30 @@ import styles from "./SessionsPage.module.css";
 type SearchParam = { key: string; current?: string; value?: Value };
 
 export const SessionsPageBETA = () => {
+  const countDebounced = useDebouncedCallback(() => {
+    setCount(count => count + 10);
+  }, 500);
   const mainInput = useRef<HTMLInputElement>(null);
   const [params, setParams] = useState<SearchParam[]>([]);
   const paramsRef = useRef(params);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [inputActive, setInputActive] = useState(true);
+  const [count, setCount] = useState(10);
   const [activeParam, setActiveParam] = useState<number>(-1);
   const [mainInputText, setMainInputText] = useState("");
   const { organization_id } = useParams();
+  const [sessionData, setSessionData] = useState<any[]>([]);
   const [getSessions, { loading, error, data }] = useLazyQuery<
     { sessions: any[] },
-    { organization_id: number; params: SearchParam[] }
+    { count: number; organization_id: number; params: SearchParam[] }
   >(
     gql`
-      query GetSessions($organization_id: ID!, $params: [Any]) {
-        sessions(organization_id: $organization_id, params: $params) {
+      query GetSessions($organization_id: ID!, $count: Int!, $params: [Any]) {
+        sessions(
+          organization_id: $organization_id
+          count: $count
+          params: $params
+        ) {
           id
           details
           user_id
@@ -50,6 +60,29 @@ export const SessionsPageBETA = () => {
   );
 
   useEffect(() => {
+    if (!loading) {
+      setSessionData(data?.sessions ?? []);
+    }
+  }, [data, loading]);
+
+  useEffect(() => {
+    document.addEventListener("scroll", (e: any) => {
+      var refHeight = resultsRef?.current?.getBoundingClientRect().bottom;
+      const innerHeight = window?.innerHeight;
+      if (!refHeight) {
+        refHeight = 0;
+      }
+      const diff = Math.abs(refHeight - innerHeight);
+      if (diff < 300) {
+        countDebounced.callback();
+      }
+    });
+    return () => {
+      document.removeEventListener("scroll", e => console.log(e));
+    };
+  }, [countDebounced]);
+
+  useEffect(() => {
     paramsRef.current = params;
     if (
       paramsRef.current.filter(p => p.value?.value).length === params.length
@@ -57,17 +90,27 @@ export const SessionsPageBETA = () => {
       getSessions({
         variables: {
           organization_id: organization_id,
-          params: paramsRef.current
+          params: paramsRef.current,
+          count: count
         }
       });
     }
-  }, [params, getSessions, organization_id]);
+  }, [count, params, getSessions, organization_id]);
 
   if (error) {
     return <p>{error.toString()}</p>;
   }
   return (
-    <div className={styles.setupWrapper}>
+    <div
+      className={styles.setupWrapper}
+      onScroll={(e: React.UIEvent<HTMLElement>) => {
+        e.stopPropagation();
+        console.log(
+          e.currentTarget.scrollHeight - e.currentTarget.scrollTop ===
+            e.currentTarget.clientHeight
+        );
+      }}
+    >
       <div className={styles.sessionsSection}>
         <div className={styles.sessionsHeader}>Session Playlist</div>
         <div className={styles.searchBar}>
@@ -177,10 +220,17 @@ export const SessionsPageBETA = () => {
             )}
           </div>
         )}
-        {loading ? (
-          <Skeleton />
-        ) : (
-          data?.sessions?.map(u => {
+        <div
+          ref={resultsRef}
+          onScroll={(e: React.UIEvent<HTMLElement>) => {
+            e.stopPropagation();
+            console.log(
+              e.currentTarget.scrollHeight - e.currentTarget.scrollTop ===
+                e.currentTarget.clientHeight
+            );
+          }}
+        >
+          {sessionData.map(u => {
             const created = new Date(u.created_at);
             let d: {
               browser?: {
@@ -235,8 +285,11 @@ export const SessionsPageBETA = () => {
                 </div>
               </Link>
             );
-          })
-        )}
+          })}
+          <div className={styles.loadingDiv}>
+            <Spinner />
+          </div>
+        </div>
       </div>
     </div>
   );
