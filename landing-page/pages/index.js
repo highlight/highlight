@@ -14,8 +14,8 @@ export default function Home() {
             Step into the shoes of your users.
           </div>
           <div className={styles.copyBody}>
-            Highlight gives your team insight into how users are &nbsp;
-            <span className={styles.actually}>actually</span> interacting with
+            Highlight gives your team insight into how users are
+            <span className={styles.actually}> actually</span> interacting with
             your site.
           </div>
           <RequestForm />
