@@ -23,9 +23,7 @@ func (w *Worker) Start() {
 	go func() {
 		for range time.Tick(5 * time.Second) {
 			now := time.Now()
-			log.Infof("now is: %v \n", strconv.FormatInt(now.Unix(), 10))
 			twentySecondsAgo := strconv.FormatInt(now.Add(-20*time.Second).Unix(), 10)
-			log.Infof("twenty seconds ago is: %v \n", twentySecondsAgo)
 			by := &redis.ZRangeBy{Min: "-inf", Max: twentySecondsAgo}
 			result := rd.Client.ZRangeByScoreWithScores(context.Background(), "sessions", by)
 			if err := result.Err(); err != nil {

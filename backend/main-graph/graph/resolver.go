@@ -3,6 +3,8 @@ package graph
 import (
 	"context"
 	"fmt"
+	"strconv"
+	"time"
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
@@ -56,4 +58,12 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
 	return session, nil
+}
+
+func toDuration(duration string) (time.Duration, error) {
+	d, err := strconv.ParseInt(duration, 10, 64)
+	if err != nil || d <= 0 {
+		return time.Duration(0), e.Wrap(err, "error parsing duration integer")
+	}
+	return time.Duration(int64(time.Millisecond) * d), nil
 }

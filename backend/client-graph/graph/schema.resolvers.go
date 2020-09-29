@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 
 	redis "github.com/go-redis/redis/v8"
 	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error) {
@@ -53,30 +53,65 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	if !ok {
 		return nil, fmt.Errorf("error converting userObject interface type")
 	}
-	res := r.DB.Model(&model.Session{}).Where(
-		&model.Session{Model: model.Model{ID: sessionID}},
-	).Updates(
-		&model.Session{Identifier: userIdentifier, UserObject: obj},
-	)
+	fields := map[string]string{
+		"identifier": userIdentifier,
+	}
+	for k, v := range obj {
+		fields[k] = fmt.Sprintf("%v", v)
+	}
+	session := &model.Session{}
+	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil || res.RecordNotFound() {
-		return nil, e.Wrap(err, "error updating user identifier")
+		return nil, e.Wrap(err, "error receiving session")
+	}
+
+	if session.Identifier != userIdentifier {
+		res := r.DB.Model(session).Updates(&model.Session{Identifier: userIdentifier})
+		if err := res.Error; err != nil || res.RecordNotFound() {
+			return nil, e.Wrap(err, "error adding user identifier to session")
+		}
+	}
+
+	modelFields := []model.Field{}
+	for fk, fv := range fields {
+		// Get the field with org_id, name, value
+		field := &model.Field{}
+		res = r.DB.Where(&model.Field{OrganizationID: session.OrganizationID, Name: fk, Value: fv}).First(&field)
+		// If the field doesn't exist, we create it.
+		if err := res.Error; err != nil || res.RecordNotFound() {
+			f := &model.Field{OrganizationID: session.OrganizationID, Name: fk, Value: fv}
+			if err := r.DB.Create(f).Error; err != nil {
+				return nil, e.Wrap(err, "error creating field")
+			}
+			field = f
+		}
+		modelFields = append(modelFields, *field)
+	}
+
+	re := r.DB.Model(&session).Association("Fields").Append(modelFields)
+	if err := re.Error; err != nil {
+		return nil, e.Wrap(err, "error updating fields")
 	}
 	return &sessionID, nil
 }
 
 func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events string) (*int, error) {
-	obj := &model.EventsObject{SessionID: sessionID, Events: events}
-	if err := r.DB.Create(obj).Error; err != nil {
-		return nil, e.Wrap(err, "error creating events object")
+	eventsParsed := make(map[string][]interface{})
+	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
+		return nil, fmt.Errorf("error decoding event data: %v", err)
+	}
+	if len(eventsParsed["events"]) >= 0 {
+		obj := &model.EventsObject{SessionID: sessionID, Events: events}
+		if err := r.DB.Create(obj).Error; err != nil {
+			return nil, e.Wrap(err, "error creating events object")
+		}
 	}
 	now := float64(time.Now().UTC().Unix())
 	member := &redis.Z{Score: now, Member: sessionID}
 	if err := r.Redis.ZAdd(ctx, "sessions", member).Err(); err != nil {
 		return nil, err
 	}
-	id := obj.ID
-	log.Infof("updating session '%v' with score `%f`", sessionID, now)
-	return &id, nil
+	return &sessionID, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

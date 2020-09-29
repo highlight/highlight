@@ -33,6 +33,7 @@ type Query {
   events(session_id: ID!): [Any]
   sessions(organization_id: ID!, params: [Any]): [Session]
   # gets all the organizations of a user
+  field_suggestion(organization_id: ID!, field: String!, query: String!): [String]
   organizations: [Organization]
   admin: Admin
 }

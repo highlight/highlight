@@ -82,7 +82,6 @@ export const SessionsPageBETA = () => {
                 name="option-input"
                 value={p.value?.text || p.current}
                 onChange={function (event) {
-                  console.log(event);
                   var pcopy = [...params];
                   pcopy[i].current = event.target.value;
                   setActiveParam(i);
@@ -132,7 +131,7 @@ export const SessionsPageBETA = () => {
                     description: "time duration (e.g. 1 hour)"
                   },
                   {
-                    action: "id",
+                    action: "identifier",
                     description: "identifier (e.g. email@email.com)"
                   }
                 ]}
@@ -146,11 +145,12 @@ export const SessionsPageBETA = () => {
                   setMainInputText("");
                 }}
               />
-            ) : params[activeParam]?.key === "id" ? (
+            ) : params[activeParam]?.key === "identifier" ? (
               <IdentifierOptions
                 defaultText={"Enter a time duration (e.g. 24 days, 2 minutes)"}
                 input={params[activeParam].current ?? ""}
                 onSelect={(option: Value) => {
+                  console.log(option);
                   if (!option) return;
                   var pcopy = [...paramsRef.current];
                   pcopy[activeParam].value = option;
@@ -240,9 +240,4 @@ export const SessionsPageBETA = () => {
       </div>
     </div>
   );
-};
-
-type SelectionState = {
-  current: number;
-  results: Array<fuzzy.FilterResult<string>>;
 };
