@@ -1,10 +1,11 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useLayoutEffect, useRef, useState, useEffect } from "react";
 
 import { useParams, Link } from "react-router-dom";
 import { useLazyQuery, gql } from "@apollo/client";
 import { MillisToMinutesAndSecondsVerbose } from "../../util/time";
 import { ReactComponent as PlayButton } from "../../static/play-button.svg";
 import { FaSearch, FaTimes } from "react-icons/fa";
+import { useDebouncedCallback } from "use-debounce";
 import { Skeleton } from "antd";
 import {
   Value,
@@ -21,20 +22,30 @@ import styles from "./SessionsPage.module.css";
 type SearchParam = { key: string; current?: string; value?: Value };
 
 export const SessionsPageBETA = () => {
+  const countDebounced = useDebouncedCallback(() => {
+    setCount(count => count + 10);
+  }, 500);
   const mainInput = useRef<HTMLInputElement>(null);
   const [params, setParams] = useState<SearchParam[]>([]);
   const paramsRef = useRef(params);
+  const resultsRef = useRef<HTMLDivElement>(null);
   const [inputActive, setInputActive] = useState(true);
+  const [count, setCount] = useState(10);
   const [activeParam, setActiveParam] = useState<number>(-1);
   const [mainInputText, setMainInputText] = useState("");
   const { organization_id } = useParams();
+  const [sessionData, setSessionData] = useState<any[]>([]);
   const [getSessions, { loading, error, data }] = useLazyQuery<
     { sessions: any[] },
-    { organization_id: number; params: SearchParam[] }
+    { count: number; organization_id: number; params: SearchParam[] }
   >(
     gql`
-      query GetSessions($organization_id: ID!, $params: [Any]) {
-        sessions(organization_id: $organization_id, params: $params) {
+      query GetSessions($organization_id: ID!, $count: Int!, $params: [Any]) {
+        sessions(
+          organization_id: $organization_id
+          count: $count
+          params: $params
+        ) {
           id
           details
           user_id
@@ -50,6 +61,30 @@ export const SessionsPageBETA = () => {
   );
 
   useEffect(() => {
+    if (data?.sessions.length) {
+      setSessionData(data?.sessions);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    document.addEventListener("scroll", (e: any) => {
+      var refHeight = resultsRef?.current?.getBoundingClientRect().bottom;
+      const innerHeight = window?.innerHeight;
+      if (!refHeight) {
+        refHeight = 0;
+      }
+      const diff = Math.abs(refHeight - innerHeight);
+      if (diff < 40) {
+        console.log("setting");
+        countDebounced.callback();
+      }
+    });
+    return () => {
+      document.removeEventListener("scroll", e => console.log(e));
+    };
+  }, []);
+
+  useEffect(() => {
     paramsRef.current = params;
     if (
       paramsRef.current.filter(p => p.value?.value).length === params.length
@@ -57,17 +92,27 @@ export const SessionsPageBETA = () => {
       getSessions({
         variables: {
           organization_id: organization_id,
-          params: paramsRef.current
+          params: paramsRef.current,
+          count: count
         }
       });
     }
-  }, [params, getSessions, organization_id]);
+  }, [count, params, getSessions, organization_id]);
 
   if (error) {
     return <p>{error.toString()}</p>;
   }
   return (
-    <div className={styles.setupWrapper}>
+    <div
+      className={styles.setupWrapper}
+      onScroll={(e: React.UIEvent<HTMLElement>) => {
+        e.stopPropagation();
+        console.log(
+          e.currentTarget.scrollHeight - e.currentTarget.scrollTop ===
+            e.currentTarget.clientHeight
+        );
+      }}
+    >
       <div className={styles.sessionsSection}>
         <div className={styles.sessionsHeader}>Session Playlist</div>
         <div className={styles.searchBar}>
@@ -177,65 +222,78 @@ export const SessionsPageBETA = () => {
             )}
           </div>
         )}
-        {loading ? (
-          <Skeleton />
+        {data?.sessions?.length ? (
+          <div
+            ref={resultsRef}
+            onScroll={(e: React.UIEvent<HTMLElement>) => {
+              e.stopPropagation();
+              console.log(
+                e.currentTarget.scrollHeight - e.currentTarget.scrollTop ===
+                  e.currentTarget.clientHeight
+              );
+            }}
+          >
+            {sessionData.map(u => {
+              const created = new Date(u.created_at);
+              let d: {
+                browser?: {
+                  os?: string;
+                  name?: string;
+                };
+                city?: string;
+                state?: string;
+                postal?: string;
+              } = {};
+              try {
+                d = JSON.parse(u?.details);
+              } catch (error) {}
+              return (
+                <Link to={`/${organization_id}/sessions/${u.id}`} key={u.id}>
+                  <div className={styles.sessionCard}>
+                    <div className={styles.playButton}>
+                      <PlayButton />
+                    </div>
+                    <div className={styles.sessionTextWrapper}>
+                      <div className={styles.sessionTextSection}>
+                        <div
+                          className={styles.blueTitle}
+                        >{`User#${u?.user_id}`}</div>
+                        <div className={styles.regSubTitle}>
+                          {u?.identifier}
+                        </div>
+                      </div>
+                      <div className={styles.sessionTextSection}>
+                        <div className={styles.blueTitle}>
+                          {created.toLocaleString("en-us", {
+                            day: "numeric",
+                            month: "short",
+                            minute: "numeric",
+                            hour: "numeric"
+                          })}
+                        </div>
+                        <div className={styles.regSubTitle}>
+                          {MillisToMinutesAndSecondsVerbose(u?.length) ||
+                            "30 min 20 sec"}
+                        </div>
+                      </div>
+                      <div className={styles.sessionTextSection}>
+                        <div className={styles.regTitle}>
+                          {d?.browser?.os && d?.browser?.name
+                            ? d?.browser?.os + " • " + d?.browser?.name
+                            : "Desktop • Chrome"}
+                        </div>
+                        <div className={styles.regSubTitle}>
+                          {d?.city}, {d?.state} {d?.postal}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         ) : (
-          data?.sessions?.map(u => {
-            const created = new Date(u.created_at);
-            let d: {
-              browser?: {
-                os?: string;
-                name?: string;
-              };
-              city?: string;
-              state?: string;
-              postal?: string;
-            } = {};
-            try {
-              d = JSON.parse(u?.details);
-            } catch (error) {}
-            return (
-              <Link to={`/${organization_id}/sessions/${u.id}`} key={u.id}>
-                <div className={styles.sessionCard}>
-                  <div className={styles.playButton}>
-                    <PlayButton />
-                  </div>
-                  <div className={styles.sessionTextWrapper}>
-                    <div className={styles.sessionTextSection}>
-                      <div
-                        className={styles.blueTitle}
-                      >{`User#${u?.user_id}`}</div>
-                      <div className={styles.regSubTitle}>{u?.identifier}</div>
-                    </div>
-                    <div className={styles.sessionTextSection}>
-                      <div className={styles.blueTitle}>
-                        {created.toLocaleString("en-us", {
-                          day: "numeric",
-                          month: "short",
-                          minute: "numeric",
-                          hour: "numeric"
-                        })}
-                      </div>
-                      <div className={styles.regSubTitle}>
-                        {MillisToMinutesAndSecondsVerbose(u?.length) ||
-                          "30 min 20 sec"}
-                      </div>
-                    </div>
-                    <div className={styles.sessionTextSection}>
-                      <div className={styles.regTitle}>
-                        {d?.browser?.os && d?.browser?.name
-                          ? d?.browser?.os + " • " + d?.browser?.name
-                          : "Desktop • Chrome"}
-                      </div>
-                      <div className={styles.regSubTitle}>
-                        {d?.city}, {d?.state} {d?.postal}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            );
-          })
+          <Skeleton />
         )}
       </div>
     </div>

@@ -11,10 +11,9 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/slack-go/slack"
-
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -54,7 +53,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	return allEvents["events"], nil
 }
 
-func (r *queryResolver) Sessions(ctx context.Context, organizationID int, params []interface{}) ([]*model.Session, error) {
+func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model.Session, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
@@ -88,7 +87,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, params
 			query = query.Where("identifier = ?", p.Value.Value)
 		}
 	}
-	res := query.Limit(10).Find(&sessions)
+	res := query.Limit(count).Find(&sessions)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "no sessions found")
 	}

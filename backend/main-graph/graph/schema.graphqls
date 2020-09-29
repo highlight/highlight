@@ -31,7 +31,7 @@ type Admin {
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
-  sessions(organization_id: ID!, params: [Any]): [Session]
+  sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
   # gets all the organizations of a user
   field_suggestion(organization_id: ID!, field: String!, query: String!): [String]
   organizations: [Organization]
