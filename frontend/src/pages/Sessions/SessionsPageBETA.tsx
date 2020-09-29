@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 
 import { useParams, Link } from "react-router-dom";
 import { useLazyQuery, gql } from "@apollo/client";
@@ -6,15 +6,14 @@ import { MillisToMinutesAndSecondsVerbose } from "../../util/time";
 import { ReactComponent as PlayButton } from "../../static/play-button.svg";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { useDebouncedCallback } from "use-debounce";
-import { Skeleton } from "antd";
 import {
   Value,
   OptionsFilter,
   DateOptions,
   IdentifierOptions
 } from "./OptionsRender";
+import { Spinner } from "../../components/Spinner/Spinner";
 
-import fuzzy from "fuzzy";
 import AutosizeInput from "react-input-autosize";
 
 import styles from "./SessionsPage.module.css";
@@ -61,10 +60,10 @@ export const SessionsPageBETA = () => {
   );
 
   useEffect(() => {
-    if (data?.sessions.length) {
-      setSessionData(data?.sessions);
+    if (!loading) {
+      setSessionData(data?.sessions ?? []);
     }
-  }, [data]);
+  }, [data, loading]);
 
   useEffect(() => {
     document.addEventListener("scroll", (e: any) => {
@@ -74,15 +73,14 @@ export const SessionsPageBETA = () => {
         refHeight = 0;
       }
       const diff = Math.abs(refHeight - innerHeight);
-      if (diff < 40) {
-        console.log("setting");
+      if (diff < 300) {
         countDebounced.callback();
       }
     });
     return () => {
       document.removeEventListener("scroll", e => console.log(e));
     };
-  }, []);
+  }, [countDebounced]);
 
   useEffect(() => {
     paramsRef.current = params;
@@ -222,79 +220,76 @@ export const SessionsPageBETA = () => {
             )}
           </div>
         )}
-        {data?.sessions?.length ? (
-          <div
-            ref={resultsRef}
-            onScroll={(e: React.UIEvent<HTMLElement>) => {
-              e.stopPropagation();
-              console.log(
-                e.currentTarget.scrollHeight - e.currentTarget.scrollTop ===
-                  e.currentTarget.clientHeight
-              );
-            }}
-          >
-            {sessionData.map(u => {
-              const created = new Date(u.created_at);
-              let d: {
-                browser?: {
-                  os?: string;
-                  name?: string;
-                };
-                city?: string;
-                state?: string;
-                postal?: string;
-              } = {};
-              try {
-                d = JSON.parse(u?.details);
-              } catch (error) {}
-              return (
-                <Link to={`/${organization_id}/sessions/${u.id}`} key={u.id}>
-                  <div className={styles.sessionCard}>
-                    <div className={styles.playButton}>
-                      <PlayButton />
+        <div
+          ref={resultsRef}
+          onScroll={(e: React.UIEvent<HTMLElement>) => {
+            e.stopPropagation();
+            console.log(
+              e.currentTarget.scrollHeight - e.currentTarget.scrollTop ===
+                e.currentTarget.clientHeight
+            );
+          }}
+        >
+          {sessionData.map(u => {
+            const created = new Date(u.created_at);
+            let d: {
+              browser?: {
+                os?: string;
+                name?: string;
+              };
+              city?: string;
+              state?: string;
+              postal?: string;
+            } = {};
+            try {
+              d = JSON.parse(u?.details);
+            } catch (error) {}
+            return (
+              <Link to={`/${organization_id}/sessions/${u.id}`} key={u.id}>
+                <div className={styles.sessionCard}>
+                  <div className={styles.playButton}>
+                    <PlayButton />
+                  </div>
+                  <div className={styles.sessionTextWrapper}>
+                    <div className={styles.sessionTextSection}>
+                      <div
+                        className={styles.blueTitle}
+                      >{`User#${u?.user_id}`}</div>
+                      <div className={styles.regSubTitle}>{u?.identifier}</div>
                     </div>
-                    <div className={styles.sessionTextWrapper}>
-                      <div className={styles.sessionTextSection}>
-                        <div
-                          className={styles.blueTitle}
-                        >{`User#${u?.user_id}`}</div>
-                        <div className={styles.regSubTitle}>
-                          {u?.identifier}
-                        </div>
+                    <div className={styles.sessionTextSection}>
+                      <div className={styles.blueTitle}>
+                        {created.toLocaleString("en-us", {
+                          day: "numeric",
+                          month: "short",
+                          minute: "numeric",
+                          hour: "numeric"
+                        })}
                       </div>
-                      <div className={styles.sessionTextSection}>
-                        <div className={styles.blueTitle}>
-                          {created.toLocaleString("en-us", {
-                            day: "numeric",
-                            month: "short",
-                            minute: "numeric",
-                            hour: "numeric"
-                          })}
-                        </div>
-                        <div className={styles.regSubTitle}>
-                          {MillisToMinutesAndSecondsVerbose(u?.length) ||
-                            "30 min 20 sec"}
-                        </div>
+                      <div className={styles.regSubTitle}>
+                        {MillisToMinutesAndSecondsVerbose(u?.length) ||
+                          "30 min 20 sec"}
                       </div>
-                      <div className={styles.sessionTextSection}>
-                        <div className={styles.regTitle}>
-                          {d?.browser?.os && d?.browser?.name
-                            ? d?.browser?.os + " • " + d?.browser?.name
-                            : "Desktop • Chrome"}
-                        </div>
-                        <div className={styles.regSubTitle}>
-                          {d?.city}, {d?.state} {d?.postal}
-                        </div>
+                    </div>
+                    <div className={styles.sessionTextSection}>
+                      <div className={styles.regTitle}>
+                        {d?.browser?.os && d?.browser?.name
+                          ? d?.browser?.os + " • " + d?.browser?.name
+                          : "Desktop • Chrome"}
+                      </div>
+                      <div className={styles.regSubTitle}>
+                        {d?.city}, {d?.state} {d?.postal}
                       </div>
                     </div>
                   </div>
-                </Link>
-              );
-            })}
+                </div>
+              </Link>
+            );
+          })}
+          <div className={styles.loadingDiv}>
+            <Spinner />
           </div>
-        ) : (
-          <Skeleton />
-        )}
+        </div>
       </div>
     </div>
   );
