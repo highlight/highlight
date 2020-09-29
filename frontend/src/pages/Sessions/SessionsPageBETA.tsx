@@ -286,9 +286,11 @@ export const SessionsPageBETA = () => {
               </Link>
             );
           })}
-          <div className={styles.loadingDiv}>
-            <Spinner />
-          </div>
+          {sessionData.length > 0 && (
+            <div className={styles.loadingDiv}>
+              <Spinner />
+            </div>
+          )}
         </div>
       </div>
     </div>
