@@ -79,6 +79,7 @@ export const SessionsPageBETA = () => {
       }
       const diff = Math.abs(refHeight - innerHeight);
       if (diff < 300) {
+        setSessionsLoading(true);
         countDebounced.callback();
       }
     });
@@ -142,15 +143,15 @@ export const SessionsPageBETA = () => {
               </div>
             ))}
             <div className={styles.mainInputDiv}>
-            <input
-              placeholder={"Type or select a query below..."}
-              ref={mainInput}
-              value={mainInputText}
-              onChange={e => setMainInputText(e.target.value)}
-              onFocus={() => setInputActive(true)}
-              autoFocus
-              className={styles.searchInput}
-            />
+              <input
+                placeholder={"Type or select a query below..."}
+                ref={mainInput}
+                value={mainInputText}
+                onChange={e => setMainInputText(e.target.value)}
+                onFocus={() => setInputActive(true)}
+                autoFocus
+                className={styles.searchInput}
+              />
             </div>
           </div>
           <div className={styles.searchIconWrapper}>
