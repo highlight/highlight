@@ -99,14 +99,9 @@ export const DateOptions = ({
   defaultText: string;
 }) => {
   const [results, setResults] = useState<fuzzy.FilterResult<Value>[]>([]);
-  const resultsRef = useRef(results);
   const index = useKeySelector(results.length, (i: number) => {
-    onSelect(resultsRef.current[i]?.original);
+    onSelect(results[i]?.original);
   });
-
-  useEffect(() => {
-    resultsRef.current = results;
-  }, [results]);
 
   useEffect(() => {
     setResults(
@@ -153,14 +148,9 @@ export const OptionsFilter = ({
   const [results, setResults] = useState<
     fuzzy.FilterResult<{ action: string; description: string }>[]
   >([]);
-  const resultsRef = useRef(results);
   const index = useKeySelector(results.length, (i: number) => {
-    onSelect(resultsRef.current[i]?.original.action);
+    onSelect(results[i]?.original.action);
   });
-
-  useEffect(() => {
-    resultsRef.current = results;
-  }, [results]);
 
   useEffect(() => {
     setResults(

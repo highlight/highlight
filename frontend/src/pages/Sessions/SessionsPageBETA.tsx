@@ -10,7 +10,7 @@ import {
   Value,
   OptionsFilter,
   DateOptions,
-  IdentifierOptions
+  IdentifierOptions,
 } from "./OptionsRender";
 import { Spinner } from "../../components/Spinner/Spinner";
 
@@ -22,7 +22,7 @@ type SearchParam = { key: string; current?: string; value?: Value };
 
 export const SessionsPageBETA = () => {
   const countDebounced = useDebouncedCallback(() => {
-    setCount(count => count + 10);
+    setCount((count) => count + 10);
   }, 500);
   const mainInput = useRef<HTMLInputElement>(null);
   const [params, setParams] = useState<SearchParam[]>([]);
@@ -34,6 +34,8 @@ export const SessionsPageBETA = () => {
   const [mainInputText, setMainInputText] = useState("");
   const { organization_id } = useParams();
   const [sessionData, setSessionData] = useState<any[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState<boolean>(true);
+
   const [getSessions, { loading, error, data }] = useLazyQuery<
     { sessions: any[] },
     { count: number; organization_id: number; params: SearchParam[] }
@@ -55,15 +57,19 @@ export const SessionsPageBETA = () => {
       }
     `,
     {
-      pollInterval: 5000
+      pollInterval: 5000,
     }
   );
 
   useEffect(() => {
+    const same = data?.sessions.length === sessionData.length;
+    if (same) {
+      setSessionsLoading(false);
+    }
     if (!loading) {
       setSessionData(data?.sessions ?? []);
     }
-  }, [data, loading]);
+  }, [sessionData, data, loading]);
 
   useEffect(() => {
     document.addEventListener("scroll", (e: any) => {
@@ -74,25 +80,26 @@ export const SessionsPageBETA = () => {
       }
       const diff = Math.abs(refHeight - innerHeight);
       if (diff < 300) {
+        setSessionsLoading(true);
         countDebounced.callback();
       }
     });
     return () => {
-      document.removeEventListener("scroll", e => console.log(e));
+      document.removeEventListener("scroll", (e) => console.log(e));
     };
   }, [countDebounced]);
 
   useEffect(() => {
     paramsRef.current = params;
     if (
-      paramsRef.current.filter(p => p.value?.value).length === params.length
+      paramsRef.current.filter((p) => p.value?.value).length === params.length
     ) {
       getSessions({
         variables: {
           organization_id: organization_id,
           params: paramsRef.current,
-          count: count
-        }
+          count: count,
+        },
       });
     }
   }, [count, params, getSessions, organization_id]);
@@ -101,59 +108,56 @@ export const SessionsPageBETA = () => {
     return <p>{error.toString()}</p>;
   }
   return (
-    <div
-      className={styles.setupWrapper}
-      onScroll={(e: React.UIEvent<HTMLElement>) => {
-        e.stopPropagation();
-        console.log(
-          e.currentTarget.scrollHeight - e.currentTarget.scrollTop ===
-            e.currentTarget.clientHeight
-        );
-      }}
-    >
+    <div className={styles.setupWrapper}>
       <div className={styles.sessionsSection}>
         <div className={styles.sessionsHeader}>Session Playlist</div>
         <div className={styles.searchBar}>
-          {params?.map((p, i) => (
-            <div key={i} className={styles.optionInputWrapper}>
-              <div className={styles.optionKey}>{p?.key}:</div>
-              <AutosizeInput
-                autoFocus
-                onFocus={() => setInputActive(true)}
-                className={styles.optionInput}
-                autoComplete={"off"}
-                name="option-input"
-                value={p.value?.text || p.current}
-                onChange={function (event) {
-                  var pcopy = [...params];
-                  pcopy[i].current = event.target.value;
-                  setActiveParam(i);
-                  setParams(pcopy);
-                }}
-              />
-              {
-                <FaTimes
-                  className={styles.timesIcon}
-                  onClick={() => {
-                    var pcopy = JSON.parse(JSON.stringify(params));
-                    pcopy.splice(i, 1);
+          <div className={styles.searchInputSection}>
+            {params?.map((p, i) => (
+              <div key={i} className={styles.optionInputWrapper}>
+                <div className={styles.optionKey}>{p?.key}:</div>
+                <AutosizeInput
+                  autoFocus
+                  onFocus={() => setInputActive(true)}
+                  className={styles.optionInput}
+                  autoComplete={"off"}
+                  name="option-input"
+                  value={p.value?.text || p.current}
+                  onChange={function (event) {
+                    var pcopy = [...params];
+                    pcopy[i].current = event.target.value;
+                    setActiveParam(i);
                     setParams(pcopy);
-                    setActiveParam(-1);
                   }}
                 />
-              }
+                {
+                  <FaTimes
+                    className={styles.timesIcon}
+                    onClick={() => {
+                      var pcopy = JSON.parse(JSON.stringify(params));
+                      pcopy.splice(i, 1);
+                      setParams(pcopy);
+                      setActiveParam(-1);
+                    }}
+                  />
+                }
+              </div>
+            ))}
+            <div className={styles.mainInputDiv}>
+              <input
+                placeholder={"Type or select a query below..."}
+                ref={mainInput}
+                value={mainInputText}
+                onChange={(e) => setMainInputText(e.target.value)}
+                onFocus={() => setInputActive(true)}
+                autoFocus
+                className={styles.searchInput}
+              />
             </div>
-          ))}
-          <input
-            placeholder={"Type or select a query below..."}
-            ref={mainInput}
-            value={mainInputText}
-            onChange={e => setMainInputText(e.target.value)}
-            onFocus={() => setInputActive(true)}
-            autoFocus
-            className={styles.searchInput}
-          />
-          <FaSearch className={styles.searchIcon} />
+          </div>
+          <div className={styles.searchIconWrapper}>
+            <FaSearch className={styles.searchIcon} />
+          </div>
         </div>
         {inputActive && (
           <div className={styles.dropdown}>
@@ -163,24 +167,24 @@ export const SessionsPageBETA = () => {
                 obj={[
                   {
                     action: "last",
-                    description: "time duration (e.g. 24 days)"
+                    description: "time duration (e.g. 24 days)",
                   },
                   {
                     action: "more than",
-                    description: "time duration (e.g. 20 minutes)"
+                    description: "time duration (e.g. 20 minutes)",
                   },
                   {
                     action: "less than",
-                    description: "time duration (e.g. 1 hour)"
+                    description: "time duration (e.g. 1 hour)",
                   },
                   {
                     action: "identifier",
-                    description: "identifier (e.g. email@email.com)"
-                  }
+                    description: "identifier (e.g. email@email.com)",
+                  },
                 ]}
                 onSelect={(action: string) => {
                   if (!action) return;
-                  if (paramsRef.current.filter(p => p.key === action).length)
+                  if (paramsRef.current.filter((p) => p.key === action).length)
                     return;
                   var pcopy = [...paramsRef.current, { key: action }];
                   setParams(pcopy);
@@ -200,7 +204,6 @@ export const SessionsPageBETA = () => {
                   mainInput.current?.focus();
                   setActiveParam(-1);
                   setParams(pcopy);
-                  setInputActive(false);
                 }}
               />
             ) : (
@@ -214,23 +217,13 @@ export const SessionsPageBETA = () => {
                   mainInput.current?.focus();
                   setActiveParam(-1);
                   setParams(pcopy);
-                  setInputActive(false);
                 }}
               />
             )}
           </div>
         )}
-        <div
-          ref={resultsRef}
-          onScroll={(e: React.UIEvent<HTMLElement>) => {
-            e.stopPropagation();
-            console.log(
-              e.currentTarget.scrollHeight - e.currentTarget.scrollTop ===
-                e.currentTarget.clientHeight
-            );
-          }}
-        >
-          {sessionData.map(u => {
+        <div ref={resultsRef}>
+          {sessionData.map((u) => {
             const created = new Date(u.created_at);
             let d: {
               browser?: {
@@ -263,7 +256,7 @@ export const SessionsPageBETA = () => {
                           day: "numeric",
                           month: "short",
                           minute: "numeric",
-                          hour: "numeric"
+                          hour: "numeric",
                         })}
                       </div>
                       <div className={styles.regSubTitle}>
@@ -286,7 +279,7 @@ export const SessionsPageBETA = () => {
               </Link>
             );
           })}
-          {sessionData.length > 0 && (
+          {sessionsLoading && (
             <div className={styles.loadingDiv}>
               <Spinner />
             </div>
