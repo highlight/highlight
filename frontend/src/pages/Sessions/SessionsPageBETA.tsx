@@ -10,7 +10,7 @@ import {
   Value,
   OptionsFilter,
   DateOptions,
-  IdentifierOptions
+  IdentifierOptions,
 } from "./OptionsRender";
 import { Spinner } from "../../components/Spinner/Spinner";
 
@@ -22,7 +22,7 @@ type SearchParam = { key: string; current?: string; value?: Value };
 
 export const SessionsPageBETA = () => {
   const countDebounced = useDebouncedCallback(() => {
-    setCount(count => count + 10);
+    setCount((count) => count + 10);
   }, 500);
   const mainInput = useRef<HTMLInputElement>(null);
   const [params, setParams] = useState<SearchParam[]>([]);
@@ -35,6 +35,7 @@ export const SessionsPageBETA = () => {
   const { organization_id } = useParams();
   const [sessionData, setSessionData] = useState<any[]>([]);
   const [sessionsLoading, setSessionsLoading] = useState<boolean>(true);
+
   const [getSessions, { loading, error, data }] = useLazyQuery<
     { sessions: any[] },
     { count: number; organization_id: number; params: SearchParam[] }
@@ -56,7 +57,7 @@ export const SessionsPageBETA = () => {
       }
     `,
     {
-      pollInterval: 5000
+      pollInterval: 5000,
     }
   );
 
@@ -84,21 +85,21 @@ export const SessionsPageBETA = () => {
       }
     });
     return () => {
-      document.removeEventListener("scroll", e => console.log(e));
+      document.removeEventListener("scroll", (e) => console.log(e));
     };
   }, [countDebounced]);
 
   useEffect(() => {
     paramsRef.current = params;
     if (
-      paramsRef.current.filter(p => p.value?.value).length === params.length
+      paramsRef.current.filter((p) => p.value?.value).length === params.length
     ) {
       getSessions({
         variables: {
           organization_id: organization_id,
           params: paramsRef.current,
-          count: count
-        }
+          count: count,
+        },
       });
     }
   }, [count, params, getSessions, organization_id]);
@@ -147,7 +148,7 @@ export const SessionsPageBETA = () => {
                 placeholder={"Type or select a query below..."}
                 ref={mainInput}
                 value={mainInputText}
-                onChange={e => setMainInputText(e.target.value)}
+                onChange={(e) => setMainInputText(e.target.value)}
                 onFocus={() => setInputActive(true)}
                 autoFocus
                 className={styles.searchInput}
@@ -166,24 +167,24 @@ export const SessionsPageBETA = () => {
                 obj={[
                   {
                     action: "last",
-                    description: "time duration (e.g. 24 days)"
+                    description: "time duration (e.g. 24 days)",
                   },
                   {
                     action: "more than",
-                    description: "time duration (e.g. 20 minutes)"
+                    description: "time duration (e.g. 20 minutes)",
                   },
                   {
                     action: "less than",
-                    description: "time duration (e.g. 1 hour)"
+                    description: "time duration (e.g. 1 hour)",
                   },
                   {
                     action: "identifier",
-                    description: "identifier (e.g. email@email.com)"
-                  }
+                    description: "identifier (e.g. email@email.com)",
+                  },
                 ]}
                 onSelect={(action: string) => {
                   if (!action) return;
-                  if (paramsRef.current.filter(p => p.key === action).length)
+                  if (paramsRef.current.filter((p) => p.key === action).length)
                     return;
                   var pcopy = [...paramsRef.current, { key: action }];
                   setParams(pcopy);
@@ -222,7 +223,7 @@ export const SessionsPageBETA = () => {
           </div>
         )}
         <div ref={resultsRef}>
-          {sessionData.map(u => {
+          {sessionData.map((u) => {
             const created = new Date(u.created_at);
             let d: {
               browser?: {
@@ -255,7 +256,7 @@ export const SessionsPageBETA = () => {
                           day: "numeric",
                           month: "short",
                           minute: "numeric",
-                          hour: "numeric"
+                          hour: "numeric",
                         })}
                       </div>
                       <div className={styles.regSubTitle}>
