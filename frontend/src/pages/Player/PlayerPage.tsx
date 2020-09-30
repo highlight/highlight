@@ -66,7 +66,6 @@ export const Player = () => {
     console.log("height: ", height, targetHeight, heightScale);
     console.log("width", width, targetWidth, widthScale);
     console.log(`applying scale ${scale}`);
-    console.log(replayer);
     replayer?.wrapper?.setAttribute(
       "style",
       `
