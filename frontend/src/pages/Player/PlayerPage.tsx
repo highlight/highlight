@@ -11,7 +11,6 @@ import { ReactComponent as PointerIcon } from "../../static/pointer-up.svg";
 import { ReactComponent as HoverIcon } from "../../static/hover.svg";
 import { Skeleton } from "antd";
 import { useImage } from "react-image";
-import useMutationObserver from "@rooks/use-mutation-observer";
 import {
   event,
   EventType,
