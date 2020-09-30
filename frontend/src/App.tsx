@@ -11,6 +11,7 @@ import { SessionsPageBETA } from "./pages/Sessions/SessionsPageBETA";
 import { provider } from "./util/auth";
 import { ReactComponent as HighlightLogo } from "./static/highlight-logo.svg";
 import { FaUserCircle } from "react-icons/fa";
+import { FiLogOut } from "react-icons/fi";
 
 import { useParams } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -23,7 +24,7 @@ import {
   Link
 } from "react-router-dom";
 import * as firebase from "firebase/app";
-import { Menu, Dropdown } from "antd";
+import { Dropdown, Skeleton } from "antd";
 
 const App = () => {
   const { loading: o_loading, error: o_error, data: o_data } = useQuery(gql`
@@ -119,21 +120,44 @@ export const AuthAppRouter = () => {
 
 const Header = () => {
   const { organization_id } = useParams();
+  const { loading: a_loading, error: a_error, data: a_data } = useQuery<{
+    admin: { id: string; name: string; email: string };
+  }>(gql`
+    query GetAdmin {
+      admin {
+        id
+        name
+        email
+      }
+    }
+  `);
   const menu = (
-    <Menu>
-      <Menu.Item
-        onClick={async () => {
-          try {
-            firebase.auth().signOut();
-          } catch (e) {
-            console.log(e);
-          }
-          client.cache.reset();
-        }}
-      >
-        Logout
-      </Menu.Item>
-    </Menu>
+    <div className={styles.dropdownMenu}>
+      <div className={styles.dropdownInner}>
+        {a_loading || a_error ? (
+          <Skeleton />
+        ) : (
+          <div>
+            <div className={styles.dropdownName}>{a_data?.admin.name}</div>
+            <div className={styles.dropdownEmail}>{a_data?.admin.email}</div>
+            <div
+              className={styles.dropdownLogout}
+              onClick={async () => {
+                try {
+                  firebase.auth().signOut();
+                } catch (e) {
+                  console.log(e);
+                }
+                client.cache.reset();
+              }}
+            >
+              <FiLogOut />
+              <span className={styles.dropdownLogoutText}>Logout</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 
   return (
@@ -148,11 +172,11 @@ const Header = () => {
         <Link to={`/${organization_id}/setup`} className={styles.headerLink}>
           Setup
         </Link>
-        <div className={styles.accountIconWrapper}>
-          <Dropdown overlay={menu}>
+        <Dropdown overlay={menu} placement={"bottomRight"} arrow>
+          <div className={styles.accountIconWrapper}>
             <FaUserCircle className={styles.accountIcon} />
-          </Dropdown>
-        </div>
+          </div>
+        </Dropdown>
       </div>
     </div>
   );
