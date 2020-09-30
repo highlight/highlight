@@ -1712,6 +1712,11 @@
   resolved "https://registry.yarnpkg.com/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=
 
+"@rooks/use-mutation-observer@^3.6.0":
+  version "3.6.0"
+  resolved "https://registry.yarnpkg.com/@rooks/use-mutation-observer/-/use-mutation-observer-3.6.0.tgz#75be58bc45778d6040829ae596e203fd820edaff"
+  integrity sha512-psNODH3I4lkX9IFIsP/QlIlCCfnjgbNqQ0hvEhgqnSqyVuZ7lJZ9ffWK4hQG2H6YkHUt2WGFaQtAchyeaChzlg==
+
 "@sheerun/mutationobserver-shim@^0.3.2":
   version "0.3.3"
   resolved "https://registry.yarnpkg.com/@sheerun/mutationobserver-shim/-/mutationobserver-shim-0.3.3.tgz#5405ee8e444ed212db44e79351f0c70a582aae25"
