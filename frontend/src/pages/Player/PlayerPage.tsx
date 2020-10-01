@@ -18,7 +18,7 @@ import {
   mouseInteractionData,
   incrementalData,
   eventWithTime,
-  IncrementalSource
+  IncrementalSource,
 } from "./RrwebTypes";
 
 import Slider from "rc-slider";
@@ -35,11 +35,10 @@ export const Player = () => {
   const [totalTime, setTotalTime] = useState(0);
   const [playerLoading, setPlayerLoading] = useState(true);
   const playerWrapperRef = useRef<HTMLDivElement>(null);
-
   const {
     loading: sessionLoading,
     error: sessionError,
-    data: sessionData
+    data: sessionData,
   } = useQuery<{ events: any[] }, { session_id: string }>(
     gql`
       query GetEvents($session_id: ID!) {
@@ -49,32 +48,45 @@ export const Player = () => {
     { variables: { session_id } }
   );
 
-  // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
-  useEffect(() => {
-    window.setTimeout(() => {
-      const width = replayer?.wrapper?.getBoundingClientRect().width;
-      const height = replayer?.wrapper?.getBoundingClientRect().height;
-      const targetWidth = playerWrapperRef.current?.clientWidth;
-      const targetHeight = playerWrapperRef.current?.clientHeight;
-      if (!width || !targetWidth || !height || !targetHeight) return;
-      const widthDelta = width - targetWidth;
-      const heightDelta = height - targetHeight;
-      const widthScale = (targetWidth - 80) / width;
-      const heightScale = (targetHeight - 80) / height;
-      const scale = widthDelta > heightDelta ? widthScale : heightScale;
-      const endHeight = (targetHeight - height * scale) / 2;
-      const endWidth = (targetWidth - width * scale) / 2;
-      replayer?.wrapper?.setAttribute(
-        "style",
-        `
+  const resizePlayer = (replayer: Replayer): boolean => {
+    const width = replayer?.wrapper?.getBoundingClientRect().width;
+    const height = replayer?.wrapper?.getBoundingClientRect().height;
+    const targetWidth = playerWrapperRef.current?.clientWidth;
+    const targetHeight = playerWrapperRef.current?.clientHeight;
+    if (!width || !targetWidth || !height || !targetHeight) {
+      return false;
+    }
+    const widthDelta = width - targetWidth;
+    const heightDelta = height - targetHeight;
+    const widthScale = (targetWidth - 80) / width;
+    const heightScale = (targetHeight - 80) / height;
+    const scale = widthDelta > heightDelta ? widthScale : heightScale;
+    const endHeight = (targetHeight - height * scale) / 2;
+    const endWidth = (targetWidth - width * scale) / 2;
+    console.log("height: ", height, targetHeight, heightScale);
+    console.log("width", width, targetWidth, widthScale);
+    console.log(`applying scale ${scale}`);
+    replayer?.wrapper?.setAttribute(
+      "style",
+      `
       transform: scale(${scale});
       top: ${endHeight}px;
       left: ${endWidth}px;
       `
-      );
+    );
+    setPlayerLoading(false);
+    return true;
+  };
 
-      setPlayerLoading(false);
-    }, 1000);
+  // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
+  useEffect(() => {
+    if (replayer) {
+      const i = window.setInterval(() => {
+        if (resizePlayer(replayer)) {
+          window.clearInterval(i);
+        }
+      }, 200);
+    }
   }, [replayer]);
 
   useEffect(() => {
@@ -85,7 +97,7 @@ export const Player = () => {
     }
     if (!ticker) {
       const ticker = window.setInterval(() => {
-        setTime(time => {
+        setTime((time) => {
           if (time < totalTime) {
             return time + 50;
           }
@@ -101,11 +113,11 @@ export const Player = () => {
     if (sessionData?.events?.length ?? 0 > 1) {
       // Add an id field to each event so it can be referenced.
       const newEvents: string[] =
-        sessionData?.events.map(e => {
+        sessionData?.events.map((e) => {
           return { ...e };
         }) ?? [];
       let r = new Replayer(newEvents, {
-        root: document.getElementById("player") as HTMLElement
+        root: document.getElementById("player") as HTMLElement,
       });
       setTotalTime(r.getMetaData().totalTime);
       setReplayer(r);
@@ -116,6 +128,7 @@ export const Player = () => {
   if (sessionError) {
     return <p>{sessionError.toString()}</p>;
   }
+
   return (
     <div className={styles.playerBody}>
       <div className={styles.playerLeftSection}>
@@ -123,11 +136,11 @@ export const Player = () => {
           <div className={styles.rrwebPlayerWrapper} ref={playerWrapperRef}>
             <div
               style={{
-                visibility: playerLoading ? "hidden" : "visible"
+                visibility: playerLoading ? "hidden" : "visible",
               }}
               className={styles.rrwebPlayerDiv}
               id="player"
-            />
+            ></div>
             {(playerLoading || sessionLoading) && <Spinner />}
           </div>
         </div>
@@ -218,7 +231,7 @@ const MetadataBox = () => {
   );
   const { src, isLoading, error: imgError } = useImage({
     srcList: `https://avatar.windsor.io/${data?.session.user_id}`,
-    useSuspense: false
+    useSuspense: false,
   });
   const created = new Date(data?.session.created_at ?? 0);
   var details: any = {};
@@ -243,9 +256,9 @@ const MetadataBox = () => {
                   height: 60,
                   width: 60,
                   backgroundColor: "#F2EEFB",
-                  borderRadius: "50%"
+                  borderRadius: "50%",
                 }}
-                alt={"user profile pic"}
+                alt={"user profile"}
                 src={src}
               />
             </div>
@@ -281,7 +294,7 @@ const MetadataBox = () => {
 const EventStream = ({
   events,
   time,
-  replayer
+  replayer,
 }: {
   events: any[];
   time: number;
@@ -289,19 +302,19 @@ const EventStream = ({
 }) => {
   const [currEvent, setCurrEvent] = useState(-1);
   useEffect(() => {
-    replayer &&
-      replayer.on("event-cast", (e: any) => {
-        const event = e as eventWithTime;
-        if (usefulEvent(event)) {
-          setCurrEvent(event.timestamp);
-          scroller.scrollTo(event.timestamp.toString(), {
-            smooth: true,
-            containerId: "wrapper",
-            spy: true,
-            offset: -150
-          });
-        }
-      });
+    if (!replayer) return;
+    replayer.on("event-cast", (e: any) => {
+      const event = e as eventWithTime;
+      if (usefulEvent(event)) {
+        setCurrEvent(event.timestamp);
+        scroller.scrollTo(event.timestamp.toString(), {
+          smooth: true,
+          containerId: "wrapper",
+          spy: true,
+          offset: -150,
+        });
+      }
+    });
   }, [replayer, time]);
   return (
     <>
@@ -333,9 +346,9 @@ const EventStream = ({
                 idString = idString.concat("#" + attrs.id);
               }
               Object.keys(attrs)
-                .filter(key => !["class", "id"].includes(key))
+                .filter((key) => !["class", "id"].includes(key))
                 .forEach(
-                  key => (idString += "[" + key + "=" + attrs[key] + "]")
+                  (key) => (idString += "[" + key + "=" + attrs[key] + "]")
                 );
             }
 
@@ -353,7 +366,7 @@ const EventStream = ({
                     backgroundColor:
                       currEvent === e.timestamp ? "#F2EDFF" : "inherit",
                     color: currEvent === e.timestamp ? "black" : "grey",
-                    fill: currEvent === e.timestamp ? "black" : "grey"
+                    fill: currEvent === e.timestamp ? "black" : "grey",
                   }}
                   key={i}
                   id={i.toString()}
