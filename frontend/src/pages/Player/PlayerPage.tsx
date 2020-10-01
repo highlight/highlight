@@ -1,6 +1,15 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Replayer, mirror } from "rrweb";
+import {
+  Replayer,
+  mirror,
+  MouseInteractions,
+  IncrementalSource,
+  EventType,
+  mouseInteractionData,
+  incrementalData,
+  eventWithTime,
+} from "rrweb";
 import { elementNode } from "rrweb-snapshot";
 import { FaUndoAlt, FaPlay, FaPause } from "react-icons/fa";
 import { Element, scroller } from "react-scroll";
@@ -11,15 +20,6 @@ import { ReactComponent as PointerIcon } from "../../static/pointer-up.svg";
 import { ReactComponent as HoverIcon } from "../../static/hover.svg";
 import { Skeleton } from "antd";
 import { useImage } from "react-image";
-import {
-  event,
-  EventType,
-  MouseInteractions,
-  mouseInteractionData,
-  incrementalData,
-  eventWithTime,
-  IncrementalSource,
-} from "./RrwebTypes";
 
 import Slider from "rc-slider";
 
@@ -398,7 +398,7 @@ const EventStream = ({
 // used in filter() type methods to fetch events we want
 const usefulEvent = (e: eventWithTime): boolean => {
   // If its not an 'incrementalSnapshot', discard.
-  if ((e as event).type !== EventType.IncrementalSnapshot) return false;
+  if ((e as eventWithTime).type !== EventType.IncrementalSnapshot) return false;
   const snapshotEventData = e.data as incrementalData;
   switch (snapshotEventData.source) {
     case IncrementalSource.MouseInteraction:
