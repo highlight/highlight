@@ -34,7 +34,7 @@
     "react-scripts": "3.4.3",
     "react-scroll": "^1.8.1",
     "react-spinners-kit": "^1.9.1",
-    "rrweb": "https://github.com/jay-khatri/rrweb#ebe9f66",
+    "rrweb": "https://github.com/jay-khatri/rrweb",
     "rrweb-snapshot": "^0.8.2",
     "typescript": "~3.7.2",
     "use-debounce": "^5.0.1",

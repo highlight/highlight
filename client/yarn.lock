@@ -1075,9 +1075,9 @@
     tslib "^1.9.3"
 
 "@xstate/fsm@^1.4.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@xstate/fsm/-/fsm-1.5.0.tgz#5b784dad7b6de554180d7769a0069abe2493e175"
-  integrity sha512-qDzQYetms294mlaEmxoON0XktqDVkk+QO4nKFa2uHp5CTvUDdRy3fH6k//Kybbiw5WUvXiOamUbN5m61q8qXZA==
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@xstate/fsm/-/fsm-1.5.1.tgz#b1ebedc77b11e4956fda0a6429cef986cd17979e"
+  integrity sha512-t8blLI0e90jCE71yUQHLH5uEljD1v0aC8PKkHUtNWEnXt81EOj7xBjnlwmaHn/8cmE2aSygiBElUpkRZUV9hXA==
 
 "@xtuc/ieee754@^1.2.0":
   version "1.2.0"
@@ -4684,9 +4684,9 @@ rrweb-snapshot@^0.8.2:
   resolved "https://registry.yarnpkg.com/rrweb-snapshot/-/rrweb-snapshot-0.8.2.tgz#1e87c0369e37c8af484de5a82301a9b09883081c"
   integrity sha512-KwD5NJeiPMgA+qRPf/0YIk0dKevOpj/2redYX+9Ker6FpyUlUBKaopEc9M3VbFnUqwgU9v109c9220PwhKEQcQ==
 
-"rrweb@https://github.com/jay-khatri/rrweb#4702182":
+"rrweb@https://github.com/jay-khatri/rrweb":
   version "0.9.7"
-  resolved "https://github.com/jay-khatri/rrweb#470218257a54b7f41b34819760f13139d520785c"
+  resolved "https://github.com/jay-khatri/rrweb#99416d68a2619dcc8906d143b356b8058f5858a8"
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"

@@ -10756,9 +10756,9 @@ rrweb-snapshot@^0.8.2:
   resolved "https://registry.yarnpkg.com/rrweb-snapshot/-/rrweb-snapshot-0.8.2.tgz#1e87c0369e37c8af484de5a82301a9b09883081c"
   integrity sha512-KwD5NJeiPMgA+qRPf/0YIk0dKevOpj/2redYX+9Ker6FpyUlUBKaopEc9M3VbFnUqwgU9v109c9220PwhKEQcQ==
 
-"rrweb@https://github.com/jay-khatri/rrweb#ebe9f66":
+"rrweb@https://github.com/jay-khatri/rrweb":
   version "0.9.7"
-  resolved "https://github.com/jay-khatri/rrweb#ebe9f6697688e31fa967ebe153edad3bb7552629"
+  resolved "https://github.com/jay-khatri/rrweb#99416d68a2619dcc8906d143b356b8058f5858a8"
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
