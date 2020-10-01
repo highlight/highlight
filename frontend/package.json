@@ -45,7 +45,8 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "postinstall": "cd node_modules/rrweb && npm install && npm run build"
   },
   "eslintConfig": {
     "extends": "react-app"
