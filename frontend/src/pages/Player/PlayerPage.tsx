@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Replayer, mirror } from "rrweb";
 import { elementNode } from "rrweb-snapshot";
@@ -258,7 +258,7 @@ const MetadataBox = () => {
                   backgroundColor: "#F2EEFB",
                   borderRadius: "50%",
                 }}
-                alt={"user profile picture"}
+                alt={"user profile"}
                 src={src}
               />
             </div>
