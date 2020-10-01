@@ -877,6 +877,11 @@
   resolved "https://registry.yarnpkg.com/@types/color-name/-/color-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
   integrity sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ==
 
+"@types/css-font-loading-module@0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@types/css-font-loading-module/-/css-font-loading-module-0.0.4.tgz#94a835e27d1af444c65cba88523533c174463d64"
+  integrity sha512-ENdXf7MW4m9HeDojB2Ukbi7lYMIuQNBHVf98dbzaiG4EEJREBd6oleVAjrLRCrp7dm6CK1mmdmU9tcgF61acbw==
+
 "@types/glob@^7.1.1":
   version "7.1.3"
   resolved "https://registry.yarnpkg.com/@types/glob/-/glob-7.1.3.tgz#e6ba80f36b7daad2c685acd9266382e68985c183"
@@ -899,11 +904,6 @@
   version "14.6.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.6.0.tgz#7d4411bf5157339337d7cff864d9ff45f177b499"
   integrity sha512-mikldZQitV94akrc4sCcSjtJfsTKt4p+e/s0AGscVA6XArQ9kFclP+ZiYUMnq987rc6QlYxXv/EivqlfSLxpKA==
-
-"@types/smoothscroll-polyfill@^0.3.0":
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/@types/smoothscroll-polyfill/-/smoothscroll-polyfill-0.3.1.tgz#77fb3a6e116bdab4a5959122e3b8e201224dcd49"
-  integrity sha512-+KkHw4y+EyeCtVXET7woHUhIbfWFCflc0E0mZnSV+ZdjPQeHt/9KPEuT7gSW/kFQ8O3EG30PLO++YhChDt8+Ag==
 
 "@types/validator@13.0.0":
   version "13.0.0"
@@ -1075,9 +1075,9 @@
     tslib "^1.9.3"
 
 "@xstate/fsm@^1.4.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@xstate/fsm/-/fsm-1.5.0.tgz#5b784dad7b6de554180d7769a0069abe2493e175"
-  integrity sha512-qDzQYetms294mlaEmxoON0XktqDVkk+QO4nKFa2uHp5CTvUDdRy3fH6k//Kybbiw5WUvXiOamUbN5m61q8qXZA==
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@xstate/fsm/-/fsm-1.5.1.tgz#b1ebedc77b11e4956fda0a6429cef986cd17979e"
+  integrity sha512-t8blLI0e90jCE71yUQHLH5uEljD1v0aC8PKkHUtNWEnXt81EOj7xBjnlwmaHn/8cmE2aSygiBElUpkRZUV9hXA==
 
 "@xtuc/ieee754@^1.2.0":
   version "1.2.0"
@@ -4679,22 +4679,20 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     hash-base "^3.0.0"
     inherits "^2.0.1"
 
-rrweb-snapshot@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/rrweb-snapshot/-/rrweb-snapshot-0.8.0.tgz#43f119407cb7ec0fdbb30056d6149b1a2c76b79b"
-  integrity sha512-rPQmgragMixTOGQNtMDI31XzpbtaXt2aIB98LNqkeOjaCeo46+B1rxAMLsT3FDFFgmq8vo/cS101H6wiiyuwew==
+rrweb-snapshot@^0.8.2:
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/rrweb-snapshot/-/rrweb-snapshot-0.8.2.tgz#1e87c0369e37c8af484de5a82301a9b09883081c"
+  integrity sha512-KwD5NJeiPMgA+qRPf/0YIk0dKevOpj/2redYX+9Ker6FpyUlUBKaopEc9M3VbFnUqwgU9v109c9220PwhKEQcQ==
 
-rrweb@^0.9.0:
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/rrweb/-/rrweb-0.9.0.tgz#94e5370b931fcbad61280845a540f39a3e8eb13a"
-  integrity sha512-sfLu1Wu7rE85mZu0kSvdVoM3VwDNo1SPqnz7wl96sIC0RchcthxifhMLrldmI9/btdGCi8jJrpcEnuW09vpdWw==
+"rrweb@https://github.com/jay-khatri/rrweb":
+  version "0.9.7"
+  resolved "https://github.com/jay-khatri/rrweb#99416d68a2619dcc8906d143b356b8058f5858a8"
   dependencies:
-    "@types/smoothscroll-polyfill" "^0.3.0"
+    "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
     mitt "^1.1.3"
     pako "^1.0.11"
-    rrweb-snapshot "^0.8.0"
-    smoothscroll-polyfill "^0.4.3"
+    rrweb-snapshot "^0.8.2"
 
 run-async@^2.4.0:
   version "2.4.1"
@@ -4894,11 +4892,6 @@ slice-ansi@^2.1.0:
     ansi-styles "^3.2.0"
     astral-regex "^1.0.0"
     is-fullwidth-code-point "^2.0.0"
-
-smoothscroll-polyfill@^0.4.3:
-  version "0.4.4"
-  resolved "https://registry.yarnpkg.com/smoothscroll-polyfill/-/smoothscroll-polyfill-0.4.4.tgz#3a259131dc6930e6ca80003e1cb03b603b69abf8"
-  integrity sha512-TK5ZA9U5RqCwMpfoMq/l1mrH0JAR7y7KRvOBx0n2869aLxch+gT9GhN3yUfjiw+d/DiF1mKo14+hd62JyMmoBg==
 
 snapdragon-node@^2.0.1:
   version "2.1.1"
