@@ -138,6 +138,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 				filteredSessions = append(filteredSessions, sessions[i])
 			}
 		}
+		fmt.Println(len(filteredSessions))
 		return filteredSessions, nil
 	}
 	return sessions, nil
