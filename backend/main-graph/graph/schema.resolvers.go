@@ -58,8 +58,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	sessionIDsToJoin := make(map[int]bool)
-	join := false
+	// list of maps, where each map represents a field query.
+	sessionIDsToJoin := []map[int]bool{}
 	sessions := []*model.Session{}
 	query := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc")
 	ps, err := model.DecodeAndValidateParams(params)
@@ -88,10 +88,11 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 			query = query.Where("created_at > ?", time.Now().Add(-d))
 		default:
 			// TODO: this is a hacky solution because I don't know SQL well.
+			// For every text filter, we create a new list of sessions, and they
 			if p.Type != "text" {
 				continue
 			}
-			join = true
+			sessionIdMap := make(map[int]bool)
 			field := &model.Field{}
 			res := r.DB.Where(&model.Field{OrganizationID: organizationID, Value: p.Value.Value, Name: p.Action}).First(field)
 			if err := res.Error; err != nil || res.RecordNotFound() {
@@ -105,19 +106,35 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 				var sessionID int
 				var fieldID int
 				rows.Scan(&sessionID, &fieldID)
-				sessionIDsToJoin[sessionID] = true
+				sessionIdMap[sessionID] = true
 			}
 			rows.Close()
+			sessionIDsToJoin = append(sessionIDsToJoin, sessionIdMap)
 		}
 	}
 	res := query.Limit(count).Find(&sessions)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "no sessions found")
 	}
-	if join {
+	// If we have queries to parse with fields, we do an intersection of all the fields
+	// and then a join with the results from the queries.
+	if numFilters := len(sessionIDsToJoin); numFilters > 0 {
+		countMap := make(map[int]int)
+		wantedSessionIds := make(map[int]bool)
+		for i := range sessionIDsToJoin {
+			resultMap := sessionIDsToJoin[i]
+			for k := range resultMap {
+				countMap[k] += 1
+			}
+		}
+		for k, v := range countMap {
+			if v == numFilters {
+				wantedSessionIds[k] = true
+			}
+		}
 		filteredSessions := []*model.Session{}
 		for i := range sessions {
-			if val, _ := sessionIDsToJoin[sessions[i].ID]; val {
+			if val, _ := wantedSessionIds[sessions[i].ID]; val {
 				filteredSessions = append(filteredSessions, sessions[i])
 			}
 		}
