@@ -1,16 +1,13 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 
 	"github.com/gorilla/handlers"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/worker"
-	"github.com/k0kubun/pp"
 	"github.com/rs/cors"
 
 	ha "github.com/99designs/gqlgen/handler"
@@ -19,7 +16,6 @@ import (
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
 	mgenerated "github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	rd "github.com/jay-khatri/fullstory/backend/redis"
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -41,8 +37,6 @@ func validateOrigin(request *http.Request, origin string) bool {
 			return true
 		}
 	} else if path == "/client" {
-		return true
-	} else if path == "/segment" {
 		return true
 	}
 	return false
@@ -73,19 +67,6 @@ func main() {
 				Redis: rd.Client,
 			},
 		}))))
-
-	mux.HandleFunc("/segment", func(rw http.ResponseWriter, req *http.Request) {
-		rw.Header().Set("Content-Type", "application/json")
-		body := req.Body
-		defer body.Close()
-		b, err := ioutil.ReadAll(body)
-		if err != nil {
-			http.Error(rw, e.Wrap(err, "can't ready body").Error(), http.StatusUnauthorized)
-			return
-		}
-		pp.Println(string(b))
-		json.NewEncoder(rw).Encode(`{"hello":"hi"}`)
-	})
 
 	handler := cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,

@@ -113,8 +113,9 @@ func (j *JSONB) Scan(value interface{}) error {
 
 // Params used for reading from search requests.
 type Param struct {
-	Key   string `json:"key"`
-	Value struct {
+	Action string `json:"action"`
+	Type   string `json:"type"`
+	Value  struct {
 		Text  string `json:"text"`
 		Value string `json:"value"`
 	} `json:"value"`
@@ -139,10 +140,10 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 			return nil, e.Wrap(err, "error decoding")
 		}
 		// If we've already seen the key, throw an error.
-		if val := keys[output.Key]; val {
+		if val := keys[output.Action]; val {
 			return nil, fmt.Errorf("repeated param '%v' not suppported", val)
 		}
-		keys[output.Key] = true
+		keys[output.Action] = true
 		ps = append(ps, output)
 	}
 	return ps, nil

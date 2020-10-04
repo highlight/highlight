@@ -11,10 +11,10 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
+	"github.com/slack-go/slack"
+
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -58,6 +58,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
+	sessionIDsToJoin := make(map[int]bool)
 	sessions := []*model.Session{}
 	query := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc")
 	ps, err := model.DecodeAndValidateParams(params)
@@ -65,7 +66,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		return nil, e.Wrap(err, "error decoding params")
 	}
 	for _, p := range ps {
-		switch key := p.Key; key {
+		switch key := p.Action; key {
 		case "more than":
 			d, err := toDuration(p.Value.Value)
 			if err != nil {
@@ -84,15 +85,40 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 				return nil, e.Wrap(err, "error convering duration to int")
 			}
 			query = query.Where("created_at > ?", time.Now().Add(-d))
-		case "identifier":
-			query = query.Where("identifier = ?", p.Value.Value)
+		default:
+			// TODO: this is a hacky solution because I don't know SQL well.
+			if p.Type != "text" {
+				continue
+			}
+			field := &model.Field{}
+			res := r.DB.Where(&model.Field{OrganizationID: organizationID, Value: p.Value.Value, Name: p.Action}).First(field)
+			if err := res.Error; err != nil || res.RecordNotFound() {
+				return nil, e.Wrap(err, "error querying field")
+			}
+			rows, err := r.DB.Table("session_fields").Where("field_id = ?", field.ID).Rows()
+			if err != nil {
+				return nil, fmt.Errorf("error querying field_id on session_fields")
+			}
+			for rows.Next() {
+				var sessionID int
+				var fieldID int
+				rows.Scan(&sessionID, &fieldID)
+				sessionIDsToJoin[sessionID] = true
+			}
+			rows.Close()
 		}
 	}
 	res := query.Limit(count).Find(&sessions)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "no sessions found")
 	}
-	return sessions, nil
+	filteredSessions := []*model.Session{}
+	for i := range sessions {
+		if val, _ := sessionIDsToJoin[sessions[i].ID]; val {
+			filteredSessions = append(filteredSessions, sessions[i])
+		}
+	}
+	return filteredSessions, nil
 }
 
 func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*string, error) {
@@ -109,7 +135,6 @@ func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*stri
 		rows.Scan(&field)
 		fields = append(fields, &field)
 	}
-	pp.Println(fields)
 	return fields, nil
 }
 
