@@ -1,28 +1,33 @@
-import styles from "../styles/Home.module.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlay, faHandPointUp } from "@fortawesome/free-solid-svg-icons";
+import styles from '../styles/Home.module.css'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlay, faHandPointUp } from '@fortawesome/free-solid-svg-icons'
 
-const RequestForm = props => {
-  return (
-    <div className={styles.formSection}>
-      <form>
-        <div className={styles.formWrapper}>
-          <input
-            type="text"
-            id="fname"
-            name="fname"
-            placeholder="Email Address"
-            className={styles.requestInput}
-          />
-          <br />
-          <button className={styles.requestButton}>
-            <FontAwesomeIcon style={{ width: 15 }} icon={faHandPointUp} />
-            <span className={styles.accessText}>Request Access</span>
-          </button>
+const RequestForm = (props) => {
+    return (
+        <div className={styles.formSection}>
+            <form>
+                <div className={styles.formWrapper}>
+                    <input
+                        type="text"
+                        id="fname"
+                        name="fname"
+                        placeholder="Email Address"
+                        className={styles.requestInput}
+                    />
+                    <br />
+                    <button className={styles.requestButton}>
+                        <FontAwesomeIcon
+                            style={{ width: 15 }}
+                            icon={faHandPointUp}
+                        />
+                        <span className={styles.accessText}>
+                            Request Access
+                        </span>
+                    </button>
+                </div>
+            </form>
         </div>
-      </form>
-    </div>
-  );
-};
+    )
+}
 
-export default RequestForm;
+export default RequestForm
