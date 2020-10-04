@@ -393,7 +393,11 @@ type Query {
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
   # gets all the organizations of a user
   fields(organization_id: ID!): [String]
-  field_suggestion(organization_id: ID!, field: String!, query: String!): [String]
+  field_suggestion(
+    organization_id: ID!
+    field: String!
+    query: String!
+  ): [String]
   organizations: [Organization]
   admin: Admin
 }

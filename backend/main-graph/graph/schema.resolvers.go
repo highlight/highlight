@@ -12,10 +12,9 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/k0kubun/pp"
-	"github.com/slack-go/slack"
-
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {

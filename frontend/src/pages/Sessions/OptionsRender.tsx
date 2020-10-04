@@ -175,6 +175,8 @@ export const OptionsFilter = ({
         { variables: { organization_id: organization_id } }
     )
 
+  console.log(data);
+
     useEffect(() => {
         const customParams = data?.fields.map(
             (f: string): SearchParam => {
