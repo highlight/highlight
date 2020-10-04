@@ -21,7 +21,7 @@ import {
   Route,
   BrowserRouter as Router,
   Redirect,
-  Link
+  Link,
 } from "react-router-dom";
 import * as firebase from "firebase/app";
 import { Dropdown, Skeleton } from "antd";
@@ -90,6 +90,10 @@ export const AuthAdminRouter = () => {
     if (admin) {
       const { email, id, name } = admin;
       (window as any).H.identify(email, { id, name });
+      (window as any).analytics.identify(id, {
+        name,
+        email,
+      });
     }
   }, [admin]);
   if (error || loading) {
@@ -172,7 +176,14 @@ const Header = () => {
         <Link to={`/${organization_id}/setup`} className={styles.headerLink}>
           Setup
         </Link>
-        <Dropdown overlay={menu} placement={"bottomRight"} arrow>
+        <Dropdown
+          overlay={menu}
+          placement={"bottomRight"}
+          arrow
+          onVisibleChange={() => {
+            (window as any).analytics.track("User Icon Hover", {});
+          }}
+        >
           <div className={styles.accountIconWrapper}>
             <FaUserCircle className={styles.accountIcon} />
           </div>

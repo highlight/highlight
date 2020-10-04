@@ -49,7 +49,6 @@ func (w *Worker) Start() {
 						log.Errorf("error parsing session id '%v' into int", sessionID)
 						return
 					}
-					log.Infof("evaluating session '%v' with score: %f \n", sessionID, s.Score)
 					events, err := w.R.Query().Events(ctx, sessionID)
 					if err != nil || len(events) <= 1 {
 						log.Errorf("error retrieving events: %v", err)

@@ -11,9 +11,11 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
+	"github.com/slack-go/slack"
+
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -92,6 +94,24 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		return nil, e.Wrap(err, "no sessions found")
 	}
 	return sessions, nil
+}
+
+func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*string, error) {
+	rows, err := r.DB.Model(&model.Field{}).
+		Where(&model.Field{OrganizationID: organizationID}).
+		Select("distinct(name)").Rows()
+	if err != nil {
+		return nil, e.Wrap(err, "error querying field suggestion")
+	}
+	defer rows.Close()
+	fields := []*string{}
+	for rows.Next() {
+		var field string
+		rows.Scan(&field)
+		fields = append(fields, &field)
+	}
+	pp.Println(fields)
+	return fields, nil
 }
 
 func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error) {

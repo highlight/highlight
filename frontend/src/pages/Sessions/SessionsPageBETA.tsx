@@ -8,17 +8,16 @@ import { FaSearch, FaTimes } from "react-icons/fa";
 import { useDebouncedCallback } from "use-debounce";
 import {
   Value,
+  SearchParam,
   OptionsFilter,
   DateOptions,
-  IdentifierOptions,
+  FieldOptions,
 } from "./OptionsRender";
 import { Spinner } from "../../components/Spinner/Spinner";
 
 import AutosizeInput from "react-input-autosize";
 
 import styles from "./SessionsPage.module.css";
-
-type SearchParam = { key: string; current?: string; value?: Value };
 
 export const SessionsPageBETA = () => {
   const countDebounced = useDebouncedCallback(() => {
@@ -115,7 +114,7 @@ export const SessionsPageBETA = () => {
           <div className={styles.searchInputSection}>
             {params?.map((p, i) => (
               <div key={i} className={styles.optionInputWrapper}>
-                <div className={styles.optionKey}>{p?.key}:</div>
+                <div className={styles.optionKey}>{p?.action}:</div>
                 <AutosizeInput
                   autoFocus
                   onFocus={() => setInputActive(true)}
@@ -134,7 +133,7 @@ export const SessionsPageBETA = () => {
                   <FaTimes
                     className={styles.timesIcon}
                     onClick={() => {
-                      var pcopy = JSON.parse(JSON.stringify(params));
+                      var pcopy = [...params];
                       pcopy.splice(i, 1);
                       setParams(pcopy);
                       setActiveParam(-1);
@@ -164,38 +163,42 @@ export const SessionsPageBETA = () => {
             {activeParam === -1 ? (
               <OptionsFilter
                 input={mainInputText}
-                obj={[
+                params={[
                   {
                     action: "last",
                     description: "time duration (e.g. 24 days)",
+                    type: "date",
                   },
                   {
                     action: "more than",
                     description: "time duration (e.g. 20 minutes)",
+                    type: "date",
                   },
                   {
                     action: "less than",
                     description: "time duration (e.g. 1 hour)",
-                  },
-                  {
-                    action: "identifier",
-                    description: "identifier (e.g. email@email.com)",
+                    type: "date",
                   },
                 ]}
-                onSelect={(action: string) => {
-                  if (!action) return;
-                  if (paramsRef.current.filter((p) => p.key === action).length)
+                onSelect={(option: SearchParam) => {
+                  if (!option.action) return;
+                  // if there's already bubble with the same action, ignore.
+                  if (
+                    paramsRef.current.filter((p) => p.action === option.action)
+                      .length
+                  )
                     return;
-                  var pcopy = [...paramsRef.current, { key: action }];
+                  var pcopy = [...paramsRef.current, option];
                   setParams(pcopy);
                   setActiveParam(pcopy.length - 1);
                   setMainInputText("");
                 }}
               />
-            ) : params[activeParam]?.key === "identifier" ? (
-              <IdentifierOptions
+            ) : params[activeParam]?.type === "text" ? (
+              <FieldOptions
                 defaultText={"Enter a time duration (e.g. 24 days, 2 minutes)"}
                 input={params[activeParam].current ?? ""}
+                field={params[activeParam].action}
                 onSelect={(option: Value) => {
                   console.log(option);
                   if (!option) return;

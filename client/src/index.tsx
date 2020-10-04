@@ -59,6 +59,28 @@ import { eventWithTime } from 'rrweb/typings/types';
     );
   }
 
+  async addProperties(properties_obj = {}) {
+    await this.client.mutate({
+      mutation: gql`
+        mutation addProperties($session_id: ID!, $properties_object: Any) {
+          addProperties(
+            session_id: $session_id
+            properties_object: $properties_object
+          )
+        }
+      `,
+      variables: {
+        session_id: this.sessionID,
+        properties_object: properties_obj,
+      },
+    });
+    console.log(
+      `AddProperties to session (${this.sessionID}) w/ obj: ${JSON.stringify(
+        properties_obj
+      )} @ ${process.env.BACKEND_URI}`
+    );
+  }
+
   async initialize(organizationID: number) {
     const browser = detect();
     if (!organizationID) {
@@ -107,6 +129,19 @@ Session Data:
     record({
       emit,
     });
+    // overwrite xhr send.
+    const highlightThis = this;
+    let oldXHRSend = window.XMLHttpRequest.prototype.send;
+    window.XMLHttpRequest.prototype.send = function (
+      body?: Document | BodyInit | null
+    ) {
+      const obj = JSON.parse(body?.toString() ?? '');
+      if (obj.type === 'track') {
+        highlightThis.addProperties({ event: obj.event });
+      }
+      // @ts-ignore
+      return oldXHRSend.apply(this, arguments);
+    };
     this.ready = true;
   }
 

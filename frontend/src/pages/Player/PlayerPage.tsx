@@ -8,8 +8,10 @@ import {
   EventType,
   mouseInteractionData,
   incrementalData,
-  eventWithTime,
 } from "rrweb";
+
+import { eventWithTime } from "rrweb/typings/types";
+
 import { elementNode } from "rrweb-snapshot";
 import { FaUndoAlt, FaPlay, FaPause } from "react-icons/fa";
 import { Element, scroller } from "react-scroll";
@@ -277,8 +279,8 @@ const MetadataBox = () => {
                 <div>{created.toUTCString()}</div>
                 {details?.browser && (
                   <div>
-                    {details?.browser?.os},&nbsp;{details?.browser?.name}{" "}
-                    &nbsp;-&nbsp;
+                    {details?.browser?.os},&nbsp;
+                    {details?.browser?.name} &nbsp;-&nbsp;
                     {details?.browser?.version}
                   </div>
                 )}

@@ -111,7 +111,19 @@
   font-size: 16px;
   font-weight: 300;
   color: black;
+}
+
+.dropdownTitle {
+  padding: 3px 10px 3px 10px;
+  font-size: 13px;
   color: #5629c6;
+  font-weight: 400;
+  margin-bottom: 5px;
+}
+
+.dropdownSection {
+  display: flex;
+  flex-direction: column;
 }
 
 .optionsValue {
@@ -123,6 +135,10 @@
 .optionsSection {
   display: flex;
   flex-direction: column;
+}
+
+.dropdownDivider {
+  padding-top: 14px;
 }
 
 .dropdown {
