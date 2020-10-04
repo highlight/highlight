@@ -59,6 +59,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	sessionIDsToJoin := make(map[int]bool)
+	join := false
 	sessions := []*model.Session{}
 	query := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc")
 	ps, err := model.DecodeAndValidateParams(params)
@@ -90,6 +91,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 			if p.Type != "text" {
 				continue
 			}
+			join = true
 			field := &model.Field{}
 			res := r.DB.Where(&model.Field{OrganizationID: organizationID, Value: p.Value.Value, Name: p.Action}).First(field)
 			if err := res.Error; err != nil || res.RecordNotFound() {
@@ -112,13 +114,16 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "no sessions found")
 	}
-	filteredSessions := []*model.Session{}
-	for i := range sessions {
-		if val, _ := sessionIDsToJoin[sessions[i].ID]; val {
-			filteredSessions = append(filteredSessions, sessions[i])
+	if join {
+		filteredSessions := []*model.Session{}
+		for i := range sessions {
+			if val, _ := sessionIDsToJoin[sessions[i].ID]; val {
+				filteredSessions = append(filteredSessions, sessions[i])
+			}
 		}
+		return filteredSessions, nil
 	}
-	return filteredSessions, nil
+	return sessions, nil
 }
 
 func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*string, error) {
