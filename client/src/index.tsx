@@ -1,4 +1,4 @@
-import { record, addCustomEvent } from 'rrweb';
+import { record } from 'rrweb';
 import { detect } from 'detect-browser';
 import {
   InMemoryCache,
@@ -140,10 +140,6 @@ Session Data:
     record({
       emit,
     });
-    const ref = document.referrer;
-    if (ref) {
-      addCustomEvent('referrer', { value: document.referrer });
-    }
     // overwrite xhr send.
     const highlightThis = this;
     let oldXHRSend = window.XMLHttpRequest.prototype.send;
