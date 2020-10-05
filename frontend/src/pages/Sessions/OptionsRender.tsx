@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react'
-import parse from 'parse-duration'
-import { useParams } from 'react-router-dom'
+import React, { useEffect, useRef, useState } from 'react';
+import parse from 'parse-duration';
+import { useParams } from 'react-router-dom';
 // @ts-ignore
-import written from 'written-number'
-import fuzzy from 'fuzzy'
-import { useQuery, useLazyQuery, gql } from '@apollo/client'
+import written from 'written-number';
+import fuzzy from 'fuzzy';
+import { useQuery, useLazyQuery, gql } from '@apollo/client';
 
-import styles from './SessionsPage.module.css'
+import styles from './SessionsPage.module.css';
 
 export const FieldOptions = ({
     input,
@@ -14,16 +14,16 @@ export const FieldOptions = ({
     onSelect,
     defaultText,
 }: {
-    input: string
-    field: string
-    onSelect: (option: Value) => void
-    defaultText: string
+    input: string;
+    field: string;
+    onSelect: (option: Value) => void;
+    defaultText: string;
 }) => {
-    const { organization_id } = useParams()
-    const [results, setResults] = useState<fuzzy.FilterResult<Value>[]>([])
+    const { organization_id } = useParams();
+    const [results, setResults] = useState<fuzzy.FilterResult<Value>[]>([]);
     const index = useKeySelector(results.length, (i: number) => {
-        onSelect(results[i]?.original)
-    })
+        onSelect(results[i]?.original);
+    });
     const [fieldSuggestion, { data }] = useLazyQuery<
         { field_suggestion: string[] },
         { organization_id: number; field: string; query: string }
@@ -41,13 +41,13 @@ export const FieldOptions = ({
                 )
             }
         `
-    )
+    );
 
     useEffect(() => {
         fieldSuggestion({
             variables: { field, query: input, organization_id },
-        })
-    }, [input, fieldSuggestion, organization_id, field])
+        });
+    }, [input, fieldSuggestion, organization_id, field]);
 
     useEffect(() => {
         if (data?.field_suggestion.length) {
@@ -55,7 +55,7 @@ export const FieldOptions = ({
                 fuzzy.filter<Value>(
                     input,
                     data?.field_suggestion.map((s) => {
-                        return { text: s, value: s }
+                        return { text: s, value: s };
                     }) ?? [],
                     {
                         pre: `<strong style="color: #5629c6;">`,
@@ -63,9 +63,9 @@ export const FieldOptions = ({
                         extract: (f) => f.text,
                     }
                 )
-            )
+            );
         }
-    }, [data, input])
+    }, [data, input]);
 
     return (
         <>
@@ -74,8 +74,8 @@ export const FieldOptions = ({
                     return (
                         <div
                             onClick={() => {
-                                console.log(f)
-                                onSelect(f?.original)
+                                console.log(f);
+                                onSelect(f?.original);
                             }}
                             className={styles.optionsRow}
                             key={i}
@@ -85,26 +85,26 @@ export const FieldOptions = ({
                             }}
                             dangerouslySetInnerHTML={{ __html: f.string }}
                         />
-                    )
+                    );
                 })
                 .slice(0, 5)}
         </>
-    )
-}
+    );
+};
 
 export const DateOptions = ({
     input,
     onSelect,
     defaultText,
 }: {
-    input: string
-    onSelect: (option: Value) => void
-    defaultText: string
+    input: string;
+    onSelect: (option: Value) => void;
+    defaultText: string;
 }) => {
-    const [results, setResults] = useState<fuzzy.FilterResult<Value>[]>([])
+    const [results, setResults] = useState<fuzzy.FilterResult<Value>[]>([]);
     const index = useKeySelector(results.length, (i: number) => {
-        onSelect(results[i]?.original)
-    })
+        onSelect(results[i]?.original);
+    });
 
     useEffect(() => {
         setResults(
@@ -115,8 +115,8 @@ export const DateOptions = ({
                     extract: (f) => f.text,
                 })
                 .slice(0, 5)
-        )
-    }, [input])
+        );
+    }, [input]);
 
     return (
         <>
@@ -133,29 +133,29 @@ export const DateOptions = ({
                             }}
                             dangerouslySetInnerHTML={{ __html: f.string }}
                         />
-                    )
+                    );
                 })
                 .slice(0, 5)}
         </>
-    )
-}
+    );
+};
 
 export const OptionsFilter = ({
     input,
     params,
     onSelect,
 }: {
-    input: string
-    params: SearchParam[]
-    onSelect: (action: SearchParam) => void
+    input: string;
+    params: SearchParam[];
+    onSelect: (action: SearchParam) => void;
 }) => {
-    const { organization_id } = useParams()
+    const { organization_id } = useParams();
     const [results, setResults] = useState<fuzzy.FilterResult<SearchParam>[]>(
         []
-    )
+    );
     const [customResults, setCustomResults] = useState<
         fuzzy.FilterResult<SearchParam>[]
-    >([])
+    >([]);
     const index = useKeySelector(
         results.length + customResults.length,
         (i: number) => {
@@ -163,9 +163,9 @@ export const OptionsFilter = ({
                 i < results.length
                     ? results[i]?.original
                     : customResults[i - results.length].original
-            )
+            );
         }
-    )
+    );
     const { data } = useQuery<{ fields: Array<string> }>(
         gql`
             query GetFields($organization_id: ID!) {
@@ -173,9 +173,9 @@ export const OptionsFilter = ({
             }
         `,
         { variables: { organization_id: organization_id } }
-    )
+    );
 
-    const dataFields = data?.fields
+    const dataFields = data?.fields;
 
     useEffect(() => {
         const customParams = dataFields?.map(
@@ -184,9 +184,9 @@ export const OptionsFilter = ({
                     action: f,
                     description: 'text (e.g. jay, monica, jay@jay.com)',
                     type: 'text',
-                }
+                };
             }
-        )
+        );
         if (customParams) {
             setCustomResults(
                 fuzzy.filter(input, customParams, {
@@ -194,9 +194,9 @@ export const OptionsFilter = ({
                     post: '</strong>',
                     extract: (f) => f.action,
                 })
-            )
+            );
         }
-    }, [input, dataFields, data])
+    }, [input, dataFields, data]);
 
     useEffect(() => {
         setResults(
@@ -205,8 +205,8 @@ export const OptionsFilter = ({
                 post: '</strong>',
                 extract: (f) => f.action,
             })
-        )
-    }, [input, params])
+        );
+    }, [input, params]);
 
     return (
         <div className={styles.optionsSection}>
@@ -217,7 +217,7 @@ export const OptionsFilter = ({
                         key={i}
                         className={styles.optionsRow}
                         onClick={() => {
-                            onSelect(f?.original)
+                            onSelect(f?.original);
                         }}
                         style={{
                             backgroundColor:
@@ -244,7 +244,7 @@ export const OptionsFilter = ({
                             key={i}
                             className={styles.optionsRow}
                             onClick={() => {
-                                onSelect(f?.original)
+                                onSelect(f?.original);
                             }}
                             style={{
                                 backgroundColor:
@@ -268,8 +268,8 @@ export const OptionsFilter = ({
                 <></>
             )}
         </div>
-    )
-}
+    );
+};
 
 const generateDurationObjects = (): Value[] => {
     const units = [
@@ -278,85 +278,85 @@ const generateDurationObjects = (): Value[] => {
         { unit: 'second', count: 60 },
         { unit: 'hour', count: 24 },
         { unit: 'month', count: 12 },
-    ]
-    return units.flatMap((u) => generateUnitOptions(u))
-}
+    ];
+    return units.flatMap((u) => generateUnitOptions(u));
+};
 
 const generateUnitOptions = (obj: { unit: string; count: number }): Value[] => {
-    var options: Value[] = []
+    var options: Value[] = [];
     for (var i = 1; i < obj.count + 1; i++) {
-        var unitStr = i === 1 ? obj.unit : obj.unit + 's'
-        const f = i.toString() + ' ' + unitStr
-        const d = parse(f)
+        var unitStr = i === 1 ? obj.unit : obj.unit + 's';
+        const f = i.toString() + ' ' + unitStr;
+        const d = parse(f);
         if (d) {
-            options.push({ text: f, value: d.toString() })
+            options.push({ text: f, value: d.toString() });
             options.push({
                 text: written(i) + ' ' + unitStr,
                 value: d.toString(),
-            })
+            });
         }
     }
-    return options
-}
+    return options;
+};
 
 // accepts a limit and incremements/decrements a count accordingly.
 // onClick(i) is called with the current count as input when enter is pressed.
 const useKeySelector = (l: number, onClick: (arg: any) => void): number => {
-    const [index, setIndex] = useState<number>(0)
-    const [limit, setLimit] = useState<number>(l)
-    const indexRef = useRef(index)
-    const limitRef = useRef(limit)
+    const [index, setIndex] = useState<number>(0);
+    const [limit, setLimit] = useState<number>(l);
+    const indexRef = useRef(index);
+    const limitRef = useRef(limit);
     useEffect(() => {
         const onPress = (e: KeyboardEvent) => {
             if (e.key === 'ArrowUp') {
-                e.preventDefault()
+                e.preventDefault();
                 setIndex((i) => {
-                    const n = Math.max(i - 1, 0)
-                    indexRef.current = n
-                    return n
-                })
+                    const n = Math.max(i - 1, 0);
+                    indexRef.current = n;
+                    return n;
+                });
             }
             if (e.key === 'ArrowDown') {
-                e.preventDefault()
+                e.preventDefault();
                 setIndex((i) => {
-                    const n = Math.min(i + 1, limitRef.current - 1)
-                    indexRef.current = n
-                    return n
-                })
+                    const n = Math.min(i + 1, limitRef.current - 1);
+                    indexRef.current = n;
+                    return n;
+                });
             }
             if (e.key === 'Enter') {
-                e.preventDefault()
-                onClick(indexRef.current)
+                e.preventDefault();
+                onClick(indexRef.current);
             }
-        }
-        document.addEventListener('keydown', onPress, false)
+        };
+        document.addEventListener('keydown', onPress, false);
         return () => {
-            document.removeEventListener('keydown', onPress, false)
-        }
-    }, [onClick])
+            document.removeEventListener('keydown', onPress, false);
+        };
+    }, [onClick]);
     useEffect(() => {
-        limitRef.current = l
-        setLimit(l)
-    }, [l])
-    return indexRef.current
-}
+        limitRef.current = l;
+        setLimit(l);
+    }, [l]);
+    return indexRef.current;
+};
 
 export type SearchParam = {
     // name of the action or key (e.g. "more-than", "less-than", "email")
-    action: string
+    action: string;
     // example text for the UI.
-    description: string
+    description: string;
     // type of data (time, text, etc.)
-    type: string
+    type: string;
     // The current value that the user inputs for this option.
-    current?: string
+    current?: string;
     // The actual value to send over the wire.
-    value?: Value
-}
+    value?: Value;
+};
 
 export type Value = {
     // The text representation of a value.
-    text: string
+    text: string;
     // The actual representation (for a date, its a unix seconds string).
-    value: string
-}
+    value: string;
+};

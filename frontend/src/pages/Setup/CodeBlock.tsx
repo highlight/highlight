@@ -1,17 +1,17 @@
-import React from 'react'
+import React from 'react';
 
-import styles from './SetupPage.module.css'
-import { message } from 'antd'
-import CopyToClipboard from 'react-copy-to-clipboard'
+import styles from './SetupPage.module.css';
+import { message } from 'antd';
+import CopyToClipboard from 'react-copy-to-clipboard';
 
-import { FaCopy } from 'react-icons/fa'
+import { FaCopy } from 'react-icons/fa';
 
 export const CodeBlock = ({
     text,
     onCopy,
 }: {
-    text: string
-    onCopy?: () => void
+    text: string;
+    onCopy?: () => void;
 }) => {
     return (
         <>
@@ -20,8 +20,8 @@ export const CodeBlock = ({
                     <CopyToClipboard
                         text={text}
                         onCopy={() => {
-                            message.success('Copied Snippet', 5)
-                            onCopy && onCopy()
+                            message.success('Copied Snippet', 5);
+                            onCopy && onCopy();
                         }}
                     >
                         <div className={styles.copyDiv}>
@@ -40,5 +40,5 @@ export const CodeBlock = ({
                 <div className={styles.codeBlockWrapper}>{text}</div>
             </div>
         </>
-    )
-}
+    );
+};

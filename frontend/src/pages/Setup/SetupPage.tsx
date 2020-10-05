@@ -1,21 +1,21 @@
-import React from 'react'
+import React from 'react';
 
-import { CodeBlock } from './CodeBlock'
-import { useParams } from 'react-router-dom'
+import { CodeBlock } from './CodeBlock';
+import { useParams } from 'react-router-dom';
 
-import styles from './SetupPage.module.css'
-import useFetch from 'use-http'
-import { Skeleton } from 'antd'
+import styles from './SetupPage.module.css';
+import useFetch from 'use-http';
+import { Skeleton } from 'antd';
 
 export const SetupPage = () => {
     const { loading, error, data = '' } = useFetch<string>(
         process.env.REACT_APP_BUNDLE_URI + '/firstload.js',
         {},
         []
-    )
-    const { organization_id } = useParams()
+    );
+    const { organization_id } = useParams();
 
-    const codeStr = data.replace(/(\r\n|\n|\r)/gm, '')
+    const codeStr = data.replace(/(\r\n|\n|\r)/gm, '');
 
     return (
         <div className={styles.setupWrapper}>
@@ -65,5 +65,5 @@ ${codeStr}
                 />
             </div>
         </div>
-    )
-}
+    );
+};

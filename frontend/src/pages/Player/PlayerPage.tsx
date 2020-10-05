@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import React, { useState, useRef, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import {
     Replayer,
     mirror,
@@ -8,35 +8,35 @@ import {
     EventType,
     mouseInteractionData,
     incrementalData,
-} from 'rrweb'
+} from 'rrweb';
 
-import { eventWithTime } from 'rrweb/typings/types'
+import { eventWithTime } from 'rrweb/typings/types';
 
-import { elementNode } from 'rrweb-snapshot'
-import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa'
-import { Element, scroller } from 'react-scroll'
-import { Spinner } from '../../components/Spinner/Spinner'
-import { MillisToMinutesAndSeconds } from '../../util/time'
-import { useQuery, gql } from '@apollo/client'
-import { ReactComponent as PointerIcon } from '../../static/pointer-up.svg'
-import { ReactComponent as HoverIcon } from '../../static/hover.svg'
-import { Skeleton } from 'antd'
-import { useImage } from 'react-image'
+import { elementNode } from 'rrweb-snapshot';
+import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
+import { Element, scroller } from 'react-scroll';
+import { Spinner } from '../../components/Spinner/Spinner';
+import { MillisToMinutesAndSeconds } from '../../util/time';
+import { useQuery, gql } from '@apollo/client';
+import { ReactComponent as PointerIcon } from '../../static/pointer-up.svg';
+import { ReactComponent as HoverIcon } from '../../static/hover.svg';
+import { Skeleton } from 'antd';
+import { useImage } from 'react-image';
 
-import Slider from 'rc-slider'
+import Slider from 'rc-slider';
 
-import styles from './PlayerPage.module.css'
-import 'rc-slider/assets/index.css'
+import styles from './PlayerPage.module.css';
+import 'rc-slider/assets/index.css';
 
 export const Player = () => {
-    const { session_id } = useParams()
-    const [replayer, setReplayer] = useState<Replayer | undefined>(undefined)
-    const [paused, setPaused] = useState(true)
-    const [time, setTime] = useState(0)
-    const [ticker, setTicker] = useState(0)
-    const [totalTime, setTotalTime] = useState(0)
-    const [playerLoading, setPlayerLoading] = useState(true)
-    const playerWrapperRef = useRef<HTMLDivElement>(null)
+    const { session_id } = useParams();
+    const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
+    const [paused, setPaused] = useState(true);
+    const [time, setTime] = useState(0);
+    const [ticker, setTicker] = useState(0);
+    const [totalTime, setTotalTime] = useState(0);
+    const [playerLoading, setPlayerLoading] = useState(true);
+    const playerWrapperRef = useRef<HTMLDivElement>(null);
     const {
         loading: sessionLoading,
         error: sessionError,
@@ -48,26 +48,26 @@ export const Player = () => {
             }
         `,
         { variables: { session_id } }
-    )
+    );
 
     const resizePlayer = (replayer: Replayer): boolean => {
-        const width = replayer?.wrapper?.getBoundingClientRect().width
-        const height = replayer?.wrapper?.getBoundingClientRect().height
-        const targetWidth = playerWrapperRef.current?.clientWidth
-        const targetHeight = playerWrapperRef.current?.clientHeight
+        const width = replayer?.wrapper?.getBoundingClientRect().width;
+        const height = replayer?.wrapper?.getBoundingClientRect().height;
+        const targetWidth = playerWrapperRef.current?.clientWidth;
+        const targetHeight = playerWrapperRef.current?.clientHeight;
         if (!width || !targetWidth || !height || !targetHeight) {
-            return false
+            return false;
         }
-        const widthDelta = width - targetWidth
-        const heightDelta = height - targetHeight
-        const widthScale = (targetWidth - 80) / width
-        const heightScale = (targetHeight - 80) / height
-        const scale = widthDelta > heightDelta ? widthScale : heightScale
-        const endHeight = (targetHeight - height * scale) / 2
-        const endWidth = (targetWidth - width * scale) / 2
-        console.log('height: ', height, targetHeight, heightScale)
-        console.log('width', width, targetWidth, widthScale)
-        console.log(`applying scale ${scale}`)
+        const widthDelta = width - targetWidth;
+        const heightDelta = height - targetHeight;
+        const widthScale = (targetWidth - 80) / width;
+        const heightScale = (targetHeight - 80) / height;
+        const scale = widthDelta > heightDelta ? widthScale : heightScale;
+        const endHeight = (targetHeight - height * scale) / 2;
+        const endWidth = (targetWidth - width * scale) / 2;
+        console.log('height: ', height, targetHeight, heightScale);
+        console.log('width', width, targetWidth, widthScale);
+        console.log(`applying scale ${scale}`);
         replayer?.wrapper?.setAttribute(
             'style',
             `
@@ -75,60 +75,60 @@ export const Player = () => {
       top: ${endHeight}px;
       left: ${endWidth}px;
       `
-        )
-        setPlayerLoading(false)
-        return true
-    }
+        );
+        setPlayerLoading(false);
+        return true;
+    };
 
     // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
     useEffect(() => {
         if (replayer) {
             const i = window.setInterval(() => {
                 if (resizePlayer(replayer)) {
-                    window.clearInterval(i)
+                    window.clearInterval(i);
                 }
-            }, 200)
+            }, 200);
         }
-    }, [replayer])
+    }, [replayer]);
 
     useEffect(() => {
         if (paused) {
-            clearInterval(ticker)
-            setTicker(0)
-            return
+            clearInterval(ticker);
+            setTicker(0);
+            return;
         }
         if (!ticker) {
             const ticker = window.setInterval(() => {
                 setTime((time) => {
                     if (time < totalTime) {
-                        return time + 50
+                        return time + 50;
                     }
-                    setPaused(true)
-                    return time
-                })
-            }, 50)
-            setTicker(ticker)
+                    setPaused(true);
+                    return time;
+                });
+            }, 50);
+            setTicker(ticker);
         }
-    }, [setTicker, paused, ticker, totalTime])
+    }, [setTicker, paused, ticker, totalTime]);
 
     useEffect(() => {
         if (sessionData?.events?.length ?? 0 > 1) {
             // Add an id field to each event so it can be referenced.
             const newEvents: string[] =
                 sessionData?.events.map((e) => {
-                    return { ...e }
-                }) ?? []
+                    return { ...e };
+                }) ?? [];
             let r = new Replayer(newEvents, {
                 root: document.getElementById('player') as HTMLElement,
-            })
-            setTotalTime(r.getMetaData().totalTime)
-            setReplayer(r)
-            r.getTimeOffset()
+            });
+            setTotalTime(r.getMetaData().totalTime);
+            setReplayer(r);
+            r.getTimeOffset();
         }
-    }, [sessionData])
+    }, [sessionData]);
 
     if (sessionError) {
-        return <p>{sessionError.toString()}</p>
+        return <p>{sessionError.toString()}</p>;
     }
 
     return (
@@ -162,11 +162,11 @@ export const Player = () => {
                         className={styles.playSection}
                         onClick={() => {
                             if (paused) {
-                                replayer?.play(time)
-                                setPaused(false)
+                                replayer?.play(time);
+                                setPaused(false);
                             } else {
-                                replayer?.pause()
-                                setPaused(true)
+                                replayer?.pause();
+                                setPaused(true);
                             }
                         }}
                     >
@@ -185,13 +185,13 @@ export const Player = () => {
                     <div
                         className={styles.undoSection}
                         onClick={() => {
-                            const newTime = time - 7000 < 0 ? 0 : time - 7000
+                            const newTime = time - 7000 < 0 ? 0 : time - 7000;
                             if (paused) {
-                                replayer?.pause(newTime)
-                                setTime(newTime)
+                                replayer?.pause(newTime);
+                                setTime(newTime);
                             } else {
-                                replayer?.play(newTime)
-                                setTime(newTime)
+                                replayer?.play(newTime);
+                                setTime(newTime);
                             }
                         }}
                     >
@@ -218,19 +218,19 @@ export const Player = () => {
                 <MetadataBox />
             </div>
         </div>
-    )
-}
+    );
+};
 
 const MetadataBox = () => {
-    const { session_id } = useParams()
+    const { session_id } = useParams();
     const { loading, error, data } = useQuery<{
         session: {
-            details: any
-            user_id: number
-            created_at: number
-            user_object: any
-            identifier: string
-        }
+            details: any;
+            user_id: number;
+            created_at: number;
+            user_object: any;
+            identifier: string;
+        };
     }>(
         gql`
             query GetSession($id: ID!) {
@@ -244,15 +244,15 @@ const MetadataBox = () => {
             }
         `,
         { variables: { id: session_id } }
-    )
+    );
     const { src, isLoading, error: imgError } = useImage({
         srcList: `https://avatar.windsor.io/${data?.session.user_id}`,
         useSuspense: false,
-    })
-    const created = new Date(data?.session.created_at ?? 0)
-    var details: any = {}
+    });
+    const created = new Date(data?.session.created_at ?? 0);
+    var details: any = {};
     try {
-        details = JSON.parse(data?.session?.details)
+        details = JSON.parse(data?.session?.details);
     } catch (e) {}
     return (
         <div className={styles.locationBox}>
@@ -306,34 +306,34 @@ const MetadataBox = () => {
                 )}
             </div>
         </div>
-    )
-}
+    );
+};
 
 const EventStream = ({
     events,
     time,
     replayer,
 }: {
-    events: any[]
-    time: number
-    replayer: Replayer | undefined
+    events: any[];
+    time: number;
+    replayer: Replayer | undefined;
 }) => {
-    const [currEvent, setCurrEvent] = useState(-1)
+    const [currEvent, setCurrEvent] = useState(-1);
     useEffect(() => {
-        if (!replayer) return
+        if (!replayer) return;
         replayer.on('event-cast', (e: any) => {
-            const event = e as eventWithTime
+            const event = e as eventWithTime;
             if (usefulEvent(event)) {
-                setCurrEvent(event.timestamp)
+                setCurrEvent(event.timestamp);
                 scroller.scrollTo(event.timestamp.toString(), {
                     smooth: true,
                     containerId: 'wrapper',
                     spy: true,
                     offset: -150,
-                })
+                });
             }
-        })
-    }, [replayer, time])
+        });
+    }, [replayer, time]);
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
@@ -345,31 +345,31 @@ const EventStream = ({
                     events
                         .filter(usefulEvent)
                         .map((e: eventWithTime, i: number) => {
-                            const mouseInteraction = e.data as mouseInteractionData
-                            let eventStr = ''
+                            const mouseInteraction = e.data as mouseInteractionData;
+                            let eventStr = '';
                             switch (mouseInteraction.type) {
                                 case MouseInteractions.Click:
-                                    eventStr = 'Click'
-                                    break
+                                    eventStr = 'Click';
+                                    break;
                                 case MouseInteractions.Focus:
-                                    eventStr = 'Focus'
-                                    break
+                                    eventStr = 'Focus';
+                                    break;
                             }
                             const node = mirror.map[mouseInteraction.id]
-                                ?.__sn as elementNode
-                            var idString = node?.tagName
+                                ?.__sn as elementNode;
+                            var idString = node?.tagName;
                             if (node?.attributes) {
-                                const attrs = node?.attributes
+                                const attrs = node?.attributes;
                                 if (
                                     'class' in attrs &&
                                     attrs.class.toString()
                                 ) {
                                     idString = idString.concat(
                                         '.' + attrs.class
-                                    )
+                                    );
                                 }
                                 if ('id' in attrs && attrs.id.toString()) {
-                                    idString = idString.concat('#' + attrs.id)
+                                    idString = idString.concat('#' + attrs.id);
                                 }
                                 Object.keys(attrs)
                                     .filter(
@@ -383,12 +383,12 @@ const EventStream = ({
                                                 '=' +
                                                 attrs[key] +
                                                 ']')
-                                    )
+                                    );
                             }
 
                             let timeSinceStart =
                                 e?.timestamp -
-                                replayer?.getMetaData()?.startTime
+                                replayer?.getMetaData()?.startTime;
                             return (
                                 <Element
                                     name={e.timestamp.toString()}
@@ -440,28 +440,28 @@ const EventStream = ({
                                         </div>
                                     </div>
                                 </Element>
-                            )
+                            );
                         })
                 )}
             </div>
         </>
-    )
-}
+    );
+};
 
 // used in filter() type methods to fetch events we want
 const usefulEvent = (e: eventWithTime): boolean => {
     // If its not an 'incrementalSnapshot', discard.
     if ((e as eventWithTime).type !== EventType.IncrementalSnapshot)
-        return false
-    const snapshotEventData = e.data as incrementalData
+        return false;
+    const snapshotEventData = e.data as incrementalData;
     switch (snapshotEventData.source) {
         case IncrementalSource.MouseInteraction:
             switch (snapshotEventData.type) {
                 case MouseInteractions.Click:
-                    return true
+                    return true;
                 case MouseInteractions.Focus:
-                    return true
+                    return true;
             }
     }
-    return false
-}
+    return false;
+};
