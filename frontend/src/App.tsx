@@ -89,8 +89,8 @@ export const AuthAdminRouter = () => {
     useEffect(() => {
         if (admin) {
             const { email, id, name } = admin
-            ;(window as any).H.identify(email, { id, name })
-            ;(window as any).analytics.identify(id, {
+            window.H.identify(email, { id, name })
+            window.analytics.identify(id, {
                 name,
                 email,
             })
@@ -177,12 +177,18 @@ const Header = () => {
             </div>
             <div className={styles.rightHeader}>
                 <Link
+                    onClick={() => {
+                        window.analytics.track('Sessions Click', {})
+                    }}
                     to={`/${organization_id}/sessions`}
                     className={styles.headerLink}
                 >
                     Sessions
                 </Link>
                 <Link
+                    onClick={() => {
+                        window.analytics.track('Setup Click', {})
+                    }}
                     to={`/${organization_id}/setup`}
                     className={styles.headerLink}
                 >
@@ -193,7 +199,7 @@ const Header = () => {
                     placement={'bottomRight'}
                     arrow
                     onVisibleChange={() => {
-                        ;(window as any).analytics.track('User Icon Hover', {})
+                        window.analytics.track('User Icon Hover', {})
                     }}
                 >
                     <div className={styles.accountIconWrapper}>

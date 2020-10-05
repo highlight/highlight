@@ -47,7 +47,7 @@ export const FieldOptions = ({
         fieldSuggestion({
             variables: { field, query: input, organization_id },
         })
-    }, [input, fieldSuggestion, organization_id])
+    }, [input, fieldSuggestion, organization_id, field])
 
     useEffect(() => {
         if (data?.field_suggestion.length) {
@@ -175,8 +175,10 @@ export const OptionsFilter = ({
         { variables: { organization_id: organization_id } }
     )
 
+    const dataFields = data?.fields
+
     useEffect(() => {
-        const customParams = data?.fields.map(
+        const customParams = dataFields?.map(
             (f: string): SearchParam => {
                 return {
                     action: f,
@@ -194,7 +196,7 @@ export const OptionsFilter = ({
                 })
             )
         }
-    }, [input, data?.fields])
+    }, [input, dataFields, data])
 
     useEffect(() => {
         setResults(

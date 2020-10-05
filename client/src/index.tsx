@@ -137,7 +137,9 @@ Session Data:
     ) {
       const obj = JSON.parse(body?.toString() ?? '');
       if (obj.type === 'track') {
-        highlightThis.addProperties({ event: obj.event });
+        const properties: { [key: string]: string } = {};
+        properties['segment-event'] = obj.event;
+        highlightThis.addProperties(properties);
       }
       // @ts-ignore
       return oldXHRSend.apply(this, arguments);
