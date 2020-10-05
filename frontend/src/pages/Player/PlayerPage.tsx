@@ -24,8 +24,7 @@ import { ReactComponent as PointerIcon } from '../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../static/hover.svg';
 import { Skeleton } from 'antd';
 import { useImage } from 'react-image';
-
-import Slider from 'rc-slider';
+import { Slider } from './Slider/Slider';
 
 import styles from './PlayerPage.module.css';
 import 'rc-slider/assets/index.css';
@@ -154,10 +153,12 @@ export const Player = () => {
                     </div>
                 </div>
                 <Slider
-                    onChange={(e: number) => setTime(e)}
-                    value={time}
                     max={totalTime}
-                    disabled={false}
+                    current={time}
+                    onSelect={(newTime: number) => {
+                        setTime(newTime);
+                        console.log(newTime);
+                    }}
                 />
                 <div className={styles.toolbarSection}>
                     <div
