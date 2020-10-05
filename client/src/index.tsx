@@ -8,19 +8,30 @@ import {
 } from '@apollo/client/core';
 import { eventWithTime } from 'rrweb/typings/types';
 
+class Logger {
+  debug: boolean;
+  constructor(debug: boolean) {
+    this.debug = debug;
+  }
+  log(text: string) {
+    if (this.debug) {
+      console.log(text);
+    }
+  }
+}
+
 (window as any).Highlight = class Highlight {
   organizationID: number;
   client: ApolloClient<NormalizedCacheObject>;
   events: any[];
   sessionID: number;
   ready: boolean;
+  logger: Logger;
 
   constructor(debug: boolean) {
     // If debug is set to false, disable all console
     this.ready = false;
-    if (!debug) {
-      console.log = function () {};
-    }
+    this.logger = new Logger(debug);
     this.client = new ApolloClient({
       uri: `${process.env.BACKEND_URI}/client`,
       cache: new InMemoryCache(),
@@ -52,7 +63,7 @@ import { eventWithTime } from 'rrweb/typings/types';
         user_object: user_object,
       },
     });
-    console.log(
+    this.logger.log(
       `Identify (${user_identifier}) w/ obj: ${JSON.stringify(user_object)} @ ${
         process.env.BACKEND_URI
       }`
@@ -74,7 +85,7 @@ import { eventWithTime } from 'rrweb/typings/types';
         properties_object: properties_obj,
       },
     });
-    console.log(
+    this.logger.log(
       `AddProperties to session (${this.sessionID}) w/ obj: ${JSON.stringify(
         properties_obj
       )} @ ${process.env.BACKEND_URI}`
@@ -111,7 +122,7 @@ import { eventWithTime } from 'rrweb/typings/types';
       },
     });
     this.sessionID = gr.data.initializeSession.id;
-    console.log(
+    this.logger.log(
       `Loaded Highlight
 Remote: ${process.env.BACKEND_URI}
 Org:: ${this.organizationID}
@@ -153,7 +164,7 @@ Session Data:
       return;
     }
     const eventsString = JSON.stringify({ events: this.events });
-    console.log(
+    this.logger.log(
       `Send (${this.events.length}) @ ${process.env.BACKEND_URI}, org: ${this.organizationID}`
     );
     this.events = [];
