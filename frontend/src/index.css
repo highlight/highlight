@@ -8,36 +8,36 @@ body {
 
 @font-face {
   font-family: AvenirNext;
-  src: url(/font/AvenirNext-Heavy.ttf);
+  src: url(/font/AvenirNext-Heavy.woff2);
   font-weight: 600;
 }
 
 @font-face {
   font-family: AvenirNext;
-  src: url(/font/AvenirNext-Bold.ttf);
+  src: url(/font/AvenirNext-Bold.woff2);
   font-weight: 500;
 }
 
 @font-face {
   font-family: AvenirNext;
-  src: url(/font/AvenirNext-DemiBold.ttf);
+  src: url(/font/AvenirNext-DemiBold.woff2);
   font-weight: 400;
 }
 
 @font-face {
   font-family: AvenirNext;
-  src: url(/font/AvenirNext-Medium.ttf);
+  src: url(/font/AvenirNext-Medium.woff2);
   font-weight: 300;
 }
 
 @font-face {
   font-family: AvenirNext;
-  src: url(/font/AvenirNext-Regular.ttf);
+  src: url(/font/AvenirNext-Regular.woff2);
   font-weight: 200;
 }
 
 @font-face {
   font-family: AvenirNext;
-  src: url(/font/AvenirNext-UltraLight.ttf);
+  src: url(/font/AvenirNext-UltraLight.woff2);
   font-weight: 100;
 }
