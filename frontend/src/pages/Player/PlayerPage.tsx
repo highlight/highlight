@@ -249,7 +249,7 @@ const MetadataBox = () => {
         { variables: { id: session_id } }
     );
     const { src, isLoading, error: imgError } = useImage({
-        srcList: `https://avatar.windsor.io/${data?.session.user_id}`,
+        srcList: `https://avatars.dicebear.com/api/avataaars/${data?.session.user_id}.svg`,
         useSuspense: false,
     });
     const created = new Date(data?.session.created_at ?? 0);

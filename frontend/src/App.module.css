@@ -1,273 +1,273 @@
 .signinWrapper {
-  height: 100%;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .dropdownMenu {
-  box-shadow: none;
-  min-width: 200px;
+    box-shadow: none;
+    min-width: 200px;
 }
 
 .dropdownInner {
-  background-color: white;
-  padding: 14px;
-  border-radius: 5px;
-  border: 1px solid #eaeaea;
-  margin-right: 30px;
-  margin-top: -12px;
-  box-shadow: 2px 2px 8px #e4e4e4;
-  color: black;
+    background-color: white;
+    padding: 14px;
+    border-radius: 5px;
+    border: 1px solid #eaeaea;
+    margin-right: 30px;
+    margin-top: -12px;
+    box-shadow: 2px 2px 8px #e4e4e4;
+    color: black;
 }
 
 .dropdownName {
-  font-weight: 400;
-  font-size: 15px;
+    font-weight: 400;
+    font-size: 15px;
 }
 
 .dropdownEmail {
-  font-weight: 300;
-  font-size: 13px;
-  margin-bottom: 10px;
+    font-weight: 300;
+    font-size: 13px;
+    margin-bottom: 10px;
 }
 
 .dropdownLogout {
-  border-top: 1px solid #eaeaea;
-  cursor: pointer;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  padding-top: 10px;
-  color: red;
+    border-top: 1px solid #eaeaea;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding-top: 10px;
+    color: red;
 }
 
 .dropdownLogoutText {
-  margin-left: 10px;
+    margin-left: 10px;
 }
 
 .header {
-  width: 100%;
-  height: 10vh;
-  display: flex;
-  background-color: white;
-  border-bottom: 1px solid #eaeaea;
+    width: 100%;
+    height: 10vh;
+    display: flex;
+    background-color: white;
+    border-bottom: 1px solid #eaeaea;
 }
 
 .accountIconWrapper {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .headerLink {
-  text-decoration: none;
-  color: black;
-  margin-right: 30px;
-  font-size: 18px;
-  font-weight: 400;
+    text-decoration: none;
+    color: black;
+    margin-right: 30px;
+    font-size: 18px;
+    font-weight: 400;
 }
 
 .rightHeader {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
 }
 
 .accountIcon {
-  fill: #5629c6;
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-  margin-right: 30px;
+    fill: #5629c6;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    margin-right: 30px;
 }
 
 .streamElement {
-  height: 40px;
-  width: 100%;
-  border-radius: 6px;
-  color: black;
-  display: flex;
-  padding-left: 10px;
-  padding-right: 10px;
-  align-items: center;
+    height: 40px;
+    width: 100%;
+    border-radius: 6px;
+    color: black;
+    display: flex;
+    padding-left: 10px;
+    padding-right: 10px;
+    align-items: center;
 }
 
 .eventStreamContainer {
-  color: white;
-  width: 100%;
-  height: 100%;
-  overflow-y: scroll;
-  position: relative;
-  padding: 25px;
-  box-sizing: border-box;
+    color: white;
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+    position: relative;
+    padding: 25px;
+    box-sizing: border-box;
 }
 
 .playButtonStyle {
-  height: 25px;
-  width: 30px;
+    height: 25px;
+    width: 30px;
 }
 
 .appBody {
-  height: 100vh;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .playerBody {
-  height: 90vh;
-  width: 100%;
-  flex: 1;
-  display: flex;
+    height: 90vh;
+    width: 100%;
+    flex: 1;
+    display: flex;
 }
 
 .logoWrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  width: 130px;
-  margin-left: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 130px;
+    margin-left: 12px;
 }
 
 .windowOptions {
-  padding: 10px 0px 10px 12px;
-  height: 35%;
-  width: auto;
+    padding: 10px 0px 10px 12px;
+    height: 35%;
+    width: auto;
 }
 
 .logo {
-  margin: 10px;
-  fill: white;
-  height: 40px;
-  width: 110px;
+    margin: 10px;
+    fill: white;
+    height: 40px;
+    width: 110px;
 }
 
 .urlText {
-  margin-bottom: 3;
-  align-self: end;
+    margin-bottom: 3;
+    align-self: end;
 }
 
 .urlAddressBarWrapper {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-left: 20px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 20px;
 }
 
 .urlAddressBar {
-  border-radius: 10px;
-  background-color: white;
-  width: 80%;
-  height: 55%;
-  margin-right: auto;
-  padding-left: 20px;
-  font-size: 14px;
-  display: grid;
+    border-radius: 10px;
+    background-color: white;
+    width: 80%;
+    height: 55%;
+    margin-right: auto;
+    padding-left: 20px;
+    font-size: 14px;
+    display: grid;
 }
 
 .playerPageBody {
-  display: flex;
-  height: 100%;
-  width: 100%;
+    display: flex;
+    height: 100%;
+    width: 100%;
 }
 
 .playerLeftSection {
-  flex-direction: column;
-  display: flex;
-  flex-grow: 1;
-  height: 100%;
+    flex-direction: column;
+    display: flex;
+    flex-grow: 1;
+    height: 100%;
 }
 
 .playerRightSection {
-  border-left: 1px solid #eaeaea;
-  width: 350px;
-  height: 100%;
-  display: flex;
-  box-sizing: border-box;
+    border-left: 1px solid #eaeaea;
+    width: 350px;
+    height: 100%;
+    display: flex;
+    box-sizing: border-box;
 }
 
 .loadingWrapper {
-  align-items: center;
-  justify-content: center;
-  display: flex;
-  width: 100vw;
-  height: 100vh;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    width: 100vw;
+    height: 100vh;
 }
 
 .rrwebPlayerSection {
-  width: 100%;
-  height: 100%;
-  flex: 2;
-  background-color: #f5f5f5;
+    width: 100%;
+    height: 100%;
+    flex: 2;
+    background-color: #f5f5f5;
 }
 
 .rrwebPlayerWrapper {
-  box-sizing: border-box;
-  height: 100%;
-  width: 100%;
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
 }
 
 .browserHeader {
-  width: 100%;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  border-top-right-radius: 12px;
-  border-top-left-radius: 12px;
-  background-color: black;
+    width: 100%;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    border-top-right-radius: 12px;
+    border-top-left-radius: 12px;
+    background-color: black;
 }
 
 .rrwebPlayerDiv {
-  position: relative;
+    position: relative;
 }
 
 .progressBar {
-  border-top: 7px solid black;
+    border-top: 7px solid black;
 }
 
 .toolbarSection {
-  width: 100%;
-  height: 70px;
-  background-color: white;
-  display: flex;
-  flex-direction: row;
+    width: 100%;
+    height: 70px;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
 }
 
 .playSection {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  margin-left: 25px;
-  cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-left: 25px;
+    cursor: pointer;
 }
 
 .undoSection {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  margin-left: 25px;
-  cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-left: 25px;
+    cursor: pointer;
 }
 
 .timeSection {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  margin-left: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-left: 25px;
 }
 
 .undoButtonStyle {
-  height: 25px;
-  width: 30px;
+    height: 25px;
+    width: 30px;
 }
