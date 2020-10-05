@@ -13,9 +13,9 @@ class Logger {
   constructor(debug: boolean) {
     this.debug = debug;
   }
-  log(text: string) {
+  log(...data: any[]) {
     if (this.debug) {
-      console.log(text);
+      console.log(data);
     }
   }
 }
