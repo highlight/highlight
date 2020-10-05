@@ -451,8 +451,6 @@ const EventStream = ({
 // used in filter() type methods to fetch events we want
 const usefulEvent = (e: eventWithTime): boolean => {
     // If its not an 'incrementalSnapshot', discard.
-    if ((e as eventWithTime).type === EventType.Custom)
-        console.log(e as eventWithTime)
     if ((e as eventWithTime).type !== EventType.IncrementalSnapshot)
         return false
     const snapshotEventData = e.data as incrementalData
