@@ -15,7 +15,7 @@ class Logger {
   }
   log(...data: any[]) {
     if (this.debug) {
-      console.log(data);
+      console.log.apply(console, data);
     }
   }
 }
