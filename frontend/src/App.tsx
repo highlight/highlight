@@ -7,7 +7,6 @@ import { Spinner } from './components/Spinner/Spinner'
 import { Player } from './pages/Player/PlayerPage'
 import { SetupPage } from './pages/Setup/SetupPage'
 import { SessionsPage } from './pages/Sessions/SessionsPage'
-import { SessionsPageBETA } from './pages/Sessions/SessionsPageBETA'
 import { provider } from './util/auth'
 import { ReactComponent as HighlightLogo } from './static/highlight-logo.svg'
 import { FaUserCircle } from 'react-icons/fa'
@@ -56,7 +55,7 @@ const App = () => {
                         </div>
                     </Route>
                     <Route path="/:organization_id/sessions-beta">
-                        <SessionsPageBETA />
+                        <SessionsPage />
                     </Route>
                     <Route path="/:organization_id/sessions">
                         <SessionsPage />
