@@ -9,6 +9,7 @@ require (
 	github.com/99designs/gqlgen v0.12.2
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-redis/redis/v8 v8.0.0
+	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/jinzhu/gorm v1.9.16
 	github.com/k0kubun/pp v3.0.1+incompatible

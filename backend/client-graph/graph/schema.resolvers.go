@@ -59,38 +59,25 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	session := &model.Session{}
-	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
-	if err := res.Error; err != nil || res.RecordNotFound() {
-		return nil, e.Wrap(err, "error receiving session")
+	err := r.AppendProperties(sessionID, fields)
+	if err != nil {
+		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
+	return &sessionID, nil
+}
 
-	if session.Identifier != userIdentifier {
-		res := r.DB.Model(session).Updates(&model.Session{Identifier: userIdentifier})
-		if err := res.Error; err != nil || res.RecordNotFound() {
-			return nil, e.Wrap(err, "error adding user identifier to session")
-		}
+func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
+	obj, ok := propertiesObject.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error converting userObject interface type")
 	}
-
-	modelFields := []model.Field{}
-	for fk, fv := range fields {
-		// Get the field with org_id, name, value
-		field := &model.Field{}
-		res = r.DB.Where(&model.Field{OrganizationID: session.OrganizationID, Name: fk, Value: fv}).First(&field)
-		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || res.RecordNotFound() {
-			f := &model.Field{OrganizationID: session.OrganizationID, Name: fk, Value: fv}
-			if err := r.DB.Create(f).Error; err != nil {
-				return nil, e.Wrap(err, "error creating field")
-			}
-			field = f
-		}
-		modelFields = append(modelFields, *field)
+	fields := map[string]string{}
+	for k, v := range obj {
+		fields[k] = fmt.Sprintf("%v", v)
 	}
-
-	re := r.DB.Model(&session).Association("Fields").Append(modelFields)
-	if err := re.Error; err != nil {
-		return nil, e.Wrap(err, "error updating fields")
+	err := r.AppendProperties(sessionID, fields)
+	if err != nil {
+		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
 	return &sessionID, nil
 }

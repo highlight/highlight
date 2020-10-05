@@ -43,6 +43,7 @@ type DirectiveRoot struct {
 type ComplexityRoot struct {
 	Mutation struct {
 		AddEvents         func(childComplexity int, sessionID int, events string) int
+		AddProperties     func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		IdentifySession   func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
 		InitializeSession func(childComplexity int, organizationID int, details string) int
 	}
@@ -61,6 +62,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error)
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
+	AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	AddEvents(ctx context.Context, sessionID int, events string) (*int, error)
 }
 
@@ -90,6 +92,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddEvents(childComplexity, args["session_id"].(int), args["events"].(string)), true
+
+	case "Mutation.addProperties":
+		if e.complexity.Mutation.AddProperties == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addProperties_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddProperties(childComplexity, args["session_id"].(int), args["properties_object"].(interface{})), true
 
 	case "Mutation.identifySession":
 		if e.complexity.Mutation.IdentifySession == nil {
@@ -221,6 +235,7 @@ type Session {
 type Mutation {
   initializeSession(organization_id: ID!, details: String!): Session
   identifySession(session_id: ID!, user_identifier: String!, user_object: Any): ID
+  addProperties(session_id: ID!, properties_object: Any): ID
   addEvents(session_id: ID!, events: String!): ID
 }
 `, BuiltIn: false},
@@ -252,6 +267,30 @@ func (ec *executionContext) field_Mutation_addEvents_args(ctx context.Context, r
 		}
 	}
 	args["events"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addProperties_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
+	var arg1 interface{}
+	if tmp, ok := rawArgs["properties_object"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("properties_object"))
+		arg1, err = ec.unmarshalOAny2interface(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["properties_object"] = arg1
 	return args, nil
 }
 
@@ -428,6 +467,44 @@ func (ec *executionContext) _Mutation_identifySession(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().IdentifySession(rctx, args["session_id"].(int), args["user_identifier"].(string), args["user_object"].(interface{}))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addProperties(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addProperties_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddProperties(rctx, args["session_id"].(int), args["properties_object"].(interface{}))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1763,6 +1840,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_initializeSession(ctx, field)
 		case "identifySession":
 			out.Values[i] = ec._Mutation_identifySession(ctx, field)
+		case "addProperties":
+			out.Values[i] = ec._Mutation_addProperties(ctx, field)
 		case "addEvents":
 			out.Values[i] = ec._Mutation_addEvents(ctx, field)
 		default:

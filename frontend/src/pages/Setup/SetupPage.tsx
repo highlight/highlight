@@ -37,6 +37,9 @@ export const SetupPage = () => {
                         <Skeleton active />
                     ) : (
                         <CodeBlock
+                            onCopy={() =>
+                                window.analytics.track('Copied Script', {})
+                            }
                             text={`<script>
 window['_h_debug'] = false;
 window['_h_script'] = 'https://static.highlight.run/index.js';
@@ -55,6 +58,9 @@ ${codeStr}
                     method in your javascript app. Here's an example:
                 </div>
                 <CodeBlock
+                    onCopy={() =>
+                        window.analytics.track('Copied Code Snippet', {})
+                    }
                     text={`window.H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)`}
                 />
             </div>

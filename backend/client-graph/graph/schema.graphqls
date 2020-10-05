@@ -11,6 +11,11 @@ type Session {
 
 type Mutation {
   initializeSession(organization_id: ID!, details: String!): Session
-  identifySession(session_id: ID!, user_identifier: String!, user_object: Any): ID
+  identifySession(
+    session_id: ID!
+    user_identifier: String!
+    user_object: Any
+  ): ID
+  addProperties(session_id: ID!, properties_object: Any): ID
   addEvents(session_id: ID!, events: String!): ID
 }

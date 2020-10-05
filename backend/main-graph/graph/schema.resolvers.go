@@ -11,9 +11,10 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/slack-go/slack"
+
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -57,6 +58,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
+	// list of maps, where each map represents a field query.
+	sessionIDsToJoin := []map[int]bool{}
 	sessions := []*model.Session{}
 	query := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc")
 	ps, err := model.DecodeAndValidateParams(params)
@@ -64,7 +67,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		return nil, e.Wrap(err, "error decoding params")
 	}
 	for _, p := range ps {
-		switch key := p.Key; key {
+		switch key := p.Action; key {
 		case "more than":
 			d, err := toDuration(p.Value.Value)
 			if err != nil {
@@ -83,15 +86,78 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 				return nil, e.Wrap(err, "error convering duration to int")
 			}
 			query = query.Where("created_at > ?", time.Now().Add(-d))
-		case "identifier":
-			query = query.Where("identifier = ?", p.Value.Value)
+		default:
+			// TODO: this is a hacky solution because I don't know SQL well.
+			// For every text filter, we create a new list of sessions, and they
+			if p.Type != "text" {
+				continue
+			}
+			sessionIdMap := make(map[int]bool)
+			field := &model.Field{}
+			res := r.DB.Where(&model.Field{OrganizationID: organizationID, Value: p.Value.Value, Name: p.Action}).First(field)
+			if err := res.Error; err != nil || res.RecordNotFound() {
+				return nil, e.Wrap(err, "error querying field")
+			}
+			rows, err := r.DB.Table("session_fields").Where("field_id = ?", field.ID).Rows()
+			if err != nil {
+				return nil, fmt.Errorf("error querying field_id on session_fields")
+			}
+			for rows.Next() {
+				var sessionID int
+				var fieldID int
+				rows.Scan(&sessionID, &fieldID)
+				sessionIdMap[sessionID] = true
+			}
+			rows.Close()
+			sessionIDsToJoin = append(sessionIDsToJoin, sessionIdMap)
 		}
 	}
 	res := query.Limit(count).Find(&sessions)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "no sessions found")
 	}
+	// If we have queries to parse with fields, we do an intersection of all the fields
+	// and then a join with the results from the queries.
+	if numFilters := len(sessionIDsToJoin); numFilters > 0 {
+		countMap := make(map[int]int)
+		wantedSessionIds := make(map[int]bool)
+		for i := range sessionIDsToJoin {
+			resultMap := sessionIDsToJoin[i]
+			for k := range resultMap {
+				countMap[k] += 1
+			}
+		}
+		for k, v := range countMap {
+			if v == numFilters {
+				wantedSessionIds[k] = true
+			}
+		}
+		filteredSessions := []*model.Session{}
+		for i := range sessions {
+			if val, _ := wantedSessionIds[sessions[i].ID]; val {
+				filteredSessions = append(filteredSessions, sessions[i])
+			}
+		}
+		return filteredSessions, nil
+	}
 	return sessions, nil
+}
+
+func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*string, error) {
+	rows, err := r.DB.Model(&model.Field{}).
+		Where(&model.Field{OrganizationID: organizationID}).
+		Select("distinct(name)").Rows()
+	if err != nil {
+		return nil, e.Wrap(err, "error querying field suggestion")
+	}
+	defer rows.Close()
+	fields := []*string{}
+	for rows.Next() {
+		var field string
+		rows.Scan(&field)
+		fields = append(fields, &field)
+	}
+	return fields, nil
 }
 
 func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error) {

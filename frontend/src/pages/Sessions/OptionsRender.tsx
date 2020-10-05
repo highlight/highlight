@@ -4,16 +4,18 @@ import { useParams } from 'react-router-dom'
 // @ts-ignore
 import written from 'written-number'
 import fuzzy from 'fuzzy'
-import { useLazyQuery, gql } from '@apollo/client'
+import { useQuery, useLazyQuery, gql } from '@apollo/client'
 
 import styles from './SessionsPage.module.css'
 
-export const IdentifierOptions = ({
+export const FieldOptions = ({
     input,
+    field,
     onSelect,
     defaultText,
 }: {
     input: string
+    field: string
     onSelect: (option: Value) => void
     defaultText: string
 }) => {
@@ -43,9 +45,9 @@ export const IdentifierOptions = ({
 
     useEffect(() => {
         fieldSuggestion({
-            variables: { field: 'identifier', query: input, organization_id },
+            variables: { field, query: input, organization_id },
         })
-    }, [input, fieldSuggestion, organization_id])
+    }, [input, fieldSuggestion, organization_id, field])
 
     useEffect(() => {
         if (data?.field_suggestion.length) {
@@ -140,39 +142,82 @@ export const DateOptions = ({
 
 export const OptionsFilter = ({
     input,
-    obj,
+    params,
     onSelect,
 }: {
     input: string
-    obj: { action: string; description: string }[]
-    onSelect: (action: string) => void
+    params: SearchParam[]
+    onSelect: (action: SearchParam) => void
 }) => {
-    const [results, setResults] = useState<
-        fuzzy.FilterResult<{ action: string; description: string }>[]
+    const { organization_id } = useParams()
+    const [results, setResults] = useState<fuzzy.FilterResult<SearchParam>[]>(
+        []
+    )
+    const [customResults, setCustomResults] = useState<
+        fuzzy.FilterResult<SearchParam>[]
     >([])
-    const index = useKeySelector(results.length, (i: number) => {
-        onSelect(results[i]?.original.action)
-    })
+    const index = useKeySelector(
+        results.length + customResults.length,
+        (i: number) => {
+            onSelect(
+                i < results.length
+                    ? results[i]?.original
+                    : customResults[i - results.length].original
+            )
+        }
+    )
+    const { data } = useQuery<{ fields: Array<string> }>(
+        gql`
+            query GetFields($organization_id: ID!) {
+                fields(organization_id: $organization_id)
+            }
+        `,
+        { variables: { organization_id: organization_id } }
+    )
+
+    const dataFields = data?.fields
+
+    useEffect(() => {
+        const customParams = dataFields?.map(
+            (f: string): SearchParam => {
+                return {
+                    action: f,
+                    description: 'text (e.g. jay, monica, jay@jay.com)',
+                    type: 'text',
+                }
+            }
+        )
+        if (customParams) {
+            setCustomResults(
+                fuzzy.filter(input, customParams, {
+                    pre: `<strong style="color: #5629c6;">`,
+                    post: '</strong>',
+                    extract: (f) => f.action,
+                })
+            )
+        }
+    }, [input, dataFields, data])
 
     useEffect(() => {
         setResults(
-            fuzzy.filter(input, obj, {
+            fuzzy.filter(input, params, {
                 pre: `<strong style="color: #5629c6;">`,
                 post: '</strong>',
                 extract: (f) => f.action,
             })
         )
-    }, [input, obj])
+    }, [input, params])
 
     return (
         <div className={styles.optionsSection}>
-            {results?.length ? (
-                results.map((f, i) => (
+            <div className={styles.dropdownSection}>
+                <div className={styles.dropdownTitle}>DURATION</div>
+                {results.map((f, i) => (
                     <div
                         key={i}
                         className={styles.optionsRow}
                         onClick={() => {
-                            onSelect(f?.original.action)
+                            onSelect(f?.original)
                         }}
                         style={{
                             backgroundColor:
@@ -188,7 +233,37 @@ export const OptionsFilter = ({
                             {f.original.description}
                         </span>
                     </div>
-                ))
+                ))}
+            </div>
+            {customResults?.length ? (
+                <div className={styles.dropdownSection}>
+                    <div className={styles.dropdownDivider} />
+                    <div className={styles.dropdownTitle}>PROPERTIES</div>
+                    {customResults.map((f, i) => (
+                        <div
+                            key={i}
+                            className={styles.optionsRow}
+                            onClick={() => {
+                                onSelect(f?.original)
+                            }}
+                            style={{
+                                backgroundColor:
+                                    index - results.length === i
+                                        ? '#F2EEFB'
+                                        : 'transparent',
+                            }}
+                        >
+                            <span
+                                className={styles.optionsKey}
+                                dangerouslySetInnerHTML={{ __html: f.string }}
+                            />
+                            : &nbsp;
+                            <span className={styles.optionsValue}>
+                                {f.original.description}
+                            </span>
+                        </div>
+                    ))}
+                </div>
             ) : (
                 <></>
             )}
@@ -266,7 +341,22 @@ const useKeySelector = (l: number, onClick: (arg: any) => void): number => {
     return indexRef.current
 }
 
+export type SearchParam = {
+    // name of the action or key (e.g. "more-than", "less-than", "email")
+    action: string
+    // example text for the UI.
+    description: string
+    // type of data (time, text, etc.)
+    type: string
+    // The current value that the user inputs for this option.
+    current?: string
+    // The actual value to send over the wire.
+    value?: Value
+}
+
 export type Value = {
+    // The text representation of a value.
     text: string
+    // The actual representation (for a date, its a unix seconds string).
     value: string
 }

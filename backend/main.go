@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/handlers"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/rs/cors"
@@ -66,6 +67,7 @@ func main() {
 				Redis: rd.Client,
 			},
 		}))))
+
 	handler := cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
@@ -75,6 +77,7 @@ func main() {
 	w := &worker.Worker{R: main}
 	w.Start()
 
+	loggedRouter := handlers.LoggingHandler(os.Stdout, handler)
 	fmt.Println("listening...")
-	log.Fatal(http.ListenAndServe(":"+port, handler))
+	log.Fatal(http.ListenAndServe(":"+port, loggedRouter))
 }

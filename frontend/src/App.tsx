@@ -89,7 +89,11 @@ export const AuthAdminRouter = () => {
     useEffect(() => {
         if (admin) {
             const { email, id, name } = admin
-            ;(window as any).H.identify(email, { id, name })
+            window.H.identify(email, { id, name })
+            window.analytics.identify(id, {
+                name,
+                email,
+            })
         }
     }, [admin])
     if (error || loading) {
@@ -173,18 +177,31 @@ const Header = () => {
             </div>
             <div className={styles.rightHeader}>
                 <Link
+                    onClick={() => {
+                        window.analytics.track('Sessions Click', {})
+                    }}
                     to={`/${organization_id}/sessions`}
                     className={styles.headerLink}
                 >
                     Sessions
                 </Link>
                 <Link
+                    onClick={() => {
+                        window.analytics.track('Setup Click', {})
+                    }}
                     to={`/${organization_id}/setup`}
                     className={styles.headerLink}
                 >
                     Setup
                 </Link>
-                <Dropdown overlay={menu} placement={'bottomRight'} arrow>
+                <Dropdown
+                    overlay={menu}
+                    placement={'bottomRight'}
+                    arrow
+                    onVisibleChange={() => {
+                        window.analytics.track('User Icon Hover', {})
+                    }}
+                >
                     <div className={styles.accountIconWrapper}>
                         <FaUserCircle className={styles.accountIcon} />
                     </div>
