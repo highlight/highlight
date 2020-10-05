@@ -6,11 +6,13 @@ import {
     MouseInteractions,
     IncrementalSource,
     EventType,
-    mouseInteractionData,
-    incrementalData,
 } from 'rrweb';
 
-import { eventWithTime } from 'rrweb/typings/types';
+import {
+    eventWithTime,
+    mouseInteractionData,
+    incrementalData,
+} from 'rrweb/typings/types';
 
 import { elementNode } from 'rrweb-snapshot';
 import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
@@ -152,7 +154,7 @@ export const Player = () => {
                     </div>
                 </div>
                 <Slider
-                    onChange={(e: any) => setTime(e)}
+                    onChange={(e: number) => setTime(e)}
                     value={time}
                     max={totalTime}
                     disabled={false}
