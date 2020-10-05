@@ -3,7 +3,7 @@ import {
     idNodeMap,
     INode,
     MaskInputOptions,
-} from 'rrweb-snapshot'
+} from 'rrweb-snapshot';
 
 export enum EventType {
     DomContentLoaded,
@@ -15,49 +15,49 @@ export enum EventType {
 }
 
 export type domContentLoadedEvent = {
-    type: EventType.DomContentLoaded
-    data: {}
-}
+    type: EventType.DomContentLoaded;
+    data: {};
+};
 
 export type loadedEvent = {
-    type: EventType.Load
-    data: {}
-}
+    type: EventType.Load;
+    data: {};
+};
 
 export type fullSnapshotEvent = {
-    type: EventType.FullSnapshot
+    type: EventType.FullSnapshot;
     data: {
-        node: serializedNodeWithId
+        node: serializedNodeWithId;
         initialOffset: {
-            top: number
-            left: number
-        }
-    }
-}
+            top: number;
+            left: number;
+        };
+    };
+};
 
 export type incrementalSnapshotEvent = {
-    type: EventType.IncrementalSnapshot
-    data: incrementalData
-}
+    type: EventType.IncrementalSnapshot;
+    data: incrementalData;
+};
 
 export type metaEvent = {
-    type: EventType.Meta
+    type: EventType.Meta;
     data: {
-        href: string
-        width: number
-        height: number
-    }
-}
+        href: string;
+        width: number;
+        height: number;
+    };
+};
 
 export type customEvent<T = unknown> = {
-    type: EventType.Custom
+    type: EventType.Custom;
     data: {
-        tag: string
-        payload: T
-    }
-}
+        tag: string;
+        payload: T;
+    };
+};
 
-export type styleSheetEvent = {}
+export type styleSheetEvent = {};
 
 export enum IncrementalSource {
     Mutation,
@@ -74,46 +74,46 @@ export enum IncrementalSource {
 }
 
 export type mutationData = {
-    source: IncrementalSource.Mutation
-} & mutationCallbackParam
+    source: IncrementalSource.Mutation;
+} & mutationCallbackParam;
 
 export type mousemoveData = {
-    source: IncrementalSource.MouseMove | IncrementalSource.TouchMove
-    positions: mousePosition[]
-}
+    source: IncrementalSource.MouseMove | IncrementalSource.TouchMove;
+    positions: mousePosition[];
+};
 
 export type mouseInteractionData = {
-    source: IncrementalSource.MouseInteraction
-} & mouseInteractionParam
+    source: IncrementalSource.MouseInteraction;
+} & mouseInteractionParam;
 
 export type scrollData = {
-    source: IncrementalSource.Scroll
-} & scrollPosition
+    source: IncrementalSource.Scroll;
+} & scrollPosition;
 
 export type viewportResizeData = {
-    source: IncrementalSource.ViewportResize
-} & viewportResizeDimention
+    source: IncrementalSource.ViewportResize;
+} & viewportResizeDimention;
 
 export type inputData = {
-    source: IncrementalSource.Input
-    id: number
-} & inputValue
+    source: IncrementalSource.Input;
+    id: number;
+} & inputValue;
 
 export type mediaInteractionData = {
-    source: IncrementalSource.MediaInteraction
-} & mediaInteractionParam
+    source: IncrementalSource.MediaInteraction;
+} & mediaInteractionParam;
 
 export type styleSheetRuleData = {
-    source: IncrementalSource.StyleSheetRule
-} & styleSheetRuleParam
+    source: IncrementalSource.StyleSheetRule;
+} & styleSheetRuleParam;
 
 export type canvasMutationData = {
-    source: IncrementalSource.CanvasMutation
-} & canvasMutationParam
+    source: IncrementalSource.CanvasMutation;
+} & canvasMutationParam;
 
 export type fontData = {
-    source: IncrementalSource.Font
-} & any
+    source: IncrementalSource.Font;
+} & any;
 
 export type incrementalData =
     | mutationData
@@ -125,7 +125,7 @@ export type incrementalData =
     | mediaInteractionData
     | styleSheetRuleData
     | canvasMutationData
-    | fontData
+    | fontData;
 
 export type event =
     | domContentLoadedEvent
@@ -133,135 +133,135 @@ export type event =
     | fullSnapshotEvent
     | incrementalSnapshotEvent
     | metaEvent
-    | customEvent
+    | customEvent;
 
 export type eventWithTime = event & {
-    timestamp: number
-    delay?: number
-}
+    timestamp: number;
+    delay?: number;
+};
 
-export type blockClass = string | RegExp
+export type blockClass = string | RegExp;
 
 export type SamplingStrategy = Partial<{
     /**
      * false means not to record mouse/touch move events
      * number is the throttle threshold of recording mouse/touch move
      */
-    mousemove: boolean | number
+    mousemove: boolean | number;
     /**
      * false means not to record mouse interaction events
      * can also specify record some kinds of mouse interactions
      */
-    mouseInteraction: boolean | Record<string, boolean | undefined>
+    mouseInteraction: boolean | Record<string, boolean | undefined>;
     /**
      * number is the throttle threshold of recording scroll
      */
-    scroll: number
+    scroll: number;
     /**
      * 'all' will record all the input events
      * 'last' will only record the last input value while input a sequence of chars
      */
-    input: 'all' | 'last'
-}>
+    input: 'all' | 'last';
+}>;
 
 export type observerParam = {
-    mutationCb: mutationCallBack
-    mousemoveCb: mousemoveCallBack
-    mouseInteractionCb: mouseInteractionCallBack
-    scrollCb: scrollCallback
-    viewportResizeCb: viewportResizeCallback
-    inputCb: inputCallback
-    mediaInteractionCb: mediaInteractionCallback
-    blockClass: blockClass
-    ignoreClass: string
-    maskInputOptions: MaskInputOptions
-    inlineStylesheet: boolean
-    styleSheetRuleCb: styleSheetRuleCallback
-    canvasMutationCb: canvasMutationCallback
-    fontCb: fontCallback
-    sampling: SamplingStrategy
-    recordCanvas: boolean
-    collectFonts: boolean
-}
+    mutationCb: mutationCallBack;
+    mousemoveCb: mousemoveCallBack;
+    mouseInteractionCb: mouseInteractionCallBack;
+    scrollCb: scrollCallback;
+    viewportResizeCb: viewportResizeCallback;
+    inputCb: inputCallback;
+    mediaInteractionCb: mediaInteractionCallback;
+    blockClass: blockClass;
+    ignoreClass: string;
+    maskInputOptions: MaskInputOptions;
+    inlineStylesheet: boolean;
+    styleSheetRuleCb: styleSheetRuleCallback;
+    canvasMutationCb: canvasMutationCallback;
+    fontCb: fontCallback;
+    sampling: SamplingStrategy;
+    recordCanvas: boolean;
+    collectFonts: boolean;
+};
 
 export type hooksParam = {
-    mutation?: mutationCallBack
-    mousemove?: mousemoveCallBack
-    mouseInteraction?: mouseInteractionCallBack
-    scroll?: scrollCallback
-    viewportResize?: viewportResizeCallback
-    input?: inputCallback
-    mediaInteaction?: mediaInteractionCallback
-    styleSheetRule?: styleSheetRuleCallback
-    canvasMutation?: canvasMutationCallback
-    font?: fontCallback
-}
+    mutation?: mutationCallBack;
+    mousemove?: mousemoveCallBack;
+    mouseInteraction?: mouseInteractionCallBack;
+    scroll?: scrollCallback;
+    viewportResize?: viewportResizeCallback;
+    input?: inputCallback;
+    mediaInteaction?: mediaInteractionCallback;
+    styleSheetRule?: styleSheetRuleCallback;
+    canvasMutation?: canvasMutationCallback;
+    font?: fontCallback;
+};
 
 // https://dom.spec.whatwg.org/#interface-mutationrecord
 export type mutationRecord = {
-    type: string
-    target: Node
-    oldValue: string | null
-    addedNodes: NodeList
-    removedNodes: NodeList
-    attributeName: string | null
-}
+    type: string;
+    target: Node;
+    oldValue: string | null;
+    addedNodes: NodeList;
+    removedNodes: NodeList;
+    attributeName: string | null;
+};
 
 export type textCursor = {
-    node: Node
-    value: string | null
-}
+    node: Node;
+    value: string | null;
+};
 export type textMutation = {
-    id: number
-    value: string | null
-}
+    id: number;
+    value: string | null;
+};
 
 export type attributeCursor = {
-    node: Node
+    node: Node;
     attributes: {
-        [key: string]: string | null
-    }
-}
+        [key: string]: string | null;
+    };
+};
 export type attributeMutation = {
-    id: number
+    id: number;
     attributes: {
-        [key: string]: string | null
-    }
-}
+        [key: string]: string | null;
+    };
+};
 
 export type removedNodeMutation = {
-    parentId: number
-    id: number
-}
+    parentId: number;
+    id: number;
+};
 
 export type addedNodeMutation = {
-    parentId: number
+    parentId: number;
     // Newly recorded mutations will not have previousId any more, just for compatibility
-    previousId?: number | null
-    nextId: number | null
-    node: serializedNodeWithId
-}
+    previousId?: number | null;
+    nextId: number | null;
+    node: serializedNodeWithId;
+};
 
 type mutationCallbackParam = {
-    texts: textMutation[]
-    attributes: attributeMutation[]
-    removes: removedNodeMutation[]
-    adds: addedNodeMutation[]
-}
+    texts: textMutation[];
+    attributes: attributeMutation[];
+    removes: removedNodeMutation[];
+    adds: addedNodeMutation[];
+};
 
-export type mutationCallBack = (m: mutationCallbackParam) => void
+export type mutationCallBack = (m: mutationCallbackParam) => void;
 
 export type mousemoveCallBack = (
     p: mousePosition[],
     source: IncrementalSource.MouseMove | IncrementalSource.TouchMove
-) => void
+) => void;
 
 export type mousePosition = {
-    x: number
-    y: number
-    id: number
-    timeOffset: number
-}
+    x: number;
+    y: number;
+    id: number;
+    timeOffset: number;
+};
 
 export enum MouseInteractions {
     MouseUp,
@@ -277,63 +277,63 @@ export enum MouseInteractions {
 }
 
 type mouseInteractionParam = {
-    type: MouseInteractions
-    id: number
-    x: number
-    y: number
-}
+    type: MouseInteractions;
+    id: number;
+    x: number;
+    y: number;
+};
 
-export type mouseInteractionCallBack = (d: mouseInteractionParam) => void
+export type mouseInteractionCallBack = (d: mouseInteractionParam) => void;
 
 export type scrollPosition = {
-    id: number
-    x: number
-    y: number
-}
+    id: number;
+    x: number;
+    y: number;
+};
 
-export type scrollCallback = (p: scrollPosition) => void
+export type scrollCallback = (p: scrollPosition) => void;
 
 export type styleSheetAddRule = {
-    rule: string
-    index?: number
-}
+    rule: string;
+    index?: number;
+};
 
 export type styleSheetDeleteRule = {
-    index: number
-}
+    index: number;
+};
 
 export type styleSheetRuleParam = {
-    id: number
-    removes?: styleSheetDeleteRule[]
-    adds?: styleSheetAddRule[]
-}
+    id: number;
+    removes?: styleSheetDeleteRule[];
+    adds?: styleSheetAddRule[];
+};
 
-export type styleSheetRuleCallback = (s: styleSheetRuleParam) => void
+export type styleSheetRuleCallback = (s: styleSheetRuleParam) => void;
 
-export type canvasMutationCallback = (p: canvasMutationParam) => void
+export type canvasMutationCallback = (p: canvasMutationParam) => void;
 
 export type canvasMutationParam = {
-    id: number
-    property: string
-    args: Array<unknown>
-    setter?: true
-}
+    id: number;
+    property: string;
+    args: Array<unknown>;
+    setter?: true;
+};
 
-export type fontCallback = (p: any) => void
+export type fontCallback = (p: any) => void;
 
 export type viewportResizeDimention = {
-    width: number
-    height: number
-}
+    width: number;
+    height: number;
+};
 
-export type viewportResizeCallback = (d: viewportResizeDimention) => void
+export type viewportResizeCallback = (d: viewportResizeDimention) => void;
 
 export type inputValue = {
-    text: string
-    isChecked: boolean
-}
+    text: string;
+    isChecked: boolean;
+};
 
-export type inputCallback = (v: inputValue & { id: number }) => void
+export type inputCallback = (v: inputValue & { id: number }) => void;
 
 export enum MediaInteractions {
     Play,
@@ -341,58 +341,58 @@ export enum MediaInteractions {
 }
 
 export type mediaInteractionParam = {
-    type: MediaInteractions
-    id: number
-}
+    type: MediaInteractions;
+    id: number;
+};
 
-export type mediaInteractionCallback = (p: mediaInteractionParam) => void
+export type mediaInteractionCallback = (p: mediaInteractionParam) => void;
 
 export type Mirror = {
-    map: idNodeMap
-    getId: (n: INode) => number
-    getNode: (id: number) => INode | null
-    removeNodeFromMap: (n: INode) => void
-    has: (id: number) => boolean
-}
+    map: idNodeMap;
+    getId: (n: INode) => number;
+    getNode: (id: number) => INode | null;
+    removeNodeFromMap: (n: INode) => void;
+    has: (id: number) => boolean;
+};
 
 export type throttleOptions = {
-    leading?: boolean
-    trailing?: boolean
-}
+    leading?: boolean;
+    trailing?: boolean;
+};
 
-export type listenerHandler = () => void
-export type hookResetter = () => void
+export type listenerHandler = () => void;
+export type hookResetter = () => void;
 
 export type playerMetaData = {
-    startTime: number
-    endTime: number
-    totalTime: number
-}
+    startTime: number;
+    endTime: number;
+    totalTime: number;
+};
 
 export type missingNode = {
-    node: Node
-    mutation: addedNodeMutation
-}
+    node: Node;
+    mutation: addedNodeMutation;
+};
 export type missingNodeMap = {
-    [id: number]: missingNode
-}
+    [id: number]: missingNode;
+};
 
 export type actionWithDelay = {
-    doAction: () => void
-    delay: number
-}
+    doAction: () => void;
+    delay: number;
+};
 
-export type Handler = (event?: unknown) => void
+export type Handler = (event?: unknown) => void;
 
 export type Emitter = {
-    on(type: string, handler: Handler): void
-    emit(type: string, event?: unknown): void
-    off(type: string, handler: Handler): void
-}
+    on(type: string, handler: Handler): void;
+    emit(type: string, event?: unknown): void;
+    off(type: string, handler: Handler): void;
+};
 
 export type Arguments<T> = T extends (...payload: infer U) => unknown
     ? U
-    : unknown
+    : unknown;
 
 export enum ReplayerEvents {
     Start = 'start',

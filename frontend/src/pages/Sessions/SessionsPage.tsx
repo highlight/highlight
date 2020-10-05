@@ -1,39 +1,39 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef, useState, useEffect } from 'react';
 
-import { useParams, Link } from 'react-router-dom'
-import { useLazyQuery, gql } from '@apollo/client'
-import { MillisToMinutesAndSecondsVerbose } from '../../util/time'
-import { ReactComponent as PlayButton } from '../../static/play-button.svg'
-import { FaSearch, FaTimes } from 'react-icons/fa'
-import { useDebouncedCallback } from 'use-debounce'
+import { useParams, Link } from 'react-router-dom';
+import { useLazyQuery, gql } from '@apollo/client';
+import { MillisToMinutesAndSecondsVerbose } from '../../util/time';
+import { ReactComponent as PlayButton } from '../../static/play-button.svg';
+import { FaSearch, FaTimes } from 'react-icons/fa';
+import { useDebouncedCallback } from 'use-debounce';
 import {
     Value,
     SearchParam,
     OptionsFilter,
     DateOptions,
     FieldOptions,
-} from './OptionsRender'
-import { Spinner } from '../../components/Spinner/Spinner'
+} from './OptionsRender';
+import { Spinner } from '../../components/Spinner/Spinner';
 
-import AutosizeInput from 'react-input-autosize'
+import AutosizeInput from 'react-input-autosize';
 
-import styles from './SessionsPage.module.css'
+import styles from './SessionsPage.module.css';
 
 export const SessionsPage = () => {
     const countDebounced = useDebouncedCallback(() => {
-        setCount((count) => count + 10)
-    }, 500)
-    const mainInput = useRef<HTMLInputElement>(null)
-    const [params, setParams] = useState<SearchParam[]>([])
-    const paramsRef = useRef(params)
-    const resultsRef = useRef<HTMLDivElement>(null)
-    const [inputActive, setInputActive] = useState(true)
-    const [count, setCount] = useState(10)
-    const [activeParam, setActiveParam] = useState<number>(-1)
-    const [mainInputText, setMainInputText] = useState('')
-    const { organization_id } = useParams()
-    const [sessionData, setSessionData] = useState<any[]>([])
-    const [sessionsLoading, setSessionsLoading] = useState<boolean>(true)
+        setCount((count) => count + 10);
+    }, 500);
+    const mainInput = useRef<HTMLInputElement>(null);
+    const [params, setParams] = useState<SearchParam[]>([]);
+    const paramsRef = useRef(params);
+    const resultsRef = useRef<HTMLDivElement>(null);
+    const [inputActive, setInputActive] = useState(true);
+    const [count, setCount] = useState(10);
+    const [activeParam, setActiveParam] = useState<number>(-1);
+    const [mainInputText, setMainInputText] = useState('');
+    const { organization_id } = useParams();
+    const [sessionData, setSessionData] = useState<any[]>([]);
+    const [sessionsLoading, setSessionsLoading] = useState<boolean>(true);
 
     const [getSessions, { loading, error, data }] = useLazyQuery<
         { sessions: any[] },
@@ -62,38 +62,38 @@ export const SessionsPage = () => {
         {
             pollInterval: 5000,
         }
-    )
+    );
 
     useEffect(() => {
-        const same = data?.sessions.length === sessionData.length
+        const same = data?.sessions.length === sessionData.length;
         if (same) {
-            setSessionsLoading(false)
+            setSessionsLoading(false);
         }
         if (!loading) {
-            setSessionData(data?.sessions ?? [])
+            setSessionData(data?.sessions ?? []);
         }
-    }, [sessionData, data, loading])
+    }, [sessionData, data, loading]);
 
     useEffect(() => {
         document.addEventListener('scroll', (e: any) => {
-            var refHeight = resultsRef?.current?.getBoundingClientRect().bottom
-            const innerHeight = window?.innerHeight
+            var refHeight = resultsRef?.current?.getBoundingClientRect().bottom;
+            const innerHeight = window?.innerHeight;
             if (!refHeight) {
-                refHeight = 0
+                refHeight = 0;
             }
-            const diff = Math.abs(refHeight - innerHeight)
+            const diff = Math.abs(refHeight - innerHeight);
             if (diff < 300) {
-                setSessionsLoading(true)
-                countDebounced.callback()
+                setSessionsLoading(true);
+                countDebounced.callback();
             }
-        })
+        });
         return () => {
-            document.removeEventListener('scroll', (e) => console.log(e))
-        }
-    }, [countDebounced])
+            document.removeEventListener('scroll', (e) => console.log(e));
+        };
+    }, [countDebounced]);
 
     useEffect(() => {
-        paramsRef.current = params
+        paramsRef.current = params;
         if (
             paramsRef.current.filter((p) => p.value?.value).length ===
             params.length
@@ -104,12 +104,12 @@ export const SessionsPage = () => {
                     params: paramsRef.current,
                     count: count,
                 },
-            })
+            });
         }
-    }, [count, params, getSessions, organization_id])
+    }, [count, params, getSessions, organization_id]);
 
     if (error) {
-        return <p>{error.toString()}</p>
+        return <p>{error.toString()}</p>;
     }
     return (
         <div className={styles.setupWrapper}>
@@ -130,20 +130,20 @@ export const SessionsPage = () => {
                                     name="option-input"
                                     value={p.value?.text || p.current}
                                     onChange={function (event) {
-                                        var pcopy = [...params]
-                                        pcopy[i].current = event.target.value
-                                        setActiveParam(i)
-                                        setParams(pcopy)
+                                        var pcopy = [...params];
+                                        pcopy[i].current = event.target.value;
+                                        setActiveParam(i);
+                                        setParams(pcopy);
                                     }}
                                 />
                                 {
                                     <FaTimes
                                         className={styles.timesIcon}
                                         onClick={() => {
-                                            var pcopy = [...params]
-                                            pcopy.splice(i, 1)
-                                            setParams(pcopy)
-                                            setActiveParam(-1)
+                                            var pcopy = [...params];
+                                            pcopy.splice(i, 1);
+                                            setParams(pcopy);
+                                            setActiveParam(-1);
                                         }}
                                     />
                                 }
@@ -193,18 +193,18 @@ export const SessionsPage = () => {
                                     },
                                 ]}
                                 onSelect={(option: SearchParam) => {
-                                    if (!option.action) return
+                                    if (!option.action) return;
                                     // if there's already bubble with the same action, ignore.
                                     if (
                                         paramsRef.current.filter(
                                             (p) => p.action === option.action
                                         ).length
                                     )
-                                        return
-                                    var pcopy = [...paramsRef.current, option]
-                                    setParams(pcopy)
-                                    setActiveParam(pcopy.length - 1)
-                                    setMainInputText('')
+                                        return;
+                                    var pcopy = [...paramsRef.current, option];
+                                    setParams(pcopy);
+                                    setActiveParam(pcopy.length - 1);
+                                    setMainInputText('');
                                 }}
                             />
                         ) : params[activeParam]?.type === 'text' ? (
@@ -215,13 +215,12 @@ export const SessionsPage = () => {
                                 input={params[activeParam].current ?? ''}
                                 field={params[activeParam].action}
                                 onSelect={(option: Value) => {
-                                    console.log(option)
-                                    if (!option) return
-                                    var pcopy = [...paramsRef.current]
-                                    pcopy[activeParam].value = option
-                                    mainInput.current?.focus()
-                                    setActiveParam(-1)
-                                    setParams(pcopy)
+                                    if (!option) return;
+                                    var pcopy = [...paramsRef.current];
+                                    pcopy[activeParam].value = option;
+                                    mainInput.current?.focus();
+                                    setActiveParam(-1);
+                                    setParams(pcopy);
                                 }}
                             />
                         ) : (
@@ -231,12 +230,12 @@ export const SessionsPage = () => {
                                 }
                                 input={params[activeParam].current ?? ''}
                                 onSelect={(option: Value) => {
-                                    if (!option) return
-                                    var pcopy = [...paramsRef.current]
-                                    pcopy[activeParam].value = option
-                                    mainInput.current?.focus()
-                                    setActiveParam(-1)
-                                    setParams(pcopy)
+                                    if (!option) return;
+                                    var pcopy = [...paramsRef.current];
+                                    pcopy[activeParam].value = option;
+                                    mainInput.current?.focus();
+                                    setActiveParam(-1);
+                                    setParams(pcopy);
                                 }}
                             />
                         )}
@@ -244,18 +243,18 @@ export const SessionsPage = () => {
                 )}
                 <div ref={resultsRef}>
                     {sessionData.map((u) => {
-                        const created = new Date(u.created_at)
+                        const created = new Date(u.created_at);
                         let d: {
                             browser?: {
-                                os?: string
-                                name?: string
-                            }
-                            city?: string
-                            state?: string
-                            postal?: string
-                        } = {}
+                                os?: string;
+                                name?: string;
+                            };
+                            city?: string;
+                            state?: string;
+                            postal?: string;
+                        } = {};
                         try {
-                            d = JSON.parse(u?.details)
+                            d = JSON.parse(u?.details);
                         } catch (error) {}
                         return (
                             <Link
@@ -322,7 +321,7 @@ export const SessionsPage = () => {
                                     </div>
                                 </div>
                             </Link>
-                        )
+                        );
                     })}
                     {sessionsLoading && (
                         <div className={styles.loadingDiv}>
@@ -332,5 +331,5 @@ export const SessionsPage = () => {
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};

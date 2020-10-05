@@ -1,6 +1,6 @@
-import styles from '../styles/Home.module.css'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay, faHandPointUp } from '@fortawesome/free-solid-svg-icons'
+import styles from '../styles/Home.module.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlay, faHandPointUp } from '@fortawesome/free-solid-svg-icons';
 
 const RequestForm = (props) => {
     return (
@@ -27,7 +27,7 @@ const RequestForm = (props) => {
                 </div>
             </form>
         </div>
-    )
-}
+    );
+};
 
-export default RequestForm
+export default RequestForm;

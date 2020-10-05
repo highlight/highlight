@@ -1,18 +1,18 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay, faHandPointUp } from '@fortawesome/free-solid-svg-icons'
-import Link from 'next/link'
-import Navbar from 'react-bootstrap/Navbar'
-import Nav from 'react-bootstrap/Nav'
-import NavDropdown from 'react-bootstrap/NavDropdown'
-import Form from 'react-bootstrap/Form'
-import FormControl from 'react-bootstrap/FormControl'
-import Button from 'react-bootstrap/Button'
-import ChatWidget from '@papercups-io/chat-widget'
+import Head from 'next/head';
+import styles from '../styles/Home.module.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlay, faHandPointUp } from '@fortawesome/free-solid-svg-icons';
+import Link from 'next/link';
+import Navbar from 'react-bootstrap/Navbar';
+import Nav from 'react-bootstrap/Nav';
+import NavDropdown from 'react-bootstrap/NavDropdown';
+import Form from 'react-bootstrap/Form';
+import FormControl from 'react-bootstrap/FormControl';
+import Button from 'react-bootstrap/Button';
+import ChatWidget from '@papercups-io/chat-widget';
 
-import 'bootstrap/dist/css/bootstrap.min.css'
-import '../styles/globals.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '../styles/globals.css';
 
 function MyApp({ Component, pageProps }) {
     return (
@@ -71,7 +71,7 @@ function MyApp({ Component, pageProps }) {
                 baseUrl="https://app.papercups.io"
             />
         </>
-    )
+    );
 }
 
-export default MyApp
+export default MyApp;

@@ -1,29 +1,29 @@
-import React, { useEffect } from 'react'
-import './App.css'
+import React, { useEffect } from 'react';
+import './App.css';
 
-import styles from './App.module.css'
-import { client } from './util/graph'
-import { Spinner } from './components/Spinner/Spinner'
-import { Player } from './pages/Player/PlayerPage'
-import { SetupPage } from './pages/Setup/SetupPage'
-import { SessionsPage } from './pages/Sessions/SessionsPage'
-import { provider } from './util/auth'
-import { ReactComponent as HighlightLogo } from './static/highlight-logo.svg'
-import { FaUserCircle } from 'react-icons/fa'
-import { FiLogOut } from 'react-icons/fi'
+import styles from './App.module.css';
+import { client } from './util/graph';
+import { Spinner } from './components/Spinner/Spinner';
+import { Player } from './pages/Player/PlayerPage';
+import { SetupPage } from './pages/Setup/SetupPage';
+import { SessionsPage } from './pages/Sessions/SessionsPage';
+import { provider } from './util/auth';
+import { ReactComponent as HighlightLogo } from './static/highlight-logo.svg';
+import { FaUserCircle } from 'react-icons/fa';
+import { FiLogOut } from 'react-icons/fi';
 
-import { useParams } from 'react-router-dom'
-import { useAuthState } from 'react-firebase-hooks/auth'
-import { useQuery, gql } from '@apollo/client'
+import { useParams } from 'react-router-dom';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { useQuery, gql } from '@apollo/client';
 import {
     Switch,
     Route,
     BrowserRouter as Router,
     Redirect,
     Link,
-} from 'react-router-dom'
-import * as firebase from 'firebase/app'
-import { Dropdown, Skeleton } from 'antd'
+} from 'react-router-dom';
+import * as firebase from 'firebase/app';
+import { Dropdown, Skeleton } from 'antd';
 
 const App = () => {
     const { loading: o_loading, error: o_error, data: o_data } = useQuery(gql`
@@ -32,16 +32,16 @@ const App = () => {
                 id
             }
         }
-    `)
+    `);
     if (o_error || o_loading || !o_data?.organizations?.length) {
         return (
             <div className={styles.loadingWrapper}>
                 <Spinner />
             </div>
-        )
+        );
     }
 
-    const current_org = o_data?.organizations[0].id
+    const current_org = o_data?.organizations[0].id;
     return (
         <div className={styles.appBody}>
             <Router>
@@ -69,12 +69,12 @@ const App = () => {
                 </Switch>
             </Router>
         </div>
-    )
-}
+    );
+};
 
 export const AuthAdminRouter = () => {
     const { loading, error, data } = useQuery<{
-        admin: { id: string; name: string; email: string }
+        admin: { id: string; name: string; email: string };
     }>(gql`
         query GetAdmin {
             admin {
@@ -83,48 +83,48 @@ export const AuthAdminRouter = () => {
                 email
             }
         }
-    `)
-    const admin = data?.admin
+    `);
+    const admin = data?.admin;
     useEffect(() => {
         if (admin) {
-            const { email, id, name } = admin
-            window.H.identify(email, { id, name })
+            const { email, id, name } = admin;
+            window.H.identify(email, { id, name });
             window.analytics.identify(id, {
                 name,
                 email,
-            })
+            });
         }
-    }, [admin])
+    }, [admin]);
     if (error || loading) {
         return (
             <div className={styles.loadingWrapper}>
                 <Spinner />
             </div>
-        )
+        );
     }
-    return <App />
-}
+    return <App />;
+};
 
 export const AuthAppRouter = () => {
-    const [user, loading, error] = useAuthState(firebase.auth())
+    const [user, loading, error] = useAuthState(firebase.auth());
     useEffect(() => {
         if (!loading && !error && !user) {
-            firebase.auth().signInWithRedirect(provider)
+            firebase.auth().signInWithRedirect(provider);
         }
-    }, [user, loading, error])
+    }, [user, loading, error]);
     if (loading || error)
         return (
             <div className={styles.loadingWrapper}>
                 <Spinner />
             </div>
-        )
-    return <AuthAdminRouter />
-}
+        );
+    return <AuthAdminRouter />;
+};
 
 const Header = () => {
-    const { organization_id } = useParams()
+    const { organization_id } = useParams();
     const { loading: a_loading, error: a_error, data: a_data } = useQuery<{
-        admin: { id: string; name: string; email: string }
+        admin: { id: string; name: string; email: string };
     }>(gql`
         query GetAdmin {
             admin {
@@ -133,7 +133,7 @@ const Header = () => {
                 email
             }
         }
-    `)
+    `);
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>
@@ -151,11 +151,11 @@ const Header = () => {
                             className={styles.dropdownLogout}
                             onClick={async () => {
                                 try {
-                                    firebase.auth().signOut()
+                                    firebase.auth().signOut();
                                 } catch (e) {
-                                    console.log(e)
+                                    console.log(e);
                                 }
-                                client.cache.reset()
+                                client.cache.reset();
                             }}
                         >
                             <FiLogOut />
@@ -167,7 +167,7 @@ const Header = () => {
                 )}
             </div>
         </div>
-    )
+    );
 
     return (
         <div className={styles.header}>
@@ -177,7 +177,7 @@ const Header = () => {
             <div className={styles.rightHeader}>
                 <Link
                     onClick={() => {
-                        window.analytics.track('Sessions Click', {})
+                        window.analytics.track('Sessions Click', {});
                     }}
                     to={`/${organization_id}/sessions`}
                     className={styles.headerLink}
@@ -186,7 +186,7 @@ const Header = () => {
                 </Link>
                 <Link
                     onClick={() => {
-                        window.analytics.track('Setup Click', {})
+                        window.analytics.track('Setup Click', {});
                     }}
                     to={`/${organization_id}/setup`}
                     className={styles.headerLink}
@@ -198,7 +198,7 @@ const Header = () => {
                     placement={'bottomRight'}
                     arrow
                     onVisibleChange={() => {
-                        window.analytics.track('User Icon Hover', {})
+                        window.analytics.track('User Icon Hover', {});
                     }}
                 >
                     <div className={styles.accountIconWrapper}>
@@ -207,7 +207,7 @@ const Header = () => {
                 </Dropdown>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default App
+export default App;
