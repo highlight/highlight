@@ -22,20 +22,26 @@ import { MillisToMinutesAndSeconds } from '../../util/time';
 import { useQuery, gql } from '@apollo/client';
 import { ReactComponent as PointerIcon } from '../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../static/hover.svg';
-import { Skeleton } from 'antd';
+import { ReactComponent as CheckMarkCircle } from '../../static/checkmark-circle.svg';
+import { ReactComponent as CrossCircle } from '../../static/cross-circle.svg';
+import { Skeleton, Switch } from 'antd';
 import { useImage } from 'react-image';
-
-import Slider from 'rc-slider';
+import { Slider } from './Slider/Slider';
 
 import styles from './PlayerPage.module.css';
 import 'rc-slider/assets/index.css';
+
+type HighlightEvent = eventWithTime & { identifier: string };
 
 export const Player = () => {
     const { session_id } = useParams();
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [paused, setPaused] = useState(true);
     const [time, setTime] = useState(0);
+    const [skipInactive, setSkipInactive] = useState(false);
+    const [speed, setSpeed] = useState(2);
     const [ticker, setTicker] = useState(0);
+    const [events, setEvents] = useState<Array<HighlightEvent>>([]);
     const [totalTime, setTotalTime] = useState(0);
     const [playerLoading, setPlayerLoading] = useState(true);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
@@ -64,7 +70,7 @@ export const Player = () => {
         const heightDelta = height - targetHeight;
         const widthScale = (targetWidth - 80) / width;
         const heightScale = (targetHeight - 80) / height;
-        const scale = widthDelta > heightDelta ? widthScale : heightScale;
+        const scale = Math.min(heightScale, widthScale);
         const endHeight = (targetHeight - height * scale) / 2;
         const endWidth = (targetWidth - width * scale) / 2;
         console.log('height: ', height, targetHeight, heightScale);
@@ -116,13 +122,14 @@ export const Player = () => {
     useEffect(() => {
         if (sessionData?.events?.length ?? 0 > 1) {
             // Add an id field to each event so it can be referenced.
-            const newEvents: string[] =
-                sessionData?.events.map((e) => {
-                    return { ...e };
+            const newEvents: HighlightEvent[] =
+                sessionData?.events.map((e: HighlightEvent, i: number) => {
+                    return { ...e, identifier: i.toString() };
                 }) ?? [];
             let r = new Replayer(newEvents, {
                 root: document.getElementById('player') as HTMLElement,
             });
+            setEvents(newEvents);
             setTotalTime(r.getMetaData().totalTime);
             setReplayer(r);
             r.getTimeOffset();
@@ -154,69 +161,102 @@ export const Player = () => {
                     </div>
                 </div>
                 <Slider
-                    onChange={(e: number) => setTime(e)}
-                    value={time}
                     max={totalTime}
-                    disabled={false}
+                    current={time}
+                    onSelect={(newTime: number) => {
+                        setTime(newTime);
+                        console.log(newTime);
+                    }}
                 />
                 <div className={styles.toolbarSection}>
-                    <div
-                        className={styles.playSection}
-                        onClick={() => {
-                            if (paused) {
-                                replayer?.play(time);
-                                setPaused(false);
-                            } else {
-                                replayer?.pause();
-                                setPaused(true);
-                            }
-                        }}
-                    >
-                        {paused ? (
-                            <FaPlay
+                    <div className={styles.toolbarLeftSection}>
+                        <div
+                            className={styles.playSection}
+                            onClick={() => {
+                                if (paused) {
+                                    replayer?.play(time);
+                                    setPaused(false);
+                                } else {
+                                    replayer?.pause();
+                                    setPaused(true);
+                                }
+                            }}
+                        >
+                            {paused ? (
+                                <FaPlay
+                                    fill="black"
+                                    className={styles.playButtonStyle}
+                                />
+                            ) : (
+                                <FaPause
+                                    fill="black"
+                                    className={styles.playButtonStyle}
+                                />
+                            )}
+                        </div>
+                        <div
+                            className={styles.undoSection}
+                            onClick={() => {
+                                const newTime =
+                                    time - 7000 < 0 ? 0 : time - 7000;
+                                if (paused) {
+                                    replayer?.pause(newTime);
+                                    setTime(newTime);
+                                } else {
+                                    replayer?.play(newTime);
+                                    setTime(newTime);
+                                }
+                            }}
+                        >
+                            <FaUndoAlt
                                 fill="black"
-                                className={styles.playButtonStyle}
+                                className={styles.undoButtonStyle}
                             />
-                        ) : (
-                            <FaPause
-                                fill="black"
-                                className={styles.playButtonStyle}
-                            />
-                        )}
+                        </div>
+                        <div className={styles.timeSection}>
+                            {MillisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
+                            {MillisToMinutesAndSeconds(totalTime)}
+                        </div>
                     </div>
-                    <div
-                        className={styles.undoSection}
-                        onClick={() => {
-                            const newTime = time - 7000 < 0 ? 0 : time - 7000;
-                            if (paused) {
-                                replayer?.pause(newTime);
-                                setTime(newTime);
-                            } else {
-                                replayer?.play(newTime);
-                                setTime(newTime);
-                            }
-                        }}
-                    >
-                        <FaUndoAlt
-                            fill="black"
-                            className={styles.undoButtonStyle}
-                        />
-                    </div>
-                    <div className={styles.timeSection}>
-                        {MillisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
-                        {MillisToMinutesAndSeconds(totalTime)}
+                    <div className={styles.toolbarRightSection}>
+                        <div
+                            onClick={() => {
+                                setSpeed((s) => (s < 8 ? s * 2 : 1));
+                            }}
+                            className={styles.speedWrapper}
+                        >
+                            {speed}x
+                        </div>
+                        <div className={styles.verticalDivider} />
+                        <div
+                            onClick={() => {
+                                replayer?.setConfig({ skipInactive: true });
+                                setSkipInactive(!skipInactive);
+                            }}
+                            className={styles.skipInactivity}
+                        >
+                            <span
+                                className={styles.inactiveText}
+                                style={{
+                                    color: skipInactive ? 'green' : 'black',
+                                }}
+                            >
+                                Skip Inactivity
+                            </span>
+                            {skipInactive ? (
+                                <CheckMarkCircle
+                                    className={styles.inactiveIcon}
+                                    fill={'green'}
+                                />
+                            ) : (
+                                <CrossCircle className={styles.inactiveIcon} />
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
             <div className={styles.playerRightSection}>
-                <EventStream
-                    replayer={replayer}
-                    events={
-                        (sessionData?.events as Array<eventWithTime>) ??
-                        ([] as Array<eventWithTime>)
-                    }
-                    time={time}
-                />{' '}
+                <EventStream replayer={replayer} events={events} time={time} />{' '}
                 <MetadataBox />
             </div>
         </div>
@@ -316,7 +356,7 @@ const EventStream = ({
     time,
     replayer,
 }: {
-    events: any[];
+    events: HighlightEvent[];
     time: number;
     replayer: Replayer | undefined;
 }) => {
@@ -327,12 +367,15 @@ const EventStream = ({
             const event = e as eventWithTime;
             if (usefulEvent(event)) {
                 setCurrEvent(event.timestamp);
-                scroller.scrollTo(event.timestamp.toString(), {
-                    smooth: true,
-                    containerId: 'wrapper',
-                    spy: true,
-                    offset: -150,
-                });
+                scroller.scrollTo(
+                    (event as HighlightEvent).identifier.toString(),
+                    {
+                        smooth: true,
+                        containerId: 'wrapper',
+                        spy: true,
+                        offset: -150,
+                    }
+                );
             }
         });
     }, [replayer, time]);
@@ -346,7 +389,7 @@ const EventStream = ({
                     replayer &&
                     events
                         .filter(usefulEvent)
-                        .map((e: eventWithTime, i: number) => {
+                        .map((e: HighlightEvent, i: number) => {
                             const mouseInteraction = e.data as mouseInteractionData;
                             let eventStr = '';
                             switch (mouseInteraction.type) {
@@ -393,8 +436,8 @@ const EventStream = ({
                                 replayer?.getMetaData()?.startTime;
                             return (
                                 <Element
-                                    name={e.timestamp.toString()}
-                                    key={e.timestamp.toString()}
+                                    name={e.identifier.toString()}
+                                    key={e.identifier.toString()}
                                     className={styles.eventWrapper}
                                 >
                                     <div

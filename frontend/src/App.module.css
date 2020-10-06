@@ -233,14 +233,6 @@
     border-top: 7px solid black;
 }
 
-.toolbarSection {
-    width: 100%;
-    height: 70px;
-    background-color: white;
-    display: flex;
-    flex-direction: row;
-}
-
 .playSection {
     display: flex;
     align-items: center;
