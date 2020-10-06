@@ -3,19 +3,18 @@ import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
 import { ReactComponent as CheckMarkCircle } from '../../../static/checkmark-circle.svg';
 import { ReactComponent as CrossCircle } from '../../../static/cross-circle.svg';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
-import styles from './Slider.module.css';
+import styles from './Toolbar.module.css';
 
 import { Replayer } from 'rrweb';
 
-export const Slider = ({
-    max,
+export const Toolbar = ({
     replayer,
     onSelect,
 }: {
-    max: number;
     replayer: Replayer | undefined;
     onSelect: (newTime: number) => void;
 }) => {
+    const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLDivElement>(null);
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
@@ -104,9 +103,7 @@ export const Slider = ({
                     </div>
                     <div className={styles.timeSection}>
                         {MillisToMinutesAndSeconds(current)}&nbsp;/&nbsp;
-                        {MillisToMinutesAndSeconds(
-                            replayer?.getMetaData().totalTime
-                        )}
+                        {MillisToMinutesAndSeconds(max)}
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>

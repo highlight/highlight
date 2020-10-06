@@ -22,7 +22,7 @@ import { useQuery, gql } from '@apollo/client';
 import { ReactComponent as PointerIcon } from '../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../static/hover.svg';
 import { Skeleton } from 'antd';
-import { Slider } from './Slider/Slider';
+import { Toolbar } from './Toolbar/Toolbar';
 import { MetadataBox } from './MetadataBox/MetadataBox';
 
 import styles from './PlayerPage.module.css';
@@ -35,7 +35,6 @@ export const Player = () => {
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [time, setTime] = useState(0);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
-    const [totalTime, setTotalTime] = useState(0);
     const [playerLoading, setPlayerLoading] = useState(true);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const {
@@ -103,7 +102,6 @@ export const Player = () => {
                 root: document.getElementById('player') as HTMLElement,
             });
             setEvents(newEvents);
-            setTotalTime(r.getMetaData().totalTime);
             setReplayer(r);
             r.getTimeOffset();
         }
@@ -133,8 +131,7 @@ export const Player = () => {
                         {(playerLoading || sessionLoading) && <Spinner />}
                     </div>
                 </div>
-                <Slider
-                    max={totalTime}
+                <Toolbar
                     replayer={replayer}
                     onSelect={(newTime: number) => {
                         console.log(newTime);
