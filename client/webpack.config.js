@@ -38,7 +38,7 @@ module.exports = {
   plugins: [
     new webpack.EnvironmentPlugin(['BACKEND_URI']),
     new WebpackObfuscator(
-      {},
+      {seed: 4},
       []
     ),
   ],
