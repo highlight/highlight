@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useImage } from 'react-image';
 import { useQuery, gql } from '@apollo/client';
@@ -53,26 +53,21 @@ export const MetadataBox = () => {
                     <>
                         <div className={styles.avatarWrapper}>
                             <img
-                                style={{
-                                    height: 60,
-                                    width: 60,
-                                    backgroundColor: '#F2EEFB',
-                                    borderRadius: '50%',
-                                }}
+                                className={styles.userProfile}
                                 alt={'user profile'}
                                 src={src}
                             />
                         </div>
-                        <div
-                            className={styles.userContentWrapper}
-                        >
-                            <div style={{ fontSize: 16, fontWeight: 400 }}>
-                                <span>User#{data?.session.user_id}</span>
+                        <div className={styles.userContentWrapper}>
+                            <div className={styles.headerWrapper}>
+                                <div>User#{data?.session.user_id}</div>
                                 {data?.session.identifier && (
-                                    <span>• {data?.session.identifier}</span>
+                                    <div className={styles.userIdSubHeader}>
+                                        {data?.session.identifier}
+                                    </div>
                                 )}
                             </div>
-                            <div style={{ color: '#808080', fontSize: 13 }}>
+                            <div className={styles.userInfoWrapper}>
                                 <div>
                                     {details?.city}, {details?.state} &nbsp;
                                     {details?.postal}

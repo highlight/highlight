@@ -20,4 +20,34 @@
 .userContentWrapper {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding-left: 25px;
+}
+
+.headerWrapper {
+    font-size: 16px;
+    font-weight: 400;
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.userIdSubHeader {
+    color: #5629c6;
+    font-weight: 300;
+    font-size: 14px;
+}
+
+.userInfoWrapper {
+    color: #808080;
+    font-size: 13px;
+    width: 100%;
+}
+
+.userProfile {
+    height: 60px;
+    width: 60px;
+    background-color: #f2eefb;
+    border-radius: 50%;
 }

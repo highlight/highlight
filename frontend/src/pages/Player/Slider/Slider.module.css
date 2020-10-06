@@ -18,3 +18,110 @@
     border-radius: 20px;
     background-color: #5629c6;
 }
+
+.toolbarLeftSection {
+    display: flex;
+    flex-direction: row;
+}
+
+.toolbarRightSection {
+    margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.toolbarSection {
+    width: 100%;
+    height: 70px;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 10px;
+}
+
+.playSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-left: 25px;
+    cursor: pointer;
+}
+
+.undoSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-left: 25px;
+    cursor: pointer;
+}
+
+.playButtonStyle {
+    height: 25px;
+    width: 30px;
+}
+
+.verticalDivider {
+    height: 80%;
+    width: 1px;
+    background-color: #dedede;
+    margin: 5px;
+}
+
+.inactiveIcon {
+    height: 20px;
+    width: 20px;
+}
+
+.inactiveText {
+    margin-right: 10px;
+}
+
+.skipInactivity {
+    font-size: 15px;
+    margin: 10px;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    cursor: pointer;
+    height: 40px;
+    padding: 0px 10px 0px 10px;
+    border-radius: 8px;
+}
+
+.skipInactivity:hover {
+    background-color: #f2eefb;
+}
+
+.speedWrapper {
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #5629c6;
+    margin: 10px;
+}
+
+.timeSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-left: 25px;
+}
+
+.undoButtonStyle {
+    height: 25px;
+    width: 30px;
+}
