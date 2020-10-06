@@ -38,13 +38,7 @@ module.exports = {
   plugins: [
     new webpack.EnvironmentPlugin(['BACKEND_URI']),
     new WebpackObfuscator(
-      {
-        compact: true,
-        identifierNamesGenerator: 'mangled',
-        splitStrings: true,
-        splitStringsChunkLength: 3,
-        shuffleStringArray: true,
-      },
+      {},
       []
     ),
   ],
