@@ -8,7 +8,7 @@
 .sliderRail {
     width: 100%;
     height: 4px;
-    background-color: blue;
+    background-color: #5629c6;
 }
 
 .indicator {
@@ -16,5 +16,5 @@
     width: 15px;
     margin-top: -9px;
     border-radius: 20px;
-    background-color: blue;
+    background-color: #5629c6;
 }
