@@ -356,7 +356,7 @@ const EventStream = ({
     time,
     replayer,
 }: {
-    events: any[];
+    events: HighlightEvent[];
     time: number;
     replayer: Replayer | undefined;
 }) => {
@@ -367,12 +367,15 @@ const EventStream = ({
             const event = e as eventWithTime;
             if (usefulEvent(event)) {
                 setCurrEvent(event.timestamp);
-                scroller.scrollTo((event as any).identifier.toString(), {
-                    smooth: true,
-                    containerId: 'wrapper',
-                    spy: true,
-                    offset: -150,
-                });
+                scroller.scrollTo(
+                    (event as HighlightEvent).identifier.toString(),
+                    {
+                        smooth: true,
+                        containerId: 'wrapper',
+                        spy: true,
+                        offset: -150,
+                    }
+                );
             }
         });
     }, [replayer, time]);
@@ -386,7 +389,7 @@ const EventStream = ({
                     replayer &&
                     events
                         .filter(usefulEvent)
-                        .map((e: eventWithTime, i: number) => {
+                        .map((e: HighlightEvent, i: number) => {
                             const mouseInteraction = e.data as mouseInteractionData;
                             let eventStr = '';
                             switch (mouseInteraction.type) {
@@ -433,8 +436,8 @@ const EventStream = ({
                                 replayer?.getMetaData()?.startTime;
                             return (
                                 <Element
-                                    name={(e as any).identifier.toString()}
-                                    key={(e as any).identifier.toString()}
+                                    name={e.identifier.toString()}
+                                    key={e.identifier.toString()}
                                     className={styles.eventWrapper}
                                 >
                                     <div
