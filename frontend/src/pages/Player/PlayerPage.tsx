@@ -15,18 +15,15 @@ import {
 } from 'rrweb/typings/types';
 
 import { elementNode } from 'rrweb-snapshot';
-import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
 import { Element, scroller } from 'react-scroll';
 import { Spinner } from '../../components/Spinner/Spinner';
 import { MillisToMinutesAndSeconds } from '../../util/time';
 import { useQuery, gql } from '@apollo/client';
 import { ReactComponent as PointerIcon } from '../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../static/hover.svg';
-import { ReactComponent as CheckMarkCircle } from '../../static/checkmark-circle.svg';
-import { ReactComponent as CrossCircle } from '../../static/cross-circle.svg';
-import { Skeleton, Switch } from 'antd';
-import { useImage } from 'react-image';
-import { Slider } from './Slider/Slider';
+import { Skeleton } from 'antd';
+import { Toolbar } from './Toolbar/Toolbar';
+import { MetadataBox } from './MetadataBox/MetadataBox';
 
 import styles from './PlayerPage.module.css';
 import 'rc-slider/assets/index.css';
@@ -36,13 +33,8 @@ type HighlightEvent = eventWithTime & { identifier: string };
 export const Player = () => {
     const { session_id } = useParams();
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
-    const [paused, setPaused] = useState(true);
     const [time, setTime] = useState(0);
-    const [skipInactive, setSkipInactive] = useState(false);
-    const [speed, setSpeed] = useState(2);
-    const [ticker, setTicker] = useState(0);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
-    const [totalTime, setTotalTime] = useState(0);
     const [playerLoading, setPlayerLoading] = useState(true);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const {
@@ -73,8 +65,8 @@ export const Player = () => {
         const scale = Math.min(heightScale, widthScale);
         const endHeight = (targetHeight - height * scale) / 2;
         const endWidth = (targetWidth - width * scale) / 2;
-        console.log('height: ', height, targetHeight, heightScale);
-        console.log('width', width, targetWidth, widthScale);
+        console.log('height: ', height, targetHeight, heightScale, heightDelta);
+        console.log('width', width, targetWidth, widthScale, widthDelta);
         console.log(`applying scale ${scale}`);
         replayer?.wrapper?.setAttribute(
             'style',
@@ -100,26 +92,6 @@ export const Player = () => {
     }, [replayer]);
 
     useEffect(() => {
-        if (paused) {
-            clearInterval(ticker);
-            setTicker(0);
-            return;
-        }
-        if (!ticker) {
-            const ticker = window.setInterval(() => {
-                setTime((time) => {
-                    if (time < totalTime) {
-                        return time + 50;
-                    }
-                    setPaused(true);
-                    return time;
-                });
-            }, 50);
-            setTicker(ticker);
-        }
-    }, [setTicker, paused, ticker, totalTime]);
-
-    useEffect(() => {
         if (sessionData?.events?.length ?? 0 > 1) {
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] =
@@ -130,7 +102,6 @@ export const Player = () => {
                 root: document.getElementById('player') as HTMLElement,
             });
             setEvents(newEvents);
-            setTotalTime(r.getMetaData().totalTime);
             setReplayer(r);
             r.getTimeOffset();
         }
@@ -160,192 +131,18 @@ export const Player = () => {
                         {(playerLoading || sessionLoading) && <Spinner />}
                     </div>
                 </div>
-                <Slider
-                    max={totalTime}
-                    current={time}
+                <Toolbar
+                    replayer={replayer}
                     onSelect={(newTime: number) => {
-                        setTime(newTime);
                         console.log(newTime);
+                        replayer?.pause(newTime);
+                        setTime(newTime);
                     }}
                 />
-                <div className={styles.toolbarSection}>
-                    <div className={styles.toolbarLeftSection}>
-                        <div
-                            className={styles.playSection}
-                            onClick={() => {
-                                if (paused) {
-                                    replayer?.play(time);
-                                    setPaused(false);
-                                } else {
-                                    replayer?.pause();
-                                    setPaused(true);
-                                }
-                            }}
-                        >
-                            {paused ? (
-                                <FaPlay
-                                    fill="black"
-                                    className={styles.playButtonStyle}
-                                />
-                            ) : (
-                                <FaPause
-                                    fill="black"
-                                    className={styles.playButtonStyle}
-                                />
-                            )}
-                        </div>
-                        <div
-                            className={styles.undoSection}
-                            onClick={() => {
-                                const newTime =
-                                    time - 7000 < 0 ? 0 : time - 7000;
-                                if (paused) {
-                                    replayer?.pause(newTime);
-                                    setTime(newTime);
-                                } else {
-                                    replayer?.play(newTime);
-                                    setTime(newTime);
-                                }
-                            }}
-                        >
-                            <FaUndoAlt
-                                fill="black"
-                                className={styles.undoButtonStyle}
-                            />
-                        </div>
-                        <div className={styles.timeSection}>
-                            {MillisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
-                            {MillisToMinutesAndSeconds(totalTime)}
-                        </div>
-                    </div>
-                    <div className={styles.toolbarRightSection}>
-                        <div
-                            onClick={() => {
-                                setSpeed((s) => (s < 8 ? s * 2 : 1));
-                            }}
-                            className={styles.speedWrapper}
-                        >
-                            {speed}x
-                        </div>
-                        <div className={styles.verticalDivider} />
-                        <div
-                            onClick={() => {
-                                replayer?.setConfig({ skipInactive: true });
-                                setSkipInactive(!skipInactive);
-                            }}
-                            className={styles.skipInactivity}
-                        >
-                            <span
-                                className={styles.inactiveText}
-                                style={{
-                                    color: skipInactive ? 'green' : 'black',
-                                }}
-                            >
-                                Skip Inactivity
-                            </span>
-                            {skipInactive ? (
-                                <CheckMarkCircle
-                                    className={styles.inactiveIcon}
-                                    fill={'green'}
-                                />
-                            ) : (
-                                <CrossCircle className={styles.inactiveIcon} />
-                            )}
-                        </div>
-                    </div>
-                </div>
             </div>
             <div className={styles.playerRightSection}>
                 <EventStream replayer={replayer} events={events} time={time} />{' '}
                 <MetadataBox />
-            </div>
-        </div>
-    );
-};
-
-const MetadataBox = () => {
-    const { session_id } = useParams();
-    const { loading, error, data } = useQuery<{
-        session: {
-            details: any;
-            user_id: number;
-            created_at: number;
-            user_object: any;
-            identifier: string;
-        };
-    }>(
-        gql`
-            query GetSession($id: ID!) {
-                session(id: $id) {
-                    details
-                    user_id
-                    created_at
-                    user_object
-                    identifier
-                }
-            }
-        `,
-        { variables: { id: session_id } }
-    );
-    const { src, isLoading, error: imgError } = useImage({
-        srcList: `https://avatars.dicebear.com/api/avataaars/${data?.session.user_id}.svg`,
-        useSuspense: false,
-    });
-    const created = new Date(data?.session.created_at ?? 0);
-    var details: any = {};
-    try {
-        details = JSON.parse(data?.session?.details);
-    } catch (e) {}
-    return (
-        <div className={styles.locationBox}>
-            <div className={styles.innerLocationBox}>
-                {isLoading || loading ? (
-                    <Skeleton active paragraph={{ rows: 2 }} />
-                ) : error || imgError ? (
-                    <p>
-                        {imgError?.toString()}
-                        {error?.toString()}
-                    </p>
-                ) : (
-                    <>
-                        <div className={styles.avatarWrapper}>
-                            <img
-                                style={{
-                                    height: 60,
-                                    width: 60,
-                                    backgroundColor: '#F2EEFB',
-                                    borderRadius: '50%',
-                                }}
-                                alt={'user profile'}
-                                src={src}
-                            />
-                        </div>
-                        <div
-                            style={{ display: 'flex', flexDirection: 'column' }}
-                        >
-                            <div style={{ fontSize: 16, fontWeight: 400 }}>
-                                <span>User#{data?.session.user_id}</span>
-                                {data?.session.identifier && (
-                                    <span>• {data?.session.identifier}</span>
-                                )}
-                            </div>
-                            <div style={{ color: '#808080', fontSize: 13 }}>
-                                <div>
-                                    {details?.city}, {details?.state} &nbsp;
-                                    {details?.postal}
-                                </div>
-                                <div>{created.toUTCString()}</div>
-                                {details?.browser && (
-                                    <div>
-                                        {details?.browser?.os},&nbsp;
-                                        {details?.browser?.name} &nbsp;-&nbsp;
-                                        {details?.browser?.version}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </>
-                )}
             </div>
         </div>
     );

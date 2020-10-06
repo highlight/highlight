@@ -1,0 +1,53 @@
+.innerLocationBox {
+    display: flex;
+    height: 100%;
+    align-items: center;
+}
+
+.locationBox {
+    border-bottom: 1px solid #eaeaea;
+    padding: 30px 25px 30px 25px;
+    position: absolute;
+    box-sizing: border-box;
+    width: 350px;
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    z-index: 1;
+}
+
+.userContentWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding-left: 25px;
+}
+
+.headerWrapper {
+    font-size: 16px;
+    font-weight: 400;
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.userIdSubHeader {
+    color: #5629c6;
+    font-weight: 300;
+    font-size: 14px;
+}
+
+.userInfoWrapper {
+    color: #808080;
+    font-size: 13px;
+    width: 100%;
+}
+
+.userProfile {
+    height: 60px;
+    width: 60px;
+    background-color: #f2eefb;
+    border-radius: 50%;
+}
