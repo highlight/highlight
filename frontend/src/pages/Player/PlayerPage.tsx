@@ -24,9 +24,10 @@ import { ReactComponent as PointerIcon } from '../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../static/hover.svg';
 import { ReactComponent as CheckMarkCircle } from '../../static/checkmark-circle.svg';
 import { ReactComponent as CrossCircle } from '../../static/cross-circle.svg';
-import { Skeleton, Switch } from 'antd';
+import { Skeleton } from 'antd';
 import { useImage } from 'react-image';
 import { Slider } from './Slider/Slider';
+import { MetadataBox } from './MetadataBox/MetadataBox';
 
 import styles from './PlayerPage.module.css';
 import 'rc-slider/assets/index.css';
@@ -73,8 +74,8 @@ export const Player = () => {
         const scale = Math.min(heightScale, widthScale);
         const endHeight = (targetHeight - height * scale) / 2;
         const endWidth = (targetWidth - width * scale) / 2;
-        console.log('height: ', height, targetHeight, heightScale);
-        console.log('width', width, targetWidth, widthScale);
+        console.log('height: ', height, targetHeight, heightScale, heightDelta);
+        console.log('width', width, targetWidth, widthScale, widthDelta);
         console.log(`applying scale ${scale}`);
         replayer?.wrapper?.setAttribute(
             'style',
@@ -162,10 +163,9 @@ export const Player = () => {
                 </div>
                 <Slider
                     max={totalTime}
-                    current={time}
+                    current={replayer?.getCurrentTime() ?? 0}
                     onSelect={(newTime: number) => {
                         setTime(newTime);
-                        console.log(newTime);
                     }}
                 />
                 <div className={styles.toolbarSection}>
@@ -221,7 +221,9 @@ export const Player = () => {
                     <div className={styles.toolbarRightSection}>
                         <div
                             onClick={() => {
-                                setSpeed((s) => (s < 8 ? s * 2 : 1));
+                                const newSpeed = speed < 4 ? speed * 2 : 1;
+                                setSpeed(newSpeed);
+                                replayer?.setConfig({ speed: newSpeed });
                             }}
                             className={styles.speedWrapper}
                         >
@@ -258,94 +260,6 @@ export const Player = () => {
             <div className={styles.playerRightSection}>
                 <EventStream replayer={replayer} events={events} time={time} />{' '}
                 <MetadataBox />
-            </div>
-        </div>
-    );
-};
-
-const MetadataBox = () => {
-    const { session_id } = useParams();
-    const { loading, error, data } = useQuery<{
-        session: {
-            details: any;
-            user_id: number;
-            created_at: number;
-            user_object: any;
-            identifier: string;
-        };
-    }>(
-        gql`
-            query GetSession($id: ID!) {
-                session(id: $id) {
-                    details
-                    user_id
-                    created_at
-                    user_object
-                    identifier
-                }
-            }
-        `,
-        { variables: { id: session_id } }
-    );
-    const { src, isLoading, error: imgError } = useImage({
-        srcList: `https://avatars.dicebear.com/api/avataaars/${data?.session.user_id}.svg`,
-        useSuspense: false,
-    });
-    const created = new Date(data?.session.created_at ?? 0);
-    var details: any = {};
-    try {
-        details = JSON.parse(data?.session?.details);
-    } catch (e) {}
-    return (
-        <div className={styles.locationBox}>
-            <div className={styles.innerLocationBox}>
-                {isLoading || loading ? (
-                    <Skeleton active paragraph={{ rows: 2 }} />
-                ) : error || imgError ? (
-                    <p>
-                        {imgError?.toString()}
-                        {error?.toString()}
-                    </p>
-                ) : (
-                    <>
-                        <div className={styles.avatarWrapper}>
-                            <img
-                                style={{
-                                    height: 60,
-                                    width: 60,
-                                    backgroundColor: '#F2EEFB',
-                                    borderRadius: '50%',
-                                }}
-                                alt={'user profile'}
-                                src={src}
-                            />
-                        </div>
-                        <div
-                            style={{ display: 'flex', flexDirection: 'column' }}
-                        >
-                            <div style={{ fontSize: 16, fontWeight: 400 }}>
-                                <span>User#{data?.session.user_id}</span>
-                                {data?.session.identifier && (
-                                    <span>• {data?.session.identifier}</span>
-                                )}
-                            </div>
-                            <div style={{ color: '#808080', fontSize: 13 }}>
-                                <div>
-                                    {details?.city}, {details?.state} &nbsp;
-                                    {details?.postal}
-                                </div>
-                                <div>{created.toUTCString()}</div>
-                                {details?.browser && (
-                                    <div>
-                                        {details?.browser?.os},&nbsp;
-                                        {details?.browser?.name} &nbsp;-&nbsp;
-                                        {details?.browser?.version}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </>
-                )}
             </div>
         </div>
     );

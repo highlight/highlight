@@ -97,25 +97,6 @@
     flex-direction: column;
 }
 
-.innerLocationBox {
-    display: flex;
-    height: 100%;
-    align-items: center;
-}
-
-.locationBox {
-    border-bottom: 1px solid #eaeaea;
-    padding: 30px 25px 30px 25px;
-    position: absolute;
-    box-sizing: border-box;
-    width: 350px;
-    height: 150px;
-    display: flex;
-    flex-direction: column;
-    background-color: white;
-    z-index: 1;
-}
-
 .avatarWrapper {
     height: 100%;
     display: flex;
@@ -265,7 +246,7 @@
 }
 
 .skipInactivity:hover {
-    background-color: #f2eefb; 
+    background-color: #f2eefb;
 }
 
 .speedWrapper {

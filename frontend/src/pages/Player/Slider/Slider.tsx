@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import styles from './Slider.module.css';
-import { Replayer } from 'rrweb';
 
 export const Slider = ({
     max,
@@ -16,8 +15,8 @@ export const Slider = ({
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const timePercentage = (current / max) * 100;
     const indicatorStyle = `min(${
-                        timePercentage.toString() + '%'
-                    }, ${wrapperWidth}px - 15px)`;
+        timePercentage.toString() + '%'
+    }, ${wrapperWidth}px - 15px)`;
     return (
         <div
             className={styles.sliderWrapper}
