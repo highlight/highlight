@@ -1,7 +1,7 @@
 import * as firebase from 'firebase/app';
 import 'firebase/auth';
 
-export const firebaseInit = () => {
+export const firebaseInit = (): any => {
     var firebaseConfig = {
         apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',
         authDomain: 'auth.highlight.run',
@@ -11,7 +11,6 @@ export const firebaseInit = () => {
         messagingSenderId: '263184175068',
         appId: '1:263184175068:web:f8190c20320087d1c6c919',
     };
-
     firebase.initializeApp(firebaseConfig);
+    return new firebase.auth.GoogleAuthProvider();
 };
-export const provider = new firebase.auth.GoogleAuthProvider();

@@ -7,7 +7,7 @@ import { Spinner } from './components/Spinner/Spinner';
 import { Player } from './pages/Player/PlayerPage';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { SessionsPage } from './pages/Sessions/SessionsPage';
-import { provider, firebaseInit } from './util/auth';
+import { firebaseInit } from './util/auth';
 import { ReactComponent as HighlightLogo } from './static/highlight-logo.svg';
 import { ReactComponent as GoogleLogo } from './static/google.svg';
 import { FaUserCircle } from 'react-icons/fa';
@@ -26,7 +26,7 @@ import {
 import * as firebase from 'firebase/app';
 import { Dropdown, Skeleton } from 'antd';
 
-firebaseInit();
+const provider = firebaseInit();
 
 const App = () => {
     const { loading: o_loading, error: o_error, data: o_data } = useQuery(gql`
