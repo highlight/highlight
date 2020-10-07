@@ -134,7 +134,6 @@ export const AuthAppRouter = () => {
                     message: error.toString(),
                 });
             });
-        console.log(data);
     };
 
     const changeState = () => {
@@ -142,8 +141,15 @@ export const AuthAppRouter = () => {
         reset();
     };
 
+    if (loading) {
+        return (
+            <div className={styles.loadingWrapper}>
+                <Spinner />
+            </div>
+        );
+    }
+
     if (user) {
-        console.log(user);
         return <AuthAdminRouter />;
     }
 
