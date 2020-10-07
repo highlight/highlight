@@ -245,6 +245,9 @@ export const AuthAppRouter = () => {
                 <div className={styles.errorMessage}>
                     {JSON.stringify(firebaseError)}
                 </div>
+                <div className={styles.errorMessage}>
+                    {JSON.stringify(error)}
+                </div>
             </div>
         </div>
     );
