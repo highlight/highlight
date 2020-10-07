@@ -118,22 +118,34 @@ export const AuthAppRouter = () => {
     const [firebaseError, setFirebaseError] = useState(undefined);
     const [user, loading, error] = useAuthState(firebase.auth());
     const googleLogin = async (e: React.MouseEvent<HTMLDivElement>) => {
-        await e.preventDefault();
+        e.preventDefault();
         await firebase
             .auth()
             .signInWithRedirect(provider)
             .catch((e) => setFirebaseError(e));
     };
     const onSubmit = (data: Inputs) => {
-        firebase
-            .auth()
-            .createUserWithEmailAndPassword(data.email, data.password)
-            .catch((error) => {
-                setError('password', {
-                    type: 'manual',
-                    message: error.toString(),
+        if (signIn) {
+            firebase
+                .auth()
+                .signInWithEmailAndPassword(data.email, data.password)
+                .catch((error) => {
+                    setError('password', {
+                        type: 'manual',
+                        message: error.toString(),
+                    });
                 });
-            });
+        } else {
+            firebase
+                .auth()
+                .createUserWithEmailAndPassword(data.email, data.password)
+                .catch((error) => {
+                    setError('password', {
+                        type: 'manual',
+                        message: error.toString(),
+                    });
+                });
+        }
     };
 
     const changeState = () => {
