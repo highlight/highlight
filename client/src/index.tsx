@@ -139,6 +139,7 @@ Session Data:
     emit.bind(this);
     record({
       emit,
+      recordCanvas: true,
     });
     // overwrite xhr send.
     const highlightThis = this;

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
 import ReactDOM from 'react-dom';
 import 'antd/dist/antd.css';
 import './index.css';
@@ -7,12 +8,23 @@ import * as serviceWorker from './serviceWorker';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './util/graph';
 import { AuthAppRouter } from './App';
+// @ts-ignore
+import CanvasDraw from 'react-canvas-draw';
 
 ReactDOM.render(
     <React.StrictMode>
-        <ApolloProvider client={client}>
-            <AuthAppRouter />
-        </ApolloProvider>
+        <Router>
+            <Switch>
+                <Route path="/canvas-yo">
+                    <CanvasDraw />
+                </Route>
+                <Route>
+                    <ApolloProvider client={client}>
+                        <AuthAppRouter />
+                    </ApolloProvider>
+                </Route>
+            </Switch>
+        </Router>
     </React.StrictMode>,
     document.getElementById('root')
 );

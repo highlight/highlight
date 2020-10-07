@@ -100,6 +100,8 @@ export const Player = () => {
                 }) ?? [];
             let r = new Replayer(newEvents, {
                 root: document.getElementById('player') as HTMLElement,
+                UNSAFE_replayCanvas: true,
+                mouseTail: false,
             });
             setEvents(newEvents);
             setReplayer(r);

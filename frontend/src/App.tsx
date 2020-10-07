@@ -47,27 +47,25 @@ const App = () => {
     const current_org = o_data?.organizations[0].id;
     return (
         <div className={styles.appBody}>
-            <Router>
-                <Route path="/:organization_id">
-                    <Header />
+            <Route path="/:organization_id">
+                <Header />
+            </Route>
+            <Switch>
+                <Route path="/:organization_id/sessions/:session_id">
+                    <div className={styles.playerPageBody}>
+                        <Player />
+                    </div>
                 </Route>
-                <Switch>
-                    <Route path="/:organization_id/sessions/:session_id">
-                        <div className={styles.playerPageBody}>
-                            <Player />
-                        </div>
-                    </Route>
-                    <Route path="/:organization_id/sessions">
-                        <SessionsPage />
-                    </Route>
-                    <Route path="/:organization_id/setup">
-                        <SetupPage />
-                    </Route>
-                    <Route path="/">
-                        <Redirect to={`/${current_org}/setup`} />
-                    </Route>
-                </Switch>
-            </Router>
+                <Route path="/:organization_id/sessions">
+                    <SessionsPage />
+                </Route>
+                <Route path="/:organization_id/setup">
+                    <SetupPage />
+                </Route>
+                <Route path="/">
+                    <Redirect to={`/${current_org}/setup`} />
+                </Route>
+            </Switch>
         </div>
     );
 };
