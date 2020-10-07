@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 import styles from './App.module.css';
@@ -7,11 +7,12 @@ import { Spinner } from './components/Spinner/Spinner';
 import { Player } from './pages/Player/PlayerPage';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { SessionsPage } from './pages/Sessions/SessionsPage';
-import { provider } from './util/auth';
+import { provider, firebaseInit } from './util/auth';
 import { ReactComponent as HighlightLogo } from './static/highlight-logo.svg';
+import { ReactComponent as GoogleLogo } from './static/google.svg';
 import { FaUserCircle } from 'react-icons/fa';
 import { FiLogOut } from 'react-icons/fi';
-
+import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useQuery, gql } from '@apollo/client';
@@ -24,6 +25,8 @@ import {
 } from 'react-router-dom';
 import * as firebase from 'firebase/app';
 import { Dropdown, Skeleton } from 'antd';
+
+firebaseInit();
 
 const App = () => {
     const { loading: o_loading, error: o_error, data: o_data } = useQuery(gql`
@@ -53,9 +56,6 @@ const App = () => {
                         <div className={styles.playerPageBody}>
                             <Player />
                         </div>
-                    </Route>
-                    <Route path="/:organization_id/sessions-beta">
-                        <SessionsPage />
                     </Route>
                     <Route path="/:organization_id/sessions">
                         <SessionsPage />
@@ -105,20 +105,143 @@ export const AuthAdminRouter = () => {
     return <App />;
 };
 
+type Inputs = {
+    email: string;
+    password: string;
+};
+
 export const AuthAppRouter = () => {
+    const { watch, register, handleSubmit, errors, reset, setError } = useForm<
+        Inputs
+    >();
+    const [signIn, setSignIn] = useState<boolean>(true);
+    const [firebaseError, setFirebaseError] = useState(undefined);
     const [user, loading, error] = useAuthState(firebase.auth());
-    useEffect(() => {
-        if (!loading && !error && !user) {
-            firebase.auth().signInWithRedirect(provider);
-        }
-    }, [user, loading, error]);
-    if (loading || error)
-        return (
-            <div className={styles.loadingWrapper}>
-                <Spinner />
+    const googleLogin = async (e: React.MouseEvent<HTMLDivElement>) => {
+        await e.preventDefault();
+        await firebase
+            .auth()
+            .signInWithRedirect(provider)
+            .catch((e) => setFirebaseError(e));
+    };
+    const onSubmit = (data: Inputs) => {
+        firebase
+            .auth()
+            .createUserWithEmailAndPassword(data.email, data.password)
+            .catch((error) => {
+                setError('password', {
+                    type: 'manual',
+                    message: error.toString(),
+                });
+            });
+        console.log(data);
+    };
+
+    const changeState = () => {
+        setSignIn(!signIn);
+        reset();
+    };
+
+    if (user) {
+        console.log(user);
+        return <AuthAdminRouter />;
+    }
+
+    return (
+        <div className={styles.loginPage}>
+            <div className={styles.loginFormWrapper}>
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className={styles.loginForm}
+                >
+                    <div className={styles.loginTitleWrapper}>
+                        <div className={styles.loginTitle}>
+                            Welcome {signIn && 'back'} to Highlight.
+                        </div>
+                        <div className={styles.loginSubTitle}>
+                            {signIn ? (
+                                <>
+                                    New here?{' '}
+                                    <span
+                                        onClick={changeState}
+                                        className={styles.loginStateSwitcher}
+                                    >
+                                        Create an account.
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    Already have an account?{' '}
+                                    <span
+                                        onClick={changeState}
+                                        className={styles.loginStateSwitcher}
+                                    >
+                                        Sign in.
+                                    </span>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                    <input
+                        placeholder={'Email'}
+                        name="email"
+                        ref={register({ required: true })}
+                        className={styles.loginInput}
+                    />
+                    <div className={styles.errorMessage}>
+                        {errors.email && 'Enter an email yo!'}
+                    </div>
+                    <input
+                        placeholder={'Password'}
+                        type="password"
+                        name="password"
+                        ref={register({ required: true })}
+                        className={styles.loginInput}
+                    />
+                    {!signIn && (
+                        <>
+                            <input
+                                placeholder={'Confirm Password'}
+                                type="password"
+                                name="confirm-password"
+                                ref={register({
+                                    required: true,
+                                    validate: (value) => {
+                                        if (value !== watch('password')) {
+                                            setError('password', {
+                                                type: 'mismatch',
+                                                message: 'Mismatched passwords',
+                                            });
+                                            return "Passwords don't match.";
+                                        }
+                                    },
+                                })}
+                                className={styles.loginInput}
+                            />
+                        </>
+                    )}
+                    <div className={styles.errorMessage}>
+                        {errors.password && errors.password.message}
+                    </div>
+                    <button className={styles.submitButton} type="submit">
+                        {signIn ? 'Sign In' : 'Sign Up'}
+                    </button>
+                </form>
+                <div className={styles.otherSigninText}>
+                    or sign {signIn ? 'in' : 'up'} with
+                </div>
+                <div className={styles.googleButton} onClick={googleLogin}>
+                    <GoogleLogo className={styles.googleLogoStyle} />
+                    <span className={styles.googleText}>
+                        Google Sign {signIn ? 'In' : 'Up'}
+                    </span>
+                </div>
+                <div className={styles.errorMessage}>
+                    {JSON.stringify(firebaseError)}
+                </div>
             </div>
-        );
-    return <AuthAdminRouter />;
+        </div>
+    );
 };
 
 const Header = () => {
