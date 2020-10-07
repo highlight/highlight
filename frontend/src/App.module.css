@@ -263,3 +263,124 @@
     height: 25px;
     width: 30px;
 }
+
+.loginFormWrapper {
+    border-radius: 8px;
+    border: 1px solid #eaeaea;
+    padding: 30px;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+}
+
+.loginForm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.submitButton {
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    background-color: #5629c6;
+    border-radius: 8px;
+    height: 40px;
+    color: white;
+    margin: 8px 0px 8px 0px;
+}
+
+.loginTitleWrapper {
+    width: 100%;
+}
+
+.loginInput {
+    height: 40px;
+    width: 100%;
+    margin: 8px 0px 8px 0px;
+    border-radius: 8px;
+    outline: none;
+    border: none;
+    background-color: #f4f4f4;
+    font-weight: 300;
+    font-size: 15px;
+    padding: 15px;
+}
+
+.loginStateSwitcher {
+    color: #5629c6;
+    cursor: pointer;
+}
+
+loginInput::placeholder {
+    /* Chrome, Firefox, Opera, Safari 10.1+ */
+    color: #9a9a9a;
+}
+
+loginInput:-ms-input-placeholder {
+    /* Internet Explorer 10-11 */
+    color: #9a9a9a;
+}
+
+loginInput::-ms-input-placeholder {
+    /* Microsoft Edge */
+    color: #9a9a9a;
+}
+
+.loginTitle {
+    font-size: 23px;
+    font-weight: 400;
+}
+
+.loginSubTitle {
+    font-size: 14px;
+    font-weight: 300;
+    margin-bottom: 20px;
+}
+
+.loginPage {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100%;
+}
+
+.otherSigninText {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9a9a9a;
+    margin: 10px;
+}
+
+.googleButton {
+    width: 100%;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    height: 40px;
+    color: black;
+    margin: 8px 0px 8px 0px;
+    background-color: white;
+    border: 1px solid #c2c2c2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.googleLogoStyle {
+    height: 20px;
+    width: 20px;
+}
+
+.googleText {
+    margin-left: 10px;
+}
+
+.errorMessage {
+    color: red;
+}
