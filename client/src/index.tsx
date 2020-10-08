@@ -1,4 +1,5 @@
 import { record } from 'rrweb';
+import { recordNodes, rebuild } from 'rrweb-snapshot';
 import { detect } from 'detect-browser';
 import {
   InMemoryCache,
