@@ -146,30 +146,29 @@ Session Data:
     record({
       emit,
     });
-    // overwrite xhr send.
+
     const highlightThis = this;
-    let oldXHRSend = window.XMLHttpRequest.prototype.send;
-    window.XMLHttpRequest.prototype.send = function (
-      body?: Document | BodyInit | null
-    ) {
-      const obj = JSON.parse(body?.toString() ?? '');
-      if (obj.type === 'track') {
-        const properties: { [key: string]: string } = {};
-        properties['segment-event'] = obj.event;
-        highlightThis.logger.log(
-          `Adding (${JSON.stringify(properties)}) @ ${
-            process.env.BACKEND_URI
-          }, org: ${highlightThis.organizationID}`
-        );
-        addCustomEvent<HighlightCustomEvent>('segment-event', {
-          name: 'segment-event',
-          value: obj.event,
-          properties: obj.properties,
-        });
-        highlightThis.addProperties(properties);
-      }
-      // @ts-ignore
-      return oldXHRSend.apply(this, arguments);
+    var send = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.send = function (data) {
+      setTimeout(() => {
+        const obj = JSON.parse(data?.toString() ?? '');
+        if (obj.type === 'track') {
+          const properties: { [key: string]: string } = {};
+          properties['segment-event'] = obj.event;
+          highlightThis.logger.log(
+            `Adding (${JSON.stringify(properties)}) @ ${
+              process.env.BACKEND_URI
+            }, org: ${highlightThis.organizationID}`
+          );
+          addCustomEvent<HighlightCustomEvent>('segment-event', {
+            name: 'segment-event',
+            value: obj.event,
+            properties: obj.properties,
+          });
+          highlightThis.addProperties(properties);
+        }
+      }, 100);
+      send.call(this, data);
     };
     this.ready = true;
   }

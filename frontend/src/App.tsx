@@ -7,7 +7,7 @@ import { Spinner } from './components/Spinner/Spinner';
 import { Player } from './pages/Player/PlayerPage';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { SessionsPage } from './pages/Sessions/SessionsPage';
-import { firebaseInit } from './util/auth';
+import { auth, googleProvider } from './util/auth';
 import { ReactComponent as HighlightLogo } from './static/highlight-logo.svg';
 import { ReactComponent as GoogleLogo } from './static/google.svg';
 import { FaUserCircle } from 'react-icons/fa';
@@ -23,10 +23,7 @@ import {
     Redirect,
     Link,
 } from 'react-router-dom';
-import * as firebase from 'firebase/app';
 import { Dropdown, Skeleton } from 'antd';
-
-const provider = firebaseInit();
 
 const App = () => {
     const { loading: o_loading, error: o_error, data: o_data } = useQuery(gql`
@@ -115,36 +112,29 @@ export const AuthAppRouter = () => {
         Inputs
     >();
     const [signIn, setSignIn] = useState<boolean>(true);
-    const [firebaseError, setFirebaseError] = useState(undefined);
-    const [user, loading, error] = useAuthState(firebase.auth());
-    const googleLogin = async (e: React.MouseEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        await firebase
-            .auth()
-            .signInWithRedirect(provider)
-            .catch((e) => setFirebaseError(e));
-    };
+    const [firebaseError, setFirebaseError] = useState('');
+    const [user, loading, error] = useAuthState(auth);
+
     const onSubmit = (data: Inputs) => {
         if (signIn) {
-            firebase
-                .auth()
-                .signInWithEmailAndPassword(data.email, data.password)
-                .catch((error) => {
+            auth.signInWithEmailAndPassword(data.email, data.password).catch(
+                (error) => {
                     setError('password', {
                         type: 'manual',
                         message: error.toString(),
                     });
-                });
+                }
+            );
         } else {
-            firebase
-                .auth()
-                .createUserWithEmailAndPassword(data.email, data.password)
-                .catch((error) => {
-                    setError('password', {
-                        type: 'manual',
-                        message: error.toString(),
-                    });
+            auth.createUserWithEmailAndPassword(
+                data.email,
+                data.password
+            ).catch((error) => {
+                setError('password', {
+                    type: 'manual',
+                    message: error.toString(),
                 });
+            });
         }
     };
 
@@ -248,15 +238,20 @@ export const AuthAppRouter = () => {
                 <div className={styles.otherSigninText}>
                     or sign {signIn ? 'in' : 'up'} with
                 </div>
-                <div className={styles.googleButton} onClick={googleLogin}>
+                <div
+                    className={styles.googleButton}
+                    onClick={() => {
+                        auth.signInWithRedirect(googleProvider).catch((e) =>
+                            setFirebaseError(JSON.stringify(e))
+                        );
+                    }}
+                >
                     <GoogleLogo className={styles.googleLogoStyle} />
                     <span className={styles.googleText}>
                         Google Sign {signIn ? 'In' : 'Up'}
                     </span>
                 </div>
-                <div className={styles.errorMessage}>
-                    {JSON.stringify(firebaseError)}
-                </div>
+                <div className={styles.errorMessage}>{firebaseError}</div>
                 <div className={styles.errorMessage}>
                     {JSON.stringify(error)}
                 </div>
@@ -295,7 +290,7 @@ const Header = () => {
                             className={styles.dropdownLogout}
                             onClick={async () => {
                                 try {
-                                    firebase.auth().signOut();
+                                    auth.signOut();
                                 } catch (e) {
                                     console.log(e);
                                 }

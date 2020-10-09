@@ -34971,7 +34971,7 @@ window.Highlight = /** @class */ (function () {
     };
     Highlight.prototype.initialize = function (organizationID) {
         return __awaiter(this, void 0, void 0, function () {
-            var browser, response, data, details, gr, emit, highlightThis, oldXHRSend;
+            var browser, response, data, details, gr, emit, highlightThis, send;
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -35011,23 +35011,24 @@ window.Highlight = /** @class */ (function () {
                             emit: emit,
                         });
                         highlightThis = this;
-                        oldXHRSend = window.XMLHttpRequest.prototype.send;
-                        window.XMLHttpRequest.prototype.send = function (body) {
-                            var _a;
-                            var obj = JSON.parse((_a = body === null || body === void 0 ? void 0 : body.toString()) !== null && _a !== void 0 ? _a : '');
-                            if (obj.type === 'track') {
-                                var properties = {};
-                                properties['segment-event'] = obj.event;
-                                highlightThis.logger.log("Adding (" + JSON.stringify(properties) + ") @ " + "http://localhost:8082" + ", org: " + highlightThis.organizationID);
-                                Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('segment-event', {
-                                    name: 'segment-event',
-                                    value: obj.event,
-                                    properties: obj.properties,
-                                });
-                                highlightThis.addProperties(properties);
-                            }
-                            // @ts-ignore
-                            return oldXHRSend.apply(this, arguments);
+                        send = XMLHttpRequest.prototype.send;
+                        XMLHttpRequest.prototype.send = function (data) {
+                            setTimeout(function () {
+                                var _a;
+                                var obj = JSON.parse((_a = data === null || data === void 0 ? void 0 : data.toString()) !== null && _a !== void 0 ? _a : '');
+                                if (obj.type === 'track') {
+                                    var properties = {};
+                                    properties['segment-event'] = obj.event;
+                                    highlightThis.logger.log("Adding (" + JSON.stringify(properties) + ") @ " + "http://localhost:8082" + ", org: " + highlightThis.organizationID);
+                                    Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('segment-event', {
+                                        name: 'segment-event',
+                                        value: obj.event,
+                                        properties: obj.properties,
+                                    });
+                                    highlightThis.addProperties(properties);
+                                }
+                            }, 100);
+                            send.call(this, data);
                         };
                         this.ready = true;
                         return [2 /*return*/];
