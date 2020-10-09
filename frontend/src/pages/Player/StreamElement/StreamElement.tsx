@@ -6,6 +6,7 @@ import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
 import { ReactComponent as DownIcon } from '../../../static/down.svg';
 import { ReactComponent as UpIcon } from '../../../static/up.svg';
+import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
 import { HighlightEvent } from '../HighlightEvent';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { mouseInteractionData } from 'rrweb/typings/types';
@@ -51,6 +52,8 @@ export const StreamElement = ({
                         <DownIcon className={styles.downIcon} />
                     ) : details.title === 'Click' ? (
                         <PointerIcon className={styles.eventIcon} />
+                    ) : details.title === 'Segment' ? (
+                        <SegmentIcon className={styles.eventIcon} />
                     ) : (
                         <HoverIcon className={styles.eventIcon} />
                     )}
