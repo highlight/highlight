@@ -35018,7 +35018,7 @@ window.Highlight = /** @class */ (function () {
                             if (obj.type === 'track') {
                                 var properties = {};
                                 properties['segment-event'] = obj.event;
-                                console.log('adding');
+                                highlightThis.logger.log("Adding (" + JSON.stringify(properties) + ") @ " + "http://localhost:8082" + ", org: " + highlightThis.organizationID);
                                 Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('segment-event', {
                                     name: 'segment-event',
                                     value: obj.event,

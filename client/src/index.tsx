@@ -156,7 +156,11 @@ Session Data:
       if (obj.type === 'track') {
         const properties: { [key: string]: string } = {};
         properties['segment-event'] = obj.event;
-        console.log('adding');
+        highlightThis.logger.log(
+          `Adding (${JSON.stringify(properties)}) @ ${
+            process.env.BACKEND_URI
+          }, org: ${highlightThis.organizationID}`
+        );
         addCustomEvent<HighlightCustomEvent>('segment-event', {
           name: 'segment-event',
           value: obj.event,
