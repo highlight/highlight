@@ -45,6 +45,7 @@ export const Toolbar = ({
                 onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                     const ratio = e.clientX / wrapperWidth;
                     setCurrent(ratio * max);
+                    setPaused(true);
                     onSelect(ratio * max);
                 }}
             >

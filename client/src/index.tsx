@@ -8,12 +8,6 @@ import {
 } from '@apollo/client/core';
 import { eventWithTime } from 'rrweb/typings/types';
 
-type HighlightCustomEvent = {
-  name: string;
-  value: string;
-  properties: any;
-};
-
 class Logger {
   debug: boolean;
   constructor(debug: boolean) {
@@ -160,16 +154,22 @@ Session Data:
               process.env.BACKEND_URI
             }, org: ${highlightThis.organizationID}`
           );
-          addCustomEvent<HighlightCustomEvent>('segment-event', {
-            name: 'segment-event',
-            value: obj.event,
-            properties: obj.properties,
-          });
+          addCustomEvent<string>(
+            'Segment',
+            JSON.stringify({
+              event: obj.event,
+              properties: obj.properties,
+            })
+          );
           highlightThis.addProperties(properties);
         }
       }, 100);
       send.call(this, data);
     };
+    if (document.referrer) {
+      addCustomEvent<string>('Referrer', document.referrer);
+    }
+    initUrlListeners((url: string) => addCustomEvent<string>('Navigate', url));
     this.ready = true;
   }
 
@@ -195,4 +195,34 @@ Session Data:
       },
     });
   }
+};
+
+// taken from: https://stackoverflow.com/questions/6390341/how-to-detect-if-url-has-changed-after-hash-in-javascript/52809105#52809105
+const initUrlListeners = (callback: (url: string) => void) => {
+  callback(window.location.href);
+  history.pushState = ((f) =>
+    function pushState() {
+      // @ts-ignore
+      var ret = f.apply(this, arguments);
+      window.dispatchEvent(new Event('pushstate'));
+      window.dispatchEvent(new Event('locationchange'));
+      return ret;
+    })(history.pushState);
+
+  history.replaceState = ((f) =>
+    function replaceState() {
+      // @ts-ignore
+      var ret = f.apply(this, arguments);
+      window.dispatchEvent(new Event('replacestate'));
+      window.dispatchEvent(new Event('locationchange'));
+      return ret;
+    })(history.replaceState);
+
+  window.addEventListener('popstate', () => {
+    window.dispatchEvent(new Event('locationchange'));
+  });
+
+  window.addEventListener('locationchange', function () {
+    callback(window.location.href);
+  });
 };

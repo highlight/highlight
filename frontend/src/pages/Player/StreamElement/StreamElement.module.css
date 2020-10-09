@@ -44,18 +44,17 @@
     height: 20px;
 }
 
-.downIcon {
+.directionIcon {
     width: 20px;
     height: 20px;
 }
 
-.upIcon {
+.defaultIcon {
     width: 20px;
     height: 20px;
-    margin-bottom: 9px;
 }
 
-.eventIcon {
+.tiltedIcon {
     transform: rotate(-20deg);
     width: 20px;
     height: 20px;
