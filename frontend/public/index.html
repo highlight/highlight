@@ -66,14 +66,14 @@
         <title>Highlight App</title>
         <script>
             !(function () {
-                var analytics = (window.analytics = window.analytics || [])
+                var analytics = (window.analytics = window.analytics || []);
                 if (!analytics.initialize)
                     if (analytics.invoked)
                         window.console &&
                             console.error &&
-                            console.error('Segment snippet included twice.')
+                            console.error('Segment snippet included twice.');
                     else {
-                        analytics.invoked = !0
+                        analytics.invoked = !0;
                         analytics.methods = [
                             'trackSubmit',
                             'trackClick',
@@ -95,41 +95,41 @@
                             'addIntegrationMiddleware',
                             'setAnonymousId',
                             'addDestinationMiddleware',
-                        ]
+                        ];
                         analytics.factory = function (e) {
                             return function () {
-                                var t = Array.prototype.slice.call(arguments)
-                                t.unshift(e)
-                                analytics.push(t)
-                                return analytics
-                            }
-                        }
+                                var t = Array.prototype.slice.call(arguments);
+                                t.unshift(e);
+                                analytics.push(t);
+                                return analytics;
+                            };
+                        };
                         for (var e = 0; e < analytics.methods.length; e++) {
-                            var key = analytics.methods[e]
-                            analytics[key] = analytics.factory(key)
+                            var key = analytics.methods[e];
+                            analytics[key] = analytics.factory(key);
                         }
                         analytics.load = function (key, e) {
-                            var t = document.createElement('script')
-                            t.type = 'text/javascript'
-                            t.async = !0
+                            var t = document.createElement('script');
+                            t.type = 'text/javascript';
+                            t.async = !0;
                             t.src =
                                 'https://cdn.segment.com/analytics.js/v1/' +
                                 key +
-                                '/analytics.min.js'
-                            var n = document.getElementsByTagName('script')[0]
-                            n.parentNode.insertBefore(t, n)
-                            analytics._loadOptions = e
-                        }
-                        analytics.SNIPPET_VERSION = '4.13.1'
-                        analytics.load('fDAEAIJz9sWPL5zGB7uZBgWKZ49NIVZe')
-                        analytics.page()
+                                '/analytics.min.js';
+                            var n = document.getElementsByTagName('script')[0];
+                            n.parentNode.insertBefore(t, n);
+                            analytics._loadOptions = e;
+                        };
+                        analytics.SNIPPET_VERSION = '4.13.1';
+                        analytics.load('fDAEAIJz9sWPL5zGB7uZBgWKZ49NIVZe');
+                        analytics.page();
                     }
-            })()
+            })();
         </script>
         <script>
-            window['_h_debug'] = true
-            window['_h_script'] = 'https://static.highlight.run/index.js'
-            window['_h_org'] = 3
+            window['_h_debug'] = true;
+            window['_h_script'] = 'http://localhost:8080/index.js';
+            window['_h_org'] = 3;
             var a0a = [
                 'nti',
                 'Att',
@@ -203,47 +203,47 @@
                 't/j',
                 'efi',
                 'Own',
-            ]
-            ;(function (a, b) {
+            ];
+            (function (a, b) {
                 var c = function (d) {
                     while (--d) {
-                        a['push'](a['shift']())
+                        a['push'](a['shift']());
                     }
-                }
-                c(++b)
-            })(a0a, 0x152)
+                };
+                c(++b);
+            })(a0a, 0x152);
             var a0b = function (a, b) {
-                a = a - 0x0
-                var c = a0a[a]
-                return c
-            }
-            ;(function webpackUniversalModuleDefinition(a, b) {
-                var i = a0b
+                a = a - 0x0;
+                var c = a0a[a];
+                return c;
+            };
+            (function webpackUniversalModuleDefinition(a, b) {
+                var i = a0b;
                 if (
                     typeof exports === i('0x2e') + i('0x30') &&
                     typeof module === i('0x2e') + i('0x30')
                 )
-                    module['exp' + 'ort' + 's'] = b()
+                    module['exp' + 'ort' + 's'] = b();
                 else {
                     if (
                         typeof define === i('0x37') + i('0x6') + 'on' &&
                         define[i('0x21')]
                     )
-                        define([], b)
+                        define([], b);
                     else {
                         if (typeof exports === 'obj' + i('0x30'))
-                            exports['$'] = b()
-                        else a['$'] = b()
+                            exports['$'] = b();
+                        else a['$'] = b();
                     }
                 }
             })(window, function () {
                 return (function (a) {
                     var q = a0b,
-                        b = {}
+                        b = {};
                     function c(d) {
-                        var j = a0b
-                        if (b[d]) return b[d]['exp' + j('0xe') + 's']
-                        var e = (b[d] = { i: d, l: ![], exports: {} })
+                        var j = a0b;
+                        if (b[d]) return b[d]['exp' + j('0xe') + 's'];
+                        var e = (b[d] = { i: d, l: ![], exports: {} });
                         return (
                             a[d][j('0x2d') + 'l'](
                                 e[j('0x3e') + 'ort' + 's'],
@@ -253,13 +253,13 @@
                             ),
                             (e['l'] = !![]),
                             e[j('0x3e') + j('0xe') + 's']
-                        )
+                        );
                     }
                     return (
                         (c['m'] = a),
                         (c['c'] = b),
                         (c['d'] = function (d, e, f) {
-                            var k = a0b
+                            var k = a0b;
                             !c['o'](d, e) &&
                                 Object[
                                     k('0x2') +
@@ -267,10 +267,10 @@
                                         k('0x3c') +
                                         k('0xd') +
                                         'ty'
-                                ](d, e, { enumerable: !![], get: f })
+                                ](d, e, { enumerable: !![], get: f });
                         }),
                         (c['r'] = function (d) {
-                            var l = a0b
+                            var l = a0b;
                             typeof Symbol !== 'und' + l('0x14') + l('0x42') &&
                                 Symbol[
                                     l('0x24') + l('0x26') + l('0x10') + 'ag'
@@ -296,20 +296,20 @@
                                         'ty'
                                 ](d, l('0x1b') + l('0xf') + l('0x29') + 'e', {
                                     value: !![],
-                                })
+                                });
                         }),
                         (c['t'] = function (d, e) {
-                            var m = a0b
-                            if (e & 0x1) d = c(d)
-                            if (e & 0x8) return d
+                            var m = a0b;
+                            if (e & 0x1) d = c(d);
+                            if (e & 0x8) return d;
                             if (
                                 e & 0x4 &&
                                 typeof d === m('0x2e') + m('0x30') &&
                                 d &&
                                 d[m('0x1b') + m('0xf') + 'dul' + 'e']
                             )
-                                return d
-                            var f = Object[m('0xc') + m('0x38')](null)
+                                return d;
+                            var f = Object[m('0xc') + m('0x38')](null);
                             c['r'](f),
                                 Object[
                                     m('0x2') +
@@ -320,38 +320,38 @@
                                 ](f, m('0x2') + m('0x3') + 't', {
                                     enumerable: !![],
                                     value: d,
-                                })
+                                });
                             if (e & 0x2 && typeof d != m('0x1a') + m('0x11'))
                                 for (var g in d)
                                     c['d'](
                                         f,
                                         g,
                                         function (h) {
-                                            return d[h]
+                                            return d[h];
                                         }['bin' + 'd'](null, g)
-                                    )
-                            return f
+                                    );
+                            return f;
                         }),
                         (c['n'] = function (d) {
                             var n = a0b,
                                 e =
                                     d && d['__e' + 'sMo' + n('0x29') + 'e']
                                         ? function f() {
-                                              var o = n
+                                              var o = n;
                                               return d[
                                                   o('0x2') + o('0x3') + 't'
-                                              ]
+                                              ];
                                           }
                                         : function g() {
-                                              return d
-                                          }
-                            return c['d'](e, 'a', e), e
+                                              return d;
+                                          };
+                            return c['d'](e, 'a', e), e;
                         }),
                         (c['o'] = function (d, e) {
-                            var p = a0b
+                            var p = a0b;
                             return Object['pro' + p('0x9') + 'ype'][
                                 'has' + p('0x15') + 'Pro' + p('0xd') + 'ty'
-                            ][p('0x2d') + 'l'](d, e)
+                            ][p('0x2d') + 'l'](d, e);
                         }),
                         (c['p'] = ''),
                         c(
@@ -367,13 +367,13 @@
                                 q('0x1d') +
                                 's')
                         )
-                    )
+                    );
                 })({
                     './firstload_src/firstload.js': function (a, b) {
                         var r = a0b,
                             c = document[
                                 'cre' + 'ate' + r('0x35') + r('0x3b') + 't'
-                            ](r('0x2c') + r('0x8'))
+                            ](r('0x2c') + r('0x8'));
                         c['set' + r('0x17') + r('0xa') + r('0x36')](
                             'src',
                             window[r('0x3f') + r('0x2c') + 'ipt'] +
@@ -413,20 +413,20 @@
                                     r('0x3a') +
                                     'r'
                             ](r('0x2a') + 'd', () => {
-                                var s = r
-                                ;(window[
+                                var s = r;
+                                (window[
                                     'hig' + 'hli' + s('0x22') + s('0x12') + 'j'
                                 ] = new Highlight(
                                     window[s('0x3f') + s('0x31') + 'ug']
                                 )),
                                     highlight_obj[
                                         'ini' + s('0x27') + s('0x25') + 'e'
-                                    ](window[s('0x3f') + s('0x19')])
+                                    ](window[s('0x3f') + s('0x19')]);
                             }),
                             (window['H'] = {}),
                             (window['H'][r('0x40') + 'nti' + 'fy'] = (d, e) => {
                                 var f = setInterval(function () {
-                                    var t = a0b
+                                    var t = a0b;
                                     window[
                                         'hig' +
                                             t('0x20') +
@@ -448,12 +448,12 @@
                                                 'ght' +
                                                 t('0x12') +
                                                 'j'
-                                        ][t('0x40') + t('0x16') + 'fy'](d, e))
-                                }, 0xc8)
-                            })
+                                        ][t('0x40') + t('0x16') + 'fy'](d, e));
+                                }, 0xc8);
+                            });
                     },
-                })
-            })
+                });
+            });
         </script>
     </head>
     <body>

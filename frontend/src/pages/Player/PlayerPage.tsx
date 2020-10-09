@@ -2,33 +2,24 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import {
     Replayer,
-    mirror,
     MouseInteractions,
     IncrementalSource,
     EventType,
 } from 'rrweb';
 
-import {
-    eventWithTime,
-    mouseInteractionData,
-    incrementalData,
-} from 'rrweb/typings/types';
+import { eventWithTime, incrementalData } from 'rrweb/typings/types';
 
-import { elementNode } from 'rrweb-snapshot';
-import { Element, scroller } from 'react-scroll';
+import { scroller } from 'react-scroll';
 import { Spinner } from '../../components/Spinner/Spinner';
-import { MillisToMinutesAndSeconds } from '../../util/time';
 import { useQuery, gql } from '@apollo/client';
-import { ReactComponent as PointerIcon } from '../../static/pointer-up.svg';
-import { ReactComponent as HoverIcon } from '../../static/hover.svg';
 import { Skeleton } from 'antd';
 import { Toolbar } from './Toolbar/Toolbar';
+import { StreamElement } from './StreamElement/StreamElement';
 import { MetadataBox } from './MetadataBox/MetadataBox';
+import { HighlightEvent } from './HighlightEvent';
 
 import styles from './PlayerPage.module.css';
 import 'rc-slider/assets/index.css';
-
-type HighlightEvent = eventWithTime & { identifier: string };
 
 export const Player = () => {
     const { session_id } = useParams();
@@ -157,13 +148,13 @@ const EventStream = ({
     time: number;
     replayer: Replayer | undefined;
 }) => {
-    const [currEvent, setCurrEvent] = useState(-1);
+    const [currEvent, setCurrEvent] = useState('');
     useEffect(() => {
         if (!replayer) return;
         replayer.on('event-cast', (e: any) => {
-            const event = e as eventWithTime;
+            const event = e as HighlightEvent;
             if (usefulEvent(event)) {
-                setCurrEvent(event.timestamp);
+                setCurrEvent(event.identifier);
                 scroller.scrollTo(
                     (event as HighlightEvent).identifier.toString(),
                     {
@@ -186,112 +177,29 @@ const EventStream = ({
                     replayer &&
                     events
                         .filter(usefulEvent)
-                        .map((e: HighlightEvent, i: number) => {
-                            const mouseInteraction = e.data as mouseInteractionData;
-                            let eventStr = '';
-                            switch (mouseInteraction.type) {
-                                case MouseInteractions.Click:
-                                    eventStr = 'Click';
-                                    break;
-                                case MouseInteractions.Focus:
-                                    eventStr = 'Focus';
-                                    break;
-                            }
-                            const node = mirror.map[mouseInteraction.id]
-                                ?.__sn as elementNode;
-                            var idString = node?.tagName;
-                            if (node?.attributes) {
-                                const attrs = node?.attributes;
-                                if (
-                                    'class' in attrs &&
-                                    attrs.class.toString()
-                                ) {
-                                    idString = idString.concat(
-                                        '.' + attrs.class
-                                    );
-                                }
-                                if ('id' in attrs && attrs.id.toString()) {
-                                    idString = idString.concat('#' + attrs.id);
-                                }
-                                Object.keys(attrs)
-                                    .filter(
-                                        (key) => !['class', 'id'].includes(key)
-                                    )
-                                    .forEach(
-                                        (key) =>
-                                            (idString +=
-                                                '[' +
-                                                key +
-                                                '=' +
-                                                attrs[key] +
-                                                ']')
-                                    );
-                            }
-
-                            let timeSinceStart =
-                                e?.timestamp -
-                                replayer?.getMetaData()?.startTime;
-                            return (
-                                <Element
-                                    name={e.identifier.toString()}
-                                    key={e.identifier.toString()}
-                                    className={styles.eventWrapper}
-                                >
-                                    <div
-                                        className={styles.streamElement}
-                                        style={{
-                                            backgroundColor:
-                                                currEvent === e.timestamp
-                                                    ? '#F2EDFF'
-                                                    : 'inherit',
-                                            color:
-                                                currEvent === e.timestamp
-                                                    ? 'black'
-                                                    : 'grey',
-                                            fill:
-                                                currEvent === e.timestamp
-                                                    ? 'black'
-                                                    : 'grey',
-                                        }}
-                                        key={i}
-                                        id={i.toString()}
-                                    >
-                                        <div className={styles.iconWrapper}>
-                                            {eventStr === 'Click' ? (
-                                                <PointerIcon
-                                                    className={styles.eventIcon}
-                                                />
-                                            ) : (
-                                                <HoverIcon
-                                                    className={styles.eventIcon}
-                                                />
-                                            )}
-                                        </div>
-                                        <div className={styles.eventText}>
-                                            &nbsp;{eventStr} &nbsp;&nbsp;
-                                        </div>
-                                        <div
-                                            className={styles.codeBlockWrapper}
-                                        >
-                                            {idString}
-                                        </div>
-                                        <div style={{ marginLeft: 'auto' }}>
-                                            {MillisToMinutesAndSeconds(
-                                                timeSinceStart
-                                            )}
-                                        </div>
-                                    </div>
-                                </Element>
-                            );
-                        })
+                        .map((e: HighlightEvent, i: number) => (
+                            <StreamElement
+                                e={e}
+                                key={i}
+                                start={replayer.getMetaData().startTime}
+                                isCurrent={e.identifier === currEvent}
+                            />
+                        ))
                 )}
             </div>
         </>
     );
 };
 
+type HighlightCustomEvent = {
+    name: string;
+    value: string;
+    properties: any;
+};
+
 // used in filter() type methods to fetch events we want
 const usefulEvent = (e: eventWithTime): boolean => {
+    if (e.type === EventType.Custom) return true;
     // If its not an 'incrementalSnapshot', discard.
     if ((e as eventWithTime).type !== EventType.IncrementalSnapshot)
         return false;

@@ -35018,6 +35018,12 @@ window.Highlight = /** @class */ (function () {
                             if (obj.type === 'track') {
                                 var properties = {};
                                 properties['segment-event'] = obj.event;
+                                console.log('adding');
+                                Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('segment-event', {
+                                    name: 'segment-event',
+                                    value: obj.event,
+                                    properties: obj.properties,
+                                });
                                 highlightThis.addProperties(properties);
                             }
                             // @ts-ignore

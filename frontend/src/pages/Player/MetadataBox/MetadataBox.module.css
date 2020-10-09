@@ -26,6 +26,13 @@
     padding-left: 25px;
 }
 
+.avatarWrapper {
+    height: 100%;
+    display: flex;
+    margin-right: 10px;
+    justify-content: center;
+}
+
 .headerWrapper {
     font-size: 16px;
     font-weight: 400;
