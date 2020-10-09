@@ -112,12 +112,8 @@ export const AuthAppRouter = () => {
         Inputs
     >();
     const [signIn, setSignIn] = useState<boolean>(true);
-    const [login, setGoogleLogin] = useState<boolean>(false);
-    const [firebaseError, setFirebaseError] = useState(undefined);
+    const [firebaseError, setFirebaseError] = useState('');
     const [user, loading, error] = useAuthState(auth);
-    if (login) {
-        return <Google />;
-    }
 
     const onSubmit = (data: Inputs) => {
         if (signIn) {
@@ -242,33 +238,26 @@ export const AuthAppRouter = () => {
                 <div className={styles.otherSigninText}>
                     or sign {signIn ? 'in' : 'up'} with
                 </div>
-                <button
+                <div
                     className={styles.googleButton}
                     onClick={() => {
-                        auth.signInWithRedirect(googleProvider);
+                        auth.signInWithRedirect(googleProvider).catch((e) =>
+                            setFirebaseError(JSON.stringify(e))
+                        );
                     }}
                 >
                     <GoogleLogo className={styles.googleLogoStyle} />
                     <span className={styles.googleText}>
                         Google Sign {signIn ? 'In' : 'Up'}
                     </span>
-                </button>
-                <div className={styles.errorMessage}>
-                    {JSON.stringify(firebaseError)}
                 </div>
+                <div className={styles.errorMessage}>{firebaseError}</div>
                 <div className={styles.errorMessage}>
                     {JSON.stringify(error)}
                 </div>
             </div>
         </div>
     );
-};
-
-const Google = () => {
-    useEffect(() => {
-        auth.signInWithRedirect(googleProvider);
-    }, []);
-    return <p>hello</p>;
 };
 
 const Header = () => {
