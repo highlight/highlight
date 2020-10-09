@@ -74,7 +74,6 @@ export const FieldOptions = ({
                     return (
                         <div
                             onClick={() => {
-                                console.log(f);
                                 onSelect(f?.original);
                             }}
                             className={styles.optionsRow}
