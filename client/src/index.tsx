@@ -1,4 +1,4 @@
-import { record } from 'rrweb';
+import { EventType, addCustomEvent, record } from 'rrweb';
 import { detect } from 'detect-browser';
 import {
   InMemoryCache,
@@ -7,6 +7,12 @@ import {
   NormalizedCacheObject,
 } from '@apollo/client/core';
 import { eventWithTime } from 'rrweb/typings/types';
+
+type HighlightCustomEvent = {
+  name: string;
+  value: string;
+  properties: any;
+};
 
 class Logger {
   debug: boolean;
@@ -150,6 +156,16 @@ Session Data:
       if (obj.type === 'track') {
         const properties: { [key: string]: string } = {};
         properties['segment-event'] = obj.event;
+        highlightThis.logger.log(
+          `Adding (${JSON.stringify(properties)}) @ ${
+            process.env.BACKEND_URI
+          }, org: ${highlightThis.organizationID}`
+        );
+        addCustomEvent<HighlightCustomEvent>('segment-event', {
+          name: 'segment-event',
+          value: obj.event,
+          properties: obj.properties,
+        });
         highlightThis.addProperties(properties);
       }
       // @ts-ignore

@@ -321,7 +321,10 @@ const Header = () => {
             <div className={styles.rightHeader}>
                 <Link
                     onClick={() => {
-                        window.analytics.track('Sessions Click', {});
+                        window.analytics.track('Sessions Click', {
+                            foo: 'bar',
+                            bar: 'foo',
+                        });
                     }}
                     to={`/${organization_id}/sessions`}
                     className={styles.headerLink}
@@ -330,7 +333,10 @@ const Header = () => {
                 </Link>
                 <Link
                     onClick={() => {
-                        window.analytics.track('Setup Click', {});
+                        window.analytics.track('Setup Click', {
+                            foo: 'bar',
+                            bar: 'foo',
+                        });
                     }}
                     to={`/${organization_id}/setup`}
                     className={styles.headerLink}
@@ -342,7 +348,10 @@ const Header = () => {
                     placement={'bottomRight'}
                     arrow
                     onVisibleChange={() => {
-                        window.analytics.track('User Icon Hover', {});
+                        window.analytics.track('User Icon Hover', {
+                            foo: 'bar',
+                            bar: 'foo',
+                        });
                     }}
                 >
                     <div className={styles.accountIconWrapper}>

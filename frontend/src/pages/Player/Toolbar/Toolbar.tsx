@@ -88,11 +88,11 @@ export const Toolbar = ({
                             const newTime =
                                 current - 7000 < 0 ? 0 : current - 7000;
                             if (paused) {
+                                setCurrent(newTime);
                                 replayer?.pause(newTime);
-                                setCurrent(newTime);
                             } else {
-                                replayer?.play(newTime);
                                 setCurrent(newTime);
+                                replayer?.play(newTime);
                             }
                         }}
                     >
