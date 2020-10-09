@@ -125,7 +125,6 @@ export const Player = () => {
                 <Toolbar
                     replayer={replayer}
                     onSelect={(newTime: number) => {
-                        console.log(newTime);
                         replayer?.pause(newTime);
                         setTime(newTime);
                     }}
