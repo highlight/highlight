@@ -88,7 +88,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 			query = query.Where("created_at > ?", time.Now().Add(-d))
 		default:
 			// TODO: this is a hacky solution because I don't know SQL well.
-			// For every text filter, we create a new list of sessions, and they
+			// For every text filter, we create a new list of sessions, and then do a join.
 			if p.Type != "text" {
 				continue
 			}
@@ -112,7 +112,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 			sessionIDsToJoin = append(sessionIDsToJoin, sessionIdMap)
 		}
 	}
-	res := query.Limit(count).Find(&sessions)
+	res := query.Find(&sessions)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "no sessions found")
 	}
@@ -120,13 +120,13 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	// and then a join with the results from the queries.
 	if numFilters := len(sessionIDsToJoin); numFilters > 0 {
 		countMap := make(map[int]int)
-		wantedSessionIds := make(map[int]bool)
 		for i := range sessionIDsToJoin {
 			resultMap := sessionIDsToJoin[i]
 			for k := range resultMap {
 				countMap[k] += 1
 			}
 		}
+		wantedSessionIds := make(map[int]bool)
 		for k, v := range countMap {
 			if v == numFilters {
 				wantedSessionIds[k] = true
@@ -138,9 +138,15 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 				filteredSessions = append(filteredSessions, sessions[i])
 			}
 		}
-		return filteredSessions, nil
+		if len(filteredSessions) < count {
+			count = len(filteredSessions)
+		}
+		return filteredSessions[:count], nil
 	}
-	return sessions, nil
+	if len(sessions) < count {
+		count = len(sessions)
+	}
+	return sessions[:count], nil
 }
 
 func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*string, error) {
