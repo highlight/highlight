@@ -35020,16 +35020,19 @@ window.Highlight = /** @class */ (function () {
                                     var properties = {};
                                     properties['segment-event'] = obj.event;
                                     highlightThis.logger.log("Adding (" + JSON.stringify(properties) + ") @ " + "http://localhost:8082" + ", org: " + highlightThis.organizationID);
-                                    Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('segment-event', {
-                                        name: 'segment-event',
-                                        value: obj.event,
+                                    Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('Segment', JSON.stringify({
+                                        event: obj.event,
                                         properties: obj.properties,
-                                    });
+                                    }));
                                     highlightThis.addProperties(properties);
                                 }
                             }, 100);
                             send.call(this, data);
                         };
+                        if (document.referrer) {
+                            Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('Referrer', document.referrer);
+                        }
+                        initUrlListeners(function (url) { return Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('Navigate', url); });
                         this.ready = true;
                         return [2 /*return*/];
                 }
@@ -35065,6 +35068,34 @@ window.Highlight = /** @class */ (function () {
     };
     return Highlight;
 }());
+// taken from: https://stackoverflow.com/questions/6390341/how-to-detect-if-url-has-changed-after-hash-in-javascript/52809105#52809105
+var initUrlListeners = function (callback) {
+    callback(window.location.href);
+    history.pushState = (function (f) {
+        return function pushState() {
+            // @ts-ignore
+            var ret = f.apply(this, arguments);
+            window.dispatchEvent(new Event('pushstate'));
+            window.dispatchEvent(new Event('locationchange'));
+            return ret;
+        };
+    })(history.pushState);
+    history.replaceState = (function (f) {
+        return function replaceState() {
+            // @ts-ignore
+            var ret = f.apply(this, arguments);
+            window.dispatchEvent(new Event('replacestate'));
+            window.dispatchEvent(new Event('locationchange'));
+            return ret;
+        };
+    })(history.replaceState);
+    window.addEventListener('popstate', function () {
+        window.dispatchEvent(new Event('locationchange'));
+    });
+    window.addEventListener('locationchange', function () {
+        callback(window.location.href);
+    });
+};
 var templateObject_1, templateObject_2, templateObject_3, templateObject_4;
 
 

@@ -7,6 +7,8 @@ import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
 import { ReactComponent as DownIcon } from '../../../static/down.svg';
 import { ReactComponent as UpIcon } from '../../../static/up.svg';
 import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
+import { ReactComponent as NavigateIcon } from '../../../static/navigate.svg';
+import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
 import { HighlightEvent } from '../HighlightEvent';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { mouseInteractionData } from 'rrweb/typings/types';
@@ -47,15 +49,19 @@ export const StreamElement = ({
             >
                 <div className={styles.iconWrapper}>
                     {selected ? (
-                        <UpIcon className={styles.upIcon} />
+                        <UpIcon className={styles.directionIcon} />
                     ) : hover ? (
-                        <DownIcon className={styles.downIcon} />
+                        <DownIcon className={styles.directionIcon} />
                     ) : details.title === 'Click' ? (
-                        <PointerIcon className={styles.eventIcon} />
+                        <PointerIcon className={styles.tiltedIcon} />
                     ) : details.title === 'Segment' ? (
-                        <SegmentIcon className={styles.eventIcon} />
+                        <SegmentIcon className={styles.defaultIcon} />
+                    ) : details.title === 'Navigate' ? (
+                        <NavigateIcon className={styles.defaultIcon} />
+                    ) : details.title === 'Referrer' ? (
+                        <ReferrerIcon className={styles.defaultIcon} />
                     ) : (
-                        <HoverIcon className={styles.eventIcon} />
+                        <HoverIcon className={styles.tiltedIcon} />
                     )}
                 </div>
                 <div
@@ -65,9 +71,7 @@ export const StreamElement = ({
                             : styles.eventContent
                     }
                 >
-                    <div className={styles.eventText}>
-                        &nbsp;{details.title} &nbsp;&nbsp;
-                    </div>
+                    <div className={styles.eventText}>{details.title}</div>
                     <div
                         className={
                             selected
@@ -94,9 +98,9 @@ type EventRenderDetails = {
 const getEventRenderDetails = (e: HighlightEvent): EventRenderDetails => {
     var details: EventRenderDetails = {};
     if (e.type === EventType.Custom) {
-        details.title = 'Segment';
+        details.title = e.data.tag;
         const payload: any = e.data.payload;
-        details.payload = JSON.stringify(payload.properties);
+        details.payload = payload;
     } else if (e.type === EventType.IncrementalSnapshot) {
         const mouseInteraction = e.data as mouseInteractionData;
         let eventStr = '';
