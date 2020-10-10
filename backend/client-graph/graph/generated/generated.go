@@ -42,7 +42,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		AddEvents         func(childComplexity int, sessionID int, events string) int
+		AddEvents         func(childComplexity int, sessionID int, events string, messages string) int
 		AddProperties     func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		IdentifySession   func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
 		InitializeSession func(childComplexity int, organizationID int, details string) int
@@ -63,7 +63,7 @@ type MutationResolver interface {
 	InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error)
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
 	AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
-	AddEvents(ctx context.Context, sessionID int, events string) (*int, error)
+	AddEvents(ctx context.Context, sessionID int, events string, messages string) (*int, error)
 }
 
 type executableSchema struct {
@@ -91,7 +91,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddEvents(childComplexity, args["session_id"].(int), args["events"].(string)), true
+		return e.complexity.Mutation.AddEvents(childComplexity, args["session_id"].(int), args["events"].(string), args["messages"].(string)), true
 
 	case "Mutation.addProperties":
 		if e.complexity.Mutation.AddProperties == nil {
@@ -234,9 +234,13 @@ type Session {
 
 type Mutation {
   initializeSession(organization_id: ID!, details: String!): Session
-  identifySession(session_id: ID!, user_identifier: String!, user_object: Any): ID
+  identifySession(
+    session_id: ID!
+    user_identifier: String!
+    user_object: Any
+  ): ID
   addProperties(session_id: ID!, properties_object: Any): ID
-  addEvents(session_id: ID!, events: String!): ID
+  addEvents(session_id: ID!, events: String!, messages: String!): ID
 }
 `, BuiltIn: false},
 }
@@ -267,6 +271,15 @@ func (ec *executionContext) field_Mutation_addEvents_args(ctx context.Context, r
 		}
 	}
 	args["events"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["messages"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("messages"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["messages"] = arg2
 	return args, nil
 }
 
@@ -542,7 +555,7 @@ func (ec *executionContext) _Mutation_addEvents(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddEvents(rctx, args["session_id"].(int), args["events"].(string))
+		return ec.resolvers.Mutation().AddEvents(rctx, args["session_id"].(int), args["events"].(string), args["messages"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

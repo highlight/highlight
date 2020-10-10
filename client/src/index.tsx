@@ -23,7 +23,8 @@ class Logger {
 (window as any).Highlight = class Highlight {
   organizationID: number;
   client: ApolloClient<NormalizedCacheObject>;
-  events: any[];
+  events: eventWithTime[];
+  messages: ConsoleMessage[];
   sessionID: number;
   ready: boolean;
   logger: Logger;
@@ -40,6 +41,7 @@ class Logger {
     this.organizationID = 0;
     this.sessionID = 0;
     this.events = [];
+    this.messages = [];
   }
 
   async identify(user_identifier: string, user_object = {}) {
@@ -174,6 +176,7 @@ Session Data:
       addCustomEvent<string>('Navigate', url);
       highlightThis.addProperties({ 'visited-url': url });
     });
+    initConsoleListeners((c: ConsoleMessage) => highlightThis.messages.push(c));
     this.ready = true;
   }
 
@@ -182,20 +185,32 @@ Session Data:
     if (!this.sessionID) {
       return;
     }
+
+    const messagesString = JSON.stringify({ messages: this.messages });
     const eventsString = JSON.stringify({ events: this.events });
     this.logger.log(
-      `Send (${this.events.length}) @ ${process.env.BACKEND_URI}, org: ${this.organizationID}`
+      `Sending (${this.events.length}) events, (${this.messages.length}) messages @ ${process.env.BACKEND_URI}, org: ${this.organizationID}`
     );
     this.events = [];
+    this.messages = [];
     await this.client.mutate({
       mutation: gql`
-        mutation AddEvents($session_id: ID!, $events: String!) {
-          addEvents(session_id: $session_id, events: $events)
+        mutation AddEvents(
+          $session_id: ID!
+          $events: String!
+          $messages: String!
+        ) {
+          addEvents(
+            session_id: $session_id
+            events: $events
+            messages: $messages
+          )
         }
       `,
       variables: {
         session_id: this.sessionID,
         events: eventsString,
+        messages: messagesString,
       },
     });
   }
@@ -229,4 +244,66 @@ const initUrlListeners = (callback: (url: string) => void) => {
   window.addEventListener('locationchange', function () {
     callback(window.location.href);
   });
+};
+
+declare global {
+  interface Console {
+    defaultLog: any;
+    defaultError: any;
+    defaultWarn: any;
+    defaultDebug: any;
+  }
+}
+
+type ConsoleMessage = {
+  value: IArguments;
+  time: number;
+  type: ConsoleType;
+};
+
+enum ConsoleType {
+  Log,
+  Debug,
+  Error,
+  Warn,
+}
+
+// taken from: https://stackoverflow.com/questions/19846078/how-to-read-from-chromes-console-in-javascript
+const initConsoleListeners = (callback: (c: ConsoleMessage) => void) => {
+  console.defaultLog = console.log.bind(console);
+  console.log = function () {
+    callback({
+      type: ConsoleType.Log,
+      time: Date.now(),
+      value: arguments,
+    });
+    console.defaultLog.apply(console, arguments);
+  };
+  console.defaultError = console.error.bind(console);
+  console.error = function () {
+    callback({
+      type: ConsoleType.Error,
+      time: Date.now(),
+      value: arguments,
+    });
+    console.defaultError.apply(console, arguments);
+  };
+  console.defaultWarn = console.warn.bind(console);
+  console.warn = function () {
+    callback({
+      type: ConsoleType.Warn,
+      time: Date.now(),
+      value: arguments,
+    });
+    console.defaultWarn.apply(console, arguments);
+  };
+  console.defaultDebug = console.debug.bind(console);
+  console.debug = function () {
+    callback({
+      type: ConsoleType.Debug,
+      time: Date.now(),
+      value: arguments,
+    });
+    console.defaultDebug.apply(console, arguments);
+  };
 };

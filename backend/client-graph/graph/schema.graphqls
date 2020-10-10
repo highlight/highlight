@@ -17,5 +17,5 @@ type Mutation {
     user_object: Any
   ): ID
   addProperties(session_id: ID!, properties_object: Any): ID
-  addEvents(session_id: ID!, events: String!): ID
+  addEvents(session_id: ID!, events: String!, messages: String!): ID
 }

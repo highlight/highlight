@@ -34927,6 +34927,7 @@ window.Highlight = /** @class */ (function () {
         this.organizationID = 0;
         this.sessionID = 0;
         this.events = [];
+        this.messages = [];
     }
     Highlight.prototype.identify = function (user_identifier, user_object) {
         if (user_object === void 0) { user_object = {}; }
@@ -35037,6 +35038,7 @@ window.Highlight = /** @class */ (function () {
                             Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('Navigate', url);
                             highlightThis.addProperties({ 'visited-url': url });
                         });
+                        initConsoleListeners(function (c) { return highlightThis.messages.push(c); });
                         this.ready = true;
                         return [2 /*return*/];
                 }
@@ -35046,21 +35048,24 @@ window.Highlight = /** @class */ (function () {
     // Reset the events array and push to a backend.
     Highlight.prototype._save = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var eventsString;
+            var messagesString, eventsString;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (!this.sessionID) {
                             return [2 /*return*/];
                         }
+                        messagesString = JSON.stringify({ messages: this.messages });
                         eventsString = JSON.stringify({ events: this.events });
-                        this.logger.log("Send (" + this.events.length + ") @ " + "http://localhost:8082" + ", org: " + this.organizationID);
+                        this.logger.log("Sending (" + this.events.length + ") events, (" + this.messages.length + ") messages @ " + "http://localhost:8082" + ", org: " + this.organizationID);
                         this.events = [];
+                        this.messages = [];
                         return [4 /*yield*/, this.client.mutate({
-                                mutation: Object(_apollo_client_core__WEBPACK_IMPORTED_MODULE_2__["gql"])(templateObject_4 || (templateObject_4 = __makeTemplateObject(["\n        mutation AddEvents($session_id: ID!, $events: String!) {\n          addEvents(session_id: $session_id, events: $events)\n        }\n      "], ["\n        mutation AddEvents($session_id: ID!, $events: String!) {\n          addEvents(session_id: $session_id, events: $events)\n        }\n      "]))),
+                                mutation: Object(_apollo_client_core__WEBPACK_IMPORTED_MODULE_2__["gql"])(templateObject_4 || (templateObject_4 = __makeTemplateObject(["\n        mutation AddEvents(\n          $session_id: ID!\n          $events: String!\n          $messages: String!\n        ) {\n          addEvents(\n            session_id: $session_id\n            events: $events\n            messages: $messages\n          )\n        }\n      "], ["\n        mutation AddEvents(\n          $session_id: ID!\n          $events: String!\n          $messages: String!\n        ) {\n          addEvents(\n            session_id: $session_id\n            events: $events\n            messages: $messages\n          )\n        }\n      "]))),
                                 variables: {
                                     session_id: this.sessionID,
                                     events: eventsString,
+                                    messages: messagesString,
                                 },
                             })];
                     case 1:
@@ -35099,6 +35104,52 @@ var initUrlListeners = function (callback) {
     window.addEventListener('locationchange', function () {
         callback(window.location.href);
     });
+};
+var ConsoleType;
+(function (ConsoleType) {
+    ConsoleType[ConsoleType["Log"] = 0] = "Log";
+    ConsoleType[ConsoleType["Debug"] = 1] = "Debug";
+    ConsoleType[ConsoleType["Error"] = 2] = "Error";
+    ConsoleType[ConsoleType["Warn"] = 3] = "Warn";
+})(ConsoleType || (ConsoleType = {}));
+// taken from: https://stackoverflow.com/questions/19846078/how-to-read-from-chromes-console-in-javascript
+var initConsoleListeners = function (callback) {
+    console.defaultLog = console.log.bind(console);
+    console.log = function () {
+        callback({
+            type: ConsoleType.Log,
+            time: Date.now(),
+            value: arguments,
+        });
+        console.defaultLog.apply(console, arguments);
+    };
+    console.defaultError = console.error.bind(console);
+    console.error = function () {
+        callback({
+            type: ConsoleType.Error,
+            time: Date.now(),
+            value: arguments,
+        });
+        console.defaultError.apply(console, arguments);
+    };
+    console.defaultWarn = console.warn.bind(console);
+    console.warn = function () {
+        callback({
+            type: ConsoleType.Warn,
+            time: Date.now(),
+            value: arguments,
+        });
+        console.defaultWarn.apply(console, arguments);
+    };
+    console.defaultDebug = console.debug.bind(console);
+    console.debug = function () {
+        callback({
+            type: ConsoleType.Debug,
+            time: Date.now(),
+            value: arguments,
+        });
+        console.defaultDebug.apply(console, arguments);
+    };
 };
 var templateObject_1, templateObject_2, templateObject_3, templateObject_4;
 

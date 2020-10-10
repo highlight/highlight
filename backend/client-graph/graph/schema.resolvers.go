@@ -82,7 +82,7 @@ func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, pro
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events string) (*int, error) {
+func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events string, messages string) (*int, error) {
 	eventsParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
 		return nil, fmt.Errorf("error decoding event data: %v", err)
@@ -91,6 +91,16 @@ func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events 
 		obj := &model.EventsObject{SessionID: sessionID, Events: events}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
+		}
+	}
+	messagesParsed := make(map[string][]interface{})
+	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
+		return nil, fmt.Errorf("error decoding event data: %v", err)
+	}
+	if len(messagesParsed["messages"]) >= 0 {
+		obj := &model.MessagesObject{SessionID: sessionID, Messages: messages}
+		if err := r.DB.Create(obj).Error; err != nil {
+			return nil, e.Wrap(err, "error creating messages object")
 		}
 	}
 	now := float64(time.Now().UTC().Unix())
