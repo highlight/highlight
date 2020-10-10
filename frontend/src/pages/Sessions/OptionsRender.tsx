@@ -149,20 +149,25 @@ export const OptionsFilter = ({
     onSelect: (action: SearchParam) => void;
 }) => {
     const { organization_id } = useParams();
+    const isUserProperty = (property: fuzzy.FilterResult<SearchParam>) =>
+        !['referrer', 'segment-event', 'visited-url'].includes(
+            property.original.action
+        );
     const [results, setResults] = useState<fuzzy.FilterResult<SearchParam>[]>(
         []
     );
     const [customResults, setCustomResults] = useState<
         fuzzy.FilterResult<SearchParam>[]
     >([]);
+    const allResults = [
+        ...results,
+        ...customResults.filter((e) => !isUserProperty(e)),
+        ...customResults.filter(isUserProperty),
+    ];
     const index = useKeySelector(
         results.length + customResults.length,
         (i: number) => {
-            onSelect(
-                i < results.length
-                    ? results[i]?.original
-                    : customResults[i - results.length].original
-            );
+            onSelect(allResults[i].original);
         }
     );
     const { data } = useQuery<{ fields: Array<string> }>(
@@ -210,35 +215,79 @@ export const OptionsFilter = ({
     return (
         <div className={styles.optionsSection}>
             <div className={styles.dropdownSection}>
-                <div className={styles.dropdownTitle}>DURATION</div>
-                {results.map((f, i) => (
-                    <div
-                        key={i}
-                        className={styles.optionsRow}
-                        onClick={() => {
-                            onSelect(f?.original);
-                        }}
-                        style={{
-                            backgroundColor:
-                                i === index ? '#F2EEFB' : 'transparent',
-                        }}
-                    >
-                        <span
-                            className={styles.optionsKey}
-                            dangerouslySetInnerHTML={{ __html: f.string }}
-                        />
-                        : &nbsp;
-                        <span className={styles.optionsValue}>
-                            {f.original.description}
-                        </span>
-                    </div>
-                ))}
+                {results.length > 0 && (
+                    <>
+                        <div className={styles.dropdownTitle}>DURATION</div>
+                        {results.map((f, i) => (
+                            <div
+                                key={i}
+                                className={styles.optionsRow}
+                                onClick={() => {
+                                    onSelect(f?.original);
+                                }}
+                                style={{
+                                    backgroundColor:
+                                        allResults[index].original ===
+                                        f.original
+                                            ? '#F2EEFB'
+                                            : 'transparent',
+                                }}
+                            >
+                                <span
+                                    className={styles.optionsKey}
+                                    dangerouslySetInnerHTML={{
+                                        __html: f.string,
+                                    }}
+                                />
+                                : &nbsp;
+                                <span className={styles.optionsValue}>
+                                    {f.original.description}
+                                </span>
+                            </div>
+                        ))}
+                    </>
+                )}
             </div>
-            {customResults?.length ? (
+            {customResults.filter((e) => !isUserProperty(e)).length > 0 && (
                 <div className={styles.dropdownSection}>
                     <div className={styles.dropdownDivider} />
-                    <div className={styles.dropdownTitle}>PROPERTIES</div>
-                    {customResults.map((f, i) => (
+                    <div className={styles.dropdownTitle}>APP PROPERTIES</div>
+                    {customResults
+                        .filter((e) => !isUserProperty(e))
+                        .map((f, i) => (
+                            <div
+                                key={i}
+                                className={styles.optionsRow}
+                                onClick={() => {
+                                    onSelect(f?.original);
+                                }}
+                                style={{
+                                    backgroundColor:
+                                        allResults[index].original ===
+                                        f.original
+                                            ? '#F2EEFB'
+                                            : 'transparent',
+                                }}
+                            >
+                                <span
+                                    className={styles.optionsKey}
+                                    dangerouslySetInnerHTML={{
+                                        __html: f.string,
+                                    }}
+                                />
+                                : &nbsp;
+                                <span className={styles.optionsValue}>
+                                    {f.original.description}
+                                </span>
+                            </div>
+                        ))}
+                </div>
+            )}
+            {customResults.filter(isUserProperty).length > 0 && (
+                <div className={styles.dropdownSection}>
+                    <div className={styles.dropdownDivider} />
+                    <div className={styles.dropdownTitle}>USER PROPERTIES</div>
+                    {customResults.filter(isUserProperty).map((f, i) => (
                         <div
                             key={i}
                             className={styles.optionsRow}
@@ -247,7 +296,7 @@ export const OptionsFilter = ({
                             }}
                             style={{
                                 backgroundColor:
-                                    index - results.length === i
+                                    allResults[index].original === f.original
                                         ? '#F2EEFB'
                                         : 'transparent',
                             }}
@@ -263,8 +312,6 @@ export const OptionsFilter = ({
                         </div>
                     ))}
                 </div>
-            ) : (
-                <></>
             )}
         </div>
     );
