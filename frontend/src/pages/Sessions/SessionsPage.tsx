@@ -27,13 +27,13 @@ export const SessionsPage = () => {
     const [params, setParams] = useState<SearchParam[]>([]);
     const paramsRef = useRef(params);
     const resultsRef = useRef<HTMLDivElement>(null);
-    const [inputActive, setInputActive] = useState(true);
     const [count, setCount] = useState(10);
     const [activeParam, setActiveParam] = useState<number>(-1);
     const [mainInputText, setMainInputText] = useState('');
     const { organization_id } = useParams();
     const [sessionData, setSessionData] = useState<any[]>([]);
     const [sessionsLoading, setSessionsLoading] = useState<boolean>(true);
+    const [showDropdown, setShowDropdown] = useState<boolean>(true);
 
     const [getSessions, { loading, error, data }] = useLazyQuery<
         { sessions: any[] },
@@ -112,7 +112,7 @@ export const SessionsPage = () => {
         return <p>{error.toString()}</p>;
     }
     return (
-        <div className={styles.setupWrapper}>
+        <div className={styles.sessionsBody}>
             <div className={styles.sessionsSection}>
                 <div className={styles.sessionsHeader}>Session Playlist</div>
                 <div className={styles.searchBar}>
@@ -124,9 +124,9 @@ export const SessionsPage = () => {
                                 </div>
                                 <AutosizeInput
                                     autoFocus
-                                    onFocus={() => setInputActive(true)}
                                     className={styles.optionInput}
                                     autoComplete={'off'}
+                                    onFocus={() => setShowDropdown(true)}
                                     name="option-input"
                                     value={p.value?.text || p.current}
                                     onChange={function (event) {
@@ -153,11 +153,12 @@ export const SessionsPage = () => {
                             <input
                                 placeholder={'Type or select a query below...'}
                                 ref={mainInput}
+                                onBlur={() => setShowDropdown(false)}
+                                onFocus={() => setShowDropdown(true)}
                                 value={mainInputText}
                                 onChange={(e) =>
                                     setMainInputText(e.target.value)
                                 }
-                                onFocus={() => setInputActive(true)}
                                 autoFocus
                                 className={styles.searchInput}
                             />
@@ -167,7 +168,7 @@ export const SessionsPage = () => {
                         <FaSearch className={styles.searchIcon} />
                     </div>
                 </div>
-                {inputActive && (
+                {showDropdown && (
                     <div className={styles.dropdown}>
                         {activeParam === -1 ? (
                             <OptionsFilter
@@ -221,6 +222,7 @@ export const SessionsPage = () => {
                                     mainInput.current?.focus();
                                     setActiveParam(-1);
                                     setParams(pcopy);
+                                    setShowDropdown(false);
                                 }}
                             />
                         ) : (
@@ -236,6 +238,7 @@ export const SessionsPage = () => {
                                     mainInput.current?.focus();
                                     setActiveParam(-1);
                                     setParams(pcopy);
+                                    setShowDropdown(false);
                                 }}
                             />
                         )}
