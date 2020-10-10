@@ -35031,8 +35031,12 @@ window.Highlight = /** @class */ (function () {
                         };
                         if (document.referrer) {
                             Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('Referrer', document.referrer);
+                            highlightThis.addProperties({ referrer: document.referrer });
                         }
-                        initUrlListeners(function (url) { return Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('Navigate', url); });
+                        initUrlListeners(function (url) {
+                            Object(rrweb__WEBPACK_IMPORTED_MODULE_0__["addCustomEvent"])('Navigate', url);
+                            highlightThis.addProperties({ 'visited-url': url });
+                        });
                         this.ready = true;
                         return [2 /*return*/];
                 }

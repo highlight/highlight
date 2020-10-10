@@ -168,8 +168,12 @@ Session Data:
     };
     if (document.referrer) {
       addCustomEvent<string>('Referrer', document.referrer);
+      highlightThis.addProperties({ referrer: document.referrer });
     }
-    initUrlListeners((url: string) => addCustomEvent<string>('Navigate', url));
+    initUrlListeners((url: string) => {
+      addCustomEvent<string>('Navigate', url);
+      highlightThis.addProperties({ 'visited-url': url });
+    });
     this.ready = true;
   }
 
