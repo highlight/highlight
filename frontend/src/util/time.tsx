@@ -1,6 +1,7 @@
 export function MillisToMinutesAndSeconds(millis: any) {
     var minutes = Math.floor(millis / 60000);
     var seconds = ((millis % 60000) / 1000).toFixed(0);
+    seconds = (seconds.length === 1 ? '0' : '') + seconds;
     return minutes + ':' + seconds;
 }
 
