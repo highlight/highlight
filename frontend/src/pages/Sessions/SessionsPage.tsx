@@ -153,15 +153,18 @@ export const SessionsPage = () => {
                             <input
                                 placeholder={'Type or select a query below...'}
                                 ref={mainInput}
-                                onBlur={() =>
+                                onBlur={() => {
                                     // Delay the setstate because otherwise, link clicks get ignored
                                     // because onblur gets called first
-                                    setTimeout(() => setShowDropdown(false), 50)
-                                }
+                                    // setTimeout(
+                                    //     () => setShowDropdown(false),
+                                    //     50
+                                    // );
+                                }}
                                 onFocus={() =>
                                     // Delay the setstate because otherwise, link clicks get ignored
                                     // because onblur gets called first
-                                    setTimeout(() => setShowDropdown(true), 50)
+                                    setShowDropdown(true)
                                 }
                                 value={mainInputText}
                                 onChange={(e) =>
@@ -214,6 +217,7 @@ export const SessionsPage = () => {
                                     setParams(pcopy);
                                     setActiveParam(pcopy.length - 1);
                                     setMainInputText('');
+                                    setShowDropdown(true);
                                 }}
                             />
                         ) : params[activeParam]?.type === 'text' ? (
