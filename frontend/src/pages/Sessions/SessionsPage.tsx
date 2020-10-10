@@ -234,7 +234,6 @@ export const SessionsPage = () => {
                                     mainInput.current?.focus();
                                     setActiveParam(-1);
                                     setParams(pcopy);
-                                    setShowDropdown(false);
                                 }}
                             />
                         ) : (
@@ -250,7 +249,6 @@ export const SessionsPage = () => {
                                     mainInput.current?.focus();
                                     setActiveParam(-1);
                                     setParams(pcopy);
-                                    setShowDropdown(false);
                                 }}
                             />
                         )}
