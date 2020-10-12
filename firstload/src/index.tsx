@@ -1,28 +1,44 @@
 // javascript-obfuscator:enable
-interface Window {
-  highlight_obj: any;
-  H: any;
-  Highlight: any;
-}
-window.H = {};
-window.H.init = (
-  orgID: number,
-  scriptPath: string = 'https://static.highlight.run/index.js'
-) => {
-  var script = document.createElement('script');
-  script.setAttribute('src', scriptPath + '?' + new Date().getMilliseconds());
-  script.setAttribute('type', 'text/javascript');
-  document.getElementsByTagName('head')[0].appendChild(script);
-  script.addEventListener('load', () => {
-    window.highlight_obj = new window.Highlight(window['_h_debug']);
-    window.highlight_obj.initialize(orgID);
-  });
+type HighlightPublicInterface = {
+    init: (orgID: number, debug?: boolean) => void;
+    identify: (identify: string, obj: any) => void;
+    onHighlightReady: (func: () => void) => void;
 };
-window.H.identify = (identifier: string, obj: any) => {
-  var interval = setInterval(function () {
-    if (window.highlight_obj && window.highlight_obj.ready) {
-      clearInterval(interval);
-      window.highlight_obj.identify(identifier, obj);
-    }
-  }, 200);
+
+interface HighlightWindow extends Window {
+    Highlight: any;
+}
+
+declare var window: HighlightWindow;
+
+var script: HTMLScriptElement;
+var highlight_obj: any;
+var script = document.createElement('script');
+script.setAttribute(
+    'src',
+    'https://static.highlight.run/index.js' + '?' + new Date().getMilliseconds()
+);
+script.setAttribute('type', 'text/javascript');
+document.getElementsByTagName('head')[0].appendChild(script);
+
+export const Highlight: HighlightPublicInterface = {
+    init: (orgID: number, debug: boolean = false) => {
+        script.addEventListener('load', () => {
+            highlight_obj = new window.Highlight(debug);
+            highlight_obj.initialize(orgID);
+        });
+    },
+    identify: (identifier: string, obj: any) => {
+        Highlight.onHighlightReady(() =>
+            highlight_obj.identify(identifier, obj)
+        );
+    },
+    onHighlightReady: (func: () => void) => {
+        var interval = setInterval(function () {
+            if (highlight_obj && highlight_obj.ready) {
+                clearInterval(interval);
+                func();
+            }
+        }, 200);
+    },
 };

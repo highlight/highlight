@@ -9,11 +9,11 @@
 		"strict": true,
 		"forceConsistentCasingInFileNames": true,
 		"module": "esnext",
+		"declaration": true,
+		"declarationDir": "dist",
 		"moduleResolution": "node",
 		"resolveJsonModule": true,
-		"jsx": "react",
-		"suppressImplicitAnyIndexErrors": true
+		"jsx": "react"
 	},
 	"include": ["src"]
 }
-
