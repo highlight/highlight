@@ -96,35 +96,14 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ({
 
-/***/ "./firstload_src/firstload.js":
-/*!************************************!*\
-  !*** ./firstload_src/firstload.js ***!
-  \************************************/
+/***/ "./firstload_src/index.tsx":
+/*!*********************************!*\
+  !*** ./firstload_src/index.tsx ***!
+  \*********************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-// javascript-obfuscator:enable
-var script = document.createElement('script');
-script.setAttribute(
-  'src',
-  window['_h_script'] + '?' + new Date().getMilliseconds()
-);
-script.setAttribute('type', 'text/javascript');
-document.getElementsByTagName('head')[0].appendChild(script);
-script.addEventListener('load', () => {
-  window.highlight_obj = new Highlight(window['_h_debug']);
-  highlight_obj.initialize(window['_h_org']);
-});
-window.H = {};
-window.H.identify = (identifier, obj) => {
-  var interval = setInterval(function () {
-    if (window.highlight_obj && window.highlight_obj.ready) {
-      clearInterval(interval);
-      window.highlight_obj.identify(identifier, obj);
-    }
-  }, 200);
-};
-
+throw new Error("Module build failed (from ./node_modules/ts-loader/index.js):\nError: ENOENT: no such file or directory, open '/Users/jaykhatri/Projects/highlight/client/firstload_src/index.tsx'");
 
 /***/ }),
 
@@ -9859,14 +9838,14 @@ module.exports.formatError = function(err) {
 /***/ }),
 
 /***/ 1:
-/*!********************************************************************************************!*\
-  !*** multi (webpack)-dev-server/client?http://localhost:8080 ./firstload_src/firstload.js ***!
-  \********************************************************************************************/
+/*!*****************************************************************************************!*\
+  !*** multi (webpack)-dev-server/client?http://localhost:8080 ./firstload_src/index.tsx ***!
+  \*****************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(/*! /Users/jaykhatri/Projects/highlight/client/node_modules/webpack-dev-server/client/index.js?http://localhost:8080 */"./node_modules/webpack-dev-server/client/index.js?http://localhost:8080");
-module.exports = __webpack_require__(/*! /Users/jaykhatri/Projects/highlight/client/firstload_src/firstload.js */"./firstload_src/firstload.js");
+module.exports = __webpack_require__(/*! /Users/jaykhatri/Projects/highlight/client/firstload_src/index.tsx */"./firstload_src/index.tsx");
 
 
 /***/ })
