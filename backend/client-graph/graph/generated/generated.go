@@ -42,10 +42,10 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		AddEvents         func(childComplexity int, sessionID int, events string, messages string) int
 		AddProperties     func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		IdentifySession   func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
 		InitializeSession func(childComplexity int, organizationID int, details string) int
+		PushPayload       func(childComplexity int, sessionID int, events string, messages string) int
 	}
 
 	Query struct {
@@ -63,7 +63,7 @@ type MutationResolver interface {
 	InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error)
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
 	AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
-	AddEvents(ctx context.Context, sessionID int, events string, messages string) (*int, error)
+	PushPayload(ctx context.Context, sessionID int, events string, messages string) (*int, error)
 }
 
 type executableSchema struct {
@@ -80,18 +80,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
-
-	case "Mutation.addEvents":
-		if e.complexity.Mutation.AddEvents == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_addEvents_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.AddEvents(childComplexity, args["session_id"].(int), args["events"].(string), args["messages"].(string)), true
 
 	case "Mutation.addProperties":
 		if e.complexity.Mutation.AddProperties == nil {
@@ -128,6 +116,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.InitializeSession(childComplexity, args["organization_id"].(int), args["details"].(string)), true
+
+	case "Mutation.pushPayload":
+		if e.complexity.Mutation.PushPayload == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_pushPayload_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.PushPayload(childComplexity, args["session_id"].(int), args["events"].(string), args["messages"].(string)), true
 
 	case "Session.details":
 		if e.complexity.Session.Details == nil {
@@ -240,7 +240,7 @@ type Mutation {
     user_object: Any
   ): ID
   addProperties(session_id: ID!, properties_object: Any): ID
-  addEvents(session_id: ID!, events: String!, messages: String!): ID
+  pushPayload(session_id: ID!, events: String!, messages: String!): ID
 }
 `, BuiltIn: false},
 }
@@ -249,39 +249,6 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
-
-func (ec *executionContext) field_Mutation_addEvents_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["session_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["events"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("events"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["events"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["messages"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("messages"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["messages"] = arg2
-	return args, nil
-}
 
 func (ec *executionContext) field_Mutation_addProperties_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -361,6 +328,39 @@ func (ec *executionContext) field_Mutation_initializeSession_args(ctx context.Co
 		}
 	}
 	args["details"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_pushPayload_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["events"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("events"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["events"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["messages"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("messages"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["messages"] = arg2
 	return args, nil
 }
 
@@ -531,7 +531,7 @@ func (ec *executionContext) _Mutation_addProperties(ctx context.Context, field g
 	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addEvents(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_pushPayload(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -547,7 +547,7 @@ func (ec *executionContext) _Mutation_addEvents(ctx context.Context, field graph
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addEvents_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_pushPayload_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -555,7 +555,7 @@ func (ec *executionContext) _Mutation_addEvents(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddEvents(rctx, args["session_id"].(int), args["events"].(string), args["messages"].(string))
+		return ec.resolvers.Mutation().PushPayload(rctx, args["session_id"].(int), args["events"].(string), args["messages"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1855,8 +1855,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_identifySession(ctx, field)
 		case "addProperties":
 			out.Values[i] = ec._Mutation_addProperties(ctx, field)
-		case "addEvents":
-			out.Values[i] = ec._Mutation_addEvents(ctx, field)
+		case "pushPayload":
+			out.Values[i] = ec._Mutation_pushPayload(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

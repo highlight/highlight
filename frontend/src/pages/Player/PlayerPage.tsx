@@ -14,9 +14,12 @@ import { Spinner } from '../../components/Spinner/Spinner';
 import { useQuery, gql } from '@apollo/client';
 import { Skeleton } from 'antd';
 import { Toolbar } from './Toolbar/Toolbar';
+import { ConsolePage } from './ConsolePage/ConsolePage';
 import { StreamElement } from './StreamElement/StreamElement';
 import { MetadataBox } from './MetadataBox/MetadataBox';
 import { HighlightEvent } from './HighlightEvent';
+// @ts-ignore
+import useResizeAware from 'react-resize-aware';
 
 import styles from './PlayerPage.module.css';
 import 'rc-slider/assets/index.css';
@@ -25,7 +28,10 @@ export const Player = () => {
     const { session_id } = useParams();
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [time, setTime] = useState(0);
+    const [resizeListener, sizes] = useResizeAware();
+    const [showConsole, setShowConsole] = useState(false);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
+    const [replayerScale, setReplayerScale] = useState(1);
     const [playerLoading, setPlayerLoading] = useState(true);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const {
@@ -49,38 +55,42 @@ export const Player = () => {
         if (!width || !targetWidth || !height || !targetHeight) {
             return false;
         }
-        const widthDelta = width - targetWidth;
-        const heightDelta = height - targetHeight;
         const widthScale = (targetWidth - 80) / width;
         const heightScale = (targetHeight - 80) / height;
         const scale = Math.min(heightScale, widthScale);
         const endHeight = (targetHeight - height * scale) / 2;
         const endWidth = (targetWidth - width * scale) / 2;
-        console.log('height: ', height, targetHeight, heightScale, heightDelta);
-        console.log('width', width, targetWidth, widthScale, widthDelta);
-        console.log(`applying scale ${scale}`);
         replayer?.wrapper?.setAttribute(
             'style',
             `
-      transform: scale(${scale});
+      transform: scale(${replayerScale * scale});
       top: ${endHeight}px;
       left: ${endWidth}px;
       `
         );
+        setReplayerScale((s) => {
+            return s * scale;
+        });
         setPlayerLoading(false);
         return true;
     };
 
     // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
     useEffect(() => {
-        if (replayer) {
-            const i = window.setInterval(() => {
-                if (resizePlayer(replayer)) {
-                    window.clearInterval(i);
-                }
-            }, 200);
-        }
-    }, [replayer]);
+        const i = window.setInterval(() => {
+            if (replayer && resizePlayer(replayer)) {
+                clearInterval(i);
+            }
+        }, 200);
+        return () => {
+            i && clearInterval(i);
+        };
+    }, [replayer, replayerScale]);
+
+    // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
+    useEffect(() => {
+        replayer && resizePlayer(replayer);
+    }, [sizes, replayer, showConsole]);
 
     useEffect(() => {
         if (sessionData?.events?.length ?? 0 > 1) {
@@ -110,6 +120,7 @@ export const Player = () => {
                         className={styles.rrwebPlayerWrapper}
                         ref={playerWrapperRef}
                     >
+                        {resizeListener}
                         <div
                             style={{
                                 visibility: playerLoading
@@ -122,6 +133,7 @@ export const Player = () => {
                         {(playerLoading || sessionLoading) && <Spinner />}
                     </div>
                 </div>
+                <ConsolePage />
                 <Toolbar
                     replayer={replayer}
                     onSelect={(newTime: number) => {

@@ -9,10 +9,9 @@ import (
 	"fmt"
 	"time"
 
+	redis "github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-
-	redis "github.com/go-redis/redis/v8"
 	e "github.com/pkg/errors"
 )
 
@@ -82,7 +81,7 @@ func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, pro
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) AddEvents(ctx context.Context, sessionID int, events string, messages string) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string) (*int, error) {
 	eventsParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
 		return nil, fmt.Errorf("error decoding event data: %v", err)

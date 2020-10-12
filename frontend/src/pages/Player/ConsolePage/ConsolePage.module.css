@@ -1,0 +1,17 @@
+.consoleButton {
+	height: 35px;
+	width: 80px;
+	margin: 10px;
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #5629c6;
+	border-radius: 8px;
+	color: white;
+	cursor: pointer;
+}
+
+.logStreamWrapper {
+	margin-bottom: -35px;
+}

@@ -31,6 +31,8 @@
         "react-icons": "^3.11.0",
         "react-image": "^4.0.3",
         "react-input-autosize": "^2.2.2",
+        "react-resize-aware": "^3.0.1",
+        "react-resize-detector": "^5.2.0",
         "react-router-dom": "^5.2.0",
         "react-scripts": "3.4.3",
         "react-scroll": "^1.8.1",

@@ -31,6 +31,7 @@ type Admin {
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
+  messages(session_id: ID!): [Any]
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
   # gets all the organizations of a user
   fields(organization_id: ID!): [String]

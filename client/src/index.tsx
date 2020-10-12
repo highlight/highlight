@@ -195,12 +195,12 @@ Session Data:
     this.messages = [];
     await this.client.mutate({
       mutation: gql`
-        mutation AddEvents(
+        mutation PushPayload(
           $session_id: ID!
           $events: String!
           $messages: String!
         ) {
-          addEvents(
+          pushPayload(
             session_id: $session_id
             events: $events
             messages: $messages

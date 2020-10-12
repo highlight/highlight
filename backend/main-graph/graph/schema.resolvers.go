@@ -11,10 +11,9 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/slack-go/slack"
-
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -52,6 +51,25 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
 	}
 	return allEvents["events"], nil
+}
+
+func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
+	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	messagesObj := []*model.EventsObject{}
+	if res := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: sessionID}).Find(&messagesObj); res.Error != nil {
+		return nil, fmt.Errorf("error reading from events: %v", res.Error)
+	}
+	allEvents := make(map[string][]interface{})
+	for _, messageObj := range messagesObj {
+		subMessage := make(map[string][]interface{})
+		if err := json.Unmarshal([]byte(messageObj.Events), &subMessage); err != nil {
+			return nil, fmt.Errorf("error decoding event data: %v", err)
+		}
+		allEvents["messages"] = append(subMessage["messages"], allEvents["messages"]...)
+	}
+	return allEvents["messages"], nil
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model.Session, error) {
