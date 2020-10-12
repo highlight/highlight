@@ -13,5 +13,12 @@
 }
 
 .logStreamWrapper {
-	margin-bottom: -35px;
+	margin-bottom: -55px;
+	background-color: white;
+	height: 120px;
+	word-wrap: break-word;
+}
+
+.consolePageWrapper {
+	background-color: #f5f5f5;
 }

@@ -6,9 +6,7 @@ import {
     IncrementalSource,
     EventType,
 } from 'rrweb';
-
 import { eventWithTime, incrementalData } from 'rrweb/typings/types';
-
 import { scroller } from 'react-scroll';
 import { Spinner } from '../../components/Spinner/Spinner';
 import { useQuery, gql } from '@apollo/client';
@@ -20,7 +18,6 @@ import { MetadataBox } from './MetadataBox/MetadataBox';
 import { HighlightEvent } from './HighlightEvent';
 // @ts-ignore
 import useResizeAware from 'react-resize-aware';
-
 import styles from './PlayerPage.module.css';
 import 'rc-slider/assets/index.css';
 
@@ -29,7 +26,6 @@ export const Player = () => {
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [time, setTime] = useState(0);
     const [resizeListener, sizes] = useResizeAware();
-    const [showConsole, setShowConsole] = useState(false);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
     const [replayerScale, setReplayerScale] = useState(1);
     const [playerLoading, setPlayerLoading] = useState(true);
@@ -90,7 +86,7 @@ export const Player = () => {
     // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
     useEffect(() => {
         replayer && resizePlayer(replayer);
-    }, [sizes, replayer, showConsole]);
+    }, [sizes, replayer]);
 
     useEffect(() => {
         if (sessionData?.events?.length ?? 0 > 1) {
@@ -129,11 +125,13 @@ export const Player = () => {
                             }}
                             className={styles.rrwebPlayerDiv}
                             id="player"
-                        ></div>
+                        />
                         {(playerLoading || sessionLoading) && <Spinner />}
                     </div>
                 </div>
-                <ConsolePage />
+                <ConsolePage
+                    onClick={() => replayer && resizePlayer(replayer)}
+                />
                 <Toolbar
                     replayer={replayer}
                     onSelect={(newTime: number) => {

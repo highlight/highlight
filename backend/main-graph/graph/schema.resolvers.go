@@ -57,14 +57,14 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	messagesObj := []*model.EventsObject{}
+	messagesObj := []*model.MessagesObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: sessionID}).Find(&messagesObj); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
 	allEvents := make(map[string][]interface{})
 	for _, messageObj := range messagesObj {
 		subMessage := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(messageObj.Events), &subMessage); err != nil {
+		if err := json.Unmarshal([]byte(messageObj.Messages), &subMessage); err != nil {
 			return nil, fmt.Errorf("error decoding event data: %v", err)
 		}
 		allEvents["messages"] = append(subMessage["messages"], allEvents["messages"]...)
