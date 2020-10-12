@@ -5,7 +5,6 @@ var WebpackObfuscator = require('webpack-obfuscator');
 module.exports = {
   entry: {
     index: path.resolve(__dirname, 'src/index.tsx'),
-    firstload: path.resolve(__dirname, 'firstload_src/index.tsx'),
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
