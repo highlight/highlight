@@ -1,9 +1,13 @@
 {
     "name": "highlight.run",
-    "version": "1.0.1",
+    "version": "1.0.9",
     "scripts": {
-        "build": "webpack"
+        "build": "webpack",
+        "pub": "webpack && npm publish",
+        "dev": "webpack-dev-server --progress --colors --watch"
     },
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "devDependencies": {
         "ts-loader": "^8.0.4",
         "typescript": "^4.0.3",
