@@ -5,7 +5,6 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "webpack",
-    "publish": "webpack",
     "dev": "webpack-dev-server --progress --colors --watch --env.BACKEND_URI=http://localhost:8082 "
   },
   "repository": {
