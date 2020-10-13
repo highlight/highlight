@@ -24,9 +24,9 @@ import {
     Link,
 } from 'react-router-dom';
 import { Dropdown, Skeleton } from 'antd';
-import { Highlight } from 'highlight.run';
+import { H } from 'highlight.run';
 
-Highlight.init(3, true);
+H.init(3, true);
 
 const App = () => {
     const { loading: o_loading, error: o_error, data: o_data } = useQuery(gql`
@@ -88,7 +88,7 @@ export const AuthAdminRouter = () => {
     useEffect(() => {
         if (admin) {
             const { email, id, name } = admin;
-            Highlight.identify(email, { id, name });
+            H.identify(email, { id, name });
             window.analytics.identify(id, {
                 name,
                 email,

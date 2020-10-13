@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 
 import { CodeBlock } from './CodeBlock';
 import { useParams } from 'react-router-dom';
-import { Radio } from 'antd';
 import styles from './SetupPage.module.css';
 import useFetch from 'use-http';
 import { Skeleton } from 'antd';
