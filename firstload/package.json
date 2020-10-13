@@ -1,6 +1,6 @@
 {
     "name": "highlight.run",
-    "version": "1.0.15",
+    "version": "1.0.16",
     "scripts": {
         "build": "webpack",
         "pub": "webpack && npm publish",
