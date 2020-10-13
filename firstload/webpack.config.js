@@ -1,6 +1,5 @@
 const path = require('path');
 const webpack = require('webpack'); //to access built-in plugins
-var WebpackObfuscator = require('webpack-obfuscator');
 
 module.exports = {
   entry: {
@@ -32,12 +31,9 @@ module.exports = {
     extensions: ['.js', '.ts', '.tsx'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
+  optimization: {
+    minimize: true
+  },
   mode: 'development',
   devtool: 'sourceMap',
-  plugins: [
-    new WebpackObfuscator(
-      {seed: 4},
-      []
-    ),
-  ],
 };

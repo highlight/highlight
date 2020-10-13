@@ -9,6 +9,14 @@ input[name='option-input'] {
     font-weight: 300;
 }
 
+.ant-radio-button-wrapper:last-child {
+    border-radius: 0 5px 5px 0;
+}
+
+.ant-radio-button-wrapper:first-child {
+    border-radius: 5px 0 0 5px;
+}
+
 .App-logo {
     height: 40vmin;
     pointer-events: none;
@@ -57,4 +65,9 @@ iframe {
     to {
         transform: rotate(360deg);
     }
+}
+
+.ant-radio-group-solid
+    .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+    background: #5629c6;
 }

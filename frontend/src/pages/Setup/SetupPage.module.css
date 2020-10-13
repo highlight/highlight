@@ -1,10 +1,24 @@
 .setupWrapper {
+    margin: 30px;
     width: 100%;
-    height: 100%;
+    display: flex;
+    justify-content: center;
+    padding-left: 20px;
+}
+
+.radioGroupWrapper {
+    margin: 20px 0px 20px 0px;
+    display: flex;
+}
+
+.platformOption {
+    height: 35px;
+    width: 85px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding-left: 20px;
+    border: 1px solid #e4e8eb;
+    cursor: pointer;
 }
 
 .snippetCard {
@@ -16,8 +30,15 @@
 }
 
 .snippetHeading {
-    font-size: 23px;
+    font-size: 25px;
     font-weight: 400;
+}
+
+.snippetHeadingTwo {
+    font-size: 20px;
+    font-weight: 400;
+    margin-bottom: 15px;
+    margin-top: 20px;
 }
 
 .snippetSubHeading {

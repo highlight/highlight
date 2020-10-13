@@ -7,6 +7,7 @@ type HighlightPublicInterface = {
 
 interface HighlightWindow extends Window {
     Highlight: any;
+    H: HighlightPublicInterface;
 }
 
 declare var window: HighlightWindow;
@@ -21,7 +22,7 @@ script.setAttribute(
 script.setAttribute('type', 'text/javascript');
 document.getElementsByTagName('head')[0].appendChild(script);
 
-export const Highlight: HighlightPublicInterface = {
+export const H: HighlightPublicInterface = {
     init: (orgID: number, debug: boolean = false) => {
         script.addEventListener('load', () => {
             highlight_obj = new window.Highlight(debug);
@@ -29,9 +30,7 @@ export const Highlight: HighlightPublicInterface = {
         });
     },
     identify: (identifier: string, obj: any) => {
-        Highlight.onHighlightReady(() =>
-            highlight_obj.identify(identifier, obj)
-        );
+        H.onHighlightReady(() => highlight_obj.identify(identifier, obj));
     },
     onHighlightReady: (func: () => void) => {
         var interval = setInterval(function () {
@@ -42,3 +41,4 @@ export const Highlight: HighlightPublicInterface = {
         }, 200);
     },
 };
+window.H = H;
