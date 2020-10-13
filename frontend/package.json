@@ -20,7 +20,7 @@
         "firebase": "^7.19.1",
         "fuzzy": "^0.1.3",
         "graphql": "^15.3.0",
-        "highlight.run": "^1.0.3",
+        "highlight.run": "^1.0.26",
         "parse-duration": "^0.4.4",
         "rc-slider": "^9.3.1",
         "react": "^16.13.1",

@@ -34,6 +34,5 @@ module.exports = {
   optimization: {
     minimize: true
   },
-  mode: 'development',
   devtool: 'sourceMap',
 };

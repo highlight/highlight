@@ -1,4 +1,3 @@
-// javascript-obfuscator:enable
 type HighlightPublicInterface = {
     init: (orgID: number, debug?: boolean) => void;
     identify: (identify: string, obj: any) => void;
@@ -37,14 +36,12 @@ export const H: HighlightPublicInterface = {
 };
 window.H = H;
 
-var scriptSrc: string;
-if (window._h_script) {
-    scriptSrc = window._h_script;
-} else if (process.env.REACT_APP_H_SCRIPT) {
-    scriptSrc = process.env.REACT_APP_H_SCRIPT;
-} else {
-    scriptSrc = 'https://static.highlight.run/index.js';
-}
+// in webpack.config.js, the default value for this variable is set
+// if overwritten (in dev for example), it'll be seen here.
+var scriptSrc =
+    process.env.NODE_ENV === 'development'
+        ? 'http://localhost:8080/index.js'
+        : 'https://static.highlight.run/index.js';
 script.setAttribute('src', scriptSrc + '?' + new Date().getMilliseconds());
 script.setAttribute('type', 'text/javascript');
 document.getElementsByTagName('head')[0].appendChild(script);

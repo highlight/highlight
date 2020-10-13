@@ -1,10 +1,10 @@
 {
     "name": "highlight.run",
-    "version": "1.0.20",
+    "version": "1.0.26",
     "scripts": {
         "build": "webpack",
         "pub": "webpack && npm publish",
-        "dev": "webpack-dev-server --progress --colors --watch"
+        "dev": "webpack --mode=development && yarn link"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
