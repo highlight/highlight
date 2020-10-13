@@ -195,12 +195,12 @@ const RadioGroup = ({
             <div
                 style={{
                     borderRadius: '0 8px 8px 0',
+                    borderLeft: 'none',
                     borderColor:
                         platform === PlatformType.Html ? '#5629c6' : '#eaeaea',
                     backgroundColor:
                         platform === PlatformType.Html ? '#5629c6' : 'white',
                     color: platform === PlatformType.Html ? 'white' : 'black',
-                    borderLeft: 'none',
                 }}
                 className={styles.platformOption}
                 onClick={() => onSelect(PlatformType.Html)}

@@ -8,6 +8,7 @@ type HighlightPublicInterface = {
 interface HighlightWindow extends Window {
     Highlight: any;
     H: HighlightPublicInterface;
+    _h_script: string;
 }
 
 declare var window: HighlightWindow;
@@ -15,13 +16,6 @@ declare var window: HighlightWindow;
 var script: HTMLScriptElement;
 var highlight_obj: any;
 var script = document.createElement('script');
-script.setAttribute(
-    'src',
-    'https://static.highlight.run/index.js' + '?' + new Date().getMilliseconds()
-);
-script.setAttribute('type', 'text/javascript');
-document.getElementsByTagName('head')[0].appendChild(script);
-
 export const H: HighlightPublicInterface = {
     init: (orgID: number, debug: boolean = false) => {
         script.addEventListener('load', () => {
@@ -42,3 +36,15 @@ export const H: HighlightPublicInterface = {
     },
 };
 window.H = H;
+
+var scriptSrc: string;
+if (window._h_script) {
+    scriptSrc = window._h_script;
+} else if (process.env.REACT_APP_H_SCRIPT) {
+    scriptSrc = process.env.REACT_APP_H_SCRIPT;
+} else {
+    scriptSrc = 'https://static.highlight.run/index.js';
+}
+script.setAttribute('src', scriptSrc + '?' + new Date().getMilliseconds());
+script.setAttribute('type', 'text/javascript');
+document.getElementsByTagName('head')[0].appendChild(script);
