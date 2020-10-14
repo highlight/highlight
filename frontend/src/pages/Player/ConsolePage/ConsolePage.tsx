@@ -215,6 +215,18 @@ export const ConsolePage = ({
 												className={
 													styles.consoleMessage
 												}
+												style={{
+														color:
+															m.id ===
+															currentMessage
+																? 'black'
+																: 'grey',
+														fontWeight:
+															m.id ===
+															currentMessage
+																? 400
+																: 300,
+												}}
 											>
 												<div
 													className={
