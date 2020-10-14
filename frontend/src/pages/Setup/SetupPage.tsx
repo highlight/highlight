@@ -13,7 +13,6 @@ enum PlatformType {
 }
 
 export const SetupPage = () => {
-    const { organization_id } = useParams();
     const [platform, setPlatform] = useState(PlatformType.React);
 
     return (

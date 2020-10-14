@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
-import { ReactComponent as DownIcon } from '../../../static/down.svg';
-import { ReactComponent as UpIcon } from '../../../static/up.svg';
 import { ReactComponent as CloseIcon } from '../../../static/close.svg';
 import { Element } from 'react-scroll';
 import { scroller } from 'react-scroll';
 
 import styles from './ConsolePage.module.css';
+
+// copied from 'client/src/index.tsx'
+type ConsoleMessage = {
+	value: string;
+	time: number;
+	type: ConsoleType;
+};
+
+enum ConsoleType {
+	Log,
+	Debug,
+	Error,
+	Warn,
+}
 
 export const ConsolePage = ({
 	onClick,
@@ -64,7 +76,7 @@ export const ConsolePage = ({
 				}
 			});
 		}
-	}, [time, setCurrentMessage]);
+	}, [time, setCurrentMessage, parsedMessages, showStream]);
 
 	return (
 		<>
@@ -216,16 +228,14 @@ export const ConsolePage = ({
 													styles.consoleMessage
 												}
 												style={{
-														color:
-															m.id ===
-															currentMessage
-																? 'black'
-																: 'grey',
-														fontWeight:
-															m.id ===
-															currentMessage
-																? 400
-																: 300,
+													color:
+														m.id === currentMessage
+															? 'black'
+															: 'grey',
+													fontWeight:
+														m.id === currentMessage
+															? 400
+															: 300,
 												}}
 											>
 												<div
@@ -261,17 +271,3 @@ export const ConsolePage = ({
 		</>
 	);
 };
-
-// copied from 'client/src/index.tsx'
-type ConsoleMessage = {
-	value: string;
-	time: number;
-	type: ConsoleType;
-};
-
-enum ConsoleType {
-	Log,
-	Debug,
-	Error,
-	Warn,
-}
