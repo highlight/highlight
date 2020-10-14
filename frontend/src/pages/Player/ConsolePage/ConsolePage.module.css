@@ -1,7 +1,7 @@
 .consoleButton {
 	height: 35px;
-	width: 80px;
-	margin: 10px;
+	width: max-content;
+	padding: 10px;
 	margin-left: auto;
 	display: flex;
 	align-items: center;
@@ -13,12 +13,31 @@
 }
 
 .logStreamWrapper {
-	margin-bottom: -55px;
 	background-color: white;
-	height: 120px;
 	word-wrap: break-word;
+	padding: 14px;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	height: 200px;
 }
 
 .consolePageWrapper {
 	background-color: #f5f5f5;
+	width: 100%;
+}
+
+.consoleMessage {
+	display: inline-block;
+}
+
+.directionIcon {
+	width: 16px;
+	height: 16px;
+	margin-left: 5px;
+	fill: white;
+}
+
+.consoleTopBar {
+	padding: 10px;
 }
