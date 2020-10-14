@@ -53,9 +53,7 @@ const App = () => {
                 </Route>
                 <Switch>
                     <Route path="/:organization_id/sessions/:session_id">
-                        <div className={styles.playerPageBody}>
-                            <Player />
-                        </div>
+                        <Player />
                     </Route>
                     <Route path="/:organization_id/sessions">
                         <SessionsPage />

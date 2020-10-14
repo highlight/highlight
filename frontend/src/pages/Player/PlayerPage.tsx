@@ -12,7 +12,6 @@ import { Spinner } from '../../components/Spinner/Spinner';
 import { useQuery, gql } from '@apollo/client';
 import { Skeleton } from 'antd';
 import { Toolbar } from './Toolbar/Toolbar';
-import { ConsolePage } from './ConsolePage/ConsolePage';
 import { StreamElement } from './StreamElement/StreamElement';
 import { MetadataBox } from './MetadataBox/MetadataBox';
 import { HighlightEvent } from './HighlightEvent';
@@ -129,15 +128,13 @@ export const Player = () => {
                         {(playerLoading || sessionLoading) && <Spinner />}
                     </div>
                 </div>
-                <ConsolePage
-                    onClick={() => replayer && resizePlayer(replayer)}
-                />
                 <Toolbar
                     replayer={replayer}
                     onSelect={(newTime: number) => {
                         replayer?.pause(newTime);
                         setTime(newTime);
                     }}
+                    onResize={() => replayer && resizePlayer(replayer)}
                 />
             </div>
             <div className={styles.playerRightSection}>

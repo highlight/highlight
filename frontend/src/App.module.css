@@ -178,6 +178,7 @@
     height: 100%;
     display: flex;
     box-sizing: border-box;
+    overflow-y: scroll;
 }
 
 .loadingWrapper {
