@@ -15,7 +15,6 @@ declare const styles: {
   readonly "eventStreamContainer": string;
   readonly "playButtonStyle": string;
   readonly "appBody": string;
-  readonly "playerBody": string;
   readonly "logoWrapper": string;
   readonly "windowOptions": string;
   readonly "logo": string;
@@ -23,7 +22,6 @@ declare const styles: {
   readonly "urlAddressBarWrapper": string;
   readonly "urlAddressBar": string;
   readonly "playerPageBody": string;
-  readonly "playerLeftSection": string;
   readonly "playerRightSection": string;
   readonly "loadingWrapper": string;
   readonly "rrwebPlayerSection": string;

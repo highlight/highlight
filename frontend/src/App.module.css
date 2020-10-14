@@ -49,7 +49,7 @@
 
 .header {
     width: 100%;
-    height: 10vh;
+    height: 100%;
     display: flex;
     background-color: white;
     border-bottom: 1px solid #eaeaea;
@@ -115,15 +115,8 @@
 .appBody {
     height: 100vh;
     width: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.playerBody {
-    height: 90vh;
-    width: 100%;
-    flex: 1;
-    display: flex;
+    display: grid;
+    grid-auto-rows: 70px 1fr;
 }
 
 .logoWrapper {
@@ -179,19 +172,13 @@
     width: 100%;
 }
 
-.playerLeftSection {
-    flex-direction: column;
-    display: flex;
-    flex-grow: 1;
-    height: 100%;
-}
-
 .playerRightSection {
     border-left: 1px solid #eaeaea;
     width: 350px;
     height: 100%;
     display: flex;
     box-sizing: border-box;
+    overflow-y: scroll;
 }
 
 .loadingWrapper {

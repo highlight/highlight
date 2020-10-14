@@ -125,12 +125,15 @@
     display: flex;
     flex-grow: 1;
     height: 100%;
+    background-color: #f5f5f5;
+    overflow: auto;
 }
 
 .playerRightSection {
     border-left: 1px solid #eaeaea;
     width: 350px;
     height: 100%;
+    overflow: auto;
     display: flex;
     box-sizing: border-box;
 }
@@ -175,8 +178,9 @@
 }
 
 .playerBody {
-    height: 90vh;
+    height: 100%;
     width: 100%;
-    flex: 1;
-    display: flex;
+    overflow: auto;
+    display: grid;
+    grid-template-columns: 1fr 350px;
 }

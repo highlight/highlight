@@ -1,7 +1,7 @@
 .sliderWrapper {
     width: 100%;
+    z-index: 20;
     height: 4px;
-    margin-bottom: 9px;
     cursor: pointer;
 }
 
@@ -39,7 +39,6 @@
     background-color: white;
     display: flex;
     flex-direction: row;
-    margin-bottom: 10px;
 }
 
 .playSection {

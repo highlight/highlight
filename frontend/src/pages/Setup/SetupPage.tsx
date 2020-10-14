@@ -13,15 +13,7 @@ enum PlatformType {
 }
 
 export const SetupPage = () => {
-    const { loading, error, data = '' } = useFetch<string>(
-        'https://unpkg.com/highlight.run@latest/dist/index.js',
-        {},
-        []
-    );
-    const { organization_id } = useParams();
     const [platform, setPlatform] = useState(PlatformType.React);
-
-    const codeStr = data.replace(/(\r\n|\n|\r)/gm, '');
 
     return (
         <div className={styles.setupWrapper}>
@@ -34,37 +26,7 @@ export const SetupPage = () => {
                     onSelect={(p: PlatformType) => setPlatform(p)}
                 />
                 {platform === PlatformType.Html ? (
-                    <>
-                        <div className={styles.snippetSubHeading}>
-                            Copy and paste the{' '}
-                            <span className={styles.codeBlockBasic}>
-                                {'<script/>'}
-                            </span>{' '}
-                            below into the
-                            <span className={styles.codeBlockBasic}>
-                                {'<head/>'}
-                            </span>{' '}
-                            of every page you wish to record.
-                        </div>
-                        <div>
-                            {loading || error ? (
-                                <Skeleton active />
-                            ) : (
-                                <CodeBlock
-                                    onCopy={() =>
-                                        window.analytics.track(
-                                            'Copied Script',
-                                            {}
-                                        )
-                                    }
-                                    text={`<script>
-${codeStr}
-window.H.init(${organization_id})
-</script>`}
-                                />
-                            )}
-                        </div>
-                    </>
+                    <HtmlInstructions />
                 ) : (
                     <JsAppInstructions platform={platform} />
                 )}
@@ -87,6 +49,46 @@ window.H.init(${organization_id})
                 />
             </div>
         </div>
+    );
+};
+
+const HtmlInstructions = () => {
+    const { loading, error, data = '' } = useFetch<string>(
+        'https://unpkg.com/highlight.run@latest/dist/index.js',
+        {},
+        []
+    );
+    const codeStr = data.replace(/(\r\n|\n|\r)/gm, '');
+    const { organization_id } = useParams();
+
+    return (
+        <>
+            <div className={styles.snippetHeadingTwo}>
+                Installing the Package
+            </div>
+            <div className={styles.snippetSubHeading}>
+                Copy and paste the{' '}
+                <span className={styles.codeBlockBasic}>{'<script/>'}</span>{' '}
+                below into the
+                <span className={styles.codeBlockBasic}>{'<head/>'}</span> of
+                every page you wish to record.
+            </div>
+            <div>
+                {loading || error ? (
+                    <Skeleton active />
+                ) : (
+                    <CodeBlock
+                        onCopy={() =>
+                            window.analytics.track('Copied Script', {})
+                        }
+                        text={`<script>
+${codeStr}
+window.H.init(${organization_id})
+</script>`}
+                    />
+                )}
+            </div>
+        </>
     );
 };
 

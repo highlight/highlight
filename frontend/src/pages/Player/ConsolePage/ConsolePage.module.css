@@ -1,0 +1,107 @@
+.consoleButton {
+	height: 30px;
+	width: max-content;
+	padding: 10px;
+	margin-left: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: #5629c6;
+	border-radius: 8px;
+	color: white;
+	cursor: pointer;
+}
+
+.logStreamWrapper {
+	background-color: white;
+	word-wrap: break-word;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	height: 200px;
+}
+
+.consolePageWrapper {
+	background-color: #f5f5f5;
+	width: 100%;
+}
+
+.consoleMessage {
+	display: grid;
+	grid-template-columns: 25px 1fr;
+	border-bottom: 1px solid #eaeaea;
+	font-weight: 400;
+	font-size: 12px;
+	padding-bottom: 8px;
+	padding-top: 8px;
+}
+
+.directionIcon {
+	width: 16px;
+	height: 16px;
+	margin-left: 8px;
+	fill: white;
+}
+
+.consoleTopBar {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+}
+
+.consoleOptionsWrapper {
+	display: flex;
+	height: 100%;
+	width: 100%;
+	padding: 10px;
+}
+
+.consoleOption {
+	background-color: #f2eefb;
+	border-radius: 8px;
+	padding: 10px;
+	margin: 5px;
+	font-size: 11px;
+	font-weight: 400;
+	cursor: pointer;
+	height: 30px;
+	display: flex;
+	align-items: center;
+}
+
+.consoleButtonWrapper {
+	font-weight: 400;
+	font-size: 11px;
+	display: flex;
+	align-items: center;
+	height: 100%;
+	padding: 10px;
+	width: 100%;
+}
+
+.currentIndicator {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background-color: blue;
+}
+
+.currentIndicatorWrapper {
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+}
+
+.closeIcon {
+	height: 15px;
+	width: 15px;
+	fill: grey;
+}
+
+.closeIconWrapper {
+	height: 100%;
+	margin: 14px;
+	margin-left: auto;
+	cursor: pointer;
+}

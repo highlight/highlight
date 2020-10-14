@@ -32,9 +32,7 @@ export const SessionsPage = () => {
     const [mainInputText, setMainInputText] = useState('');
     const { organization_id } = useParams();
     const [sessionData, setSessionData] = useState<any[]>([]);
-    const [sessionsLoading, setSessionsLoading] = useState<boolean>(true);
     const [showDropdown, setShowDropdown] = useState<boolean>(true);
-
     const [getSessions, { loading, error, data }] = useLazyQuery<
         { sessions: any[] },
         { count: number; organization_id: number; params: SearchParam[] }
@@ -64,15 +62,15 @@ export const SessionsPage = () => {
         }
     );
 
+    const rawSessions = data?.sessions;
+
+    // sessionsLoading should be true when 1) loading is true
+
     useEffect(() => {
-        const same = data?.sessions.length === sessionData.length;
-        if (same) {
-            setSessionsLoading(false);
+        if (rawSessions) {
+            setSessionData(rawSessions);
         }
-        if (!loading) {
-            setSessionData(data?.sessions ?? []);
-        }
-    }, [sessionData, data, loading]);
+    }, [rawSessions, setSessionData]);
 
     useEffect(() => {
         document.addEventListener('scroll', (e: any) => {
@@ -82,8 +80,7 @@ export const SessionsPage = () => {
                 refHeight = 0;
             }
             const diff = Math.abs(refHeight - innerHeight);
-            if (diff < 300) {
-                setSessionsLoading(true);
+            if (diff < 50) {
                 countDebounced.callback();
             }
         });
@@ -328,11 +325,12 @@ export const SessionsPage = () => {
                             </Link>
                         );
                     })}
-                    {sessionsLoading && (
+                    {loading && (
                         <div className={styles.loadingDiv}>
                             <Spinner />
                         </div>
                     )}
+                    <div style={{ height: 50 }}></div>
                 </div>
             </div>
         </div>

@@ -3,6 +3,7 @@ import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
 import { ReactComponent as CheckMarkCircle } from '../../../static/checkmark-circle.svg';
 import { ReactComponent as CrossCircle } from '../../../static/cross-circle.svg';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
+import { ConsolePage } from '../ConsolePage/ConsolePage';
 import styles from './Toolbar.module.css';
 
 import { Replayer } from 'rrweb';
@@ -10,9 +11,11 @@ import { Replayer } from 'rrweb';
 export const Toolbar = ({
     replayer,
     onSelect,
+    onResize,
 }: {
     replayer: Replayer | undefined;
     onSelect: (newTime: number) => void;
+    onResize: () => void;
 }) => {
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLDivElement>(null);
@@ -39,6 +42,10 @@ export const Toolbar = ({
 
     return (
         <>
+            <ConsolePage
+                onClick={onResize}
+                time={(replayer?.getMetaData().startTime ?? 0) + current}
+            />
             <div
                 className={styles.sliderWrapper}
                 ref={sliderWrapperRef}

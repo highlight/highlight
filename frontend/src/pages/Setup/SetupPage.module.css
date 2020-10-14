@@ -1,5 +1,4 @@
 .setupWrapper {
-    margin: 30px;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -26,7 +25,8 @@
     border: 1px solid #eaeaea;
     min-width: 650px;
     padding: 30px;
-    margin: 40px;
+    margin: 70px;
+    height: max-content;
     border-radius: 8px;
 }
 
