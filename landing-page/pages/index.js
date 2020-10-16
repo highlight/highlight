@@ -19,9 +19,6 @@ export default function Home() {
                         interacting with your site.
                     </div>
                     <RequestForm />
-                    <div className={styles.sideNote}>
-                        And setup takes just two lines of code 😇.
-                    </div>
                 </div>
                 <div className={styles.gifSection}>
                     <img

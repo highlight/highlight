@@ -1,10 +1,9 @@
 .wrapper {
     width: 100%;
-    min-height: 100%;
-    padding-top: 60px;
-    max-width: 100vw;
+    height: calc(100vh - 80px);
     display: flex;
     margin: 0px;
+    padding-bottom: 20px;
     flex-flow: column;
     align-items: center;
     font-family: AvenirNext;
@@ -13,9 +12,8 @@
 }
 
 .contentWrap {
-    flex-wrap: wrap;
-    flex-grow: 1;
     display: flex;
+    padding-bottom: 50px;
 }
 
 .formWrapper {
@@ -26,15 +24,18 @@
 }
 
 .requestInput {
+    height: 45px;
     padding: 10px;
     padding-left: 15px;
     display: flex;
     width: 300px;
-    background-color: #fcfcfc;
-    border: 1px solid #949494;
-    border-radius: 3px;
+    background-color: #f4f4f4;
+    border: none;
+    outline: none;
+    border-radius: 8px;
     font-family: AvenirNext;
-    color: #949494;
+    color: rgba(0, 0, 0, 0.85);
+    font-size: 14px;
     font-weight: 200;
 }
 
@@ -42,7 +43,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 30px;
+    padding: 50px;
 }
 
 .formSection {
@@ -99,16 +100,12 @@
 }
 
 .copyHeader {
-    font-size: 55px;
+    font-size: 50px;
     font-weight: 400;
 }
 
 .actually {
     font-style: italic;
-}
-
-.accessText {
-    margin-left: 10px;
 }
 
 .signInWrapper {
@@ -120,18 +117,19 @@
 }
 
 .signInButton {
+    outline: none !important;
+    box-shadow: none !important;
     margin-left: 20px;
     width: 120px;
-    border-radius: 3px;
+    border-radius: 8px;
     background-color: #5629c6;
     display: flex;
-    height: 100%;
     color: white;
-    height: 45px;
+    height: 40px;
     align-items: center;
     justify-content: center;
     border: none;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 300;
     font-family: AvenirNext;
 }
@@ -139,7 +137,7 @@
 .requestButton {
     margin-left: 20px;
     width: 170px;
-    border-radius: 3px;
+    border-radius: 8px;
     background-color: #5629c6;
     display: flex;
     color: white;
@@ -147,15 +145,15 @@
     align-items: center;
     justify-content: center;
     border: none;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 300;
     font-family: AvenirNext;
 }
 
 .copyBody {
-    color: #666666;
+    color: black;
     margin-top: 20px;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 200;
 }
 
@@ -167,7 +165,6 @@
 
 .pricingWrap {
     flex-wrap: wrap;
-    flex-grow: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -199,7 +196,7 @@
     margin: 20px;
     display: flex;
     width: 300px;
-    border: 1px solid #c0c0c0;
+    border: 1px solid #eaeaea;
     flex-direction: column;
     border-radius: 10px;
 }
