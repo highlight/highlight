@@ -137,6 +137,8 @@
 .requestButton {
     margin-left: 20px;
     width: 170px;
+    outline: none !important;
+    box-shadow: none !important;
     border-radius: 8px;
     background-color: #5629c6;
     display: flex;
