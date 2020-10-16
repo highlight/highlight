@@ -138,8 +138,12 @@ export const Player = () => {
                 />
             </div>
             <div className={styles.playerRightSection}>
-                <EventStream replayer={replayer} events={events} time={time} />{' '}
                 <MetadataBox />
+                <EventStream
+                    replayer={replayer}
+                    events={events}
+                    time={time}
+                />{' '}
             </div>
         </div>
     );
@@ -176,7 +180,6 @@ const EventStream = ({
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
-                <div className={styles.emptyScrollDiv}></div>
                 {!events.length ? (
                     <Skeleton active />
                 ) : (
