@@ -9,10 +9,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/globals.css';
 
 function MyApp({ Component, pageProps }) {
-
     return (
         <>
-            <Navbar bg="light" expand="lg" style={{height: 80}}>
+            <Navbar bg="light" expand="lg" style={{ height: 80 }}>
                 <Link href="/" style={{ cursor: 'pointer' }}>
                     <img
                         style={{ cursor: 'pointer', height: 40, width: 110 }}
@@ -35,10 +34,14 @@ function MyApp({ Component, pageProps }) {
                         </div>
                         <a className={styles.navbarLink}>Community</a>
                         <div className={styles.signInWrapper}>
-                            <button className={styles.signInButton} onClick={() => {
-                                window.location.href = "https://app.highlight.run"
-                                }}>
-                                    Sign In
+                            <button
+                                className={styles.signInButton}
+                                onClick={() => {
+                                    window.location.href =
+                                        'https://app.highlight.run';
+                                }}
+                            >
+                                Sign In
                             </button>
                         </div>
                     </Nav>
