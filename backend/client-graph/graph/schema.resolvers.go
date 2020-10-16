@@ -62,6 +62,10 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
+	res := r.DB.Model(sessionID).Updates(&model.Session{Identifier: userIdentifier})
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error adding user identifier to session")
+	}
 	return &sessionID, nil
 }
 
