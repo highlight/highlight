@@ -1,26 +1,21 @@
 import Head from 'next/head';
 import styles from '../styles/Home.module.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faHandPointUp } from '@fortawesome/free-solid-svg-icons';
 import Link from 'next/link';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
-import NavDropdown from 'react-bootstrap/NavDropdown';
-import Form from 'react-bootstrap/Form';
-import FormControl from 'react-bootstrap/FormControl';
-import Button from 'react-bootstrap/Button';
 import ChatWidget from '@papercups-io/chat-widget';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../styles/globals.css';
 
 function MyApp({ Component, pageProps }) {
+
     return (
         <>
-            <Navbar bg="light" expand="lg">
+            <Navbar bg="light" expand="lg" style={{height: 80}}>
                 <Link href="/" style={{ cursor: 'pointer' }}>
                     <img
-                        style={{ cursor: 'pointer' }}
+                        style={{ cursor: 'pointer', height: 40, width: 110 }}
                         src="static/logo.svg"
                         alt="triangle with all three sides equal"
                         height="55"
@@ -40,14 +35,10 @@ function MyApp({ Component, pageProps }) {
                         </div>
                         <a className={styles.navbarLink}>Community</a>
                         <div className={styles.signInWrapper}>
-                            <button className={styles.signInButton}>
-                                <FontAwesomeIcon
-                                    style={{ width: 15 }}
-                                    icon={faPlay}
-                                />
-                                <span className={styles.accessText}>
+                            <button className={styles.signInButton} onClick={() => {
+                                window.location.href = "https://app.highlight.run"
+                                }}>
                                     Sign In
-                                </span>
                             </button>
                         </div>
                     </Nav>

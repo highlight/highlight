@@ -16,10 +16,6 @@ const RequestForm = (props) => {
                     />
                     <br />
                     <button className={styles.requestButton}>
-                        <FontAwesomeIcon
-                            style={{ width: 15 }}
-                            icon={faHandPointUp}
-                        />
                         <span className={styles.accessText}>
                             Request Access
                         </span>
