@@ -49,7 +49,7 @@
 
 .header {
     width: 100%;
-    height: 100%;
+    height: 80px;
     display: flex;
     background-color: white;
     border-bottom: 1px solid #eaeaea;
@@ -105,8 +105,6 @@
 .appBody {
     height: 100vh;
     width: 100%;
-    display: grid;
-    grid-auto-rows: 70px 1fr;
 }
 
 .logoWrapper {
