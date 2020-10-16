@@ -9,9 +9,10 @@ import (
 	"fmt"
 	"time"
 
-	redis "github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+
+	redis "github.com/go-redis/redis/v8"
 	e "github.com/pkg/errors"
 )
 
@@ -61,6 +62,10 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	err := r.AppendProperties(sessionID, fields)
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
+	}
+	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{Identifier: userIdentifier})
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error adding user identifier to session")
 	}
 	return &sessionID, nil
 }
