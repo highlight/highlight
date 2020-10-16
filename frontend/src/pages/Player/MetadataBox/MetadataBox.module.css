@@ -1,13 +1,13 @@
 .innerLocationBox {
     display: flex;
     height: 100%;
+    width: 100%;
     align-items: center;
 }
 
 .locationBox {
     border-bottom: 1px solid #eaeaea;
-    padding: 30px 25px 30px 25px;
-    position: absolute;
+    padding: 30px;
     box-sizing: border-box;
     height: 150px;
     display: flex;

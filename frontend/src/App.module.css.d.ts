@@ -12,7 +12,6 @@ declare const styles: {
   readonly "rightHeader": string;
   readonly "accountIcon": string;
   readonly "streamElement": string;
-  readonly "eventStreamContainer": string;
   readonly "playButtonStyle": string;
   readonly "appBody": string;
   readonly "logoWrapper": string;
@@ -22,7 +21,6 @@ declare const styles: {
   readonly "urlAddressBarWrapper": string;
   readonly "urlAddressBar": string;
   readonly "playerPageBody": string;
-  readonly "playerRightSection": string;
   readonly "loadingWrapper": string;
   readonly "rrwebPlayerSection": string;
   readonly "rrwebPlayerWrapper": string;

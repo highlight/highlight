@@ -6,7 +6,6 @@ declare const styles: {
   readonly "rightHeader": string;
   readonly "accountIcon": string;
   readonly "eventStreamContainer": string;
-  readonly "emptyScrollDiv": string;
   readonly "appBody": string;
   readonly "logoWrapper": string;
   readonly "windowOptions": string;

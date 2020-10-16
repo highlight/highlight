@@ -80,7 +80,7 @@ export const ConsolePage = ({
 
 	return (
 		<>
-			{data?.messages?.length && (
+			{data?.messages?.length ? (
 				<div className={styles.consolePageWrapper}>
 					<div
 						className={styles.consoleTopBar}
@@ -267,6 +267,8 @@ export const ConsolePage = ({
 						</div>
 					)}
 				</div>
+			) : (
+				<></>
 			)}
 		</>
 	);

@@ -52,12 +52,8 @@
     overflow-y: scroll;
     position: relative;
     padding: 30px;
+    padding-top: 10px;
     box-sizing: border-box;
-}
-
-.emptyScrollDiv {
-    height: 130px;
-    flex-direction: column;
 }
 
 .appBody {
@@ -134,7 +130,8 @@
     width: 350px;
     height: 100%;
     overflow: auto;
-    display: flex;
+    display: grid;
+    grid-template-rows: 150px 1fr;
     box-sizing: border-box;
 }
 
