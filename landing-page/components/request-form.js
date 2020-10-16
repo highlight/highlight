@@ -3,8 +3,10 @@ import styles from '../styles/Home.module.css';
 import { useForm } from 'react-hook-form';
 
 const RequestForm = (props) => {
-    const { handleSubmit, register, errors } = useForm();
-    const onSubmit = (values) => console.log(values);
+    const { handleSubmit, register } = useForm();
+    const onSubmit = (values) => {
+        console.log(values)
+    };
 
     return (
         <div className={styles.formSection}>

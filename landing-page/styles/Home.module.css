@@ -1,6 +1,6 @@
 .wrapper {
     width: 100%;
-    height: calc(100vh - 80px);
+    min-height: calc(100vh - 80px);
     display: flex;
     margin: 0px;
     padding-bottom: 20px;
@@ -14,6 +14,9 @@
 .contentWrap {
     display: flex;
     padding-bottom: 50px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
 }
 
 .formWrapper {
@@ -67,6 +70,7 @@
     justify-content: center;
     flex-direction: column;
     max-width: 550px;
+    width: 550px;
 }
 
 .navbarLink {
@@ -191,6 +195,9 @@
 
 .pricingCards {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .pricingCard {

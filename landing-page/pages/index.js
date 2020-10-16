@@ -1,9 +1,5 @@
-import Head from 'next/head';
 import styles from '../styles/Home.module.css';
 import RequestForm from '../components/request-form.js';
-
-import { faPlay, faHandPointUp } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function Home() {
     return (
