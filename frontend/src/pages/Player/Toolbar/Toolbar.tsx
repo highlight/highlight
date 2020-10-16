@@ -117,7 +117,7 @@ export const Toolbar = ({
                 <div className={styles.toolbarRightSection}>
                     <div
                         onClick={() => {
-                            const newSpeed = speed < 4 ? speed * 2 : 1;
+                            const newSpeed = speed < 8 ? speed * 2 : 1;
                             setSpeed(newSpeed);
                             replayer?.setConfig({ speed: newSpeed });
                         }}
