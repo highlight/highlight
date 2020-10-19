@@ -166,7 +166,6 @@ function recordInStaticMap(
     const lastRecord = map[id][map[id].length - 1];
     // not same
     if (!isSameNode(lastRecord.node, node)) {
-        console.log('new one', id);
         map[id].push({
             node,
             started_at: timestamp,
