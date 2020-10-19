@@ -1,20 +1,20 @@
 import {
-    eventWithTime,
-    EventType,
+    Replayer,
+    MouseInteractions,
     IncrementalSource,
-} from 'rrweb/typings/types';
+    EventType,
+} from 'rrweb';
 import { serializedNodeWithId, NodeType } from 'rrweb-snapshot';
+import { eventWithTime, incrementalData } from 'rrweb/typings/types';
 
 type Attributes = {
     [key: string]: string | number | boolean | null;
 };
-
 type VNode = {
     path: string[];
     tagName: string;
-    attriubtes: Attributes;
+    attributes: Attributes;
 };
-
 export type StaticMap = Record<
     number,
     Array<{
@@ -22,7 +22,6 @@ export type StaticMap = Record<
         started_at: number;
     }>
 >;
-
 function visitSnapshot(
     node: serializedNodeWithId,
     onVisit: (
@@ -44,17 +43,14 @@ function visitSnapshot(
     }
     walk(node, null);
 }
-
 type VTree = {
     tagName: string;
     attributes: Attributes;
     children: VTree[];
     parent: VTree | null;
 };
-
 class VirtualTree {
     private map: Map<number, VTree> = new Map();
-    // @ts-ignore
     private root: VTree | undefined;
     public append(
         tagName: string,
@@ -125,7 +121,7 @@ class VirtualTree {
         }
         return {
             tagName: tree.tagName,
-            attriubtes: { ...tree.attributes },
+            attributes: { ...tree.attributes },
             path,
         };
     }
@@ -137,13 +133,13 @@ function isSameNode(node1: VNode, node2: VNode): boolean {
     if (node1.path.join(' ') !== node2.path.join(' ')) {
         return false;
     }
-    Object.keys(node1.attriubtes).forEach((key1) => {
-        const value1 = node1.attriubtes[key1];
-        if (value1 === node2.attriubtes[key1]) {
-            delete node2.attriubtes[key1];
+    Object.keys(node1.attributes).forEach((key1) => {
+        const value1 = node1.attributes[key1];
+        if (value1 === node2.attributes[key1]) {
+            delete node2.attributes[key1];
         }
     });
-    if (Object.keys(node2.attriubtes).length > 0) {
+    if (Object.keys(node2.attributes).length > 0) {
         return false;
     }
     return true;

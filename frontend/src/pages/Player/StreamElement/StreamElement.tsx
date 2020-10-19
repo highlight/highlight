@@ -12,20 +12,23 @@ import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
 import { HighlightEvent } from '../HighlightEvent';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { mouseInteractionData } from 'rrweb/typings/types';
+import { StaticMap } from '../StaticMap/StaticMap';
 import styles from './StreamElement.module.css';
 
 export const StreamElement = ({
     e,
     start,
     isCurrent,
+    nodeMap,
 }: {
     e: HighlightEvent;
     start: number;
     isCurrent: boolean;
+    nodeMap: StaticMap;
 }) => {
     const [hover, setHover] = useState(false);
     const [selected, setSelected] = useState(false);
-    const details = getEventRenderDetails(e);
+    const details = getEventRenderDetails(e, nodeMap);
     let timeSinceStart = e?.timestamp - start;
     return (
         <Element
@@ -95,7 +98,10 @@ type EventRenderDetails = {
     payload?: string;
 };
 
-const getEventRenderDetails = (e: HighlightEvent): EventRenderDetails => {
+const getEventRenderDetails = (
+    e: HighlightEvent,
+    nodeMap: StaticMap
+): EventRenderDetails => {
     var details: EventRenderDetails = {};
     if (e.type === EventType.Custom) {
         details.title = e.data.tag;
@@ -112,14 +118,16 @@ const getEventRenderDetails = (e: HighlightEvent): EventRenderDetails => {
                 eventStr = 'Focus';
                 break;
         }
-        const node = mirror.map[mouseInteraction.id]?.__sn as elementNode;
-        var idString = node?.tagName;
+        const node = nodeMap[mouseInteraction.id][0].node;
+        var idString = nodeMap[mouseInteraction.id][0].node.tagName;
+        // const node = nodeMap[mouseInteraction.id][0].node;
+        // var idString = node.tagName;
         if (node?.attributes) {
             const attrs = node?.attributes;
-            if ('class' in attrs && attrs.class.toString()) {
+            if ('class' in attrs && attrs?.class?.toString()) {
                 idString = idString.concat('.' + attrs.class);
             }
-            if ('id' in attrs && attrs.id.toString()) {
+            if ('id' in attrs && attrs?.id?.toString()) {
                 idString = idString.concat('#' + attrs.id);
             }
             Object.keys(attrs)
