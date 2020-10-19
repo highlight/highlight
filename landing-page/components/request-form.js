@@ -1,17 +1,14 @@
 import styles from '../styles/Home.module.css';
-import useFetch, {FetchData} from 'use-http';
+import useFetch from 'use-http';
 import Spinner from 'react-bootstrap/Spinner';
 import { useForm } from 'react-hook-form';
 
 const RequestForm = (props) => {
     const { handleSubmit, register } = useForm();
-    const { get, post, error, data, loading } = useFetch(
+    const { post, error, data, loading } = useFetch(
         process.env.NEXT_PUBLIC_BACKEND_URI
     );
     const onSubmit = (values) => {
-        console.log(values);
-        var d = new FormData()
-        d.set("email", values.email)
         post("/email", {email: values.email})
     };
 
