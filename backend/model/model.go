@@ -39,6 +39,11 @@ type Admin struct {
 	Organizations []Organization `gorm:"many2many:organization_admins;"`
 }
 
+type EmailSignup struct {
+	Model
+	Email string `gorm:"unique_index"`
+}
+
 type User struct {
 	Model
 	OrganizationID int
@@ -98,7 +103,7 @@ func SetupDB() *gorm.DB {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	DB.AutoMigrate(&MessagesObject{}, &EventsObject{}, &Organization{}, &Admin{}, &User{}, &Session{}, &Field{})
+	DB.AutoMigrate(&MessagesObject{}, &EventsObject{}, &Organization{}, &Admin{}, &User{}, &Session{}, &Field{}, &EmailSignup{})
 	return DB
 }
 
