@@ -120,8 +120,6 @@ const getEventRenderDetails = (
         }
         const node = nodeMap[mouseInteraction.id][0].node;
         var idString = nodeMap[mouseInteraction.id][0].node.tagName;
-        // const node = nodeMap[mouseInteraction.id][0].node;
-        // var idString = node.tagName;
         if (node?.attributes) {
             const attrs = node?.attributes;
             if ('class' in attrs && attrs?.class?.toString()) {
