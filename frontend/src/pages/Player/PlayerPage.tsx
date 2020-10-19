@@ -6,6 +6,7 @@ import {
     IncrementalSource,
     EventType,
 } from 'rrweb';
+import { serializedNodeWithId, NodeType } from 'rrweb-snapshot';
 import { eventWithTime, incrementalData } from 'rrweb/typings/types';
 import { scroller } from 'react-scroll';
 import { Spinner } from '../../components/Spinner/Spinner';
@@ -15,6 +16,7 @@ import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
 import { MetadataBox } from './MetadataBox/MetadataBox';
 import { HighlightEvent } from './HighlightEvent';
+import { StaticMap, buildStaticMap } from './StaticMap/StaticMap';
 // @ts-ignore
 import useResizeAware from 'react-resize-aware';
 import styles from './PlayerPage.module.css';
@@ -159,6 +161,23 @@ const EventStream = ({
     replayer: Replayer | undefined;
 }) => {
     const [currEvent, setCurrEvent] = useState('');
+    const [loadingMap, setLoadingMap] = useState(true);
+    const [staticMap, setStaticMap] = useState<StaticMap | undefined>(
+        undefined
+    );
+
+    useEffect(() => {
+        if (events.length) {
+            setStaticMap(buildStaticMap(events as eventWithTime[]));
+        }
+    }, [events]);
+
+    useEffect(() => {
+        if (staticMap !== undefined) {
+            setLoadingMap(false);
+        }
+    }, [staticMap]);
+
     useEffect(() => {
         if (!replayer) return;
         replayer.on('event-cast', (e: any) => {
@@ -180,7 +199,7 @@ const EventStream = ({
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
-                {!events.length ? (
+                {loadingMap || !events.length || !staticMap ? (
                     <Skeleton active />
                 ) : (
                     replayer &&
@@ -192,18 +211,13 @@ const EventStream = ({
                                 key={i}
                                 start={replayer.getMetaData().startTime}
                                 isCurrent={e.identifier === currEvent}
+                                nodeMap={staticMap}
                             />
                         ))
                 )}
             </div>
         </>
     );
-};
-
-type HighlightCustomEvent = {
-    name: string;
-    value: string;
-    properties: any;
 };
 
 // used in filter() type methods to fetch events we want
