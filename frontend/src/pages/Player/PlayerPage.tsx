@@ -15,6 +15,7 @@ import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
 import { MetadataBox } from './MetadataBox/MetadataBox';
 import { HighlightEvent } from './HighlightEvent';
+import { buildStaticMap, StaticMap } from './StaticMap';
 // @ts-ignore
 import useResizeAware from 'react-resize-aware';
 import styles from './PlayerPage.module.css';
@@ -159,6 +160,18 @@ const EventStream = ({
     replayer: Replayer | undefined;
 }) => {
     const [currEvent, setCurrEvent] = useState('');
+    const [loadingMap, setLoadingMap] = useState(true);
+    const [staticMap, setStaticMap] = useState<StaticMap | undefined>(
+        undefined
+    );
+    useEffect(() => {
+        if (events.length) {
+            setStaticMap(buildStaticMap(events as eventWithTime[]));
+        }
+    }, [events]);
+
+    // useEffect(() => {
+    // }, [staticMap]);
     useEffect(() => {
         if (!replayer) return;
         replayer.on('event-cast', (e: any) => {
@@ -198,12 +211,6 @@ const EventStream = ({
             </div>
         </>
     );
-};
-
-type HighlightCustomEvent = {
-    name: string;
-    value: string;
-    properties: any;
 };
 
 // used in filter() type methods to fetch events we want
