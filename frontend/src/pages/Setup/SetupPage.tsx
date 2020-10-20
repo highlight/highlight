@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 
 import { CodeBlock } from './CodeBlock';
 import { useParams } from 'react-router-dom';
@@ -14,10 +14,48 @@ enum PlatformType {
 
 export const SetupPage = () => {
     const [platform, setPlatform] = useState(PlatformType.React);
+    const cardRef = useRef<HTMLDivElement>(null);
+    const sideCardWidth = 160;
+    const [sideCardPos, setSideCardPos] = useState<{
+        top: number;
+        left: number;
+    }>({
+        left: 0,
+        top: 0,
+    });
+
+    useLayoutEffect(() => {
+        function updateSize() {
+            const rect = cardRef.current?.getBoundingClientRect();
+            if (rect) {
+                setSideCardPos({
+                    left: rect.left - sideCardWidth - 20,
+                    top: rect.top,
+                });
+                console.log(rect);
+            }
+        }
+        window.addEventListener('resize', updateSize);
+        updateSize();
+        return () => window.removeEventListener('resize', updateSize);
+    }, []);
 
     return (
         <div className={styles.setupWrapper}>
-            <div className={styles.snippetCard}>
+            <div className={styles.snippetCard} ref={cardRef}>
+                <div
+                    className={styles.sideCard}
+                    style={{
+                        width: sideCardWidth,
+                        top: sideCardPos.top,
+                        left: sideCardPos.left,
+                    }}
+                >
+                    <div>Introduction</div>
+                    <div>Installation</div>
+                    <div>Initiliazation</div>
+                    <div>Identifying Users</div>
+                </div>
                 <div className={styles.snippetHeading}>
                     Your Recording Snippet
                 </div>
