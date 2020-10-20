@@ -25,8 +25,10 @@ import {
 } from 'react-router-dom';
 import { Dropdown, Skeleton } from 'antd';
 import { H } from 'highlight.run';
+import LogRocket from 'logrocket';
 
 H.init(3, true);
+LogRocket.init('vcbmdo/highlight');
 
 const App = () => {
     const { loading: o_loading, error: o_error, data: o_data } = useQuery(gql`
