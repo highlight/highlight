@@ -118,24 +118,28 @@ const getEventRenderDetails = (
                 eventStr = 'Focus';
                 break;
         }
-        const node = nodeMap[mouseInteraction.id][0].node;
-        var idString = nodeMap[mouseInteraction.id][0].node.tagName;
-        if (node?.attributes) {
-            const attrs = node?.attributes;
-            if ('class' in attrs && attrs?.class?.toString()) {
-                idString = idString.concat('.' + attrs.class);
+        if (nodeMap[mouseInteraction.id] && nodeMap[mouseInteraction.id][0]) {
+            const node = nodeMap[mouseInteraction.id][0].node;
+            var idString = nodeMap[mouseInteraction.id][0].node.tagName;
+            if (node?.attributes) {
+                const attrs = node?.attributes;
+                if ('class' in attrs && attrs?.class?.toString()) {
+                    idString = idString.concat('.' + attrs.class);
+                }
+                if ('id' in attrs && attrs?.id?.toString()) {
+                    idString = idString.concat('#' + attrs.id);
+                }
+                Object.keys(attrs)
+                    .filter((key) => !['class', 'id'].includes(key))
+                    .forEach(
+                        (key) =>
+                            (idString += '[' + key + '=' + attrs[key] + ']')
+                    );
             }
-            if ('id' in attrs && attrs?.id?.toString()) {
-                idString = idString.concat('#' + attrs.id);
-            }
-            Object.keys(attrs)
-                .filter((key) => !['class', 'id'].includes(key))
-                .forEach(
-                    (key) => (idString += '[' + key + '=' + attrs[key] + ']')
-                );
+            details.payload = idString;
         }
+
         details.title = eventStr;
-        details.payload = idString;
     }
     return details;
 };

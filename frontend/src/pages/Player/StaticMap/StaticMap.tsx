@@ -103,7 +103,10 @@ class VirtualTree {
                 if (attributes[attributeName] === null) {
                     delete tree.attributes[attributeName];
                 } else {
-                    tree.attributes[attributeName] = attributes[attributeName];
+                    tree.attributes = {
+                        ...tree.attributes,
+                        attributeName: attributes[attributeName],
+                    };
                 }
             }
         }
