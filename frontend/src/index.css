@@ -6,6 +6,18 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+.ant-modal-close-x {
+    visibility: hidden;
+}
+
+.ant-modal-body {
+    padding: 0px;
+}
+
+.ant-modal-content {
+    border-radius: 8px;
+}
+
 @font-face {
     font-family: AvenirNext;
     src: url(/font/AvenirNext-Heavy.woff2);

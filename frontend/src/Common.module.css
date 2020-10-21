@@ -1,0 +1,26 @@
+.input {
+    height: 40px;
+    width: 100%;
+    margin: 8px 0px 8px 0px;
+    border-radius: 8px;
+    outline: none;
+    border: none;
+    background-color: #f4f4f4;
+    font-weight: 300;
+    font-size: 15px;
+    padding: 15px;
+}
+
+.submitButton {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    background-color: #5629c6;
+    border-radius: 8px;
+    height: 40px;
+    color: white;
+    margin: 8px 0px 8px 0px;
+}

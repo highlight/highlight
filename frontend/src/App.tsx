@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 import styles from './App.module.css';
+import commonStyles from './Common.module.css';
 import { client } from './util/graph';
 import { Spinner } from './components/Spinner/Spinner';
 import { Player } from './pages/Player/PlayerPage';
+import { TeamModal } from './pages/TeamModal/TeamModal';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { SessionsPage } from './pages/Sessions/SessionsPage';
 import { auth, googleProvider } from './util/auth';
@@ -197,7 +199,7 @@ export const AuthAppRouter = () => {
                         placeholder={'Email'}
                         name="email"
                         ref={register({ required: true })}
-                        className={styles.loginInput}
+                        className={commonStyles.input}
                     />
                     <div className={styles.errorMessage}>
                         {errors.email && 'Enter an email yo!'}
@@ -207,7 +209,7 @@ export const AuthAppRouter = () => {
                         type="password"
                         name="password"
                         ref={register({ required: true })}
-                        className={styles.loginInput}
+                        className={commonStyles.input}
                     />
                     {!signIn && (
                         <>
@@ -227,14 +229,14 @@ export const AuthAppRouter = () => {
                                         }
                                     },
                                 })}
-                                className={styles.loginInput}
+                                className={commonStyles.input}
                             />
                         </>
                     )}
                     <div className={styles.errorMessage}>
                         {errors.password && errors.password.message}
                     </div>
-                    <button className={styles.submitButton} type="submit">
+                    <button className={commonStyles.submitButton} type="submit">
                         {signIn ? 'Sign In' : 'Sign Up'}
                     </button>
                 </form>
@@ -317,6 +319,7 @@ const Header = () => {
                 <HighlightLogo className={styles.logo} />
             </div>
             <div className={styles.rightHeader}>
+                <TeamModal />
                 <Link
                     onClick={() => {
                         window.analytics.track('Sessions Click', {

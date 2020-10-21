@@ -1,0 +1,19 @@
+.teamModal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.membersSection {
+    border-right: 1px solid #eaeaea;
+    padding: 24px;
+}
+
+.newMemberSection {
+    padding: 24px;
+}
+
+.title {
+    font-weight: 400;
+    font-size: 22px;
+    margin-bottom: 10px;
+}

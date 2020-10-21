@@ -72,6 +72,10 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 	return allEvents["messages"], nil
 }
 
+func (r *queryResolver) Members(ctx context.Context, organizationID int) ([]*model.Admin, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model.Session, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")

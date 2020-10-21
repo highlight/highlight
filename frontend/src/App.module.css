@@ -247,52 +247,13 @@
     justify-content: center;
 }
 
-.submitButton {
-    width: 100%;
-    border: none;
-    cursor: pointer;
-    background-color: #5629c6;
-    border-radius: 8px;
-    height: 40px;
-    color: white;
-    margin: 8px 0px 8px 0px;
-}
-
 .loginTitleWrapper {
     width: 100%;
-}
-
-.loginInput {
-    height: 40px;
-    width: 100%;
-    margin: 8px 0px 8px 0px;
-    border-radius: 8px;
-    outline: none;
-    border: none;
-    background-color: #f4f4f4;
-    font-weight: 300;
-    font-size: 15px;
-    padding: 15px;
 }
 
 .loginStateSwitcher {
     color: #5629c6;
     cursor: pointer;
-}
-
-loginInput::placeholder {
-    /* Chrome, Firefox, Opera, Safari 10.1+ */
-    color: #9a9a9a;
-}
-
-loginInput:-ms-input-placeholder {
-    /* Internet Explorer 10-11 */
-    color: #9a9a9a;
-}
-
-loginInput::-ms-input-placeholder {
-    /* Microsoft Edge */
-    color: #9a9a9a;
 }
 
 .loginTitle {

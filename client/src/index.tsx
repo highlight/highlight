@@ -147,7 +147,12 @@ Session Data:
     var send = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function (data) {
       setTimeout(() => {
-        const obj = JSON.parse(data?.toString() ?? '');
+        var obj: any;
+        try {
+          obj = JSON.parse(data?.toString() ?? '');
+        } catch (e) {
+          return;
+        }
         if (obj.type === 'track') {
           const properties: { [key: string]: string } = {};
           properties['segment-event'] = obj.event;
