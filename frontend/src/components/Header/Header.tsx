@@ -4,7 +4,7 @@ import { FiLogOut } from 'react-icons/fi';
 import { ReactComponent as HighlightLogo } from '../../static/highlight-logo.svg';
 import { Link } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
-import { TeamModal } from '../../pages/TeamModal/TeamModal';
+import { TeamModal } from './TeamModal/TeamModal';
 import { useParams } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
 import { auth } from '../../util/auth';
