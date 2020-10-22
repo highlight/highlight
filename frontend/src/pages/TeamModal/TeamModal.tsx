@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Modal, message } from 'antd';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -18,6 +18,7 @@ type Inputs = {
 export const TeamModal = () => {
     const { organization_id } = useParams();
     const [showModal, setShowModal] = useState(false);
+    const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
     const { data, error } = useQuery<
         { admins: { id: number; name: string; email: string }[] },
@@ -34,6 +35,10 @@ export const TeamModal = () => {
         `,
         { variables: { organization_id } }
     );
+
+    useEffect(() => {
+        reset();
+    }, [showModal]);
 
     const [sendInviteEmail, { loading: sendLoading }] = useMutation<
         { email: string },
@@ -55,6 +60,7 @@ export const TeamModal = () => {
         }).then(() => {
             message.success(`Invite email sent to ${data.email}!`, 5);
             reset();
+            emailRef.current?.focus();
         });
     };
 
@@ -92,9 +98,10 @@ export const TeamModal = () => {
                                 placeholder={'Email'}
                                 type="email"
                                 name="email"
-                                ref={register({
-                                    required: true,
-                                })}
+                                ref={(e) => {
+                                    register(e, { required: true });
+                                    emailRef.current = e;
+                                }}
                             />
                             <div className={commonStyles.errorMessage}>
                                 {errors.email &&
