@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 import { useMutation, useQuery, gql } from '@apollo/client';
-import { SeededAvatar } from '../../components/Avatar/Avatar';
+import { Avatar } from '../../components/Avatar/Avatar';
 import { CircularSpinner } from '../../components/Spinner/Spinner';
 
 import appStyles from '../../App.module.css';
@@ -115,16 +115,14 @@ export const TeamModal = () => {
                     <div className={styles.membersSection}>
                         <div className={styles.title}>Members</div>
                         {data?.admins.map((a) => {
-                            console.log(a.id);
                             return (
                                 <div className={styles.memberCard}>
-                                    <SeededAvatar
-                                        seed={a.id}
+                                    <Avatar
                                         style={{
                                             height: 45,
                                             width: 45,
-                                            marginRight: 10,
-                                            marginLeft: 10,
+                                            marginLeft: 5,
+                                            marginRight: 5,
                                         }}
                                     />
                                     <div className={styles.userDetails}>

@@ -81,12 +81,12 @@ export const Player = () => {
         return () => {
             i && clearInterval(i);
         };
-    }, [replayer, replayerScale]);
+    }, [resizePlayer, replayer, replayerScale]);
 
     // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
     useEffect(() => {
         replayer && resizePlayer(replayer);
-    }, [sizes, replayer]);
+    }, [sizes, replayer, resizePlayer]);
 
     useEffect(() => {
         if (sessionData?.events?.length ?? 0 > 1) {
