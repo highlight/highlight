@@ -1,22 +1,8 @@
 declare const styles: {
-  readonly "signinWrapper": string;
-  readonly "dropdownMenu": string;
-  readonly "dropdownInner": string;
-  readonly "dropdownName": string;
-  readonly "dropdownEmail": string;
-  readonly "dropdownLogout": string;
-  readonly "dropdownLogoutText": string;
-  readonly "header": string;
-  readonly "accountIconWrapper": string;
-  readonly "headerLink": string;
-  readonly "rightHeader": string;
-  readonly "accountIcon": string;
   readonly "streamElement": string;
   readonly "playButtonStyle": string;
   readonly "appBody": string;
-  readonly "logoWrapper": string;
   readonly "windowOptions": string;
-  readonly "logo": string;
   readonly "urlText": string;
   readonly "urlAddressBarWrapper": string;
   readonly "urlAddressBar": string;
@@ -41,6 +27,7 @@ declare const styles: {
   readonly "otherSigninText": string;
   readonly "googleLogoStyle": string;
   readonly "googleText": string;
+  readonly "signinWrapper": string;
 };
 export = styles;
 

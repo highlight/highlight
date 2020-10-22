@@ -3,6 +3,7 @@ declare const styles: {
   readonly "submitButton": string;
   readonly "errorMessage": string;
   readonly "secondaryButton": string;
+  readonly "headerLink": string;
 };
 export = styles;
 

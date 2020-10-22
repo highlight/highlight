@@ -1,0 +1,87 @@
+.dropdownMenu {
+    box-shadow: none;
+    min-width: 200px;
+}
+
+.dropdownInner {
+    background-color: white;
+    padding: 14px;
+    border-radius: 5px;
+    border: 1px solid #eaeaea;
+    margin-right: 30px;
+    margin-top: -12px;
+    box-shadow: 2px 2px 8px #e4e4e4;
+    color: black;
+}
+
+.dropdownName {
+    font-weight: 400;
+    font-size: 15px;
+}
+
+.dropdownEmail {
+    font-weight: 300;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.dropdownLogout {
+    border-top: 1px solid #eaeaea;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding-top: 10px;
+    color: red;
+}
+
+.dropdownLogoutText {
+    margin-left: 10px;
+}
+
+.header {
+    width: 100%;
+    height: 80px;
+    display: flex;
+    background-color: white;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.logoWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 130px;
+    margin-left: 12px;
+}
+
+.logo {
+    margin: 10px;
+    fill: white;
+    height: 40px;
+    width: 110px;
+}
+
+.rightHeader {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+}
+
+.accountIconWrapper {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.accountIcon {
+    fill: #5629c6;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    margin-right: 30px;
+}

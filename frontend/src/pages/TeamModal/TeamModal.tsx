@@ -7,7 +7,6 @@ import { useMutation, useQuery, gql } from '@apollo/client';
 import { Avatar } from '../../components/Avatar/Avatar';
 import { CircularSpinner } from '../../components/Spinner/Spinner';
 
-import appStyles from '../../App.module.css';
 import commonStyles from '../../Common.module.css';
 import styles from './TeamModal.module.css';
 
@@ -38,7 +37,7 @@ export const TeamModal = () => {
 
     useEffect(() => {
         reset();
-    }, [showModal]);
+    }, [showModal, reset]);
 
     const [sendInviteEmail, { loading: sendLoading }] = useMutation<
         { email: string },
@@ -75,7 +74,7 @@ export const TeamModal = () => {
                     setShowModal(true);
                 }}
                 to={'#'}
-                className={appStyles.headerLink}
+                className={commonStyles.headerLink}
             >
                 Team
             </Link>

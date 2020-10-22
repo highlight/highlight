@@ -3,18 +3,13 @@ import './App.css';
 
 import styles from './App.module.css';
 import commonStyles from './Common.module.css';
-import { client } from './util/graph';
 import { Spinner, CircularSpinner } from './components/Spinner/Spinner';
 import { Player } from './pages/Player/PlayerPage';
-import { TeamModal } from './pages/TeamModal/TeamModal';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { NewMemberPage } from './pages/NewMember/NewMemberPage';
 import { SessionsPage } from './pages/Sessions/SessionsPage';
 import { auth, googleProvider } from './util/auth';
-import { ReactComponent as HighlightLogo } from './static/highlight-logo.svg';
 import { ReactComponent as GoogleLogo } from './static/google.svg';
-import { FaUserCircle } from 'react-icons/fa';
-import { FiLogOut } from 'react-icons/fi';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -24,10 +19,9 @@ import {
     Route,
     BrowserRouter as Router,
     Redirect,
-    Link,
 } from 'react-router-dom';
-import { Dropdown, Skeleton } from 'antd';
 import { H } from 'highlight.run';
+import { Header } from './components/Header/Header';
 
 H.init(3, true);
 
@@ -292,105 +286,6 @@ export const AuthAppRouter = () => {
                 <div className={commonStyles.errorMessage}>
                     {JSON.stringify(error)}
                 </div>
-            </div>
-        </div>
-    );
-};
-
-const Header = () => {
-    const { organization_id } = useParams();
-    const { loading: a_loading, error: a_error, data: a_data } = useQuery<{
-        admin: { id: string; name: string; email: string };
-    }>(gql`
-        query GetAdmin {
-            admin {
-                id
-                name
-                email
-            }
-        }
-    `);
-    const menu = (
-        <div className={styles.dropdownMenu}>
-            <div className={styles.dropdownInner}>
-                {a_loading || a_error ? (
-                    <Skeleton />
-                ) : (
-                    <div>
-                        <div className={styles.dropdownName}>
-                            {a_data?.admin.name}
-                        </div>
-                        <div className={styles.dropdownEmail}>
-                            {a_data?.admin.email}
-                        </div>
-                        <div
-                            className={styles.dropdownLogout}
-                            onClick={async () => {
-                                try {
-                                    auth.signOut();
-                                } catch (e) {
-                                    console.log(e);
-                                }
-                                client.cache.reset();
-                            }}
-                        >
-                            <FiLogOut />
-                            <span className={styles.dropdownLogoutText}>
-                                Logout
-                            </span>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-
-    return (
-        <div className={styles.header}>
-            <div className={styles.logoWrapper}>
-                <HighlightLogo className={styles.logo} />
-            </div>
-            <div className={styles.rightHeader}>
-                <TeamModal />
-                <Link
-                    onClick={() => {
-                        window.analytics.track('Sessions Click', {
-                            foo: 'bar',
-                            bar: 'foo',
-                        });
-                    }}
-                    to={`/${organization_id}/sessions`}
-                    className={styles.headerLink}
-                >
-                    Sessions
-                </Link>
-                <Link
-                    onClick={() => {
-                        window.analytics.track('Setup Click', {
-                            foo: 'bar',
-                            bar: 'foo',
-                        });
-                    }}
-                    to={`/${organization_id}`}
-                    className={styles.headerLink}
-                >
-                    Setup
-                </Link>
-                <Dropdown
-                    overlay={menu}
-                    placement={'bottomRight'}
-                    arrow
-                    onVisibleChange={() => {
-                        window.analytics.track('User Icon Hover', {
-                            foo: 'bar',
-                            bar: 'foo',
-                        });
-                    }}
-                >
-                    <div className={styles.accountIconWrapper}>
-                        <FaUserCircle className={styles.accountIcon} />
-                    </div>
-                </Dropdown>
             </div>
         </div>
     );

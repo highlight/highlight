@@ -1,91 +1,3 @@
-.signinWrapper {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.dropdownMenu {
-    box-shadow: none;
-    min-width: 200px;
-}
-
-.dropdownInner {
-    background-color: white;
-    padding: 14px;
-    border-radius: 5px;
-    border: 1px solid #eaeaea;
-    margin-right: 30px;
-    margin-top: -12px;
-    box-shadow: 2px 2px 8px #e4e4e4;
-    color: black;
-}
-
-.dropdownName {
-    font-weight: 400;
-    font-size: 15px;
-}
-
-.dropdownEmail {
-    font-weight: 300;
-    font-size: 13px;
-    margin-bottom: 10px;
-}
-
-.dropdownLogout {
-    border-top: 1px solid #eaeaea;
-    cursor: pointer;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    padding-top: 10px;
-    color: red;
-}
-
-.dropdownLogoutText {
-    margin-left: 10px;
-}
-
-.header {
-    width: 100%;
-    height: 80px;
-    display: flex;
-    background-color: white;
-    border-bottom: 1px solid #eaeaea;
-}
-
-.accountIconWrapper {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.headerLink {
-    text-decoration: none;
-    color: black;
-    margin-right: 30px;
-    font-size: 18px;
-    font-weight: 400;
-}
-
-.rightHeader {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: auto;
-}
-
-.accountIcon {
-    fill: #5629c6;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-    margin-right: 30px;
-}
-
 .streamElement {
     height: 40px;
     width: 100%;
@@ -107,26 +19,10 @@
     width: 100%;
 }
 
-.logoWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 130px;
-    margin-left: 12px;
-}
-
 .windowOptions {
     padding: 10px 0px 10px 12px;
     height: 35%;
     width: auto;
-}
-
-.logo {
-    margin: 10px;
-    fill: white;
-    height: 40px;
-    width: 110px;
 }
 
 .urlText {
@@ -291,4 +187,12 @@
 
 .googleText {
     margin-left: 10px;
+}
+
+.signinWrapper {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
