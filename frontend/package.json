@@ -3,7 +3,6 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-        "@ant-design/icons": "^4.2.2",
         "@apollo/client": "^3.1.4",
         "@dicebear/avatars": "^4.2.5",
         "@dicebear/avatars-avataaars-sprites": "^4.2.5",
@@ -20,7 +19,6 @@
         "@types/react-router-dom": "^5.1.5",
         "@types/react-scroll": "^1.8.0",
         "antd": "^4.6.3",
-        "avataaars": "^1.2.1",
         "firebase": "^7.19.1",
         "fuzzy": "^0.1.3",
         "graphql": "^15.3.0",
