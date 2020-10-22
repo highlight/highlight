@@ -8,6 +8,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
+	"github.com/sendgrid/sendgrid-go"
 
 	e "github.com/pkg/errors"
 )
@@ -16,10 +17,13 @@ import (
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
-var WhitelistedUID = "GoDjf1dw7GVLJQrCHht03NsCdWb2"
+var (
+	WhitelistedUID = "GoDjf1dw7GVLJQrCHht03NsCdWb2"
+)
 
 type Resolver struct {
-	DB *gorm.DB
+	DB         *gorm.DB
+	MailClient *sendgrid.Client
 }
 
 // These are authentication methods used to make sure that data is secured.

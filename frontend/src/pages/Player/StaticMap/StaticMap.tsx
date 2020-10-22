@@ -1,11 +1,6 @@
-import {
-    Replayer,
-    MouseInteractions,
-    IncrementalSource,
-    EventType,
-} from 'rrweb';
+import { IncrementalSource, EventType } from 'rrweb';
 import { serializedNodeWithId, NodeType } from 'rrweb-snapshot';
-import { eventWithTime, incrementalData } from 'rrweb/typings/types';
+import { eventWithTime } from 'rrweb/typings/types';
 
 type Attributes = {
     [key: string]: string | number | boolean | null;

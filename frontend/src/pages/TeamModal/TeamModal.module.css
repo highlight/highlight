@@ -1,0 +1,54 @@
+.teamModal {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.inviteSection {
+    border-right: 1px solid #eaeaea;
+    padding: 24px;
+}
+
+.membersSection {
+    padding: 24px;
+}
+
+.newMemberSection {
+    padding: 24px;
+}
+
+.title {
+    font-weight: 400;
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.subTitle {
+    font-size: 13px;
+    font-weight: 300;
+    margin-bottom: 10px;
+}
+
+.memberCard {
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    margin: 12px 0 12px 0;
+}
+
+.userDetails {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 10px;
+}
+
+.name {
+    color: #5629c6;
+    font-weight: 400;
+}
+
+.email {
+    font-size: 13px;
+}

@@ -33,18 +33,14 @@ declare const styles: {
   readonly "undoButtonStyle": string;
   readonly "loginFormWrapper": string;
   readonly "loginForm": string;
-  readonly "submitButton": string;
   readonly "loginTitleWrapper": string;
-  readonly "loginInput": string;
   readonly "loginStateSwitcher": string;
   readonly "loginTitle": string;
   readonly "loginSubTitle": string;
   readonly "loginPage": string;
   readonly "otherSigninText": string;
-  readonly "googleButton": string;
   readonly "googleLogoStyle": string;
   readonly "googleText": string;
-  readonly "errorMessage": string;
 };
 export = styles;
 
