@@ -284,21 +284,6 @@
     margin: 10px;
 }
 
-.googleButton {
-    width: 100%;
-    cursor: pointer;
-    border: none;
-    border-radius: 8px;
-    height: 40px;
-    color: black;
-    margin: 8px 0px 8px 0px;
-    background-color: white;
-    border: 1px solid #c2c2c2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
 .googleLogoStyle {
     height: 20px;
     width: 20px;
@@ -306,8 +291,4 @@
 
 .googleText {
     margin-left: 10px;
-}
-
-.errorMessage {
-    color: red;
 }

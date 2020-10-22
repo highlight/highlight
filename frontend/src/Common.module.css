@@ -14,6 +14,7 @@
 .submitButton {
     width: 100%;
     display: flex;
+    outline: none;
     align-items: center;
     justify-content: center;
     border: none;
@@ -23,4 +24,24 @@
     height: 40px;
     color: white;
     margin: 8px 0px 8px 0px;
+}
+
+.errorMessage {
+    margin-left: 5px;
+    color: red;
+}
+
+.secondaryButton {
+    width: 100%;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    height: 40px;
+    color: black;
+    margin: 8px 0px 8px 0px;
+    background-color: white;
+    border: 1px solid #c2c2c2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

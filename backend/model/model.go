@@ -9,6 +9,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
+	"github.com/rs/xid"
 
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -26,9 +27,16 @@ type Model struct {
 type Organization struct {
 	Model
 	Name   *string
+	Secret *string `json:"-"`
 	Users  []User
 	Admins []Admin `gorm:"many2many:organization_admins;"`
 	Fields []Field
+}
+
+func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
+	x := xid.New().String()
+	u.Secret = &x
+	return
 }
 
 type Admin struct {

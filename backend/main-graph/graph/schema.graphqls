@@ -32,7 +32,7 @@ type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
   messages(session_id: ID!): [Any]
-  members(organization_id: ID!): [Admin]
+  admins(organization_id: ID!): [Admin]
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
   # gets all the organizations of a user
   fields(organization_id: ID!): [String]
@@ -42,9 +42,12 @@ type Query {
     query: String!
   ): [String]
   organizations: [Organization]
+  organization(id: ID!): Organization
   admin: Admin
 }
 
 type Mutation {
   createOrganization(name: String!): Organization
+  sendAdminInvite(organization_id: ID!, email: String!): String
+  addAdminToOrganization(admin_id: ID!, organization_id: ID!, invite_id: String!): ID
 }

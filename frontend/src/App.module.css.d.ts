@@ -39,10 +39,8 @@ declare const styles: {
   readonly "loginSubTitle": string;
   readonly "loginPage": string;
   readonly "otherSigninText": string;
-  readonly "googleButton": string;
   readonly "googleLogoStyle": string;
   readonly "googleText": string;
-  readonly "errorMessage": string;
 };
 export = styles;
 

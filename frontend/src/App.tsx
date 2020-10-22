@@ -4,10 +4,11 @@ import './App.css';
 import styles from './App.module.css';
 import commonStyles from './Common.module.css';
 import { client } from './util/graph';
-import { Spinner } from './components/Spinner/Spinner';
+import { Spinner, CircularSpinner } from './components/Spinner/Spinner';
 import { Player } from './pages/Player/PlayerPage';
 import { TeamModal } from './pages/TeamModal/TeamModal';
 import { SetupPage } from './pages/Setup/SetupPage';
+import { NewMemberPage } from './pages/NewMember/NewMemberPage';
 import { SessionsPage } from './pages/Sessions/SessionsPage';
 import { auth, googleProvider } from './util/auth';
 import { ReactComponent as HighlightLogo } from './static/highlight-logo.svg';
@@ -27,10 +28,8 @@ import {
 } from 'react-router-dom';
 import { Dropdown, Skeleton } from 'antd';
 import { H } from 'highlight.run';
-import LogRocket from 'logrocket';
 
 H.init(3, true);
-LogRocket.init('vcbmdo/highlight');
 
 const App = () => {
     const { loading: o_loading, error: o_error, data: o_data } = useQuery(gql`
@@ -52,18 +51,12 @@ const App = () => {
     return (
         <div className={styles.appBody}>
             <Router>
-                <Route path="/:organization_id">
-                    <Header />
-                </Route>
                 <Switch>
-                    <Route path="/:organization_id/sessions/:session_id">
-                        <Player />
+                    <Route path="/:organization_id/invite/:invite_id">
+                        <NewMemberPage />
                     </Route>
-                    <Route path="/:organization_id/sessions">
-                        <SessionsPage />
-                    </Route>
-                    <Route path="/:organization_id/setup">
-                        <SetupPage />
+                    <Route path="/:organization_id">
+                        <OrgValidator />
                     </Route>
                     <Route path="/">
                         <Redirect to={`/${current_org}/setup`} />
@@ -71,6 +64,45 @@ const App = () => {
                 </Switch>
             </Router>
         </div>
+    );
+};
+
+const OrgValidator = () => {
+    const { organization_id } = useParams();
+    const { loading, error, data } = useQuery<
+        { organization: { name: string } },
+        { id: number }
+    >(
+        gql`
+            query GetOrganization($id: ID!) {
+                organization(id: $id) {
+                    name
+                }
+            }
+        `,
+        { variables: { id: organization_id } }
+    );
+    if (error) {
+        return <p>{JSON.stringify(error)}</p>;
+    }
+    if (loading || !data?.organization) {
+        return <CircularSpinner />;
+    }
+    return (
+        <>
+            <Header />
+            <Switch>
+                <Route path="/:organization_id/sessions/:session_id">
+                    <Player />
+                </Route>
+                <Route path="/:organization_id/sessions">
+                    <SessionsPage />
+                </Route>
+                <Route path="/:organization_id">
+                    <SetupPage />
+                </Route>
+            </Switch>
+        </>
     );
 };
 
@@ -201,7 +233,7 @@ export const AuthAppRouter = () => {
                         ref={register({ required: true })}
                         className={commonStyles.input}
                     />
-                    <div className={styles.errorMessage}>
+                    <div className={commonStyles.errorMessage}>
                         {errors.email && 'Enter an email yo!'}
                     </div>
                     <input
@@ -233,7 +265,7 @@ export const AuthAppRouter = () => {
                             />
                         </>
                     )}
-                    <div className={styles.errorMessage}>
+                    <div className={commonStyles.errorMessage}>
                         {errors.password && errors.password.message}
                     </div>
                     <button className={commonStyles.submitButton} type="submit">
@@ -244,7 +276,7 @@ export const AuthAppRouter = () => {
                     or sign {signIn ? 'in' : 'up'} with
                 </div>
                 <div
-                    className={styles.googleButton}
+                    className={commonStyles.secondaryButton}
                     onClick={() => {
                         auth.signInWithRedirect(googleProvider).catch((e) =>
                             setFirebaseError(JSON.stringify(e))
@@ -256,8 +288,8 @@ export const AuthAppRouter = () => {
                         Google Sign {signIn ? 'In' : 'Up'}
                     </span>
                 </div>
-                <div className={styles.errorMessage}>{firebaseError}</div>
-                <div className={styles.errorMessage}>
+                <div className={commonStyles.errorMessage}>{firebaseError}</div>
+                <div className={commonStyles.errorMessage}>
                     {JSON.stringify(error)}
                 </div>
             </div>
@@ -339,7 +371,7 @@ const Header = () => {
                             bar: 'foo',
                         });
                     }}
-                    to={`/${organization_id}/setup`}
+                    to={`/${organization_id}`}
                     className={styles.headerLink}
                 >
                     Setup

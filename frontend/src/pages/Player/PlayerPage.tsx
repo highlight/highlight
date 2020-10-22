@@ -6,7 +6,6 @@ import {
     IncrementalSource,
     EventType,
 } from 'rrweb';
-import { serializedNodeWithId, NodeType } from 'rrweb-snapshot';
 import { eventWithTime, incrementalData } from 'rrweb/typings/types';
 import { scroller } from 'react-scroll';
 import { Spinner } from '../../components/Spinner/Spinner';

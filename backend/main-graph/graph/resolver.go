@@ -8,6 +8,9 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
+	"github.com/sendgrid/sendgrid-go"
+
+	b64 "encoding/base64"
 
 	e "github.com/pkg/errors"
 )
@@ -16,10 +19,15 @@ import (
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
-var WhitelistedUID = "GoDjf1dw7GVLJQrCHht03NsCdWb2"
+var (
+	WhitelistedUID = "GoDjf1dw7GVLJQrCHht03NsCdWb2"
+	Salt           = b64.StdEncoding.EncodeToString([]byte("afdl;vmq32938lwdfkasdfjslacj23j423fujdsa1240a7euavjnsdqo3rjjfsduf"))
+	Seperator      = "+++"
+)
 
 type Resolver struct {
-	DB *gorm.DB
+	DB         *gorm.DB
+	MailClient *sendgrid.Client
 }
 
 // These are authentication methods used to make sure that data is secured.
@@ -66,4 +74,27 @@ func toDuration(duration string) (time.Duration, error) {
 		return time.Duration(0), e.Wrap(err, "error parsing duration integer")
 	}
 	return time.Duration(int64(time.Millisecond) * d), nil
+}
+
+func encode(i int) string {
+	return reverse(b64.StdEncoding.EncodeToString([]byte(strconv.Itoa(i))))
+}
+
+func decode(s string) (int, error) {
+	decoded, err := b64.StdEncoding.DecodeString(reverse(s))
+	if err != nil {
+		return -1, e.Wrap(err, "error decoding invite string")
+	}
+	i, err := strconv.Atoi(string(decoded))
+	if err != nil {
+		return -1, e.Wrap(err, "error converting string org id")
+	}
+	return i, nil
+}
+
+func reverse(s string) (ret string) {
+	for _, v := range s {
+		defer func(r rune) { ret += string(r) }(v)
+	}
+	return
 }

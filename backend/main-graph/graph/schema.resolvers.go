@@ -7,11 +7,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
+	"github.com/rs/xid"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 )
@@ -24,6 +28,64 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 		return nil, e.Wrap(err, "error creating org")
 	}
 	return org, nil
+}
+
+func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error) {
+	org := &model.Organization{}
+	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying org")
+	}
+	var secret string
+	if org.Secret == nil {
+		uid := xid.New().String()
+		if err := r.DB.Model(org).Updates(&model.Organization{Secret: &uid}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating uid in org secret")
+		}
+		secret = uid
+	} else {
+		secret = *org.Secret
+	}
+	inviteLink := os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/invite/" + secret
+	to := &mail.Email{Address: email}
+	subject := "Highlight Invite Link!"
+	content := fmt.Sprintf(`
+	Hi there, <br><br>
+
+	You've just been invited to the '%v' Highlight workspace! <br><br>
+
+	Click <a href="%v">this</a> link, login, and you should be good to go!<br><br>
+
+	Cheers, <br>
+	The Highlight Team <br>
+	`, *org.Name, inviteLink)
+
+	from := mail.NewEmail("Highlight", "notifications@highlight.run")
+	message := mail.NewSingleEmail(from, subject, to, content, fmt.Sprintf("<p>%v</p>", content))
+	_, err := r.MailClient.Send(message)
+	if err != nil {
+		return nil, fmt.Errorf("error sending sendgrid email: %v", err)
+	}
+	return &email, nil
+}
+
+func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error) {
+	org := &model.Organization{}
+	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying org")
+	}
+	if org.Secret == nil || (org.Secret != nil && *org.Secret != inviteID) {
+		return nil, e.New("invalid invite id")
+	}
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.New("error querying admin")
+	}
+	if err := r.DB.Model(org).Association("Admins").Append(admin).Error; err != nil {
+		return nil, e.Wrap(err, "error adding admin to association")
+	}
+	return &org.ID, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
@@ -72,8 +134,17 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 	return allEvents["messages"], nil
 }
 
-func (r *queryResolver) Members(ctx context.Context, organizationID int) ([]*model.Admin, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*model.Admin, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+	admins := []*model.Admin{}
+	err := r.DB.Model(
+		&model.Organization{Model: model.Model{ID: organizationID}}).Association("Admins").Find(&admins).Error
+	if err != nil {
+		return nil, e.Wrap(err, "error getting associated admins")
+	}
+	return admins, nil
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model.Session, error) {
@@ -214,6 +285,14 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 		return nil, e.Wrap(err, "error getting associated organizations")
 	}
 	return orgs, nil
+}
+
+func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
+	org, err := r.isAdminInOrganization(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	return org, nil
 }
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {

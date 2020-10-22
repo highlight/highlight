@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { mirror, MouseInteractions, EventType } from 'rrweb';
-import { elementNode } from 'rrweb-snapshot';
+import { MouseInteractions, EventType } from 'rrweb';
 import { Element } from 'react-scroll';
 import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';

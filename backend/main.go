@@ -10,6 +10,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/rs/cors"
+	"github.com/sendgrid/sendgrid-go"
 	"github.com/slack-go/slack"
 
 	ha "github.com/99designs/gqlgen/handler"
@@ -25,6 +26,7 @@ import (
 
 var (
 	frontendURL = os.Getenv("FRONTEND_URI")
+	sendgridKey = os.Getenv("SENDGRID_API_KEY")
 )
 
 func health(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +92,8 @@ func main() {
 	db := model.SetupDB()
 	mux := http.NewServeMux()
 	main := &mgraph.Resolver{
-		DB: db,
+		DB:         db,
+		MailClient: sendgrid.NewSendClient(sendgridKey),
 	}
 	mux.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
 		mgenerated.Config{
