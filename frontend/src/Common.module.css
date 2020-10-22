@@ -45,3 +45,11 @@
     align-items: center;
     justify-content: center;
 }
+
+.headerLink {
+    text-decoration: none;
+    color: black;
+    margin-right: 30px;
+    font-size: 18px;
+    font-weight: 400;
+}
