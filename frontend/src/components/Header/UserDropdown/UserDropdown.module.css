@@ -1,0 +1,72 @@
+.dropdownName {
+    font-weight: 400;
+    font-size: 16px;
+    margin-bottom: 2px;
+}
+
+.dropdownEmail {
+    font-weight: 300;
+    color: #5629c6;
+    font-size: 14px;
+}
+
+.logoutIcon {
+    margin-left: auto;
+    height: 16px;
+    width: 16px;
+}
+
+.dropdownInner {
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid #eaeaea;
+    margin-right: 30px;
+    margin-top: -10px;
+    box-shadow: 2px 2px 8px #e4e4e4;
+    color: black;
+    overflow: hidden;
+}
+
+.dropdownLogout {
+    cursor: pointer;
+    width: 100%;
+    padding: 14px;
+    display: flex;
+    align-items: center;
+    color: red;
+    transition: 0.2s;
+}
+
+.dropdownLogout:hover {
+    background-color: #ffcaca;
+}
+
+.dropdownLogoutText {
+    font-size: 16px;
+}
+
+.dropdownMenu {
+    box-shadow: none;
+    min-width: 200px;
+}
+
+.accountIconWrapper {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.accountIcon {
+    fill: #5629c6;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    margin-right: 30px;
+}
+
+.userCopy {
+    padding: 14px;
+    border-bottom: 1px solid #eaeaea;
+    padding-right: 25px;
+}

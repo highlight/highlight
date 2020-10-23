@@ -1,15 +1,12 @@
 import React from 'react';
 import { Dropdown, Skeleton } from 'antd';
-import { FiLogOut } from 'react-icons/fi';
 import { ReactComponent as HighlightLogo } from '../../static/highlight-logo.svg';
 import { Link } from 'react-router-dom';
-import { FaUserCircle } from 'react-icons/fa';
 import { TeamModal } from './TeamModal/TeamModal';
 import { useParams } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
-import { auth } from '../../util/auth';
-import { client } from '../../util/graph';
 import { WorkspaceDropdown } from './WorkspaceDropdown/WorkspaceDropdown';
+import { UserDropdown } from './UserDropdown/UserDropdown';
 
 import commonStyles from '../../Common.module.css';
 import styles from './Header.module.css';
@@ -27,40 +24,6 @@ export const Header = () => {
             }
         }
     `);
-    const menu = (
-        <div className={styles.dropdownMenu}>
-            <div className={styles.dropdownInner}>
-                {a_loading || a_error ? (
-                    <Skeleton />
-                ) : (
-                    <div>
-                        <div className={styles.dropdownName}>
-                            {a_data?.admin.name}
-                        </div>
-                        <div className={styles.dropdownEmail}>
-                            {a_data?.admin.email}
-                        </div>
-                        <div
-                            className={styles.dropdownLogout}
-                            onClick={async () => {
-                                try {
-                                    auth.signOut();
-                                } catch (e) {
-                                    console.log(e);
-                                }
-                                client.cache.reset();
-                            }}
-                        >
-                            <FiLogOut />
-                            <span className={styles.dropdownLogoutText}>
-                                Logout
-                            </span>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
 
     return (
         <div className={styles.header}>
@@ -94,21 +57,7 @@ export const Header = () => {
                     Setup
                 </Link>
                 <WorkspaceDropdown />
-                <Dropdown
-                    overlay={menu}
-                    placement={'bottomRight'}
-                    arrow
-                    onVisibleChange={() => {
-                        window.analytics.track('User Icon Hover', {
-                            foo: 'bar',
-                            bar: 'foo',
-                        });
-                    }}
-                >
-                    <div className={styles.accountIconWrapper}>
-                        <FaUserCircle className={styles.accountIcon} />
-                    </div>
-                </Dropdown>
+                <UserDropdown/>
             </div>
         </div>
     );

@@ -1,14 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dropdown, Skeleton } from 'antd';
 import { useQuery, gql } from '@apollo/client';
-import { useParams } from 'react-router-dom';
+import { useParams, Redirect, Link } from 'react-router-dom';
+import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
+import { ReactComponent as PlusIcon } from '../../../static/plus.svg';
+import { ReactComponent as CheckIcon } from '../../../static/check.svg';
 
 import styles from './WorkspaceDropdown.module.css';
 
 export const WorkspaceDropdown = () => {
+    const [visible, setVisible] = useState(false);
     const { organization_id } = useParams();
     const { loading, error, data } = useQuery<{
-        organizations: { id: number; name: string };
+        organizations: Array<{ id: number; name: string }>;
     }>(gql`
         query GetOrganizations {
             organizations {
@@ -17,21 +21,37 @@ export const WorkspaceDropdown = () => {
             }
         }
     `);
-    useEffect(() => {}, [organization_id]);
-    console.log(organization_id);
-    console.log(data);
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>
-                <div className={styles.dropdownLogout}>
-                    <span className={styles.dropdownLogoutText}>Logout</span>
+                {data?.organizations.map((o) => (
+                    <Link to={`/${o.id}/setup`}>
+                    <div className={styles.orgItem}>
+                        <div className={styles.orgText}>
+                            {o.name}
+                        </div>
+                        {o.id === organization_id ? 
+                        <CheckIcon className={styles.plusIcon}/> 
+                        : <></>}
+                    </div>
+                    </Link>
+                ))}
+                <div className={styles.newOrgDiv}>
+                    New Workspace
+                    <PlusIcon className={styles.plusIcon} />
                 </div>
             </div>
         </div>
     );
     return (
-        <Dropdown overlay={menu}>
-            <div className={styles.dropdownHandler} onClick={(e) => e.preventDefault()}>Hover me</div>
+        <Dropdown placement={'bottomLeft'} overlay={menu} onVisibleChange={(v) => setVisible(v)}>
+            <div
+                className={styles.dropdownHandler}
+                onClick={(e) => e.preventDefault()}
+            >
+                {data?.organizations.find((o) => o.id == organization_id)?.name}
+                <DownIcon className={styles.icon} style={{transform: visible ? "rotate(180deg)": "rotate(0deg)"}} />
+            </div>
         </Dropdown>
     );
 };
