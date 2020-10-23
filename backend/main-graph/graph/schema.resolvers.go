@@ -21,8 +21,13 @@ import (
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting admin")
+	}
 	org := &model.Organization{
-		Name: &name,
+		Name:   &name,
+		Admins: []model.Admin{*admin},
 	}
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
@@ -302,6 +307,8 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		// If the user doesn't exist yet, we create
 		// one along with their own org.
+		// TODO: At some point, we shouldn't automatically create the org. We should
+		// just redirect to the "new workspace" page and go from there.
 		fbuser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
 			return nil, e.Wrap(err, "error retrieiving user from firebase api")

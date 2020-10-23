@@ -7,6 +7,7 @@ import { Spinner, CircularSpinner } from './components/Spinner/Spinner';
 import { Player } from './pages/Player/PlayerPage';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { NewMemberPage } from './pages/NewMember/NewMemberPage';
+import { NewWorkspacePage } from './pages/NewWorkspace/NewWorkspacePage';
 import { SessionsPage } from './pages/Sessions/SessionsPage';
 import { auth, googleProvider } from './util/auth';
 import { ReactComponent as GoogleLogo } from './static/google.svg';
@@ -48,6 +49,9 @@ const App = () => {
                 <Switch>
                     <Route path="/:organization_id/invite/:invite_id">
                         <NewMemberPage />
+                    </Route>
+                    <Route path="/new">
+                        <NewWorkspacePage />
                     </Route>
                     <Route path="/:organization_id">
                         <OrgValidator />
