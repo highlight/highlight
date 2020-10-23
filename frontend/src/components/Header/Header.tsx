@@ -1,10 +1,8 @@
 import React from 'react';
-import { Dropdown, Skeleton } from 'antd';
 import { ReactComponent as HighlightLogo } from '../../static/highlight-logo.svg';
 import { Link } from 'react-router-dom';
 import { TeamModal } from './TeamModal/TeamModal';
 import { useParams } from 'react-router-dom';
-import { useQuery, gql } from '@apollo/client';
 import { WorkspaceDropdown } from './WorkspaceDropdown/WorkspaceDropdown';
 import { UserDropdown } from './UserDropdown/UserDropdown';
 
@@ -13,18 +11,6 @@ import styles from './Header.module.css';
 
 export const Header = () => {
     const { organization_id } = useParams();
-    const { loading: a_loading, error: a_error, data: a_data } = useQuery<{
-        admin: { id: string; name: string; email: string };
-    }>(gql`
-        query GetAdmin {
-            admin {
-                id
-                name
-                email
-            }
-        }
-    `);
-
     return (
         <div className={styles.header}>
             <div className={styles.logoWrapper}>
@@ -57,7 +43,7 @@ export const Header = () => {
                     Setup
                 </Link>
                 <WorkspaceDropdown />
-                <UserDropdown/>
+                <UserDropdown />
             </div>
         </div>
     );

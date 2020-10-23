@@ -18,6 +18,6 @@ export const Avatar = ({
                 svg
             )}`;
         }
-    }, []);
+    }, [seed]);
     return <img alt="" style={style} ref={imageRef} />;
 };
