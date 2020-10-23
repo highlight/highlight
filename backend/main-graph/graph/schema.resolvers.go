@@ -21,8 +21,13 @@ import (
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting admin")
+	}
 	org := &model.Organization{
-		Name: &name,
+		Name:   &name,
+		Admins: []model.Admin{*admin},
 	}
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")

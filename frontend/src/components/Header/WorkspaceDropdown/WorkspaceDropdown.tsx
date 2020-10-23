@@ -39,10 +39,10 @@ export const WorkspaceDropdown = () => {
                         </div>
                     </Link>
                 ))}
-                <div className={styles.newOrgDiv}>
+                <Link className={styles.newOrgDiv} to="/new">
                     New Workspace
                     <PlusIcon className={styles.plusIcon} />
-                </div>
+                </Link>
             </div>
         </div>
     );
