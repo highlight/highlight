@@ -124,6 +124,7 @@ export const TeamModal = () => {
                             return (
                                 <div className={styles.memberCard}>
                                     <Avatar
+                                        seed={a.id.toString()}
                                         style={{
                                             height: 45,
                                             width: 45,

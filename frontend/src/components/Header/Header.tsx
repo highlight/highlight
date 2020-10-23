@@ -9,6 +9,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
 import { auth } from '../../util/auth';
 import { client } from '../../util/graph';
+import { WorkspaceDropdown } from './WorkspaceDropdown/WorkspaceDropdown';
 
 import commonStyles from '../../Common.module.css';
 import styles from './Header.module.css';
@@ -92,6 +93,7 @@ export const Header = () => {
                 >
                     Setup
                 </Link>
+                <WorkspaceDropdown />
                 <Dropdown
                     overlay={menu}
                     placement={'bottomRight'}

@@ -39,49 +39,15 @@
     min-width: 200px;
 }
 
-.header {
-    width: 100%;
-    height: 80px;
-    display: flex;
-    background-color: white;
-    border-bottom: 1px solid #eaeaea;
-}
-
-.logoWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 130px;
-    margin-left: 12px;
-}
-
-.logo {
-    margin: 10px;
-    fill: white;
-    height: 40px;
-    width: 110px;
-}
-
-.rightHeader {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-left: auto;
-}
-
-.accountIconWrapper {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.accountIcon {
-    fill: #5629c6;
-    width: 30px;
-    height: 30px;
+.dropdownHandler {
     cursor: pointer;
+    min-width: 200px;
     margin-right: 30px;
+    height: 40px;
+    border: 1px solid #eaeaea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border-radius: 8px;
 }

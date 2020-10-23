@@ -5,12 +5,7 @@ declare const styles: {
   readonly "dropdownLogout": string;
   readonly "dropdownLogoutText": string;
   readonly "dropdownMenu": string;
-  readonly "header": string;
-  readonly "logoWrapper": string;
-  readonly "logo": string;
-  readonly "rightHeader": string;
-  readonly "accountIconWrapper": string;
-  readonly "accountIcon": string;
+  readonly "dropdownHandler": string;
 };
 export = styles;
 
