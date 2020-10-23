@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Redirect } from 'react-router-dom';
-import { useMutation, useQuery, gql } from '@apollo/client';
+import React, { useEffect } from 'react';
+import { Redirect } from 'react-router-dom';
+import { useMutation, gql } from '@apollo/client';
 import { useForm } from 'react-hook-form';
 import { CircularSpinner } from '../../components/Spinner/Spinner';
 import { client } from '../../util/graph';
@@ -35,7 +35,7 @@ export const NewWorkspacePage = () => {
                 message: error?.message,
             });
         }
-    }, [error]);
+    }, [setError, error]);
 
     const onSubmit = (data: Inputs) => {
         createOrganization({ variables: { name: data.name } }).then(() =>
