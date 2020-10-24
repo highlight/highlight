@@ -33,7 +33,6 @@
         "react-firebase-hooks": "^2.2.0",
         "react-hook-form": "^6.9.1",
         "react-icons": "^3.11.0",
-        "react-image": "^4.0.3",
         "react-input-autosize": "^2.2.2",
         "react-resize-aware": "^3.0.1",
         "react-resize-detector": "^5.2.0",

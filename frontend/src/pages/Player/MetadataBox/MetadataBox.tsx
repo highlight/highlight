@@ -1,8 +1,8 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { useImage } from 'react-image';
 import { useQuery, gql } from '@apollo/client';
 import { Skeleton } from 'antd';
+import { Avatar } from '../../../components/Avatar/Avatar';
 
 import styles from './MetadataBox.module.css';
 
@@ -30,10 +30,6 @@ export const MetadataBox = () => {
         `,
         { variables: { id: session_id } }
     );
-    const { src, isLoading, error: imgError } = useImage({
-        srcList: `https://avatars.dicebear.com/api/avataaars/${data?.session.user_id}.svg`,
-        useSuspense: false,
-    });
     const created = new Date(data?.session.created_at ?? 0);
     var details: any = {};
     try {
@@ -42,22 +38,16 @@ export const MetadataBox = () => {
     return (
         <div className={styles.locationBox}>
             <div className={styles.innerLocationBox}>
-                {isLoading || loading ? (
+                {loading ? (
                     <Skeleton active paragraph={{ rows: 2 }} />
-                ) : error || imgError ? (
-                    <p>
-                        {imgError?.toString()}
-                        {error?.toString()}
-                    </p>
+                ) : error ? (
+                    <p>{error?.toString()}</p>
                 ) : (
                     <>
-                        <div className={styles.avatarWrapper}>
-                            <img
-                                className={styles.userProfile}
-                                alt={'user profile'}
-                                src={src}
-                            />
-                        </div>
+                        <Avatar
+                            style={{ width: 65 }}
+                            seed={data?.session.user_id.toString() ?? ''}
+                        />
                         <div className={styles.userContentWrapper}>
                             <div className={styles.headerWrapper}>
                                 <div>User#{data?.session.user_id}</div>
