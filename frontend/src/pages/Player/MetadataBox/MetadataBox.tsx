@@ -1,6 +1,5 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { useImage } from 'react-image';
 import { useQuery, gql } from '@apollo/client';
 import { Skeleton } from 'antd';
 import { Avatar } from '../../../components/Avatar/Avatar';
