@@ -28,6 +28,7 @@ export const WorkspaceDropdown = () => {
                     <Link
                         to={`/${o.id}/setup`}
                         onClick={() => setVisible(false)}
+                        key={o.id}
                     >
                         <div className={styles.orgItem}>
                             <div className={styles.orgText}>{o.name}</div>

@@ -122,7 +122,7 @@ export const TeamModal = () => {
                         <div className={styles.title}>Members</div>
                         {data?.admins.map((a) => {
                             return (
-                                <div className={styles.memberCard}>
+                                <div key={a.id} className={styles.memberCard}>
                                     <Avatar
                                         seed={a.id.toString()}
                                         style={{
