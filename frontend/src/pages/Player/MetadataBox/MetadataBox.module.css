@@ -6,8 +6,8 @@
 }
 
 .locationBox {
+    padding: 20px 30px 20px 30px;
     border-bottom: 1px solid #eaeaea;
-    padding: 20px;
     box-sizing: border-box;
     height: 150px;
     display: flex;
