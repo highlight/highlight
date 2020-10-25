@@ -300,7 +300,6 @@ const initConsoleListeners = (callback: (c: ConsoleMessage) => void) => {
       time: Date.now(),
       value: text,
     });
-    console.log(text);
     console.defaultWarn.apply(console, arguments);
   };
   console.defaultDebug = console.debug.bind(console);
