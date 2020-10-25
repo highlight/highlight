@@ -7,6 +7,8 @@ import {
   NormalizedCacheObject,
 } from '@apollo/client/core';
 import { eventWithTime } from 'rrweb/typings/types';
+// @ts-ignore
+import { fetchIntercept, ajaxIntercept } from 'req-interceptor';
 
 class Logger {
   debug: boolean;
@@ -143,36 +145,37 @@ Session Data:
       emit,
     });
 
+    // TODO: probably get rid of this.
     const highlightThis = this;
-    var send = XMLHttpRequest.prototype.send;
-    XMLHttpRequest.prototype.send = function (data) {
-      setTimeout(() => {
-        var obj: any;
-        try {
-          obj = JSON.parse(data?.toString() ?? '');
-        } catch (e) {
-          return;
-        }
-        if (obj.type === 'track') {
-          const properties: { [key: string]: string } = {};
-          properties['segment-event'] = obj.event;
-          highlightThis.logger.log(
-            `Adding (${JSON.stringify(properties)}) @ ${
-              process.env.BACKEND_URI
-            }, org: ${highlightThis.organizationID}`
-          );
-          addCustomEvent<string>(
-            'Segment',
-            JSON.stringify({
-              event: obj.event,
-              properties: obj.properties,
-            })
-          );
-          highlightThis.addProperties(properties);
-        }
-      }, 100);
-      send.call(this, data);
-    };
+    // var send = XMLHttpRequest.prototype.send;
+    // XMLHttpRequest.prototype.send = function (data) {
+    //   setTimeout(() => {
+    //     var obj: any;
+    //     try {
+    //       obj = JSON.parse(data?.toString() ?? '');
+    //     } catch (e) {
+    //       return;
+    //     }
+    //     if (obj.type === 'track') {
+    //       const properties: { [key: string]: string } = {};
+    //       properties['segment-event'] = obj.event;
+    //       highlightThis.logger.log(
+    //         `Adding (${JSON.stringify(properties)}) @ ${
+    //           process.env.BACKEND_URI
+    //         }, org: ${highlightThis.organizationID}`
+    //       );
+    //       addCustomEvent<string>(
+    //         'Segment',
+    //         JSON.stringify({
+    //           event: obj.event,
+    //           properties: obj.properties,
+    //         })
+    //       );
+    //       highlightThis.addProperties(properties);
+    //     }
+    //   }, 100);
+    //   send.call(this, data);
+    // };
     if (document.referrer) {
       addCustomEvent<string>('Referrer', document.referrer);
       highlightThis.addProperties({ referrer: document.referrer });
@@ -312,3 +315,29 @@ const initConsoleListeners = (callback: (c: ConsoleMessage) => void) => {
     console.defaultDebug.apply(console, arguments);
   };
 };
+
+const unregister = fetchIntercept.register({
+  request: function (url: any, config: any) {
+    // Modify the url or config here
+    console.log('request', url, config);
+    return [url, config];
+  },
+
+  requestError: function (error: any) {
+    // Called when an error occured during another 'request' interceptor call
+    console.log('request error', error);
+    return Promise.reject(error);
+  },
+
+  response: function (response: any) {
+    // Modify the reponse object
+    console.log('resp', response);
+    return response;
+  },
+
+  responseError: function (error: any) {
+    // Handle an fetch error
+    console.log('resp error', error);
+    return Promise.reject(error);
+  },
+});
