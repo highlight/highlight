@@ -85,6 +85,12 @@ type Field struct {
 	Sessions       []Session `gorm:"many2many:session_fields;"`
 }
 
+type ResourcesObject struct {
+	Model
+	SessionID int
+	Resources string
+}
+
 type MessagesObject struct {
 	Model
 	SessionID int
@@ -111,7 +117,7 @@ func SetupDB() *gorm.DB {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	DB.AutoMigrate(&MessagesObject{}, &EventsObject{}, &Organization{}, &Admin{}, &User{}, &Session{}, &Field{}, &EmailSignup{})
+	DB.AutoMigrate(&MessagesObject{}, &EventsObject{}, &Organization{}, &Admin{}, &User{}, &Session{}, &Field{}, &EmailSignup{}, &ResourcesObject{})
 	return DB
 }
 

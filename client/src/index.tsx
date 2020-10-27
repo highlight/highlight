@@ -7,8 +7,6 @@ import {
   NormalizedCacheObject,
 } from '@apollo/client/core';
 import { eventWithTime } from 'rrweb/typings/types';
-// @ts-ignore
-import { fetchIntercept, ajaxIntercept } from 'req-interceptor';
 
 class Logger {
   debug: boolean;
@@ -129,7 +127,7 @@ class Logger {
     this.logger.log(
       `Loaded Highlight
 Remote: ${process.env.BACKEND_URI}
-Org:: ${this.organizationID}
+Org: ${this.organizationID}
 Session Data: 
 `,
       gr.data
@@ -147,35 +145,35 @@ Session Data:
 
     // TODO: probably get rid of this.
     const highlightThis = this;
-    // var send = XMLHttpRequest.prototype.send;
-    // XMLHttpRequest.prototype.send = function (data) {
-    //   setTimeout(() => {
-    //     var obj: any;
-    //     try {
-    //       obj = JSON.parse(data?.toString() ?? '');
-    //     } catch (e) {
-    //       return;
-    //     }
-    //     if (obj.type === 'track') {
-    //       const properties: { [key: string]: string } = {};
-    //       properties['segment-event'] = obj.event;
-    //       highlightThis.logger.log(
-    //         `Adding (${JSON.stringify(properties)}) @ ${
-    //           process.env.BACKEND_URI
-    //         }, org: ${highlightThis.organizationID}`
-    //       );
-    //       addCustomEvent<string>(
-    //         'Segment',
-    //         JSON.stringify({
-    //           event: obj.event,
-    //           properties: obj.properties,
-    //         })
-    //       );
-    //       highlightThis.addProperties(properties);
-    //     }
-    //   }, 100);
-    //   send.call(this, data);
-    // };
+    var send = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.send = function (data) {
+      setTimeout(() => {
+        var obj: any;
+        try {
+          obj = JSON.parse(data?.toString() ?? '');
+        } catch (e) {
+          return;
+        }
+        if (obj.type === 'track') {
+          const properties: { [key: string]: string } = {};
+          properties['segment-event'] = obj.event;
+          highlightThis.logger.log(
+            `Adding (${JSON.stringify(properties)}) @ ${
+              process.env.BACKEND_URI
+            }, org: ${highlightThis.organizationID}`
+          );
+          addCustomEvent<string>(
+            'Segment',
+            JSON.stringify({
+              event: obj.event,
+              properties: obj.properties,
+            })
+          );
+          highlightThis.addProperties(properties);
+        }
+      }, 100);
+      send.call(this, data);
+    };
     if (document.referrer) {
       addCustomEvent<string>('Referrer', document.referrer);
       highlightThis.addProperties({ referrer: document.referrer });
@@ -193,25 +191,36 @@ Session Data:
     if (!this.sessionID) {
       return;
     }
-
+    const resources = performance
+      .getEntriesByType('resource')
+      .filter(
+        (r) =>
+          !r.name.includes(
+            process.env.BACKEND_URI ?? 'https://api.highlight.run'
+          )
+      );
+    const resourcesString = JSON.stringify({ resources: resources });
     const messagesString = JSON.stringify({ messages: this.messages });
     const eventsString = JSON.stringify({ events: this.events });
     this.logger.log(
-      `Sending (${this.events.length}) events, (${this.messages.length}) messages @ ${process.env.BACKEND_URI}, org: ${this.organizationID}`
+      `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
     );
     this.events = [];
     this.messages = [];
+    performance.clearResourceTimings();
     await this.client.mutate({
       mutation: gql`
         mutation PushPayload(
           $session_id: ID!
           $events: String!
           $messages: String!
+          $resources: String!
         ) {
           pushPayload(
             session_id: $session_id
             events: $events
             messages: $messages
+            resources: $resources
           )
         }
       `,
@@ -219,6 +228,7 @@ Session Data:
         session_id: this.sessionID,
         events: eventsString,
         messages: messagesString,
+        resources: resourcesString,
       },
     });
   }
@@ -315,29 +325,3 @@ const initConsoleListeners = (callback: (c: ConsoleMessage) => void) => {
     console.defaultDebug.apply(console, arguments);
   };
 };
-
-const unregister = fetchIntercept.register({
-  request: function (url: any, config: any) {
-    // Modify the url or config here
-    console.log('request', url, config);
-    return [url, config];
-  },
-
-  requestError: function (error: any) {
-    // Called when an error occured during another 'request' interceptor call
-    console.log('request error', error);
-    return Promise.reject(error);
-  },
-
-  response: function (response: any) {
-    // Modify the reponse object
-    console.log('resp', response);
-    return response;
-  },
-
-  responseError: function (error: any) {
-    // Handle an fetch error
-    console.log('resp error', error);
-    return Promise.reject(error);
-  },
-});

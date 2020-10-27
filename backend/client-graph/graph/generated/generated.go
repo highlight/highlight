@@ -45,7 +45,7 @@ type ComplexityRoot struct {
 		AddProperties     func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		IdentifySession   func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
 		InitializeSession func(childComplexity int, organizationID int, details string) int
-		PushPayload       func(childComplexity int, sessionID int, events string, messages string) int
+		PushPayload       func(childComplexity int, sessionID int, events string, messages string, resources string) int
 	}
 
 	Query struct {
@@ -63,7 +63,7 @@ type MutationResolver interface {
 	InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error)
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
 	AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
-	PushPayload(ctx context.Context, sessionID int, events string, messages string) (*int, error)
+	PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error)
 }
 
 type executableSchema struct {
@@ -127,7 +127,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.PushPayload(childComplexity, args["session_id"].(int), args["events"].(string), args["messages"].(string)), true
+		return e.complexity.Mutation.PushPayload(childComplexity, args["session_id"].(int), args["events"].(string), args["messages"].(string), args["resources"].(string)), true
 
 	case "Session.details":
 		if e.complexity.Session.Details == nil {
@@ -240,7 +240,7 @@ type Mutation {
     user_object: Any
   ): ID
   addProperties(session_id: ID!, properties_object: Any): ID
-  pushPayload(session_id: ID!, events: String!, messages: String!): ID
+  pushPayload(session_id: ID!, events: String!, messages: String!, resources: String!): ID
 }
 `, BuiltIn: false},
 }
@@ -361,6 +361,15 @@ func (ec *executionContext) field_Mutation_pushPayload_args(ctx context.Context,
 		}
 	}
 	args["messages"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["resources"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("resources"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["resources"] = arg3
 	return args, nil
 }
 
@@ -555,7 +564,7 @@ func (ec *executionContext) _Mutation_pushPayload(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().PushPayload(rctx, args["session_id"].(int), args["events"].(string), args["messages"].(string))
+		return ec.resolvers.Mutation().PushPayload(rctx, args["session_id"].(int), args["events"].(string), args["messages"].(string), args["resources"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

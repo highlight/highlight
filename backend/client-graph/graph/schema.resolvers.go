@@ -9,10 +9,9 @@ import (
 	"fmt"
 	"time"
 
+	redis "github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-
-	redis "github.com/go-redis/redis/v8"
 	e "github.com/pkg/errors"
 )
 
@@ -86,8 +85,9 @@ func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, pro
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error) {
 	eventsParsed := make(map[string][]interface{})
+	// unmarshal events
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
 		return nil, fmt.Errorf("error decoding event data: %v", err)
 	}
@@ -97,14 +97,26 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating events object")
 		}
 	}
+	// unmarshal messages
 	messagesParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
-		return nil, fmt.Errorf("error decoding event data: %v", err)
+		return nil, fmt.Errorf("error decoding message data: %v", err)
 	}
 	if len(messagesParsed["messages"]) >= 0 {
 		obj := &model.MessagesObject{SessionID: sessionID, Messages: messages}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating messages object")
+		}
+	}
+	// unmarshal resources
+	resourcesParsed := make(map[string][]interface{})
+	if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
+		return nil, fmt.Errorf("error decoding resource data: %v", err)
+	}
+	if len(resourcesParsed["messages"]) >= 0 {
+		obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
+		if err := r.DB.Create(obj).Error; err != nil {
+			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
 	now := float64(time.Now().UTC().Unix())

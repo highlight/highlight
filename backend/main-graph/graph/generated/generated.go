@@ -52,7 +52,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToOrganization func(childComplexity int, organizationID int, inviteID string) int
+		AddAdminToOrganization func(childComplexity int, adminID int, organizationID int, inviteID string) int
 		CreateOrganization     func(childComplexity int, name string) int
 		SendAdminInvite        func(childComplexity int, organizationID int, email string) int
 	}
@@ -71,6 +71,7 @@ type ComplexityRoot struct {
 		Messages        func(childComplexity int, sessionID int) int
 		Organization    func(childComplexity int, id int) int
 		Organizations   func(childComplexity int) int
+		Resources       func(childComplexity int, sessionID int) int
 		Session         func(childComplexity int, id int) int
 		Sessions        func(childComplexity int, organizationID int, count int, params []interface{}) int
 	}
@@ -93,12 +94,13 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateOrganization(ctx context.Context, name string) (*model.Organization, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
-	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
+	AddAdminToOrganization(ctx context.Context, adminID int, organizationID int, inviteID string) (*int, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model.Session, error)
 	Events(ctx context.Context, sessionID int) ([]interface{}, error)
 	Messages(ctx context.Context, sessionID int) ([]interface{}, error)
+	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
 	Admins(ctx context.Context, organizationID int) ([]*model.Admin, error)
 	Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model.Session, error)
 	Fields(ctx context.Context, organizationID int) ([]*string, error)
@@ -157,7 +159,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddAdminToOrganization(childComplexity, args["organization_id"].(int), args["invite_id"].(string)), true
+		return e.complexity.Mutation.AddAdminToOrganization(childComplexity, args["admin_id"].(int), args["organization_id"].(int), args["invite_id"].(string)), true
 
 	case "Mutation.createOrganization":
 		if e.complexity.Mutation.CreateOrganization == nil {
@@ -282,6 +284,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Organizations(childComplexity), true
+
+	case "Query.resources":
+		if e.complexity.Query.Resources == nil {
+			break
+		}
+
+		args, err := ec.field_Query_resources_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Resources(childComplexity, args["session_id"].(int)), true
 
 	case "Query.session":
 		if e.complexity.Query.Session == nil {
@@ -461,6 +475,7 @@ type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
   messages(session_id: ID!): [Any]
+  resources(session_id: ID!): [Any]
   admins(organization_id: ID!): [Admin]
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
   # gets all the organizations of a user
@@ -478,7 +493,7 @@ type Query {
 type Mutation {
   createOrganization(name: String!): Organization
   sendAdminInvite(organization_id: ID!, email: String!): String
-  addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
+  addAdminToOrganization(admin_id: ID!, organization_id: ID!, invite_id: String!): ID
 }
 `, BuiltIn: false},
 }
@@ -492,23 +507,32 @@ func (ec *executionContext) field_Mutation_addAdminToOrganization_args(ctx conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+	if tmp, ok := rawArgs["admin_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("admin_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["organization_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["invite_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("invite_id"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+	args["admin_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["invite_id"] = arg1
+	args["organization_id"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["invite_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("invite_id"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["invite_id"] = arg2
 	return args, nil
 }
 
@@ -671,6 +695,21 @@ func (ec *executionContext) field_Query_organization_args(ctx context.Context, r
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_resources_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
 	return args, nil
 }
 
@@ -962,7 +1001,7 @@ func (ec *executionContext) _Mutation_addAdminToOrganization(ctx context.Context
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddAdminToOrganization(rctx, args["organization_id"].(int), args["invite_id"].(string))
+		return ec.resolvers.Mutation().AddAdminToOrganization(rctx, args["admin_id"].(int), args["organization_id"].(int), args["invite_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1145,6 +1184,44 @@ func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.C
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().Messages(rctx, args["session_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]interface{})
+	fc.Result = res
+	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_resources(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_resources_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Resources(rctx, args["session_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2952,6 +3029,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_messages(ctx, field)
+				return res
+			})
+		case "resources":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_resources(ctx, field)
 				return res
 			})
 		case "admins":

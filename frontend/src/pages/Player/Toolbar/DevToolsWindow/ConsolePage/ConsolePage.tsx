@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
-import { ReactComponent as CloseIcon } from '../../../static/close.svg';
+import { ReactComponent as CloseIcon } from '../../../../../static/close.svg';
 import { Element } from 'react-scroll';
 import { scroller } from 'react-scroll';
 
 import styles from './ConsolePage.module.css';
+import devStyles from '../DevToolsWindow.module.css';
 
 // copied from 'client/src/index.tsx'
 type ConsoleMessage = {
@@ -21,14 +22,7 @@ enum ConsoleType {
 	Warn,
 }
 
-export const ConsolePage = ({
-	onClick,
-	time,
-}: {
-	onClick: () => void;
-	time: number;
-}) => {
-	const [showStream, setShowStream] = useState(false);
+export const ConsolePage = ({ time }: { time: number }) => {
 	const [currentMessage, setCurrentMessage] = useState(-1);
 	const [parsedMessages, setParsedMessages] = useState<
 		undefined | Array<ConsoleMessage & { selected?: boolean; id: number }>
@@ -52,10 +46,6 @@ export const ConsolePage = ({
 	const rawMessages = data?.messages;
 
 	useEffect(() => {
-		onClick();
-	}, [showStream, onClick]);
-
-	useEffect(() => {
 		setParsedMessages(
 			rawMessages?.map((m, i) => {
 				return { ...m, id: i };
@@ -64,40 +54,36 @@ export const ConsolePage = ({
 	}, [rawMessages]);
 
 	useEffect(() => {
-		if (showStream) {
-			parsedMessages?.map((m, i) => {
-				if (m.time < time + 200 && m.time > time - 200) {
-					setCurrentMessage(i);
-					scroller.scrollTo(i.toString(), {
-						smooth: true,
-						containerId: 'logStreamWrapper',
-						spy: true,
-					});
-				}
-			});
+		parsedMessages?.map((m, i) => {
+			if (m.time < time + 200 && m.time > time - 200) {
+				setCurrentMessage(i);
+				scroller.scrollTo(i.toString(), {
+					smooth: true,
+					containerId: 'logStreamWrapper',
+					spy: true,
+				});
+			}
+		});
+	}, [time, setCurrentMessage, parsedMessages]);
+
+	const currentMessages = parsedMessages?.filter((m) => {
+		// if the console type is 'all', let all messages through. otherwise, filter.
+		if (consoleType === undefined) {
+			return true;
+		} else if (m.type === consoleType) {
+			return true;
 		}
-	}, [time, setCurrentMessage, parsedMessages, showStream]);
+		return false;
+	});
 
 	return (
 		<>
 			{data?.messages?.length ? (
 				<div className={styles.consolePageWrapper}>
-					<div
-						className={styles.consoleTopBar}
-						style={{
-							backgroundColor: showStream
-								? 'white'
-								: 'transparent',
-						}}
-					>
-						<div
-							className={styles.consoleOptionsWrapper}
-							style={{
-								visibility: showStream ? 'visible' : 'hidden',
-							}}
-						>
+					<div className={devStyles.topBar}>
+						<div className={devStyles.optionsWrapper}>
 							<div
-								className={styles.consoleOption}
+								className={devStyles.option}
 								onClick={() => setConsoleType(undefined)}
 								style={{
 									backgroundColor:
@@ -107,13 +93,13 @@ export const ConsolePage = ({
 									color:
 										consoleType === undefined
 											? 'white'
-											: 'black',
+											: '#5629c6',
 								}}
 							>
 								ALL
 							</div>
 							<div
-								className={styles.consoleOption}
+								className={devStyles.option}
 								onClick={() => setConsoleType(ConsoleType.Log)}
 								style={{
 									backgroundColor:
@@ -123,13 +109,13 @@ export const ConsolePage = ({
 									color:
 										consoleType === ConsoleType.Log
 											? 'white'
-											: 'black',
+											: '#5629c6',
 								}}
 							>
 								LOG
 							</div>
 							<div
-								className={styles.consoleOption}
+								className={devStyles.option}
 								onClick={() =>
 									setConsoleType(ConsoleType.Error)
 								}
@@ -141,13 +127,13 @@ export const ConsolePage = ({
 									color:
 										consoleType === ConsoleType.Error
 											? 'white'
-											: 'black',
+											: '#5629c6',
 								}}
 							>
 								ERROR
 							</div>
 							<div
-								className={styles.consoleOption}
+								className={devStyles.option}
 								onClick={() => setConsoleType(ConsoleType.Warn)}
 								style={{
 									backgroundColor:
@@ -157,13 +143,13 @@ export const ConsolePage = ({
 									color:
 										consoleType === ConsoleType.Warn
 											? 'white'
-											: 'black',
+											: '#5629c6',
 								}}
 							>
 								WARN
 							</div>
 							<div
-								className={styles.consoleOption}
+								className={devStyles.option}
 								onClick={() =>
 									setConsoleType(ConsoleType.Debug)
 								}
@@ -175,48 +161,20 @@ export const ConsolePage = ({
 									color:
 										consoleType === ConsoleType.Debug
 											? 'white'
-											: 'black',
+											: '#5629c6',
 								}}
 							>
 								DEBUG
 							</div>
 						</div>
-						{showStream ? (
-							<div
-								className={styles.closeIconWrapper}
-								onClick={() => {
-									setShowStream(!showStream);
-								}}
-							>
-								<CloseIcon className={styles.closeIcon} />
-							</div>
-						) : (
-							<div className={styles.consoleButtonWrapper}>
-								<div
-									onClick={() => {
-										setShowStream(!showStream);
-									}}
-									className={styles.consoleButton}
-								>
-									CONSOLE
-								</div>
-							</div>
-						)}
 					</div>
-					{showStream && (
-						<div
-							className={styles.logStreamWrapper}
-							id="logStreamWrapper"
-						>
-							{parsedMessages
-								?.filter((m) => {
-									if (consoleType === undefined) {
-										return true;
-									} else if (m.type === consoleType) {
-										return true;
-									}
-									return false;
-								})
+					<div
+						className={devStyles.devToolsStreamWrapper}
+						id="logStreamWrapper"
+					>
+						{currentMessages?.length ? (
+							currentMessages
+								.filter((m) => m.value.length)
 								.map((m) => {
 									return (
 										<Element
@@ -263,9 +221,13 @@ export const ConsolePage = ({
 											</div>
 										</Element>
 									);
-								})}
-						</div>
-					)}
+								})
+						) : (
+							<div className={devStyles.emptySection}>
+								No logs for this section.
+							</div>
+						)}
+					</div>
 				</div>
 			) : (
 				<></>
