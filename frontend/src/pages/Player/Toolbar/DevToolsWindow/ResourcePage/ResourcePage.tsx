@@ -93,39 +93,39 @@ export const ResourcePage = ({ time }: { time: number }) => {
                     })}
                 </div>
             </div>
+            <div className={styles.networkTopBar}>
+                <div className={styles.networkColumn}>TYPE</div>
+                <div className={styles.networkColumn}>NAME</div>
+                <div className={styles.networkColumn}>TIME</div>
+                <div className={styles.networkTimingColumn}>
+                    <div className={styles.networkColumn}>0ms</div>
+                    <div className={styles.networkColumn}>
+                        {(networkMeta.total / 2).toFixed(1)}ms
+                    </div>
+                    <div className={styles.networkColumn}>
+                        {networkMeta.total.toFixed(1)}ms
+                    </div>
+                </div>
+            </div>
             <div
                 id="networkStreamWrapper"
                 className={devStyles.devToolsStreamWrapper}
             >
                 {parsedResources.length ? (
                     <>
-                        <div className={styles.networkRow}>
-                            <div className={styles.networkColumn}>TYPE</div>
-                            <div className={styles.networkColumn}>NAME</div>
-                            <div className={styles.networkColumn}>TIME</div>
-                            <div className={styles.networkTimingColumn}>
-                                <div className={styles.networkColumn}>0ms</div>
-                                <div className={styles.networkColumn}>
-                                    {(networkMeta.total / 2).toFixed(1)}ms
-                                </div>
-                                <div className={styles.networkColumn}>
-                                    {networkMeta.total.toFixed(1)}ms
-                                </div>
-                            </div>
-                        </div>
                         {parsedResources.map((p: PerformanceResourceTiming) => {
                             const leftPaddingPercent =
                                 ((p.startTime - networkMeta.start) /
                                     networkMeta.total) *
                                 100;
-                            const actualPercent =
+                            const actualPercent = Math.max(
                                 ((p.responseEnd - p.startTime) /
                                     networkMeta.total) *
-                                100;
+                                    100,
+                                0.1
+                            );
                             const rightPaddingPercent =
-                                ((networkMeta.end - p.responseEnd) /
-                                    networkMeta.total) *
-                                100;
+                                100 - actualPercent - leftPaddingPercent;
                             return (
                                 <div className={styles.networkRow}>
                                     <div className={styles.typeSection}>

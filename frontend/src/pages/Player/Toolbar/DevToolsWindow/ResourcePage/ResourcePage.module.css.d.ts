@@ -1,5 +1,6 @@
 declare const styles: {
   readonly "networkRow": string;
+  readonly "networkTopBar": string;
   readonly "networkTimingColumn": string;
   readonly "networkTimingHeader": string;
   readonly "networkColumn": string;

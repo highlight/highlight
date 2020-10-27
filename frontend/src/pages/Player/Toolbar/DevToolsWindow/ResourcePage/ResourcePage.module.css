@@ -5,7 +5,19 @@
     grid-template-columns: 130px 200px 80px 1fr;
     padding-left: 25px;
     padding-right: 25px;
-    padding-top: 8px;
+    padding-bottom: 8px;
+    font-size: 13px;
+}
+
+.networkTopBar {
+    color: #808080;
+    width: 100%;
+    height: 30px;
+    display: grid;
+    grid-template-columns: 130px 200px 80px 1fr;
+    padding-left: 25px;
+    padding-right: 25px;
+    padding-bottom: 8px;
     font-size: 13px;
 }
 
@@ -50,7 +62,6 @@
 
 .timingBarEmptySection {
     background-color: white;
-    height: 100%;
 }
 
 .timingBar {
