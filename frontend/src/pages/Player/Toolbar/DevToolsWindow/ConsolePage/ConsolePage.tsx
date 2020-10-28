@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { ReactComponent as CloseIcon } from '../../../../../static/close.svg';
 import { Element } from 'react-scroll';
 import { scroller } from 'react-scroll';
+import { useDebouncedCallback } from 'use-debounce';
 
 import styles from './ConsolePage.module.css';
 import devStyles from '../DevToolsWindow.module.css';
@@ -54,17 +55,29 @@ export const ConsolePage = ({ time }: { time: number }) => {
 	}, [rawMessages]);
 
 	useEffect(() => {
-		parsedMessages?.map((m, i) => {
-			if (m.time < time + 200 && m.time > time - 200) {
-				setCurrentMessage(i);
+		if (parsedMessages?.length) {
+			var msgIndex: number = 0;
+			var msgDiff: number = Math.abs(time - parsedMessages[0].time);
+			for (var i = 0; i < parsedMessages.length; i++) {
+				const currentDiff: number = Math.abs(
+					time - parsedMessages[i].time
+				);
+				if (currentDiff < msgDiff) {
+					msgIndex = i;
+					msgDiff = currentDiff;
+				}
+			}
+			if (currentMessage !== msgIndex) {
+				console.log('new');
+				setCurrentMessage(msgIndex);
 				scroller.scrollTo(i.toString(), {
 					smooth: true,
 					containerId: 'logStreamWrapper',
 					spy: true,
 				});
 			}
-		});
-	}, [time, setCurrentMessage, parsedMessages]);
+		}
+	}, [time, parsedMessages, scroller]);
 
 	const currentMessages = parsedMessages?.filter((m) => {
 		// if the console type is 'all', let all messages through. otherwise, filter.
