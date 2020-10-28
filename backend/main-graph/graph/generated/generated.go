@@ -52,7 +52,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToOrganization func(childComplexity int, adminID int, organizationID int, inviteID string) int
+		AddAdminToOrganization func(childComplexity int, organizationID int, inviteID string) int
 		CreateOrganization     func(childComplexity int, name string) int
 		SendAdminInvite        func(childComplexity int, organizationID int, email string) int
 	}
@@ -94,7 +94,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateOrganization(ctx context.Context, name string) (*model.Organization, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
-	AddAdminToOrganization(ctx context.Context, adminID int, organizationID int, inviteID string) (*int, error)
+	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model.Session, error)
@@ -159,7 +159,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddAdminToOrganization(childComplexity, args["admin_id"].(int), args["organization_id"].(int), args["invite_id"].(string)), true
+		return e.complexity.Mutation.AddAdminToOrganization(childComplexity, args["organization_id"].(int), args["invite_id"].(string)), true
 
 	case "Mutation.createOrganization":
 		if e.complexity.Mutation.CreateOrganization == nil {
@@ -493,7 +493,7 @@ type Query {
 type Mutation {
   createOrganization(name: String!): Organization
   sendAdminInvite(organization_id: ID!, email: String!): String
-  addAdminToOrganization(admin_id: ID!, organization_id: ID!, invite_id: String!): ID
+  addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
 }
 `, BuiltIn: false},
 }
@@ -507,32 +507,23 @@ func (ec *executionContext) field_Mutation_addAdminToOrganization_args(ctx conte
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["admin_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("admin_id"))
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["admin_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
-		arg1, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["organization_id"] = arg1
-	var arg2 string
+	args["organization_id"] = arg0
+	var arg1 string
 	if tmp, ok := rawArgs["invite_id"]; ok {
 		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("invite_id"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["invite_id"] = arg2
+	args["invite_id"] = arg1
 	return args, nil
 }
 
@@ -1001,7 +992,7 @@ func (ec *executionContext) _Mutation_addAdminToOrganization(ctx context.Context
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddAdminToOrganization(rctx, args["admin_id"].(int), args["organization_id"].(int), args["invite_id"].(string))
+		return ec.resolvers.Mutation().AddAdminToOrganization(rctx, args["organization_id"].(int), args["invite_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

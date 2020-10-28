@@ -69,7 +69,7 @@ export const ResourcePage = ({
                 })
             );
         }
-    }, [rawResources, optionIndex, options]);
+    }, [parsedResources, rawResources, optionIndex, options]);
 
     useEffect(() => {
         if (rawResources) {
@@ -105,7 +105,7 @@ export const ResourcePage = ({
                 });
             }
         }
-    }, [time, currentResource, scroller]);
+    }, [currentResources, startTime, time, currentResource]);
 
     return (
         <>

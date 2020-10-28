@@ -74,7 +74,7 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 	return &email, nil
 }
 
-func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, adminID int, organizationID int, inviteID string) (*int, error) {
+func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error) {
 	org := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
 	if err := res.Error; err != nil || res.RecordNotFound() {

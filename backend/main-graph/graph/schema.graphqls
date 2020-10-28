@@ -50,5 +50,5 @@ type Query {
 type Mutation {
   createOrganization(name: String!): Organization
   sendAdminInvite(organization_id: ID!, email: String!): String
-  addAdminToOrganization(admin_id: ID!, organization_id: ID!, invite_id: String!): ID
+  addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
 }

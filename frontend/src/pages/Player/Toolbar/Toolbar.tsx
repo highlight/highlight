@@ -44,7 +44,7 @@ export const Toolbar = ({
 
     useEffect(() => {
         setTimeout(() => onResize(), 50);
-    }, [openDevTools]);
+    }, [openDevTools, onResize]);
 
     return (
         <>

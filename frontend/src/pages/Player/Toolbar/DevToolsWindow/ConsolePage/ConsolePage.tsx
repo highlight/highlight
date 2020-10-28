@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
-import { ReactComponent as CloseIcon } from '../../../../../static/close.svg';
 import { Element, scroller } from 'react-scroll';
-import { useDebouncedCallback } from 'use-debounce';
 
 import styles from './ConsolePage.module.css';
 import devStyles from '../DevToolsWindow.module.css';
@@ -76,7 +74,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
 				});
 			}
 		}
-	}, [time, parsedMessages, scroller]);
+	}, [currentMessage, time, parsedMessages]);
 
 	const currentMessages = parsedMessages?.filter((m) => {
 		// if the console type is 'all', let all messages through. otherwise, filter.
