@@ -5,7 +5,13 @@ import { ResourcePage } from './ResourcePage/ResourcePage';
 
 import styles from './DevToolsWindow.module.css';
 
-export const DevToolsWindow = ({ time }: { time: number }) => {
+export const DevToolsWindow = ({
+    time,
+    startTime,
+}: {
+    time: number;
+    startTime: number;
+}) => {
     const [isConsole, setIsConsole] = useState(true);
     return (
         <div className={styles.devToolsWrapper}>
@@ -44,7 +50,7 @@ export const DevToolsWindow = ({ time }: { time: number }) => {
             {isConsole ? (
                 <ConsolePage time={time} />
             ) : (
-                <ResourcePage time={time} />
+                <ResourcePage startTime={startTime} time={time} />
             )}
         </div>
     );

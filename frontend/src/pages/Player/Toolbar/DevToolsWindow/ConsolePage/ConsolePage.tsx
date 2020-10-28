@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { ReactComponent as CloseIcon } from '../../../../../static/close.svg';
-import { Element } from 'react-scroll';
-import { scroller } from 'react-scroll';
+import { Element, scroller } from 'react-scroll';
 import { useDebouncedCallback } from 'use-debounce';
 
 import styles from './ConsolePage.module.css';
@@ -54,6 +53,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
 		);
 	}, [rawMessages]);
 
+	// Logic for scrolling to current entry.
 	useEffect(() => {
 		if (parsedMessages?.length) {
 			var msgIndex: number = 0;
@@ -68,9 +68,8 @@ export const ConsolePage = ({ time }: { time: number }) => {
 				}
 			}
 			if (currentMessage !== msgIndex) {
-				console.log('new');
 				setCurrentMessage(msgIndex);
-				scroller.scrollTo(i.toString(), {
+				scroller.scrollTo(msgIndex.toString(), {
 					smooth: true,
 					containerId: 'logStreamWrapper',
 					spy: true,

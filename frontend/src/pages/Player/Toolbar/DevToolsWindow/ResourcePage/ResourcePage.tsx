@@ -2,21 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { Tooltip } from 'antd';
+import { scroller, Element } from 'react-scroll';
 
 import devStyles from '../DevToolsWindow.module.css';
 import styles from './ResourcePage.module.css';
 
-export const ResourcePage = ({ time }: { time: number }) => {
+export const ResourcePage = ({
+    time,
+    startTime,
+}: {
+    time: number;
+    startTime: number;
+}) => {
     const { session_id } = useParams<{ session_id: string }>();
     const [options, setOptions] = useState<Array<string>>([]);
     const [optionIndex, setOptionIndex] = useState(0);
-    const [networkMeta, setNetworkMeta] = useState<{
-        start: number;
-        end: number;
-        total: number;
-    }>({ start: 0, end: 1, total: 1 });
+    const [currentResource, setCurrentResource] = useState(0);
+    const [networkRange, setNetworkRange] = useState(0);
+    const [currentResources, setCurrentResources] = useState<
+        Array<PerformanceResourceTiming & { id: number }>
+    >([]);
     const [parsedResources, setParsedResources] = useState<
-        Array<PerformanceResourceTiming>
+        Array<PerformanceResourceTiming & { id: number }>
     >([]);
     const { data } = useQuery<
         { resources: PerformanceResourceTiming[] },
@@ -40,12 +47,19 @@ export const ResourcePage = ({ time }: { time: number }) => {
             }
         });
         setOptions(['All', ...Array.from(optionSet)]);
+        if (rawResources) {
+            setParsedResources(
+                rawResources.map((r, i) => {
+                    return { ...r, id: i };
+                })
+            );
+        }
     }, [rawResources]);
 
     useEffect(() => {
         if (rawResources) {
-            setParsedResources(
-                rawResources.filter((r) => {
+            setCurrentResources(
+                parsedResources.filter((r) => {
                     if (options[optionIndex] === 'All') {
                         return true;
                     } else if (options[optionIndex] === r.initiatorType) {
@@ -61,13 +75,37 @@ export const ResourcePage = ({ time }: { time: number }) => {
         if (rawResources) {
             const start = rawResources[0].startTime;
             const end = rawResources[rawResources.length - 1].responseEnd;
-            setNetworkMeta({
-                start,
-                end,
-                total: end - start,
-            });
+            setNetworkRange(end - start);
         }
     }, [rawResources]);
+
+    // Logic for scrolling to current entry.
+    useEffect(() => {
+        if (currentResources?.length) {
+            var msgIndex: number = 0;
+            const relativeTime = time - startTime;
+            var msgDiff: number = Math.abs(
+                relativeTime - currentResources[0].startTime
+            );
+            for (var i = 0; i < currentResources.length; i++) {
+                const currentDiff: number = Math.abs(
+                    relativeTime - currentResources[i].startTime
+                );
+                if (currentDiff < msgDiff) {
+                    msgIndex = i;
+                    msgDiff = currentDiff;
+                }
+            }
+            if (currentResource !== msgIndex) {
+                setCurrentResource(msgIndex);
+                scroller.scrollTo(msgIndex.toString(), {
+                    smooth: true,
+                    containerId: 'networkStreamWrapper',
+                    spy: true,
+                });
+            }
+        }
+    }, [time, currentResource, scroller]);
 
     return (
         <>
@@ -100,10 +138,10 @@ export const ResourcePage = ({ time }: { time: number }) => {
                 <div className={styles.networkTimingColumn}>
                     <div className={styles.networkColumn}>0ms</div>
                     <div className={styles.networkColumn}>
-                        {(networkMeta.total / 2).toFixed(1)}ms
+                        {(networkRange / 2).toFixed(1)}ms
                     </div>
                     <div className={styles.networkColumn}>
-                        {networkMeta.total.toFixed(1)}ms
+                        {networkRange.toFixed(1)}ms
                     </div>
                 </div>
             </div>
@@ -111,63 +149,88 @@ export const ResourcePage = ({ time }: { time: number }) => {
                 id="networkStreamWrapper"
                 className={devStyles.devToolsStreamWrapper}
             >
-                {parsedResources.length ? (
+                {currentResources.length ? (
                     <>
-                        {parsedResources.map((p: PerformanceResourceTiming) => {
-                            const leftPaddingPercent =
-                                ((p.startTime - networkMeta.start) /
-                                    networkMeta.total) *
-                                100;
-                            const actualPercent = Math.max(
-                                ((p.responseEnd - p.startTime) /
-                                    networkMeta.total) *
-                                    100,
-                                0.1
-                            );
-                            const rightPaddingPercent =
-                                100 - actualPercent - leftPaddingPercent;
-                            return (
-                                <div className={styles.networkRow}>
-                                    <div className={styles.typeSection}>
-                                        {p.initiatorType}
-                                    </div>
-                                    <Tooltip title={p.name}>
-                                        <div className={styles.nameSection}>
-                                            {p.name}
+                        {currentResources.map(
+                            (p: PerformanceResourceTiming & { id: number }) => {
+                                const leftPaddingPercent =
+                                    (p.startTime / networkRange) * 100;
+                                const actualPercent = Math.max(
+                                    ((p.responseEnd - p.startTime) /
+                                        networkRange) *
+                                        100,
+                                    0.1
+                                );
+                                const rightPaddingPercent =
+                                    100 - actualPercent - leftPaddingPercent;
+                                return (
+                                    <Element
+                                        name={p.id.toString()}
+                                        key={p.id.toString()}
+                                    >
+                                        <div
+                                            style={{
+                                                color:
+                                                    p.id === currentResource
+                                                        ? 'black'
+                                                        : '#808080',
+                                                fontWeight:
+                                                    p.id === currentResource
+                                                        ? 400
+                                                        : 300,
+                                            }}
+                                            className={styles.networkRow}
+                                        >
+                                            <div className={styles.typeSection}>
+                                                {p.initiatorType}
+                                            </div>
+                                            <Tooltip title={p.name}>
+                                                <div
+                                                    className={
+                                                        styles.nameSection
+                                                    }
+                                                >
+                                                    {p.name}
+                                                </div>
+                                            </Tooltip>
+                                            <div>
+                                                {(
+                                                    p.responseEnd - p.startTime
+                                                ).toFixed(2)}
+                                            </div>
+                                            <div
+                                                className={
+                                                    styles.timingBarWrapper
+                                                }
+                                            >
+                                                <div
+                                                    style={{
+                                                        width: `${leftPaddingPercent}%`,
+                                                    }}
+                                                    className={
+                                                        styles.timingBarEmptySection
+                                                    }
+                                                />
+                                                <div
+                                                    className={styles.timingBar}
+                                                    style={{
+                                                        width: `${actualPercent}%`,
+                                                    }}
+                                                />
+                                                <div
+                                                    style={{
+                                                        width: `${rightPaddingPercent}%`,
+                                                    }}
+                                                    className={
+                                                        styles.timingBarEmptySection
+                                                    }
+                                                />
+                                            </div>
                                         </div>
-                                    </Tooltip>
-                                    <div>
-                                        {(p.responseEnd - p.startTime).toFixed(
-                                            2
-                                        )}
-                                    </div>
-                                    <div className={styles.timingBarWrapper}>
-                                        <div
-                                            style={{
-                                                width: `${leftPaddingPercent}%`,
-                                            }}
-                                            className={
-                                                styles.timingBarEmptySection
-                                            }
-                                        />
-                                        <div
-                                            className={styles.timingBar}
-                                            style={{
-                                                width: `${actualPercent}%`,
-                                            }}
-                                        />
-                                        <div
-                                            style={{
-                                                width: `${rightPaddingPercent}%`,
-                                            }}
-                                            className={
-                                                styles.timingBarEmptySection
-                                            }
-                                        />
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                    </Element>
+                                );
+                            }
+                        )}
                     </>
                 ) : (
                     <div className={devStyles.emptySection}>

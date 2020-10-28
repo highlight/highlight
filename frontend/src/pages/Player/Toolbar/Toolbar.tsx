@@ -51,6 +51,7 @@ export const Toolbar = ({
             {openDevTools ? (
                 <DevToolsWindow
                     time={(replayer?.getMetaData().startTime ?? 0) + current}
+                    startTime={replayer?.getMetaData().startTime ?? 0}
                 />
             ) : (
                 <></>
