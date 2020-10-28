@@ -3,7 +3,7 @@ import parse from 'parse-duration';
 import { useParams } from 'react-router-dom';
 // @ts-ignore
 import written from 'written-number';
-import fuzzy, { FilterResult } from 'fuzzy';
+import fuzzy from 'fuzzy';
 import { useQuery, useLazyQuery, gql } from '@apollo/client';
 
 import styles from './SessionsPage.module.css';
