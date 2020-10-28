@@ -3,6 +3,7 @@ import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { Tooltip } from 'antd';
 import { scroller, Element } from 'react-scroll';
+import { Skeleton } from 'antd';
 
 import devStyles from '../DevToolsWindow.module.css';
 import styles from './ResourcePage.module.css';
@@ -25,7 +26,7 @@ export const ResourcePage = ({
     const [parsedResources, setParsedResources] = useState<
         Array<PerformanceResourceTiming & { id: number }>
     >([]);
-    const { data } = useQuery<
+    const { data, loading } = useQuery<
         { resources: PerformanceResourceTiming[] },
         { session_id: string }
     >(
@@ -106,6 +107,22 @@ export const ResourcePage = ({
             }
         }
     }, [currentResources, startTime, time, currentResource]);
+
+    if (loading) {
+        return (
+            <div className={devStyles.skeletonWrapper}>
+                <Skeleton active />
+            </div>
+        );
+    }
+
+    if (!data?.resources?.length) {
+        return (
+            <div className={devStyles.emptyWrapper}>
+                <p>Nothing to see here.</p>
+            </div>
+        );
+    }
 
     return (
         <>

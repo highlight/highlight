@@ -18,6 +18,14 @@ body {
     border-radius: 8px;
 }
 
+.ant-skeleton-content .ant-skeleton-title {
+    border-radius: 8px;
+}
+
+.ant-skeleton-content .ant-skeleton-paragraph > li {
+    border-radius: 8px;
+}
+
 @font-face {
     font-family: AvenirNext;
     src: url(/font/AvenirNext-Heavy.woff2);

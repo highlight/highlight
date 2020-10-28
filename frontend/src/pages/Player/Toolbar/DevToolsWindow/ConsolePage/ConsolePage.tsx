@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { Element, scroller } from 'react-scroll';
+import { Skeleton } from 'antd';
 
 import styles from './ConsolePage.module.css';
 import devStyles from '../DevToolsWindow.module.css';
@@ -29,7 +30,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
 		undefined
 	);
 	const { session_id } = useParams<{ session_id: string }>();
-	const { data } = useQuery<
+	const { data, loading } = useQuery<
 		{ messages: ConsoleMessage[] },
 		{ session_id: string }
 	>(
@@ -85,6 +86,22 @@ export const ConsolePage = ({ time }: { time: number }) => {
 		}
 		return false;
 	});
+
+	if (loading) {
+		return (
+			<div className={devStyles.skeletonWrapper}>
+				<Skeleton active />
+			</div>
+		);
+	}
+
+	if (!data?.messages?.length) {
+		return (
+			<div className={devStyles.emptyWrapper}>
+				<p>Nothing to see here.</p>
+			</div>
+		);
+	}
 
 	return (
 		<>
