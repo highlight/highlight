@@ -34,7 +34,12 @@ const App = () => {
             }
         }
     `);
-    if (o_error || o_loading || !o_data?.organizations?.length) {
+
+    if (o_error) {
+        return <p>{'App error: ' + JSON.stringify(o_error)}</p>;
+    }
+
+    if (o_error || o_loading) {
         return (
             <div className={styles.loadingWrapper}>
                 <Spinner />
@@ -42,24 +47,29 @@ const App = () => {
         );
     }
 
-    const current_org = o_data?.organizations[0].id;
     return (
         <div className={styles.appBody}>
             <Router>
-                <Switch>
-                    <Route path="/:organization_id/invite/:invite_id">
-                        <NewMemberPage />
-                    </Route>
-                    <Route path="/new">
-                        <NewWorkspacePage />
-                    </Route>
-                    <Route path="/:organization_id">
-                        <OrgValidator />
-                    </Route>
-                    <Route path="/">
-                        <Redirect to={`/${current_org}/setup`} />
-                    </Route>
-                </Switch>
+                {!o_data.organizations.length ? (
+                    <NewWorkspacePage />
+                ) : (
+                    <Switch>
+                        <Route path="/:organization_id/invite/:invite_id">
+                            <NewMemberPage />
+                        </Route>
+                        <Route path="/new">
+                            <NewWorkspacePage />
+                        </Route>
+                        <Route path="/:organization_id">
+                            <OrgValidator />
+                        </Route>
+                        <Route path="/">
+                            <Redirect
+                                to={`/${o_data?.organizations[0].id}/setup`}
+                            />
+                        </Route>
+                    </Switch>
+                )}
             </Router>
         </div>
     );
@@ -81,7 +91,7 @@ const OrgValidator = () => {
         { variables: { id: organization_id } }
     );
     if (error) {
-        return <p>{JSON.stringify(error)}</p>;
+        return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
     }
     if (loading || !data?.organization) {
         return <CircularSpinner />;
@@ -127,7 +137,10 @@ export const AuthAdminRouter = () => {
             });
         }
     }, [admin]);
-    if (error || loading) {
+    if (error) {
+        return <p>{'AuthAdminRouter error: ' + JSON.stringify(error)}</p>;
+    }
+    if (loading) {
         return (
             <div className={styles.loadingWrapper}>
                 <Spinner />
