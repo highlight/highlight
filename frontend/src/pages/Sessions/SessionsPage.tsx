@@ -111,7 +111,6 @@ export const SessionsPage = () => {
     return (
         <div className={styles.sessionsBody}>
             <div className={styles.sessionsSection}>
-                <div className={styles.sessionsHeader}>Session Playlist</div>
                 <div className={styles.searchBar}>
                     <div className={styles.searchInputSection}>
                         {params?.map((p, i) => (

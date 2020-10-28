@@ -127,7 +127,7 @@ class Logger {
     this.logger.log(
       `Loaded Highlight
 Remote: ${process.env.BACKEND_URI}
-Org:: ${this.organizationID}
+Org: ${this.organizationID}
 Session Data: 
 `,
       gr.data
@@ -143,6 +143,7 @@ Session Data:
       emit,
     });
 
+    // TODO: probably get rid of this.
     const highlightThis = this;
     var send = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function (data) {
@@ -190,25 +191,36 @@ Session Data:
     if (!this.sessionID) {
       return;
     }
-
+    const resources = performance
+      .getEntriesByType('resource')
+      .filter(
+        (r) =>
+          !r.name.includes(
+            process.env.BACKEND_URI ?? 'https://api.highlight.run'
+          )
+      );
+    const resourcesString = JSON.stringify({ resources: resources });
     const messagesString = JSON.stringify({ messages: this.messages });
     const eventsString = JSON.stringify({ events: this.events });
     this.logger.log(
-      `Sending (${this.events.length}) events, (${this.messages.length}) messages @ ${process.env.BACKEND_URI}, org: ${this.organizationID}`
+      `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
     );
     this.events = [];
     this.messages = [];
+    performance.clearResourceTimings();
     await this.client.mutate({
       mutation: gql`
         mutation PushPayload(
           $session_id: ID!
           $events: String!
           $messages: String!
+          $resources: String!
         ) {
           pushPayload(
             session_id: $session_id
             events: $events
             messages: $messages
+            resources: $resources
           )
         }
       `,
@@ -216,6 +228,7 @@ Session Data:
         session_id: this.sessionID,
         events: eventsString,
         messages: messagesString,
+        resources: resourcesString,
       },
     });
   }

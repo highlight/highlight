@@ -126,17 +126,36 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 	}
 	messagesObj := []*model.MessagesObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: sessionID}).Find(&messagesObj); res.Error != nil {
-		return nil, fmt.Errorf("error reading from events: %v", res.Error)
+		return nil, fmt.Errorf("error reading from messages: %v", res.Error)
 	}
 	allEvents := make(map[string][]interface{})
 	for _, messageObj := range messagesObj {
 		subMessage := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(messageObj.Messages), &subMessage); err != nil {
-			return nil, fmt.Errorf("error decoding event data: %v", err)
+			return nil, fmt.Errorf("error decoding message data: %v", err)
 		}
 		allEvents["messages"] = append(subMessage["messages"], allEvents["messages"]...)
 	}
 	return allEvents["messages"], nil
+}
+
+func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interface{}, error) {
+	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	resourcesObject := []*model.ResourcesObject{}
+	if res := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: sessionID}).Find(&resourcesObject); res.Error != nil {
+		return nil, fmt.Errorf("error reading from resources: %v", res.Error)
+	}
+	allResources := make(map[string][]interface{})
+	for _, resourceObj := range resourcesObject {
+		subResources := make(map[string][]interface{})
+		if err := json.Unmarshal([]byte(resourceObj.Resources), &subResources); err != nil {
+			return nil, fmt.Errorf("error decoding resource data: %v", err)
+		}
+		allResources["resources"] = append(subResources["resources"], allResources["resources"]...)
+	}
+	return allResources["resources"], nil
 }
 
 func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*model.Admin, error) {

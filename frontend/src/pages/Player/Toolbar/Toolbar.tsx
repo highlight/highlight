@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
-import { ReactComponent as CheckMarkCircle } from '../../../static/checkmark-circle.svg';
-import { ReactComponent as CrossCircle } from '../../../static/cross-circle.svg';
+import { ReactComponent as Close } from '../../../static/close.svg';
+import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
+import { ReactComponent as CheckMark } from '../../../static/checkmark.svg';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
-import { ConsolePage } from '../ConsolePage/ConsolePage';
+import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import styles from './Toolbar.module.css';
 
 import { Replayer } from 'rrweb';
@@ -24,6 +25,7 @@ export const Toolbar = ({
     const [current, setCurrent] = useState(0);
     const [speed, setSpeed] = useState(2);
     const [skipInactive, setSkipInactive] = useState(false);
+    const [openDevTools, setOpenDevTools] = useState(false);
     const [paused, setPaused] = useState(true);
     const timePercentage = Math.max((current / max) * 100, 0);
     const indicatorStyle = `min(${
@@ -40,12 +42,20 @@ export const Toolbar = ({
         }
     }, [replayer, paused]);
 
+    useEffect(() => {
+        setTimeout(() => onResize(), 50);
+    }, [openDevTools, onResize]);
+
     return (
         <>
-            <ConsolePage
-                onClick={onResize}
-                time={(replayer?.getMetaData().startTime ?? 0) + current}
-            />
+            {openDevTools ? (
+                <DevToolsWindow
+                    time={(replayer?.getMetaData().startTime ?? 0) + current}
+                    startTime={replayer?.getMetaData().startTime ?? 0}
+                />
+            ) : (
+                <></>
+            )}
             <div
                 className={styles.sliderWrapper}
                 ref={sliderWrapperRef}
@@ -125,7 +135,36 @@ export const Toolbar = ({
                     >
                         {speed}x
                     </div>
-                    <div className={styles.verticalDivider} />
+                    <div
+                        onClick={() => {
+                            setOpenDevTools(!openDevTools);
+                        }}
+                        className={styles.skipInactivity}
+                        style={{
+                            backgroundColor: openDevTools
+                                ? '#5629C6'
+                                : '#F2EEFB',
+                        }}
+                    >
+                        <span
+                            className={styles.inactiveText}
+                            style={{
+                                color: openDevTools ? 'white' : '#5629c6',
+                            }}
+                        >
+                            DEV TOOLS
+                        </span>
+
+                        <DownIcon
+                            className={styles.inactiveIcon}
+                            fill={openDevTools ? 'white' : '#5629c6'}
+                            style={{
+                                transform: openDevTools
+                                    ? 'rotate(0deg)'
+                                    : 'rotate(180deg)',
+                            }}
+                        />
+                    </div>
                     <div
                         onClick={() => {
                             replayer?.setConfig({
@@ -134,22 +173,31 @@ export const Toolbar = ({
                             setSkipInactive(!skipInactive);
                         }}
                         className={styles.skipInactivity}
+                        style={{
+                            backgroundColor: skipInactive
+                                ? '#5629C6'
+                                : '#F2EEFB',
+                        }}
                     >
                         <span
                             className={styles.inactiveText}
                             style={{
-                                color: skipInactive ? 'green' : 'black',
+                                color: skipInactive ? 'white' : '#5629c6',
                             }}
                         >
-                            Skip{skipInactive && 'ping'} Inactivity
+                            SKIP INACTIVITY
                         </span>
+
                         {skipInactive ? (
-                            <CheckMarkCircle
+                            <Close
                                 className={styles.inactiveIcon}
-                                fill={'green'}
+                                fill={'white'}
                             />
                         ) : (
-                            <CrossCircle className={styles.inactiveIcon} />
+                            <CheckMark
+                                className={styles.inactiveIcon}
+                                fill={'#5629c6'}
+                            />
                         )}
                     </div>
                 </div>
