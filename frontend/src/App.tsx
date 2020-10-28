@@ -42,7 +42,6 @@ const App = () => {
     if (o_error || o_loading) {
         return (
             <div className={styles.loadingWrapper}>
-                <p>hello</p>
                 <Spinner />
             </div>
         );
@@ -144,7 +143,6 @@ export const AuthAdminRouter = () => {
     if (loading) {
         return (
             <div className={styles.loadingWrapper}>
-                <p>hi</p>
                 <Spinner />
             </div>
         );
@@ -196,7 +194,6 @@ export const AuthAppRouter = () => {
     if (loading) {
         return (
             <div className={styles.loadingWrapper}>
-                <p>yo</p>
                 <Spinner />
             </div>
         );
