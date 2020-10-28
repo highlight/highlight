@@ -324,30 +324,21 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	admin := &model.Admin{UID: &uid}
 	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
 	if err := res.Error; err != nil || res.RecordNotFound() {
-		// If the user doesn't exist yet, we create
-		// one along with their own org.
-		// TODO: At some point, we shouldn't automatically create the org. We should
-		// just redirect to the "new workspace" page and go from there.
 		fbuser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
 			return nil, e.Wrap(err, "error retrieiving user from firebase api")
 		}
-		newOrg, err := r.Mutation().CreateOrganization(ctx, fbuser.DisplayName)
-		if err != nil {
-			return nil, e.Wrap(err, "error creating new organization")
-		}
 		newAdmin := &model.Admin{
-			UID:           &uid,
-			Name:          &fbuser.DisplayName,
-			Email:         &fbuser.Email,
-			Organizations: []model.Organization{*newOrg},
+			UID:   &uid,
+			Name:  &fbuser.DisplayName,
+			Email: &fbuser.Email,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new admin")
 		}
 		admin = newAdmin
-
-		msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW USER \nid: %v\nname: %v\nemail: %v```", newAdmin.ID, *newAdmin.Name, *newAdmin.Email)}
+		msg := slack.WebhookMessage{Text: fmt.
+			Sprintf("```NEW USER \nid: %v\nname: %v\nemail: %v```", newAdmin.ID, *newAdmin.Name, *newAdmin.Email)}
 		err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
 		if err != nil {
 			log.Errorf("error sending slack hook: %v", err)
