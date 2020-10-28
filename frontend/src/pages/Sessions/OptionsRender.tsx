@@ -51,19 +51,18 @@ export const FieldOptions = ({
 
     useEffect(() => {
         if (data?.field_suggestion.length) {
-            setResults(
-                fuzzy.filter<Value>(
-                    input,
-                    data?.field_suggestion.map((s) => {
-                        return { text: s, value: s };
-                    }) ?? [],
-                    {
-                        pre: `<strong style="color: #5629c6;">`,
-                        post: '</strong>',
-                        extract: (f) => f.text,
-                    }
-                )
+            var filterResults = fuzzy.filter<Value>(
+                input,
+                data?.field_suggestion.map((s) => {
+                    return { text: s, value: s };
+                }) ?? [],
+                {
+                    pre: `<strong style="color: #5629c6;">`,
+                    post: '</strong>',
+                    extract: (f) => f.text,
+                }
             );
+            setResults(filterResults);
         }
     }, [data, input]);
 
@@ -86,7 +85,7 @@ export const FieldOptions = ({
                         />
                     );
                 })
-                .slice(0, 5)}
+                .slice(0, 8)}
         </>
     );
 };

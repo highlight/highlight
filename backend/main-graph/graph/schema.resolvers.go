@@ -287,7 +287,7 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 	fields := []model.Field{}
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Name: field}).
 		Order(fmt.Sprintf(`levenshtein(value, '%v')`, query)).
-		Limit(5).
+		Limit(15).
 		Find(&fields)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error querying field suggestion")
