@@ -8,6 +8,8 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
+	"github.com/k0kubun/pp"
+	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go"
 
 	e "github.com/pkg/errors"
@@ -24,6 +26,13 @@ var (
 type Resolver struct {
 	DB         *gorm.DB
 	MailClient *sendgrid.Client
+}
+
+// Prints time since 'time' and msg, fid.
+// return time.Now() to reset the clock.
+func profile(msg string, fid xid.ID, t time.Time) time.Time {
+	pp.Printf("%v => "+msg+" took: %v \n", fid.String(), fmt.Sprintf("duration: %s", time.Since(t)))
+	return time.Now()
 }
 
 // These are authentication methods used to make sure that data is secured.

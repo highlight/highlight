@@ -102,21 +102,28 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
+	start := time.Now()
+	guid, t := xid.New(), time.Now()
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
+	t = profile("isAdminSessionOwner", guid, t)
 	eventObjs := []*model.EventsObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
+	t = profile("Find(eventObjs)", guid, t)
 	allEvents := make(map[string][]interface{})
-	for _, eventObj := range eventObjs {
+	for i, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
 			return nil, fmt.Errorf("error decoding event data: %v", err)
 		}
+		t = profile(fmt.Sprintf("Unmarshal(eventObj.Events)[%v]", i), guid, t)
 		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
+		t = profile("append(subEvents)", guid, t)
 	}
+	profile("Events()", guid, start)
 	return allEvents["events"], nil
 }
 
