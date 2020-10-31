@@ -102,17 +102,13 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
-	start := time.Now()
-	t := time.Now()
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	t = profile("isAdminSessionOwner", sessionID, t)
 	eventObjs := []*model.EventsObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
-	t = profile("Find(eventObjs)", sessionID, t)
 	allEvents := make(map[string][]interface{})
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
@@ -121,8 +117,6 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		}
 		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
 	}
-	profile("for:append(subEvents)", sessionID, t)
-	profile("Events()", sessionID, start)
 	return allEvents["events"], nil
 }
 
