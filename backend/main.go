@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -62,14 +61,7 @@ func emailHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "incorrect request method", http.StatusInternalServerError)
 		return
 	}
-	decoder := json.NewDecoder(r.Body)
-	emailObj := EmailObj{}
-	err = decoder.Decode(&emailObj)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("error decoding email: %v", err), http.StatusInternalServerError)
-		return
-	}
-	email := emailObj.Email
+	email := r.Form.Get("email")
 	if len(email) > 0 {
 		model.DB.Create(&model.EmailSignup{Email: email})
 		msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SIGNUP \nemail: %v\n```", email)}
