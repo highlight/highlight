@@ -97,6 +97,7 @@ export const Player = () => {
                 }) ?? [];
             let r = new Replayer(newEvents, {
                 root: document.getElementById('player') as HTMLElement,
+                UNSAFE_replayCanvas: true,
             });
             setEvents(newEvents);
             setReplayer(r);
