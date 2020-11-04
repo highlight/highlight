@@ -18,9 +18,24 @@
 	height: 100%;
 }
 
+.messageText {
+	padding-right: 25px;
+}
+
+.consoleStreamWrapper {
+	background-color: white;
+	word-wrap: break-word;
+	display: flex;
+	flex-direction: column;
+	overflow-y: auto;
+	overflow-x: hidden;
+	height: calc(100% - 45px);
+}
+
 .consoleMessage {
 	display: grid;
 	grid-template-columns: 25px 1fr;
+	word-break: break-all;
 	border-bottom: 1px solid #eaeaea;
 	font-weight: 400;
 	font-size: 12px;

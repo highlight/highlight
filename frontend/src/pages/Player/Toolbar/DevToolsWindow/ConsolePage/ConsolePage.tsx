@@ -3,6 +3,7 @@ import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { Element, scroller } from 'react-scroll';
 import { Skeleton } from 'antd';
+import { Option, DevToolsSelect } from '../Option/Option';
 
 import styles from './ConsolePage.module.css';
 import devStyles from '../DevToolsWindow.module.css';
@@ -11,7 +12,7 @@ import devStyles from '../DevToolsWindow.module.css';
 type ConsoleMessage = {
 	value: string;
 	time: number;
-	type: ConsoleType;
+	type: string;
 };
 
 enum ConsoleType {
@@ -21,14 +22,19 @@ enum ConsoleType {
 	Warn,
 }
 
-export const ConsolePage = ({ time }: { time: number }) => {
+export const ConsolePage = ({
+	time,
+	onSwitchPage,
+}: {
+	time: number;
+	onSwitchPage: () => void;
+}) => {
 	const [currentMessage, setCurrentMessage] = useState(-1);
+	const [options, setOptions] = useState<Array<string>>([]);
 	const [parsedMessages, setParsedMessages] = useState<
 		undefined | Array<ConsoleMessage & { selected?: boolean; id: number }>
 	>([]);
-	const [consoleType, setConsoleType] = useState<ConsoleType | undefined>(
-		undefined
-	);
+	const [consoleType, setConsoleType] = useState<string>('All');
 	const { session_id } = useParams<{ session_id: string }>();
 	const { data, loading } = useQuery<
 		{ messages: ConsoleMessage[] },
@@ -43,6 +49,12 @@ export const ConsolePage = ({ time }: { time: number }) => {
 	);
 
 	const rawMessages = data?.messages;
+
+	useEffect(() => {
+		const base = parsedMessages?.map((o) => o.type) ?? [];
+		const uniqueSet = new Set(base);
+		setOptions(['All', ...Array.from(uniqueSet)]);
+	}, [parsedMessages]);
 
 	useEffect(() => {
 		setParsedMessages(
@@ -79,7 +91,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
 
 	const currentMessages = parsedMessages?.filter((m) => {
 		// if the console type is 'all', let all messages through. otherwise, filter.
-		if (consoleType === undefined) {
+		if (consoleType === 'All') {
 			return true;
 		} else if (m.type === consoleType) {
 			return true;
@@ -109,94 +121,23 @@ export const ConsolePage = ({ time }: { time: number }) => {
 				<div className={styles.consolePageWrapper}>
 					<div className={devStyles.topBar}>
 						<div className={devStyles.optionsWrapper}>
-							<div
-								className={devStyles.option}
-								onClick={() => setConsoleType(undefined)}
-								style={{
-									backgroundColor:
-										consoleType === undefined
-											? '#5629c6'
-											: '#f2eefb',
-									color:
-										consoleType === undefined
-											? 'white'
-											: '#5629c6',
-								}}
-							>
-								ALL
-							</div>
-							<div
-								className={devStyles.option}
-								onClick={() => setConsoleType(ConsoleType.Log)}
-								style={{
-									backgroundColor:
-										consoleType === ConsoleType.Log
-											? '#5629c6'
-											: '#f2eefb',
-									color:
-										consoleType === ConsoleType.Log
-											? 'white'
-											: '#5629c6',
-								}}
-							>
-								LOG
-							</div>
-							<div
-								className={devStyles.option}
-								onClick={() =>
-									setConsoleType(ConsoleType.Error)
-								}
-								style={{
-									backgroundColor:
-										consoleType === ConsoleType.Error
-											? '#5629c6'
-											: '#f2eefb',
-									color:
-										consoleType === ConsoleType.Error
-											? 'white'
-											: '#5629c6',
-								}}
-							>
-								ERROR
-							</div>
-							<div
-								className={devStyles.option}
-								onClick={() => setConsoleType(ConsoleType.Warn)}
-								style={{
-									backgroundColor:
-										consoleType === ConsoleType.Warn
-											? '#5629c6'
-											: '#f2eefb',
-									color:
-										consoleType === ConsoleType.Warn
-											? 'white'
-											: '#5629c6',
-								}}
-							>
-								WARN
-							</div>
-							<div
-								className={devStyles.option}
-								onClick={() =>
-									setConsoleType(ConsoleType.Debug)
-								}
-								style={{
-									backgroundColor:
-										consoleType === ConsoleType.Debug
-											? '#5629c6'
-											: '#f2eefb',
-									color:
-										consoleType === ConsoleType.Debug
-											? 'white'
-											: '#5629c6',
-								}}
-							>
-								DEBUG
-							</div>
+							{options.map((o) => {
+								return (
+									<Option
+										onSelect={() => setConsoleType(o)}
+										selected={o === consoleType}
+										optionValue={o}
+									/>
+								);
+							})}
 						</div>
+						<DevToolsSelect
+							onSelect={() => onSwitchPage()}
+							isConsole={true}
+						/>
 					</div>
 					<div
-						className={devStyles.devToolsStreamWrapper}
+						className={styles.consoleStreamWrapper}
 						id="logStreamWrapper"
 					>
 						{currentMessages?.length ? (
@@ -241,7 +182,11 @@ export const ConsolePage = ({ time }: { time: number }) => {
 														}
 													/>
 												</div>
-												<div>
+												<div
+													className={
+														styles.messageText
+													}
+												>
 													{typeof m.value ===
 														'string' && m.value}
 												</div>

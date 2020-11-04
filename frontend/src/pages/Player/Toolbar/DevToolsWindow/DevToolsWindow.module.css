@@ -16,7 +16,7 @@
 .optionsWrapper {
     display: flex;
     height: 100%;
-    padding: 10px;
+    padding-left: 10px;
 }
 
 .emptyWrapper {
@@ -32,24 +32,6 @@
     padding-top: 0;
     width: 100%;
     height: 100%;
-}
-
-.devToolsStreamWrapper {
-    background-color: white;
-    word-wrap: break-word;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-    height: calc(100% - 90px);
-}
-
-.devToolsNav {
-    margin-top: 15px;
-    margin-right: 15px;
-    width: max-content;
-    float: right;
-    clear: both;
-    background-color: white;
 }
 
 .toggleWrapper {
@@ -70,22 +52,32 @@
     cursor: pointer;
 }
 
+.devToolsSelectWrapper {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-direction: row;
+    padding-right: 10px;
+}
+
 .option {
+    padding-top: 5px;
     color: #5629c6;
     transition: 0.2s;
-    background-color: #f2eefb;
-    border-radius: 8px;
-    padding: 10px;
-    margin: 5px;
-    font-size: 11px;
+    margin: 0px 15px 0px 15px;
+    font-size: 14px;
     font-weight: 300;
     cursor: pointer;
-    height: 30px;
+    height: 100%;
     display: flex;
     align-items: center;
 }
 
 .topBar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     background-color: white;
-    height: 60px;
+    height: 45px;
+    border-bottom: 1px solid #eaeaea;
 }

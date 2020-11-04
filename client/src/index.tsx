@@ -277,22 +277,15 @@ declare global {
 type ConsoleMessage = {
   value: string;
   time: number;
-  type: ConsoleType;
+  type: string;
 };
-
-enum ConsoleType {
-  Log,
-  Debug,
-  Error,
-  Warn,
-}
 
 // taken from: https://stackoverflow.com/questions/19846078/how-to-read-from-chromes-console-in-javascript
 const initConsoleListeners = (callback: (c: ConsoleMessage) => void) => {
   console.defaultLog = console.log.bind(console);
   console.log = function (text: string) {
     callback({
-      type: ConsoleType.Log,
+      type: 'Log',
       time: Date.now(),
       value: text,
     });
@@ -301,7 +294,7 @@ const initConsoleListeners = (callback: (c: ConsoleMessage) => void) => {
   console.defaultError = console.error.bind(console);
   console.error = function (text: string) {
     callback({
-      type: ConsoleType.Error,
+      type: 'Error',
       time: Date.now(),
       value: text,
     });
@@ -310,7 +303,7 @@ const initConsoleListeners = (callback: (c: ConsoleMessage) => void) => {
   console.defaultWarn = console.warn.bind(console);
   console.warn = function (text: string) {
     callback({
-      type: ConsoleType.Warn,
+      type: 'Warn',
       time: Date.now(),
       value: text,
     });
@@ -319,7 +312,7 @@ const initConsoleListeners = (callback: (c: ConsoleMessage) => void) => {
   console.defaultDebug = console.debug.bind(console);
   console.debug = function (text: string) {
     callback({
-      type: ConsoleType.Debug,
+      type: 'Debug',
       time: Date.now(),
       value: text,
     });
