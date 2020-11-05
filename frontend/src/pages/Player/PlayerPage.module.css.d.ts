@@ -7,9 +7,7 @@ declare const styles: {
   readonly "accountIcon": string;
   readonly "eventStreamContainer": string;
   readonly "appBody": string;
-  readonly "logoWrapper": string;
   readonly "windowOptions": string;
-  readonly "logo": string;
   readonly "urlText": string;
   readonly "urlAddressBarWrapper": string;
   readonly "urlAddressBar": string;
