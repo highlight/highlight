@@ -2,6 +2,10 @@ declare const styles: {
   readonly "sliderWrapper": string;
   readonly "sliderRail": string;
   readonly "indicator": string;
+  readonly "dropdownMenu": string;
+  readonly "dropdownInner": string;
+  readonly "dropdownSection": string;
+  readonly "switchStyle": string;
   readonly "toolbarLeftSection": string;
   readonly "toolbarRightSection": string;
   readonly "toolbarSection": string;
