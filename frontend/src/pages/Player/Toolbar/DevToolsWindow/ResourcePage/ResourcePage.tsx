@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { Tooltip } from 'antd';
+import { Option, DevToolsSelect } from '../Option/Option';
 import { scroller, Element } from 'react-scroll';
 import { Skeleton } from 'antd';
 
@@ -11,13 +12,15 @@ import styles from './ResourcePage.module.css';
 export const ResourcePage = ({
     time,
     startTime,
+    onSwitchPage,
 }: {
     time: number;
     startTime: number;
+    onSwitchPage: () => void;
 }) => {
     const { session_id } = useParams<{ session_id: string }>();
     const [options, setOptions] = useState<Array<string>>([]);
-    const [optionIndex, setOptionIndex] = useState(0);
+    const [currentOption, setCurrentOption] = useState('All');
     const [currentResource, setCurrentResource] = useState(0);
     const [networkRange, setNetworkRange] = useState(0);
     const [currentResources, setCurrentResources] = useState<
@@ -37,7 +40,6 @@ export const ResourcePage = ({
         `,
         { variables: { session_id } }
     );
-
     const rawResources = data?.resources;
 
     useEffect(() => {
@@ -61,16 +63,16 @@ export const ResourcePage = ({
         if (rawResources) {
             setCurrentResources(
                 parsedResources.filter((r) => {
-                    if (options[optionIndex] === 'All') {
+                    if (currentOption === 'All') {
                         return true;
-                    } else if (options[optionIndex] === r.initiatorType) {
+                    } else if (currentOption === r.initiatorType) {
                         return true;
                     }
                     return false;
                 })
             );
         }
-    }, [parsedResources, rawResources, optionIndex, options]);
+    }, [parsedResources, rawResources, currentOption, options]);
 
     useEffect(() => {
         if (rawResources) {
@@ -128,132 +130,134 @@ export const ResourcePage = ({
         <>
             <div className={devStyles.topBar}>
                 <div className={devStyles.optionsWrapper}>
-                    {options.map((o: string, i: number) => {
+                    {options.map((o: string) => {
                         return (
-                            <div
-                                className={devStyles.option}
-                                onClick={() => setOptionIndex(i)}
-                                style={{
-                                    backgroundColor:
-                                        optionIndex === i
-                                            ? '#5629c6'
-                                            : '#f2eefb',
-                                    color:
-                                        optionIndex === i ? 'white' : '#5629c6',
-                                }}
-                            >
-                                {o.toUpperCase()}
-                            </div>
+                            <Option
+                                onSelect={() => setCurrentOption(o)}
+                                selected={o === currentOption}
+                                optionValue={o}
+                            />
                         );
                     })}
                 </div>
+                <DevToolsSelect
+                    onSelect={() => onSwitchPage()}
+                    isConsole={false}
+                />
             </div>
-            <div className={styles.networkTopBar}>
-                <div className={styles.networkColumn}>TYPE</div>
-                <div className={styles.networkColumn}>NAME</div>
-                <div className={styles.networkColumn}>TIME</div>
-                <div className={styles.networkTimingColumn}>
-                    <div className={styles.networkColumn}>0ms</div>
-                    <div className={styles.networkColumn}>
-                        {(networkRange / 2).toFixed(1)}ms
-                    </div>
-                    <div className={styles.networkColumn}>
-                        {networkRange.toFixed(1)}ms
-                    </div>
+            <div className={styles.networkTableWrapper}>
+                <div className={styles.networkTopBar}>
+                    <div className={styles.networkColumn}>TYPE</div>
+                    <div className={styles.networkColumn}>NAME</div>
+                    <div className={styles.networkColumn}>TIME</div>
+                    <div className={styles.networkColumn}>TIMING</div>
                 </div>
-            </div>
-            <div
-                id="networkStreamWrapper"
-                className={devStyles.devToolsStreamWrapper}
-            >
-                {currentResources.length ? (
-                    <>
-                        {currentResources.map(
-                            (p: PerformanceResourceTiming & { id: number }) => {
-                                const leftPaddingPercent =
-                                    (p.startTime / networkRange) * 100;
-                                const actualPercent = Math.max(
-                                    ((p.responseEnd - p.startTime) /
-                                        networkRange) *
-                                        100,
-                                    0.1
-                                );
-                                const rightPaddingPercent =
-                                    100 - actualPercent - leftPaddingPercent;
-                                return (
-                                    <Element
-                                        name={p.id.toString()}
-                                        key={p.id.toString()}
-                                    >
-                                        <div
-                                            style={{
-                                                color:
-                                                    p.id === currentResource
-                                                        ? 'black'
-                                                        : '#808080',
-                                                fontWeight:
-                                                    p.id === currentResource
-                                                        ? 400
-                                                        : 300,
-                                            }}
-                                            className={styles.networkRow}
+                <div
+                    id="networkStreamWrapper"
+                    className={styles.networkStreamWrapper}
+                >
+                    {currentResources.length ? (
+                        <>
+                            {currentResources.map(
+                                (
+                                    p: PerformanceResourceTiming & {
+                                        id: number;
+                                    }
+                                ) => {
+                                    const leftPaddingPercent =
+                                        (p.startTime / networkRange) * 100;
+                                    const actualPercent = Math.max(
+                                        ((p.responseEnd - p.startTime) /
+                                            networkRange) *
+                                            100,
+                                        0.1
+                                    );
+                                    const rightPaddingPercent =
+                                        100 -
+                                        actualPercent -
+                                        leftPaddingPercent;
+                                    return (
+                                        <Element
+                                            name={p.id.toString()}
+                                            key={p.id.toString()}
                                         >
-                                            <div className={styles.typeSection}>
-                                                {p.initiatorType}
-                                            </div>
-                                            <Tooltip title={p.name}>
-                                                <div
-                                                    className={
-                                                        styles.nameSection
-                                                    }
-                                                >
-                                                    {p.name}
-                                                </div>
-                                            </Tooltip>
-                                            <div>
-                                                {(
-                                                    p.responseEnd - p.startTime
-                                                ).toFixed(2)}
-                                            </div>
                                             <div
-                                                className={
-                                                    styles.timingBarWrapper
-                                                }
+                                                style={{
+                                                    color:
+                                                        p.id === currentResource
+                                                            ? 'black'
+                                                            : '#808080',
+                                                    fontWeight:
+                                                        p.id === currentResource
+                                                            ? 400
+                                                            : 300,
+                                                }}
+                                                className={styles.networkRow}
                                             >
                                                 <div
-                                                    style={{
-                                                        width: `${leftPaddingPercent}%`,
-                                                    }}
                                                     className={
-                                                        styles.timingBarEmptySection
+                                                        styles.typeSection
                                                     }
-                                                />
+                                                >
+                                                    {p.initiatorType}
+                                                </div>
+                                                <Tooltip title={p.name}>
+                                                    <div
+                                                        className={
+                                                            styles.nameSection
+                                                        }
+                                                    >
+                                                        {p.name}
+                                                    </div>
+                                                </Tooltip>
+                                                <div>
+                                                    {(
+                                                        p.responseEnd -
+                                                        p.startTime
+                                                    ).toFixed(2)}
+                                                </div>
                                                 <div
-                                                    className={styles.timingBar}
-                                                    style={{
-                                                        width: `${actualPercent}%`,
-                                                    }}
-                                                />
-                                                <div
-                                                    style={{
-                                                        width: `${rightPaddingPercent}%`,
-                                                    }}
                                                     className={
-                                                        styles.timingBarEmptySection
+                                                        styles.timingBarWrapper
                                                     }
-                                                />
+                                                >
+                                                    <div
+                                                        style={{
+                                                            width: `${leftPaddingPercent}%`,
+                                                        }}
+                                                        className={
+                                                            styles.timingBarEmptySection
+                                                        }
+                                                    />
+                                                    <div
+                                                        className={
+                                                            styles.timingBar
+                                                        }
+                                                        style={{
+                                                            width: `${actualPercent}%`,
+                                                        }}
+                                                    />
+                                                    <div
+                                                        style={{
+                                                            width: `${rightPaddingPercent}%`,
+                                                        }}
+                                                        className={
+                                                            styles.timingBarEmptySection
+                                                        }
+                                                    />
+                                                </div>
                                             </div>
-                                        </div>
-                                    </Element>
-                                );
-                            }
-                        )}
-                    </>
-                ) : (
-                    <div className={devStyles.emptySection}>
-                        No network resources.
-                    </div>
-                )}
+                                        </Element>
+                                    );
+                                }
+                            )}
+                        </>
+                    ) : (
+                        <div className={devStyles.emptySection}>
+                            No network resources.
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ReactComponent as HighlightLogo } from '../../static/highlight-logo.svg';
+import { ReactComponent as HighlightLogoSmall } from '../../static/highlight-logo-small.svg';
 import { Link } from 'react-router-dom';
 import { TeamModal } from './TeamModal/TeamModal';
 import { useParams } from 'react-router-dom';
@@ -14,7 +14,8 @@ export const Header = () => {
     return (
         <div className={styles.header}>
             <div className={styles.logoWrapper}>
-                <HighlightLogo className={styles.logo} />
+                <HighlightLogoSmall className={styles.logo} />
+                <span style={{ fontSize: 22, fontWeight: 400 }}>Highlight</span>
             </div>
             <div className={styles.rightHeader}>
                 <TeamModal />

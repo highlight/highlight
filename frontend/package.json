@@ -49,6 +49,7 @@
     },
     "scripts": {
         "start": "react-scripts start",
+        "styles": "tcm src -w",
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject"

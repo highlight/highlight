@@ -63,26 +63,10 @@
     flex-direction: column;
 }
 
-.logoWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 130px;
-    margin-left: 12px;
-}
-
 .windowOptions {
     padding: 10px 0px 10px 12px;
     height: 35%;
     width: auto;
-}
-
-.logo {
-    margin: 10px;
-    fill: white;
-    height: 40px;
-    width: 110px;
 }
 
 .urlText {
