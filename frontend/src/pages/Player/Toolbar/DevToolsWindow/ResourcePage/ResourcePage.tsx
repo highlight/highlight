@@ -110,22 +110,6 @@ export const ResourcePage = ({
         }
     }, [currentResources, startTime, time, currentResource]);
 
-    if (loading) {
-        return (
-            <div className={devStyles.skeletonWrapper}>
-                <Skeleton active />
-            </div>
-        );
-    }
-
-    if (!data?.resources?.length) {
-        return (
-            <div className={devStyles.emptyWrapper}>
-                <p>Nothing to see here.</p>
-            </div>
-        );
-    }
-
     return (
         <>
             <div className={devStyles.topBar}>
@@ -146,18 +130,22 @@ export const ResourcePage = ({
                 />
             </div>
             <div className={styles.networkTableWrapper}>
-                <div className={styles.networkTopBar}>
-                    <div className={styles.networkColumn}>TYPE</div>
-                    <div className={styles.networkColumn}>NAME</div>
-                    <div className={styles.networkColumn}>TIME</div>
-                    <div className={styles.networkColumn}>TIMING</div>
-                </div>
-                <div
-                    id="networkStreamWrapper"
-                    className={styles.networkStreamWrapper}
-                >
-                    {currentResources.length ? (
-                        <>
+                {loading ? (
+                    <div className={devStyles.skeletonWrapper}>
+                        <Skeleton active />
+                    </div>
+                ) : currentResources.length ? (
+                    <>
+                        <div className={styles.networkTopBar}>
+                            <div className={styles.networkColumn}>TYPE</div>
+                            <div className={styles.networkColumn}>NAME</div>
+                            <div className={styles.networkColumn}>TIME</div>
+                            <div className={styles.networkColumn}>TIMING</div>
+                        </div>
+                        <div
+                            id="networkStreamWrapper"
+                            className={styles.networkStreamWrapper}
+                        >
                             {currentResources.map(
                                 (
                                     p: PerformanceResourceTiming & {
@@ -251,13 +239,13 @@ export const ResourcePage = ({
                                     );
                                 }
                             )}
-                        </>
-                    ) : (
-                        <div className={devStyles.emptySection}>
-                            No network resources.
                         </div>
-                    )}
-                </div>
+                    </>
+                ) : (
+                    <div className={devStyles.emptySection}>
+                        No network resources.
+                    </div>
+                )}
             </div>
         </>
     );

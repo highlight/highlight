@@ -12,6 +12,9 @@ export const Option = ({
     selected: boolean;
     optionValue: string;
 }) => {
+    if (!optionValue || !optionValue.length) {
+        return <></>;
+    }
     return (
         <div
             className={devStyles.option}

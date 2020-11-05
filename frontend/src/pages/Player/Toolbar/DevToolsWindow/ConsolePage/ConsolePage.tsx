@@ -99,111 +99,83 @@ export const ConsolePage = ({
 		return false;
 	});
 
-	if (loading) {
-		return (
-			<div className={devStyles.skeletonWrapper}>
-				<Skeleton active />
-			</div>
-		);
-	}
-
-	if (!data?.messages?.length) {
-		return (
-			<div className={devStyles.emptyWrapper}>
-				<p>Nothing to see here.</p>
-			</div>
-		);
-	}
-
 	return (
-		<>
-			{data?.messages?.length ? (
-				<div className={styles.consolePageWrapper}>
-					<div className={devStyles.topBar}>
-						<div className={devStyles.optionsWrapper}>
-							{options.map((o) => {
-								return (
-									<Option
-										onSelect={() => setConsoleType(o)}
-										selected={o === consoleType}
-										optionValue={o}
-									/>
-								);
-							})}
-						</div>
-						<DevToolsSelect
-							onSelect={() => onSwitchPage()}
-							isConsole={true}
-						/>
+		<div className={styles.consolePageWrapper}>
+			<div className={devStyles.topBar}>
+				<div className={devStyles.optionsWrapper}>
+					{options.map((o) => {
+						return (
+							<Option
+								onSelect={() => setConsoleType(o)}
+								selected={o === consoleType}
+								optionValue={o}
+							/>
+						);
+					})}
+				</div>
+				<DevToolsSelect
+					onSelect={() => onSwitchPage()}
+					isConsole={true}
+				/>
+			</div>
+			<div className={styles.consoleStreamWrapper} id="logStreamWrapper">
+				{loading ? (
+					<div className={devStyles.skeletonWrapper}>
+						<Skeleton active />
 					</div>
-					<div
-						className={styles.consoleStreamWrapper}
-						id="logStreamWrapper"
-					>
-						{currentMessages?.length ? (
-							currentMessages
-								.filter((m) => m.value.length)
-								.map((m) => {
-									return (
-										<Element
-											name={m.id.toString()}
-											key={m.id.toString()}
+				) : currentMessages?.length ? (
+					currentMessages
+						.filter((m) => m.value.length)
+						.map((m) => {
+							return (
+								<Element
+									name={m.id.toString()}
+									key={m.id.toString()}
+								>
+									<div
+										className={styles.consoleMessage}
+										style={{
+											color:
+												m.id === currentMessage
+													? 'black'
+													: 'grey',
+											fontWeight:
+												m.id === currentMessage
+													? 400
+													: 300,
+										}}
+									>
+										<div
+											className={
+												styles.currentIndicatorWrapper
+											}
+											style={{
+												visibility:
+													m.id === currentMessage
+														? 'visible'
+														: 'hidden',
+											}}
 										>
 											<div
 												className={
-													styles.consoleMessage
+													styles.currentIndicator
 												}
-												style={{
-													color:
-														m.id === currentMessage
-															? 'black'
-															: 'grey',
-													fontWeight:
-														m.id === currentMessage
-															? 400
-															: 300,
-												}}
-											>
-												<div
-													className={
-														styles.currentIndicatorWrapper
-													}
-													style={{
-														visibility:
-															m.id ===
-															currentMessage
-																? 'visible'
-																: 'hidden',
-													}}
-												>
-													<div
-														className={
-															styles.currentIndicator
-														}
-													/>
-												</div>
-												<div
-													className={
-														styles.messageText
-													}
-												>
-													{typeof m.value ===
-														'string' && m.value}
-												</div>
-											</div>
-										</Element>
-									);
-								})
-						) : (
-							<div className={devStyles.emptySection}>
-								No logs for this section.
-							</div>
-						)}
+											/>
+										</div>
+										<div className={styles.messageText}>
+											{typeof m.value === 'string' &&
+												m.value}
+										</div>
+									</div>
+								</Element>
+							);
+						})
+				) : (
+					<div className={devStyles.emptySection}>
+						No logs for this section.
 					</div>
-				</div>
-			) : (
-				<></>
-			)}
-		</>
+				)}
+			</div>
+		</div>
 	);
 };
