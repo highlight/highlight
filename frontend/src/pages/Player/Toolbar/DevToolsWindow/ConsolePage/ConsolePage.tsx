@@ -125,7 +125,7 @@ export const ConsolePage = ({
 					</div>
 				) : currentMessages?.length ? (
 					currentMessages
-						.filter((m) => m.value.length)
+						.filter((m) => m.value && m.value.length)
 						.map((m) => {
 							return (
 								<Element
