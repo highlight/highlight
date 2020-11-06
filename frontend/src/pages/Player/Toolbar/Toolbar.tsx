@@ -5,6 +5,7 @@ import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { ReactComponent as CheckMark } from '../../../static/checkmark.svg';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
+import { SettingsMenu } from './SettingsMenu/SettingsMenu';
 
 import { Menu, Dropdown, Switch, Slider } from 'antd';
 import styles from './Toolbar.module.css';
@@ -30,7 +31,6 @@ export const Toolbar = ({
     const [speed, setSpeed] = useState(2);
     const [skipInactive, setSkipInactive] = useState(false);
     const [openDevTools, setOpenDevTools] = useState(false);
-    const [openSpeedMenu, setOpenSpeedMenu] = useState(false);
     const [paused, setPaused] = useState(true);
     const timePercentage = Math.max((current / max) * 100, 0);
     const indicatorStyle = `min(${
@@ -50,6 +50,10 @@ export const Toolbar = ({
     useEffect(() => {
         setTimeout(() => onResize(), 50);
     }, [openDevTools, onResize]);
+
+    useEffect(() => {
+        replayer?.setConfig({ skipInactive, speed });
+    }, [replayer, skipInactive, speed]);
 
     return (
         <>
@@ -130,133 +134,21 @@ export const Toolbar = ({
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>
-                    <Dropdown
-                        overlay={
-                            <div className={styles.dropdownMenu}>
-                                <div className={styles.dropdownInner}>
-                                    {openSpeedMenu ? (
-                                        <>
-                                            <div
-                                                onClick={() =>
-                                                    setOpenSpeedMenu(false)
-                                                }
-                                                className={
-                                                    styles.dropdownSection
-                                                }
-                                                style={{
-                                                    display: 'flex',
-                                                    justifyContent:
-                                                        'flex-start',
-                                                    cursor: 'pointer',
-                                                    borderBottom:
-                                                        '1px solid #eaeaea',
-                                                }}
-                                            >
-                                                <DownIcon
-                                                    style={{
-                                                        height: 15,
-                                                        width: 15,
-                                                        transform:
-                                                            'rotate(90deg)',
-                                                        marginRight: 10,
-                                                    }}
-                                                />
-                                                <span>Hello</span>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div
-                                                className={
-                                                    styles.dropdownSection
-                                                }
-                                            >
-                                                <span>Dev Tools</span>
-                                                <Switch
-                                                    checked={openDevTools}
-                                                    className={
-                                                        styles.switchStyle
-                                                    }
-                                                    onChange={(e) =>
-                                                        setOpenDevTools(e)
-                                                    }
-                                                />
-                                            </div>
-                                            <div
-                                                className={
-                                                    styles.dropdownSection
-                                                }
-                                            >
-                                                <span>Skip Inactive</span>
-                                                <Switch
-                                                    checked={skipInactive}
-                                                    className={
-                                                        styles.switchStyle
-                                                    }
-                                                    onChange={(e) =>
-                                                        setSkipInactive(e)
-                                                    }
-                                                />
-                                            </div>
-                                            <div
-                                                className={
-                                                    styles.dropdownSection
-                                                }
-                                                style={{ cursor: 'pointer' }}
-                                                onClick={() =>
-                                                    setOpenSpeedMenu(true)
-                                                }
-                                            >
-                                                <span>Playback</span>
-                                                <div
-                                                    style={{
-                                                        float: 'right',
-                                                        marginLeft: 'auto',
-                                                        height: '100%',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent:
-                                                            'center',
-                                                    }}
-                                                >
-                                                    <span>{speed}x</span>
-                                                    <DownIcon
-                                                        style={{
-                                                            height: 15,
-                                                            width: 15,
-                                                            transform:
-                                                                'rotate(270deg)',
-                                                            float: 'right',
-                                                            marginLeft: 'auto',
-                                                        }}
-                                                    />
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            </div>
+                    <SettingsMenu
+                        skipInactive={skipInactive}
+                        onSkipInactiveChange={() =>
+                            setSkipInactive(!skipInactive)
                         }
-                        placement={'bottomRight'}
-                        visible
-                    >
-                        <a className="ant-dropdown-link" href="#">
-                            <FaCog
-                                fill="black"
-                                className={styles.playButtonStyle}
-                            />
-                        </a>
-                    </Dropdown>
-                    <div
-                        onClick={() => {
-                            const newSpeed = speed < 8 ? speed * 2 : 1;
-                            setSpeed(newSpeed);
-                            replayer?.setConfig({ speed: newSpeed });
+                        openDevTools={openDevTools}
+                        onOpenDevToolsChange={() =>
+                            setOpenDevTools(!openDevTools)
+                        }
+                        speed={speed}
+                        onSpeedChange={(s: number) => {
+                            setSpeed(s);
+                            replayer?.setConfig({ speed: s });
                         }}
-                        className={styles.speedWrapper}
-                    >
-                        {speed}x
-                    </div>
+                    />
                 </div>
             </div>
         </>

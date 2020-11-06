@@ -27,25 +27,20 @@
 .dropdownInner {
     background-color: white;
     border-radius: 5px;
-    padding: 10px 15px 10px 15px;
     border: 1px solid #eaeaea;
     min-width: 180px;
     margin-top: 9px;
     box-shadow: 2px 2px 8px #e4e4e4;
     color: black;
+    padding: 10px 0 10px 0;
 }
-
 .dropdownSection {
     height: 35px;
     font-size: 15px;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.switchStyle {
-    margin-left: auto;
-    float: right;
+    padding: 0 15px 0 15px;
 }
 
 .toolbarLeftSection {

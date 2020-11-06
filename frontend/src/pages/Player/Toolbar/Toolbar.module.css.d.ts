@@ -5,7 +5,6 @@ declare const styles: {
   readonly "dropdownMenu": string;
   readonly "dropdownInner": string;
   readonly "dropdownSection": string;
-  readonly "switchStyle": string;
   readonly "toolbarLeftSection": string;
   readonly "toolbarRightSection": string;
   readonly "toolbarSection": string;
