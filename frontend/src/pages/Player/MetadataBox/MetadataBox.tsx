@@ -37,44 +37,47 @@ export const MetadataBox = () => {
     } catch (e) {}
     return (
         <div className={styles.locationBox}>
-            <div className={styles.innerLocationBox}>
-                {loading ? (
-                    <Skeleton active paragraph={{ rows: 2 }} />
-                ) : error ? (
-                    <p>{error?.toString()}</p>
-                ) : (
-                    <>
+            {loading ? (
+                <Skeleton active paragraph={{ rows: 2 }} />
+            ) : error ? (
+                <p>{error?.toString()}</p>
+            ) : (
+                <>
+                    <div className={styles.userAvatarWrapper}>
                         <Avatar
                             style={{ width: 65 }}
                             seed={data?.session.user_id.toString() ?? ''}
                         />
-                        <div className={styles.userContentWrapper}>
-                            <div className={styles.headerWrapper}>
-                                <div>User#{data?.session.user_id}</div>
-                                {data?.session.identifier && (
-                                    <div className={styles.userIdSubHeader}>
-                                        {data?.session.identifier}
-                                    </div>
-                                )}
-                            </div>
-                            <div className={styles.userInfoWrapper}>
-                                <div>
-                                    {details?.city}, {details?.state} &nbsp;
-                                    {details?.postal}
+                    </div>
+                    <div className={styles.userContentWrapper}>
+                        <div className={styles.headerWrapper}>
+                            <div>User#{data?.session.user_id}</div>
+                            {data?.session.identifier && (
+                                <div className={styles.userIdSubHeader}>
+                                    {data?.session.identifier}
                                 </div>
-                                <div>{created.toUTCString()}</div>
-                                {details?.browser && (
-                                    <div>
-                                        {details?.browser?.os},&nbsp;
-                                        {details?.browser?.name} &nbsp;-&nbsp;
-                                        {details?.browser?.version}
-                                    </div>
-                                )}
-                            </div>
+                            )}
                         </div>
-                    </>
-                )}
-            </div>
+                        <div className={styles.userInfoWrapper}>
+                            <div className={styles.userText}>
+                                {details?.city ? details.city + ', ' : ''}
+                                {details?.state ? details.state + ' ' : ''}
+                                {details?.postal ? details.postal : ''}
+                            </div>
+                            <div className={styles.userText}>
+                                {created.toUTCString()}
+                            </div>
+                            {details?.browser && (
+                                <div className={styles.userText}>
+                                    {details?.browser?.os},&nbsp;
+                                    {details?.browser?.name} &nbsp;-&nbsp;
+                                    {details?.browser?.version}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
