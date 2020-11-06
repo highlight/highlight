@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
+import { FaUndoAlt, FaPlay, FaPause, FaCog } from 'react-icons/fa';
 import { ReactComponent as Close } from '../../../static/close.svg';
 import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { ReactComponent as CheckMark } from '../../../static/checkmark.svg';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
-import styles from './Toolbar.module.css';
+import { SettingsMenu } from './SettingsMenu/SettingsMenu';
 
+import { Menu, Dropdown, Switch, Slider } from 'antd';
+import styles from './Toolbar.module.css';
 import { Replayer } from 'rrweb';
+
+const SubMenu = Menu.SubMenu;
+const MenuItemGroup = Menu.ItemGroup;
 
 export const Toolbar = ({
     replayer,
@@ -45,6 +50,10 @@ export const Toolbar = ({
     useEffect(() => {
         setTimeout(() => onResize(), 50);
     }, [openDevTools, onResize]);
+
+    useEffect(() => {
+        replayer?.setConfig({ skipInactive, speed });
+    }, [replayer, skipInactive, speed]);
 
     return (
         <>
@@ -125,81 +134,21 @@ export const Toolbar = ({
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>
-                    <div
-                        onClick={() => {
-                            const newSpeed = speed < 8 ? speed * 2 : 1;
-                            setSpeed(newSpeed);
-                            replayer?.setConfig({ speed: newSpeed });
+                    <SettingsMenu
+                        skipInactive={skipInactive}
+                        onSkipInactiveChange={() =>
+                            setSkipInactive(!skipInactive)
+                        }
+                        openDevTools={openDevTools}
+                        onOpenDevToolsChange={() =>
+                            setOpenDevTools(!openDevTools)
+                        }
+                        speed={speed}
+                        onSpeedChange={(s: number) => {
+                            setSpeed(s);
+                            replayer?.setConfig({ speed: s });
                         }}
-                        className={styles.speedWrapper}
-                    >
-                        {speed}x
-                    </div>
-                    <div
-                        onClick={() => {
-                            setOpenDevTools(!openDevTools);
-                        }}
-                        className={styles.skipInactivity}
-                        style={{
-                            backgroundColor: openDevTools
-                                ? '#5629C6'
-                                : '#F2EEFB',
-                        }}
-                    >
-                        <span
-                            className={styles.inactiveText}
-                            style={{
-                                color: openDevTools ? 'white' : '#5629c6',
-                            }}
-                        >
-                            DEV TOOLS
-                        </span>
-
-                        <DownIcon
-                            className={styles.inactiveIcon}
-                            fill={openDevTools ? 'white' : '#5629c6'}
-                            style={{
-                                transform: openDevTools
-                                    ? 'rotate(0deg)'
-                                    : 'rotate(180deg)',
-                            }}
-                        />
-                    </div>
-                    <div
-                        onClick={() => {
-                            replayer?.setConfig({
-                                skipInactive: !replayer.config.skipInactive,
-                            });
-                            setSkipInactive(!skipInactive);
-                        }}
-                        className={styles.skipInactivity}
-                        style={{
-                            backgroundColor: skipInactive
-                                ? '#5629C6'
-                                : '#F2EEFB',
-                        }}
-                    >
-                        <span
-                            className={styles.inactiveText}
-                            style={{
-                                color: skipInactive ? 'white' : '#5629c6',
-                            }}
-                        >
-                            SKIP INACTIVITY
-                        </span>
-
-                        {skipInactive ? (
-                            <Close
-                                className={styles.inactiveIcon}
-                                fill={'white'}
-                            />
-                        ) : (
-                            <CheckMark
-                                className={styles.inactiveIcon}
-                                fill={'#5629c6'}
-                            />
-                        )}
-                    </div>
+                    />
                 </div>
             </div>
         </>

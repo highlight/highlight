@@ -10,6 +10,10 @@ body {
     visibility: hidden;
 }
 
+.ant-switch-checked {
+    background-color: #5629c6;
+}
+
 .ant-modal-body {
     padding: 0px;
 }

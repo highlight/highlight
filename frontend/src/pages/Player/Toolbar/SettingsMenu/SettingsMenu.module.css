@@ -1,0 +1,50 @@
+.playbackWrapper {
+    margin-top: 10px;
+}
+
+.playbackSpeedElement {
+    cursor: pointer;
+    height: 35px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px 0 15px;
+    justify-content: flex-start;
+    margin-left: 10;
+    transition: 0.3s;
+}
+
+.playbackSpeedElement:hover {
+    background-color: #f2eefb;
+}
+
+.playbackTopSection {
+    height: 35px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px 5px 15px;
+}
+
+.switchStyle {
+    margin-left: auto;
+    float: right;
+}
+
+.settingsStyle {
+    height: 25px;
+    width: 30px;
+    margin: 18px;
+}
+
+.checkIcon {
+    margin-right: 5px;
+    margin-bottom: 2px;
+    margin-left: auto;
+    height: 15px;
+    width: 15px;
+    color: #5629c6;
+    fill: #5629c6;
+}
