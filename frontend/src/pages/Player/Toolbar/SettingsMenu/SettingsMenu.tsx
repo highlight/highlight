@@ -35,10 +35,7 @@ export const SettingsMenu = ({
                         setOpenSpeedMenu(false);
                     }}
                 >
-                    <div
-                        onBlur={() => console.log('blur')}
-                        className={toolbarStyles.dropdownInner}
-                    >
+                    <div className={toolbarStyles.dropdownInner}>
                         {openSpeedMenu ? (
                             <>
                                 <div
