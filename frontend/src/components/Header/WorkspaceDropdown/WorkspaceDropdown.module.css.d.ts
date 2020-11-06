@@ -11,6 +11,7 @@ declare const styles: {
   readonly "dropdownMenu": string;
   readonly "icon": string;
   readonly "plusIcon": string;
+  readonly "orgNameText": string;
   readonly "dropdownHandler": string;
 };
 export = styles;
