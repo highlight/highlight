@@ -1,6 +1,7 @@
 declare const styles: {
   readonly "locationBox": string;
   readonly "userAvatarWrapper": string;
+  readonly "skeletonWrapper": string;
   readonly "userContentWrapper": string;
   readonly "avatarWrapper": string;
   readonly "headerWrapper": string;

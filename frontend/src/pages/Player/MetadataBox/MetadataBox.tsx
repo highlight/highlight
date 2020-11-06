@@ -38,14 +38,16 @@ export const MetadataBox = () => {
     return (
         <div className={styles.locationBox}>
             {loading ? (
-                <Skeleton active paragraph={{ rows: 2 }} />
+                <div className={styles.skeletonWrapper}>
+                    <Skeleton active paragraph={{ rows: 2 }} />
+                </div>
             ) : error ? (
                 <p>{error?.toString()}</p>
             ) : (
                 <>
                     <div className={styles.userAvatarWrapper}>
                         <Avatar
-                            style={{ width: 65 }}
+                            style={{ width: 75 }}
                             seed={data?.session.user_id.toString() ?? ''}
                         />
                     </div>

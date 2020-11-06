@@ -12,8 +12,14 @@
 
 .userAvatarWrapper {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    padding: 25px;
     justify-content: center;
+}
+
+.skeletonWrapper {
+    width: 350px;
+    padding: 10px 30px 0 30px;
 }
 
 .userContentWrapper {
