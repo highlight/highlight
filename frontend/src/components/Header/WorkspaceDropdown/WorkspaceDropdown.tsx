@@ -57,10 +57,13 @@ export const WorkspaceDropdown = () => {
                 className={styles.dropdownHandler}
                 onClick={(e) => e.preventDefault()}
             >
-                {
-                    data?.organizations.find((o) => o.id === organization_id)
-                        ?.name
-                }
+                <div className={styles.orgNameText}>
+                    {
+                        data?.organizations.find(
+                            (o) => o.id === organization_id
+                        )?.name
+                    }
+                </div>
                 <DownIcon
                     className={styles.icon}
                     style={{

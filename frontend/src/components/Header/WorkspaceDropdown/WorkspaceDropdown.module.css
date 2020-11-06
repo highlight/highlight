@@ -30,7 +30,7 @@
 }
 
 .orgItem:hover {
-        background-color: #f2eefb;
+    background-color: #f2eefb;
 }
 
 .orgText {
@@ -50,7 +50,7 @@
 }
 
 .newOrgDiv:hover {
-        background-color: #f2eefb;
+    background-color: #f2eefb;
 }
 
 .dropdownInner {
@@ -101,9 +101,17 @@
     fill: #5629c6;
 }
 
+.orgNameText {
+    width: 100%;
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
 .dropdownHandler {
     cursor: pointer;
-    min-width: 200px;
+    width: 200px;
     margin-right: 30px;
     height: 40px;
     border: 1px solid #eaeaea;
