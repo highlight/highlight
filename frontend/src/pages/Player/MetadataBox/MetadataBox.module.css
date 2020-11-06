@@ -1,19 +1,25 @@
-.innerLocationBox {
-    display: flex;
-    height: 100%;
-    width: 100%;
-    align-items: center;
-}
-
 .locationBox {
-    padding: 20px 30px 20px 30px;
     border-bottom: 1px solid #eaeaea;
     box-sizing: border-box;
     height: 150px;
-    display: flex;
+    display: grid;
+    grid-template-columns: 120px 230px;
     flex-direction: column;
     background-color: white;
     z-index: 1;
+    max-width: 350px;
+}
+
+.userAvatarWrapper {
+    display: flex;
+    align-items: flex-start;
+    padding: 25px;
+    justify-content: center;
+}
+
+.skeletonWrapper {
+    width: 350px;
+    padding: 10px 30px 0 30px;
 }
 
 .userContentWrapper {
@@ -22,7 +28,6 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding-left: 25px;
 }
 
 .avatarWrapper {
@@ -39,16 +44,31 @@
     margin-bottom: 5px;
 }
 
+.userText {
+    width: 100%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: block;
+    overflow: hidden;
+}
+
 .userIdSubHeader {
+    width: 100%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: block;
+    overflow: hidden;
     color: #5629c6;
     font-weight: 300;
     font-size: 14px;
+    padding-right: 25px;
 }
 
 .userInfoWrapper {
     color: #808080;
     font-size: 13px;
     width: 100%;
+    padding-right: 25px;
 }
 
 .userProfile {
