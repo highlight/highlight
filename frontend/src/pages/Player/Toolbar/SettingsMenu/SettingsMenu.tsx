@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Menu, Dropdown, Switch, Slider } from 'antd';
+import React, { useState } from 'react';
+import { Dropdown, Switch } from 'antd';
 import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
-import { FaUndoAlt, FaPlay, FaPause, FaCog } from 'react-icons/fa';
+import { FaCog } from 'react-icons/fa';
 
 import toolbarStyles from '../Toolbar.module.css';
 import styles from './SettingsMenu.module.css';
@@ -135,13 +135,12 @@ export const SettingsMenu = ({
             placement={'bottomRight'}
             visible={visible}
         >
-            <a
+            <span
                 onClick={() => setVisible(true)}
-                className="ant-dropdown-link"
-                href="#"
+                style={{ cursor: 'pointer' }}
             >
                 <FaCog fill="black" className={styles.settingsStyle} />
-            </a>
+            </span>
         </Dropdown>
     );
 };

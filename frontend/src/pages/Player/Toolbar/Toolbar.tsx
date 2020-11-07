@@ -1,18 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FaUndoAlt, FaPlay, FaPause, FaCog } from 'react-icons/fa';
-import { ReactComponent as Close } from '../../../static/close.svg';
-import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
-import { ReactComponent as CheckMark } from '../../../static/checkmark.svg';
+import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import { SettingsMenu } from './SettingsMenu/SettingsMenu';
 
-import { Menu, Dropdown, Switch, Slider } from 'antd';
+import { Menu } from 'antd';
 import styles from './Toolbar.module.css';
 import { Replayer } from 'rrweb';
-
-const SubMenu = Menu.SubMenu;
-const MenuItemGroup = Menu.ItemGroup;
 
 export const Toolbar = ({
     replayer,

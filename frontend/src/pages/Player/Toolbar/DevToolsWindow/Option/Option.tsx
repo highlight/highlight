@@ -1,5 +1,4 @@
 import React from 'react';
-import { Skeleton, Tabs } from 'antd';
 
 import devStyles from '../DevToolsWindow.module.css';
 

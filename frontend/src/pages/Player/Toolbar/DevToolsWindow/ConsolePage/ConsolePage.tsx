@@ -15,13 +15,6 @@ type ConsoleMessage = {
 	type: string;
 };
 
-enum ConsoleType {
-	Log,
-	Debug,
-	Error,
-	Warn,
-}
-
 export const ConsolePage = ({
 	time,
 	onSwitchPage,
