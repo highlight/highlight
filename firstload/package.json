@@ -1,9 +1,8 @@
 {
     "name": "highlight.run",
-    "version": "1.0.26",
+    "version": "1.0.29",
     "scripts": {
         "build": "webpack",
-        "pub": "webpack && npm publish",
         "dev": "webpack --mode=development && yarn link"
     },
     "main": "dist/index.js",
