@@ -37,6 +37,7 @@ export const H: HighlightPublicInterface = {
 window.H = H;
 
 // in webpack.config.js, the default value for this variable is set
+//
 // if overwritten (in dev for example), it'll be seen here.
 var scriptSrc =
     process.env.NODE_ENV === 'development'
