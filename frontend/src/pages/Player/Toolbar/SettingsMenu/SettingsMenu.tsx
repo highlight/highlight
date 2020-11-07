@@ -137,7 +137,7 @@ export const SettingsMenu = ({
         >
             <span
                 onClick={() => setVisible(true)}
-                style={{ cursor: 'pointer' }}
+                className={styles.settingsStyleWrapper}
             >
                 <FaCog fill="black" className={styles.settingsStyle} />
             </span>

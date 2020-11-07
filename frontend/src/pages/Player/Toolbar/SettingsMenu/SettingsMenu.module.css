@@ -33,6 +33,10 @@
     float: right;
 }
 
+.settingsStyleWrapper {
+    cursor: pointer;
+}
+
 .settingsStyle {
     height: 25px;
     width: 30px;
