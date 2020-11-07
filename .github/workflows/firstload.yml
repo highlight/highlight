@@ -1,5 +1,10 @@
 name: Yarn Publish
-on: [push]
+on:
+    push:
+        paths:
+            - 'firstload/**'
+        branches:
+            - master
 defaults:
     run:
         working-directory: firstload
