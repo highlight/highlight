@@ -4,17 +4,24 @@ defaults:
     run:
         working-directory: firstload
 jobs:
-    build:
-        name: Test
+    publish:
         runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: firstload
         steps:
-            - uses: actions/checkout@v2
-            - uses: borales/actions-yarn@v2.0.0
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: Setup Node.js
+              uses: actions/setup-node@v1
               with:
-                  cmd: install # will run `yarn install` command
-            - uses: borales/actions-yarn@v2.0.0
-              with:
-                  cmd: build # will run `yarn build` command
-            - uses: borales/actions-yarn@v2.0.0
-              with:
-                  cmd: publish # will run `yarn test` command
+                  node-version: 12
+                  registry-url: https://registry.npmjs.org
+            - name: Install dependencies
+              run: yarn install
+            - name: Build Bundle
+              run: yarn build
+            - name: Publish
+              run: yarn publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
