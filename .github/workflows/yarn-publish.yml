@@ -19,6 +19,8 @@ jobs:
                   registry-url: https://registry.npmjs.org
             - name: Install dependencies
               run: yarn install
+            - name: pwd
+              run: pwd
             - name: Build Bundle
               run: yarn build
             - name: Publish
