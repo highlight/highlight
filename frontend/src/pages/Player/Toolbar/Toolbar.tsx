@@ -3,8 +3,8 @@ import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import { SettingsMenu } from './SettingsMenu/SettingsMenu';
+import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
 
-import { Menu } from 'antd';
 import styles from './Toolbar.module.css';
 import { Replayer } from 'rrweb';
 
@@ -51,14 +51,17 @@ export const Toolbar = ({
 
     return (
         <>
-            {openDevTools ? (
+            <OpenDevToolsContext.Provider
+                value={{
+                    openDevTools,
+                    setOpenDevTools,
+                }}
+            >
                 <DevToolsWindow
                     time={(replayer?.getMetaData().startTime ?? 0) + current}
                     startTime={replayer?.getMetaData().startTime ?? 0}
                 />
-            ) : (
-                <></>
-            )}
+            </OpenDevToolsContext.Provider>
             <div
                 className={styles.sliderWrapper}
                 ref={sliderWrapperRef}

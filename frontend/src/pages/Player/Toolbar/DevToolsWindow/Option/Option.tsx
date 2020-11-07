@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useContext } from 'react';
 
 import devStyles from '../DevToolsWindow.module.css';
+import styles from './Option.module.css';
+import { ReactComponent as Close } from '../../../../../static/close.svg';
+import {
+    OpenDevToolsContext,
+    IsConsoleContext,
+} from '../../DevToolsContext/DevToolsContext';
 
 export const Option = ({
     onSelect,
@@ -31,24 +37,24 @@ export const Option = ({
     );
 };
 
-export const DevToolsSelect = ({
-    onSelect,
-    isConsole,
-}: {
-    onSelect: () => void;
-    isConsole: boolean;
-}) => {
+export const DevToolsSelect = ({ isConsole }: { isConsole: boolean }) => {
+    const { setOpenDevTools } = useContext(OpenDevToolsContext);
+    const { setIsConsole } = useContext(IsConsoleContext);
     return (
         <div className={devStyles.devToolsSelectWrapper}>
             <Option
                 selected={isConsole}
-                onSelect={!isConsole ? onSelect : () => {}}
+                onSelect={() => setIsConsole(true)}
                 optionValue={'Console'}
             />
             <Option
                 selected={!isConsole}
-                onSelect={isConsole ? onSelect : () => {}}
+                onSelect={() => setIsConsole(false)}
                 optionValue={'Network'}
+            />
+            <Close
+                className={styles.closeStyle}
+                onClick={() => setOpenDevTools(false)}
             />
         </div>
     );

@@ -15,13 +15,7 @@ type ConsoleMessage = {
 	type: string;
 };
 
-export const ConsolePage = ({
-	time,
-	onSwitchPage,
-}: {
-	time: number;
-	onSwitchPage: () => void;
-}) => {
+export const ConsolePage = ({ time }: { time: number }) => {
 	const [currentMessage, setCurrentMessage] = useState(-1);
 	const [options, setOptions] = useState<Array<string>>([]);
 	const [parsedMessages, setParsedMessages] = useState<
@@ -106,10 +100,7 @@ export const ConsolePage = ({
 						);
 					})}
 				</div>
-				<DevToolsSelect
-					onSelect={() => onSwitchPage()}
-					isConsole={true}
-				/>
+				<DevToolsSelect isConsole={true} />
 			</div>
 			<div className={styles.consoleStreamWrapper} id="logStreamWrapper">
 				{loading ? (

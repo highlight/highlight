@@ -12,11 +12,9 @@ import styles from './ResourcePage.module.css';
 export const ResourcePage = ({
     time,
     startTime,
-    onSwitchPage,
 }: {
     time: number;
     startTime: number;
-    onSwitchPage: () => void;
 }) => {
     const { session_id } = useParams<{ session_id: string }>();
     const [options, setOptions] = useState<Array<string>>([]);
@@ -124,10 +122,7 @@ export const ResourcePage = ({
                         );
                     })}
                 </div>
-                <DevToolsSelect
-                    onSelect={() => onSwitchPage()}
-                    isConsole={false}
-                />
+                <DevToolsSelect isConsole={false} />
             </div>
             <div className={styles.networkTableWrapper}>
                 {loading ? (

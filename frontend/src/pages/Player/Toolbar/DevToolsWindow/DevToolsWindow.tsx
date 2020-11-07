@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 
 import { ConsolePage } from './ConsolePage/ConsolePage';
 import { ResourcePage } from './ResourcePage/ResourcePage';
+import {
+    IsConsoleContext,
+    OpenDevToolsContext,
+} from '../DevToolsContext/DevToolsContext';
 
 import styles from './DevToolsWindow.module.css';
 
@@ -12,21 +16,21 @@ export const DevToolsWindow = ({
     time: number;
     startTime: number;
 }) => {
+    const { openDevTools } = useContext(OpenDevToolsContext);
     const [isConsole, setIsConsole] = useState(true);
     return (
-        <div className={styles.devToolsWrapper}>
-            {isConsole ? (
-                <ConsolePage
-                    time={time}
-                    onSwitchPage={() => setIsConsole(false)}
-                />
+        <IsConsoleContext.Provider value={{ isConsole, setIsConsole }}>
+            {openDevTools ? (
+                <div className={styles.devToolsWrapper}>
+                    {isConsole ? (
+                        <ConsolePage time={time} />
+                    ) : (
+                        <ResourcePage startTime={startTime} time={time} />
+                    )}
+                </div>
             ) : (
-                <ResourcePage
-                    startTime={startTime}
-                    time={time}
-                    onSwitchPage={() => setIsConsole(true)}
-                />
+                <></>
             )}
-        </div>
+        </IsConsoleContext.Provider>
     );
 };
