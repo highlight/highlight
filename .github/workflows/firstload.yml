@@ -3,6 +3,8 @@ on:
     push:
         paths:
             - 'firstload/**'
+        branches:
+            - master
 defaults:
     run:
         working-directory: firstload
