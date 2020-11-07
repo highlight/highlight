@@ -3,7 +3,6 @@
     "version": "1.0.26",
     "scripts": {
         "build": "webpack",
-        "pub": "webpack && npm publish",
         "dev": "webpack --mode=development && yarn link"
     },
     "main": "dist/index.js",
