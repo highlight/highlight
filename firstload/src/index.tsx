@@ -11,6 +11,8 @@ interface HighlightWindow extends Window {
     _h_script: string;
 }
 
+const HIGHLIGHT_URL = 'app.highlight.run';
+
 declare var window: HighlightWindow;
 
 var script: HTMLScriptElement;
@@ -31,8 +33,8 @@ export const H: HighlightPublicInterface = {
             H.onHighlightReady(() => {
                 const orgID = highlight_obj.organizationID;
                 const sessionID = highlight_obj.sessionID;
-                const res = `app.higlight.run/${orgID}/sessions/${sessionID}`;
                 if (orgID && sessionID) {
+                    const res = `${HIGHLIGHT_URL}/${orgID}/sessions/${sessionID}`;
                     resolve(res);
                 } else {
                     reject(new Error('org ID or session ID is empty'));
