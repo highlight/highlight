@@ -1,6 +1,7 @@
 type HighlightPublicInterface = {
     init: (orgID: number, debug?: boolean) => void;
     identify: (identify: string, obj: any) => void;
+    getSessionURL: () => Promise<string>;
     onHighlightReady: (func: () => void) => void;
 };
 
@@ -25,7 +26,24 @@ export const H: HighlightPublicInterface = {
     identify: (identifier: string, obj: any) => {
         H.onHighlightReady(() => highlight_obj.identify(identifier, obj));
     },
+    getSessionURL: () => {
+        return new Promise<string>((resolve, reject) => {
+            H.onHighlightReady(() => {
+                const orgID = highlight_obj.organizationID;
+                const sessionID = highlight_obj.sessionID;
+                const res = `app.higlight.run/${orgID}/sessions/${sessionID}`;
+                if (orgID && sessionID) {
+                    resolve(res);
+                } else {
+                    reject(new Error('org ID or session ID is empty'));
+                }
+            });
+        });
+    },
     onHighlightReady: (func: () => void) => {
+        if (highlight_obj && highlight_obj.ready) {
+            func();
+        }
         var interval = setInterval(function () {
             if (highlight_obj && highlight_obj.ready) {
                 clearInterval(interval);

@@ -3,7 +3,7 @@
     "version": "1.0.30",
     "scripts": {
         "build": "webpack",
-        "dev": "webpack --mode=development && yarn link"
+        "dev": "yarn link && webpack --mode=development --watch"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",

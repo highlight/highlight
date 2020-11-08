@@ -131,6 +131,7 @@ export const AuthAdminRouter = () => {
         if (admin) {
             const { email, id, name } = admin;
             H.identify(email, { id, name });
+            H.getSessionURL().then((e) => console.log(e));
             window.analytics.identify(id, {
                 name,
                 email,
