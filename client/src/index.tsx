@@ -7,8 +7,18 @@ import {
   NormalizedCacheObject,
 } from '@apollo/client/core';
 import { eventWithTime } from 'rrweb/typings/types';
-import { ConsoleMessage, ConsoleListener } from './listeners/console-listener';
+import { ConsoleListener } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
+import {
+  FetchNetworkContent,
+  FetchListener,
+  fetchToNetworkResource,
+} from 'listeners/fetch-listener';
+
+import {
+  ConsoleMessage,
+  NetworkResourceContent,
+} from '../../frontend/src/util/shared-types';
 
 class Logger {
   debug: boolean;
@@ -27,6 +37,7 @@ class Logger {
   client: ApolloClient<NormalizedCacheObject>;
   events: eventWithTime[];
   messages: ConsoleMessage[];
+  networkContents: NetworkResourceContent[];
   sessionID: number;
   ready: boolean;
   logger: Logger;
@@ -43,6 +54,7 @@ class Logger {
     this.organizationID = 0;
     this.sessionID = 0;
     this.events = [];
+    this.networkContents = [];
     this.messages = [];
   }
 
@@ -184,6 +196,10 @@ Session Data:
     PathListener((url: string) => {
       addCustomEvent<string>('Navigate', url);
       highlightThis.addProperties({ 'visited-url': url });
+    });
+    FetchListener((content: FetchNetworkContent) => {
+      fetchToNetworkResource(content);
+      // console.log(content);
     });
     ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
     this.ready = true;
