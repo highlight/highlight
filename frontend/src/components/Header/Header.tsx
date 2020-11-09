@@ -13,10 +13,13 @@ export const Header = () => {
     const { organization_id } = useParams();
     return (
         <div className={styles.header}>
-            <div className={styles.logoWrapper}>
+            <Link
+                className={styles.logoWrapper}
+                to={`/${organization_id}/sessions`}
+            >
                 <HighlightLogoSmall className={styles.logo} />
                 <span style={{ fontSize: 22, fontWeight: 400 }}>Highlight</span>
-            </div>
+            </Link>
             <div className={styles.rightHeader}>
                 <TeamModal />
                 <Link
