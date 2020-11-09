@@ -1,4 +1,4 @@
-import { EventType, addCustomEvent, record } from 'rrweb';
+import { addCustomEvent, record } from 'rrweb';
 import { detect } from 'detect-browser';
 import {
   InMemoryCache,
@@ -7,6 +7,8 @@ import {
   NormalizedCacheObject,
 } from '@apollo/client/core';
 import { eventWithTime } from 'rrweb/typings/types';
+import { ConsoleMessage, ConsoleListener } from './listeners/console-listener';
+import { PathListener } from './listeners/path-listener';
 
 class Logger {
   debug: boolean;
@@ -179,11 +181,11 @@ Session Data:
       addCustomEvent<string>('Referrer', document.referrer);
       highlightThis.addProperties({ referrer: document.referrer });
     }
-    initUrlListeners((url: string) => {
+    PathListener((url: string) => {
       addCustomEvent<string>('Navigate', url);
       highlightThis.addProperties({ 'visited-url': url });
     });
-    initConsoleListeners((c: ConsoleMessage) => highlightThis.messages.push(c));
+    ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
     this.ready = true;
   }
 
@@ -235,36 +237,6 @@ Session Data:
   }
 };
 
-// taken from: https://stackoverflow.com/questions/6390341/how-to-detect-if-url-has-changed-after-hash-in-javascript/52809105#52809105
-const initUrlListeners = (callback: (url: string) => void) => {
-  callback(window.location.href);
-  history.pushState = ((f) =>
-    function pushState() {
-      // @ts-ignore
-      var ret = f.apply(this, arguments);
-      window.dispatchEvent(new Event('pushstate'));
-      window.dispatchEvent(new Event('locationchange'));
-      return ret;
-    })(history.pushState);
-
-  history.replaceState = ((f) =>
-    function replaceState() {
-      // @ts-ignore
-      var ret = f.apply(this, arguments);
-      window.dispatchEvent(new Event('replacestate'));
-      window.dispatchEvent(new Event('locationchange'));
-      return ret;
-    })(history.replaceState);
-
-  window.addEventListener('popstate', () => {
-    window.dispatchEvent(new Event('locationchange'));
-  });
-
-  window.addEventListener('locationchange', function () {
-    callback(window.location.href);
-  });
-};
-
 declare global {
   interface Console {
     defaultLog: any;
@@ -273,49 +245,3 @@ declare global {
     defaultDebug: any;
   }
 }
-
-type ConsoleMessage = {
-  value: string;
-  time: number;
-  type: string;
-};
-
-// taken from: https://stackoverflow.com/questions/19846078/how-to-read-from-chromes-console-in-javascript
-const initConsoleListeners = (callback: (c: ConsoleMessage) => void) => {
-  console.defaultLog = console.log.bind(console);
-  console.log = function (text: string) {
-    callback({
-      type: 'Log',
-      time: Date.now(),
-      value: text,
-    });
-    console.defaultLog.apply(console, arguments);
-  };
-  console.defaultError = console.error.bind(console);
-  console.error = function (text: string) {
-    callback({
-      type: 'Error',
-      time: Date.now(),
-      value: text,
-    });
-    console.defaultError.apply(console, arguments);
-  };
-  console.defaultWarn = console.warn.bind(console);
-  console.warn = function (text: string) {
-    callback({
-      type: 'Warn',
-      time: Date.now(),
-      value: text,
-    });
-    console.defaultWarn.apply(console, arguments);
-  };
-  console.defaultDebug = console.debug.bind(console);
-  console.debug = function (text: string) {
-    callback({
-      type: 'Debug',
-      time: Date.now(),
-      value: text,
-    });
-    console.defaultDebug.apply(console, arguments);
-  };
-};
