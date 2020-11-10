@@ -10,6 +10,7 @@ enum PlatformType {
     Html,
     React,
     Vue,
+    NextJs,
 }
 
 export const SetupPage = () => {
@@ -94,7 +95,6 @@ window.H.init(${organization_id})
 
 const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
     const { organization_id } = useParams();
-    const isReact = platform === PlatformType.React;
     return (
         <>
             <div className={styles.snippetHeadingTwo}>
@@ -120,13 +120,27 @@ const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
                     className={styles.codeBlockBasic}
                 >{`H.init(${organization_id})`}</span>{' '}
                 as soon as you can in your site's startup process.
-                <CodeBlock
-                    text={`H.init(${organization_id}) // ${organization_id} is your ORG_ID`}
-                />
-                In {isReact ? 'React' : 'Vue'}, it can be called at the top of
-                your main component's file like this:
+                {platform !== PlatformType.NextJs ? (
+                    <CodeBlock
+                        text={`H.init(${organization_id}) // ${organization_id} is your ORG_ID`}
+                    />
+                ) : (
+                    <CodeBlock
+                        text={`if (typeof window !== 'undefined') {
+    H.init(${organization_id}) // ${organization_id} is your ORG_ID
+}`}
+                    />
+                )}
+                In{' '}
+                {platform === PlatformType.React
+                    ? 'React'
+                    : platform === PlatformType.Vue
+                    ? 'Vue'
+                    : 'NextJS'}
+                , it can be called at the top of your main component's file like
+                this:
                 <br />
-                {isReact ? (
+                {platform === PlatformType.React ? (
                     <CodeBlock
                         text={`import React from 'react';
 import ReactDOM from 'react-dom';
@@ -138,7 +152,7 @@ H.init(${organization_id}); // ${organization_id} is your ORG_ID
  
 ReactDOM.render(<App />, document.getElementById('root'));`}
                     />
-                ) : (
+                ) : platform === PlatformType.Vue ? (
                     <CodeBlock
                         text={`import Vue from 'vue';
 import App from './App.vue';
@@ -150,6 +164,21 @@ Vue.prototype.$H = H;
 new Vue({
   render: h => h(App)
 }).$mount('#app');`}
+                    />
+                ) : (
+                    <CodeBlock
+                        text={`import '../styles/globals.css'
+import { H } from 'highlight.run';
+
+if (typeof window !== 'undefined') {
+  H.init(${organization_id}); // ${organization_id} is your ORG_ID
+}
+
+function MyApp({ Component, pageProps }) {
+  return <Component {...pageProps} />
+}
+
+export default MyApp`}
                     />
                 )}
             </div>
@@ -196,7 +225,6 @@ const RadioGroup = ({
             </div>
             <div
                 style={{
-                    borderRadius: '0 8px 8px 0',
                     borderLeft: 'none',
                     borderColor:
                         platform === PlatformType.Html ? '#5629c6' : '#eaeaea',
@@ -208,6 +236,23 @@ const RadioGroup = ({
                 onClick={() => onSelect(PlatformType.Html)}
             >
                 HTML
+            </div>
+            <div
+                style={{
+                    borderLeft: 'none',
+                    borderRadius: '0 8px 8px 0',
+                    borderColor:
+                        platform === PlatformType.NextJs
+                            ? '#5629c6'
+                            : '#eaeaea',
+                    backgroundColor:
+                        platform === PlatformType.NextJs ? '#5629c6' : 'white',
+                    color: platform === PlatformType.NextJs ? 'white' : 'black',
+                }}
+                className={styles.platformOption}
+                onClick={() => onSelect(PlatformType.NextJs)}
+            >
+                Next.js
             </div>
         </div>
     );
