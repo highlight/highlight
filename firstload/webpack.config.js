@@ -10,6 +10,7 @@ module.exports = {
     filename: '[name].js',
     library: '$',
     libraryTarget: 'umd',
+    globalObject: 'this',
   },
   devServer: {
     watchContentBase: true,
@@ -30,9 +31,6 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
-  },
-  optimization: {
-    minimize: true
   },
   devtool: 'sourceMap',
 };
