@@ -1,6 +1,4 @@
 import React from 'react';
-import { ImpulseSpinner } from 'react-spinners-kit';
-import ClimbingBoxLoader from 'react-spinners/ClimbingBoxLoader';
 import BarLoader from 'react-spinners/BarLoader';
 
 import styles from './Spinner.module.css';
