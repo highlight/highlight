@@ -32,8 +32,5 @@ module.exports = {
     extensions: ['.js', '.ts', '.tsx'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
-  optimization: {
-    minimize: true
-  },
   devtool: 'sourceMap',
 };

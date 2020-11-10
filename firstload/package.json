@@ -1,6 +1,6 @@
 {
     "name": "highlight.run",
-    "version": "1.0.31",
+    "version": "1.0.32",
     "scripts": {
         "build": "webpack",
         "dev": "yarn link && webpack --mode=development --watch"
