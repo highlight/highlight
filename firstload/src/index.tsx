@@ -34,7 +34,6 @@ export const H: HighlightPublicInterface = {
         script.addEventListener('load', () => {
             highlight_obj = new window.Highlight(debug);
             highlight_obj.initialize(orgID);
-            console.log('loaded');
         });
     },
     identify: (identifier: string, obj: any) => {

@@ -6003,9 +6003,9 @@ hex-color-regex@^1.1.0:
   integrity sha512-l9sfDFsuqtOqKDsQdqrMRk0U85RZc0RtOR9yPI7mRVOa4FsR/BVnZ0shmQRM96Ji99kYZP/7hn1cedc1+ApsTQ==
 
 highlight.run@^1.0.26:
-  version "1.0.32"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.32.tgz#f85a3236eec0f0aa3fc534372173459bdaf16fcc"
-  integrity sha512-01FhFBPFhrZhpxv/ZZNpiTD2MBF4ZvOLhS/W6C+pQtTtQ1APY4inDtVs1BD49uvGVjAFwRgpT7szQ2eJ6CUmKw==
+  version "1.0.33"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.33.tgz#6c76184c40770d1965e37568b71ae1ba95464064"
+  integrity sha512-fvUbEOtavWS5xvLWu/CTKq8lyNZKE2JxQuLGSM5zNzIgnGe8bLgFahuGHa+tXZoFFf20obKXpxtL9QsoU7nisw==
 
 history@^4.9.0:
   version "4.10.1"
