@@ -54,7 +54,6 @@ export const H: HighlightPublicInterface = {
         }, 200);
     },
 };
-
 window.H = H;
 
 // in webpack.config.js, the default value for this variable is set
