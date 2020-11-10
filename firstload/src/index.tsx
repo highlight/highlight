@@ -19,9 +19,22 @@ var script: HTMLScriptElement;
 var highlight_obj: any;
 export const H: HighlightPublicInterface = {
     init: (orgID: number, debug: boolean = false) => {
+        script = document.createElement('script');
+        var scriptSrc =
+            process.env.NODE_ENV === 'development'
+                ? 'http://localhost:8080/index.js'
+                : 'https://static.highlight.run/index.js';
+        script.setAttribute(
+            'src',
+            scriptSrc + '?' + new Date().getMilliseconds()
+        );
+        script.setAttribute('type', 'text/javascript');
+        document.getElementsByTagName('head')[0].appendChild(script);
+        window.H = H;
         script.addEventListener('load', () => {
             highlight_obj = new window.Highlight(debug);
             highlight_obj.initialize(orgID);
+            console.log('loaded');
         });
     },
     identify: (identifier: string, obj: any) => {
@@ -53,14 +66,3 @@ export const H: HighlightPublicInterface = {
         }, 200);
     },
 };
-if ((process as any).browser || typeof window !== 'undefined') {
-    script = document.createElement('script');
-    var scriptSrc =
-        process.env.NODE_ENV === 'development'
-            ? 'http://localhost:8080/index.js'
-            : 'https://static.highlight.run/index.js';
-    script.setAttribute('src', scriptSrc + '?' + new Date().getMilliseconds());
-    script.setAttribute('type', 'text/javascript');
-    document.getElementsByTagName('head')[0].appendChild(script);
-    window.H = H;
-}
