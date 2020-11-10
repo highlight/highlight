@@ -136,7 +136,7 @@ const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
                     ? 'React'
                     : platform === PlatformType.Vue
                     ? 'Vue'
-                    : 'NextJS'}
+                    : 'Next.js'}
                 , it can be called at the top of your main component's file like
                 this:
                 <br />
