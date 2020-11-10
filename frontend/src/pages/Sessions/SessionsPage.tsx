@@ -64,8 +64,6 @@ export const SessionsPage = () => {
 
     const rawSessions = data?.sessions;
 
-    // sessionsLoading should be true when 1) loading is true
-
     useEffect(() => {
         if (rawSessions) {
             setSessionData(rawSessions);
