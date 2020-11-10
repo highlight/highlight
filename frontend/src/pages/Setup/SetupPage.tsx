@@ -46,7 +46,13 @@ export const SetupPage = () => {
                     onCopy={() =>
                         window.analytics.track('Copied Code Snippet', {})
                     }
-                    text={`H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)`}
+                    text={
+                        platform === PlatformType.NextJs
+                            ? `if (typeof window === )H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)
+                    `
+                            : `H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)
+                    `
+                    }
                 />
             </div>
         </div>
@@ -112,6 +118,20 @@ const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
             <div className={styles.snippetHeadingTwo}>
                 Initializing Highlight
             </div>
+            {platform === PlatformType.NextJs ? (
+                <div className={styles.callout}>
+                    <div className={styles.calloutEmoji}>💡</div>
+                    <div className={styles.calloutInner}>
+                        In Next.js, wrap all client side function calls in{' '}
+                        <span className={styles.codeBlockBasic}>
+                            if (typeof window...
+                        </span>
+                        to force the logic to be executed client side.
+                    </div>
+                </div>
+            ) : (
+                <></>
+            )}
             <div className={styles.snippetSubHeading}>
                 Initialize the SDK by importing Highlight like so:{' '}
                 <CodeBlock text={`import { H } from 'highlight.run'`} />
@@ -119,7 +139,7 @@ const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
                 <span
                     className={styles.codeBlockBasic}
                 >{`H.init(${organization_id})`}</span>{' '}
-                as soon as you can in your site's startup process.
+                as soon as you can in your site's startup process. <br />
                 {platform !== PlatformType.NextJs ? (
                     <CodeBlock
                         text={`H.init(${organization_id}) // ${organization_id} is your ORG_ID`}

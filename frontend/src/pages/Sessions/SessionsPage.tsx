@@ -324,10 +324,12 @@ export const SessionsPage = () => {
                             </Link>
                         );
                     })}
-                    {loading && (
+                    {loading && sessionData.length ? (
                         <div className={styles.loadingDiv}>
                             <Spinner />
                         </div>
+                    ) : (
+                        <></>
                     )}
                     <div style={{ height: 50 }}></div>
                 </div>

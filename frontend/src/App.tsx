@@ -105,7 +105,11 @@ const OrgValidator = () => {
         return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
     }
     if (loading || !data?.organization) {
-        return <CircularSpinner />;
+        return (
+            <div className={styles.loadingWrapper}>
+                <Spinner />
+            </div>
+        );
     }
     return (
         <>
