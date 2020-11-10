@@ -120,7 +120,11 @@ const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
             </div>
             {platform === PlatformType.NextJs ? (
                 <div className={styles.callout}>
-                    <div className={styles.calloutEmoji}>💡</div>
+                    <div className={styles.calloutEmoji}>
+                        <span role="img" aria-label="light-bulb">
+                            💡
+                        </span>
+                    </div>
                     <div className={styles.calloutInner}>
                         In Next.js, wrap all client side function calls in{' '}
                         <span className={styles.codeBlockBasic}>
