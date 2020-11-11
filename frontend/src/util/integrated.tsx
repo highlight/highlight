@@ -25,16 +25,14 @@ export const useIntegrated = (
     const integratedRaw = data?.isIntegrated;
 
     useEffect(() => {
-        if (!integrated) {
-            query();
-        }
-        const timer = setTimeout(() => {
+        query();
+        const timer = setInterval(() => {
             if (!integrated) {
                 query();
             }
         }, 5000);
         return () => {
-            clearTimeout(timer);
+            clearInterval(timer);
         };
     }, [integrated]);
 
