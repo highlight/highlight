@@ -29,12 +29,11 @@
 
 .calloutInner {
     padding: 10px;
-    padding-left: 5px;
+    padding-left: 0px;
 }
 
 .calloutEmoji {
-    padding-top: 6px;
-    padding-left: 8px;
+    padding: 8px;
     height: 100%;
     font-size: 20px;
 }
