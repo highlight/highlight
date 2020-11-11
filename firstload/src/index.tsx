@@ -17,7 +17,6 @@ declare var window: HighlightWindow;
 
 var script: HTMLScriptElement;
 var highlight_obj: any;
-
 export const H: HighlightPublicInterface = {
     init: (orgID: number, debug: boolean = false) => {
         script = document.createElement('script');
