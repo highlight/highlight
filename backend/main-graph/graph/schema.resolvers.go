@@ -13,6 +13,8 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -174,6 +176,24 @@ func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*mode
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
 	return admins, nil
+}
+
+func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*bool, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+	sessions := []*model.Session{}
+	err := r.DB.Where(
+		&model.Session{OrganizationID: organizationID}).Find(&sessions).Error
+	if err != nil {
+		return nil, e.Wrap(err, "error getting associated admins")
+	}
+	f, t := false, true
+	pp.Println(len(sessions))
+	if len(sessions) > 0 {
+		return &t, nil
+	}
+	return &f, nil
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model.Session, error) {

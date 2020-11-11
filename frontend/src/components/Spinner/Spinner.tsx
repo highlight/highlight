@@ -22,10 +22,15 @@ export const CircularSpinner = ({ style }: { style?: React.CSSProperties }) => {
     );
 };
 
-export const Spinner: React.FC = () => {
+export const Spinner = ({ width }: { width?: string | number }) => {
     return (
-        <div className={styles.spinnerStyle}>
-            <BarLoader color={'#5629c6'} />
+        <div className={styles.spinnerWrapper}>
+            <div
+                className={styles.spinnerStyle}
+                style={{ width: width || 100 }}
+            >
+                <BarLoader color={'#5629c6'} />
+            </div>
         </div>
     );
 };

@@ -6,8 +6,16 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+a {
+    color: #5629c6;
+}
+
 .ant-modal-close-x {
     visibility: hidden;
+}
+
+.css-foqpf7 {
+    width: 100% !important;
 }
 
 .ant-switch-checked {
@@ -18,8 +26,13 @@ body {
     padding: 0px;
 }
 
+.ant-tooltip-inner {
+    border-radius: 6px;
+}
+
 .ant-modal-content {
     border-radius: 8px;
+    padding: 10px;
 }
 
 .ant-skeleton-content .ant-skeleton-title {

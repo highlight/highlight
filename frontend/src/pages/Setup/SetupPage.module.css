@@ -9,6 +9,11 @@
     display: flex;
 }
 
+.headingWrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
 .platformOption {
     height: 30px;
     width: 85px;
@@ -56,8 +61,8 @@
 .snippetHeadingTwo {
     font-size: 20px;
     font-weight: 400;
-    margin-bottom: 15px;
-    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-top: 30px;
 }
 
 .snippetSubHeading {
@@ -85,41 +90,4 @@
     padding: 5px;
     border-radius: 4px;
     height: 100%;
-}
-
-.codeBlockWrapper {
-    overflow: auto;
-    font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
-        'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
-    border: 1px solid #e4e8eb;
-    background-color: #f9f9f9;
-    white-space: pre;
-    width: 100%;
-    max-width: 100%;
-    position: relative;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    min-width: 100%;
-    resize: none;
-    font-size: 13px;
-    border-radius: 8px;
-    padding: 10px;
-    height: 100%;
-}
-
-.copyButton {
-    top: 5px;
-    right: 5px;
-    position: absolute;
-    z-index: 10;
-    margin: 5px;
-    cursor: pointer;
-}
-
-.copyDiv {
-    font-size: 8px;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
