@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 import { useMutation, useQuery, gql } from '@apollo/client';
 import { Avatar } from '../../../components/Avatar/Avatar';
-import { Spinner, CircularSpinner } from '../../../components/Spinner/Spinner';
+import { CircularSpinner } from '../../../components/Spinner/Spinner';
 
 import commonStyles from '../../../Common.module.css';
 import styles from './TeamModal.module.css';

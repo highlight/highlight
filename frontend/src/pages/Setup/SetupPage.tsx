@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
-import { CodeBlock } from './CodeBlock';
+import { CodeBlock } from './CodeBlock/CodeBlock';
+import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
 import { useParams } from 'react-router-dom';
 import styles from './SetupPage.module.css';
 import useFetch from 'use-http';
@@ -13,14 +14,17 @@ enum PlatformType {
     NextJs,
 }
 
-export const SetupPage = () => {
+export const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const [platform, setPlatform] = useState(PlatformType.React);
 
     return (
         <div className={styles.setupWrapper}>
             <div className={styles.snippetCard}>
-                <div className={styles.snippetHeading}>
-                    Your Recording Snippet
+                <div className={styles.headingWrapper}>
+                    <div className={styles.snippetHeading}>
+                        Your Recording Snippet
+                    </div>
+                    <IntegrationDetector integrated={integrated} />
                 </div>
                 <RadioGroup
                     platform={platform}

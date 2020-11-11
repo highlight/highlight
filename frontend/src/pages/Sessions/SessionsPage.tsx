@@ -6,6 +6,7 @@ import { MillisToMinutesAndSecondsVerbose } from '../../util/time';
 import { ReactComponent as PlayButton } from '../../static/play-button.svg';
 import { FaSearch, FaTimes } from 'react-icons/fa';
 import { useDebouncedCallback } from 'use-debounce';
+import { IntegrationCard } from './IntegrationCard/IntegrationCard';
 import {
     Value,
     SearchParam,
@@ -19,7 +20,7 @@ import AutosizeInput from 'react-input-autosize';
 
 import styles from './SessionsPage.module.css';
 
-export const SessionsPage = () => {
+export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const countDebounced = useDebouncedCallback(() => {
         setCount((count) => count + 10);
     }, 500);
@@ -105,6 +106,9 @@ export const SessionsPage = () => {
 
     if (error) {
         return <p>{error.toString()}</p>;
+    }
+    if (!integrated) {
+        return <IntegrationCard />;
     }
     return (
         <div className={styles.sessionsBody}>
