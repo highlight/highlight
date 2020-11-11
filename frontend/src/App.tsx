@@ -33,7 +33,6 @@ Sentry.init({
     integrations: [new Integrations.BrowserTracing()],
     tracesSampleRate: 1.0,
 });
-
 H.getSessionURL().then((url) => {
     Sentry.setContext('highlight', { highlightURL: url });
 });
