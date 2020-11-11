@@ -3,13 +3,13 @@ import React from 'react';
 import PuffLoader from 'react-spinners/PuffLoader';
 import styles from './IntegrationDetector.module.css';
 import { Tooltip } from 'antd';
-import { useParams } from 'react-router-dom';
 import { ReactComponent as CheckIcon } from '../../../static/check.svg';
-import { useIntegrated } from '../../../util/integrated';
 
-export const IntegrationDetector = () => {
-    const { organization_id } = useParams();
-    const { integrated } = useIntegrated(organization_id);
+export const IntegrationDetector = ({
+    integrated,
+}: {
+    integrated: boolean;
+}) => {
     return (
         <Tooltip
             title={

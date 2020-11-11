@@ -1,13 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
-import { Spinner, CircularSpinner } from './components/Spinner/Spinner';
+import { Spinner } from './components/Spinner/Spinner';
 import { Header } from './components/Header/Header';
-import {
-    Switch,
-    Route,
-    BrowserRouter as Router,
-    Redirect,
-} from 'react-router-dom';
+import { Switch, Route } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
 import { Player } from './pages/Player/PlayerPage';
 import { SessionsPage } from './pages/Sessions/SessionsPage';

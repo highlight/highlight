@@ -24,7 +24,7 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                     <div className={styles.snippetHeading}>
                         Your Recording Snippet
                     </div>
-                    <IntegrationDetector />
+                    <IntegrationDetector integrated={integrated} />
                 </div>
                 <RadioGroup
                     platform={platform}

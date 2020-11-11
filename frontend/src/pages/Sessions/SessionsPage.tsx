@@ -15,7 +15,6 @@ import {
     FieldOptions,
 } from './OptionsRender';
 import { Spinner } from '../../components/Spinner/Spinner';
-import { useIntegrated } from '../../util/integrated';
 
 import AutosizeInput from 'react-input-autosize';
 

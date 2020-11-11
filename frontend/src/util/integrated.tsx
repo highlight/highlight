@@ -34,7 +34,7 @@ export const useIntegrated = (
         return () => {
             clearInterval(timer);
         };
-    }, [integrated]);
+    }, [integrated, query]);
 
     useEffect(() => {
         if (integratedRaw !== undefined) {
