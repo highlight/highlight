@@ -29,12 +29,10 @@ import { Integrations } from '@sentry/tracing';
 H.init(3, true);
 Sentry.init({
     dsn:
-        'https://c3cde69b6a3840db9c023889ca5ceff2@o474929.ingest.sentry.io/5512105',
+        'https://47f7bc7301cc470799f71a21f1623a34@o473684.ingest.sentry.io/5508861',
     integrations: [new Integrations.BrowserTracing()],
     tracesSampleRate: 1.0,
 });
-
-Sentry.captureMessage('test');
 
 H.getSessionURL().then((url) => {
     Sentry.setContext('highlight', { highlightURL: url });
