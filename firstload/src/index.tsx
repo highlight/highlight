@@ -17,6 +17,7 @@ declare var window: HighlightWindow;
 
 var script: HTMLScriptElement;
 var highlight_obj: any;
+
 export const H: HighlightPublicInterface = {
     init: (orgID: number, debug: boolean = false) => {
         script = document.createElement('script');
@@ -30,7 +31,6 @@ export const H: HighlightPublicInterface = {
         );
         script.setAttribute('type', 'text/javascript');
         document.getElementsByTagName('head')[0].appendChild(script);
-        window.H = H;
         script.addEventListener('load', () => {
             highlight_obj = new window.Highlight(debug);
             highlight_obj.initialize(orgID);
@@ -65,3 +65,7 @@ export const H: HighlightPublicInterface = {
         }, 200);
     },
 };
+
+if (typeof window !== 'undefined') {
+    window.H = H;
+}
