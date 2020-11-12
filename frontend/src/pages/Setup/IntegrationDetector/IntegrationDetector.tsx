@@ -1,6 +1,7 @@
 import React from 'react';
 
-import PuffLoader from 'react-spinners/PuffLoader';
+// @ts-ignore
+import Spinner from 'react-spinkit';
 import styles from './IntegrationDetector.module.css';
 import { Tooltip } from 'antd';
 import { ReactComponent as CheckIcon } from '../../../static/check.svg';
@@ -23,7 +24,7 @@ export const IntegrationDetector = ({
                     {integrated ? (
                         <CheckIcon className={styles.checkIcon} />
                     ) : (
-                        <PuffLoader color="#5629c6" size={18} />
+                        <Spinner name="double-bounce" color={'#5629c6'} />
                     )}
                 </div>
             </div>
