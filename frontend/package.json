@@ -41,6 +41,7 @@
         "react-router-dom": "^5.2.0",
         "react-scripts": "3.4.3",
         "react-scroll": "^1.8.1",
+        "react-spinkit": "^3.0.0",
         "react-spinners": "^0.9.0",
         "react-spinners-kit": "^1.9.1",
         "rrweb": "^0.9.7",
