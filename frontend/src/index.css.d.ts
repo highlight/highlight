@@ -8,9 +8,6 @@ declare const styles: {
   readonly "ant-skeleton-content": string;
   readonly "ant-skeleton-title": string;
   readonly "ant-skeleton-paragraph": string;
-  readonly "ripple-loader": string;
-  readonly "blob": string;
-  readonly "pulse": string;
 };
 export = styles;
 
