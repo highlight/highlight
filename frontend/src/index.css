@@ -35,6 +35,11 @@ a {
     padding: 10px;
 }
 
+.spinner {
+    height: 22px;
+    width: 22px;
+}
+
 .ant-skeleton-content .ant-skeleton-title {
     border-radius: 5px;
 }
