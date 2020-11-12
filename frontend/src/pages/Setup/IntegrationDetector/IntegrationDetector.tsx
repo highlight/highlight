@@ -24,11 +24,7 @@ export const IntegrationDetector = ({
                     {integrated ? (
                         <CheckIcon className={styles.checkIcon} />
                     ) : (
-                        <Spinner
-                            className={'.spinner'}
-                            name="pulse"
-                            color={'#5629c6'}
-                        />
+                        <Spinner size={22} name="pulse" color={'#5629c6'} />
                     )}
                 </div>
             </div>
