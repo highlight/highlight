@@ -2607,11 +2607,6 @@ faye-websocket@~0.11.1:
   dependencies:
     websocket-driver ">=0.5.1"
 
-fetch-intercept@^2.3.1:
-  version "2.3.1"
-  resolved "https://registry.yarnpkg.com/fetch-intercept/-/fetch-intercept-2.3.1.tgz#1f37ac57d7f0742aae5e3ae11ed18c2acbc43f61"
-  integrity sha512-6tEgV10w4Zr4YFLc+RXaUQ1k8O4okX6AsnYYQqGhfXeiDZcBTQonVpjM5LbLWXWzaQzCA3DyJbsOHEB5szRn5A==
-
 figgy-pudding@^3.5.1:
   version "3.5.2"
   resolved "https://registry.yarnpkg.com/figgy-pudding/-/figgy-pudding-3.5.2.tgz#b4eee8148abb01dcf1d1ac34367d59e12fa61d6e"

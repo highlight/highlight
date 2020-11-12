@@ -18,7 +18,6 @@ import (
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
 	mgenerated "github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	rd "github.com/jay-khatri/fullstory/backend/redis"
-	"github.com/k0kubun/pp"
 	log "github.com/sirupsen/logrus"
 
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -35,7 +34,6 @@ func health(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateOrigin(request *http.Request, origin string) bool {
-	pp.Println(request.URL.Path)
 	if path := request.URL.Path; path == "/main" {
 		// From the highlight frontend, only the url is whitelisted.
 		if origin == frontendURL {
