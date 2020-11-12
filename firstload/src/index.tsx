@@ -17,9 +17,19 @@ declare var window: HighlightWindow;
 
 var script: HTMLScriptElement;
 var highlight_obj: any;
-var script = document.createElement('script');
 export const H: HighlightPublicInterface = {
     init: (orgID: number, debug: boolean = false) => {
+        script = document.createElement('script');
+        var scriptSrc =
+            process.env.NODE_ENV === 'development'
+                ? 'http://localhost:8080/index.js'
+                : 'https://static.highlight.run/index.js';
+        script.setAttribute(
+            'src',
+            scriptSrc + '?' + new Date().getMilliseconds()
+        );
+        script.setAttribute('type', 'text/javascript');
+        document.getElementsByTagName('head')[0].appendChild(script);
         script.addEventListener('load', () => {
             highlight_obj = new window.Highlight(debug);
             highlight_obj.initialize(orgID);
@@ -54,14 +64,7 @@ export const H: HighlightPublicInterface = {
         }, 200);
     },
 };
-window.H = H;
 
-// in webpack.config.js, the default value for this variable is set
-// if overwritten (in dev for example), it'll be seen here.
-var scriptSrc =
-    process.env.NODE_ENV === 'development'
-        ? 'http://localhost:8080/index.js'
-        : 'https://static.highlight.run/index.js';
-script.setAttribute('src', scriptSrc + '?' + new Date().getMilliseconds());
-script.setAttribute('type', 'text/javascript');
-document.getElementsByTagName('head')[0].appendChild(script);
+if (typeof window !== 'undefined') {
+    window.H = H;
+}

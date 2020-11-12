@@ -12,6 +12,12 @@
     justify-content: center;
     height: 100%;
     margin-left: 20px;
+    cursor: pointer;
+    color: black;
+}
+
+.logoWrapper:hover {
+    color: black;
 }
 
 .logo {

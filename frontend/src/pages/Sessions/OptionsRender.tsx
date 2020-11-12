@@ -51,6 +51,7 @@ export const FieldOptions = ({
 
     useEffect(() => {
         if (data?.field_suggestion.length) {
+            console.log('suggestions:', data.field_suggestion);
             var filterResults = fuzzy.filter<Value>(
                 input,
                 data?.field_suggestion.map((s) => {

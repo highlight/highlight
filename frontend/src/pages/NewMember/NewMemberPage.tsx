@@ -6,7 +6,7 @@ import { useMutation, useQuery, gql } from '@apollo/client';
 
 import styles from './NewMemberPage.module.css';
 import commonStyles from '../../Common.module.css';
-import { CircularSpinner } from '../../components/Spinner/Spinner';
+import { CircularSpinner, Spinner } from '../../components/Spinner/Spinner';
 
 export const NewMemberPage = () => {
     const { invite_id, organization_id } = useParams();
@@ -42,7 +42,7 @@ export const NewMemberPage = () => {
         return <Redirect to={`/${organization_id}/setup`} />;
     }
     if (adminLoading) {
-        return <CircularSpinner style={{ color: '#5629c6' }} />;
+        return <Spinner />;
     }
 
     return (

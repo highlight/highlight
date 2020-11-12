@@ -3,16 +3,12 @@ import './App.css';
 
 import styles from './App.module.css';
 import commonStyles from './Common.module.css';
-import { Spinner, CircularSpinner } from './components/Spinner/Spinner';
-import { Player } from './pages/Player/PlayerPage';
-import { SetupPage } from './pages/Setup/SetupPage';
+import { Spinner } from './components/Spinner/Spinner';
 import { NewMemberPage } from './pages/NewMember/NewMemberPage';
 import { NewWorkspacePage } from './pages/NewWorkspace/NewWorkspacePage';
-import { SessionsPage } from './pages/Sessions/SessionsPage';
 import { auth, googleProvider } from './util/auth';
 import { ReactComponent as GoogleLogo } from './static/google.svg';
 import { useForm } from 'react-hook-form';
-import { useParams } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { useQuery, gql } from '@apollo/client';
 import {
@@ -22,9 +18,9 @@ import {
     Redirect,
 } from 'react-router-dom';
 import { H } from 'highlight.run';
-import { Header } from './components/Header/Header';
 import * as Sentry from '@sentry/react';
 import { Integrations } from '@sentry/tracing';
+import { OrgRouter } from './OrgRouter';
 
 H.init(3, true);
 Sentry.init({
@@ -72,7 +68,7 @@ const App = () => {
                             <NewWorkspacePage />
                         </Route>
                         <Route path="/:organization_id">
-                            <OrgValidator />
+                            <OrgRouter />
                         </Route>
                         <Route path="/">
                             <Redirect
@@ -83,45 +79,6 @@ const App = () => {
                 )}
             </Router>
         </div>
-    );
-};
-
-const OrgValidator = () => {
-    const { organization_id } = useParams();
-    const { loading, error, data } = useQuery<
-        { organization: { name: string } },
-        { id: number }
-    >(
-        gql`
-            query GetOrganization($id: ID!) {
-                organization(id: $id) {
-                    name
-                }
-            }
-        `,
-        { variables: { id: organization_id } }
-    );
-    if (error) {
-        return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
-    }
-    if (loading || !data?.organization) {
-        return <CircularSpinner />;
-    }
-    return (
-        <>
-            <Header />
-            <Switch>
-                <Route path="/:organization_id/sessions/:session_id">
-                    <Player />
-                </Route>
-                <Route path="/:organization_id/sessions">
-                    <SessionsPage />
-                </Route>
-                <Route path="/:organization_id">
-                    <SetupPage />
-                </Route>
-            </Switch>
-        </>
     );
 };
 

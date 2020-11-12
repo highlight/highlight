@@ -13,6 +13,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -31,6 +32,11 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	}
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
+	}
+	msg := slack.WebhookMessage{Text: fmt.
+		Sprintf("```NEW WORKSPACE \nid: %v\nname: %v\nadmin_email: %v```", org.ID, *org.Name, *admin.Email)}
+	if err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg); err != nil {
+		log.Errorf("error sending slack hook: %v", err)
 	}
 	return org, nil
 }
@@ -169,6 +175,23 @@ func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*mode
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
 	return admins, nil
+}
+
+func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*bool, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+	sessions := []*model.Session{}
+	err := r.DB.Where(
+		&model.Session{OrganizationID: organizationID}).Find(&sessions).Error
+	if err != nil {
+		return nil, e.Wrap(err, "error getting associated admins")
+	}
+	f, t := false, true
+	if len(sessions) > 0 {
+		return &t, nil
+	}
+	return &f, nil
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model.Session, error) {

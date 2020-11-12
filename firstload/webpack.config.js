@@ -10,6 +10,7 @@ module.exports = {
     filename: '[name].js',
     library: '$',
     libraryTarget: 'umd',
+    globalObject: 'this',
   },
   devServer: {
     watchContentBase: true,

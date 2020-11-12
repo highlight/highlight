@@ -1,5 +1,6 @@
 import React from 'react';
-import { ImpulseSpinner } from 'react-spinners-kit';
+import BarLoader from 'react-spinners/BarLoader';
+
 import styles from './Spinner.module.css';
 
 import { Spin } from 'antd';
@@ -9,16 +10,27 @@ export const CircularSpinner = ({ style }: { style?: React.CSSProperties }) => {
     return (
         <Spin
             indicator={
-                <LoadingOutlined style={{ fontSize: 24, ...style }} spin />
+                <LoadingOutlined
+                    style={{
+                        fontSize: 24,
+                        ...style,
+                    }}
+                    spin
+                />
             }
         />
     );
 };
 
-export const Spinner: React.FC = (props) => {
+export const Spinner = ({ width }: { width?: string | number }) => {
     return (
-        <div className={styles.spinnerStyle}>
-            <ImpulseSpinner frontColor="#5629C6" backColor="#5629C6" />
+        <div className={styles.spinnerWrapper}>
+            <div
+                className={styles.spinnerStyle}
+                style={{ width: width || 100 }}
+            >
+                <BarLoader color={'#5629c6'} />
+            </div>
         </div>
     );
 };
