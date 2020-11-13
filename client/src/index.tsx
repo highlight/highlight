@@ -9,11 +9,7 @@ import {
 import { eventWithTime } from 'rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
-import {
-  FetchNetworkContent,
-  FetchListener,
-  fetchToNetworkResource,
-} from 'listeners/fetch-listener';
+import { FetchListener } from 'listeners/fetch-listener';
 
 import {
   ConsoleMessage,
@@ -197,9 +193,8 @@ Session Data:
       addCustomEvent<string>('Navigate', url);
       highlightThis.addProperties({ 'visited-url': url });
     });
-    FetchListener((content: FetchNetworkContent) => {
-      fetchToNetworkResource(content);
-      // console.log(content);
+    FetchListener((content: NetworkResourceContent) => {
+      console.log(content);
     });
     ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
     this.ready = true;

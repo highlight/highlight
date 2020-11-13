@@ -1,27 +1,9 @@
 import { NetworkResourceContent } from '../../../frontend/src/util/shared-types';
 
-export type FetchNetworkContent = {
-    startTime: number;
-    url?: string;
-    request?: any;
-    response?: Response;
-    errorContent?: any;
-};
-
-export const fetchToNetworkResource = (f: FetchNetworkContent) => {
-    const resp = f.response;
-    if (resp) {
-        console.log(f.response?.status);
-        console.log(f.response?.redirected);
-        console.log(f.response?.headers.forEach((a, b) => console.log(a, b)));
-        console.log(f.response?.statusText);
-        console.log(f.response?.type);
-        console.log(f.response?.ok);
-    }
-};
-
-export const FetchListener = (callback: (r: FetchNetworkContent) => void) => {
-    var res: FetchNetworkContent = { startTime: Date.now() };
+export const FetchListener = (
+    callback: (r: NetworkResourceContent) => void
+) => {
+    var res: NetworkResourceContent = { startTime: Date.now() };
     const highlightFetch = window.fetch;
     window.fetch = function (url: RequestInfo, body: RequestInit | undefined) {
         res.url = url.toString();
@@ -37,7 +19,10 @@ export const FetchListener = (callback: (r: FetchNetworkContent) => void) => {
                     res.errorContent = error;
                     reject(error);
                 })
-                .finally(() => callback(res));
+                .finally(() => {
+                    res.endTime = Date.now();
+                    callback(res);
+                });
         });
     };
 };

@@ -6,6 +6,7 @@ export type ConsoleMessage = {
 
 export type NetworkResourceContent = {
     startTime: number;
+    endTime?: number;
     url?: string;
     request?: any;
     response?: Response;
