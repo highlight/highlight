@@ -26,7 +26,7 @@ const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = { debug: true };
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
-    options.backendUrl = 'localhost:8082';
+    options.backendUrl = 'http://localhost:8082';
 }
 H.init(3, options);
 

@@ -13,8 +13,9 @@ type HighlightPublicInterface = {
     onHighlightReady: (func: () => void) => void;
 };
 
+// TODO: this type shouldn't be manually here, it should be inferred directly from /client/src/...
 interface Constructable<T> {
-    new (...args: any): T;
+    new (debug?: boolean, backendUrl?: string): T;
 }
 
 interface HighlightWindow extends Window {

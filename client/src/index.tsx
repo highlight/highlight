@@ -31,12 +31,13 @@ export class Highlight {
   ready: boolean;
   logger: Logger;
 
-  constructor(debug: boolean) {
+  constructor(debug?: boolean, backendUrl?: string) {
     // If debug is set to false, disable all console
     this.ready = false;
-    this.logger = new Logger(debug);
+    this.logger = new Logger(debug ?? false);
+    const backend = backendUrl ? backendUrl : process.env.BACKEND_URI;
     this.client = new ApolloClient({
-      uri: `${process.env.BACKEND_URI}/client`,
+      uri: `${backend}/client`,
       cache: new InMemoryCache(),
       credentials: 'include',
     });
