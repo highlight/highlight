@@ -1,11 +1,5 @@
-name: Yarn Publish
+name: Firstload
 on: push
-# on:
-#     push:
-# paths:
-#     - 'firstload/**'
-# branches:
-#     - master
 jobs:
     publish:
         runs-on: ubuntu-latest
@@ -23,6 +17,8 @@ jobs:
               run: cd client && yarn install
             - name: Build Bundle
               run: cd firstload && yarn build
+            - name: Bundle Size
+              run: ls -l --block-size=K firstload/dist/firstload/src/index.js
             - name: Publish
               if: github.ref == 'refs/heads/master'
               run: yarn publish --access public
