@@ -5,7 +5,7 @@ type HighlightOptions = {
     scriptUrl: string;
     backendUrl: string;
 };
-type HighlightPublicInterface = {
+export type HighlightPublicInterface = {
     init: (orgID: number, options?: HighlightOptions) => void;
     identify: (identify: string, obj: any) => void;
     getSessionURL: () => Promise<string>;

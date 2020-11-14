@@ -70,7 +70,9 @@ const HtmlInstructions = () => {
         []
     );
     const codeStr = data.replace(/(\r\n|\n|\r)/gm, '');
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{
+        organization_id: string | undefined;
+    }>();
 
     return (
         <>

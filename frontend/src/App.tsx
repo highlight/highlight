@@ -22,7 +22,7 @@ import * as Sentry from '@sentry/react';
 import { Integrations } from '@sentry/tracing';
 import { OrgRouter } from './OrgRouter';
 
-H.init(3, true);
+H.init(3, {});
 Sentry.init({
     dsn:
         'https://47f7bc7301cc470799f71a21f1623a34@o473684.ingest.sentry.io/5508861',
