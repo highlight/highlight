@@ -1,4 +1,5 @@
 name: Yarn Publish
+on: push
 # on:
 #     push:
 # paths:
