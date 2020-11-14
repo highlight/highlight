@@ -1,6 +1,6 @@
 {
     "name": "highlight.run",
-    "version": "1.0.36",
+    "version": "1.0.37",
     "scripts": {
         "build": "webpack --mode=production",
         "dev": "webpack --watch --mode=production"
