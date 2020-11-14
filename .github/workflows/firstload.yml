@@ -23,7 +23,8 @@ jobs:
               run: cd client && yarn install
             - name: Build Bundle
               run: cd firstload && yarn build
-            # - name: Publish
-            #   run: yarn publish --access public
-            #   env:
-            #       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+            - name: Publish
+              if: github.ref == 'refs/heads/master'
+              run: yarn publish --access public
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
