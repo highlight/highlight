@@ -1,5 +1,6 @@
 const path = require('path');
 const webpack = require('webpack'); //to access built-in plugins
+const DtsPlugin = require('npm-dts-webpack-plugin')
 
 module.exports = {
   entry: {
@@ -35,5 +36,8 @@ module.exports = {
   optimization: {
     minimize: true
   },
+  plugins: [
+    new DtsPlugin({output: 'dist/index.d.ts'})
+  ],
   devtool: 'sourceMap',
 };

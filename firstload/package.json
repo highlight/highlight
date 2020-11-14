@@ -13,5 +13,8 @@
         "webpack": "^4.44.1",
         "webpack-cli": "^3.3.12",
         "webpack-dev-server": "^3.11.0"
+    },
+    "dependencies": {
+        "npm-dts-webpack-plugin": "^1.3.5"
     }
 }

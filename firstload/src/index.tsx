@@ -5,6 +5,7 @@ type HighlightOptions = {
     scriptUrl: string;
     backendUrl: string;
 };
+
 export type HighlightPublicInterface = {
     init: (orgID: number, options?: HighlightOptions) => void;
     identify: (identify: string, obj: any) => void;
@@ -78,6 +79,6 @@ export const H: HighlightPublicInterface = {
     },
 };
 
-if (typeof window !== 'undefined') {
-    window.H = H;
-}
+// if (typeof window !== 'undefined') {
+window.H = H;
+// }
