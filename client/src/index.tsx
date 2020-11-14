@@ -22,7 +22,7 @@ class Logger {
   }
 }
 
-(window as any).Highlight = class Highlight {
+export class Highlight {
   organizationID: number;
   client: ApolloClient<NormalizedCacheObject>;
   events: eventWithTime[];
@@ -235,7 +235,9 @@ Session Data:
       },
     });
   }
-};
+}
+
+(window as any).Highlight = Highlight;
 
 declare global {
   interface Console {
