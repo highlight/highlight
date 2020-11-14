@@ -20,6 +20,8 @@ jobs:
               with:
                   node-version: 12
                   registry-url: https://registry.npmjs.org
+            - name: pwd
+              run: pwd
             - name: Install main dependencies
               run: cd firstload && yarn install
             - name: Install other dependencies
