@@ -22,6 +22,11 @@ class Logger {
   }
 }
 
+export type HighlightClassOptions = {
+  debug?: boolean;
+  backendUrl?: string;
+};
+
 export class Highlight {
   organizationID: number;
   client: ApolloClient<NormalizedCacheObject>;
@@ -31,11 +36,13 @@ export class Highlight {
   ready: boolean;
   logger: Logger;
 
-  constructor(debug?: boolean, backendUrl?: string) {
+  constructor(options?: HighlightClassOptions) {
     // If debug is set to false, disable all console
     this.ready = false;
-    this.logger = new Logger(debug ?? false);
-    const backend = backendUrl ? backendUrl : process.env.BACKEND_URI;
+    this.logger = new Logger(options?.debug ?? false);
+    const backend = options?.backendUrl
+      ? options.backendUrl
+      : process.env.BACKEND_URI;
     this.client = new ApolloClient({
       uri: `${backend}/client`,
       cache: new InMemoryCache(),

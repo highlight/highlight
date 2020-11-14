@@ -1,4 +1,4 @@
-import { Highlight } from '../../client/src/index';
+import { Highlight, HighlightClassOptions } from '../../client/src/index';
 
 export type HighlightOptions = {
     debug?: boolean;
@@ -13,13 +13,8 @@ type HighlightPublicInterface = {
     onHighlightReady: (func: () => void) => void;
 };
 
-// TODO: this type shouldn't be manually here, it should be inferred directly from /client/src/...
-interface Constructable<T> {
-    new (debug?: boolean, backendUrl?: string): T;
-}
-
 interface HighlightWindow extends Window {
-    Highlight: Constructable<Highlight>;
+    Highlight: new (options?: HighlightClassOptions) => Highlight;
     H: HighlightPublicInterface;
     _h_script: string;
 }
@@ -43,10 +38,10 @@ export const H: HighlightPublicInterface = {
         script.setAttribute('type', 'text/javascript');
         document.getElementsByTagName('head')[0].appendChild(script);
         script.addEventListener('load', () => {
-            highlight_obj = new window.Highlight(
-                options?.debug,
-                options?.backendUrl
-            );
+            highlight_obj = new window.Highlight({
+                debug: options?.debug,
+                backendUrl: options?.backendUrl,
+            });
             highlight_obj.initialize(orgID);
         });
     },
