@@ -2,8 +2,8 @@
     "name": "highlight.run",
     "version": "1.0.36",
     "scripts": {
-        "build": "webpack",
-        "dev": "yarn link && webpack --mode=development --watch"
+        "build": "webpack --mode=production",
+        "dev": "yarn link && webpack --mode=production --watch"
     },
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
