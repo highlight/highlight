@@ -101,7 +101,6 @@ func main() {
 	mux.HandleFunc("/email", emailHandler)
 
 	handler := cors.New(cors.Options{
-		Debug:                  true,
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"Content-Type", "Token", "Sentry-Trace"},
