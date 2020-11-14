@@ -1,10 +1,10 @@
 name: Yarn Publish
-on:
-    push:
-        paths:
-            - 'firstload/**'
-        branches:
-            - master
+# on:
+#     push:
+# paths:
+#     - 'firstload/**'
+# branches:
+#     - master
 defaults:
     run:
         working-directory: firstload
@@ -28,7 +28,7 @@ jobs:
               run: pwd
             - name: Build Bundle
               run: yarn build
-            - name: Publish
-              run: yarn publish --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+            # - name: Publish
+            #   run: yarn publish --access public
+            #   env:
+            #       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
