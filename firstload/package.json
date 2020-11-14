@@ -1,17 +1,20 @@
 {
     "name": "highlight.run",
-    "version": "1.0.36",
+    "version": "1.0.38",
     "scripts": {
-        "build": "webpack",
-        "dev": "yarn link && webpack --mode=development --watch"
+        "build": "webpack --mode=production",
+        "dev": "webpack --watch --mode=production"
     },
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "dist/firstload/src/index.js",
+    "types": "dist/firstload/src/index.d.ts",
     "devDependencies": {
         "ts-loader": "^8.0.4",
         "typescript": "^4.0.3",
         "webpack": "^4.44.1",
         "webpack-cli": "^3.3.12",
         "webpack-dev-server": "^3.11.0"
+    },
+    "dependencies": {
+        "nodemon": "^2.0.6"
     }
 }
