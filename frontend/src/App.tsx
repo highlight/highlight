@@ -17,12 +17,19 @@ import {
     BrowserRouter as Router,
     Redirect,
 } from 'react-router-dom';
-import { H } from 'highlight.run';
+import { H, HighlightOptions } from 'highlight.run';
 import * as Sentry from '@sentry/react';
 import { Integrations } from '@sentry/tracing';
 import { OrgRouter } from './OrgRouter';
 
-H.init(3, true);
+const dev = process.env.NODE_ENV === 'development' ? true : false;
+const options: HighlightOptions = { debug: true };
+if (dev) {
+    options.scriptUrl = 'http://localhost:8080/dist/index.js';
+    options.backendUrl = 'http://localhost:8082';
+}
+H.init(3, options);
+
 Sentry.init({
     dsn:
         'https://47f7bc7301cc470799f71a21f1623a34@o473684.ingest.sentry.io/5508861',
@@ -99,7 +106,6 @@ export const AuthAdminRouter = () => {
         if (admin) {
             const { email, id, name } = admin;
             H.identify(email, { id, name });
-            H.getSessionURL().then((e) => console.log(e));
             window.analytics.identify(id, {
                 name,
                 email,

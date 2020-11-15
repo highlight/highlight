@@ -6,7 +6,7 @@ module.exports = {
     index: path.resolve(__dirname, 'src/index.tsx'),
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'dist/firstload/src'),
     filename: '[name].js',
     library: '$',
     libraryTarget: 'umd',

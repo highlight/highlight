@@ -28,7 +28,12 @@ class Logger {
   }
 }
 
-(window as any).Highlight = class Highlight {
+export type HighlightClassOptions = {
+  debug?: boolean;
+  backendUrl?: string;
+};
+
+export class Highlight {
   organizationID: number;
   client: ApolloClient<NormalizedCacheObject>;
   events: eventWithTime[];
@@ -38,12 +43,15 @@ class Logger {
   ready: boolean;
   logger: Logger;
 
-  constructor(debug: boolean) {
+  constructor(options?: HighlightClassOptions) {
     // If debug is set to false, disable all console
     this.ready = false;
-    this.logger = new Logger(debug);
+    this.logger = new Logger(options?.debug ?? false);
+    const backend = options?.backendUrl
+      ? options.backendUrl
+      : process.env.BACKEND_URI;
     this.client = new ApolloClient({
-      uri: `${process.env.BACKEND_URI}/client`,
+      uri: `${backend}/client`,
       cache: new InMemoryCache(),
       credentials: 'include',
     });
@@ -246,7 +254,9 @@ Session Data:
       },
     });
   }
-};
+}
+
+(window as any).Highlight = Highlight;
 
 declare global {
   interface Console {

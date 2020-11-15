@@ -1,12 +1,20 @@
+import { Highlight, HighlightClassOptions } from '../../client/src/index';
+
+export type HighlightOptions = {
+    debug?: boolean;
+    scriptUrl?: string;
+    backendUrl?: string;
+};
+
 type HighlightPublicInterface = {
-    init: (orgID: number, debug?: boolean) => void;
+    init: (orgID: number, debug?: HighlightOptions) => void;
     identify: (identify: string, obj: any) => void;
     getSessionURL: () => Promise<string>;
     onHighlightReady: (func: () => void) => void;
 };
 
 interface HighlightWindow extends Window {
-    Highlight: any;
+    Highlight: new (options?: HighlightClassOptions) => Highlight;
     H: HighlightPublicInterface;
     _h_script: string;
 }
@@ -18,12 +26,11 @@ declare var window: HighlightWindow;
 var script: HTMLScriptElement;
 var highlight_obj: any;
 export const H: HighlightPublicInterface = {
-    init: (orgID: number, debug: boolean = false) => {
+    init: (orgID: number, options?: HighlightOptions) => {
         script = document.createElement('script');
-        var scriptSrc =
-            process.env.NODE_ENV === 'development'
-                ? 'http://localhost:8080/index.js'
-                : 'https://static.highlight.run/index.js';
+        var scriptSrc = options?.scriptUrl
+            ? options.scriptUrl
+            : 'https://static.highlight.run/index.js';
         script.setAttribute(
             'src',
             scriptSrc + '?' + new Date().getMilliseconds()
@@ -31,7 +38,10 @@ export const H: HighlightPublicInterface = {
         script.setAttribute('type', 'text/javascript');
         document.getElementsByTagName('head')[0].appendChild(script);
         script.addEventListener('load', () => {
-            highlight_obj = new window.Highlight(debug);
+            highlight_obj = new window.Highlight({
+                debug: options?.debug,
+                backendUrl: options?.backendUrl,
+            });
             highlight_obj.initialize(orgID);
         });
     },
