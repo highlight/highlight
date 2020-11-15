@@ -65,7 +65,7 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
 
 const HtmlInstructions = () => {
     const { loading, error, data = '' } = useFetch<string>(
-        'https://unpkg.com/highlight.run@latest/dist/index.js',
+        'https://unpkg.com/highlight.run@latest',
         {},
         []
     );

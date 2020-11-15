@@ -1,8 +1,8 @@
-name: Firstload
+name: Client
 on:
     push:
         paths:
-            - 'firstload/**'
+            - 'client/**'
 jobs:
     firstload:
         runs-on: ubuntu-latest
@@ -15,13 +15,6 @@ jobs:
                   node-version: 12
                   registry-url: https://registry.npmjs.org
             - name: Install main dependencies
-              run: cd firstload && yarn install
-            - name: Install other dependencies
               run: cd client && yarn install
             - name: Build Bundle
-              run: cd firstload && yarn build
-            - name: Publish
-              if: github.ref == 'refs/heads/master'
-              run: cd firstload && yarn publish --access public
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+              run: cd client && yarn build

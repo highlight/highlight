@@ -5753,6 +5753,11 @@ ws@^6.2.1:
   dependencies:
     async-limiter "~1.0.0"
 
+xhook@^1.4.9:
+  version "1.4.9"
+  resolved "https://registry.yarnpkg.com/xhook/-/xhook-1.4.9.tgz#5ebca6c7f239003c311b746b889081a82e9d4e78"
+  integrity sha512-7uGTRzCO1nMNtzClV0LHSo13vKlr7J9JE6njIMWHDSoub6MLOmam2OgZJESTvGjZpW68gnD69vlRipB6cjM0dg==
+
 xtend@^4.0.0, xtend@~4.0.1:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz#bb72779f5fa465186b1f438f674fa347fdb5db54"

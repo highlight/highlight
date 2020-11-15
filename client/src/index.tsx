@@ -7,8 +7,14 @@ import {
   NormalizedCacheObject,
 } from '@apollo/client/core';
 import { eventWithTime } from 'rrweb/typings/types';
-import { ConsoleMessage, ConsoleListener } from './listeners/console-listener';
+import { ConsoleListener } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
+import { AjaxListener } from './listeners/ajax-listener';
+
+import {
+  ConsoleMessage,
+  NetworkResourceContent,
+} from '../../frontend/src/util/shared-types';
 
 class Logger {
   debug: boolean;
@@ -32,6 +38,7 @@ export class Highlight {
   client: ApolloClient<NormalizedCacheObject>;
   events: eventWithTime[];
   messages: ConsoleMessage[];
+  networkContents: NetworkResourceContent[];
   sessionID: number;
   ready: boolean;
   logger: Logger;
@@ -51,6 +58,7 @@ export class Highlight {
     this.organizationID = 0;
     this.sessionID = 0;
     this.events = [];
+    this.networkContents = [];
     this.messages = [];
   }
 
@@ -193,6 +201,9 @@ Session Data:
       addCustomEvent<string>('Navigate', url);
       highlightThis.addProperties({ 'visited-url': url });
     });
+    AjaxListener((content: NetworkResourceContent) => {
+      highlightThis.networkContents.push(content);
+    });
     ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
     this.ready = true;
   }
@@ -218,6 +229,7 @@ Session Data:
     );
     this.events = [];
     this.messages = [];
+    this.networkContents = [];
     performance.clearResourceTimings();
     await this.client.mutate({
       mutation: gql`

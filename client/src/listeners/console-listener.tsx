@@ -1,8 +1,4 @@
-export type ConsoleMessage = {
-  value: string;
-  time: number;
-  type: string;
-};
+import { ConsoleMessage } from '../../../frontend/src/util/shared-types';
 
 // taken from: https://stackoverflow.com/questions/19846078/how-to-read-from-chromes-console-in-javascript
 export const ConsoleListener = (callback: (c: ConsoleMessage) => void) => {

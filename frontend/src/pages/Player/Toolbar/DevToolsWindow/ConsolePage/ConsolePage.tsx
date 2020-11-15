@@ -4,16 +4,10 @@ import { useParams } from 'react-router-dom';
 import { Element, scroller } from 'react-scroll';
 import { Skeleton } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
+import { ConsoleMessage } from '../../../../../util/shared-types';
 
 import styles from './ConsolePage.module.css';
 import devStyles from '../DevToolsWindow.module.css';
-
-// copied from 'client/src/index.tsx'
-type ConsoleMessage = {
-	value: string;
-	time: number;
-	type: string;
-};
 
 export const ConsolePage = ({ time }: { time: number }) => {
 	const [currentMessage, setCurrentMessage] = useState(-1);
