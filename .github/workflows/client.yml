@@ -4,7 +4,7 @@ on:
         paths:
             - 'client/**'
 jobs:
-    firstload:
+    client:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
