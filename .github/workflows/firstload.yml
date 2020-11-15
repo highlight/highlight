@@ -4,7 +4,7 @@ on:
         paths:
             - 'firstload/**'
 jobs:
-    publish:
+    firstload:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -20,8 +20,6 @@ jobs:
               run: cd client && yarn install
             - name: Build Bundle
               run: cd firstload && yarn build
-            - name: Bundle Size
-              run: ls -l --block-size=K firstload/dist/firstload/src/index.js
             - name: Publish
               if: github.ref == 'refs/heads/master'
               run: cd firstload && yarn publish --access public

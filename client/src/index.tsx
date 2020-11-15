@@ -9,7 +9,7 @@ import {
 import { eventWithTime } from 'rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
-import { FetchListener } from 'listeners/fetch-listener';
+import { FetchListener } from './listeners/fetch-listener';
 
 import {
   ConsoleMessage,
@@ -202,7 +202,8 @@ Session Data:
       highlightThis.addProperties({ 'visited-url': url });
     });
     FetchListener((content: NetworkResourceContent) => {
-      console.log(content);
+      console.log('url: ', content.request?.url);
+      this.networkContents.push(content);
     });
     ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
     this.ready = true;

@@ -1,28 +1,18 @@
-import { NetworkResourceContent } from '../../../frontend/src/util/shared-types';
+import {
+    NetworkResourceContent,
+    HookRequest,
+    HookResponse,
+} from '../../../frontend/src/util/shared-types';
+// @ts-ignore
+import xhook from 'xhook';
 
 export const FetchListener = (
     callback: (r: NetworkResourceContent) => void
 ) => {
-    var res: NetworkResourceContent = { startTime: Date.now() };
-    const highlightFetch = window.fetch;
-    window.fetch = function (url: RequestInfo, body: RequestInit | undefined) {
-        res.url = url.toString();
-        res.request = body;
-        return new Promise(function (this: any, resolve, reject) {
-            highlightFetch
-                .apply(this, arguments as any)
-                .then(async (response) => {
-                    res.response = response.clone();
-                    resolve(response);
-                })
-                .catch((error) => {
-                    res.errorContent = error;
-                    reject(error);
-                })
-                .finally(() => {
-                    res.endTime = Date.now();
-                    callback(res);
-                });
-        });
-    };
+    xhook.after(function (request: HookRequest, response: HookResponse) {
+        var res: NetworkResourceContent = { endTime: Date.now() };
+        res.request = request;
+        res.response = response;
+        callback(res);
+    });
 };

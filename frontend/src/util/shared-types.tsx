@@ -5,12 +5,26 @@ export type ConsoleMessage = {
 };
 
 export type NetworkResourceContent = {
-    startTime: number;
     endTime?: number;
-    url?: string;
-    request?: any;
-    response?: Response;
-    responseBody?: string;
-    // check this field for error.
-    errorContent?: any;
+    request?: HookRequest;
+    response?: HookResponse;
+};
+
+export type HookRequest = {
+    method: string;
+    url: string;
+    body: string;
+    headers: string;
+    timeout: number;
+    type: string;
+    withCredentials: string;
+};
+
+export type HookResponse = {
+    status: string;
+    statusText: string;
+    text: string;
+    headers: string;
+    xml: any;
+    data: any;
 };
