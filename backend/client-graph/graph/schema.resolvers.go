@@ -125,9 +125,9 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		return nil, fmt.Errorf("error decoding resource data: %v", err)
 	}
 	if len(resourcesParsed["resourceContents"]) >= 0 {
-		obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
+		obj := &model.ResourceContentsObject{SessionID: sessionID, ResourceContents: resourceContentsParsed}
 		if err := r.DB.Create(obj).Error; err != nil {
-			return nil, e.Wrap(err, "error creating resources object")
+			return nil, e.Wrap(err, "error creating resource contents object")
 		}
 	}
 	now := float64(time.Now().UTC().Unix())

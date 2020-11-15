@@ -42,7 +42,6 @@ export class Highlight {
   sessionID: number;
   ready: boolean;
   logger: Logger;
-  cache: InMemoryCache;
   backendUrl: string;
 
   constructor(options?: HighlightClassOptions) {
@@ -53,7 +52,6 @@ export class Highlight {
       (options?.backendUrl
         ? options.backendUrl
         : process.env.BACKEND_URI || 'https://api.highlight.run') + '/client';
-    this.cache = new InMemoryCache();
     this.client = new ApolloClient({
       uri: this.backendUrl,
       cache: new InMemoryCache(),
