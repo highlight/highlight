@@ -224,6 +224,9 @@ Session Data:
     const resourcesString = JSON.stringify({ resources: resources });
     const messagesString = JSON.stringify({ messages: this.messages });
     const eventsString = JSON.stringify({ events: this.events });
+    const resourceContentsString = JSON.stringify({
+      resourceContents: this.networkContents,
+    });
     this.logger.log(
       `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
     );
@@ -252,6 +255,7 @@ Session Data:
         events: eventsString,
         messages: messagesString,
         resources: resourcesString,
+        resourceContents: resourceContentsString,
       },
     });
   }

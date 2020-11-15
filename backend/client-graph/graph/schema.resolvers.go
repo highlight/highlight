@@ -85,7 +85,7 @@ func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, pro
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, resourceContents string) (*int, error) {
 	eventsParsed := make(map[string][]interface{})
 	// unmarshal events
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
