@@ -119,6 +119,17 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
+	// unmarshal resource contents
+	resourceContentsParsed := make(map[string][]interface{})
+	if err := json.Unmarshal([]byte(resourceContents), &resourceContentsParsed); err != nil {
+		return nil, fmt.Errorf("error decoding resource data: %v", err)
+	}
+	if len(resourcesParsed["resourceContents"]) >= 0 {
+		obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
+		if err := r.DB.Create(obj).Error; err != nil {
+			return nil, e.Wrap(err, "error creating resources object")
+		}
+	}
 	now := float64(time.Now().UTC().Unix())
 	member := &redis.Z{Score: now, Member: sessionID}
 	if err := r.Redis.ZAdd(ctx, "sessions", member).Err(); err != nil {

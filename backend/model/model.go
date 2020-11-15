@@ -85,6 +85,12 @@ type Field struct {
 	Sessions       []Session `gorm:"many2many:session_fields;"`
 }
 
+type ResourceContentsObject struct {
+	Model
+	SessionID        int
+	ResourceContents string
+}
+
 type ResourcesObject struct {
 	Model
 	SessionID int

@@ -42,17 +42,31 @@ export class Highlight {
   sessionID: number;
   ready: boolean;
   logger: Logger;
+  cache: InMemoryCache;
+  backendUrl: string;
 
   constructor(options?: HighlightClassOptions) {
     // If debug is set to false, disable all console
     this.ready = false;
     this.logger = new Logger(options?.debug ?? false);
-    const backend = options?.backendUrl
-      ? options.backendUrl
-      : process.env.BACKEND_URI;
+    this.backendUrl =
+      (options?.backendUrl
+        ? options.backendUrl
+        : process.env.BACKEND_URI || 'https://api.highlight.run') + '/client';
+    this.cache = new InMemoryCache();
     this.client = new ApolloClient({
-      uri: `${backend}/client`,
+      uri: this.backendUrl,
       cache: new InMemoryCache(),
+      defaultOptions: {
+        watchQuery: {
+          fetchPolicy: 'no-cache',
+          errorPolicy: 'ignore',
+        },
+        query: {
+          fetchPolicy: 'no-cache',
+          errorPolicy: 'all',
+        },
+      },
       credentials: 'include',
     });
     this.organizationID = 0;
@@ -202,7 +216,11 @@ Session Data:
       highlightThis.addProperties({ 'visited-url': url });
     });
     AjaxListener((content: NetworkResourceContent) => {
-      highlightThis.networkContents.push(content);
+      const url = content.request?.url;
+      // size of content in megabytes.
+      if (!url?.includes(this.backendUrl)) {
+        highlightThis.networkContents.push(content);
+      }
     });
     ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
     this.ready = true;
@@ -215,12 +233,7 @@ Session Data:
     }
     const resources = performance
       .getEntriesByType('resource')
-      .filter(
-        (r) =>
-          !r.name.includes(
-            process.env.BACKEND_URI ?? 'https://api.highlight.run'
-          )
-      );
+      .filter((r) => !r.name.includes(this.backendUrl));
     const resourcesString = JSON.stringify({ resources: resources });
     const messagesString = JSON.stringify({ messages: this.messages });
     const eventsString = JSON.stringify({ events: this.events });
@@ -228,7 +241,7 @@ Session Data:
       resourceContents: this.networkContents,
     });
     this.logger.log(
-      `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
+      `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} resources, ${this.networkContents.length} resources contents \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
     );
     this.events = [];
     this.messages = [];
@@ -241,12 +254,14 @@ Session Data:
           $events: String!
           $messages: String!
           $resources: String!
+          $resourceContents: String!
         ) {
           pushPayload(
             session_id: $session_id
             events: $events
             messages: $messages
             resources: $resources
+            resourceContents: $resourceContents
           )
         }
       `,
