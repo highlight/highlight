@@ -1,5 +1,8 @@
 name: Firstload
-on: push
+on:
+    push:
+        paths:
+            - 'firstload/**'
 jobs:
     publish:
         runs-on: ubuntu-latest
