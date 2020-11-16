@@ -7,9 +7,9 @@ import { Modal, message } from 'antd';
 import { ReactComponent as Close } from '../../../../../../static/close.svg';
 import { ExpandedResourceContext } from '../ResourceContentsContext/ResourceContentsContext';
 
-import styles from './ResourceContents.module.css';
+import styles from './ResourceRow.module.css';
 
-export const ResourceContents = ({
+export const ResourceRow = ({
     current,
     resource,
     range,

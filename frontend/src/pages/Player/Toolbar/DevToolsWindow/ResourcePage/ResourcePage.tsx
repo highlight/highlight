@@ -4,7 +4,7 @@ import { useParams } from 'react-router-dom';
 import { Option, DevToolsSelect } from '../Option/Option';
 import { scroller, Element } from 'react-scroll';
 import { Skeleton } from 'antd';
-import { ResourceContents } from './ResourceContents/ResourceContents';
+import { ResourceRow } from './ResourceRow/ResourceRow';
 import { ExpandedResourceContext } from './ResourceContentsContext/ResourceContentsContext';
 import { ResourceModal } from './ResourceModal/ResourceModal';
 
@@ -162,7 +162,7 @@ export const ResourcePage = ({
                                             name={p.id.toString()}
                                             key={p.id.toString()}
                                         >
-                                            <ResourceContents
+                                            <ResourceRow
                                                 current={isCurrent}
                                                 resource={p}
                                                 range={networkRange}
