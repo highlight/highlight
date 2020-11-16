@@ -164,7 +164,22 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 }
 
 func (r *queryResolver) ResourceContents(ctx context.Context, sessionID int) ([]interface{}, error) {
-	panic(fmt.Errorf("not implemented"))
+	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	resourceContentsObject := []*model.ResourceContentsObject{}
+	if res := r.DB.Order("created_at desc").Where(&model.ResourceContentsObject{SessionID: sessionID}).Find(&resourceContentsObject); res.Error != nil {
+		return nil, fmt.Errorf("error reading from resources: %v", res.Error)
+	}
+	allResourceContents := make(map[string][]interface{})
+	for _, resourceContentsObj := range resourceContentsObject {
+		subResourceContents := make(map[string][]interface{})
+		if err := json.Unmarshal([]byte(resourceContentsObj.ResourceContents), &subResourceContents); err != nil {
+			return nil, fmt.Errorf("error decoding resource content data: %v", err)
+		}
+		allResourceContents["resourceContents"] = append(subResourceContents["resources"], allResourceContents["resourceContents"]...)
+	}
+	return allResourceContents["resourceContents"], nil
 }
 
 func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*model.Admin, error) {

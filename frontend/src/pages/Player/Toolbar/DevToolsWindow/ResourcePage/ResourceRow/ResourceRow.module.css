@@ -1,0 +1,48 @@
+.timingBarWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.timingBarEmptySection {
+    background-color: white;
+}
+
+.timingBar {
+    height: 60%;
+    background-color: #5629c6;
+    border-radius: 4px;
+}
+
+.nameSection {
+    white-space: nowrap;
+    cursor: pointer;
+    overflow: hidden;
+    width: 180px;
+    text-overflow: ellipsis;
+}
+
+.typeSection {
+    white-space: nowrap;
+    overflow: hidden;
+    width: 110px;
+    text-overflow: ellipsis;
+}
+
+.networkRow {
+    color: #808080;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 130px 200px 80px 1fr;
+    padding-left: 25px;
+    padding-right: 25px;
+    padding-bottom: 4px;
+    padding-top: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.networkRow:hover {
+    background-color: #f2eefb;
+}

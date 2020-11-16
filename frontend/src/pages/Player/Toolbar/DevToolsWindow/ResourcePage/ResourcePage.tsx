@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
-import { Tooltip } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
 import { scroller, Element } from 'react-scroll';
 import { Skeleton } from 'antd';
+import { ResourceContents } from './ResourceContents/ResourceContents';
+import { ExpandedResourceContext } from './ResourceContentsContext/ResourceContentsContext';
+import { ResourceModal } from './ResourceModal/ResourceModal';
 
 import devStyles from '../DevToolsWindow.module.css';
 import styles from './ResourcePage.module.css';
+import { Modal, message } from 'antd';
 
 export const ResourcePage = ({
     time,
@@ -18,6 +21,9 @@ export const ResourcePage = ({
 }) => {
     const { session_id } = useParams<{ session_id: string }>();
     const [options, setOptions] = useState<Array<string>>([]);
+    const [expandedResource, setExpandedResource] = useState<
+        undefined | PerformanceResourceTiming
+    >(undefined);
     const [currentOption, setCurrentOption] = useState('All');
     const [currentResource, setCurrentResource] = useState(0);
     const [networkRange, setNetworkRange] = useState(0);
@@ -109,7 +115,10 @@ export const ResourcePage = ({
     }, [currentResources, startTime, time, currentResource]);
 
     return (
-        <>
+        <ExpandedResourceContext.Provider
+            value={{ expandedResource, setExpandedResource }}
+        >
+            {expandedResource && <ResourceModal />}
             <div className={devStyles.topBar}>
                 <div className={devStyles.optionsWrapper}>
                     {options.map((o: string) => {
@@ -147,89 +156,17 @@ export const ResourcePage = ({
                                         id: number;
                                     }
                                 ) => {
-                                    const leftPaddingPercent =
-                                        (p.startTime / networkRange) * 100;
-                                    const actualPercent = Math.max(
-                                        ((p.responseEnd - p.startTime) /
-                                            networkRange) *
-                                            100,
-                                        0.1
-                                    );
-                                    const rightPaddingPercent =
-                                        100 -
-                                        actualPercent -
-                                        leftPaddingPercent;
+                                    const isCurrent = p.id === currentResource;
                                     return (
                                         <Element
                                             name={p.id.toString()}
                                             key={p.id.toString()}
                                         >
-                                            <div
-                                                style={{
-                                                    color:
-                                                        p.id === currentResource
-                                                            ? 'black'
-                                                            : '#808080',
-                                                    fontWeight:
-                                                        p.id === currentResource
-                                                            ? 400
-                                                            : 300,
-                                                }}
-                                                className={styles.networkRow}
-                                            >
-                                                <div
-                                                    className={
-                                                        styles.typeSection
-                                                    }
-                                                >
-                                                    {p.initiatorType}
-                                                </div>
-                                                <Tooltip title={p.name}>
-                                                    <div
-                                                        className={
-                                                            styles.nameSection
-                                                        }
-                                                    >
-                                                        {p.name}
-                                                    </div>
-                                                </Tooltip>
-                                                <div>
-                                                    {(
-                                                        p.responseEnd -
-                                                        p.startTime
-                                                    ).toFixed(2)}
-                                                </div>
-                                                <div
-                                                    className={
-                                                        styles.timingBarWrapper
-                                                    }
-                                                >
-                                                    <div
-                                                        style={{
-                                                            width: `${leftPaddingPercent}%`,
-                                                        }}
-                                                        className={
-                                                            styles.timingBarEmptySection
-                                                        }
-                                                    />
-                                                    <div
-                                                        className={
-                                                            styles.timingBar
-                                                        }
-                                                        style={{
-                                                            width: `${actualPercent}%`,
-                                                        }}
-                                                    />
-                                                    <div
-                                                        style={{
-                                                            width: `${rightPaddingPercent}%`,
-                                                        }}
-                                                        className={
-                                                            styles.timingBarEmptySection
-                                                        }
-                                                    />
-                                                </div>
-                                            </div>
+                                            <ResourceContents
+                                                current={isCurrent}
+                                                resource={p}
+                                                range={networkRange}
+                                            />
                                         </Element>
                                     );
                                 }
@@ -242,6 +179,6 @@ export const ResourcePage = ({
                     </div>
                 )}
             </div>
-        </>
+        </ExpandedResourceContext.Provider>
     );
 };
