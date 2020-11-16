@@ -13,7 +13,6 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -162,6 +161,10 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 		allResources["resources"] = append(subResources["resources"], allResources["resources"]...)
 	}
 	return allResources["resources"], nil
+}
+
+func (r *queryResolver) ResourceContents(ctx context.Context, sessionID int) ([]interface{}, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*model.Admin, error) {
