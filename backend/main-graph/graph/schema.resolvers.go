@@ -13,8 +13,10 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
+
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -171,13 +173,15 @@ func (r *queryResolver) ResourceContents(ctx context.Context, sessionID int) ([]
 	if res := r.DB.Order("created_at desc").Where(&model.ResourceContentsObject{SessionID: sessionID}).Find(&resourceContentsObject); res.Error != nil {
 		return nil, fmt.Errorf("error reading from resources: %v", res.Error)
 	}
+	pp.Println(resourceContentsObject)
+
 	allResourceContents := make(map[string][]interface{})
 	for _, resourceContentsObj := range resourceContentsObject {
 		subResourceContents := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(resourceContentsObj.ResourceContents), &subResourceContents); err != nil {
 			return nil, fmt.Errorf("error decoding resource content data: %v", err)
 		}
-		allResourceContents["resourceContents"] = append(subResourceContents["resources"], allResourceContents["resourceContents"]...)
+		allResourceContents["resourceContents"] = append(subResourceContents["resourceContents"], allResourceContents["resourceContents"]...)
 	}
 	return allResourceContents["resourceContents"], nil
 }

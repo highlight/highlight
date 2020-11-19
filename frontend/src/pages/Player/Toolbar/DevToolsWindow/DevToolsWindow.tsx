@@ -17,7 +17,7 @@ export const DevToolsWindow = ({
     startTime: number;
 }) => {
     const { openDevTools } = useContext(OpenDevToolsContext);
-    const [isConsole, setIsConsole] = useState(true);
+    const [isConsole, setIsConsole] = useState(false);
     return (
         <IsConsoleContext.Provider value={{ isConsole, setIsConsole }}>
             {openDevTools ? (

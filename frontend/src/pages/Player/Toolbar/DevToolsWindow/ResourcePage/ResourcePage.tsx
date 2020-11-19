@@ -118,7 +118,7 @@ export const ResourcePage = ({
         <ExpandedResourceContext.Provider
             value={{ expandedResource, setExpandedResource }}
         >
-            {expandedResource && <ResourceModal />}
+            {expandedResource ? <ResourceModal /> : <></>}
             <div className={devStyles.topBar}>
                 <div className={devStyles.optionsWrapper}>
                     {options.map((o: string) => {

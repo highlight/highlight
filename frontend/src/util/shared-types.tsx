@@ -28,3 +28,7 @@ export type HookResponse = {
     xml: any;
     data: any;
 };
+
+export type NetworkResourceTiming = PerformanceResourceTiming & {
+    absoluteStart: number;
+};

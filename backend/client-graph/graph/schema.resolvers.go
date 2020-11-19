@@ -11,6 +11,7 @@ import (
 
 	redis "github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
+
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 )
@@ -124,7 +125,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if err := json.Unmarshal([]byte(resourceContents), &resourceContentsParsed); err != nil {
 		return nil, fmt.Errorf("error decoding resource data: %v", err)
 	}
-	if len(resourcesParsed["resourceContents"]) >= 0 {
+	if len(resourceContentsParsed["resourceContents"]) >= 0 {
 		obj := &model.ResourceContentsObject{SessionID: sessionID, ResourceContents: resourceContents}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating resource contents object")

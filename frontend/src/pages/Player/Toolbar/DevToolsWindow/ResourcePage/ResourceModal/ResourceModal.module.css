@@ -1,0 +1,39 @@
+.title {
+    font-weight: 400;
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.subTitle {
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.modalContainer {
+    padding: 15px 20px 15px 20px;
+}
+
+.detailsRow {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    margin-bottom: 5px;
+}
+
+.detailsContainer {
+    margin-top: 10px;
+    margin-bottom: 15px;
+    background-color: #f9f9f9;
+    padding: 14px;
+    border-radius: 8px;
+}
+
+.detailsKey {
+    color: #9c9c9c;
+    font-weight: 400;
+}
+
+.detailsValue {
+    color: black;
+    overflow-x: auto;
+    word-break: break-all;
+}
