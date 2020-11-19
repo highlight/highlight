@@ -29,6 +29,7 @@ if (dev) {
     options.backendUrl = 'http://localhost:8082';
 }
 H.init(3, options);
+H.start();
 
 Sentry.init({
     dsn:
