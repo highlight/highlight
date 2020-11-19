@@ -4536,10 +4536,17 @@ debug@4, debug@^4.1.0, debug@^4.1.1:
   dependencies:
     ms "2.1.2"
 
-debug@^3.1.1, debug@^3.2.5, debug@^3.2.6:
+debug@^3.1.1, debug@^3.2.5:
   version "3.2.6"
   resolved "https://registry.yarnpkg.com/debug/-/debug-3.2.6.tgz#e83d17de16d8a7efb7717edbe5fb10135eee629b"
   integrity sha512-mel+jf7nrtEl5Pn1Qx46zARXKDpBbvzezse7p7LqINmdoIk8PYP5SySaxEmYv6TZ0JyEKA1hsCId6DIhgITtWQ==
+  dependencies:
+    ms "^2.1.1"
+
+debug@^3.2.6:
+  version "3.2.7"
+  resolved "https://registry.yarnpkg.com/debug/-/debug-3.2.7.tgz#72580b7e9145fb39b6676f9c5e5fb100b934179a"
+  integrity sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==
   dependencies:
     ms "^2.1.1"
 
@@ -6241,9 +6248,9 @@ hex-color-regex@^1.1.0:
   integrity sha512-l9sfDFsuqtOqKDsQdqrMRk0U85RZc0RtOR9yPI7mRVOa4FsR/BVnZ0shmQRM96Ji99kYZP/7hn1cedc1+ApsTQ==
 
 highlight.run@^1.0.26:
-  version "1.0.39"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.39.tgz#64345617c2f2130a59b2335e85eafd0e1711f7d4"
-  integrity sha512-OOe84kDkHfH2TZf3iUnOVtXA1SVXHGCpHr3pIv6PFpSo401Q8O3D7eIAi7Deq5tsIoRzTsuO5jMu6Jc/Ths/hA==
+  version "1.0.40"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.40.tgz#08cdbf9fe8d92865250b830142693a716b07378a"
+  integrity sha512-YU0/O/m0wNw7kjfL4apBPXcIRSVyEGTqggUpB8o83jQKR/q8ytemqTLlZi2+Ucy6WoOnyTydl/g0TUtjeAYDJw==
   dependencies:
     nodemon "^2.0.6"
 
