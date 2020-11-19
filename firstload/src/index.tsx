@@ -4,13 +4,16 @@ export type HighlightOptions = {
     debug?: boolean;
     scriptUrl?: string;
     backendUrl?: string;
+    manualStart?: boolean;
 };
 
 type HighlightPublicInterface = {
     init: (orgID: number, debug?: HighlightOptions) => void;
     identify: (identify: string, obj: any) => void;
     getSessionURL: () => Promise<string>;
+    start: () => void;
     onHighlightReady: (func: () => void) => void;
+    options: HighlightOptions | undefined;
 };
 
 interface HighlightWindow extends Window {
@@ -24,9 +27,11 @@ const HIGHLIGHT_URL = 'app.highlight.run';
 declare var window: HighlightWindow;
 
 var script: HTMLScriptElement;
-var highlight_obj: any;
+var highlight_obj: Highlight;
 export const H: HighlightPublicInterface = {
+    options: undefined,
     init: (orgID: number, options?: HighlightOptions) => {
+        H.options = options;
         script = document.createElement('script');
         var scriptSrc = options?.scriptUrl
             ? options.scriptUrl
@@ -39,11 +44,28 @@ export const H: HighlightPublicInterface = {
         document.getElementsByTagName('head')[0].appendChild(script);
         script.addEventListener('load', () => {
             highlight_obj = new window.Highlight({
+                organizationID: orgID,
                 debug: options?.debug,
                 backendUrl: options?.backendUrl,
             });
-            highlight_obj.initialize(orgID);
+            if (!options?.manualStart) {
+                highlight_obj.initialize();
+            }
         });
+    },
+    start: () => {
+        if (H.options?.manualStart) {
+            var interval = setInterval(function () {
+                if (highlight_obj) {
+                    clearInterval(interval);
+                    highlight_obj.initialize();
+                }
+            }, 200);
+        } else {
+            console.warn(
+                "Highlight Error: Can't call `start()` without setting `manualStart` option in `H.init`"
+            );
+        }
     },
     identify: (identifier: string, obj: any) => {
         H.onHighlightReady(() => highlight_obj.identify(identifier, obj));

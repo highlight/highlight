@@ -29,6 +29,7 @@ class Logger {
 }
 
 export type HighlightClassOptions = {
+  organizationID: number;
   debug?: boolean;
   backendUrl?: string;
 };
@@ -43,11 +44,11 @@ export class Highlight {
   ready: boolean;
   logger: Logger;
 
-  constructor(options?: HighlightClassOptions) {
-    // If debug is set to false, disable all console
+  constructor(options: HighlightClassOptions) {
+    // If debug is set to false, disable all console logs.
     this.ready = false;
-    this.logger = new Logger(options?.debug ?? false);
-    const backend = options?.backendUrl
+    this.logger = new Logger(options.debug ?? false);
+    const backend = options.backendUrl
       ? options.backendUrl
       : process.env.BACKEND_URI;
     this.client = new ApolloClient({
@@ -55,7 +56,7 @@ export class Highlight {
       cache: new InMemoryCache(),
       credentials: 'include',
     });
-    this.organizationID = 0;
+    this.organizationID = options.organizationID;
     this.sessionID = 0;
     this.events = [];
     this.networkContents = [];
@@ -112,13 +113,8 @@ export class Highlight {
     );
   }
 
-  async initialize(organizationID: number) {
+  async initialize() {
     const browser = detect();
-    if (!organizationID) {
-      console.error('empty organization_id!');
-      return;
-    }
-    this.organizationID = organizationID;
     let response = await fetch(`https://geolocation-db.com/json/`);
     let data = await response.json();
     let details = JSON.stringify({ ...data, browser });
