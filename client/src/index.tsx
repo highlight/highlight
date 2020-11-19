@@ -45,10 +45,10 @@ export class Highlight {
   logger: Logger;
 
   constructor(options: HighlightClassOptions) {
-    // If debug is set to false, disable all console
+    // If debug is set to false, disable all console logs.
     this.ready = false;
-    this.logger = new Logger(options?.debug ?? false);
-    const backend = options?.backendUrl
+    this.logger = new Logger(options.debug ?? false);
+    const backend = options.backendUrl
       ? options.backendUrl
       : process.env.BACKEND_URI;
     this.client = new ApolloClient({
@@ -56,7 +56,7 @@ export class Highlight {
       cache: new InMemoryCache(),
       credentials: 'include',
     });
-    this.organizationID = options?.organizationID;
+    this.organizationID = options.organizationID;
     this.sessionID = 0;
     this.events = [];
     this.networkContents = [];
