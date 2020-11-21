@@ -6,12 +6,16 @@ import (
 	"net/http"
 
 	"firebase.google.com/go/auth"
+	"github.com/k0kubun/pp"
 
 	firebase "firebase.google.com/go"
 	e "github.com/pkg/errors"
 )
 
-var AuthClient *auth.Client
+var (
+	AuthClient *auth.Client
+	DemoHeader string = "Highlight-Demo"
+)
 
 func init() {
 	app, err := firebase.NewApp(context.Background(), nil)
@@ -26,14 +30,21 @@ func init() {
 
 func AdminMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("token")
-		t, err := AuthClient.VerifyIDToken(context.Background(), token)
-		if err != nil {
-			http.Error(w, e.Wrap(err, "invalid id token").Error(), http.StatusInternalServerError)
-			return
+		// If we're on a demo domain, we have some special logic.
+		var uid string
+		pp.Println(r.Header.Get(DemoHeader))
+		if r.Header.Get(DemoHeader) == "true" {
+			uid = "demo"
+		} else {
+			token := r.Header.Get("token")
+			t, err := AuthClient.VerifyIDToken(context.Background(), token)
+			if err != nil {
+				http.Error(w, e.Wrap(err, "invalid id token").Error(), http.StatusInternalServerError)
+				return
+			}
+			uid = t.UID
 		}
-
-		ctx := context.WithValue(r.Context(), "uid", t.UID)
+		ctx := context.WithValue(r.Context(), "uid", uid)
 		next(w, r.WithContext(ctx))
 	}
 }

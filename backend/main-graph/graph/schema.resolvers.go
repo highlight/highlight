@@ -42,9 +42,8 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 }
 
 func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error) {
-	org := &model.Organization{}
-	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
 	var secret string
@@ -73,7 +72,7 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 
 	from := mail.NewEmail("Highlight", "notifications@highlight.run")
 	message := mail.NewSingleEmail(from, subject, to, content, fmt.Sprintf("<p>%v</p>", content))
-	_, err := r.MailClient.Send(message)
+	_, err = r.MailClient.Send(message)
 	if err != nil {
 		return nil, fmt.Errorf("error sending sendgrid email: %v", err)
 	}
@@ -127,6 +126,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
+
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}

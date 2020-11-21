@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import {
     Replayer,
@@ -20,9 +20,11 @@ import { StaticMap, buildStaticMap } from './StaticMap/StaticMap';
 import useResizeAware from 'react-resize-aware';
 import styles from './PlayerPage.module.css';
 import 'rc-slider/assets/index.css';
+import { DemoContext } from '../../DemoContext';
 
 export const Player = () => {
-    const { session_id } = useParams();
+    var { session_id } = useParams();
+    const { demo } = useContext(DemoContext);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [time, setTime] = useState(0);
     const [resizeListener, sizes] = useResizeAware();
@@ -40,8 +42,16 @@ export const Player = () => {
                 events(session_id: $session_id)
             }
         `,
-        { variables: { session_id } }
+        {
+            variables: {
+                session_id: demo
+                    ? process.env.REACT_APP_DEMO_SESSION
+                    : session_id,
+            },
+            context: { headers: { 'Highlight-Demo': demo } },
+        }
     );
+    console.log(process.env.REACT_APP_DEMO_SESSION);
 
     const resizePlayer = (replayer: Replayer): boolean => {
         const width = replayer?.wrapper?.getBoundingClientRect().width;

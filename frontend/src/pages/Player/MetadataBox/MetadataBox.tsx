@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
 import { Skeleton } from 'antd';
 import { Avatar } from '../../../components/Avatar/Avatar';
 
 import styles from './MetadataBox.module.css';
+import { DemoContext } from '../../../DemoContext';
 
 export const MetadataBox = () => {
     const { session_id } = useParams();
+    const { demo } = useContext(DemoContext);
     const { loading, error, data } = useQuery<{
         session: {
             details: any;
@@ -28,7 +30,12 @@ export const MetadataBox = () => {
                 }
             }
         `,
-        { variables: { id: session_id } }
+        {
+            variables: {
+                id: demo ? process.env.REACT_APP_DEMO_SESSION : session_id,
+            },
+            context: { headers: { 'Highlight-Demo': demo } },
+        }
     );
     const created = new Date(data?.session.created_at ?? 0);
     var details: any = {};
