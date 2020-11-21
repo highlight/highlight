@@ -103,7 +103,7 @@ func main() {
 	handler := cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
-		AllowedHeaders:         []string{"Content-Type", "Token", "Sentry-Trace"},
+		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
 	}).Handler(mux)
 
 	w := &worker.Worker{R: main}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { Element, scroller } from 'react-scroll';
@@ -8,10 +8,12 @@ import { ConsoleMessage } from '../../../../../util/shared-types';
 
 import styles from './ConsolePage.module.css';
 import devStyles from '../DevToolsWindow.module.css';
+import { DemoContext } from '../../../../../DemoContext';
 
 export const ConsolePage = ({ time }: { time: number }) => {
 	const [currentMessage, setCurrentMessage] = useState(-1);
 	const [options, setOptions] = useState<Array<string>>([]);
+	const { demo } = useContext(DemoContext);
 	const [parsedMessages, setParsedMessages] = useState<
 		undefined | Array<ConsoleMessage & { selected?: boolean; id: number }>
 	>([]);
@@ -22,11 +24,18 @@ export const ConsolePage = ({ time }: { time: number }) => {
 		{ session_id: string }
 	>(
 		gql`
-			query GetEvents($session_id: ID!) {
+			query GetMessages($session_id: ID!) {
 				messages(session_id: $session_id)
 			}
 		`,
-		{ variables: { session_id } }
+		{
+			variables: {
+				session_id: demo
+					? process.env.REACT_APP_DEMO_SESSION ?? ''
+					: session_id,
+			},
+			context: { headers: { 'Highlight-Demo': demo } },
+		}
 	);
 
 	const rawMessages = data?.messages;

@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -20,6 +21,7 @@ import (
 
 var (
 	WhitelistedUID = "GoDjf1dw7GVLJQrCHht03NsCdWb2"
+	DemoSession    = os.Getenv("DEMO_SESSION")
 )
 
 type Resolver struct {
@@ -39,7 +41,7 @@ func profile(msg string, fid int, t time.Time) time.Time {
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
 	uid := fmt.Sprintf("%v", ctx.Value("uid"))
 	// If the user is me (jaykhatrimail@gmail.com) or is the getmosaic.io account, whitelist.
-	if uid == WhitelistedUID || org_id == 15 {
+	if uid == WhitelistedUID {
 		org := &model.Organization{}
 		res := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org)
 		if err := res.Error; err != nil || res.RecordNotFound() {
@@ -64,6 +66,10 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error querying session")
+	}
+	// This returns true if its the Whitelisted Session.
+	if strconv.Itoa(session_id) == DemoSession {
+		return session, nil
 	}
 	_, err := r.isAdminInOrganization(ctx, session.OrganizationID)
 	if err != nil {
