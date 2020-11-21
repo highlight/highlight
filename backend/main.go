@@ -104,7 +104,6 @@ func main() {
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
-		Debug:                  true,
 	}).Handler(mux)
 
 	w := &worker.Worker{R: main}
