@@ -51,8 +51,6 @@ export const Player = () => {
             context: { headers: { 'Highlight-Demo': demo } },
         }
     );
-    console.log(process.env.REACT_APP_DEMO_SESSION);
-
     const resizePlayer = (replayer: Replayer): boolean => {
         const width = replayer?.wrapper?.getBoundingClientRect().width;
         const height = replayer?.wrapper?.getBoundingClientRect().height;
