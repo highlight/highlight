@@ -18,7 +18,7 @@ export const Header = () => {
         <div className={styles.header}>
             <Link
                 className={styles.logoWrapper}
-                to={`/${organization_id}/sessions`}
+                to={demo ? '/' : `/${organization_id}/sessions`}
             >
                 <HighlightLogoSmall className={styles.logo} />
                 <span style={{ fontSize: 22, fontWeight: 400 }}>Highlight</span>
