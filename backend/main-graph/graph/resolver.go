@@ -67,8 +67,7 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error querying session")
 	}
-	pp.Println("session id", session_id)
-	pp.Println("demo session id", DemoSession)
+	// This returns true if its the Whitelisted Session.
 	if strconv.Itoa(session_id) == DemoSession {
 		return session, nil
 	}

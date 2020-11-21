@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"firebase.google.com/go/auth"
-	"github.com/k0kubun/pp"
 
 	firebase "firebase.google.com/go"
 	e "github.com/pkg/errors"
@@ -32,10 +31,7 @@ func AdminMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// If we're on a demo domain, we have some special logic.
 		var uid string
-		pp.Println(r.Header.Get(DemoHeader))
-		if r.Header.Get(DemoHeader) == "true" {
-			uid = "demo"
-		} else {
+		if r.Header.Get(DemoHeader) != "true" {
 			token := r.Header.Get("token")
 			t, err := AuthClient.VerifyIDToken(context.Background(), token)
 			if err != nil {
