@@ -113,7 +113,8 @@ export class Highlight {
     );
   }
 
-  async initialize() {
+  // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
+  async initialize(organization_id?: number) {
     const browser = detect();
     let response = await fetch(`https://geolocation-db.com/json/`);
     let data = await response.json();

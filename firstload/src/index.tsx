@@ -49,7 +49,7 @@ export const H: HighlightPublicInterface = {
                 backendUrl: options?.backendUrl,
             });
             if (!options?.manualStart) {
-                highlight_obj.initialize();
+                highlight_obj.initialize(orgID);
             }
         });
     },
