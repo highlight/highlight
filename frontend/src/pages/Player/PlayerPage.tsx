@@ -51,43 +51,50 @@ export const Player = () => {
             context: { headers: { 'Highlight-Demo': demo } },
         }
     );
-
-    useEffect(() => {
-        const { height: targetHeight, width: targetWidth } = sizes;
+    const resizePlayer = (replayer: Replayer): boolean => {
         const width = replayer?.wrapper?.getBoundingClientRect().width;
         const height = replayer?.wrapper?.getBoundingClientRect().height;
-        // const targetWidth = playerWrapperRef.current?.clientWidth;
-        // const targetHeight = playerWrapperRef.current?.clientHeight;
+        const targetWidth = playerWrapperRef.current?.clientWidth;
+        const targetHeight = playerWrapperRef.current?.clientHeight;
         if (!width || !targetWidth || !height || !targetHeight) {
-            return;
+            return false;
         }
-        console.log('height/width', height, width);
-        console.log(
-            'wrapper height/width',
-            targetHeight - 80,
-            targetWidth - 80
-        );
         const widthScale = (targetWidth - 80) / width;
         const heightScale = (targetHeight - 80) / height;
         const scale = Math.min(heightScale, widthScale);
-        console.log('scale', scale);
         const endHeight = (targetHeight - height * scale) / 2;
         const endWidth = (targetWidth - width * scale) / 2;
-        if (Math.round(scale * 10) / 10 !== 1) {
-            replayer?.wrapper?.setAttribute(
-                'style',
-                `
-        transform: scale(${replayerScale * scale});
-        top: ${endHeight}px;
-        left: ${endWidth}px;
-        `
-            );
-        }
+        replayer?.wrapper?.setAttribute(
+            'style',
+            `
+      transform: scale(${replayerScale * scale});
+      top: ${endHeight}px;
+      left: ${endWidth}px;
+      `
+        );
         setReplayerScale((s) => {
             return s * scale;
         });
         setPlayerLoading(false);
-    }, [sizes, replayer, replayer?.wrapper.getBoundingClientRect()]);
+        return true;
+    };
+
+    // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
+    useEffect(() => {
+        const i = window.setInterval(() => {
+            if (replayer && resizePlayer(replayer)) {
+                clearInterval(i);
+            }
+        }, 200);
+        return () => {
+            i && clearInterval(i);
+        };
+    }, [resizePlayer, replayer]);
+
+    // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
+    useEffect(() => {
+        replayer && resizePlayer(replayer);
+    }, [sizes, replayer]);
 
     useEffect(() => {
         if (sessionData?.events?.length ?? 0 > 1) {
@@ -100,12 +107,6 @@ export const Player = () => {
                 root: document.getElementById('player') as HTMLElement,
                 UNSAFE_replayCanvas: true,
             });
-            r?.wrapper?.setAttribute(
-                'style',
-                `
-        transform: scale(${replayerScale});
-        `
-            );
             setEvents(newEvents);
             setReplayer(r);
             r.getTimeOffset();
@@ -119,12 +120,12 @@ export const Player = () => {
     return (
         <div className={styles.playerBody}>
             <div className={styles.playerLeftSection}>
-                <div
-                    className={styles.rrwebPlayerSection}
-                    style={{ position: 'relative' }}
-                >
-                    {resizeListener}
-                    <div className={styles.rrwebPlayerWrapper}>
+                <div className={styles.rrwebPlayerSection}>
+                    <div
+                        className={styles.rrwebPlayerWrapper}
+                        ref={playerWrapperRef}
+                    >
+                        {resizeListener}
                         <div
                             style={{
                                 visibility: playerLoading
@@ -143,9 +144,7 @@ export const Player = () => {
                         replayer?.pause(newTime);
                         setTime(newTime);
                     }}
-                    onResize={() => {
-                        // replayer && resizePlayer(replayer);
-                    }}
+                    onResize={() => replayer && resizePlayer(replayer)}
                 />
             </div>
             <div className={styles.playerRightSection}>

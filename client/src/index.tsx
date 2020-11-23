@@ -44,16 +44,18 @@ export class Highlight {
   sessionID: number;
   ready: boolean;
   logger: Logger;
+  backendUrl: string;
 
   constructor(options: HighlightClassOptions) {
     // If debug is set to false, disable all console logs.
     this.ready = false;
-    this.logger = new Logger(options.debug ?? false);
-    const backend = options.backendUrl
-      ? options.backendUrl
-      : process.env.BACKEND_URI;
+    this.logger = new Logger(options?.debug ?? false);
+    this.backendUrl =
+      (options?.backendUrl
+        ? options.backendUrl
+        : process.env.BACKEND_URI || 'https://api.highlight.run') + '/client';
     this.client = new ApolloClient({
-      uri: backend,
+      uri: this.backendUrl,
       cache: new InMemoryCache(),
       defaultOptions: {
         watchQuery: {
