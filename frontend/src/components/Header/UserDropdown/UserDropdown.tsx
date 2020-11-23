@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 
 import { Dropdown, Skeleton } from 'antd';
 import { useQuery, gql } from '@apollo/client';
@@ -8,19 +8,24 @@ import { client } from '../../../util/graph';
 import { FiLogOut } from 'react-icons/fi';
 
 import styles from './UserDropdown.module.css';
+import { DemoContext } from '../../../DemoContext';
 
 export const UserDropdown = () => {
+    const { demo } = useContext(DemoContext);
     const { loading: a_loading, error: a_error, data: a_data } = useQuery<{
         admin: { id: string; name: string; email: string };
-    }>(gql`
-        query GetAdmin {
-            admin {
-                id
-                name
-                email
+    }>(
+        gql`
+            query GetAdmin {
+                admin {
+                    id
+                    name
+                    email
+                }
             }
-        }
-    `);
+        `,
+        { skip: demo }
+    );
 
     const menu = (
         <div className={styles.dropdownMenu}>
@@ -60,7 +65,7 @@ export const UserDropdown = () => {
     );
     return (
         <Dropdown
-            overlay={menu}
+            overlay={demo ? <></> : menu}
             placement={'bottomRight'}
             onVisibleChange={() => {
                 window.analytics.track('User Icon Hover', {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { ReactComponent as HighlightLogoSmall } from '../../static/highlight-logo-small.svg';
 import { Link } from 'react-router-dom';
 import { TeamModal } from './TeamModal/TeamModal';
@@ -8,20 +8,23 @@ import { UserDropdown } from './UserDropdown/UserDropdown';
 
 import commonStyles from '../../Common.module.css';
 import styles from './Header.module.css';
+import { DemoContext } from '../../DemoContext';
 
 export const Header = () => {
     const { organization_id } = useParams();
+    const { demo } = useContext(DemoContext);
+
     return (
         <div className={styles.header}>
             <Link
                 className={styles.logoWrapper}
-                to={`/${organization_id}/sessions`}
+                to={demo ? '/' : `/${organization_id}/sessions`}
             >
                 <HighlightLogoSmall className={styles.logo} />
                 <span style={{ fontSize: 22, fontWeight: 400 }}>Highlight</span>
             </Link>
             <div className={styles.rightHeader}>
-                <TeamModal />
+                {demo ? <></> : <TeamModal />}
                 <Link
                     onClick={() => {
                         window.analytics.track('Sessions Click', {
@@ -29,7 +32,7 @@ export const Header = () => {
                             bar: 'foo',
                         });
                     }}
-                    to={`/${organization_id}/sessions`}
+                    to={demo ? '#' : `/${organization_id}/sessions`}
                     className={commonStyles.headerLink}
                 >
                     Sessions
@@ -41,7 +44,7 @@ export const Header = () => {
                             bar: 'foo',
                         });
                     }}
-                    to={`/${organization_id}`}
+                    to={demo ? '#' : `/${organization_id}`}
                     className={commonStyles.headerLink}
                 >
                     Setup

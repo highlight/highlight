@@ -30,6 +30,7 @@ class Logger {
 }
 
 export type HighlightClassOptions = {
+  organizationID: number;
   debug?: boolean;
   backendUrl?: string;
 };
@@ -43,18 +44,16 @@ export class Highlight {
   sessionID: number;
   ready: boolean;
   logger: Logger;
-  backendUrl: string;
 
-  constructor(options?: HighlightClassOptions) {
-    // If debug is set to false, disable all console
+  constructor(options: HighlightClassOptions) {
+    // If debug is set to false, disable all console logs.
     this.ready = false;
-    this.logger = new Logger(options?.debug ?? false);
-    this.backendUrl =
-      (options?.backendUrl
-        ? options.backendUrl
-        : process.env.BACKEND_URI || 'https://api.highlight.run') + '/client';
+    this.logger = new Logger(options.debug ?? false);
+    const backend = options.backendUrl
+      ? options.backendUrl
+      : process.env.BACKEND_URI;
     this.client = new ApolloClient({
-      uri: this.backendUrl,
+      uri: backend,
       cache: new InMemoryCache(),
       defaultOptions: {
         watchQuery: {
@@ -68,7 +67,7 @@ export class Highlight {
       },
       credentials: 'include',
     });
-    this.organizationID = 0;
+    this.organizationID = options.organizationID;
     this.sessionID = 0;
     this.events = [];
     this.networkContents = [];
@@ -125,13 +124,12 @@ export class Highlight {
     );
   }
 
-  async initialize(organizationID: number) {
-    const browser = detect();
-    if (!organizationID) {
-      console.error('empty organization_id!');
-      return;
+  // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
+  async initialize(organization_id?: number) {
+    if (organization_id) {
+      this.organizationID = organization_id;
     }
-    this.organizationID = organizationID;
+    const browser = detect();
     let response = await fetch(`https://geolocation-db.com/json/`);
     let data = await response.json();
     let details = JSON.stringify({ ...data, browser });

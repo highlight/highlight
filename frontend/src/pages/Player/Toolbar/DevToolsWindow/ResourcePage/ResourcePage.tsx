@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { Option, DevToolsSelect } from '../Option/Option';
@@ -10,7 +10,7 @@ import { ResourceModal } from './ResourceModal/ResourceModal';
 
 import devStyles from '../DevToolsWindow.module.css';
 import styles from './ResourcePage.module.css';
-import { Modal, message } from 'antd';
+import { DemoContext } from '../../../../../DemoContext';
 
 export const ResourcePage = ({
     time,
@@ -20,6 +20,7 @@ export const ResourcePage = ({
     startTime: number;
 }) => {
     const { session_id } = useParams<{ session_id: string }>();
+    const { demo } = useContext(DemoContext);
     const [options, setOptions] = useState<Array<string>>([]);
     const [expandedResource, setExpandedResource] = useState<
         undefined | PerformanceResourceTiming
@@ -42,7 +43,14 @@ export const ResourcePage = ({
                 resources(session_id: $session_id)
             }
         `,
-        { variables: { session_id } }
+        {
+            variables: {
+                session_id: demo
+                    ? process.env.REACT_APP_DEMO_SESSION ?? ''
+                    : session_id,
+            },
+            context: { headers: { 'Highlight-Demo': demo } },
+        }
     );
     const rawResources = data?.resources;
 

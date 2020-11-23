@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { Dropdown } from 'antd';
 import { useQuery, gql } from '@apollo/client';
 import { useParams, Link } from 'react-router-dom';
@@ -7,20 +7,25 @@ import { ReactComponent as PlusIcon } from '../../../static/plus.svg';
 import { ReactComponent as CheckIcon } from '../../../static/check.svg';
 
 import styles from './WorkspaceDropdown.module.css';
+import { DemoContext } from '../../../DemoContext';
 
 export const WorkspaceDropdown = () => {
     const [visible, setVisible] = useState(false);
+    const { demo } = useContext(DemoContext);
     const { organization_id } = useParams();
     const { data } = useQuery<{
         organizations: Array<{ id: number; name: string }>;
-    }>(gql`
-        query GetOrganizations {
-            organizations {
-                id
-                name
+    }>(
+        gql`
+            query GetOrganizations {
+                organizations {
+                    id
+                    name
+                }
             }
-        }
-    `);
+        `,
+        { skip: demo }
+    );
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>
@@ -50,7 +55,7 @@ export const WorkspaceDropdown = () => {
     return (
         <Dropdown
             placement={'bottomLeft'}
-            overlay={menu}
+            overlay={demo ? <></> : menu}
             onVisibleChange={(v) => setVisible(v)}
         >
             <div
@@ -58,11 +63,11 @@ export const WorkspaceDropdown = () => {
                 onClick={(e) => e.preventDefault()}
             >
                 <div className={styles.orgNameText}>
-                    {
-                        data?.organizations.find(
-                            (o) => o.id === organization_id
-                        )?.name
-                    }
+                    {demo
+                        ? 'Highlight'
+                        : data?.organizations.find(
+                              (o) => o.id === organization_id
+                          )?.name}
                 </div>
                 <DownIcon
                     className={styles.icon}
