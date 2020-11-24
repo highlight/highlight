@@ -13,7 +13,6 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 
@@ -172,8 +171,6 @@ func (r *queryResolver) ResourceContents(ctx context.Context, sessionID int) ([]
 	if res := r.DB.Order("created_at desc").Where(&model.ResourceContentsObject{SessionID: sessionID}).Find(&resourceContentsObject); res.Error != nil {
 		return nil, fmt.Errorf("error reading from resources: %v", res.Error)
 	}
-	pp.Println(resourceContentsObject)
-
 	allResourceContents := make(map[string][]interface{})
 	for _, resourceContentsObj := range resourceContentsObject {
 		subResourceContents := make(map[string][]interface{})

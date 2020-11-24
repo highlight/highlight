@@ -7,6 +7,7 @@ import { Skeleton } from 'antd';
 import { ResourceRow } from './ResourceRow/ResourceRow';
 import { ExpandedResourceContext } from './ResourceContentsContext/ResourceContentsContext';
 import { ResourceModal } from './ResourceModal/ResourceModal';
+import { NetworkResourceTiming } from '../../../../../util/shared-types';
 
 import devStyles from '../DevToolsWindow.module.css';
 import styles from './ResourcePage.module.css';
@@ -23,19 +24,19 @@ export const ResourcePage = ({
     const { demo } = useContext(DemoContext);
     const [options, setOptions] = useState<Array<string>>([]);
     const [expandedResource, setExpandedResource] = useState<
-        undefined | PerformanceResourceTiming
+        undefined | NetworkResourceTiming
     >(undefined);
     const [currentOption, setCurrentOption] = useState('All');
     const [currentResource, setCurrentResource] = useState(0);
     const [networkRange, setNetworkRange] = useState(0);
     const [currentResources, setCurrentResources] = useState<
-        Array<PerformanceResourceTiming & { id: number }>
+        Array<NetworkResourceTiming & { id: number }>
     >([]);
     const [parsedResources, setParsedResources] = useState<
-        Array<PerformanceResourceTiming & { id: number }>
+        Array<NetworkResourceTiming & { id: number }>
     >([]);
     const { data, loading } = useQuery<
-        { resources: PerformanceResourceTiming[] },
+        { resources: NetworkResourceTiming[] },
         { session_id: string }
     >(
         gql`
@@ -160,7 +161,7 @@ export const ResourcePage = ({
                         >
                             {currentResources.map(
                                 (
-                                    p: PerformanceResourceTiming & {
+                                    p: NetworkResourceTiming & {
                                         id: number;
                                     }
                                 ) => {

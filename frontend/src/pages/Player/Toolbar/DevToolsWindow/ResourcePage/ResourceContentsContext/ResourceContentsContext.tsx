@@ -1,13 +1,10 @@
 import React from 'react';
+import { NetworkResourceTiming } from '../../../../../../util/shared-types';
 
 export const ExpandedResourceContext = React.createContext<{
-    expandedResource: undefined | PerformanceResourceTiming;
-    setExpandedResource: (
-        resource: undefined | PerformanceResourceTiming
-    ) => void;
+    expandedResource: undefined | NetworkResourceTiming;
+    setExpandedResource: (resource: undefined | NetworkResourceTiming) => void;
 }>({
     expandedResource: undefined,
-    setExpandedResource: (
-        resource: PerformanceResourceTiming | undefined
-    ) => {},
+    setExpandedResource: (resource: NetworkResourceTiming | undefined) => {},
 });

@@ -8,6 +8,7 @@ import { ReactComponent as Close } from '../../../../../../static/close.svg';
 import { ExpandedResourceContext } from '../ResourceContentsContext/ResourceContentsContext';
 
 import styles from './ResourceRow.module.css';
+import { NetworkResourceTiming } from '../../../../../../util/shared-types';
 
 export const ResourceRow = ({
     current,
@@ -15,7 +16,7 @@ export const ResourceRow = ({
     range,
 }: {
     current: boolean;
-    resource: PerformanceResourceTiming & { id: number };
+    resource: NetworkResourceTiming & { id: number };
     range: number;
 }) => {
     const [selected, setSelected] = useState(false);
@@ -34,7 +35,6 @@ export const ResourceRow = ({
             }}
             className={styles.networkRow}
             onClick={() => {
-                console.log(resource);
                 setExpandedResource(resource);
             }}
         >

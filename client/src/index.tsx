@@ -234,10 +234,9 @@ Session Data:
       .getEntriesByType('resource')
       .filter((r) => !r.name.includes(this.backendUrl))
       .map((r: any) => {
-        return {
-          ...r,
-          absoluteStart: performance.timing.navigationStart + r.startTime,
-        };
+        const ret = r as NetworkResourceTiming;
+        ret.absoluteStart = performance.timing.navigationStart + r.startTime;
+        return ret;
       });
     const resourcesString = JSON.stringify({ resources: resources });
     const messagesString = JSON.stringify({ messages: this.messages });
