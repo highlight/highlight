@@ -52,7 +52,7 @@
         "written-number": "^0.9.1"
     },
     "scripts": {
-        "start": "react-scripts start",
+        "start": "doppler run -- react-scripts start",
         "styles": "tcm src -w",
         "build": "react-scripts build",
         "test": "react-scripts test",
