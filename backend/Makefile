@@ -1,0 +1,2 @@
+start:
+		doppler run -- air
