@@ -106,7 +106,7 @@ func main() {
 	handler := cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
-		AllowedHeaders:         []string{"Content-Type", "Token"},
+		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
 	}).Handler(mux)
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, handler)
