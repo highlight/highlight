@@ -13,7 +13,6 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -37,6 +36,17 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 		Sprintf("```NEW WORKSPACE \nid: %v\nname: %v\nadmin_email: %v```", org.ID, *org.Name, *admin.Email)}
 	if err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg); err != nil {
 		log.Errorf("error sending slack hook: %v", err)
+	}
+	return org, nil
+}
+
+func (r *mutationResolver) EditOrganization(ctx context.Context, id int, name string, billingEmail string) (*model.Organization, error) {
+	org, err := r.isAdminInOrganization(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying org")
+	}
+	if err := r.DB.Model(org).Updates(&model.Organization{Name: &name, BillingEmail: &billingEmail}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields")
 	}
 	return org, nil
 }
