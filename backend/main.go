@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
 	"os"
@@ -26,6 +27,7 @@ import (
 var (
 	frontendURL = os.Getenv("FRONTEND_URI")
 	sendgridKey = os.Getenv("SENDGRID_API_KEY")
+	runtime     = flag.String("runtime", "dev", "the runtime of the backend; either dev/worker/server")
 )
 
 func health(w http.ResponseWriter, r *http.Request) {
@@ -75,6 +77,7 @@ func emailHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	flag.Parse()
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
@@ -103,13 +106,21 @@ func main() {
 	handler := cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
-		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
+		AllowedHeaders:         []string{"Content-Type", "Token"},
 	}).Handler(mux)
 
-	w := &worker.Worker{R: main}
-	w.Start()
-
 	loggedRouter := handlers.LoggingHandler(os.Stdout, handler)
-	fmt.Println("listening...")
-	log.Fatal(http.ListenAndServe(":"+port, loggedRouter))
+	w := &worker.Worker{R: main}
+	log.Infof("listening with runtime: %v\n", *runtime)
+	if rt := *runtime; rt == "dev" {
+		go func() {
+			w.Start()
+		}()
+		log.Fatal(http.ListenAndServe(":"+port, loggedRouter))
+	} else if rt == "worker" {
+		w.Start()
+	} else if rt == "server" {
+		log.Fatal(http.ListenAndServe(":"+port, loggedRouter))
+	}
+	log.Errorf("invalid runtime")
 }
