@@ -54,6 +54,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddAdminToOrganization func(childComplexity int, organizationID int, inviteID string) int
 		CreateOrganization     func(childComplexity int, name string) int
+		EditOrganization       func(childComplexity int, id int, name string, billingEmail string) int
 		SendAdminInvite        func(childComplexity int, organizationID int, email string) int
 	}
 
@@ -94,6 +95,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateOrganization(ctx context.Context, name string) (*model.Organization, error)
+	EditOrganization(ctx context.Context, id int, name string, billingEmail string) (*model.Organization, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
 }
@@ -174,6 +176,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateOrganization(childComplexity, args["name"].(string)), true
+
+	case "Mutation.editOrganization":
+		if e.complexity.Mutation.EditOrganization == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editOrganization_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditOrganization(childComplexity, args["id"].(int), args["name"].(string), args["billing_email"].(string)), true
 
 	case "Mutation.sendAdminInvite":
 		if e.complexity.Mutation.SendAdminInvite == nil {
@@ -507,6 +521,7 @@ type Query {
 
 type Mutation {
   createOrganization(name: String!): Organization
+  editOrganization(id: ID!, name: String!, billing_email: String!): Organization
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
 }
@@ -554,6 +569,39 @@ func (ec *executionContext) field_Mutation_createOrganization_args(ctx context.C
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_editOrganization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["billing_email"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("billing_email"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["billing_email"] = arg2
 	return args, nil
 }
 
@@ -947,6 +995,44 @@ func (ec *executionContext) _Mutation_createOrganization(ctx context.Context, fi
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().CreateOrganization(rctx, args["name"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.Organization)
+	fc.Result = res
+	return ec.marshalOOrganization2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_editOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_editOrganization_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EditOrganization(rctx, args["id"].(int), args["name"].(string), args["billing_email"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2995,6 +3081,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "createOrganization":
 			out.Values[i] = ec._Mutation_createOrganization(ctx, field)
+		case "editOrganization":
+			out.Values[i] = ec._Mutation_editOrganization(ctx, field)
 		case "sendAdminInvite":
 			out.Values[i] = ec._Mutation_sendAdminInvite(ctx, field)
 		case "addAdminToOrganization":
