@@ -54,13 +54,15 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddAdminToOrganization func(childComplexity int, organizationID int, inviteID string) int
 		CreateOrganization     func(childComplexity int, name string) int
-		EditOrganization       func(childComplexity int, id int, name string, billingEmail string) int
+		DeleteOrganization     func(childComplexity int, id int) int
+		EditOrganization       func(childComplexity int, id int, name *string, billingEmail *string) int
 		SendAdminInvite        func(childComplexity int, organizationID int, email string) int
 	}
 
 	Organization struct {
-		ID   func(childComplexity int) int
-		Name func(childComplexity int) int
+		BillingEmail func(childComplexity int) int
+		ID           func(childComplexity int) int
+		Name         func(childComplexity int) int
 	}
 
 	Query struct {
@@ -95,7 +97,8 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreateOrganization(ctx context.Context, name string) (*model.Organization, error)
-	EditOrganization(ctx context.Context, id int, name string, billingEmail string) (*model.Organization, error)
+	EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model.Organization, error)
+	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
 }
@@ -177,6 +180,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateOrganization(childComplexity, args["name"].(string)), true
 
+	case "Mutation.deleteOrganization":
+		if e.complexity.Mutation.DeleteOrganization == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteOrganization_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteOrganization(childComplexity, args["id"].(int)), true
+
 	case "Mutation.editOrganization":
 		if e.complexity.Mutation.EditOrganization == nil {
 			break
@@ -187,7 +202,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditOrganization(childComplexity, args["id"].(int), args["name"].(string), args["billing_email"].(string)), true
+		return e.complexity.Mutation.EditOrganization(childComplexity, args["id"].(int), args["name"].(*string), args["billing_email"].(*string)), true
 
 	case "Mutation.sendAdminInvite":
 		if e.complexity.Mutation.SendAdminInvite == nil {
@@ -200,6 +215,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SendAdminInvite(childComplexity, args["organization_id"].(int), args["email"].(string)), true
+
+	case "Organization.billing_email":
+		if e.complexity.Organization.BillingEmail == nil {
+			break
+		}
+
+		return e.complexity.Organization.BillingEmail(childComplexity), true
 
 	case "Organization.id":
 		if e.complexity.Organization.ID == nil {
@@ -487,6 +509,7 @@ type Session {
 type Organization {
   id: ID!
   name: String!
+  billing_email: String
 }
 
 type User {
@@ -521,7 +544,8 @@ type Query {
 
 type Mutation {
   createOrganization(name: String!): Organization
-  editOrganization(id: ID!, name: String!, billing_email: String!): Organization
+  editOrganization(id: ID!, name: String, billing_email: String): Organization
+  deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
 }
@@ -572,6 +596,21 @@ func (ec *executionContext) field_Mutation_createOrganization_args(ctx context.C
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_deleteOrganization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_editOrganization_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -584,19 +623,19 @@ func (ec *executionContext) field_Mutation_editOrganization_args(ctx context.Con
 		}
 	}
 	args["id"] = arg0
-	var arg1 string
+	var arg1 *string
 	if tmp, ok := rawArgs["name"]; ok {
 		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["name"] = arg1
-	var arg2 string
+	var arg2 *string
 	if tmp, ok := rawArgs["billing_email"]; ok {
 		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("billing_email"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1032,7 +1071,7 @@ func (ec *executionContext) _Mutation_editOrganization(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditOrganization(rctx, args["id"].(int), args["name"].(string), args["billing_email"].(string))
+		return ec.resolvers.Mutation().EditOrganization(rctx, args["id"].(int), args["name"].(*string), args["billing_email"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1044,6 +1083,44 @@ func (ec *executionContext) _Mutation_editOrganization(ctx context.Context, fiel
 	res := resTmp.(*model.Organization)
 	fc.Result = res
 	return ec.marshalOOrganization2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteOrganization_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteOrganization(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_sendAdminInvite(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1188,6 +1265,37 @@ func (ec *executionContext) _Organization_name(ctx context.Context, field graphq
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_billing_email(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Organization",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BillingEmail, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_session(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3083,6 +3191,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createOrganization(ctx, field)
 		case "editOrganization":
 			out.Values[i] = ec._Mutation_editOrganization(ctx, field)
+		case "deleteOrganization":
+			out.Values[i] = ec._Mutation_deleteOrganization(ctx, field)
 		case "sendAdminInvite":
 			out.Values[i] = ec._Mutation_sendAdminInvite(ctx, field)
 		case "addAdminToOrganization":
@@ -3119,6 +3229,8 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "billing_email":
+			out.Values[i] = ec._Organization_billing_email(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
