@@ -13,7 +13,6 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -42,12 +41,6 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 }
 
 func (r *mutationResolver) EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model.Organization, error) {
-	if name != nil {
-		pp.Println(*name)
-	}
-	if billingEmail != nil {
-		pp.Println(*billingEmail)
-	}
 	org, err := r.isAdminInOrganization(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying org")
