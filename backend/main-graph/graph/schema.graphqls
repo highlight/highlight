@@ -16,6 +16,7 @@ type Session {
 type Organization {
   id: ID!
   name: String!
+  billing_email: String
 }
 
 type User {
@@ -50,7 +51,8 @@ type Query {
 
 type Mutation {
   createOrganization(name: String!): Organization
-  editOrganization(id: ID!, name: String!, billing_email: String!): Organization
+  editOrganization(id: ID!, name: String, billing_email: String): Organization
+  deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
 }
