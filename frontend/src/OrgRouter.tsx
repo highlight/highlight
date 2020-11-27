@@ -9,6 +9,7 @@ import { SessionsPage } from './pages/Sessions/SessionsPage';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { useIntegrated } from './util/integrated';
 import styles from './App.module.css';
+import { WorkspaceSettings } from './pages/WorkspaceSettings/WorkspaceSettings';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams();
@@ -48,6 +49,9 @@ export const OrgRouter = () => {
                 </Route>
                 <Route path="/:organization_id/sessions">
                     <SessionsPage integrated={integrated} />
+                </Route>
+                <Route path="/:organization_id/settings">
+                    <WorkspaceSettings />
                 </Route>
                 <Route path="/:organization_id">
                     <SetupPage integrated={integrated} />
