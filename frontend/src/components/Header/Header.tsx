@@ -24,7 +24,30 @@ export const Header = () => {
                 <span style={{ fontSize: 22, fontWeight: 400 }}>Highlight</span>
             </Link>
             <div className={styles.rightHeader}>
-                {demo ? <></> : <TeamModal />}
+                <Link
+                    onClick={() => {
+                        window.analytics.track('Settings Click', {
+                            foo: 'bar',
+                            bar: 'foo',
+                        });
+                    }}
+                    to={demo ? '#' : `/${organization_id}/settings`}
+                    className={commonStyles.headerLink}
+                >
+                    Settings
+                </Link>
+                <Link
+                    onClick={() => {
+                        window.analytics.track('Team Click', {
+                            foo: 'bar',
+                            bar: 'foo',
+                        });
+                    }}
+                    to={demo ? '#' : `/${organization_id}/team`}
+                    className={commonStyles.headerLink}
+                >
+                    Team
+                </Link>
                 <Link
                     onClick={() => {
                         window.analytics.track('Sessions Click', {
