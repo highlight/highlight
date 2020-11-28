@@ -11,6 +11,10 @@
     padding: 15px;
 }
 
+.bodyWrapper {
+    width: 100%;
+}
+
 .submitButton {
     width: 100%;
     display: flex;
