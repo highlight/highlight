@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spinner } from './components/Spinner/Spinner';
 import { Header } from './components/Header/Header';
@@ -11,6 +11,10 @@ import { SetupPage } from './pages/Setup/SetupPage';
 import { useIntegrated } from './util/integrated';
 import styles from './App.module.css';
 import { WorkspaceSettings } from './pages/WorkspaceSettings/WorkspaceSettings';
+import { Sidebar } from './components/Sidebar/Sidebar';
+import { SidebarContext } from './components/Sidebar/SidebarContext';
+
+import commonStyles from './Common.module.css';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams();
@@ -30,6 +34,7 @@ export const OrgRouter = () => {
     const { integrated, loading: integratedLoading } = useIntegrated(
         organization_id
     );
+    const [openSidebar, setOpenSidebar] = useState(false);
 
     if (error) {
         return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
@@ -42,25 +47,38 @@ export const OrgRouter = () => {
         );
     }
     return (
-        <>
+        <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
             <Header />
-            <Switch>
-                <Route path="/:organization_id/sessions/:session_id">
-                    <Player />
-                </Route>
-                <Route path="/:organization_id/sessions">
-                    <SessionsPage integrated={integrated} />
-                </Route>
-                <Route path="/:organization_id/settings">
-                    <WorkspaceSettings />
-                </Route>
-                <Route path="/:organization_id/team">
-                    <WorkspaceTeam />
-                </Route>
-                <Route path="/:organization_id">
-                    <SetupPage integrated={integrated} />
-                </Route>
-            </Switch>
-        </>
+            <div
+                className={commonStyles.bodyWrapper}
+                onMouseMove={(e) => {
+                    if (e.pageX < 20) {
+                        setOpenSidebar(true);
+                    }
+                    if (e.pageX > 300) {
+                        setOpenSidebar(false);
+                    }
+                }}
+            >
+                <Sidebar />
+                <Switch>
+                    <Route path="/:organization_id/sessions/:session_id">
+                        <Player />
+                    </Route>
+                    <Route path="/:organization_id/sessions">
+                        <SessionsPage integrated={integrated} />
+                    </Route>
+                    <Route path="/:organization_id/settings">
+                        <WorkspaceSettings />
+                    </Route>
+                    <Route path="/:organization_id/team">
+                        <WorkspaceTeam />
+                    </Route>
+                    <Route path="/:organization_id">
+                        <SetupPage integrated={integrated} />
+                    </Route>
+                </Switch>
+            </div>
+        </SidebarContext.Provider>
     );
 };
