@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import styles from './Sidebar.module.css';
 import { SidebarContext } from './SidebarContext';
 import classNames from 'classnames/bind';
-import { Link, useParams, useHistory, useLocation } from 'react-router-dom';
+import { Link, useParams, useLocation } from 'react-router-dom';
 import { WorkspaceDropdown } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
 import { ReactComponent as SessionsIcon } from '../../static/sessions-icon.svg';
 import { ReactComponent as SetupIcon } from '../../static/setup-icon.svg';
@@ -15,7 +15,7 @@ export const Sidebar = () => {
     const { pathname } = useLocation();
     const { openSidebar } = useContext(SidebarContext);
     const { demo } = useContext(DemoContext);
-    const page = pathname.split("/")[2] ?? "";
+    const page = pathname.split('/')[2] ?? '';
     return (
         <div
             className={classNames([
@@ -37,10 +37,7 @@ export const Sidebar = () => {
                 <span className={styles.rowText}>Sessions</span>
             </Link>
             <Link
-                className={classNames([
-                    styles.row,
-                    !page && styles.selected,
-                ])}
+                className={classNames([styles.row, !page && styles.selected])}
                 to={demo ? '/' : `/${organization_id}`}
             >
                 <SetupIcon />

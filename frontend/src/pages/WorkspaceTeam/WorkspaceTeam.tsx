@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Modal, message } from 'antd';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { message } from 'antd';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 import { useMutation, useQuery, gql } from '@apollo/client';
@@ -17,10 +16,9 @@ type Inputs = {
 
 export const WorkspaceTeam = () => {
     const { organization_id } = useParams();
-    const [showModal, setShowModal] = useState(false);
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
-    const { loading: orgLoading, data: orgData } = useQuery<
+    const { data: orgData } = useQuery<
         { organization: { name: string } },
         { id: number }
     >(
@@ -51,7 +49,7 @@ export const WorkspaceTeam = () => {
 
     useEffect(() => {
         reset();
-    }, [showModal, reset]);
+    }, [reset]);
 
     const [sendInviteEmail, { loading: sendLoading }] = useMutation<
         { email: string },
