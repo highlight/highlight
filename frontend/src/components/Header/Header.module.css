@@ -17,6 +17,7 @@
 .hamburger {
     margin-right: 10px;
     cursor: pointer;
+    height: 100%;
 }
 
 .logoText {
