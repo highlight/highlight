@@ -22,6 +22,12 @@ a {
     background-color: #5629c6;
 }
 
+.ant-message-notice-content {
+    background: #1f1f1f;
+    color: white;
+    border-radius: 8px;
+}
+
 .ant-modal-body {
     padding: 0px;
 }

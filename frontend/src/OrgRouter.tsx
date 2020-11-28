@@ -6,6 +6,7 @@ import { Switch, Route } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
 import { Player } from './pages/Player/PlayerPage';
 import { SessionsPage } from './pages/Sessions/SessionsPage';
+import { WorkspaceTeam } from './pages/WorkspaceTeam/WorkspaceTeam';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { useIntegrated } from './util/integrated';
 import styles from './App.module.css';
@@ -52,6 +53,9 @@ export const OrgRouter = () => {
                 </Route>
                 <Route path="/:organization_id/settings">
                     <WorkspaceSettings />
+                </Route>
+                <Route path="/:organization_id/team">
+                    <WorkspaceTeam />
                 </Route>
                 <Route path="/:organization_id">
                     <SetupPage integrated={integrated} />

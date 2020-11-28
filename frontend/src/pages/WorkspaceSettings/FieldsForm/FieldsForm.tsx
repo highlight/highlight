@@ -45,7 +45,6 @@ export const FieldsForm = () => {
     }, [editOrganization, organization_id]);
 
     const onSubmit = (inputs: Inputs) => {
-        console.log('data', inputs);
         editOrganization({
             variables: {
                 id: organization_id,

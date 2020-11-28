@@ -2,6 +2,7 @@ declare const styles: {
   readonly "ant-modal-close-x": string;
   readonly "css-foqpf7": string;
   readonly "ant-switch-checked": string;
+  readonly "ant-message-notice-content": string;
   readonly "ant-modal-body": string;
   readonly "ant-tooltip-inner": string;
   readonly "ant-modal-content": string;

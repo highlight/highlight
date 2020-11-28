@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { ReactComponent as HighlightLogoSmall } from '../../static/highlight-logo-small.svg';
 import { Link } from 'react-router-dom';
-import { TeamModal } from './TeamModal/TeamModal';
 import { useParams } from 'react-router-dom';
 import { WorkspaceDropdown } from './WorkspaceDropdown/WorkspaceDropdown';
 import { UserDropdown } from './UserDropdown/UserDropdown';
@@ -24,7 +23,30 @@ export const Header = () => {
                 <span style={{ fontSize: 22, fontWeight: 400 }}>Highlight</span>
             </Link>
             <div className={styles.rightHeader}>
-                {demo ? <></> : <TeamModal />}
+                <Link
+                    onClick={() => {
+                        window.analytics.track('Settings Click', {
+                            foo: 'bar',
+                            bar: 'foo',
+                        });
+                    }}
+                    to={demo ? '#' : `/${organization_id}/settings`}
+                    className={commonStyles.headerLink}
+                >
+                    Settings
+                </Link>
+                <Link
+                    onClick={() => {
+                        window.analytics.track('Team Click', {
+                            foo: 'bar',
+                            bar: 'foo',
+                        });
+                    }}
+                    to={demo ? '#' : `/${organization_id}/team`}
+                    className={commonStyles.headerLink}
+                >
+                    Team
+                </Link>
                 <Link
                     onClick={() => {
                         window.analytics.track('Sessions Click', {
