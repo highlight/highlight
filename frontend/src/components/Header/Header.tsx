@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 import { ReactComponent as HighlightLogoSmall } from '../../static/highlight-logo-small.svg';
 import { Link } from 'react-router-dom';
-import { TeamModal } from './TeamModal/TeamModal';
 import { useParams } from 'react-router-dom';
 import { WorkspaceDropdown } from './WorkspaceDropdown/WorkspaceDropdown';
 import { UserDropdown } from './UserDropdown/UserDropdown';

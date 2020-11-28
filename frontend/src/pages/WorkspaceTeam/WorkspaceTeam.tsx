@@ -71,7 +71,7 @@ export const WorkspaceTeam = () => {
         sendInviteEmail({
             variables: { organization_id, email: data.email },
         }).then(() => {
-            message.success(`Invite email sent to ${data.email}!`, 0);
+            message.success(`Invite email sent to ${data.email}!`, 5);
             reset();
             emailRef.current?.focus();
         });
@@ -92,8 +92,8 @@ export const WorkspaceTeam = () => {
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className={styles.boxTitle}>Invite Your Team</div>
                         <div className={styles.boxSubTitle}>
-                            Invite a team member to{' '}
-                            '{`${orgData?.organization.name}`}' by entering an
+                            Invite a team member to '
+                            {`${orgData?.organization.name}`}' by entering an
                             email below.
                         </div>
                         <div className={styles.buttonRow}>
