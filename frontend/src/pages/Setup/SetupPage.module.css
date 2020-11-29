@@ -1,7 +1,23 @@
 .setupWrapper {
     width: 100%;
     display: flex;
-    justify-content: center;
+}
+
+.icon {
+    transition: 0.4s;
+    margin-left: auto;
+    margin-right: -4px;
+    height: 16px;
+    width: 16px;
+    color: #5629c6;
+    margin-top: 6px;
+    float: right;
+    cursor: pointer;
+}
+
+.blankSidebar {
+    height: 100%;
+    width: 280px;
 }
 
 .radioGroupWrapper {
@@ -32,9 +48,23 @@
     display: flex;
 }
 
+.section {
+    border: 1px solid #e4e8eb;
+    border-radius: 8px;
+    padding: 20px 30px 20px 30px;
+    margin-bottom: 20px;
+    transition: 0.4s;
+}
+
 .calloutInner {
     padding: 10px;
     padding-left: 0px;
+}
+
+.subTitle {
+    margin-top: 5px;
+    font-size: 18px;
+    font-weight: 300;
 }
 
 .calloutEmoji {
@@ -43,26 +73,24 @@
     font-size: 20px;
 }
 
-.snippetCard {
+.setupPage {
     width: 40vw;
-    border: 1px solid #eaeaea;
     min-width: 650px;
-    padding: 30px;
-    margin: 70px;
+    margin: 40px 80px 80px 80px;
     height: max-content;
     border-radius: 8px;
 }
 
 .snippetHeading {
-    font-size: 25px;
+    font-size: 28px;
     font-weight: 400;
 }
 
 .snippetHeadingTwo {
     font-size: 20px;
     font-weight: 400;
-    margin-bottom: 20px;
-    margin-top: 30px;
+    display: flex;
+    align-items: center;
 }
 
 .snippetSubHeading {

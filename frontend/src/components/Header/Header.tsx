@@ -21,6 +21,7 @@ export const Header = () => {
                     <Hamburger
                         className={styles.hamburger}
                         onClick={() => setOpenSidebar(!openSidebar)}
+                        style={{transform: openSidebar ? "rotate(-180deg)": "rotate(0deg)"}}
                     />
                     <Link
                         className={styles.homeLink}

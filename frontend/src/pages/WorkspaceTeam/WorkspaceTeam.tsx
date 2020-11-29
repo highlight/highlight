@@ -81,6 +81,7 @@ export const WorkspaceTeam = () => {
 
     return (
         <div className={styles.teamPageWrapper}>
+            <div className={styles.blankSidebar}></div>
             <div className={styles.teamPage}>
                 <div className={styles.title}>Invite A Member</div>
                 <div className={styles.subTitle}>

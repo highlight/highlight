@@ -3,6 +3,7 @@ declare const styles: {
   readonly "subTitle": string;
   readonly "box": string;
   readonly "teamPage": string;
+  readonly "blankSidebar": string;
   readonly "boxTitle": string;
   readonly "teamPageWrapper": string;
   readonly "memberCard": string;

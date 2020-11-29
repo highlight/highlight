@@ -34,7 +34,7 @@ export const OrgRouter = () => {
     const { integrated, loading: integratedLoading } = useIntegrated(
         organization_id
     );
-    const [openSidebar, setOpenSidebar] = useState(false);
+    const [openSidebar, setOpenSidebar] = useState(true);
 
     if (error) {
         return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
@@ -49,17 +49,7 @@ export const OrgRouter = () => {
     return (
         <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
             <Header />
-            <div
-                className={commonStyles.bodyWrapper}
-                onMouseMove={(e) => {
-                    if (e.pageX < 20) {
-                        setOpenSidebar(true);
-                    }
-                    if (e.pageX > 300) {
-                        setOpenSidebar(false);
-                    }
-                }}
-            >
+            <div className={commonStyles.bodyWrapper}>
                 <Sidebar />
                 <Switch>
                     <Route path="/:organization_id/sessions/:session_id">

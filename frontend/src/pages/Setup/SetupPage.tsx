@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, FunctionComponent } from 'react';
 
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import styles from './SetupPage.module.css';
 import useFetch from 'use-http';
 import { Skeleton } from 'antd';
+import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
 
 enum PlatformType {
     Html,
@@ -19,12 +20,15 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
 
     return (
         <div className={styles.setupWrapper}>
-            <div className={styles.snippetCard}>
+            <div className={styles.blankSidebar}></div>
+            <div className={styles.setupPage}>
                 <div className={styles.headingWrapper}>
                     <div className={styles.snippetHeading}>
                         Your Recording Snippet
                     </div>
-                    <IntegrationDetector integrated={integrated} />
+                </div>
+                <div className={styles.subTitle}>
+                    Setup Highlight in your web application!
                 </div>
                 <RadioGroup
                     platform={platform}
@@ -35,29 +39,38 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                 ) : (
                     <JsAppInstructions platform={platform} />
                 )}
-                <div className={styles.snippetHeadingTwo}>
-                    Identifying Users
-                </div>
-                <div className={styles.snippetSubHeading}>
-                    To tag sessions with user specific identifiers (name, email,
-                    etc.), you can call the
-                    <span className={styles.codeBlockBasic}>
-                        {'H.identify(id: string, object: Object)'}
-                    </span>{' '}
-                    method in your javascript app. Here's an example:
-                </div>
-                <CodeBlock
-                    onCopy={() =>
-                        window.analytics.track('Copied Code Snippet', {})
-                    }
-                    text={
-                        platform === PlatformType.NextJs
-                            ? `if (typeof window === )H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)
+                <Section title="Identifying Users">
+                    <div className={styles.snippetSubHeading}>
+                        To tag sessions with user specific identifiers (name,
+                        email, etc.), you can call the
+                        <span className={styles.codeBlockBasic}>
+                            {'Hx.identify(id: string, object: Object)'}
+                        </span>{' '}
+                        method in your javascript app. Here's an example:
+                    </div>
+                    <CodeBlock
+                        onCopy={() =>
+                            window.analytics.track('Copied Code Snippet', {})
+                        }
+                        text={
+                            platform === PlatformType.NextJs
+                                ? `if (typeof window === )H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)
                     `
-                            : `H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)
-                    `
-                    }
-                />
+                                : `H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)`
+                        }
+                    />
+                </Section>
+                <Section title="Verify Installation" integrated={integrated}>
+                    <div className={styles.snippetSubHeading}>
+                        Follow these instructions to install and verify the
+                        integration of Highlight into your application.
+                    </div>
+                    <br />
+                    <IntegrationDetector
+                        integrated={integrated}
+                        verbose={true}
+                    />
+                </Section>
             </div>
         </div>
     );
@@ -73,10 +86,7 @@ const HtmlInstructions = () => {
     const { organization_id } = useParams();
 
     return (
-        <>
-            <div className={styles.snippetHeadingTwo}>
-                Installing the Package
-            </div>
+        <Section title="Installing the SDK">
             <div className={styles.snippetSubHeading}>
                 Copy and paste the{' '}
                 <span className={styles.codeBlockBasic}>{'<script/>'}</span>{' '}
@@ -99,7 +109,7 @@ window.H.init(${organization_id})
                     />
                 )}
             </div>
-        </>
+        </Section>
     );
 };
 
@@ -107,70 +117,69 @@ const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
     const { organization_id } = useParams();
     return (
         <>
-            <div className={styles.snippetHeadingTwo}>
-                Installing the Package
-            </div>
-            <div className={styles.snippetSubHeading}>
-                Install the{' '}
-                <span className={styles.codeBlockBasic}>{'highlight.run'}</span>{' '}
-                package via your javascript package manager.
-                <br />
-                <CodeBlock text={`npm install highlight.run`} />
-                Or with yarn:
-                <CodeBlock text={`yarn add highlight.run`} />
-            </div>
-            <div className={styles.snippetHeadingTwo}>
-                Initializing Highlight
-            </div>
-            {platform === PlatformType.NextJs ? (
-                <div className={styles.callout}>
-                    <div className={styles.calloutEmoji}>
-                        <span role="img" aria-label="light-bulb">
-                            💡
-                        </span>
-                    </div>
-                    <div className={styles.calloutInner}>
-                        In Next.js, wrap all client side function calls in{' '}
-                        <span className={styles.codeBlockBasic}>
-                            if (typeof window...
-                        </span>
-                        to force the logic to be executed client side.
-                    </div>
+            <Section title="Installing the SDK">
+                <div className={styles.snippetSubHeading}>
+                    Install the{' '}
+                    <span className={styles.codeBlockBasic}>
+                        {'highlight.run'}
+                    </span>{' '}
+                    package via your javascript package manager.
+                    <br />
+                    <CodeBlock text={`npm install highlight.run`} />
+                    Or with yarn:
+                    <CodeBlock text={`yarn add highlight.run`} />
                 </div>
-            ) : (
-                <></>
-            )}
-            <div className={styles.snippetSubHeading}>
-                Initialize the SDK by importing Highlight like so:{' '}
-                <CodeBlock text={`import { H } from 'highlight.run'`} />
-                and then calling{' '}
-                <span
-                    className={styles.codeBlockBasic}
-                >{`H.init(${organization_id})`}</span>{' '}
-                as soon as you can in your site's startup process. <br />
-                {platform !== PlatformType.NextJs ? (
-                    <CodeBlock
-                        text={`H.init(${organization_id}) // ${organization_id} is your ORG_ID`}
-                    />
+            </Section>
+            <Section title="Initializing Highlight">
+                {platform === PlatformType.NextJs ? (
+                    <div className={styles.callout}>
+                        <div className={styles.calloutEmoji}>
+                            <span role="img" aria-label="light-bulb">
+                                💡
+                            </span>
+                        </div>
+                        <div className={styles.calloutInner}>
+                            In Next.js, wrap all client side function calls in{' '}
+                            <span className={styles.codeBlockBasic}>
+                                if (typeof window...
+                            </span>
+                            to force the logic to be executed client side.
+                        </div>
+                    </div>
                 ) : (
-                    <CodeBlock
-                        text={`if (typeof window !== 'undefined') {
+                    <></>
+                )}
+                <div className={styles.snippetSubHeading}>
+                    Initialize the SDK by importing Highlight like so:{' '}
+                    <CodeBlock text={`import { H } from 'highlight.run'`} />
+                    and then calling{' '}
+                    <span
+                        className={styles.codeBlockBasic}
+                    >{`H.init(${organization_id})`}</span>{' '}
+                    as soon as you can in your site's startup process. <br />
+                    {platform !== PlatformType.NextJs ? (
+                        <CodeBlock
+                            text={`H.init(${organization_id}) // ${organization_id} is your ORG_ID`}
+                        />
+                    ) : (
+                        <CodeBlock
+                            text={`if (typeof window !== 'undefined') {
     H.init(${organization_id}) // ${organization_id} is your ORG_ID
 }`}
-                    />
-                )}
-                In{' '}
-                {platform === PlatformType.React
-                    ? 'React'
-                    : platform === PlatformType.Vue
-                    ? 'Vue'
-                    : 'Next.js'}
-                , it can be called at the top of your main component's file like
-                this:
-                <br />
-                {platform === PlatformType.React ? (
-                    <CodeBlock
-                        text={`import React from 'react';
+                        />
+                    )}
+                    In{' '}
+                    {platform === PlatformType.React
+                        ? 'React'
+                        : platform === PlatformType.Vue
+                        ? 'Vue'
+                        : 'Next.js'}
+                    , it can be called at the top of your main component's file
+                    like this:
+                    <br />
+                    {platform === PlatformType.React ? (
+                        <CodeBlock
+                            text={`import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
@@ -179,10 +188,10 @@ import { H } from 'highlight.run'
 H.init(${organization_id}); // ${organization_id} is your ORG_ID
  
 ReactDOM.render(<App />, document.getElementById('root'));`}
-                    />
-                ) : platform === PlatformType.Vue ? (
-                    <CodeBlock
-                        text={`import Vue from 'vue';
+                        />
+                    ) : platform === PlatformType.Vue ? (
+                        <CodeBlock
+                            text={`import Vue from 'vue';
 import App from './App.vue';
 import { H } from 'highlight.run';
  
@@ -192,10 +201,10 @@ Vue.prototype.$H = H;
 new Vue({
   render: h => h(App)
 }).$mount('#app');`}
-                    />
-                ) : (
-                    <CodeBlock
-                        text={`import '../styles/globals.css'
+                        />
+                    ) : (
+                        <CodeBlock
+                            text={`import '../styles/globals.css'
 import { H } from 'highlight.run';
 
 if (typeof window !== 'undefined') {
@@ -207,9 +216,10 @@ function MyApp({ Component, pageProps }) {
 }
 
 export default MyApp`}
-                    />
-                )}
-            </div>
+                        />
+                    )}
+                </div>
+            </Section>
         </>
     );
 };
@@ -282,6 +292,55 @@ const RadioGroup = ({
             >
                 Next.js
             </div>
+        </div>
+    );
+};
+
+type SectionProps = {
+    title: string;
+    integrated?: boolean;
+};
+
+export const Section: FunctionComponent<SectionProps> = ({
+    children,
+    title,
+    integrated,
+}) => {
+    const [expanded, setExpanded] = useState(false);
+    return (
+        <div
+            className={styles.section}
+            style={{ cursor: !expanded ? 'pointer' : 'inherit' }}
+            onClick={() => !expanded && setExpanded(true)}
+        >
+            <DownIcon
+                className={styles.icon}
+                style={{
+                    transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+                onClick={() => setExpanded((e) => !e)}
+            />
+            <div className={styles.snippetHeadingTwo}>
+                <span style={{marginRight: 8}}>
+                {title}
+                </span>
+                {!expanded && integrated !== undefined ? (
+                    <IntegrationDetector
+                        verbose={false}
+                        integrated={integrated}
+                    />
+                ) : (
+                    <></>
+                )}
+            </div>
+            {expanded ? (
+                <>
+                    <div style={{ height: 10 }} />
+                    {children}
+                </>
+            ) : (
+                <></>
+            )}
         </div>
     );
 };
