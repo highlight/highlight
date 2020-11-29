@@ -10,7 +10,6 @@ export const IntegrationCard = () => {
     return (
         <>
             <div className={styles.cardWrapper}>
-                <div className={styles.blankSidebar}></div>
                 <div className={styles.card}>
                     <div className={styles.title}>
                         Waiting for Installation...
