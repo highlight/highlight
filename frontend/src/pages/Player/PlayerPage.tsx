@@ -21,11 +21,9 @@ import useResizeAware from 'react-resize-aware';
 import styles from './PlayerPage.module.css';
 import 'rc-slider/assets/index.css';
 import { DemoContext } from '../../DemoContext';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 export const Player = () => {
     var { session_id } = useParams();
-    const { setOpenSidebar } = useContext(SidebarContext);
     const { demo } = useContext(DemoContext);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [time, setTime] = useState(0);
@@ -80,10 +78,6 @@ export const Player = () => {
         setPlayerLoading(false);
         return true;
     };
-
-    useEffect(() => {
-        setOpenSidebar(false);
-    }, []);
 
     // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
     useEffect(() => {

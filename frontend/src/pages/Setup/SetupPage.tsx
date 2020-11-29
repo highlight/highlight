@@ -1,4 +1,9 @@
-import React, { useState, FunctionComponent } from 'react';
+import React, {
+    useEffect,
+    useState,
+    FunctionComponent,
+    useContext,
+} from 'react';
 
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
@@ -7,6 +12,7 @@ import styles from './SetupPage.module.css';
 import useFetch from 'use-http';
 import { Skeleton } from 'antd';
 import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
+import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 enum PlatformType {
     Html,
@@ -17,6 +23,11 @@ enum PlatformType {
 
 export const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const [platform, setPlatform] = useState(PlatformType.React);
+    const { setOpenSidebar } = useContext(SidebarContext);
+
+    useEffect(() => {
+        setOpenSidebar(true);
+    }, []);
 
     return (
         <div className={styles.setupWrapper}>
@@ -321,9 +332,7 @@ export const Section: FunctionComponent<SectionProps> = ({
                 onClick={() => setExpanded((e) => !e)}
             />
             <div className={styles.snippetHeadingTwo}>
-                <span style={{marginRight: 8}}>
-                {title}
-                </span>
+                <span style={{ marginRight: 8 }}>{title}</span>
                 {!expanded && integrated !== undefined ? (
                     <IntegrationDetector
                         verbose={false}

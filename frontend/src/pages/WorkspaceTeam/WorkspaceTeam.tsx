@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import { message } from 'antd';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
@@ -9,6 +9,7 @@ import classNames from 'classnames/bind';
 
 import commonStyles from '../../Common.module.css';
 import styles from './WorkspaceTeam.module.css';
+import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 type Inputs = {
     email: string;
@@ -46,6 +47,12 @@ export const WorkspaceTeam = () => {
         `,
         { variables: { organization_id } }
     );
+
+    const { setOpenSidebar } = useContext(SidebarContext);
+
+    useEffect(() => {
+        setOpenSidebar(true);
+    }, []);
 
     useEffect(() => {
         reset();

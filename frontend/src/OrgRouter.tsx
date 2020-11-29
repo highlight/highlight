@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spinner } from './components/Spinner/Spinner';
 import { Header } from './components/Header/Header';
@@ -34,7 +34,7 @@ export const OrgRouter = () => {
     const { integrated, loading: integratedLoading } = useIntegrated(
         organization_id
     );
-    const [openSidebar, setOpenSidebar] = useState(true);
+    const [openSidebar, setOpenSidebar] = useState(false);
 
     if (error) {
         return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
