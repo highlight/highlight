@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useContext } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
 import { useLazyQuery, gql } from '@apollo/client';
@@ -19,6 +19,7 @@ import { Spinner } from '../../components/Spinner/Spinner';
 import AutosizeInput from 'react-input-autosize';
 
 import styles from './SessionsPage.module.css';
+import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const countDebounced = useDebouncedCallback(() => {
@@ -29,6 +30,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const paramsRef = useRef(params);
     const resultsRef = useRef<HTMLDivElement>(null);
     const [count, setCount] = useState(10);
+    const { setOpenSidebar } = useContext(SidebarContext);
     const [activeParam, setActiveParam] = useState<number>(-1);
     const [mainInputText, setMainInputText] = useState('');
     const { organization_id } = useParams();
@@ -64,6 +66,10 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     );
 
     const rawSessions = data?.sessions;
+
+    useEffect(() => {
+        setOpenSidebar(false);
+    }, []);
 
     useEffect(() => {
         if (rawSessions) {

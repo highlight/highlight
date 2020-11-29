@@ -4,30 +4,43 @@ import React from 'react';
 import Spinner from 'react-spinkit';
 import styles from './IntegrationDetector.module.css';
 import { Tooltip } from 'antd';
-import { ReactComponent as CheckIcon } from '../../../static/check.svg';
+import { ReactComponent as CheckIcon } from '../../../static/verify-check.svg';
 
 export const IntegrationDetector = ({
     integrated,
+    verbose,
 }: {
     integrated: boolean;
+    verbose: boolean;
 }) => {
     return (
-        <Tooltip
-            title={
-                integrated
-                    ? 'Highlight is installed!'
-                    : 'Waiting for Highlight to be installed.'
-            }
-        >
-            <div className={styles.detectorWrapper}>
-                <div className={styles.loaderWrapper}>
-                    {integrated ? (
-                        <CheckIcon className={styles.checkIcon} />
-                    ) : (
-                        <Spinner size={22} name="pulse" color={'#5629c6'} />
-                    )}
+        <div className={styles.detector}>
+            <Tooltip
+                title={
+                    integrated
+                        ? 'Highlight is installed!'
+                        : 'Waiting for Highlight to be installed.'
+                }
+            >
+                <div className={styles.detectorWrapper}>
+                    <div className={styles.loaderWrapper}>
+                        {integrated ? (
+                            <CheckIcon className={styles.checkIcon} />
+                        ) : (
+                            <div className="blob" />
+                        )}
+                    </div>
                 </div>
-            </div>
-        </Tooltip>
+            </Tooltip>
+            {verbose ? (
+                <div className={styles.verificationText}>
+                    {integrated
+                        ? 'Installation Verified.'
+                        : 'Waiting for Verification.'}
+                </div>
+            ) : (
+                <></>
+            )}
+        </div>
     );
 };

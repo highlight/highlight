@@ -15,9 +15,11 @@
 }
 
 .hamburger {
+    transition: 0.4s;
     margin-right: 10px;
     cursor: pointer;
-    height: 100%;
+    height: 24px;
+    width: 24px;
 }
 
 .logoText {

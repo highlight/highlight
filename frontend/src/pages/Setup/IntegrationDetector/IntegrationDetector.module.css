@@ -1,13 +1,17 @@
 .detectorWrapper {
     display: flex;
     width: max-content;
-    margin-left: auto;
-    padding: 0 10px 0 10px;
+    padding: 0 10px 0 0px;
     border-radius: 8px;
     background-color: white;
     color: white;
     transition: 0.3s;
     cursor: pointer;
+}
+
+.detector {
+    display: flex;
+    align-items: center;
 }
 
 .loaderWrapper {
@@ -36,4 +40,10 @@
     width: 15px;
     color: green;
     fill: green;
+}
+
+.verificationText {
+    color: #5629c6;
+    font-weight: 300;
+    font-size: 15px;
 }

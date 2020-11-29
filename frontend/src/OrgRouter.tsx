@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spinner } from './components/Spinner/Spinner';
 import { Header } from './components/Header/Header';
@@ -49,17 +49,7 @@ export const OrgRouter = () => {
     return (
         <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
             <Header />
-            <div
-                className={commonStyles.bodyWrapper}
-                onMouseMove={(e) => {
-                    if (e.pageX < 20) {
-                        setOpenSidebar(true);
-                    }
-                    if (e.pageX > 300) {
-                        setOpenSidebar(false);
-                    }
-                }}
-            >
+            <div className={commonStyles.bodyWrapper}>
                 <Sidebar />
                 <Switch>
                     <Route path="/:organization_id/sessions/:session_id">

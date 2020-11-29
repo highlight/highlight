@@ -1,5 +1,7 @@
 declare const styles: {
   readonly "ant-modal-close-x": string;
+  readonly "blob": string;
+  readonly "pulse-black": string;
   readonly "css-foqpf7": string;
   readonly "ant-switch-checked": string;
   readonly "ant-message-notice-content": string;

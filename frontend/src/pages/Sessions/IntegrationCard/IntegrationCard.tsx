@@ -8,19 +8,23 @@ import styles from './IntegrationCard.module.css';
 export const IntegrationCard = () => {
     const { organization_id } = useParams();
     return (
-        <div className={styles.cardWrapper}>
-            <div className={styles.card}>
-                <div className={styles.title}>Waiting for Installation...</div>
-                <div className={styles.text}>
-                    Please follow the{' '}
-                    <Link to={`/${organization_id}/setup`}>
-                        setup instructions
-                    </Link>{' '}
-                    to install Highlight. It should take less than a minute for
-                    us to detect installation.
+        <>
+            <div className={styles.cardWrapper}>
+                <div className={styles.card}>
+                    <div className={styles.title}>
+                        Waiting for Installation...
+                    </div>
+                    <div className={styles.text}>
+                        Please follow the{' '}
+                        <Link to={`/${organization_id}/setup`}>
+                            setup instructions
+                        </Link>{' '}
+                        to install Highlight. It should take less than a minute
+                        for us to detect installation.
+                    </div>
+                    <Spinner width={'100%'} />
                 </div>
-                <Spinner width={'100%'} />
             </div>
-        </div>
+        </>
     );
 };

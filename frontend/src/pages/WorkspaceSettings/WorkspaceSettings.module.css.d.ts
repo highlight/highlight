@@ -1,6 +1,7 @@
 declare const styles: {
   readonly "settingsPageWrapper": string;
   readonly "settingsPage": string;
+  readonly "blankSidebar": string;
   readonly "title": string;
   readonly "subTitle": string;
   readonly "fieldsBox": string;
