@@ -66,7 +66,7 @@ export const OrgRouter = () => {
                         <WorkspaceTeam />
                     </Route>
                     {/* <Route path="/:organization_id/billing">
-                        <Billing/>
+                        <Billing />
                     </Route> */}
                     <Route path="/:organization_id">
                         <SetupPage integrated={integrated} />
