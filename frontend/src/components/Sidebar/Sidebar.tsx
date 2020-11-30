@@ -63,6 +63,15 @@ export const Sidebar = () => {
                 <TeamIcon />
                 <span className={styles.rowText}>Team</span>
             </Link>
+            <Link
+                className={classNames([
+                    styles.row,
+                    page.includes('billing') && styles.selected,
+                ])}
+                to={demo ? '/' : `/${organization_id}/billing`}
+            >
+                <span className={styles.rowText}>Billing</span>
+            </Link>
         </div>
     );
 };
