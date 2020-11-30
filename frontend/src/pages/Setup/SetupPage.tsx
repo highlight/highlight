@@ -73,8 +73,9 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                 </Section>
                 <Section title="Verify Installation" integrated={integrated}>
                     <div className={styles.snippetSubHeading}>
-                        Follow these instructions to install and verify the
-                        integration of Highlight into your application.
+                        Please follow the setup instructions above to install
+                        Highlight. It should take less than a minute for us to
+                        detect installation.
                     </div>
                     <br />
                     <IntegrationDetector
