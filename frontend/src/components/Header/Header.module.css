@@ -103,4 +103,5 @@
     align-items: center;
     justify-content: center;
     margin-left: auto;
+    z-index: 200;
 }
