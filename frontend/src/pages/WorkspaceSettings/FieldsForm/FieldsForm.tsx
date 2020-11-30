@@ -5,9 +5,10 @@ import { useForm } from 'react-hook-form';
 import styles from './FieldsForm.module.css';
 import commonStyles from '../../../Common.module.css';
 import classNames from 'classnames/bind';
-import { useMutation, gql } from '@apollo/client';
+import { useMutation, gql, useQuery } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { CircularSpinner } from '../../../components/Spinner/Spinner';
+import { message } from 'antd';
 
 type Inputs = {
     name: string;
@@ -17,7 +18,24 @@ type Inputs = {
 export const FieldsForm = () => {
     const { organization_id } = useParams();
     const { register, handleSubmit, errors } = useForm<Inputs>();
-    const [editOrganization, { loading, data }] = useMutation<
+    const { loading, data } = useQuery<
+        { organization: { name: string; billing_email: string } },
+        { id: number }
+    >(
+        gql`
+            query GetOrganization($id: ID!) {
+                organization(id: $id) {
+                    name
+                    billing_email
+                }
+            }
+        `,
+        { variables: { id: organization_id } }
+    );
+    const [
+        editOrganization,
+        { data: editData, loading: editLoading },
+    ] = useMutation<
         { editOrganization: { billing_email: string; name: string } },
         { id: number; name?: string; billing_email?: string }
     >(
@@ -40,10 +58,6 @@ export const FieldsForm = () => {
         { refetchQueries: ['GetOrganizations', 'GetOrganization'] }
     );
 
-    useEffect(() => {
-        editOrganization({ variables: { id: organization_id } });
-    }, [editOrganization, organization_id]);
-
     const onSubmit = (inputs: Inputs) => {
         editOrganization({
             variables: {
@@ -51,6 +65,8 @@ export const FieldsForm = () => {
                 name: inputs.name,
                 billing_email: inputs.email,
             },
+        }).then(() => {
+            message.success('Updated workspace fields!', 5);
         });
     };
     return (
@@ -58,7 +74,10 @@ export const FieldsForm = () => {
             <div className={styles.fieldRow}>
                 <div className={styles.fieldKey}>Name</div>
                 <input
-                    defaultValue={data?.editOrganization.name}
+                    defaultValue={
+                        editData?.editOrganization.name ||
+                        data?.organization.name
+                    }
                     className={commonStyles.input}
                     name="name"
                     ref={register({ required: true })}
@@ -67,7 +86,10 @@ export const FieldsForm = () => {
             <div className={styles.fieldRow}>
                 <div className={styles.fieldKey}>Billing Email</div>
                 <input
-                    defaultValue={data?.editOrganization.billing_email}
+                    defaultValue={
+                        editData?.editOrganization.billing_email ||
+                        data?.organization.billing_email
+                    }
                     className={commonStyles.input}
                     placeholder={'Billing Email'}
                     type="email"
@@ -87,7 +109,7 @@ export const FieldsForm = () => {
                         styles.saveButton
                     )}
                 >
-                    {loading ? (
+                    {editLoading ? (
                         <CircularSpinner
                             style={{ fontSize: 18, color: 'white' }}
                         />

@@ -63,6 +63,30 @@ export const Sidebar = () => {
                 <TeamIcon />
                 <span className={styles.rowText}>Team</span>
             </Link>
+            <div
+                style={{
+                    flexGrow: 1,
+                    height: '100%',
+                    position: 'relative',
+                    width: '100%',
+                    padding: 20,
+                }}
+            >
+                <div className={styles.bottomSection}>
+                    <Link
+                        to={{ pathname: "https://www.highlight.run/terms-of-service" }}
+                        className={styles.bottomLink}
+                    >
+                        Terms of Service
+                    </Link>
+                    <Link
+                        className={styles.bottomLink}
+                        to={{ pathname: "https://www.highlight.run/privacy" }}
+                    >
+                        Privacy Policy
+                    </Link>
+                </div>
+            </div>
         </div>
     );
 };

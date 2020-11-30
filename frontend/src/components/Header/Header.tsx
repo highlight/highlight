@@ -1,18 +1,36 @@
-import React, { useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { ReactComponent as HighlightLogoSmall } from '../../static/highlight-logo-small.svg';
 import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
-import { Link } from 'react-router-dom';
-import { useParams } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
+import { useParams, RouteComponentProps } from 'react-router-dom';
 import { UserDropdown } from './UserDropdown/UserDropdown';
+import { FaSearch } from 'react-icons/fa';
+import * as Mousetrap from 'mousetrap';
 
 import styles from './Header.module.css';
 import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../Sidebar/SidebarContext';
 
-export const Header = () => {
+const Head: React.SFC<RouteComponentProps> = ({history}) => {
     const { organization_id } = useParams();
     const { demo } = useContext(DemoContext);
     const { setOpenSidebar, openSidebar } = useContext(SidebarContext);
+
+    useEffect(() => {
+        const keys = ['command+k', 'ctrl+k'];
+        const method = () => {
+            history.push(`/${organization_id}/sessions`)
+            console.log('yo');
+        };
+
+        // @ts-ignore
+        Mousetrap.bind(keys, method);
+
+        return () => {
+            // @ts-ignore
+            Mousetrap.unbind(keys, method);
+        };
+    }, []);
 
     return (
         <>
@@ -21,7 +39,11 @@ export const Header = () => {
                     <Hamburger
                         className={styles.hamburger}
                         onClick={() => setOpenSidebar(!openSidebar)}
-                        style={{transform: openSidebar ? "rotate(-180deg)": "rotate(0deg)"}}
+                        style={{
+                            transform: openSidebar
+                                ? 'rotate(-180deg)'
+                                : 'rotate(0deg)',
+                        }}
                     />
                     <Link
                         className={styles.homeLink}
@@ -29,6 +51,19 @@ export const Header = () => {
                     >
                         <HighlightLogoSmall className={styles.logo} />
                         <span className={styles.logoText}>Highlight</span>
+                    </Link>
+                </div>
+                <div className={styles.searchWrapper}>
+                    <Link
+                        className={styles.searchBar}
+                        to={`/${organization_id}/sessions`}
+                    >
+                        <FaSearch style={{ marginRight: 8 }} />
+                        <span>Search for sessions</span>
+                        <div className={styles.commandWrapper}>
+                            <div className={styles.commandContainer}>⌘</div>
+                            <div className={styles.commandContainer}>K</div>
+                        </div>
                     </Link>
                 </div>
                 <div className={styles.rightHeader}>
@@ -39,3 +74,5 @@ export const Header = () => {
         </>
     );
 };
+
+export const Header = withRouter(Head);
