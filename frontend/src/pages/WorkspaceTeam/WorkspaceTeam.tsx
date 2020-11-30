@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useContext } from 'react';
-import { message } from 'antd';
+import { message, Skeleton } from 'antd';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 import { useMutation, useQuery, gql } from '@apollo/client';
@@ -32,7 +32,7 @@ export const WorkspaceTeam = () => {
         `,
         { variables: { id: organization_id } }
     );
-    const { data, error } = useQuery<
+    const { data, error, loading } = useQuery<
         { admins: { id: number; name: string; email: string }[] },
         { organization_id: number }
     >(
@@ -137,27 +137,33 @@ export const WorkspaceTeam = () => {
                 </div>
                 <div className={styles.box}>
                     <div className={styles.title}>Members</div>
-                    {data?.admins.map((a) => {
-                        return (
-                            <div key={a.id} className={styles.memberCard}>
-                                <Avatar
-                                    seed={a.id.toString()}
-                                    style={{
-                                        height: 45,
-                                        width: 45,
-                                        marginLeft: 5,
-                                        marginRight: 5,
-                                    }}
-                                />
-                                <div className={styles.userDetails}>
-                                    <div className={styles.name}>{a.name}</div>
-                                    <div className={styles.email}>
-                                        {a.email}
+                    {loading ? (
+                        <Skeleton />
+                    ) : (
+                        data?.admins.map((a) => {
+                            return (
+                                <div key={a.id} className={styles.memberCard}>
+                                    <Avatar
+                                        seed={a.id.toString()}
+                                        style={{
+                                            height: 45,
+                                            width: 45,
+                                            marginLeft: 5,
+                                            marginRight: 5,
+                                        }}
+                                    />
+                                    <div className={styles.userDetails}>
+                                        <div className={styles.name}>
+                                            {a.name}
+                                        </div>
+                                        <div className={styles.email}>
+                                            {a.email}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    )}
                 </div>
             </div>
         </div>
