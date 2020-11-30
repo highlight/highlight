@@ -1,7 +1,6 @@
 import React from 'react';
 
 // @ts-ignore
-import Spinner from 'react-spinkit';
 import styles from './IntegrationDetector.module.css';
 import { Tooltip } from 'antd';
 import { ReactComponent as CheckIcon } from '../../../static/verify-check.svg';

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 
 import { useForm } from 'react-hook-form';
 
@@ -18,7 +18,7 @@ type Inputs = {
 export const FieldsForm = () => {
     const { organization_id } = useParams();
     const { register, handleSubmit, errors } = useForm<Inputs>();
-    const { loading, data } = useQuery<
+    const { data } = useQuery<
         { organization: { name: string; billing_email: string } },
         { id: number }
     >(

@@ -27,7 +27,7 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
 
     useEffect(() => {
         setOpenSidebar(true);
-    }, []);
+    }, [setOpenSidebar]);
 
     return (
         <div className={styles.setupWrapper}>

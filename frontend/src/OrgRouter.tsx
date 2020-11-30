@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spinner } from './components/Spinner/Spinner';
 import { Header } from './components/Header/Header';

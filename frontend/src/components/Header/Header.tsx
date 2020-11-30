@@ -11,7 +11,7 @@ import styles from './Header.module.css';
 import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../Sidebar/SidebarContext';
 
-const Head: React.SFC<RouteComponentProps> = ({history}) => {
+const Head: React.SFC<RouteComponentProps> = ({ history }) => {
     const { organization_id } = useParams();
     const { demo } = useContext(DemoContext);
     const { setOpenSidebar, openSidebar } = useContext(SidebarContext);
@@ -19,8 +19,7 @@ const Head: React.SFC<RouteComponentProps> = ({history}) => {
     useEffect(() => {
         const keys = ['command+k', 'ctrl+k'];
         const method = () => {
-            history.push(`/${organization_id}/sessions`)
-            console.log('yo');
+            history.push(`/${organization_id}/sessions`);
         };
 
         // @ts-ignore
@@ -30,7 +29,7 @@ const Head: React.SFC<RouteComponentProps> = ({history}) => {
             // @ts-ignore
             Mousetrap.unbind(keys, method);
         };
-    }, []);
+    }, [history, organization_id]);
 
     return (
         <>
