@@ -84,11 +84,11 @@ func main() {
 	}
 	rd.SetupRedisStore()
 	rd.SetupRedisClient()
-	db := model.SetupDB() // TODO make a setup stripe. add env variable. add id to doppler.
+	db := model.SetupDB()
 	mux := http.NewServeMux()
 	main := &mgraph.Resolver{
 		DB:         db,
-		MailClient: sendgrid.NewSendClient(sendgridKey), // TODO DENISE send stripe client
+		MailClient: sendgrid.NewSendClient(sendgridKey),
 	}
 	mux.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
 		mgenerated.Config{

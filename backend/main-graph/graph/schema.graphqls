@@ -55,5 +55,4 @@ type Mutation {
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-  createCheckout(organization_id: ID!, plan_id: String!): String!
 }

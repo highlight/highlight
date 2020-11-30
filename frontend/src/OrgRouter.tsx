@@ -65,9 +65,9 @@ export const OrgRouter = () => {
                     <Route path="/:organization_id/team">
                         <WorkspaceTeam />
                     </Route>
-                    <Route path="/:organization_id/billing">
+                    {/* <Route path="/:organization_id/billing">
                         <Billing/>
-                    </Route>
+                    </Route> */}
                     <Route path="/:organization_id">
                         <SetupPage integrated={integrated} />
                     </Route>
