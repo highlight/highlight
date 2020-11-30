@@ -28,7 +28,41 @@
     user-select: none;
 }
 
+.searchWrapper {
+    position: absolute;
+    width: 100%;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.commandWrapper {
+    display: flex;
+    flex-direction: row;
+    margin-left: auto;
+    margin-right: 10px;
+}
+.commandContainer {
+    margin-left: 5px;
+    padding: 0px 5px 0px 5px;
+    border: 1px solid #eaeaea;
+    border-radius: 4px;
+}
+
+.searchBar {
+    width: 500px;
+    height: 40px;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding-left: 14px;
+    color: #888888;
+    display: flex;
+    align-items: center;
+}
+
 .logoWrapper {
+    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;

@@ -11,7 +11,7 @@ export const WorkspaceSettings = () => {
 
     useEffect(() => {
         setOpenSidebar(true);
-    }, []);
+    }, [setOpenSidebar]);
     return (
         <div className={styles.settingsPageWrapper}>
             <div className={styles.blankSidebar}></div>

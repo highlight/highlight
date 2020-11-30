@@ -69,7 +69,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
 
     useEffect(() => {
         setOpenSidebar(false);
-    }, []);
+    }, [setOpenSidebar]);
 
     useEffect(() => {
         if (rawSessions) {

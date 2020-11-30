@@ -21,6 +21,19 @@
     text-decoration: none;
 }
 
+.bottomSection {
+    position: absolute;
+    bottom: 100px;
+    display: flex;
+    flex-direction: column;
+}
+
+.bottomLink {
+    color: #666666;
+    text-decoration: underline;
+    margin-top: 8px;
+}
+
 .link:hover {
     text-decoration: none;
     color: inherit;

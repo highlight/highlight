@@ -52,7 +52,7 @@ export const WorkspaceTeam = () => {
 
     useEffect(() => {
         setOpenSidebar(true);
-    }, []);
+    }, [setOpenSidebar]);
 
     useEffect(() => {
         reset();
