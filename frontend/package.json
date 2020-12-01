@@ -75,5 +75,8 @@
             "last 1 firefox version",
             "last 1 safari version"
         ]
+    },
+    "devDependencies": {
+        "typed-css-modules": "^0.6.4"
     }
 }
