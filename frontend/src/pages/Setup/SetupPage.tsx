@@ -12,13 +12,14 @@ import styles from './SetupPage.module.css';
 import useFetch from 'use-http';
 import { Skeleton } from 'antd';
 import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
+import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 enum PlatformType {
-    Html,
-    React,
-    Vue,
-    NextJs,
+    Html = "HTML",
+    React = "React",
+    Vue = "Vue.js",
+    NextJs = "Next.js",
 }
 
 export const SetupPage = ({ integrated }: { integrated: boolean }) => {
@@ -41,15 +42,16 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                 <div className={styles.subTitle}>
                     Setup Highlight in your web application!
                 </div>
-                <RadioGroup
-                    platform={platform}
+                <RadioGroup<PlatformType>
+                    selectedLabel={platform}
+                    labels={[PlatformType.React, PlatformType.Vue, PlatformType.Html, PlatformType.NextJs]}
                     onSelect={(p: PlatformType) => setPlatform(p)}
                 />
                 {platform === PlatformType.Html ? (
                     <HtmlInstructions />
                 ) : (
-                    <JsAppInstructions platform={platform} />
-                )}
+                        <JsAppInstructions platform={platform} />
+                    )}
                 <Section title="Identifying Users">
                     <div className={styles.snippetSubHeading}>
                         To tag sessions with user specific identifiers (name,
@@ -110,16 +112,16 @@ const HtmlInstructions = () => {
                 {loading || error ? (
                     <Skeleton active />
                 ) : (
-                    <CodeBlock
-                        onCopy={() =>
-                            window.analytics.track('Copied Script', {})
-                        }
-                        text={`<script>
+                        <CodeBlock
+                            onCopy={() =>
+                                window.analytics.track('Copied Script', {})
+                            }
+                            text={`<script>
 ${codeStr}
 window.H.init(${organization_id})
 </script>`}
-                    />
-                )}
+                        />
+                    )}
             </div>
         </Section>
     );
@@ -159,8 +161,8 @@ const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
                         </div>
                     </div>
                 ) : (
-                    <></>
-                )}
+                        <></>
+                    )}
                 <div className={styles.snippetSubHeading}>
                     Initialize the SDK by importing Highlight like so:{' '}
                     <CodeBlock text={`import { H } from 'highlight.run'`} />
@@ -174,18 +176,18 @@ const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
                             text={`H.init(${organization_id}) // ${organization_id} is your ORG_ID`}
                         />
                     ) : (
-                        <CodeBlock
-                            text={`if (typeof window !== 'undefined') {
+                            <CodeBlock
+                                text={`if (typeof window !== 'undefined') {
     H.init(${organization_id}) // ${organization_id} is your ORG_ID
 }`}
-                        />
-                    )}
+                            />
+                        )}
                     In{' '}
                     {platform === PlatformType.React
                         ? 'React'
                         : platform === PlatformType.Vue
-                        ? 'Vue'
-                        : 'Next.js'}
+                            ? 'Vue'
+                            : 'Next.js'}
                     , it can be called at the top of your main component's file
                     like this:
                     <br />
@@ -215,8 +217,8 @@ new Vue({
 }).$mount('#app');`}
                         />
                     ) : (
-                        <CodeBlock
-                            text={`import '../styles/globals.css'
+                                <CodeBlock
+                                    text={`import '../styles/globals.css'
 import { H } from 'highlight.run';
 
 if (typeof window !== 'undefined') {
@@ -228,83 +230,11 @@ function MyApp({ Component, pageProps }) {
 }
 
 export default MyApp`}
-                        />
-                    )}
+                                />
+                            )}
                 </div>
             </Section>
         </>
-    );
-};
-
-const RadioGroup = ({
-    onSelect,
-    platform,
-}: {
-    onSelect: (p: PlatformType) => void;
-    platform: PlatformType;
-}) => {
-    return (
-        <div className={styles.radioGroupWrapper}>
-            <div
-                style={{
-                    borderRadius: '8px 0 0 8px',
-                    borderRight: 'none',
-                    borderColor:
-                        platform === PlatformType.React ? '#5629c6' : '#eaeaea',
-                    backgroundColor:
-                        platform === PlatformType.React ? '#5629c6' : 'white',
-                    color: platform === PlatformType.React ? 'white' : 'black',
-                }}
-                className={styles.platformOption}
-                onClick={() => onSelect(PlatformType.React)}
-            >
-                React
-            </div>
-            <div
-                style={{
-                    borderColor:
-                        platform === PlatformType.Vue ? '#5629c6' : '#eaeaea',
-                    backgroundColor:
-                        platform === PlatformType.Vue ? '#5629c6' : 'white',
-                    color: platform === PlatformType.Vue ? 'white' : 'black',
-                }}
-                className={styles.platformOption}
-                onClick={() => onSelect(PlatformType.Vue)}
-            >
-                Vue.js
-            </div>
-            <div
-                style={{
-                    borderLeft: 'none',
-                    borderColor:
-                        platform === PlatformType.Html ? '#5629c6' : '#eaeaea',
-                    backgroundColor:
-                        platform === PlatformType.Html ? '#5629c6' : 'white',
-                    color: platform === PlatformType.Html ? 'white' : 'black',
-                }}
-                className={styles.platformOption}
-                onClick={() => onSelect(PlatformType.Html)}
-            >
-                HTML
-            </div>
-            <div
-                style={{
-                    borderLeft: 'none',
-                    borderRadius: '0 8px 8px 0',
-                    borderColor:
-                        platform === PlatformType.NextJs
-                            ? '#5629c6'
-                            : '#eaeaea',
-                    backgroundColor:
-                        platform === PlatformType.NextJs ? '#5629c6' : 'white',
-                    color: platform === PlatformType.NextJs ? 'white' : 'black',
-                }}
-                className={styles.platformOption}
-                onClick={() => onSelect(PlatformType.NextJs)}
-            >
-                Next.js
-            </div>
-        </div>
     );
 };
 
@@ -340,8 +270,8 @@ export const Section: FunctionComponent<SectionProps> = ({
                         integrated={integrated}
                     />
                 ) : (
-                    <></>
-                )}
+                        <></>
+                    )}
             </div>
             {expanded ? (
                 <>
@@ -349,8 +279,8 @@ export const Section: FunctionComponent<SectionProps> = ({
                     {children}
                 </>
             ) : (
-                <></>
-            )}
+                    <></>
+                )}
         </div>
     );
 };
