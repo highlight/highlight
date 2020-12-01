@@ -21,7 +21,10 @@ var (
 
 func init() {
 	secret := os.Getenv("FIREBASE_SECRET")
-	creds, err := google.CredentialsFromJSON(context.Background(), []byte(secret))
+	creds, err := google.CredentialsFromJSON(context.Background(), []byte(secret),
+		"https://www.googleapis.com/auth/firebase",
+		"https://www.googleapis.com/auth/identitytoolkit",
+		"https://www.googleapis.com/auth/userinfo.email")
 	if err != nil {
 		log.Fatalf("error converting credentials from json: %v", err)
 	}
