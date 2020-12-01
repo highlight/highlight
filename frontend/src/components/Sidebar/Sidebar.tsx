@@ -72,6 +72,35 @@ export const Sidebar = () => {
             >
                 <span className={styles.rowText}>Billing</span>
             </Link> */}
+            <div
+                style={{
+                    flexGrow: 1,
+                    height: '100%',
+                    position: 'relative',
+                    width: '100%',
+                    padding: 20,
+                }}
+            >
+                <div className={styles.bottomSection}>
+                    <Link
+                        to={{
+                            pathname:
+                                'https://www.highlight.run/terms-of-service',
+                        }}
+                        className={styles.bottomLink}
+                        target="_blank"
+                    >
+                        Terms of Service
+                    </Link>
+                    <Link
+                        className={styles.bottomLink}
+                        to={{ pathname: 'https://www.highlight.run/privacy' }}
+                        target="_blank"
+                    >
+                        Privacy Policy
+                    </Link>
+                </div>
+            </div>
         </div>
     );
 };

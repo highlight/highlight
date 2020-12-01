@@ -2224,6 +2224,11 @@
   "resolved" "https://registry.yarnpkg.com/@types/minimatch/-/minimatch-3.0.3.tgz"
   "version" "3.0.3"
 
+"@types/mousetrap@^1.6.4":
+  "integrity" "sha512-+Y900DGhe+f+4lRwHm9krsKfsiXcbdOhzTsLbytU4MiG8wE9xOw7CFKtgYKfqEAcUdWEGZRyuTxoyFl2Gx6Rdg=="
+  "resolved" "https://registry.npmjs.org/@types/mousetrap/-/mousetrap-1.6.4.tgz"
+  "version" "1.6.4"
+
 "@types/node@*":
   "integrity" "sha512-KPcKqKm5UKDkaYPTuXSx8wEP7vE9GnuaXIZKijwRYcePpZFDVuy2a57LarFKiORbHOuTOOwYzxVxcUzsh2P2Pw=="
   "resolved" "https://registry.yarnpkg.com/@types/node/-/node-14.11.8.tgz"
@@ -8055,11 +8060,6 @@
     "emojis-list" "^2.0.0"
     "json5" "^1.0.1"
 
-"loaders.css@^0.1.2":
-  "integrity" "sha1-Op+0NybHMzSjgUKvnQYpAZtlh0M="
-  "resolved" "https://registry.yarnpkg.com/loaders.css/-/loaders.css-0.1.2.tgz"
-  "version" "0.1.2"
-
 "locate-path@^2.0.0":
   "integrity" "sha1-K1aLJl7slExtnA3pw9u7ygNUzY4="
   "resolved" "https://registry.yarnpkg.com/locate-path/-/locate-path-2.0.0.tgz"
@@ -8564,6 +8564,11 @@
   "integrity" "sha512-al0MUK7cpIcglMv3YF13qSgdAIqxHTO7brRtaz3DlSULbqfazqkc5kEjNrLDOM7fsjshoFIihnU8snrP7zUvhQ=="
   "resolved" "https://registry.yarnpkg.com/moment/-/moment-2.27.0.tgz"
   "version" "2.27.0"
+
+"mousetrap@^1.6.5":
+  "integrity" "sha512-QNo4kEepaIBwiT8CDhP98umTetp+JNfQYBWvC1pc6/OAibuXtRcxZ58Qz8skvEHYvURne/7R8T5VoOI7rDsEUA=="
+  "resolved" "https://registry.npmjs.org/mousetrap/-/mousetrap-1.6.5.tgz"
+  "version" "1.6.5"
 
 "move-concurrently@^1.0.1":
   "integrity" "sha1-viwAX9oy4LKa8fBdfEszIUxwH5I="
@@ -11053,16 +11058,6 @@
   dependencies:
     "lodash.throttle" "^4.1.1"
     "prop-types" "^15.7.2"
-
-"react-spinkit@^3.0.0":
-  "integrity" "sha1-Mf2vThgXd2bFfRsfMzApD4SSqFo="
-  "resolved" "https://registry.yarnpkg.com/react-spinkit/-/react-spinkit-3.0.0.tgz"
-  "version" "3.0.0"
-  dependencies:
-    "classnames" "^2.2.3"
-    "loaders.css" "^0.1.2"
-    "object-assign" "^4.1.0"
-    "prop-types" "^15.5.8"
 
 "react-spinners-kit@^1.9.1":
   "integrity" "sha512-QtAvSD7b1WkThY3pRKu6Sr+DZafnEufoOvug/uHprkKyZK6bg6TG5LC3Sy3JaRh6A/HACIcTNEWG+Ls0YDoSHg=="

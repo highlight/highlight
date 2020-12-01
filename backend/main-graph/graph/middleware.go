@@ -4,11 +4,14 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 
 	"firebase.google.com/go/auth"
 
 	firebase "firebase.google.com/go"
 	e "github.com/pkg/errors"
+	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 )
 
 var (
@@ -17,7 +20,12 @@ var (
 )
 
 func init() {
-	app, err := firebase.NewApp(context.Background(), nil)
+	secret := os.Getenv("FIREBASE_SECRET")
+	creds, err := google.CredentialsFromJSON(context.Background(), []byte(secret))
+	if err != nil {
+		log.Fatalf("error converting credentials from json: %v", err)
+	}
+	app, err := firebase.NewApp(context.Background(), nil, option.WithCredentials(creds))
 	if err != nil {
 		log.Fatalf("error initializing firebase app: %v", err)
 	}

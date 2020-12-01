@@ -24,6 +24,10 @@ input[name='option-input'] {
     position: absolute;
 }
 
+a:hover {
+    color: #7451ca;
+}
+
 .App-header {
     background-color: #282c34;
     min-height: 100vh;
