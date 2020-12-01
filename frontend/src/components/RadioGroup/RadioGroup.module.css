@@ -1,0 +1,23 @@
+.radioGroupWrapper {
+    margin: 20px 0px 20px 0px;
+    display: flex;
+}
+
+.platformOption {
+    height: 30px;
+    width: 85px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e4e8eb;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.platformOption:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+.platformOption:last-child {
+    border-radius: 0 8px 8px 0;
+}
