@@ -8,6 +8,7 @@
         "@dicebear/avatars-avataaars-sprites": "^4.2.5",
         "@sentry/react": "^5.27.3",
         "@sentry/tracing": "^5.27.3",
+        "@stripe/stripe-js": "^1.11.0",
         "@testing-library/jest-dom": "^4.2.4",
         "@testing-library/react": "^9.3.2",
         "@testing-library/user-event": "^7.1.2",

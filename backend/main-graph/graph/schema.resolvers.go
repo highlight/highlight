@@ -18,6 +18,8 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	"github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/checkout/session"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -120,19 +122,44 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 }
 
 func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error) {
-	// panic(fmt.Errorf("not implemented"))
-	// if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
-	// 	return nil, e.Wrap(err, "admin is not in organization")
-	// }
-	// var p = "poop"
-	// return &p, nil
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return "", e.Wrap(err, "admin is not in organization")
+	}
 
-	// create session
-	// import stripe
-	// return stripe session id for client to use in redirect
-	// needs stripe creds?
-	fmt.Println("CreateCheckout Called! XCXC")
-	return "https:/google.com", nil
+	stripe.Key = os.Getenv("STRIPE_API_KEY")
+	params := &stripe.CheckoutSessionParams{
+		SuccessURL: stripe.String("https://example.com/success?session_id={CHECKOUT_SESSION_ID}"),
+		CancelURL:  stripe.String("https://example.com/cancel"),
+		PaymentMethodTypes: stripe.StringSlice([]string{
+			"card",
+		}),
+		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
+			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
+				&stripe.CheckoutSessionSubscriptionDataItemsParams{
+					Plan: stripe.String(priceID),
+				},
+			},
+		},
+		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+		// TODO DENISE: try to get LineItems working, since its the new way
+		// LineItems: []*stripe.CheckoutSessionLineItemParams{
+		// 	&stripe.CheckoutSessionLineItemParams{
+		// 		Name:        stripe.String("T-shirt"),
+		// 		Description: stripe.String("Comfortable cotton t-shirt"),
+		// 		Amount:      stripe.Int64(2000),
+		// 		Currency:    stripe.String("usd"),
+		// 		Price:       stripe.String(price.ID),
+		// 		Quantity:    stripe.Int64(1),
+		// 	},
+	}
+
+	stripe_session, err := session.New(params)
+
+	if err != nil {
+		fmt.Println("CreateCheckout error after stripe stuff XCXC")
+	}
+
+	return stripe_session.ID, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {

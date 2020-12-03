@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { useMutation, gql } from '@apollo/client';
 import classNames from 'classnames/bind';
+import { loadStripe } from '@stripe/stripe-js';
+
 
 import commonStyles from '../../Common.module.css';
 import styles from './Billing.module.css';
@@ -11,6 +13,10 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 enum BillingViewType {
     Plans = "Plans", Invoices = "Invoices"
 }
+
+// TODO DENISE: what is the good way to handle this in typescript
+const stripe_publishable_key: string = process.env.STRIPE_API_PK ? process.env.STRIPE_API_PK : ""
+const stripePromise = loadStripe(stripe_publishable_key);
 
 export const Billing = () => {
     const { organization_id } = useParams();
@@ -37,14 +43,27 @@ export const Billing = () => {
         setOpenSidebar(true);
     }, []);
 
-    const onSubmit = () => {
-        createCheckout({ variables: { organization_id: organization_id, price_id: "one dolla" } }) // .then(() => {
+    const onSubmit = async () => {
+        createCheckout({ variables: { organization_id: organization_id, price_id: "price_1HswN7Gz4ry65q421RTixaZB" } })
     }
 
     console.log(data)
     if (data?.createCheckout) {
-        // TODO: might not be the best way to redirect here...
-        window.location.replace(data.createCheckout)
+
+        (async function () {
+            const stripe = await stripePromise;
+            const result = stripe ? await stripe.redirectToCheckout({
+                sessionId: data.createCheckout,
+            }) : { error: "stripe missin" }; // TODO DENISE: i just added this for typescript, will clean up before merging
+
+            if (result.error) {
+                console.log('redirect to checkout failed')
+                // TODO DENISE: handle this case
+                // If `redirectToCheckout` fails due to a browser or network
+                // error, display the localized error message to your customer
+                // using `result.error.message`.
+            }
+        })()
     }
 
 
