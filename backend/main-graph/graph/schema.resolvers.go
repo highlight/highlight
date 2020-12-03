@@ -119,6 +119,22 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 	return &org.ID, nil
 }
 
+func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error) {
+	// panic(fmt.Errorf("not implemented"))
+	// if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	// 	return nil, e.Wrap(err, "admin is not in organization")
+	// }
+	// var p = "poop"
+	// return &p, nil
+
+	// create session
+	// import stripe
+	// return stripe session id for client to use in redirect
+	// needs stripe creds?
+	fmt.Println("CreateCheckout Called! XCXC")
+	return "https:/google.com", nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	session, err := r.isAdminSessionOwner(ctx, id)
 	if err != nil {

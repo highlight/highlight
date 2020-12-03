@@ -124,14 +124,14 @@ export const WorkspaceTeam = () => {
                                         style={{ fontSize: 18, color: 'white' }}
                                     />
                                 ) : (
-                                    'Invite'
-                                )}
+                                        'Invite'
+                                    )}
                             </button>
                         </div>
                         <div className={commonStyles.errorMessage}>
                             {errors.email &&
                                 'Error validating email ' +
-                                    errors.email.message}
+                                errors.email.message}
                         </div>
                     </form>
                 </div>
@@ -140,30 +140,30 @@ export const WorkspaceTeam = () => {
                     {loading ? (
                         <Skeleton />
                     ) : (
-                        data?.admins.map((a) => {
-                            return (
-                                <div key={a.id} className={styles.memberCard}>
-                                    <Avatar
-                                        seed={a.id.toString()}
-                                        style={{
-                                            height: 45,
-                                            width: 45,
-                                            marginLeft: 5,
-                                            marginRight: 5,
-                                        }}
-                                    />
-                                    <div className={styles.userDetails}>
-                                        <div className={styles.name}>
-                                            {a.name}
-                                        </div>
-                                        <div className={styles.email}>
-                                            {a.email}
+                            data?.admins.map((a) => {
+                                return (
+                                    <div key={a.id} className={styles.memberCard}>
+                                        <Avatar
+                                            seed={a.id.toString()}
+                                            style={{
+                                                height: 45,
+                                                width: 45,
+                                                marginLeft: 5,
+                                                marginRight: 5,
+                                            }}
+                                        />
+                                        <div className={styles.userDetails}>
+                                            <div className={styles.name}>
+                                                {a.name}
+                                            </div>
+                                            <div className={styles.email}>
+                                                {a.email}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            );
-                        })
-                    )}
+                                );
+                            })
+                        )}
                 </div>
             </div>
         </div>

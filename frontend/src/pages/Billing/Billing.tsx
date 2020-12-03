@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useContext, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
+import { useMutation, gql } from '@apollo/client';
 import classNames from 'classnames/bind';
 
 import commonStyles from '../../Common.module.css';
@@ -18,9 +19,34 @@ export const Billing = () => {
 
     const { setOpenSidebar } = useContext(SidebarContext);
 
+    const [createCheckout, { loading, data, error }] = useMutation<
+        { createCheckout: string },
+        { organization_id: number; price_id: string }
+    >(
+        gql`
+            mutation CreateCheckout($organization_id: ID!, $price_id: String!) {
+                createCheckout(
+                    organization_id: $organization_id 
+                    price_id: $price_id
+                ) 
+            }
+        `
+    );
+
     useEffect(() => {
         setOpenSidebar(true);
     }, []);
+
+    const onSubmit = () => {
+        createCheckout({ variables: { organization_id: organization_id, price_id: "one dolla" } }) // .then(() => {
+    }
+
+    console.log(data)
+    if (data?.createCheckout) {
+        // TODO: might not be the best way to redirect here...
+        window.location.replace(data.createCheckout)
+    }
+
 
     return (
         <div className={styles.billingPageWrapper}>
@@ -42,6 +68,7 @@ export const Billing = () => {
                         className={classNames(
                             commonStyles.submitButton,
                         )}
+                        onClick={onSubmit}
                     >
                         Continue to billing page
                     </button>
