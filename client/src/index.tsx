@@ -158,7 +158,6 @@ Session Data:
     };
     emit.bind(this);
     record({
-      recordCanvas: true,
       emit,
     });
 
