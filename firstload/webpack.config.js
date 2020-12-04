@@ -15,6 +15,7 @@ module.exports = {
   devServer: {
     watchContentBase: true,
     writeToDisk: true,
+    port: 9000,
     headers: {
       'Access-Control-Allow-Origin': '*',
     },
@@ -35,5 +36,5 @@ module.exports = {
   optimization: {
     minimize: true
   },
-  devtool: 'sourceMap',
+  devtool: 'source-map',
 };
