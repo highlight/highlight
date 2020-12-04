@@ -103,7 +103,7 @@ export const H: HighlightPublicInterface = {
     },
     _error: () => {
         H.onHighlightReady(() =>highlight_obj._error())
-        throw("firstload");
+        console.error("firstload");
     }
 };
 
