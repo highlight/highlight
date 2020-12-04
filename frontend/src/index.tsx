@@ -37,14 +37,14 @@ ReactDOM.render(
                     <Route path="/error">
                         {() => {
                             H._error();
-                            return <p>hello</p>;
+                            return <p>error</p>;
                         }
                         }
                     </Route>
                     <Route path="/throw">
                         {() => {
                             H._throw();
-                            return <p>hello</p>;
+                            return <p>throw</p>;
                         }
                         }
                     </Route>
