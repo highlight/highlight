@@ -13,6 +13,8 @@ type HighlightPublicInterface = {
     getSessionURL: () => Promise<string>;
     start: () => void;
     onHighlightReady: (func: () => void) => void;
+    _error: () => void;
+    _throw: () => void;
     options: HighlightOptions | undefined;
 };
 
@@ -95,6 +97,14 @@ export const H: HighlightPublicInterface = {
             }
         }, 200);
     },
+    _throw: () => {
+        H.onHighlightReady(() =>highlight_obj._throw())
+        throw("firstload");
+    },
+    _error: () => {
+        H.onHighlightReady(() =>highlight_obj._error())
+        throw("firstload");
+    }
 };
 
 if (typeof window !== 'undefined') {

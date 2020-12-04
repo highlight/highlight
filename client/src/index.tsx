@@ -254,6 +254,14 @@ Session Data:
       },
     });
   }
+
+  _error() {
+    console.error("client");
+  }
+  
+  _throw() {
+    throw("client");
+  }
 }
 
 (window as any).Highlight = Highlight;
