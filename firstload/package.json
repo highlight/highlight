@@ -3,7 +3,7 @@
     "version": "1.0.41",
     "scripts": {
         "build": "webpack --mode=production",
-        "dev": "webpack --watch --mode=production"
+        "dev": "doppler run -- webpack-dev-server --progress --colors --watch"
     },
     "main": "dist/firstload/src/index.js",
     "types": "dist/firstload/src/index.d.ts",

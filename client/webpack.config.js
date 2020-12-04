@@ -33,7 +33,7 @@ module.exports = {
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   mode: 'development',
-  devtool: 'sourceMap',
+  devtool: 'source-map',
   plugins: [
     new webpack.EnvironmentPlugin(['BACKEND_URI']),
     new WebpackObfuscator(

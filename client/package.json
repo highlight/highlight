@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "webpack",
-    "dev": "webpack-dev-server --progress --colors --watch --env.BACKEND_URI=http://localhost:8082 "
+    "dev": "doppler run -- webpack-dev-server --progress --colors --watch"
   },
   "repository": {
     "type": "git",
