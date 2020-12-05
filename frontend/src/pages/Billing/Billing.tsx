@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useContext, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useContext, useState } from 'react';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import classNames from 'classnames/bind';
 
@@ -12,15 +11,13 @@ enum BillingViewType {
 }
 
 export const Billing = () => {
-    const { organization_id } = useParams();
-
     const [billingView, setBillingView] = useState((BillingViewType.Plans))
 
     const { setOpenSidebar } = useContext(SidebarContext);
 
     useEffect(() => {
         setOpenSidebar(true);
-    }, []);
+    }, [setOpenSidebar]);
 
     return (
         <div className={styles.billingPageWrapper}>
