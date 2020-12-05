@@ -47,6 +47,7 @@ export const OrgRouter = () => {
             </div>
         );
     }
+    console.log(integrated);
     return (
         <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
             <Header />
