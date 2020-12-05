@@ -4,17 +4,12 @@ import 'antd/dist/antd.css';
 import './index.css';
 import * as serviceWorker from './serviceWorker';
 
-import { Player } from '../src/pages/Player/PlayerPage';
-import { Header } from '../src/components/Header/Header';
 import { ApolloProvider } from '@apollo/client';
 import { client } from './util/graph';
 import { AuthAppRouter } from './App';
 import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
 import { DemoContext } from './DemoContext';
 import { H, HighlightOptions } from 'highlight.run';
-import commonStyles from './Common.module.css';
-import { Sidebar } from './components/Sidebar/Sidebar';
-import { SidebarContext } from './components/Sidebar/SidebarContext';
 import { DemoRouter } from './DemoRouter';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
