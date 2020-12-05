@@ -5,6 +5,7 @@ declare const styles: {
   readonly "logoText": string;
   readonly "searchWrapper": string;
   readonly "commandWrapper": string;
+  readonly "dontSelect": string;
   readonly "commandContainer": string;
   readonly "searchBar": string;
   readonly "logoWrapper": string;

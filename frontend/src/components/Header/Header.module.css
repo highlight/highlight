@@ -43,6 +43,18 @@
     margin-left: auto;
     margin-right: 10px;
 }
+
+.dontSelect {
+    -webkit-user-select: none;
+    /* Safari */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* IE10+/Edge */
+    user-select: none;
+    /* Standard */
+}
+
 .commandContainer {
     margin-left: 5px;
     padding: 0px 5px 0px 5px;

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Redirect, useParams } from 'react-router-dom';
 import { Spinner } from './components/Spinner/Spinner';
 import { Header } from './components/Header/Header';
 import { Switch, Route } from 'react-router-dom';
@@ -47,6 +47,7 @@ export const OrgRouter = () => {
             </div>
         );
     }
+    console.log(integrated);
     return (
         <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
             <Header />
@@ -68,8 +69,17 @@ export const OrgRouter = () => {
                     <Route path="/:organization_id/billing">
                         <Billing />
                     </Route>
-                    <Route path="/:organization_id">
+                    <Route path="/:organization_id/setup">
                         <SetupPage integrated={integrated} />
+                    </Route>
+                    <Route path="/:organization_id">
+                        {() => {
+                            console.log(integrated);
+                            if (integrated) {
+                                return <Redirect to={`/${organization_id}/sessions`} />
+                            }
+                            return <Redirect to={`/${organization_id}/setup`} />
+                        }}
                     </Route>
                 </Switch>
             </div>

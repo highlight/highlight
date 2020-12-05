@@ -38,7 +38,7 @@ export const Sidebar = () => {
             </Link>
             <Link
                 className={classNames([styles.row, !page && styles.selected])}
-                to={demo ? '/' : `/${organization_id}`}
+                to={demo ? '/' : `/${organization_id}/setup`}
             >
                 <SetupIcon />
                 <span className={styles.rowText}>Setup</span>
