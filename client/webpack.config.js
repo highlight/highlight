@@ -1,6 +1,5 @@
 const path = require('path');
 const webpack = require('webpack'); //to access built-in plugins
-var WebpackObfuscator = require('webpack-obfuscator');
 
 module.exports = {
   entry: {
@@ -36,9 +35,5 @@ module.exports = {
   devtool: 'source-map',
   plugins: [
     new webpack.EnvironmentPlugin(['BACKEND_URI']),
-    new WebpackObfuscator(
-      {seed: 4},
-      []
-    ),
   ],
 };
