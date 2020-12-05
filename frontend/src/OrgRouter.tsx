@@ -73,13 +73,9 @@ export const OrgRouter = () => {
                         <SetupPage integrated={integrated} />
                     </Route>
                     <Route path="/:organization_id">
-                        {() => {
-                            console.log(integrated);
-                            if (integrated) {
-                                return <Redirect to={`/${organization_id}/sessions`} />
-                            }
-                            return <Redirect to={`/${organization_id}/setup`} />
-                        }}
+                        {integrated ? <Redirect to={`/${organization_id}/sessions`} /> :
+                            <Redirect to={`/${organization_id}/setup`} />
+                        }
                     </Route>
                 </Switch>
             </div>
