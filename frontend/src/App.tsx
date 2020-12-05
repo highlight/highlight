@@ -71,7 +71,7 @@ const App = () => {
                         </Route>
                         <Route path="/">
                             <Redirect
-                                to={`/${o_data?.organizations[0].id}/setup`}
+                                to={`/${o_data?.organizations[0].id}`}
                             />
                         </Route>
                     </Switch>

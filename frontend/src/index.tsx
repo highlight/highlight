@@ -12,6 +12,10 @@ import { AuthAppRouter } from './App';
 import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
 import { DemoContext } from './DemoContext';
 import { H, HighlightOptions } from 'highlight.run';
+import commonStyles from './Common.module.css';
+import { Sidebar } from './components/Sidebar/Sidebar';
+import { SidebarContext } from './components/Sidebar/SidebarContext';
+import { DemoRouter } from './DemoRouter';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = { debug: true, manualStart: true };
@@ -29,8 +33,7 @@ ReactDOM.render(
                 <Switch>
                     <Route path="/demo" exact>
                         <DemoContext.Provider value={{ demo: true }}>
-                            <Header />
-                            <Player />
+                            <DemoRouter/>
                         </DemoContext.Provider>
                     </Route>
                     {/* TODO: Get rid of this soon! */}
