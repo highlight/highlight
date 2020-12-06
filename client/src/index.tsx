@@ -85,8 +85,7 @@ export class Highlight {
       },
     });
     this.logger.log(
-      `Identify (${user_identifier}) w/ obj: ${JSON.stringify(user_object)} @ ${
-        process.env.BACKEND_URI
+      `Identify (${user_identifier}) w/ obj: ${JSON.stringify(user_object)} @ ${process.env.BACKEND_URI
       }`
     );
   }
@@ -119,9 +118,12 @@ export class Highlight {
       this.organizationID = organization_id;
     }
     const browser = detect();
-    let response = await fetch(`https://geolocation-db.com/json/`);
-    let data = await response.json();
-    let details = JSON.stringify({ ...data, browser });
+    let geoData = {};
+    try {
+      let response = await fetch("https://geolocation-db.com/json/");
+      geoData = await response.json();
+    } catch (e) { }
+    let details = JSON.stringify({ ...geoData, browser });
     let gr = await this.client.mutate({
       mutation: gql`
         mutation initializeSession($organization_id: ID!, $details: String!) {
@@ -176,8 +178,7 @@ Session Data:
           const properties: { [key: string]: string } = {};
           properties['segment-event'] = obj.event;
           highlightThis.logger.log(
-            `Adding (${JSON.stringify(properties)}) @ ${
-              process.env.BACKEND_URI
+            `Adding (${JSON.stringify(properties)}) @ ${process.env.BACKEND_URI
             }, org: ${highlightThis.organizationID}`
           );
           addCustomEvent<string>(
@@ -258,9 +259,9 @@ Session Data:
   _error() {
     console.error("client");
   }
-  
+
   _throw() {
-    throw("client");
+    throw ("client");
   }
 }
 
