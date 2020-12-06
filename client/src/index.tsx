@@ -118,6 +118,7 @@ export class Highlight {
       this.organizationID = organization_id;
     }
     const browser = detect();
+    // TODO: (this often isn't successful due to adblockers, needs a fix)
     let geoData = {};
     try {
       let response = await fetch("https://geolocation-db.com/json/");
