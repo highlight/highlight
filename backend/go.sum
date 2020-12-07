@@ -255,6 +255,8 @@ github.com/stripe/stripe-go v70.15.0+incompatible h1:hNML7M1zx8RgtepEMlxyu/FpVPr
 github.com/stripe/stripe-go v70.15.0+incompatible/go.mod h1:A1dQZmO/QypXmsL0T8axYZkSN/uA/T/A64pfKdBAMiY=
 github.com/stripe/stripe-go/v71 v71.48.0 h1:xSmbjHB1fdt6ieIf9yCGggafbzbXHPIhQj+R1gxTUHM=
 github.com/stripe/stripe-go/v71 v71.48.0/go.mod h1:BXYwMQe+xjYomcy5/qaTGyoyVMTP3wDCHa7DVFvg8+Y=
+github.com/stripe/stripe-go/v72 v72.28.0 h1:X/TM3QE+SwtadxDHfTlkNmXisj7LYTC1+oywyerbfBY=
+github.com/stripe/stripe-go/v72 v72.28.0/go.mod h1:QwqJQtduHubZht9mek5sds9CtQcKFdsykV9ZepRWwo0=
 github.com/urfave/cli/v2 v2.1.1 h1:Qt8FeAtxE/vfdrLmR3rxR6JRE0RoVmbXu8+6kZtYU4k=
 github.com/urfave/cli/v2 v2.1.1/go.mod h1:SE9GqnLQmjVa0iPEY0f1w3ygNIYcIJ0OKPMoW2caLfQ=
 github.com/vektah/dataloaden v0.2.1-0.20190515034641-a19b9a6e7c9e/go.mod h1:/HUdMve7rvxZma+2ZELQeNh88+003LL7Pf/CZ089j8U=

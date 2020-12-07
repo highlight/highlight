@@ -1,10 +1,9 @@
-import React, { useEffect, useRef, useContext, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useContext, useState } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { useMutation, gql } from '@apollo/client';
 import classNames from 'classnames/bind';
 import { loadStripe } from '@stripe/stripe-js';
-
 
 import commonStyles from '../../Common.module.css';
 import styles from './Billing.module.css';
@@ -14,18 +13,39 @@ enum BillingViewType {
     Plans = "Plans", Invoices = "Invoices"
 }
 
-// TODO DENISE: what is the good way to handle this in typescript
-const stripe_publishable_key: string = process.env.STRIPE_API_PK ? process.env.STRIPE_API_PK : ""
-const stripePromise = loadStripe(stripe_publishable_key);
+const getBillingResponseOrNull = (pathname: string, checkoutRedirectFailedMessage: string) => {
+    const response = pathname.split('/')[3] ?? ''
+    if (response === "success") {
+        return <p className={styles.subTitle}>Thank you for your purchase. Checkout completed successfully.</p>
+    } else if (checkoutRedirectFailedMessage) {
+        return <p className={styles.subTitle}>{checkoutRedirectFailedMessage}</p>
+    }
+
+    return null
+
+}
+
+const getStripePromiseOrNull = () => {
+    const stripe_publishable_key = process.env.REACT_APP_STRIPE_API_PK
+    if (stripe_publishable_key) {
+        return loadStripe(stripe_publishable_key);
+    }
+    return null
+}
+
+const stripePromiseOrNull = getStripePromiseOrNull()
+
 
 export const Billing = () => {
     const { organization_id } = useParams();
 
     const [billingView, setBillingView] = useState((BillingViewType.Plans))
+    const { pathname } = useLocation();
+    const [checkoutRedirectFailedMessage, setCheckoutRedirectFailedMessage] = useState<string>("")
 
     const { setOpenSidebar } = useContext(SidebarContext);
 
-    const [createCheckout, { loading, data, error }] = useMutation<
+    const [createCheckout, { data }] = useMutation<
         { createCheckout: string },
         { organization_id: number; price_id: string }
     >(
@@ -41,27 +61,26 @@ export const Billing = () => {
 
     useEffect(() => {
         setOpenSidebar(true);
-    }, []);
+    }, [setOpenSidebar]);
 
     const onSubmit = async () => {
+        // TODO: create config for the price plans
         createCheckout({ variables: { organization_id: organization_id, price_id: "price_1HswN7Gz4ry65q421RTixaZB" } })
     }
 
     console.log(data)
-    if (data?.createCheckout) {
+    if (data?.createCheckout && stripePromiseOrNull) {
 
         (async function () {
-            const stripe = await stripePromise;
+            const stripe = await stripePromiseOrNull;
             const result = stripe ? await stripe.redirectToCheckout({
                 sessionId: data.createCheckout,
-            }) : { error: "stripe missin" }; // TODO DENISE: i just added this for typescript, will clean up before merging
+            }) : { error: "Error: could not load stripe client." };
 
             if (result.error) {
-                console.log('redirect to checkout failed')
-                // TODO DENISE: handle this case
-                // If `redirectToCheckout` fails due to a browser or network
-                // error, display the localized error message to your customer
-                // using `result.error.message`.
+                // result.error is either a string message or a StripeError, which contains a message localized for the user.
+                setCheckoutRedirectFailedMessage(typeof result.error === "string" ? result.error : typeof result.error.message ===
+                    "string" ? result.error.message : "Redirect to checkout failed. This is most likely a network or browser error.")
             }
         })()
     }
@@ -71,6 +90,7 @@ export const Billing = () => {
         <div className={styles.billingPageWrapper}>
             <div className={styles.blankSidebar}></div>
             <div className={styles.billingPage}>
+                {getBillingResponseOrNull(pathname, checkoutRedirectFailedMessage)}
                 <div className={styles.title}>Billing</div>
                 <div className={styles.subTitle}>
                     Manage your billing information.

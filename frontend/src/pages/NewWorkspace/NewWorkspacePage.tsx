@@ -14,7 +14,6 @@ type Inputs = {
 
 export const NewWorkspacePage = () => {
     const { register, handleSubmit, errors, setError } = useForm<Inputs>();
-
     const [createOrganization, { loading, data, error }] = useMutation<
         { createOrganization: { id: number; name: string } },
         { name: string }
@@ -73,8 +72,8 @@ export const NewWorkspacePage = () => {
                                 style={{ fontSize: 18, color: 'white' }}
                             />
                         ) : (
-                                'Create Workspace'
-                            )}
+                            'Create Workspace'
+                        )}
                     </button>
                 </form>
             </div>

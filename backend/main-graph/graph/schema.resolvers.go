@@ -19,7 +19,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/checkout/session"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -126,10 +125,9 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 		return "", e.Wrap(err, "admin is not in organization")
 	}
 
-	stripe.Key = os.Getenv("STRIPE_API_KEY")
 	params := &stripe.CheckoutSessionParams{
-		SuccessURL: stripe.String("https://example.com/success?session_id={CHECKOUT_SESSION_ID}"),
-		CancelURL:  stripe.String("https://example.com/cancel"),
+		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/success"),
+		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/checkoutCanceled"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
@@ -141,22 +139,12 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 			},
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
-		// TODO DENISE: try to get LineItems working, since its the new way
-		// LineItems: []*stripe.CheckoutSessionLineItemParams{
-		// 	&stripe.CheckoutSessionLineItemParams{
-		// 		Name:        stripe.String("T-shirt"),
-		// 		Description: stripe.String("Comfortable cotton t-shirt"),
-		// 		Amount:      stripe.Int64(2000),
-		// 		Currency:    stripe.String("usd"),
-		// 		Price:       stripe.String(price.ID),
-		// 		Quantity:    stripe.Int64(1),
-		// 	},
 	}
 
-	stripe_session, err := session.New(params)
+	stripe_session, err := r.StripeClient.CheckoutSessions.New(params)
 
 	if err != nil {
-		fmt.Println("CreateCheckout error after stripe stuff XCXC")
+		return "", e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
 
 	return stripe_session.ID, nil

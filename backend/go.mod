@@ -24,6 +24,7 @@ require (
 	github.com/slack-go/slack v0.6.6
 	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/stripe/stripe-go/v71 v71.48.0
+	github.com/stripe/stripe-go/v72 v72.28.0
 	github.com/vektah/gqlparser/v2 v2.0.1
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	google.golang.org/api v0.31.0
