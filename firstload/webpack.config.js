@@ -8,7 +8,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist/firstload/src'),
     filename: '[name].js',
-    library: '$',
+    library: 'highlightLib',
     libraryTarget: 'umd',
     globalObject: 'this',
   },
