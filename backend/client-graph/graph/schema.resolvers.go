@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"time"
 
-	redis "github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
@@ -119,17 +118,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
-
 	now := time.Now()
 	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error updating session payload time")
-	}
-
-	nowUnix := float64(now.UTC().Unix())
-	member := &redis.Z{Score: nowUnix, Member: sessionID}
-	if err := r.Redis.ZAdd(ctx, "sessions", member).Err(); err != nil {
-		return nil, err
 	}
 	return &sessionID, nil
 }
