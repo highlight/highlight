@@ -119,8 +119,15 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
-	now := float64(time.Now().UTC().Unix())
-	member := &redis.Z{Score: now, Member: sessionID}
+
+	now := time.Now()
+	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error updating session payload time")
+	}
+
+	nowUnix := float64(now.UTC().Unix())
+	member := &redis.Z{Score: nowUnix, Member: sessionID}
 	if err := r.Redis.ZAdd(ctx, "sessions", member).Err(); err != nil {
 		return nil, err
 	}

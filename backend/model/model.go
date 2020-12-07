@@ -71,9 +71,10 @@ type Session struct {
 	// Tells us if the session has been parsed by a worker.
 	Processed bool `json:"processed"`
 	// The length of a session.
-	Length     int64   `json:"length"`
-	Fields     []Field `gorm:"many2many:session_fields;"`
-	UserObject JSONB   `json:"user_object" sql:"type:jsonb"`
+	Length           int64      `json:"length"`
+	Fields           []Field    `gorm:"many2many:session_fields;"`
+	UserObject       JSONB      `json:"user_object" sql:"type:jsonb"`
+	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
 }
 
 type Field struct {
