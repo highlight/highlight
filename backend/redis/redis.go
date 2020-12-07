@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -32,16 +31,4 @@ func SetupRedisStore() {
 		Secure:   true,
 	}
 	Store = s
-}
-
-func SetupRedisClient() {
-	Client = redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS_ADDRESS"),
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-	_, err := Client.Ping(context.Background()).Result()
-	if err != nil {
-		log.Fatalf(fmt.Sprintf("error connecting to redis instance w/ address %v: %v", os.Getenv("REDIS_ADDRESS"), err))
-	}
 }

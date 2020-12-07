@@ -83,7 +83,6 @@ func main() {
 		port = defaultPort
 	}
 	rd.SetupRedisStore()
-	rd.SetupRedisClient()
 	db := model.SetupDB()
 	mux := http.NewServeMux()
 	main := &mgraph.Resolver{
@@ -97,8 +96,7 @@ func main() {
 	mux.Handle("/client", cgraph.ClientMiddleWare(ha.GraphQL(cgenerated.NewExecutableSchema(
 		cgenerated.Config{
 			Resolvers: &cgraph.Resolver{
-				DB:    db,
-				Redis: rd.Client,
+				DB: db,
 			},
 		}))))
 	mux.HandleFunc("/email", emailHandler)

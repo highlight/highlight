@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"github.com/go-redis/redis/v8"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
 
@@ -13,8 +12,7 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB    *gorm.DB
-	Redis *redis.Client
+	DB *gorm.DB
 }
 
 func (r *Resolver) AppendProperties(sessionID int, propertiesObject map[string]string) error {
