@@ -6294,7 +6294,7 @@ hex-color-regex@^1.1.0:
   resolved "https://registry.yarnpkg.com/hex-color-regex/-/hex-color-regex-1.1.0.tgz"
   integrity sha512-l9sfDFsuqtOqKDsQdqrMRk0U85RZc0RtOR9yPI7mRVOa4FsR/BVnZ0shmQRM96Ji99kYZP/7hn1cedc1+ApsTQ==
 
-highlight.run@^1.0.26:
+highlight.run@1.0.44:
   version "1.0.44"
   resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.44.tgz#95981fab82092d36c4744d7f827bfcdafbe4061a"
   integrity sha512-BSBIubwUn6WBes44HmcKa0kcgZIZ7Fgt7ZhvRxRjlDfTpnEbAl178V65jPiXPenjiTcdPxF//LfdegCoKPzx5A==
