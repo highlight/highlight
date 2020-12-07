@@ -93,9 +93,10 @@ export const ConsolePage = ({ time }: { time: number }) => {
 		<div className={styles.consolePageWrapper}>
 			<div className={devStyles.topBar}>
 				<div className={devStyles.optionsWrapper}>
-					{options.map((o) => {
+					{options.map((o: string, i: number) => {
 						return (
 							<Option
+								key={i}
 								onSelect={() => setConsoleType(o)}
 								selected={o === consoleType}
 								optionValue={o}
@@ -158,10 +159,10 @@ export const ConsolePage = ({ time }: { time: number }) => {
 							);
 						})
 				) : (
-					<div className={devStyles.emptySection}>
-						No logs for this section.
-					</div>
-				)}
+							<div className={devStyles.emptySection}>
+								No logs for this section.
+							</div>
+						)}
 			</div>
 		</div>
 	);

@@ -10,9 +10,10 @@ import * as Mousetrap from 'mousetrap';
 import styles from './Header.module.css';
 import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../Sidebar/SidebarContext';
+import classNames from 'classnames/bind';
 
-const Head: React.SFC<RouteComponentProps> = ({ history }) => {
-    const { organization_id } = useParams();
+const Head: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
+    const { organization_id } = useParams<{ organization_id: string }>();
     const { demo } = useContext(DemoContext);
     const { setOpenSidebar, openSidebar } = useContext(SidebarContext);
 
@@ -37,7 +38,10 @@ const Head: React.SFC<RouteComponentProps> = ({ history }) => {
                 <div className={styles.logoWrapper}>
                     <Hamburger
                         className={styles.hamburger}
-                        onClick={() => setOpenSidebar(!openSidebar)}
+                        onClick={() => {
+                            console.log('clicked');
+                            setOpenSidebar(!openSidebar)
+                        }}
                         style={{
                             transform: openSidebar
                                 ? 'rotate(-180deg)'
@@ -58,8 +62,8 @@ const Head: React.SFC<RouteComponentProps> = ({ history }) => {
                         to={`/${organization_id}/sessions`}
                     >
                         <FaSearch style={{ marginRight: 8 }} />
-                        <span>Search for sessions</span>
-                        <div className={styles.commandWrapper}>
+                        <span className={styles.dontSelect}>Search for sessions</span>
+                        <div className={classNames(styles.commandWrapper, styles.dontSelect)}>
                             <div className={styles.commandContainer}>⌘</div>
                             <div className={styles.commandContainer}>K</div>
                         </div>

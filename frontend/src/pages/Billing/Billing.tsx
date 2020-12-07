@@ -68,7 +68,6 @@ export const Billing = () => {
         createCheckout({ variables: { organization_id: organization_id, price_id: "price_1HswN7Gz4ry65q421RTixaZB" } })
     }
 
-    console.log(data)
     if (data?.createCheckout && stripePromiseOrNull) {
 
         (async function () {
