@@ -5,7 +5,7 @@ import * as firebase from 'firebase/app';
 import 'firebase/auth';
 
 const httpLink = createHttpLink({
-    uri: process.env.REACT_APP_BACKEND_URI + '/main',
+    uri: " https://backend-2.onrender.com" + '/main',
     credentials: 'include',
 });
 
