@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"unsafe"
 
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	"github.com/pkg/errors"
-	"github.com/slack-go/slack"
 
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
 	log "github.com/sirupsen/logrus"
@@ -24,33 +25,34 @@ func (w *Worker) processSessions(sessions []*model.Session) error {
 		if err != nil || len(events) <= 1 {
 			return errors.Wrap(err, "error retrieving events")
 		}
-		first, err := ParseEvent(events[0])
-		if err != nil {
-			return errors.Wrap(err, "error parsing first event into map")
-		}
-		last, err := ParseEvent(events[len(events)-1])
-		if err != nil {
-			return errors.Wrap(err, "error parsing last event into map")
-		}
-		diff := last.Timestamp.Sub(first.Timestamp).Milliseconds()
-		if err := w.R.DB.Model(&model.Session{}).Where(
-			&model.Session{Model: model.Model{ID: s.ID}},
-		).Updates(
-			&model.Session{Processed: true, Length: diff},
-		).Error; err != nil {
-			return errors.Wrap(err, "error updating session to processed status")
-		}
-		// Send a notification that the session was processed.
-		msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v\nuser_id: %v\nuser_object: %v\nurl: %v```",
-			s.ID,
-			s.OrganizationID,
-			s.Identifier,
-			s.UserObject,
-			fmt.Sprintf("https://app.highlight.run/%v/sessions/%v", s.OrganizationID, s.ID))}
-		err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
-		if err != nil {
-			return errors.Wrap(err, "error sending slack hook")
-		}
+		pp.Printf("size: %v \n", unsafe.Sizeof(events))
+		// first, err := ParseEvent(events[0])
+		// if err != nil {
+		// 	return errors.Wrap(err, "error parsing first event into map")
+		// }
+		// last, err := ParseEvent(events[len(events)-1])
+		// if err != nil {
+		// 	return errors.Wrap(err, "error parsing last event into map")
+		// }
+		// diff := last.Timestamp.Sub(first.Timestamp).Milliseconds()
+		// if err := w.R.DB.Model(&model.Session{}).Where(
+		// 	&model.Session{Model: model.Model{ID: s.ID}},
+		// ).Updates(
+		// 	&model.Session{Processed: true, Length: diff},
+		// ).Error; err != nil {
+		// 	return errors.Wrap(err, "error updating session to processed status")
+		// }
+		// // Send a notification that the session was processed.
+		// msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v\nuser_id: %v\nuser_object: %v\nurl: %v```",
+		// 	s.ID,
+		// 	s.OrganizationID,
+		// 	s.Identifier,
+		// 	s.UserObject,
+		// 	fmt.Sprintf("https://app.highlight.run/%v/sessions/%v", s.OrganizationID, s.ID))}
+		// err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+		// if err != nil {
+		// 	return errors.Wrap(err, "error sending slack hook")
+		// }
 	}
 	return nil
 }
