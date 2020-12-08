@@ -48,7 +48,7 @@ export class Highlight {
     // If debug is set to false, disable all console logs.
     this.ready = false;
     this.logger = new Logger(options.debug ?? false);
-    const backend = process.env.BACKEND_URI;
+    const backend = options?.backendUrl ? options.backendUrl : process.env.BACKEND_URI;
     this.client = new ApolloClient({
       uri: `${backend}/client`,
       cache: new InMemoryCache(),
