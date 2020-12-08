@@ -33,7 +33,7 @@ func (w *Worker) processSessions(sessions []*model.Session) error {
 			s.Identifier,
 			s.UserObject,
 			fmt.Sprintf("https://app.highlight.run/%v/sessions/%v", s.OrganizationID, s.ID))}
-		err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+		err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
 		if err != nil {
 			return errors.Wrap(err, "error sending slack hook")
 		}
