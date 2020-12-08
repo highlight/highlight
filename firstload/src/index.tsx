@@ -28,49 +28,65 @@ const HIGHLIGHT_URL = 'app.highlight.run';
 
 declare var window: HighlightWindow;
 
+const HighlightWarning = (context: string, msg: any) => {
+    console.warn(`Highlight Warning (${context}): `, msg)
+}
+
 var script: HTMLScriptElement;
 var highlight_obj: Highlight;
 export const H: HighlightPublicInterface = {
     options: undefined,
     init: (orgID: number, options?: HighlightOptions) => {
-        H.options = options;
-        script = document.createElement('script');
-        var scriptSrc = options?.scriptUrl
-            ? options.scriptUrl
-            : 'https://static.highlight.run/index.js';
-        script.setAttribute(
-            'src',
-            scriptSrc + '?' + new Date().getMilliseconds()
-        );
-        script.setAttribute('type', 'text/javascript');
-        document.getElementsByTagName('head')[0].appendChild(script);
-        script.addEventListener('load', () => {
-            highlight_obj = new window.Highlight({
-                organizationID: orgID,
-                debug: options?.debug,
-                backendUrl: options?.backendUrl,
+        try {
+            H.options = options;
+            script = document.createElement('script');
+            var scriptSrc = options?.scriptUrl
+                ? options.scriptUrl
+                : 'https://static.highlight.run/index.js';
+            script.setAttribute(
+                'src',
+                scriptSrc + '?' + new Date().getMilliseconds()
+            );
+            script.setAttribute('type', 'text/javascript');
+            document.getElementsByTagName('head')[0].appendChild(script);
+            script.addEventListener('load', () => {
+                highlight_obj = new window.Highlight({
+                    organizationID: orgID,
+                    debug: options?.debug,
+                    backendUrl: options?.backendUrl,
+                });
+                if (!options?.manualStart) {
+                    highlight_obj.initialize(orgID);
+                }
             });
-            if (!options?.manualStart) {
-                highlight_obj.initialize(orgID);
-            }
-        });
+        } catch (e) {
+            HighlightWarning("init", e)
+        }
     },
     start: () => {
-        if (H.options?.manualStart) {
-            var interval = setInterval(function () {
-                if (highlight_obj) {
-                    clearInterval(interval);
-                    highlight_obj.initialize();
-                }
-            }, 200);
-        } else {
-            console.warn(
-                "Highlight Error: Can't call `start()` without setting `manualStart` option in `H.init`"
-            );
+        try {
+            if (H.options?.manualStart) {
+                var interval = setInterval(function () {
+                    if (highlight_obj) {
+                        clearInterval(interval);
+                        highlight_obj.initialize();
+                    }
+                }, 200);
+            } else {
+                console.warn(
+                    "Highlight Error: Can't call `start()` without setting `manualStart` option in `H.init`"
+                );
+            }
+        } catch (e) {
+            HighlightWarning("start", e)
         }
     },
     identify: (identifier: string, obj: any) => {
-        H.onHighlightReady(() => highlight_obj.identify(identifier, obj));
+        try {
+            H.onHighlightReady(() => highlight_obj.identify(identifier, obj));
+        } catch (e) {
+            HighlightWarning("identify", e)
+        }
     },
     getSessionURL: () => {
         return new Promise<string>((resolve, reject) => {
@@ -87,22 +103,26 @@ export const H: HighlightPublicInterface = {
         });
     },
     onHighlightReady: (func: () => void) => {
-        if (highlight_obj && highlight_obj.ready) {
-            func();
-        }
-        var interval = setInterval(function () {
+        try {
             if (highlight_obj && highlight_obj.ready) {
-                clearInterval(interval);
                 func();
             }
-        }, 200);
+            var interval = setInterval(function () {
+                if (highlight_obj && highlight_obj.ready) {
+                    clearInterval(interval);
+                    func();
+                }
+            }, 200);
+        } catch (e) {
+            HighlightWarning("onHighlightReady", e)
+        }
     },
     _throw: () => {
-        H.onHighlightReady(() =>highlight_obj._throw())
-        throw("firstload");
+        H.onHighlightReady(() => highlight_obj._throw())
+        throw ("firstload");
     },
     _error: () => {
-        H.onHighlightReady(() =>highlight_obj._error())
+        H.onHighlightReady(() => highlight_obj._error())
         console.error("firstload");
     }
 };
