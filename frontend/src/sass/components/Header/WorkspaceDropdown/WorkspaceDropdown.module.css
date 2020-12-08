@@ -1,0 +1,125 @@
+.dropdownName {
+    font-weight: 400;
+    font-size: 15px;
+}
+
+.dropdownEmail {
+    font-weight: 300;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.selectedOrgItem {
+    border-bottom: 1px solid #eaeaea;
+    padding: 10px;
+    font-size: 16px;
+    padding-left: 15px;
+    cursor: pointer;
+    color: #5629c6;
+}
+
+.orgItem {
+    border-bottom: 1px solid #eaeaea;
+    padding: 10px;
+    font-size: 16px;
+    padding-left: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.orgItem:hover {
+    background-color: #f2eefb;
+}
+
+.orgText {
+    color: black;
+    margin-right: 20px;
+}
+
+.newOrgDiv {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding-left: 15px;
+    color: #5629c6;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.newOrgDiv:hover {
+    background-color: #f2eefb;
+}
+
+.dropdownInner {
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #eaeaea;
+    min-width: 220px;
+    margin-top: 9px;
+    box-shadow: 2px 2px 8px #e4e4e4;
+    color: black;
+}
+
+.dropdownLogout {
+    border-top: 1px solid #eaeaea;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding-top: 10px;
+    color: red;
+}
+
+.dropdownLogoutText {
+    margin-left: 10px;
+}
+
+.dropdownMenu {
+    box-shadow: none;
+    min-width: 200px;
+}
+
+.icon {
+    transition: 0.4s;
+    margin-left: auto;
+    margin-right: 5px;
+    height: 16px;
+    width: 16px;
+    color: #5629c6;
+}
+
+.plusIcon {
+    margin-right: 5px;
+    margin-bottom: 2px;
+    margin-left: auto;
+    height: 15px;
+    width: 15px;
+    color: #5629c6;
+    fill: #5629c6;
+}
+
+.orgNameText {
+    width: 100%;
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.dropdownHandler {
+    cursor: pointer;
+    width: 100%;
+    height: 40px;
+    border: 1px solid #eaeaea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border-radius: 8px;
+    color: black;
+    font-size: 16px;
+    padding-left: 14px;
+}

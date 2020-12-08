@@ -1,0 +1,121 @@
+.setupWrapper {
+    width: 100%;
+    display: flex;
+}
+
+.icon {
+    transition: 0.4s;
+    margin-left: auto;
+    margin-right: -4px;
+    height: 16px;
+    width: 16px;
+    color: #5629c6;
+    margin-top: 6px;
+    float: right;
+    cursor: pointer;
+}
+
+.blankSidebar {
+    height: 100%;
+    width: 280px;
+}
+
+.radioGroupWrapper {
+    margin: 20px 0px 20px 0px;
+    display: flex;
+}
+
+.headingWrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.platformOption {
+    height: 30px;
+    width: 85px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e4e8eb;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.callout {
+    border-radius: 4px;
+    background-color: #f2eefb;
+    line-height: 2;
+    display: flex;
+}
+
+.section {
+    border: 1px solid #e4e8eb;
+    border-radius: 8px;
+    padding: 20px 30px 20px 30px;
+    margin-bottom: 20px;
+    transition: 0.4s;
+}
+
+.calloutInner {
+    padding: 10px;
+    padding-left: 0px;
+}
+
+.subTitle {
+    margin-top: 5px;
+    font-size: 18px;
+    font-weight: 300;
+}
+
+.calloutEmoji {
+    padding: 8px;
+    height: 100%;
+    font-size: 20px;
+}
+
+.setupPage {
+    width: 40vw;
+    min-width: 650px;
+    margin: 40px 80px 80px 80px;
+    height: max-content;
+    border-radius: 8px;
+}
+
+.snippetHeading {
+    font-size: 28px;
+    font-weight: 400;
+}
+
+.snippetHeadingTwo {
+    font-size: 20px;
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+}
+
+.snippetSubHeading {
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 200;
+}
+
+.codeBlockBasic {
+    font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
+        'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
+    border: 1px solid #e4e8eb;
+    background-color: #f9f9f9;
+    white-space: pre;
+    width: 100%;
+    max-width: 100%;
+    position: relative;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    margin-left: 2px;
+    margin-right: 2px;
+    min-width: 100%;
+    resize: none;
+    font-size: 12px;
+    padding: 5px;
+    border-radius: 4px;
+    height: 100%;
+}

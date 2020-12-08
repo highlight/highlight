@@ -1,0 +1,28 @@
+.boxWrapper {
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+}
+
+.box {
+    border-radius: 8px;
+    padding: 30px;
+    border: 1px solid #eaeaea;
+    width: 350px;
+}
+
+.title {
+    font-size: 23px;
+    font-weight: 400;
+    margin-bottom: 10px;
+}
+
+.subTitle {
+    font-size: 14px;
+    font-weight: 300;
+    margin-bottom: 10px;
+}

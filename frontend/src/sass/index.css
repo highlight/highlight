@@ -1,0 +1,114 @@
+body {
+    margin: 0;
+    font-weight: 300;
+    font-family: AvenirNext;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+    color: #5629c6;
+}
+
+.ant-modal-close-x {
+    visibility: hidden;
+}
+
+.blob {
+    background: #5629c6;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(86, 41, 198, 1);
+    margin: 10px;
+    height: 15px;
+    width: 15px;
+    transform: scale(1);
+    animation: pulse-black 2s infinite;
+}
+
+@keyframes pulse-black {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(86, 41, 198, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(86, 41, 198, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(86, 41, 198, 0);
+    }
+}
+
+.css-foqpf7 {
+    width: 100% !important;
+}
+
+.ant-switch-checked {
+    background-color: #5629c6;
+}
+
+.ant-message-notice-content {
+    background: #1f1f1f;
+    color: white;
+    border-radius: 8px;
+}
+
+.ant-modal-body {
+    padding: 0px;
+}
+
+.ant-tooltip-inner {
+    border-radius: 6px;
+}
+
+.ant-modal-content {
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.ant-skeleton-content .ant-skeleton-title {
+    border-radius: 5px;
+}
+
+.ant-skeleton-content .ant-skeleton-paragraph > li {
+    border-radius: 5px;
+}
+
+@font-face {
+    font-family: AvenirNext;
+    src: url(/font/AvenirNext-Heavy.woff2);
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: AvenirNext;
+    src: url(/font/AvenirNext-Bold.woff2);
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: AvenirNext;
+    src: url(/font/AvenirNext-DemiBold.woff2);
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: AvenirNext;
+    src: url(/font/AvenirNext-Medium.woff2);
+    font-weight: 300;
+}
+
+@font-face {
+    font-family: AvenirNext;
+    src: url(/font/AvenirNext-Regular.woff2);
+    font-weight: 200;
+}
+
+@font-face {
+    font-family: AvenirNext;
+    src: url(/font/AvenirNext-UltraLight.woff2);
+    font-weight: 100;
+}

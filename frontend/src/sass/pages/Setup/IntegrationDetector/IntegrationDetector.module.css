@@ -1,0 +1,49 @@
+.detectorWrapper {
+    display: flex;
+    width: max-content;
+    padding: 0 10px 0 0px;
+    border-radius: 8px;
+    background-color: white;
+    color: white;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.detector {
+    display: flex;
+    align-items: center;
+}
+
+.loaderWrapper {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation-duration: 5s !important;
+}
+
+.textWrapper {
+    height: 100%;
+    padding: 3px;
+    margin-left: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.checkIcon {
+    margin-bottom: 2px;
+    margin-left: 5px;
+    margin-right: 5px;
+    height: 15px;
+    width: 15px;
+    color: green;
+    fill: green;
+}
+
+.verificationText {
+    color: #5629c6;
+    font-weight: 300;
+    font-size: 15px;
+}

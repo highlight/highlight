@@ -1,0 +1,163 @@
+.sliderWrapper {
+    width: 100%;
+    z-index: 20;
+    height: 4px;
+    cursor: pointer;
+}
+
+.sliderRail {
+    width: 100%;
+    height: 4px;
+    background-color: #5629c6;
+}
+
+.indicator {
+    height: 15px;
+    width: 15px;
+    margin-top: -9px;
+    border-radius: 20px;
+    background-color: #5629c6;
+}
+
+.dropdownMenu {
+    box-shadow: none;
+    min-width: 200px;
+}
+
+.dropdownInner {
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #eaeaea;
+    min-width: 180px;
+    margin-top: 9px;
+    box-shadow: 2px 2px 8px #e4e4e4;
+    color: black;
+    padding: 10px 0 10px 0;
+}
+.dropdownSection {
+    height: 35px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px 0 15px;
+}
+
+.toolbarLeftSection {
+    display: flex;
+    flex-direction: row;
+}
+
+.toolbarRightSection {
+    margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.toolbarSection {
+    width: 100%;
+    height: 70px;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+}
+
+.playSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-left: 25px;
+    cursor: pointer;
+}
+
+.undoSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-left: 25px;
+    cursor: pointer;
+}
+
+.playButtonStyle {
+    height: 25px;
+    width: 30px;
+}
+
+.verticalDivider {
+    height: 80%;
+    width: 1px;
+    background-color: #dedede;
+    margin: 5px;
+}
+
+.inactiveIcon {
+    height: 16px;
+    width: 16px;
+}
+
+.inactiveText {
+    margin-top: 1px;
+    margin-right: 10px;
+    text-transform: uppercase;
+    color: #5629c6;
+    line-height: 1;
+}
+
+.skipInactivity {
+    font-weight: 300;
+    font-size: 12px;
+    margin: 5px;
+    margin-right: 15px;
+    background-color: #f2eefb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: row;
+    cursor: pointer;
+    height: 30px;
+    padding: 0px 15px 0px 15px;
+    border-radius: 8px;
+    transition: 0.3s;
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+}
+
+.skipInactivity:hover {
+    background-color: #f2eefb;
+}
+
+.speedWrapper {
+    height: 30px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 200;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: #5629c6;
+    margin: 10px;
+}
+
+.timeSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-left: 25px;
+}
+
+.undoButtonStyle {
+    height: 25px;
+    width: 30px;
+}

@@ -1,0 +1,15 @@
+.spinnerStyle {
+    width: 100px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.spinnerWrapper{
+display: flex;
+width: 100%;
+height: 100%; 
+align-items: center;
+justify-content: center;
+}

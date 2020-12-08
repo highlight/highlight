@@ -1,0 +1,73 @@
+.sideBar {
+    position: fixed;
+    height: 100%;
+    background-color: white;
+    z-index: 100;
+    width: 280px;
+    border-right: 1px solid #eaeaea;
+    transition: margin-left 0.3s;
+    margin-left: -280px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.open {
+    margin-left: 0px;
+}
+
+.link {
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.bottomSection {
+    position: absolute;
+    bottom: 100px;
+    display: flex;
+    flex-direction: column;
+}
+
+.bottomLink {
+    color: #666666;
+    text-decoration: underline;
+    margin-top: 8px;
+}
+
+.link:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.row {
+    color: black;
+    display: flex;
+    padding-left: 20px;
+    align-items: center;
+    width: 100%;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    font-size: 16px;
+    transition: 0.3s;
+    cursor: pointer;
+    border-left: 3px solid white;
+}
+
+.row:hover {
+    color: #5629c6;
+    fill: #5629c6;
+    border-left: 3px solid #5629c6;
+}
+
+.selected {
+    color: #5629c6;
+    fill: #5629c6;
+    border-left: 3px solid #5629c6;
+}
+
+.rowText {
+    font-size: 16px;
+    display: flex;
+    margin-left: 10px;
+    align-items: center;
+}
