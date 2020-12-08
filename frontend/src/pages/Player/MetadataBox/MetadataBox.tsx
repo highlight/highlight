@@ -4,7 +4,7 @@ import { useQuery, gql } from '@apollo/client';
 import { Skeleton } from 'antd';
 import { Avatar } from '../../../components/Avatar/Avatar';
 
-import styles from './MetadataBox.module.css';
+import styles from './MetadataBox.module.scss';
 import { DemoContext } from '../../../DemoContext';
 
 export const MetadataBox = () => {
@@ -41,7 +41,7 @@ export const MetadataBox = () => {
     var details: any = {};
     try {
         details = JSON.parse(data?.session?.details);
-    } catch (e) {}
+    } catch (e) { }
     return (
         <div className={styles.locationBox}>
             {loading ? (
@@ -51,42 +51,42 @@ export const MetadataBox = () => {
             ) : error ? (
                 <p>{error?.toString()}</p>
             ) : (
-                <>
-                    <div className={styles.userAvatarWrapper}>
-                        <Avatar
-                            style={{ width: 75 }}
-                            seed={data?.session.user_id.toString() ?? ''}
-                        />
-                    </div>
-                    <div className={styles.userContentWrapper}>
-                        <div className={styles.headerWrapper}>
-                            <div>User#{data?.session.user_id}</div>
-                            {data?.session.identifier && (
-                                <div className={styles.userIdSubHeader}>
-                                    {data?.session.identifier}
-                                </div>
-                            )}
-                        </div>
-                        <div className={styles.userInfoWrapper}>
-                            <div className={styles.userText}>
-                                {details?.city ? details.city + ', ' : ''}
-                                {details?.state ? details.state + ' ' : ''}
-                                {details?.postal ? details.postal : ''}
+                        <>
+                            <div className={styles.userAvatarWrapper}>
+                                <Avatar
+                                    style={{ width: 75 }}
+                                    seed={data?.session.user_id.toString() ?? ''}
+                                />
                             </div>
-                            <div className={styles.userText}>
-                                {created.toUTCString()}
-                            </div>
-                            {details?.browser && (
-                                <div className={styles.userText}>
-                                    {details?.browser?.os},&nbsp;
-                                    {details?.browser?.name} &nbsp;-&nbsp;
-                                    {details?.browser?.version}
+                            <div className={styles.userContentWrapper}>
+                                <div className={styles.headerWrapper}>
+                                    <div>User#{data?.session.user_id}</div>
+                                    {data?.session.identifier && (
+                                        <div className={styles.userIdSubHeader}>
+                                            {data?.session.identifier}
+                                        </div>
+                                    )}
                                 </div>
-                            )}
-                        </div>
-                    </div>
-                </>
-            )}
+                                <div className={styles.userInfoWrapper}>
+                                    <div className={styles.userText}>
+                                        {details?.city ? details.city + ', ' : ''}
+                                        {details?.state ? details.state + ' ' : ''}
+                                        {details?.postal ? details.postal : ''}
+                                    </div>
+                                    <div className={styles.userText}>
+                                        {created.toUTCString()}
+                                    </div>
+                                    {details?.browser && (
+                                        <div className={styles.userText}>
+                                            {details?.browser?.os},&nbsp;
+                                            {details?.browser?.name} &nbsp;-&nbsp;
+                                            {details?.browser?.version}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )}
         </div>
     );
 };

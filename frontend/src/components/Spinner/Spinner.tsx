@@ -1,7 +1,7 @@
 import React from 'react';
 import BarLoader from 'react-spinners/BarLoader';
 
-import styles from './Spinner.module.css';
+import styles from './Spinner.module.scss';
 
 import { Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';

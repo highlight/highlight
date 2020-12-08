@@ -2,8 +2,8 @@ import React, { useEffect, useContext, useState } from 'react';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import classNames from 'classnames/bind';
 
-import commonStyles from '../../Common.module.css';
-import styles from './Billing.module.css';
+import commonStyles from '../../Common.module.scss';
+import styles from './Billing.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 enum BillingViewType {

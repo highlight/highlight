@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import 'antd/dist/antd.css';
-import './index.css';
+import './index.scss';
 import * as serviceWorker from './serviceWorker';
 
 import { ApolloProvider } from '@apollo/client';
@@ -28,7 +28,7 @@ ReactDOM.render(
                 <Switch>
                     <Route path="/demo" exact>
                         <DemoContext.Provider value={{ demo: true }}>
-                            <DemoRouter/>
+                            <DemoRouter />
                         </DemoContext.Provider>
                     </Route>
                     {/* TODO: Get rid of this soon! */}

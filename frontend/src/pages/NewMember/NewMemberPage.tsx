@@ -4,8 +4,8 @@ import { client } from '../../util/graph';
 import { useParams, Redirect } from 'react-router-dom';
 import { useMutation, useQuery, gql } from '@apollo/client';
 
-import styles from './NewMemberPage.module.css';
-import commonStyles from '../../Common.module.css';
+import styles from './NewMemberPage.module.scss';
+import commonStyles from '../../Common.module.scss';
 import { CircularSpinner, Spinner } from '../../components/Spinner/Spinner';
 
 export const NewMemberPage = () => {
@@ -68,8 +68,8 @@ export const NewMemberPage = () => {
                             style={{ fontSize: 18, color: 'white' }}
                         />
                     ) : (
-                        'Enter Workspace'
-                    )}
+                            'Enter Workspace'
+                        )}
                 </button>
                 <button
                     className={commonStyles.secondaryButton}

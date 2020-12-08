@@ -4,8 +4,8 @@ import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg'
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import { FaCog } from 'react-icons/fa';
 
-import toolbarStyles from '../Toolbar.module.css';
-import styles from './SettingsMenu.module.css';
+import toolbarStyles from '../Toolbar.module.scss';
+import styles from './SettingsMenu.module.scss';
 
 export const SettingsMenu = ({
     skipInactive,
@@ -75,60 +75,60 @@ export const SettingsMenu = ({
                                                     className={styles.checkIcon}
                                                 />
                                             ) : (
-                                                <></>
-                                            )}
+                                                    <></>
+                                                )}
                                         </div>
                                     ))}
                                 </div>
                             </>
                         ) : (
-                            <>
-                                <div className={toolbarStyles.dropdownSection}>
-                                    <span>Dev Tools</span>
-                                    <Switch
-                                        checked={openDevTools}
-                                        className={styles.switchStyle}
-                                        onChange={onOpenDevToolsChange}
-                                    />
-                                </div>
-                                <div className={toolbarStyles.dropdownSection}>
-                                    <span>Skip Inactive</span>
-                                    <Switch
-                                        checked={skipInactive}
-                                        className={styles.switchStyle}
-                                        onChange={onSkipInactiveChange}
-                                    />
-                                </div>
-                                <div
-                                    className={toolbarStyles.dropdownSection}
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() => setOpenSpeedMenu(true)}
-                                >
-                                    <span>Playback</span>
-                                    <div
-                                        style={{
-                                            float: 'right',
-                                            marginLeft: 'auto',
-                                            height: '100%',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                        }}
-                                    >
-                                        <span>{speed}x</span>
-                                        <DownIcon
-                                            style={{
-                                                height: 15,
-                                                width: 15,
-                                                transform: 'rotate(270deg)',
-                                                float: 'right',
-                                                marginLeft: 'auto',
-                                            }}
+                                <>
+                                    <div className={toolbarStyles.dropdownSection}>
+                                        <span>Dev Tools</span>
+                                        <Switch
+                                            checked={openDevTools}
+                                            className={styles.switchStyle}
+                                            onChange={onOpenDevToolsChange}
                                         />
                                     </div>
-                                </div>
-                            </>
-                        )}
+                                    <div className={toolbarStyles.dropdownSection}>
+                                        <span>Skip Inactive</span>
+                                        <Switch
+                                            checked={skipInactive}
+                                            className={styles.switchStyle}
+                                            onChange={onSkipInactiveChange}
+                                        />
+                                    </div>
+                                    <div
+                                        className={toolbarStyles.dropdownSection}
+                                        style={{ cursor: 'pointer' }}
+                                        onClick={() => setOpenSpeedMenu(true)}
+                                    >
+                                        <span>Playback</span>
+                                        <div
+                                            style={{
+                                                float: 'right',
+                                                marginLeft: 'auto',
+                                                height: '100%',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
+                                            <span>{speed}x</span>
+                                            <DownIcon
+                                                style={{
+                                                    height: 15,
+                                                    width: 15,
+                                                    transform: 'rotate(270deg)',
+                                                    float: 'right',
+                                                    marginLeft: 'auto',
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                     </div>
                 </div>
             }

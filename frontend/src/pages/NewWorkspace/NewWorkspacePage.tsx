@@ -5,8 +5,8 @@ import { useForm } from 'react-hook-form';
 import { CircularSpinner } from '../../components/Spinner/Spinner';
 import { client } from '../../util/graph';
 
-import styles from './NewWorkspace.module.css';
-import commonStyles from '../../Common.module.css';
+import styles from './NewWorkspace.module.scss';
+import commonStyles from '../../Common.module.scss';
 
 type Inputs = {
     name: string;
@@ -72,8 +72,8 @@ export const NewWorkspacePage = () => {
                                 style={{ fontSize: 18, color: 'white' }}
                             />
                         ) : (
-                            'Create Workspace'
-                        )}
+                                'Create Workspace'
+                            )}
                     </button>
                 </form>
             </div>

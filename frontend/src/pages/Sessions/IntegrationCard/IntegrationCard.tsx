@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { Spinner } from '../../../components/Spinner/Spinner';
 
-import styles from './IntegrationCard.module.css';
+import styles from './IntegrationCard.module.scss';
 
 export const IntegrationCard = () => {
     const { organization_id } = useParams();

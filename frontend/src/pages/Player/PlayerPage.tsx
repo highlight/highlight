@@ -18,7 +18,7 @@ import { HighlightEvent } from './HighlightEvent';
 import { StaticMap, buildStaticMap } from './StaticMap/StaticMap';
 // @ts-ignore
 import useResizeAware from 'react-resize-aware';
-import styles from './PlayerPage.module.css';
+import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
 import { DemoContext } from '../../DemoContext';
 
@@ -209,19 +209,19 @@ const EventStream = ({
                 {loadingMap || !events.length || !staticMap ? (
                     <Skeleton active />
                 ) : (
-                    replayer &&
-                    events
-                        .filter(usefulEvent)
-                        .map((e: HighlightEvent, i: number) => (
-                            <StreamElement
-                                e={e}
-                                key={i}
-                                start={replayer.getMetaData().startTime}
-                                isCurrent={e.identifier === currEvent}
-                                nodeMap={staticMap}
-                            />
-                        ))
-                )}
+                        replayer &&
+                        events
+                            .filter(usefulEvent)
+                            .map((e: HighlightEvent, i: number) => (
+                                <StreamElement
+                                    e={e}
+                                    key={i}
+                                    start={replayer.getMetaData().startTime}
+                                    isCurrent={e.identifier === currEvent}
+                                    nodeMap={staticMap}
+                                />
+                            ))
+                    )}
             </div>
         </>
     );
