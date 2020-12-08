@@ -17,32 +17,8 @@ type Worker struct {
 }
 
 func (w *Worker) processSessions(sessions []*model.Session) error {
-	// whitelistedContext := context.WithValue(context.Background(), "uid", mgraph.WhitelistedUID)
 	for _, s := range sessions {
-		// events, err := w.R.Query().Events(whitelistedContext, s.ID)
-		// if err != nil || len(events) <= 1 {
-		// 	return errors.Wrap(err, "error retrieving events")
-		// }
-		// totalSize := 0
-		// totalLength := 0
-		// for _, e := range events {
-		// 	eventStr := fmt.Sprintf("%v", e)
-		// 	totalSize += int(unsafe.Sizeof(eventStr))
-		// 	totalLength += len(eventStr)
-		// }
-		// var totalSizeMb float32 = float32(totalSize) / 1000000.0
-		// pp.Printf("session_id: %v, totalSizeMb: %v, totalSize: %v, totalLength: %v \n", s.ID, totalSizeMb, totalSize, totalLength)
-		// first, err := ParseEvent(events[0])
-		// if err != nil {
-		// 	return errors.Wrap(err, "error parsing first event into map")
-		// }
-		// last, err := ParseEvent(events[len(events)-1])
-		// if err != nil {
-		// 	return errors.Wrap(err, "error parsing last event into map")
-		// }
-		// diff := last.Timestamp.Sub(first.Timestamp).Milliseconds()
 		if err := w.R.DB.Model(&model.Session{}).Where(
-
 			&model.Session{Model: model.Model{ID: s.ID}},
 		).Updates(
 			&model.Session{Processed: true},
