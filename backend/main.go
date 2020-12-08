@@ -18,7 +18,6 @@ import (
 	cgenerated "github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
 	mgenerated "github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
-	rd "github.com/jay-khatri/fullstory/backend/redis"
 	log "github.com/sirupsen/logrus"
 
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -82,7 +81,6 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
-	rd.SetupRedisStore()
 	db := model.SetupDB()
 	mux := http.NewServeMux()
 	main := &mgraph.Resolver{
