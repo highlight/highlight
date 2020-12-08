@@ -30,6 +30,7 @@
         "highlight.run": "1.0.44",
         "logrocket": "^1.0.14",
         "mousetrap": "^1.6.5",
+        "node-sass": "4.14.1",
         "parse-duration": "^0.4.4",
         "rc-slider": "^9.3.1",
         "react": "^16.13.1",
@@ -56,7 +57,7 @@
     },
     "scripts": {
         "start": "doppler run -- react-scripts start",
-        "styles": "tcm src -w",
+        "styles": "tsm src -w",
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject"
@@ -77,6 +78,7 @@
         ]
     },
     "devDependencies": {
-        "typed-css-modules": "^0.6.4"
+        "typed-css-modules": "^0.6.4",
+        "typed-scss-modules": "^3.4.0"
     }
 }
