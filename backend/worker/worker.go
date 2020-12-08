@@ -19,6 +19,7 @@ type Worker struct {
 func (w *Worker) processSessions(sessions []*model.Session) error {
 	for _, s := range sessions {
 		if err := w.R.DB.Model(&model.Session{}).Where(
+
 			&model.Session{Model: model.Model{ID: s.ID}},
 		).Updates(
 			&model.Session{Processed: true},
