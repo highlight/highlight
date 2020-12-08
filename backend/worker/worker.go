@@ -33,8 +33,8 @@ func (w *Worker) processSessions(sessions []*model.Session) error {
 			totalSize += int(unsafe.Sizeof(eventStr))
 			totalLength += len(eventStr)
 		}
-		totalSize = totalSize / 1000000.0
-		pp.Printf("session_id: %v, totalSize: %v mb, totalLength: %v \n", s.ID, totalSize, totalLength)
+		var totalSizeMb float32 = float32(totalSize) / 1000000.0
+		pp.Printf("session_id: %v, totalSizeMb: %v, totalSize: %v, totalLength: %v \n", s.ID, totalSizeMb, totalSize, totalLength)
 		first, err := ParseEvent(events[0])
 		if err != nil {
 			return errors.Wrap(err, "error parsing first event into map")
