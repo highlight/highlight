@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/redis"
@@ -33,6 +34,11 @@ func ClientMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		}
 		if IPAddress == "" {
 			IPAddress = r.Header.Get("X-Forwarded-For")
+			if IPAddress != "" && strings.Contains(IPAddress, ",") {
+				if ipList := strings.Split(IPAddress, ","); len(ipList) > 0 {
+					IPAddress = ipList[0]
+				}
+			}
 		}
 		if IPAddress == "" {
 			IPAddress = r.RemoteAddr
