@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 
@@ -19,13 +20,24 @@ type Worker struct {
 func (w *Worker) processSessions(sessions []*model.Session) error {
 	for _, s := range sessions {
 		if err := w.R.DB.Model(&model.Session{}).Where(
-
 			&model.Session{Model: model.Model{ID: s.ID}},
 		).Updates(
 			&model.Session{Processed: true},
 		).Error; err != nil {
 			return errors.Wrap(err, "error updating session to processed status")
 		}
+
+		firstEvent := &model.EventsObject{}
+		if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at desc").First(firstEvent).Error; err != nil {
+			return errors.Wrap(err, "error retrieving first event")
+		}
+		first, _ := ParseEvent(firstEvent.Events)
+		lastEvent := &model.EventsObject{}
+		if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").First(lastEvent).Error; err != nil {
+			return errors.Wrap(err, "error retrieving first event")
+		}
+		last, _ := ParseEvent(firstEvent.Events)
+		pp.Printf("first: %v, last: %v \n", first, last)
 		// Send a notification that the session was processed.
 		msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v\nuser_id: %v\nuser_object: %v\nurl: %v```",
 			s.ID,
@@ -63,7 +75,7 @@ type Event struct {
 	Data      map[string]interface{}
 }
 
-func ParseEvent(event interface{}) (*Event, error) {
+func ParseEvent(event string) (*Event, error) {
 	res := &Event{}
 	e, ok := event.(map[string]interface{})
 	if !ok {
