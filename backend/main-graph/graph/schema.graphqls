@@ -5,7 +5,9 @@ scalar Time
 
 type Session {
   id: ID!
-  details: String!
+  location: String!
+  os: String!
+  browser: String!
   user_id: ID!
   identifier: String!
   created_at: Time

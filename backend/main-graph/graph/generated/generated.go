@@ -81,11 +81,13 @@ type ComplexityRoot struct {
 	}
 
 	Session struct {
+		Browser    func(childComplexity int) int
 		CreatedAt  func(childComplexity int) int
-		Details    func(childComplexity int) int
 		ID         func(childComplexity int) int
 		Identifier func(childComplexity int) int
 		Length     func(childComplexity int) int
+		Location   func(childComplexity int) int
+		OS         func(childComplexity int) int
 		UserID     func(childComplexity int) int
 		UserObject func(childComplexity int) int
 	}
@@ -371,19 +373,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["params"].([]interface{})), true
 
+	case "Session.browser":
+		if e.complexity.Session.Browser == nil {
+			break
+		}
+
+		return e.complexity.Session.Browser(childComplexity), true
+
 	case "Session.created_at":
 		if e.complexity.Session.CreatedAt == nil {
 			break
 		}
 
 		return e.complexity.Session.CreatedAt(childComplexity), true
-
-	case "Session.details":
-		if e.complexity.Session.Details == nil {
-			break
-		}
-
-		return e.complexity.Session.Details(childComplexity), true
 
 	case "Session.id":
 		if e.complexity.Session.ID == nil {
@@ -405,6 +407,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.Length(childComplexity), true
+
+	case "Session.location":
+		if e.complexity.Session.Location == nil {
+			break
+		}
+
+		return e.complexity.Session.Location(childComplexity), true
+
+	case "Session.os":
+		if e.complexity.Session.OS == nil {
+			break
+		}
+
+		return e.complexity.Session.OS(childComplexity), true
 
 	case "Session.user_id":
 		if e.complexity.Session.UserID == nil {
@@ -498,7 +514,9 @@ scalar Time
 
 type Session {
   id: ID!
-  details: String!
+  location: String!
+  os: String!
+  browser: String!
   user_id: ID!
   identifier: String!
   created_at: Time
@@ -1843,7 +1861,7 @@ func (ec *executionContext) _Session_id(ctx context.Context, field graphql.Colle
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Session_details(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+func (ec *executionContext) _Session_location(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1860,7 +1878,75 @@ func (ec *executionContext) _Session_details(ctx context.Context, field graphql.
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Details, nil
+		return obj.Location, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_os(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Session",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OS, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_browser(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Session",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Browser, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3420,8 +3506,18 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "details":
-			out.Values[i] = ec._Session_details(ctx, field, obj)
+		case "location":
+			out.Values[i] = ec._Session_location(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "os":
+			out.Values[i] = ec._Session_os(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "browser":
+			out.Values[i] = ec._Session_browser(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}

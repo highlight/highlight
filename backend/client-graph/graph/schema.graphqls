@@ -6,11 +6,13 @@ type Session {
   id: ID!
   user_id: ID!
   organization_id: ID!
-  details: String
+  os: String!
+  location: String!
+  browser: String!
 }
 
 type Mutation {
-  initializeSession(organization_id: ID!, details: String!): Session
+  initializeSession(organization_id: ID!): Session
   identifySession(
     session_id: ID!
     user_identifier: String!

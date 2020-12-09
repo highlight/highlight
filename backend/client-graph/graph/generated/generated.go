@@ -44,7 +44,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddProperties     func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		IdentifySession   func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
-		InitializeSession func(childComplexity int, organizationID int, details string) int
+		InitializeSession func(childComplexity int, organizationID int) int
 		PushPayload       func(childComplexity int, sessionID int, events string, messages string, resources string) int
 	}
 
@@ -52,15 +52,17 @@ type ComplexityRoot struct {
 	}
 
 	Session struct {
-		Details        func(childComplexity int) int
+		Browser        func(childComplexity int) int
 		ID             func(childComplexity int) int
+		Location       func(childComplexity int) int
+		OS             func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
 		UserID         func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
-	InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error)
+	InitializeSession(ctx context.Context, organizationID int) (*model.Session, error)
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
 	AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error)
@@ -115,7 +117,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InitializeSession(childComplexity, args["organization_id"].(int), args["details"].(string)), true
+		return e.complexity.Mutation.InitializeSession(childComplexity, args["organization_id"].(int)), true
 
 	case "Mutation.pushPayload":
 		if e.complexity.Mutation.PushPayload == nil {
@@ -129,12 +131,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.PushPayload(childComplexity, args["session_id"].(int), args["events"].(string), args["messages"].(string), args["resources"].(string)), true
 
-	case "Session.details":
-		if e.complexity.Session.Details == nil {
+	case "Session.browser":
+		if e.complexity.Session.Browser == nil {
 			break
 		}
 
-		return e.complexity.Session.Details(childComplexity), true
+		return e.complexity.Session.Browser(childComplexity), true
 
 	case "Session.id":
 		if e.complexity.Session.ID == nil {
@@ -142,6 +144,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.ID(childComplexity), true
+
+	case "Session.location":
+		if e.complexity.Session.Location == nil {
+			break
+		}
+
+		return e.complexity.Session.Location(childComplexity), true
+
+	case "Session.os":
+		if e.complexity.Session.OS == nil {
+			break
+		}
+
+		return e.complexity.Session.OS(childComplexity), true
 
 	case "Session.organization_id":
 		if e.complexity.Session.OrganizationID == nil {
@@ -229,11 +245,13 @@ type Session {
   id: ID!
   user_id: ID!
   organization_id: ID!
-  details: String
+  os: String!
+  location: String!
+  browser: String!
 }
 
 type Mutation {
-  initializeSession(organization_id: ID!, details: String!): Session
+  initializeSession(organization_id: ID!): Session
   identifySession(
     session_id: ID!
     user_identifier: String!
@@ -319,15 +337,6 @@ func (ec *executionContext) field_Mutation_initializeSession_args(ctx context.Co
 		}
 	}
 	args["organization_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["details"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("details"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["details"] = arg1
 	return args, nil
 }
 
@@ -450,7 +459,7 @@ func (ec *executionContext) _Mutation_initializeSession(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InitializeSession(rctx, args["organization_id"].(int), args["details"].(string))
+		return ec.resolvers.Mutation().InitializeSession(rctx, args["organization_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -749,7 +758,7 @@ func (ec *executionContext) _Session_organization_id(ctx context.Context, field 
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Session_details(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+func (ec *executionContext) _Session_os(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -766,18 +775,89 @@ func (ec *executionContext) _Session_details(ctx context.Context, field graphql.
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Details, nil
+		return obj.OS, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_location(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Session",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Location, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_browser(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Session",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Browser, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -1933,8 +2013,21 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "details":
-			out.Values[i] = ec._Session_details(ctx, field, obj)
+		case "os":
+			out.Values[i] = ec._Session_os(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "location":
+			out.Values[i] = ec._Session_location(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "browser":
+			out.Values[i] = ec._Session_browser(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
