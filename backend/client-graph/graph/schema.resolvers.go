@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
@@ -14,7 +15,6 @@ import (
 	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
-	"google.golang.org/appengine/log"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error) {
@@ -115,9 +115,9 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			sessionUpdates.Duration = int64(sessionUpdates.EndTime.Sub(*currentSession.EndTime).Seconds())
 			pp.Printf("start: %v, end: %v", sessionUpdates.StartTime, sessionUpdates.EndTime)
 		} else if errFirst != nil {
-			log.Errorf(context.Background(), "error parsing first event: %v", errFirst)
+			log.Printf("error parsing first event: %v", errFirst)
 		} else if errLast != nil {
-			log.Errorf(context.Background(), "error parsing last event: %v", errLast)
+			log.Printf("error parsing last event: %v", errLast)
 		}
 		obj := &model.EventsObject{SessionID: sessionID, Events: events}
 		if err := r.DB.Create(obj).Error; err != nil {
