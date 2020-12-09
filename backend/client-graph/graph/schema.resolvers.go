@@ -44,6 +44,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID
 	}
 	session := &model.Session{UserID: user.ID, OrganizationID: organizationID, Details: details}
 	if err := r.DB.Create(session).Error; err != nil {
+		pp.Println(err)
 		return nil, e.Wrap(err, "error creating session")
 	}
 	return session, nil
