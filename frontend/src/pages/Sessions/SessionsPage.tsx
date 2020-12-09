@@ -56,7 +56,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                     user_id
                     identifier
                     created_at
-                    length
+                    duration
                 }
             }
         `,
@@ -233,21 +233,21 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                 }}
                             />
                         ) : (
-                            <DateOptions
-                                defaultText={
-                                    'Enter a time duration (e.g. 24 days, 2 minutes)'
-                                }
-                                input={params[activeParam].current ?? ''}
-                                onSelect={(option: Value) => {
-                                    if (!option) return;
-                                    var pcopy = [...paramsRef.current];
-                                    pcopy[activeParam].value = option;
-                                    mainInput.current?.focus();
-                                    setActiveParam(-1);
-                                    setParams(pcopy);
-                                }}
-                            />
-                        )}
+                                    <DateOptions
+                                        defaultText={
+                                            'Enter a time duration (e.g. 24 days, 2 minutes)'
+                                        }
+                                        input={params[activeParam].current ?? ''}
+                                        onSelect={(option: Value) => {
+                                            if (!option) return;
+                                            var pcopy = [...paramsRef.current];
+                                            pcopy[activeParam].value = option;
+                                            mainInput.current?.focus();
+                                            setActiveParam(-1);
+                                            setParams(pcopy);
+                                        }}
+                                    />
+                                )}
                     </div>
                 )}
                 <div ref={resultsRef}>
@@ -264,7 +264,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                         } = {};
                         try {
                             d = JSON.parse(u?.details);
-                        } catch (error) {}
+                        } catch (error) { }
                         return (
                             <Link
                                 to={`/${organization_id}/sessions/${u.id}`}
@@ -305,7 +305,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                             </div>
                                             <div className={styles.regSubTitle}>
                                                 {MillisToMinutesAndSecondsVerbose(
-                                                    u?.length
+                                                    u?.duration
                                                 ) || '30 min 20 sec'}
                                             </div>
                                         </div>
@@ -316,10 +316,10 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                         >
                                             <div className={styles.regTitle}>
                                                 {d?.browser?.os &&
-                                                d?.browser?.name
+                                                    d?.browser?.name
                                                     ? d?.browser?.os +
-                                                      ' • ' +
-                                                      d?.browser?.name
+                                                    ' • ' +
+                                                    d?.browser?.name
                                                     : 'Desktop • Chrome'}
                                             </div>
                                             <div className={styles.regSubTitle}>
@@ -337,8 +337,8 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                             <Spinner />
                         </div>
                     ) : (
-                        <></>
-                    )}
+                            <></>
+                        )}
                     <div style={{ height: 50 }}></div>
                 </div>
             </div>

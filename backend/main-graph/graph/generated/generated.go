@@ -83,9 +83,9 @@ type ComplexityRoot struct {
 	Session struct {
 		CreatedAt  func(childComplexity int) int
 		Details    func(childComplexity int) int
+		Duration   func(childComplexity int) int
 		ID         func(childComplexity int) int
 		Identifier func(childComplexity int) int
-		Length     func(childComplexity int) int
 		UserID     func(childComplexity int) int
 		UserObject func(childComplexity int) int
 	}
@@ -385,6 +385,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Details(childComplexity), true
 
+	case "Session.duration":
+		if e.complexity.Session.Duration == nil {
+			break
+		}
+
+		return e.complexity.Session.Duration(childComplexity), true
+
 	case "Session.id":
 		if e.complexity.Session.ID == nil {
 			break
@@ -398,13 +405,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.Identifier(childComplexity), true
-
-	case "Session.length":
-		if e.complexity.Session.Length == nil {
-			break
-		}
-
-		return e.complexity.Session.Length(childComplexity), true
 
 	case "Session.user_id":
 		if e.complexity.Session.UserID == nil {
@@ -502,7 +502,7 @@ type Session {
   user_id: ID!
   identifier: String!
   created_at: Time
-  length: Int
+  duration: Int
   user_object: Any
 }
 
@@ -1976,7 +1976,7 @@ func (ec *executionContext) _Session_created_at(ctx context.Context, field graph
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Session_length(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+func (ec *executionContext) _Session_duration(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1993,7 +1993,7 @@ func (ec *executionContext) _Session_length(ctx context.Context, field graphql.C
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Length, nil
+		return obj.Duration, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3437,8 +3437,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "created_at":
 			out.Values[i] = ec._Session_created_at(ctx, field, obj)
-		case "length":
-			out.Values[i] = ec._Session_length(ctx, field, obj)
+		case "duration":
+			out.Values[i] = ec._Session_duration(ctx, field, obj)
 		case "user_object":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

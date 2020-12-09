@@ -9,7 +9,7 @@ type Session {
   user_id: ID!
   identifier: String!
   created_at: Time
-  length: Int
+  duration: Int
   user_object: Any
 }
 

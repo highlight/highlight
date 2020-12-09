@@ -14,6 +14,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
+	"google.golang.org/appengine/log"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error) {
@@ -89,7 +90,7 @@ func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, pro
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error) {
 	now := time.Now()
 	currentSession := &model.Session{}
-	res := r.DB.Where(&model.Organization{Model: model.Model{ID: sessionID}}).First(&currentSession)
+	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&currentSession)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "session doesn't exist")
 	}
@@ -100,17 +101,24 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		return nil, fmt.Errorf("error decoding event data: %v", err)
 	}
 	if evts := eventsParsed["events"]; len(evts) >= 0 {
-		first, _ := worker.ParseEvent(evts[0])
-		last, _ := worker.ParseEvent(evts[len(evts)-1])
-		pp.Println(first)
-		pp.Println(last)
-		if currentSession.SessionStartTime == nil || first.Timestamp.Before(*currentSession.SessionStartTime) {
-			sessionUpdates.SessionStartTime = &first.Timestamp
+		first, errFirst := worker.ParseEvent(evts[0])
+		last, errLast := worker.ParseEvent(evts[len(evts)-1])
+		if errFirst == nil && errLast == nil {
+			sessionUpdates.StartTime = currentSession.StartTime
+			if currentSession.StartTime == nil || first.Timestamp.Before(*currentSession.StartTime) {
+				sessionUpdates.StartTime = &first.Timestamp
+			}
+			sessionUpdates.EndTime = currentSession.EndTime
+			if currentSession.EndTime == nil || last.Timestamp.After(*currentSession.EndTime) {
+				sessionUpdates.EndTime = &last.Timestamp
+			}
+			sessionUpdates.Duration = int64(sessionUpdates.EndTime.Sub(*currentSession.EndTime).Seconds())
+			pp.Printf("start: %v, end: %v", sessionUpdates.StartTime, sessionUpdates.EndTime)
+		} else if errFirst != nil {
+			log.Errorf(context.Background(), "error parsing first event: %v", errFirst)
+		} else if errLast != nil {
+			log.Errorf(context.Background(), "error parsing last event: %v", errLast)
 		}
-		if currentSession.SessionEndTime == nil || last.Timestamp.After(*currentSession.SessionEndTime) {
-			sessionUpdates.SessionEndTime = &last.Timestamp
-		}
-		sessionUpdates.SessionDuration = int64(last.Timestamp.Sub(first.Timestamp).Seconds())
 		obj := &model.EventsObject{SessionID: sessionID, Events: events}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
@@ -138,7 +146,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
-	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
+	res = r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(sessionUpdates)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error updating session payload time")
 	}
