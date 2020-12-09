@@ -11,6 +11,8 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/fullstory/backend/worker"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 )
 
@@ -85,12 +87,30 @@ func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, pro
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error) {
+	now := time.Now()
+	currentSession := &model.Session{}
+	res := r.DB.Where(&model.Organization{Model: model.Model{ID: sessionID}}).First(&currentSession)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "session doesn't exist")
+	}
+	sessionUpdates := &model.Session{PayloadUpdatedAt: &now}
 	eventsParsed := make(map[string][]interface{})
 	// unmarshal events
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
 		return nil, fmt.Errorf("error decoding event data: %v", err)
 	}
-	if len(eventsParsed["events"]) >= 0 {
+	if evts := eventsParsed["events"]; len(evts) >= 0 {
+		first, _ := worker.ParseEvent(evts[0])
+		last, _ := worker.ParseEvent(evts[len(evts)-1])
+		pp.Println(first)
+		pp.Println(last)
+		if currentSession.SessionStartTime == nil || first.Timestamp.Before(*currentSession.SessionStartTime) {
+			sessionUpdates.SessionStartTime = &first.Timestamp
+		}
+		if currentSession.SessionEndTime == nil || last.Timestamp.After(*currentSession.SessionEndTime) {
+			sessionUpdates.SessionEndTime = &last.Timestamp
+		}
+		sessionUpdates.SessionDuration = int64(last.Timestamp.Sub(first.Timestamp).Seconds())
 		obj := &model.EventsObject{SessionID: sessionID, Events: events}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
@@ -118,7 +138,6 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
-	now := time.Now()
 	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error updating session payload time")
