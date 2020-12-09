@@ -9,7 +9,6 @@ import {
 import { eventWithTime } from 'rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
-import { AjaxListener } from './listeners/ajax-listener';
 
 import {
   ConsoleMessage,
@@ -199,9 +198,6 @@ Session Data:
     PathListener((url: string) => {
       addCustomEvent<string>('Navigate', url);
       highlightThis.addProperties({ 'visited-url': url });
-    });
-    AjaxListener((content: NetworkResourceContent) => {
-      highlightThis.networkContents.push(content);
     });
     ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
     this.ready = true;
