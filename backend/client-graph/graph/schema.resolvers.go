@@ -104,16 +104,16 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		first, errFirst := worker.ParseEvent(evts[0])
 		last, errLast := worker.ParseEvent(evts[len(evts)-1])
 		if errFirst == nil && errLast == nil {
-			sessionUpdates.StartTime = currentSession.StartTime
-			if currentSession.StartTime == nil || first.Timestamp.Before(*currentSession.StartTime) {
-				sessionUpdates.StartTime = &first.Timestamp
+			sessionUpdates.StartTimeAt = currentSession.StartTimeAt
+			if currentSession.StartTimeAt == nil || first.Timestamp.Before(*currentSession.StartTimeAt) {
+				sessionUpdates.StartTimeAt = &first.Timestamp
 			}
-			sessionUpdates.EndTime = currentSession.EndTime
-			if currentSession.EndTime == nil || last.Timestamp.After(*currentSession.EndTime) {
-				sessionUpdates.EndTime = &last.Timestamp
+			sessionUpdates.EndTimeAt = currentSession.EndTimeAt
+			if currentSession.EndTimeAt == nil || last.Timestamp.After(*currentSession.EndTimeAt) {
+				sessionUpdates.EndTimeAt = &last.Timestamp
 			}
-			sessionUpdates.Duration = int64(sessionUpdates.EndTime.Sub(*currentSession.EndTime).Seconds())
-			pp.Printf("start: %v, end: %v", sessionUpdates.StartTime, sessionUpdates.EndTime)
+			sessionUpdates.Duration = int64(sessionUpdates.EndTimeAt.Sub(*currentSession.EndTimeAt).Seconds())
+			pp.Printf("start: %v, end: %v", sessionUpdates.StartTimeAt, sessionUpdates.EndTimeAt)
 		} else if errFirst != nil {
 			log.Printf("error parsing first event: %v", errFirst)
 		} else if errLast != nil {

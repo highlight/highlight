@@ -71,8 +71,9 @@ type Session struct {
 	// Tells us if the session has been parsed by a worker.
 	Processed bool `json:"processed"`
 	// The length of a session (in seconds).
-	StartTime        *time.Time `json:"start_time"`
-	EndTime          *time.Time `json:"end_time"`
+	Length           int64      `json:"length"`
+	StartTimeAt      *time.Time `json:"start_time_at"`
+	EndTimeAt        *time.Time `json:"end_time_at"`
 	Duration         int64      `json:"duration"`
 	Fields           []Field    `gorm:"many2many:session_fields;"`
 	UserObject       JSONB      `json:"user_object" sql:"type:jsonb"`
