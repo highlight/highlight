@@ -6,13 +6,16 @@ import { Avatar } from '../../../components/Avatar/Avatar';
 
 import styles from './MetadataBox.module.css';
 import { DemoContext } from '../../../DemoContext';
+import { stringify } from 'querystring';
 
 export const MetadataBox = () => {
     const { session_id } = useParams();
     const { demo } = useContext(DemoContext);
     const { loading, error, data } = useQuery<{
         session: {
-            details: any;
+            location: any;
+            os: string;
+            browser: string;
             user_id: number;
             created_at: number;
             user_object: any;
@@ -22,7 +25,9 @@ export const MetadataBox = () => {
         gql`
             query GetSession($id: ID!) {
                 session(id: $id) {
-                    details
+                    location
+                    os
+                    browser
                     user_id
                     created_at
                     user_object
@@ -38,10 +43,14 @@ export const MetadataBox = () => {
         }
     );
     const created = new Date(data?.session.created_at ?? 0);
-    var details: any = {};
+    let location: {
+        city?: string;
+        state?: string;
+        postal?: string;
+    } = {};
     try {
-        details = JSON.parse(data?.session?.details);
-    } catch (e) {}
+        location = JSON.parse(data?.session?.location)
+    } catch (error) {}
     return (
         <div className={styles.locationBox}>
             {loading ? (
@@ -69,18 +78,17 @@ export const MetadataBox = () => {
                         </div>
                         <div className={styles.userInfoWrapper}>
                             <div className={styles.userText}>
-                                {details?.city ? details.city + ', ' : ''}
-                                {details?.state ? details.state + ' ' : ''}
-                                {details?.postal ? details.postal : ''}
+                                {location?.city ? location.city + ', ' : ''}
+                                {location?.state ? location.state + ' ' : ''}
+                                {location?.postal ? location.postal : ''}
                             </div>
                             <div className={styles.userText}>
                                 {created.toUTCString()}
                             </div>
-                            {details?.browser && (
+                            {data?.session.browser && (
                                 <div className={styles.userText}>
-                                    {details?.browser?.os},&nbsp;
-                                    {details?.browser?.name} &nbsp;-&nbsp;
-                                    {details?.browser?.version}
+                                    {data?.session.os},&nbsp;
+                                    {data?.session.browser} &nbsp;-&nbsp;
                                 </div>
                             )}
                         </div>
