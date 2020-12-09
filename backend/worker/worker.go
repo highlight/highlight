@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -17,38 +18,43 @@ type Worker struct {
 	R *mgraph.Resolver
 }
 
-func (w *Worker) processSessions(sessions []*model.Session) error {
-	for _, s := range sessions {
-		if err := w.R.DB.Model(&model.Session{}).Where(
-			&model.Session{Model: model.Model{ID: s.ID}},
-		).Updates(
-			&model.Session{Processed: true},
-		).Error; err != nil {
-			return errors.Wrap(err, "error updating session to processed status")
-		}
-
-		firstEvent := &model.EventsObject{}
-		if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at desc").First(firstEvent).Error; err != nil {
-			return errors.Wrap(err, "error retrieving first event")
-		}
-		first, _ := ParseEvent(firstEvent.Events)
-		lastEvent := &model.EventsObject{}
-		if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").First(lastEvent).Error; err != nil {
-			return errors.Wrap(err, "error retrieving first event")
-		}
-		last, _ := ParseEvent(firstEvent.Events)
-		pp.Printf("first: %v, last: %v \n", first, last)
-		// Send a notification that the session was processed.
-		msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v\nuser_id: %v\nuser_object: %v\nurl: %v```",
-			s.ID,
-			s.OrganizationID,
-			s.Identifier,
-			s.UserObject,
-			fmt.Sprintf("https://app.highlight.run/%v/sessions/%v", s.OrganizationID, s.ID))}
-		err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
-		if err != nil {
-			return errors.Wrap(err, "error sending slack hook")
-		}
+func (w *Worker) processSession(s *model.Session) error {
+	if err := w.R.DB.Model(&model.Session{}).Where(
+		&model.Session{Model: model.Model{ID: s.ID}},
+	).Updates(
+		&model.Session{Processed: true},
+	).Error; err != nil {
+		return errors.Wrap(err, "error updating session to processed status")
+	}
+	firstEvents := &model.EventsObject{}
+	if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at desc").First(firstEvents).Error; err != nil {
+		return errors.Wrap(err, "error retrieving first event")
+	}
+	firstEventsParsed, err := ParseEventsObject(firstEvents.Events)
+	if err != nil {
+		pp.Printf("err w/ first: %v \n", err)
+	}
+	lastEvents := &model.EventsObject{}
+	if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").First(lastEvents).Error; err != nil {
+		return errors.Wrap(err, "error retrieving first event")
+	}
+	lastEventsParsed, err := ParseEventsObject(lastEvents.Events)
+	if err != nil {
+		pp.Printf("err w/ last: %v \n", err)
+	}
+	start := firstEventsParsed.Events[0].Timestamp
+	end := lastEventsParsed.Events[len(lastEventsParsed.Events)-1].Timestamp
+	pp.Printf("start: %v, end: %v \n", start, end)
+	// Send a notification that the session was processed.
+	msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v\nuser_id: %v\nuser_object: %v\nurl: %v```",
+		s.ID,
+		s.OrganizationID,
+		s.Identifier,
+		s.UserObject,
+		fmt.Sprintf("https://app.highlight.run/%v/sessions/%v", s.OrganizationID, s.ID))}
+	err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+	if err != nil {
+		return errors.Wrap(err, "error sending slack hook")
 	}
 	return nil
 }
@@ -56,50 +62,36 @@ func (w *Worker) processSessions(sessions []*model.Session) error {
 func (w *Worker) Start() {
 	for {
 		time.Sleep(1 * time.Second)
-		thirtySecondsAgo := time.Now().Add(-60 * time.Second)
+		thirtySecondsAgo := time.Now().Add(-15 * time.Second)
 		sessions := []*model.Session{}
 		if err := w.R.DB.Where("payload_updated_at < ? AND processed = ?", thirtySecondsAgo, false).Find(&sessions).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			continue
 		}
-		if err := w.processSessions(sessions); err != nil {
-			log.Errorf("error processing sessions: %v", err)
-			continue
+		for _, session := range sessions {
+			if err := w.processSession(session); err != nil {
+				log.Errorf("error processing sessions: %v", err)
+				continue
+			}
 		}
 	}
 }
 
-type Event struct {
-	Timestamp time.Time
-	Type      int
-	Data      map[string]interface{}
+type EventsObject struct {
+	Events []*struct {
+		Timestamp float64 `json:"timestamp"`
+		Type      int     `json:"type"`
+	} `json:"events"`
 }
 
-func ParseEvent(event string) (*Event, error) {
-	res := &Event{}
-	e, ok := event.(map[string]interface{})
-	if !ok {
+func ParseEventsObject(event string) (*EventsObject, error) {
+	eventsObj := &EventsObject{}
+	err := json.Unmarshal([]byte(event), &eventsObj)
+	if err != nil {
 		return nil, fmt.Errorf("error parsing event '%v' into map", event)
 	}
-	// convert timestamp
-	timeAsFloat, ok := e["timestamp"].(float64)
-	if !ok {
-		return nil, fmt.Errorf("error parsing timestamp '%v' into int", e["timestamp"])
+	if len(eventsObj.Events) < 1 {
+		return nil, errors.New("empty events")
 	}
-	// convert data
-	data, ok := e["data"].(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("error parsing data '%v' into int", e["data"])
-	}
-	// convert type
-	t, ok := e["type"].(float64)
-	if !ok {
-		return nil, fmt.Errorf("error parsing data '%v' into int", e["type"])
-	}
-	i := int64(timeAsFloat)
-	// taken from: https://gist.github.com/alextanhongpin/3b6b2ee47665ac9c1c32c805b86380a6
-	res.Timestamp = time.Unix(i/1000, (i%1000)*1000*1000)
-	res.Data = data
-	res.Type = int(t)
-	return res, nil
+	return eventsObj, nil
 }
