@@ -137,7 +137,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		browser, _ = ua.Browser()
 	}
 
-	// TODO Cameron: Add more fields from user agent/location here  
+	// TODO Cameron: Add more fields from user agent/location here
 	fields := map[string]string{
 		"identifier": userIdentifier,
 		"os":         os,

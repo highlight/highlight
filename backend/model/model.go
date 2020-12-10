@@ -9,8 +9,8 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
-	"github.com/rs/xid"
 	e "github.com/pkg/errors"
+	"github.com/rs/xid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -64,9 +64,9 @@ type Session struct {
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
-	Location 	   string `json:"location"`
-	Browser 	   string `json:"browser"`
-	OS			   string `json:"os"`
+	Location       string `json:"location"`
+	Browser        string `json:"browser"`
+	OS             string `json:"os"`
 	Status         string `json:"status"`
 	EventsObjects  []EventsObject
 	// Tells us if the session has been parsed by a worker.
@@ -84,8 +84,8 @@ type Field struct {
 	Name string
 	// 'email@email.com'
 	Value          string
-	Browser 	   string    `json:"browser"`
-	OS 			   string    `json:"os"`
+	Browser        string    `json:"browser"`
+	OS             string    `json:"os"`
 	OrganizationID int       `json:"organization_id"`
 	Sessions       []Session `gorm:"many2many:session_fields;"`
 }
