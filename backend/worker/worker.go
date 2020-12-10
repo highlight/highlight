@@ -18,7 +18,13 @@ type Worker struct {
 	R *mgraph.Resolver
 }
 
+func javascriptToGolangTime(t float64) time.Time {
+	tInt := int64(t)
+	return time.Unix(tInt/1000, (tInt%1000)*1000*1000)
+}
+
 func (w *Worker) processSession(s *model.Session) error {
+	pp.Println(s.ID)
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -27,24 +33,25 @@ func (w *Worker) processSession(s *model.Session) error {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 	firstEvents := &model.EventsObject{}
-	if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at desc").First(firstEvents).Error; err != nil {
-		return errors.Wrap(err, "error retrieving first event")
+	if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").First(firstEvents).Error; err != nil {
+		return errors.Wrap(err, "error retrieving first set of events")
 	}
 	firstEventsParsed, err := ParseEventsObject(firstEvents.Events)
 	if err != nil {
-		pp.Printf("err w/ first: %v \n", err)
+		return errors.Wrap(err, "error parsing first set of events")
 	}
 	lastEvents := &model.EventsObject{}
-	if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").First(lastEvents).Error; err != nil {
-		return errors.Wrap(err, "error retrieving first event")
+	if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at desc").First(lastEvents).Error; err != nil {
+		return errors.Wrap(err, "error retrieving last set of events")
 	}
 	lastEventsParsed, err := ParseEventsObject(lastEvents.Events)
 	if err != nil {
-		pp.Printf("err w/ last: %v \n", err)
+		return errors.Wrap(err, "error parsing last set of events")
 	}
-	start := firstEventsParsed.Events[0].Timestamp
-	end := lastEventsParsed.Events[len(lastEventsParsed.Events)-1].Timestamp
-	pp.Printf("start: %v, end: %v \n", start, end)
+	start := javascriptToGolangTime(firstEventsParsed.Events[0].Timestamp)
+	end := javascriptToGolangTime(lastEventsParsed.Events[len(lastEventsParsed.Events)-1].Timestamp)
+	diff := end.Sub(start)
+	fmt.Printf("diff: %v \n", diff)
 	// Send a notification that the session was processed.
 	msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v\nuser_id: %v\nuser_object: %v\nurl: %v```",
 		s.ID,
