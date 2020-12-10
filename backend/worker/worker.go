@@ -56,7 +56,6 @@ func (w *Worker) processSession(s *model.Session) error {
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
-	fmt.Printf("diff: %v \n", diff)
 	// Send a notification that the session was processed.
 	msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v\nuser_id: %v\nuser_object: %v\nurl: %v```",
 		s.ID,
