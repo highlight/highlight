@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 
@@ -24,7 +23,6 @@ func javascriptToGolangTime(t float64) time.Time {
 }
 
 func (w *Worker) processSession(s *model.Session) error {
-	pp.Println(s.ID)
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -51,6 +49,13 @@ func (w *Worker) processSession(s *model.Session) error {
 	start := javascriptToGolangTime(firstEventsParsed.Events[0].Timestamp)
 	end := javascriptToGolangTime(lastEventsParsed.Events[len(lastEventsParsed.Events)-1].Timestamp)
 	diff := end.Sub(start)
+	if err := w.R.DB.Model(&model.Session{}).Where(
+		&model.Session{Model: model.Model{ID: s.ID}},
+	).Updates(
+		&model.Session{Processed: true, Length: diff.Milliseconds()},
+	).Error; err != nil {
+		return errors.Wrap(err, "error updating session to processed status")
+	}
 	fmt.Printf("diff: %v \n", diff)
 	// Send a notification that the session was processed.
 	msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v\nuser_id: %v\nuser_object: %v\nurl: %v```",
