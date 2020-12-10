@@ -266,7 +266,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                         } = {};
                         try {
                             d = u;
-                            location = JSON.parse(u.location)
+                            location = JSON.parse(u?.location)
                         } catch (error) {}
                         return (
                             <Link
