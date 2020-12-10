@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"context"
 	"fmt"
 	"time"
 
@@ -18,25 +17,12 @@ type Worker struct {
 }
 
 func (w *Worker) processSessions(sessions []*model.Session) error {
-	whitelistedContext := context.WithValue(context.Background(), "uid", mgraph.WhitelistedUID)
 	for _, s := range sessions {
-		events, err := w.R.Query().Events(whitelistedContext, s.ID)
-		if err != nil || len(events) <= 1 {
-			return errors.Wrap(err, "error retrieving events")
-		}
-		first, err := ParseEvent(events[0])
-		if err != nil {
-			return errors.Wrap(err, "error parsing first event into map")
-		}
-		last, err := ParseEvent(events[len(events)-1])
-		if err != nil {
-			return errors.Wrap(err, "error parsing last event into map")
-		}
-		diff := last.Timestamp.Sub(first.Timestamp).Milliseconds()
 		if err := w.R.DB.Model(&model.Session{}).Where(
+
 			&model.Session{Model: model.Model{ID: s.ID}},
 		).Updates(
-			&model.Session{Processed: true, Length: diff},
+			&model.Session{Processed: true},
 		).Error; err != nil {
 			return errors.Wrap(err, "error updating session to processed status")
 		}
@@ -47,7 +33,7 @@ func (w *Worker) processSessions(sessions []*model.Session) error {
 			s.Identifier,
 			s.UserObject,
 			fmt.Sprintf("https://app.highlight.run/%v/sessions/%v", s.OrganizationID, s.ID))}
-		err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+		err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
 		if err != nil {
 			return errors.Wrap(err, "error sending slack hook")
 		}
