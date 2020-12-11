@@ -24,14 +24,21 @@ type Model struct {
 	DeletedAt *time.Time `json:"deleted_at"`
 }
 
+type RecordingSettings struct {
+	Model
+	OrganizationID int     `json:"organization_id"`
+	Details        *string `json:"details"`
+}
+
 type Organization struct {
 	Model
-	Name         *string
-	BillingEmail *string
-	Secret       *string `json:"-"`
-	Users        []User
-	Admins       []Admin `gorm:"many2many:organization_admins;"`
-	Fields       []Field
+	Name         		*string
+	BillingEmail 		*string
+	Secret       		*string `json:"-"`
+	RecordingSetting	RecordingSettings
+	Users        		[]User
+	Admins       		[]Admin `gorm:"many2many:organization_admins;"`
+	Fields       		[]Field
 }
 
 func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {

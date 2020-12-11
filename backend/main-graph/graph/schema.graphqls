@@ -23,7 +23,7 @@ type Organization {
   id: ID!
   name: String!
   billing_email: String
-  record_setting: RecordingSettings
+  recording_setting: RecordingSettings
 }
 
 type User {
