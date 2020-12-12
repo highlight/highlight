@@ -94,7 +94,6 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		}
 	}
 
-	// TODO Cameron: Add more fields from user agent/location here
 	fields := map[string]string{
 		"identifier":      userIdentifier,
 		"os_name":         deviceDetails.OSName,
