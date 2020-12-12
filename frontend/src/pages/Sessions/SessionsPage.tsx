@@ -57,6 +57,9 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                     os_name
                     browser_name
                     browser_version
+                    city
+                    state
+                    postal
                     created_at
                     length
                 }
@@ -68,7 +71,6 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     );
 
     const rawSessions = data?.sessions;
-    console.log(rawSessions)
 
     useEffect(() => {
         setOpenSidebar(false);
