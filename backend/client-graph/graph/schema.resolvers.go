@@ -53,10 +53,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID
 	// Parse the user-agent string
 	var deviceDetails DeviceDetails
 	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
-		deviceDetails, err = GetDeviceDetails(userAgentString)
-		if err != nil {
-			return nil, e.Wrap(err, "error getting device details")
-		}
+		deviceDetails = GetDeviceDetails(userAgentString)
 	}
 
 	session := &model.Session{
