@@ -88,10 +88,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	var deviceDetails DeviceDetails
 	var err error
 	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
-		deviceDetails, err = GetDeviceDetails(userAgentString)
-		if err != nil {
-			return nil, e.Wrap(err, "error getting device details")
-		}
+		deviceDetails = GetDeviceDetails(userAgentString)
 	}
 
 	fields := map[string]string{

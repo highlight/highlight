@@ -119,11 +119,11 @@ func GetLocationFromIP(ip string) (location Location, err error) {
 	return location, nil
 }
 
-func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails, err error) {
+func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	userAgent := user_agent.New(userAgentString)
 	deviceDetails.IsBot = userAgent.Bot()
 	deviceDetails.OSName = userAgent.OSInfo().Name
 	deviceDetails.OSVersion = userAgent.OSInfo().Version
 	deviceDetails.BrowserName, deviceDetails.BrowserVersion = userAgent.Browser()
-	return deviceDetails, nil
+	return deviceDetails
 }
