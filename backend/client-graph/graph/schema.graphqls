@@ -6,9 +6,6 @@ type Session {
   id: ID!
   user_id: ID!
   organization_id: ID!
-  os: String!
-  location: String!
-  browser: String!
 }
 
 type Mutation {
