@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
@@ -46,7 +47,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID
 	if ip, ok := ctx.Value("ip").(string); ok {
 		location, err = GetLocationFromIP(ip)
 		if err != nil {
-			return nil, e.Wrap(err, "error getting user's location")
+			log.Errorf("error getting user's location: %v", err)
 		}
 	}
 
