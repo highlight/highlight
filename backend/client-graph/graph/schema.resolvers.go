@@ -7,15 +7,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net"
-	"net/http"
-	"os"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 )
 
@@ -46,77 +41,37 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID
 	}
 
 	// Get the user's ip, get geolocation data
-	var locationString string
+	var location Location
+	var err error
 	if ip, ok := ctx.Value("ip").(string); ok {
-		ip, _, _ = net.SplitHostPort(ip)
-		ipStr := net.ParseIP(ip).String()
-		if os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT") == "dev" {
-			ipStr = "99.98.244.156"
-		}
-		url := fmt.Sprintf("https://geolocation-db.com/json/%s", ipStr)
-		method := "GET"
-
-		client := &http.Client{}
-		req, err := http.NewRequest(method, url, nil)
+		location, err = GetLocationFromIP(ip)
 		if err != nil {
-			fmt.Println(err)
+			return nil, e.Wrap(err, "error getting user's location")
 		}
-
-		res, err := client.Do(req)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		defer res.Body.Close()
-
-		body, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		var location struct {
-			CountryCode *string      `json:"country_code,omitempty"`
-			CountryName *string      `json:"country_name,omitempty"`
-			City        *string      `json:"city,omitempty"`
-			Postal      *string      `json:"postal,omitempty"`
-			Latitude    *interface{} `json:"latitude,omitempty"`
-			Longitude   *interface{} `json:"longitude,omitempty"`
-			IPv4        *string      `json:"IPv4,omitempty"`
-			State       *string      `json:"state,omitempty"`
-		}
-		err = json.Unmarshal(body, &location)
-		if err != nil {
-			fmt.Println(err)
-		}
-		if *location.Longitude == "Not found" {
-			location.CountryCode = nil
-			location.CountryName = nil
-			location.City = nil
-			location.Postal = nil
-			location.Latitude = nil
-			location.Longitude = nil
-			location.IPv4 = nil
-			location.State = nil
-		}
-
-		locationByte, err := json.Marshal(location)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		locationString = string(locationByte)
 	}
 
-	var os string
-	var browser string
 	// Parse the user-agent string
+	var deviceDetails DeviceDetails
 	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
-		ua := user_agent.New(userAgentString)
-		os = ua.OSInfo().Name
-		browser, _ = ua.Browser()
+		deviceDetails, err = GetDeviceDetails(userAgentString)
+		if err != nil {
+			return nil, e.Wrap(err, "error getting device details")
+		}
 	}
 
-	session := &model.Session{UserID: user.ID, OrganizationID: organizationID, Location: locationString, OS: os, Browser: browser}
+	session := &model.Session{
+		UserID:         user.ID,
+		OrganizationID: organizationID,
+		City:           location.City,
+		State:          location.State,
+		Postal:         location.Postal,
+		Latitude:       location.Latitude.(float64),
+		Longitude:      location.Longitude.(float64),
+		OSName:         deviceDetails.OSName,
+		OSVersion:      deviceDetails.OSVersion,
+		BrowserName:    deviceDetails.BrowserName,
+		BrowserVersion: deviceDetails.BrowserVersion,
+	}
 	if err := r.DB.Create(session).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session")
 	}
@@ -128,25 +83,29 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	if !ok {
 		return nil, fmt.Errorf("error converting userObject interface type")
 	}
-	var os string
-	var browser string
+
 	// Parse the user-agent string
+	var deviceDetails DeviceDetails
+	var err error
 	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
-		ua := user_agent.New(userAgentString)
-		os = ua.OSInfo().Name
-		browser, _ = ua.Browser()
+		deviceDetails, err = GetDeviceDetails(userAgentString)
+		if err != nil {
+			return nil, e.Wrap(err, "error getting device details")
+		}
 	}
 
 	// TODO Cameron: Add more fields from user agent/location here
 	fields := map[string]string{
-		"identifier": userIdentifier,
-		"os":         os,
-		"browser":    browser,
+		"identifier":      userIdentifier,
+		"os_name":         deviceDetails.OSName,
+		"os_version":      deviceDetails.OSVersion,
+		"browser_name":    deviceDetails.BrowserName,
+		"browser_version": deviceDetails.BrowserVersion,
 	}
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(sessionID, fields)
+	err = r.AppendProperties(sessionID, fields)
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
