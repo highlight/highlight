@@ -92,8 +92,6 @@ type Field struct {
 	Name string
 	// 'email@email.com'
 	Value          string
-	Browser        string    `json:"browser"`
-	OS             string    `json:"os"`
 	OrganizationID int       `json:"organization_id"`
 	Sessions       []Session `gorm:"many2many:session_fields;"`
 }
