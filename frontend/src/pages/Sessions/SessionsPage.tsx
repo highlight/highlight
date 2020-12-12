@@ -52,11 +52,11 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                     params: $params
                 ) {
                     id
-                    location
-                    os
-                    browser
                     user_id
                     identifier
+                    os_name
+                    browser_name
+                    browser_version
                     created_at
                     length
                 }
@@ -68,6 +68,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     );
 
     const rawSessions = data?.sessions;
+    console.log(rawSessions)
 
     useEffect(() => {
         setOpenSidebar(false);
@@ -255,19 +256,6 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                 <div ref={resultsRef}>
                     {sessionData.map((u) => {
                         const created = new Date(u.created_at);
-                        let d: {
-                            os?: string;
-                            browser?: string;
-                        } = {};
-                        let location: {
-                            city?: string;
-                            state?: string;
-                            postal?: string;
-                        } = {};
-                        try {
-                            d = u;
-                            location = JSON.parse(u?.location)
-                        } catch (error) {}
                         return (
                             <Link
                                 to={`/${organization_id}/sessions/${u.id}`}
@@ -318,16 +306,16 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                             }
                                         >
                                             <div className={styles.regTitle}>
-                                                {d?.os &&
-                                                d?.browser
-                                                    ? d?.os +
+                                                {u?.os_name &&
+                                                u?.browser_name
+                                                    ? u?.os_name +
                                                       ' • ' +
-                                                      d?.browser
+                                                      u?.browser_name
                                                     : 'Desktop • Chrome'}
                                             </div>
                                             <div className={styles.regSubTitle}>
-                                                {location?.city}{location?.city && location?.state && ','} {location?.state}{' '}
-                                                {location?.postal}
+                                                {u?.city}{u?.city && u?.state && ','} {u?.state}{' '}
+                                                {u?.postal}
                                             </div>
                                         </div>
                                     </div>
