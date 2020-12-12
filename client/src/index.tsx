@@ -114,31 +114,20 @@ export class Highlight {
     if (organization_id) {
       this.organizationID = organization_id;
     }
-    const browser = detect();
-    // TODO: (this often isn't successful due to adblockers, needs a fix)
-    let geoData = {};
-    try {
-      let response = await fetch("https://geolocation-db.com/json/");
-      geoData = await response.json();
-    } catch (e) { }
-    let details = JSON.stringify({ ...geoData, browser });
     let gr = await this.client.mutate({
       mutation: gql`
-        mutation initializeSession($organization_id: ID!, $details: String!) {
+        mutation initializeSession($organization_id: ID!) {
           initializeSession(
             organization_id: $organization_id
-            details: $details
           ) {
             id
             user_id
             organization_id
-            details
           }
         }
       `,
       variables: {
         organization_id: this.organizationID,
-        details: details,
       },
     });
     this.sessionID = gr.data.initializeSession.id;
