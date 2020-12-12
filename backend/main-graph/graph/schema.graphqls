@@ -5,10 +5,14 @@ scalar Time
 
 type Session {
   id: ID!
-  location: String!
-  os: String!
-  browser: String!
   user_id: ID!
+  os_name: String!
+  os_version: String!
+  browser_name: String!
+  browser_version: String!
+  city: String!
+  state: String!
+  postal: String!
   identifier: String!
   created_at: Time
   length: Int
