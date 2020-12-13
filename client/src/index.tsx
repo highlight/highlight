@@ -5,16 +5,24 @@ import {
   gql,
   ApolloClient,
   NormalizedCacheObject,
+  ApolloLink,
+  HttpLink
 } from '@apollo/client/core';
+import { onError } from "@apollo/client/link/error";
 import { eventWithTime } from 'rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
+
+
 
 import {
   ConsoleMessage,
   NetworkResourceContent,
 } from '../../frontend/src/util/shared-types';
 
+export const HighlightWarning = (context: string, msg: any) => {
+  console.warn(`Highlight Warning: (${context}): `, msg)
+}
 class Logger {
   debug: boolean;
   constructor(debug: boolean) {
@@ -48,8 +56,22 @@ export class Highlight {
     this.ready = false;
     this.logger = new Logger(options.debug ?? false);
     const backend = options?.backendUrl ? options.backendUrl : process.env.BACKEND_URI;
-    this.client = new ApolloClient({
+    const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+      if (graphQLErrors)
+        graphQLErrors.map(({ message, locations, path }) =>
+          console.warn(
+            `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+          ),
+        );
+
+      if (networkError) console.warn(`[Network error]: ${networkError}`);
+      console.warn(operation);
+    });
+    const httpLink = new HttpLink({
       uri: `${backend}/client`,
+    })
+    this.client = new ApolloClient({
+      link: ApolloLink.from([errorLink, httpLink]),
       cache: new InMemoryCache(),
       credentials: 'include',
     });
