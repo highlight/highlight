@@ -14,7 +14,6 @@ import { ConsoleListener } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
 
 
-
 import {
   ConsoleMessage,
   NetworkResourceContent,
