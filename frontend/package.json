@@ -50,6 +50,7 @@
         "react-spinners-kit": "^1.9.1",
         "rrweb": "^0.9.7",
         "rrweb-snapshot": "^0.8.2",
+        "stripe": "^8.128.0",
         "typescript": "~3.7.2",
         "use-debounce": "^5.0.1",
         "use-http": "^1.0.13",
