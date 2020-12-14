@@ -34,6 +34,8 @@ module.exports = {
   mode: 'development',
   devtool: 'source-map',
   plugins: [
-    new webpack.EnvironmentPlugin(['BACKEND_URI']),
+    new webpack.EnvironmentPlugin({
+      BACKEND_URI: 'https://api.highlight.run',
+    }),
   ],
 };
