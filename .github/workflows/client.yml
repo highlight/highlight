@@ -2,6 +2,7 @@ name: Client
 on:
     push:
         paths:
+            - 'firstload/**'
             - 'client/**'
 jobs:
     client:
