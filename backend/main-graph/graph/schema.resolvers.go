@@ -125,8 +125,12 @@ func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizati
 	org := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
 	if err := res.Error; err != nill || res.RecordNotFound(){
-		return nil, e.Wrap(err, "error querying org")
+		return &false, e.Wrap(err, "error querying org")
 	}
+	if err := r.DB.Model(org).RecordingSetting(recordingDetails).Error; err != nil {
+		return &false, e.Wrap(err, "error writing new recording settings")
+	}
+	return &true, nil
 }
 
 func (r *organizationResolver) RecordingSetting(ctx context.Context, obj *model.Organization) (*model1.RecordingSettings, error) {
