@@ -31,21 +31,6 @@ ReactDOM.render(
                             <DemoRouter />
                         </DemoContext.Provider>
                     </Route>
-                    {/* TODO: Get rid of this soon! */}
-                    <Route path="/error">
-                        {() => {
-                            H._error();
-                            return <p>error</p>;
-                        }
-                        }
-                    </Route>
-                    <Route path="/throw">
-                        {() => {
-                            H._throw();
-                            return <p>throw</p>;
-                        }
-                        }
-                    </Route>
                     <Route path="/">
                         <DemoContext.Provider value={{ demo: false }}>
                             <AuthAppRouter />

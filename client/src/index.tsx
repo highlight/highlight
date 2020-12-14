@@ -12,7 +12,7 @@ import { onError } from "@apollo/client/link/error";
 import { eventWithTime } from 'rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
-
+import { GraphQLClient } from 'graphql-request'
 
 import {
   ConsoleMessage,
@@ -42,7 +42,7 @@ export type HighlightClassOptions = {
 
 export class Highlight {
   organizationID: number;
-  client: ApolloClient<NormalizedCacheObject>;
+  client: GraphQLClient;
   events: eventWithTime[];
   messages: ConsoleMessage[];
   networkContents: NetworkResourceContent[];
@@ -55,25 +55,29 @@ export class Highlight {
     this.ready = false;
     this.logger = new Logger(options.debug ?? false);
     const backend = options?.backendUrl ? options.backendUrl : process.env.BACKEND_URI;
-    const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
-      if (graphQLErrors)
-        graphQLErrors.map(({ message, locations, path }) =>
-          console.warn(
-            `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
-          ),
-        );
+    // const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
+    //   if (graphQLErrors)
+    //     graphQLErrors.map(({ message, locations, path }) =>
+    //       console.warn(
+    //         `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
+    //       ),
+    //     );
 
-      if (networkError) console.warn(`[Network error]: ${networkError}`);
-      console.warn(operation);
-    });
-    const httpLink = new HttpLink({
-      uri: `${backend}/client`,
-    })
-    this.client = new ApolloClient({
-      link: ApolloLink.from([errorLink, httpLink]),
-      cache: new InMemoryCache(),
-      credentials: 'include',
-    });
+    //   if (networkError) console.warn(`[Network error]: ${networkError}`);
+    //   console.warn(operation);
+    // });
+    // const httpLink = new HttpLink({
+    //   uri: `${backend}/client`,
+    // })
+    // this.client = new ApolloClient({
+    //   link: ApolloLink.from([errorLink, httpLink]),
+    //   cache: new InMemoryCache(),
+    //   credentials: 'include',
+    // });
+    this.client = new GraphQLClient(
+      `${backend}/client`,
+      { headers: {} }
+    )
     this.organizationID = options.organizationID;
     this.sessionID = 0;
     this.events = [];
@@ -82,8 +86,8 @@ export class Highlight {
   }
 
   async identify(user_identifier: string, user_object = {}) {
-    await this.client.mutate({
-      mutation: gql`
+    await this.client.request(
+      gql`
         mutation identifySession(
           $session_id: ID!
           $user_identifier: String!
@@ -96,12 +100,12 @@ export class Highlight {
           )
         }
       `,
-      variables: {
+      {
         session_id: this.sessionID,
         user_identifier: user_identifier,
         user_object: user_object,
       },
-    });
+    );
     this.logger.log(
       `Identify (${user_identifier}) w/ obj: ${JSON.stringify(user_object)} @ ${process.env.BACKEND_URI
       }`
@@ -109,8 +113,8 @@ export class Highlight {
   }
 
   async addProperties(properties_obj = {}) {
-    await this.client.mutate({
-      mutation: gql`
+    await this.client.request(
+      gql`
         mutation addProperties($session_id: ID!, $properties_object: Any) {
           addProperties(
             session_id: $session_id
@@ -118,11 +122,11 @@ export class Highlight {
           )
         }
       `,
-      variables: {
+      {
         session_id: this.sessionID,
         properties_object: properties_obj,
       },
-    });
+    );
     this.logger.log(
       `AddProperties to session (${this.sessionID}) w/ obj: ${JSON.stringify(
         properties_obj
@@ -132,11 +136,12 @@ export class Highlight {
 
   // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
   async initialize(organization_id?: number) {
-    if (organization_id) {
-      this.organizationID = organization_id;
-    }
-    let gr = await this.client.mutate({
-      mutation: gql`
+    try {
+      if (organization_id) {
+        this.organizationID = organization_id;
+      }
+      let gr = await this.client.request<{ initializeSession: { id: number, user_id: number, organization_id: number } }, { organization_id: number }>(
+        gql`
         mutation initializeSession($organization_id: ID!) {
           initializeSession(
             organization_id: $organization_id
@@ -147,98 +152,103 @@ export class Highlight {
           }
         }
       `,
-      variables: {
-        organization_id: this.organizationID,
-      },
-    });
-    this.sessionID = gr.data.initializeSession.id;
-    this.logger.log(
-      `Loaded Highlight
+        {
+          organization_id: this.organizationID,
+        },
+      );
+      console.log(gr);
+      this.sessionID = gr.initializeSession.id;
+      this.logger.log(
+        `Loaded Highlight
 Remote: ${process.env.BACKEND_URI}
 Org: ${this.organizationID}
 Session Data: 
 `,
-      gr.data
-    );
-    setInterval(() => {
-      this._save();
-    }, 5 * 1000);
-    const emit = (event: eventWithTime) => {
-      this.events.push(event);
-    };
-    emit.bind(this);
-    record({
-      emit,
-    });
+        gr.initializeSession
+      );
+      setInterval(() => {
+        this._save();
+      }, 5 * 1000);
+      const emit = (event: eventWithTime) => {
+        this.events.push(event);
+      };
+      emit.bind(this);
+      record({
+        emit,
+      });
 
-    // TODO: probably get rid of this.
-    const highlightThis = this;
-    var send = XMLHttpRequest.prototype.send;
-    XMLHttpRequest.prototype.send = function (data) {
-      setTimeout(() => {
-        var obj: any;
-        try {
-          obj = JSON.parse(data?.toString() ?? '');
-        } catch (e) {
-          return;
-        }
-        if (obj.type === 'track') {
-          const properties: { [key: string]: string } = {};
-          properties['segment-event'] = obj.event;
-          highlightThis.logger.log(
-            `Adding (${JSON.stringify(properties)}) @ ${process.env.BACKEND_URI
-            }, org: ${highlightThis.organizationID}`
-          );
-          addCustomEvent<string>(
-            'Segment',
-            JSON.stringify({
-              event: obj.event,
-              properties: obj.properties,
-            })
-          );
-          highlightThis.addProperties(properties);
-        }
-      }, 100);
-      send.call(this, data);
-    };
-    if (document.referrer) {
-      addCustomEvent<string>('Referrer', document.referrer);
-      highlightThis.addProperties({ referrer: document.referrer });
+      // TODO: probably get rid of this.
+      const highlightThis = this;
+      var send = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.send = function (data) {
+        setTimeout(() => {
+          var obj: any;
+          try {
+            obj = JSON.parse(data?.toString() ?? '');
+          } catch (e) {
+            return;
+          }
+          if (obj.type === 'track') {
+            const properties: { [key: string]: string } = {};
+            properties['segment-event'] = obj.event;
+            highlightThis.logger.log(
+              `Adding (${JSON.stringify(properties)}) @ ${process.env.BACKEND_URI
+              }, org: ${highlightThis.organizationID}`
+            );
+            addCustomEvent<string>(
+              'Segment',
+              JSON.stringify({
+                event: obj.event,
+                properties: obj.properties,
+              })
+            );
+            highlightThis.addProperties(properties);
+          }
+        }, 100);
+        send.call(this, data);
+      };
+      if (document.referrer) {
+        addCustomEvent<string>('Referrer', document.referrer);
+        highlightThis.addProperties({ referrer: document.referrer });
+      }
+      PathListener((url: string) => {
+        addCustomEvent<string>('Navigate', url);
+        highlightThis.addProperties({ 'visited-url': url });
+      });
+      ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
+      this.ready = true;
+    } catch (e) {
+      HighlightWarning("initializeSession", e)
     }
-    PathListener((url: string) => {
-      addCustomEvent<string>('Navigate', url);
-      highlightThis.addProperties({ 'visited-url': url });
-    });
-    ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
-    this.ready = true;
   }
 
   // Reset the events array and push to a backend.
   async _save() {
-    if (!this.sessionID) {
-      return;
-    }
-    const resources = performance
-      .getEntriesByType('resource')
-      .filter(
-        (r) =>
-          !r.name.includes(
-            process.env.BACKEND_URI ?? 'https://api.highlight.run'
-          )
+    try {
+      if (!this.sessionID) {
+        return;
+      }
+      const resources = performance
+        .getEntriesByType('resource')
+        .filter(
+          (r) =>
+            !r.name.includes(
+              process.env.BACKEND_URI ?? 'https://api.highlight.run'
+            )
+        );
+      const resourcesString = JSON.stringify({ resources: resources });
+      const messagesString = JSON.stringify({ messages: this.messages });
+      const eventsString = JSON.stringify({ events: this.events });
+      this.logger.log(
+        `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
       );
-    const resourcesString = JSON.stringify({ resources: resources });
-    const messagesString = JSON.stringify({ messages: this.messages });
-    const eventsString = JSON.stringify({ events: this.events });
-    this.logger.log(
-      `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
-    );
-    this.events = [];
-    this.messages = [];
-    this.networkContents = [];
-    performance.clearResourceTimings();
-    await this.client.mutate({
-      mutation: gql`
-        mutation PushPayload(
+      this.events = [];
+      this.messages = [];
+      this.networkContents = [];
+      performance.clearResourceTimings();
+      await this.client.request(
+        gql`
+        mutation Pusd;aldkjf;alskjfhPayload(
           $session_id: ID!
           $events: String!
           $messages: String!
@@ -252,21 +262,16 @@ Session Data:
           )
         }
       `,
-      variables: {
-        session_id: this.sessionID,
-        events: eventsString,
-        messages: messagesString,
-        resources: resourcesString,
-      },
-    });
-  }
-
-  _error() {
-    console.error("client");
-  }
-
-  _throw() {
-    throw ("client");
+        {
+          session_id: this.sessionID,
+          events: eventsString,
+          messages: messagesString,
+          resources: resourcesString,
+        },
+      );
+    } catch (e) {
+      HighlightWarning("_save", e)
+    }
   }
 }
 
