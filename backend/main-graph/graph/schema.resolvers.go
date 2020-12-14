@@ -18,6 +18,7 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	"github.com/stripe/stripe-go"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -117,6 +118,36 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 		return nil, e.Wrap(err, "error adding admin to association")
 	}
 	return &org.ID, nil
+}
+
+func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return "", e.Wrap(err, "admin is not in organization")
+	}
+
+	params := &stripe.CheckoutSessionParams{
+		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/success"),
+		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/checkoutCanceled"),
+		PaymentMethodTypes: stripe.StringSlice([]string{
+			"card",
+		}),
+		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
+			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
+				&stripe.CheckoutSessionSubscriptionDataItemsParams{
+					Plan: stripe.String(priceID),
+				},
+			},
+		},
+		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+	}
+
+	stripe_session, err := r.StripeClient.CheckoutSessions.New(params)
+
+	if err != nil {
+		return "", e.Wrap(err, "error creating CheckoutSession in stripe")
+	}
+
+	return stripe_session.ID, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
