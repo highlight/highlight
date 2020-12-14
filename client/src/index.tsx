@@ -1,18 +1,8 @@
 import { addCustomEvent, record } from 'rrweb';
-import { detect } from 'detect-browser';
-import {
-  InMemoryCache,
-  gql,
-  ApolloClient,
-  NormalizedCacheObject,
-  ApolloLink,
-  HttpLink
-} from '@apollo/client/core';
-import { onError } from "@apollo/client/link/error";
 import { eventWithTime } from 'rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
-import { GraphQLClient } from 'graphql-request'
+import { GraphQLClient, gql } from 'graphql-request'
 
 import {
   ConsoleMessage,
