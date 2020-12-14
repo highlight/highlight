@@ -119,6 +119,31 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 	return &org.ID, nil
 }
 
+func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name *string, params []Param) (*model.Segment, error) {
+	org := &model.Organization{}
+	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying org")
+	}
+	segment := &model.Segment{
+		Name:           name,
+		Params:         params,
+		OrganizationID: organizationID,
+	}
+	if err := r.DB.Model(org).Association("Segments").Append(segment).Error; err != nil {
+		return nil, e.Wrap(err, "error adding segment to association")
+	}
+	return segment, nil
+}
+
+func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *paramResolver) Value(ctx context.Context, obj *model.Param) (interface{}, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	session, err := r.isAdminSessionOwner(ctx, id)
 	if err != nil {
@@ -390,12 +415,19 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	return admin, nil
 }
 
+func (r *queryResolver) Segments(ctx context.Context, organizationID int) ([]*model.Segment, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
 	return obj.UserObject, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
+
+// Param returns generated.ParamResolver implementation.
+func (r *Resolver) Param() generated.ParamResolver { return &paramResolver{r} }
 
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
@@ -404,5 +436,6 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
 type mutationResolver struct{ *Resolver }
+type paramResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }

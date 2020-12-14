@@ -31,6 +31,7 @@ type Organization struct {
 	Users        []User
 	Admins       []Admin `gorm:"many2many:organization_admins;"`
 	Fields       []Field
+	Segments 	 []Segment
 }
 
 func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
@@ -94,6 +95,13 @@ type Field struct {
 	Value          string
 	OrganizationID int       `json:"organization_id"`
 	Sessions       []Session `gorm:"many2many:session_fields;"`
+}
+
+type Segment struct {
+	Model
+	Name *string
+	Params []Param
+	OrganizationID int
 }
 
 type ResourcesObject struct {

@@ -25,6 +25,18 @@ type Organization {
   billing_email: String
 }
 
+type Param {
+  action: String!
+  type: String!
+  value: Any!
+}
+
+type Segment {
+  name: String!
+  params: [Param]!
+  organization_id: ID!
+}
+
 type User {
   id: ID!
 }
@@ -53,6 +65,7 @@ type Query {
   organizations: [Organization]
   organization(id: ID!): Organization
   admin: Admin
+  segments(organization_id: ID!): [Segment]
 }
 
 type Mutation {
@@ -61,4 +74,6 @@ type Mutation {
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
+  createSegment(organization_id: ID!, name: String, params: [Any]!): Segment
+  deleteSegment(segment_id: ID!): Boolean
 }
