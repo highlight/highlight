@@ -9,13 +9,13 @@ import (
 	"fmt"
 	"time"
 
-	redis "github.com/go-redis/redis/v8"
+	log "github.com/sirupsen/logrus"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int, details string) (*model.Session, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int) (*model.Session, error) {
 	organization := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization)
 	if err := res.Error; err != nil || res.RecordNotFound() {
@@ -40,7 +40,36 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID
 			return nil, e.Wrap(err, "error updating user")
 		}
 	}
-	session := &model.Session{UserID: user.ID, OrganizationID: organizationID, Details: details}
+
+	// Get the user's ip, get geolocation data
+	var location Location
+	var err error
+	if ip, ok := ctx.Value("ip").(string); ok {
+		location, err = GetLocationFromIP(ip)
+		if err != nil {
+			log.Errorf("error getting user's location: %v", err)
+		}
+	}
+
+	// Parse the user-agent string
+	var deviceDetails DeviceDetails
+	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
+		deviceDetails = GetDeviceDetails(userAgentString)
+	}
+
+	session := &model.Session{
+		UserID:         user.ID,
+		OrganizationID: organizationID,
+		City:           location.City,
+		State:          location.State,
+		Postal:         location.Postal,
+		Latitude:       location.Latitude.(float64),
+		Longitude:      location.Longitude.(float64),
+		OSName:         deviceDetails.OSName,
+		OSVersion:      deviceDetails.OSVersion,
+		BrowserName:    deviceDetails.BrowserName,
+		BrowserVersion: deviceDetails.BrowserVersion,
+	}
 	if err := r.DB.Create(session).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session")
 	}
@@ -52,13 +81,25 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	if !ok {
 		return nil, fmt.Errorf("error converting userObject interface type")
 	}
+
+	// Parse the user-agent string
+	var deviceDetails DeviceDetails
+	var err error
+	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
+		deviceDetails = GetDeviceDetails(userAgentString)
+	}
+
 	fields := map[string]string{
-		"identifier": userIdentifier,
+		"identifier":      userIdentifier,
+		"os_name":         deviceDetails.OSName,
+		"os_version":      deviceDetails.OSVersion,
+		"browser_name":    deviceDetails.BrowserName,
+		"browser_version": deviceDetails.BrowserVersion,
 	}
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(sessionID, fields)
+	err = r.AppendProperties(sessionID, fields)
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
@@ -119,10 +160,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
-	now := float64(time.Now().UTC().Unix())
-	member := &redis.Z{Score: now, Member: sessionID}
-	if err := r.Redis.ZAdd(ctx, "sessions", member).Err(); err != nil {
-		return nil, err
+	now := time.Now()
+	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error updating session payload time")
 	}
 	return &sessionID, nil
 }

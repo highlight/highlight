@@ -6299,10 +6299,10 @@ hex-color-regex@^1.1.0:
   resolved "https://registry.yarnpkg.com/hex-color-regex/-/hex-color-regex-1.1.0.tgz"
   integrity sha512-l9sfDFsuqtOqKDsQdqrMRk0U85RZc0RtOR9yPI7mRVOa4FsR/BVnZ0shmQRM96Ji99kYZP/7hn1cedc1+ApsTQ==
 
-highlight.run@^1.0.26:
-  version "1.0.43"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.43.tgz#198a6c93ca89ea9171521fdfeabe19a422c1290f"
-  integrity sha512-ork+01S1BU3qoOCL3JD2bo5b4ALLtRpYLkl+u0mcP6+GH+llATexW2wIx1t25S8cGylYVnAJBhdWS8jAeSeWiw==
+highlight.run@^1.0.45:
+  version "1.0.45"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.45.tgz#6944589d65886a9b315cea484355d12a6dde10ba"
+  integrity sha512-ngksFx5OjPvTbkzsXi89H0DKbiuAhFtykLCT3P2nwplKIvmbK2lLcBIkLR2reacjh8Emw+UbAc483UdvxO/e+w==
   dependencies:
     nodemon "^2.0.6"
 

@@ -9,7 +9,6 @@ import {
 import { eventWithTime } from 'rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
-import { AjaxListener } from './listeners/ajax-listener';
 
 import {
   ConsoleMessage,
@@ -48,9 +47,7 @@ export class Highlight {
     // If debug is set to false, disable all console logs.
     this.ready = false;
     this.logger = new Logger(options.debug ?? false);
-    const backend = options.backendUrl
-      ? options.backendUrl
-      : process.env.BACKEND_URI;
+    const backend = options?.backendUrl ? options.backendUrl : process.env.BACKEND_URI;
     this.client = new ApolloClient({
       uri: `${backend}/client`,
       cache: new InMemoryCache(),
@@ -117,31 +114,20 @@ export class Highlight {
     if (organization_id) {
       this.organizationID = organization_id;
     }
-    const browser = detect();
-    // TODO: (this often isn't successful due to adblockers, needs a fix)
-    let geoData = {};
-    try {
-      let response = await fetch("https://geolocation-db.com/json/");
-      geoData = await response.json();
-    } catch (e) { }
-    let details = JSON.stringify({ ...geoData, browser });
     let gr = await this.client.mutate({
       mutation: gql`
-        mutation initializeSession($organization_id: ID!, $details: String!) {
+        mutation initializeSession($organization_id: ID!) {
           initializeSession(
             organization_id: $organization_id
-            details: $details
           ) {
             id
             user_id
             organization_id
-            details
           }
         }
       `,
       variables: {
         organization_id: this.organizationID,
-        details: details,
       },
     });
     this.sessionID = gr.data.initializeSession.id;
@@ -201,9 +187,6 @@ Session Data:
     PathListener((url: string) => {
       addCustomEvent<string>('Navigate', url);
       highlightThis.addProperties({ 'visited-url': url });
-    });
-    AjaxListener((content: NetworkResourceContent) => {
-      highlightThis.networkContents.push(content);
     });
     ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
     this.ready = true;

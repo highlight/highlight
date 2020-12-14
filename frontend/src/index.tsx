@@ -18,7 +18,7 @@ if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
     options.backendUrl = 'http://localhost:8082';
 }
-H.init(3, options);
+H.init(1, options);
 H.start();
 
 ReactDOM.render(
@@ -28,7 +28,7 @@ ReactDOM.render(
                 <Switch>
                     <Route path="/demo" exact>
                         <DemoContext.Provider value={{ demo: true }}>
-                            <DemoRouter/>
+                            <DemoRouter />
                         </DemoContext.Provider>
                     </Route>
                     {/* TODO: Get rid of this soon! */}
