@@ -3,6 +3,7 @@ on:
     push:
         paths:
             - 'firstload/**'
+            - 'client/**'
 jobs:
     firstload:
         runs-on: ubuntu-latest
