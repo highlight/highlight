@@ -16,7 +16,7 @@ type Session {
 type RecordingSettings {
   id: ID!
   organization_id: ID!
-  details: String
+  details: String!
 }
 
 type Organization {
@@ -62,5 +62,5 @@ type Mutation {
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-  editRecordingSettings(organization_id: ID!, recording_details: String!): Boolean
+  editRecordingSettings(organization_id: ID!, recording_details: String!): RecordingSettings
 }

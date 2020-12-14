@@ -13,7 +13,6 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	model1 "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -38,7 +37,6 @@ type Config struct {
 
 type ResolverRoot interface {
 	Mutation() MutationResolver
-	Organization() OrganizationResolver
 	Query() QueryResolver
 	Session() SessionResolver
 }
@@ -111,10 +109,7 @@ type MutationResolver interface {
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
-	EditRecordingSettings(ctx context.Context, organizationID int, recordingDetails string) (*bool, error)
-}
-type OrganizationResolver interface {
-	RecordingSetting(ctx context.Context, obj *model.Organization) (*model1.RecordingSettings, error)
+	EditRecordingSettings(ctx context.Context, organizationID int, recordingDetails string) (*model.RecordingSettings, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model.Session, error)
@@ -563,7 +558,7 @@ type Session {
 type RecordingSettings {
   id: ID!
   organization_id: ID!
-  details: String
+  details: String!
 }
 
 type Organization {
@@ -609,7 +604,7 @@ type Mutation {
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-  editRecordingSettings(organization_id: ID!, recording_details: String!): Boolean
+  editRecordingSettings(organization_id: ID!, recording_details: String!): RecordingSettings
 }
 `, BuiltIn: false},
 }
@@ -1318,9 +1313,9 @@ func (ec *executionContext) _Mutation_editRecordingSettings(ctx context.Context,
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(*model.RecordingSettings)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
@@ -1433,13 +1428,13 @@ func (ec *executionContext) _Organization_recording_setting(ctx context.Context,
 		Object:   "Organization",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Organization().RecordingSetting(rctx, obj)
+		return obj.RecordingSetting, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1448,9 +1443,9 @@ func (ec *executionContext) _Organization_recording_setting(ctx context.Context,
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model1.RecordingSettings)
+	res := resTmp.(model.RecordingSettings)
 	fc.Result = res
-	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
+	return ec.marshalORecordingSettings2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_session(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1964,7 +1959,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _RecordingSettings_id(ctx context.Context, field graphql.CollectedField, obj *model1.RecordingSettings) (ret graphql.Marshaler) {
+func (ec *executionContext) _RecordingSettings_id(ctx context.Context, field graphql.CollectedField, obj *model.RecordingSettings) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1998,7 +1993,7 @@ func (ec *executionContext) _RecordingSettings_id(ctx context.Context, field gra
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _RecordingSettings_organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.RecordingSettings) (ret graphql.Marshaler) {
+func (ec *executionContext) _RecordingSettings_organization_id(ctx context.Context, field graphql.CollectedField, obj *model.RecordingSettings) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2032,7 +2027,7 @@ func (ec *executionContext) _RecordingSettings_organization_id(ctx context.Conte
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _RecordingSettings_details(ctx context.Context, field graphql.CollectedField, obj *model1.RecordingSettings) (ret graphql.Marshaler) {
+func (ec *executionContext) _RecordingSettings_details(ctx context.Context, field graphql.CollectedField, obj *model.RecordingSettings) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2056,11 +2051,14 @@ func (ec *executionContext) _RecordingSettings_details(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Session_id(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
@@ -3478,26 +3476,17 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 		case "id":
 			out.Values[i] = ec._Organization_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "name":
 			out.Values[i] = ec._Organization_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "billing_email":
 			out.Values[i] = ec._Organization_billing_email(ctx, field, obj)
 		case "recording_setting":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Organization_recording_setting(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._Organization_recording_setting(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3673,7 +3662,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 var recordingSettingsImplementors = []string{"RecordingSettings"}
 
-func (ec *executionContext) _RecordingSettings(ctx context.Context, sel ast.SelectionSet, obj *model1.RecordingSettings) graphql.Marshaler {
+func (ec *executionContext) _RecordingSettings(ctx context.Context, sel ast.SelectionSet, obj *model.RecordingSettings) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, recordingSettingsImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -3694,6 +3683,9 @@ func (ec *executionContext) _RecordingSettings(ctx context.Context, sel ast.Sele
 			}
 		case "details":
 			out.Values[i] = ec._RecordingSettings_details(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4537,7 +4529,11 @@ func (ec *executionContext) marshalOOrganization2ᚖgithubᚗcomᚋjayᚑkhatri�
 	return ec._Organization(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐRecordingSettings(ctx context.Context, sel ast.SelectionSet, v *model1.RecordingSettings) graphql.Marshaler {
+func (ec *executionContext) marshalORecordingSettings2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐRecordingSettings(ctx context.Context, sel ast.SelectionSet, v model.RecordingSettings) graphql.Marshaler {
+	return ec._RecordingSettings(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐRecordingSettings(ctx context.Context, sel ast.SelectionSet, v *model.RecordingSettings) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
