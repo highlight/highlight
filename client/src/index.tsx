@@ -248,7 +248,7 @@ Session Data:
       performance.clearResourceTimings();
       await this.client.request(
         gql`
-        mutation Pusd;aldkjf;alskjfhPayload(
+        mutation PushPayload(
           $session_id: ID!
           $events: String!
           $messages: String!
