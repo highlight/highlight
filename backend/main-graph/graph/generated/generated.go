@@ -54,6 +54,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddAdminToOrganization func(childComplexity int, organizationID int, inviteID string) int
+		CreateCheckout         func(childComplexity int, organizationID int, priceID string) int
 		CreateOrganization     func(childComplexity int, name string) int
 		CreateSegment          func(childComplexity int, organizationID int, name *string, params []interface{}) int
 		DeleteOrganization     func(childComplexity int, id int) int
@@ -125,6 +126,7 @@ type MutationResolver interface {
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
 	CreateSegment(ctx context.Context, organizationID int, name *string, params []interface{}) (*model.Segment, error)
 	DeleteSegment(ctx context.Context, segmentID int) (*bool, error)
+	CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error)
 }
 type ParamResolver interface {
 	Value(ctx context.Context, obj *model.Param) (interface{}, error)
@@ -195,6 +197,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddAdminToOrganization(childComplexity, args["organization_id"].(int), args["invite_id"].(string)), true
+
+	case "Mutation.createCheckout":
+		if e.complexity.Mutation.CreateCheckout == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createCheckout_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateCheckout(childComplexity, args["organization_id"].(int), args["price_id"].(string)), true
 
 	case "Mutation.createOrganization":
 		if e.complexity.Mutation.CreateOrganization == nil {
@@ -717,6 +731,7 @@ type Mutation {
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
   createSegment(organization_id: ID!, name: String, params: [Any]!): Segment
   deleteSegment(segment_id: ID!): Boolean
+  createCheckout(organization_id: ID!, price_id: String!): String!
 }
 `, BuiltIn: false},
 }
@@ -747,6 +762,30 @@ func (ec *executionContext) field_Mutation_addAdminToOrganization_args(ctx conte
 		}
 	}
 	args["invite_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createCheckout_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["price_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("price_id"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["price_id"] = arg1
 	return args, nil
 }
 
@@ -1505,6 +1544,47 @@ func (ec *executionContext) _Mutation_deleteSegment(ctx context.Context, field g
 	res := resTmp.(*bool)
 	fc.Result = res
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createCheckout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createCheckout_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateCheckout(rctx, args["organization_id"].(int), args["price_id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *model.Organization) (ret graphql.Marshaler) {
@@ -3955,6 +4035,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createSegment(ctx, field)
 		case "deleteSegment":
 			out.Values[i] = ec._Mutation_deleteSegment(ctx, field)
+		case "createCheckout":
+			out.Values[i] = ec._Mutation_createCheckout(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

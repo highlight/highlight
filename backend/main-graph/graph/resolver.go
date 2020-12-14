@@ -11,6 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/k0kubun/pp"
 	"github.com/sendgrid/sendgrid-go"
+	"github.com/stripe/stripe-go/client"
 
 	e "github.com/pkg/errors"
 )
@@ -25,8 +26,9 @@ var (
 )
 
 type Resolver struct {
-	DB         *gorm.DB
-	MailClient *sendgrid.Client
+	DB           *gorm.DB
+	MailClient   *sendgrid.Client
+	StripeClient *client.API
 }
 
 // Prints time since 'time' and msg, fid.

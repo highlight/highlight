@@ -18,6 +18,7 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	stripe "github.com/stripe/stripe-go"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -119,7 +120,7 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 	return &org.ID, nil
 }
 
-func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name *string, params []Param) (*model.Segment, error) {
+func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name *string, params []model.Param) (*model.Segment, error) {
 	org := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
 	if err := res.Error; err != nil || res.RecordNotFound() {
@@ -138,6 +139,36 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 
 func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*bool, error) {
 	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return "", e.Wrap(err, "admin is not in organization")
+	}
+
+	params := &stripe.CheckoutSessionParams{
+		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/success"),
+		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/checkoutCanceled"),
+		PaymentMethodTypes: stripe.StringSlice([]string{
+			"card",
+		}),
+		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
+			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
+				&stripe.CheckoutSessionSubscriptionDataItemsParams{
+					Plan: stripe.String(priceID),
+				},
+			},
+		},
+		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+	}
+
+	stripe_session, err := r.StripeClient.CheckoutSessions.New(params)
+
+	if err != nil {
+		return "", e.Wrap(err, "error creating CheckoutSession in stripe")
+	}
+
+	return stripe_session.ID, nil
 }
 
 func (r *paramResolver) Value(ctx context.Context, obj *model.Param) (interface{}, error) {

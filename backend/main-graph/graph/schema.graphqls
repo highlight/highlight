@@ -76,4 +76,5 @@ type Mutation {
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
   createSegment(organization_id: ID!, name: String, params: [Any]!): Segment
   deleteSegment(segment_id: ID!): Boolean
+  createCheckout(organization_id: ID!, price_id: String!): String!
 }

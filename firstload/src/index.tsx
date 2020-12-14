@@ -1,4 +1,4 @@
-import { Highlight, HighlightClassOptions } from '../../client/src/index';
+import { HighlightWarning, Highlight, HighlightClassOptions } from '../../client/src/index';
 
 export type HighlightOptions = {
     debug?: boolean;
@@ -13,8 +13,6 @@ type HighlightPublicInterface = {
     getSessionURL: () => Promise<string>;
     start: () => void;
     onHighlightReady: (func: () => void) => void;
-    _error: () => void;
-    _throw: () => void;
     options: HighlightOptions | undefined;
 };
 
@@ -27,10 +25,6 @@ interface HighlightWindow extends Window {
 const HIGHLIGHT_URL = 'app.highlight.run';
 
 declare var window: HighlightWindow;
-
-const HighlightWarning = (context: string, msg: any) => {
-    console.warn(`Highlight Warning (${context}): `, msg)
-}
 
 var script: HTMLScriptElement;
 var highlight_obj: Highlight;
@@ -117,14 +111,6 @@ export const H: HighlightPublicInterface = {
             HighlightWarning("onHighlightReady", e)
         }
     },
-    _throw: () => {
-        H.onHighlightReady(() => highlight_obj._throw())
-        throw ("firstload");
-    },
-    _error: () => {
-        H.onHighlightReady(() => highlight_obj._error())
-        console.error("firstload");
-    }
 };
 
 if (typeof window !== 'undefined') {
