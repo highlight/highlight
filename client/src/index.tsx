@@ -45,25 +45,6 @@ export class Highlight {
     this.ready = false;
     this.logger = new Logger(options.debug ?? false);
     const backend = options?.backendUrl ? options.backendUrl : process.env.BACKEND_URI;
-    // const errorLink = onError(({ graphQLErrors, networkError, operation }) => {
-    //   if (graphQLErrors)
-    //     graphQLErrors.map(({ message, locations, path }) =>
-    //       console.warn(
-    //         `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`,
-    //       ),
-    //     );
-
-    //   if (networkError) console.warn(`[Network error]: ${networkError}`);
-    //   console.warn(operation);
-    // });
-    // const httpLink = new HttpLink({
-    //   uri: `${backend}/client`,
-    // })
-    // this.client = new ApolloClient({
-    //   link: ApolloLink.from([errorLink, httpLink]),
-    //   cache: new InMemoryCache(),
-    //   credentials: 'include',
-    // });
     this.client = new GraphQLClient(
       `${backend}/client`,
       { headers: {} }
