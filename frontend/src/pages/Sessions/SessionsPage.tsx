@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useContext } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
-import { useLazyQuery, gql } from '@apollo/client';
+import { useLazyQuery, gql, useMutation } from '@apollo/client';
 import { MillisToMinutesAndSecondsVerbose } from '../../util/time';
 import { ReactComponent as PlayButton } from '../../static/play-button.svg';
 import { FaSearch, FaTimes } from 'react-icons/fa';
@@ -20,6 +20,7 @@ import AutosizeInput from 'react-input-autosize';
 
 import styles from './SessionsPage.module.css';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
+import { Button } from 'antd';
 
 export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const countDebounced = useDebouncedCallback(() => {
@@ -36,6 +37,22 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const { organization_id } = useParams();
     const [sessionData, setSessionData] = useState<any[]>([]);
     const [showDropdown, setShowDropdown] = useState<boolean>(true);
+    const [createSegment, segmentData] = useMutation<
+        { createSegment: { segment: any } },
+        { organization_id: number; params: SearchParam[], name: string }
+    >(
+        gql`
+            mutation CreateSegment(
+                $organization_id: ID!
+                $name: String!
+                $params: [Any]
+            ){
+                createSegment(organization_id: $organization_id, name: $name, params: $params) {
+                    segment
+                }
+            }
+        `
+    );
     const [getSessions, { loading, error, data }] = useLazyQuery<
         { sessions: any[] },
         { count: number; organization_id: number; params: SearchParam[] }
@@ -177,7 +194,18 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                         </div>
                     </div>
                     <div className={styles.searchIconWrapper}>
-                        <FaSearch className={styles.searchIcon} />
+                        <Button onClick={()=> {
+                            console.log("org id: "+organization_id + "\nparams: " +JSON.stringify(params))
+                                createSegment({
+                                    variables: {
+                                        organization_id: organization_id,
+                                        params: params,
+                                        name: "Power Puff Girls",
+                                    }
+                                });
+                            }}>
+                            <FaSearch className={styles.searchIcon} />
+                        </Button>
                     </div>
                 </div>
                 {showDropdown && (
