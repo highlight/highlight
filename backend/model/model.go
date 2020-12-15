@@ -31,7 +31,7 @@ type Organization struct {
 	Users        []User
 	Admins       []Admin `gorm:"many2many:organization_admins;"`
 	Fields       []Field
-	Segments 	 []Segment
+	Segments 	 []Segment `gorm:"foreignKey:ID;"`
 }
 
 func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
