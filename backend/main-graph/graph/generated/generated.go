@@ -67,19 +67,19 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Admin            func(childComplexity int) int
-		Admins           func(childComplexity int, organizationID int) int
-		Events           func(childComplexity int, sessionID int) int
-		FieldSuggestion  func(childComplexity int, organizationID int, field string, query string) int
-		Fields           func(childComplexity int, organizationID int) int
-		IsIntegrated     func(childComplexity int, organizationID int) int
-		Messages         func(childComplexity int, sessionID int) int
-		Organization     func(childComplexity int, id int) int
-		Organizations    func(childComplexity int) int
-		RecordingSetting func(childComplexity int, organiztionID int) int
-		Resources        func(childComplexity int, sessionID int) int
-		Session          func(childComplexity int, id int) int
-		Sessions         func(childComplexity int, organizationID int, count int, params []interface{}) int
+		Admin             func(childComplexity int) int
+		Admins            func(childComplexity int, organizationID int) int
+		Events            func(childComplexity int, sessionID int) int
+		FieldSuggestion   func(childComplexity int, organizationID int, field string, query string) int
+		Fields            func(childComplexity int, organizationID int) int
+		IsIntegrated      func(childComplexity int, organizationID int) int
+		Messages          func(childComplexity int, sessionID int) int
+		Organization      func(childComplexity int, id int) int
+		Organizations     func(childComplexity int) int
+		RecordingSettings func(childComplexity int, organizationID int) int
+		Resources         func(childComplexity int, sessionID int) int
+		Session           func(childComplexity int, id int) int
+		Sessions          func(childComplexity int, organizationID int, count int, params []interface{}) int
 	}
 
 	RecordingSettings struct {
@@ -124,7 +124,7 @@ type QueryResolver interface {
 	Organizations(ctx context.Context) ([]*model.Organization, error)
 	Organization(ctx context.Context, id int) (*model.Organization, error)
 	Admin(ctx context.Context) (*model.Admin, error)
-	RecordingSetting(ctx context.Context, organiztionID int) (*model.RecordingSettings, error)
+	RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error)
 }
 type SessionResolver interface {
 	UserObject(ctx context.Context, obj *model.Session) (interface{}, error)
@@ -357,17 +357,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Organizations(childComplexity), true
 
-	case "Query.recording_setting":
-		if e.complexity.Query.RecordingSetting == nil {
+	case "Query.recording_settings":
+		if e.complexity.Query.RecordingSettings == nil {
 			break
 		}
 
-		args, err := ec.field_Query_recording_setting_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_recording_settings_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.RecordingSetting(childComplexity, args["organiztion_id"].(int)), true
+		return e.complexity.Query.RecordingSettings(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.resources":
 		if e.complexity.Query.Resources == nil {
@@ -601,7 +601,7 @@ type Query {
   organizations: [Organization]
   organization(id: ID!): Organization
   admin: Admin
-  recording_setting(organiztion_id: ID!): RecordingSettings
+  recording_settings(organization_id: ID!): RecordingSettings
 }
 
 type Mutation {
@@ -893,18 +893,18 @@ func (ec *executionContext) field_Query_organization_args(ctx context.Context, r
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_recording_setting_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_recording_settings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["organiztion_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organiztion_id"))
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["organiztion_id"] = arg0
+	args["organization_id"] = arg0
 	return args, nil
 }
 
@@ -1880,7 +1880,7 @@ func (ec *executionContext) _Query_admin(ctx context.Context, field graphql.Coll
 	return ec.marshalOAdmin2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_recording_setting(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_recording_settings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1896,7 +1896,7 @@ func (ec *executionContext) _Query_recording_setting(ctx context.Context, field 
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_recording_setting_args(ctx, rawArgs)
+	args, err := ec.field_Query_recording_settings_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -1904,7 +1904,7 @@ func (ec *executionContext) _Query_recording_setting(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().RecordingSetting(rctx, args["organiztion_id"].(int))
+		return ec.resolvers.Query().RecordingSettings(rctx, args["organization_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3671,7 +3671,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_admin(ctx, field)
 				return res
 			})
-		case "recording_setting":
+		case "recording_settings":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -3679,7 +3679,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_recording_setting(ctx, field)
+				res = ec._Query_recording_settings(ctx, field)
 				return res
 			})
 		case "__type":

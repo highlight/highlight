@@ -391,7 +391,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		fbuser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
-			return nil, e.Wrap(err, "error retrieiving user from firebase api")
+			return nil, e.Wrap(err, "error retrieving user from firebase api")
 		}
 		newAdmin := &model.Admin{
 			UID:   &uid,
@@ -412,8 +412,23 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	return admin, nil
 }
 
-func (r *queryResolver) RecordingSetting(ctx context.Context, organiztionID int) (*model.RecordingSettings, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error) {
+	recording_settings := &model.RecordingSettings{OrganizationID: organizationID}
+	res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recording_settings)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		if err != nil {
+			return nil, e.Wrap(err, "error retrieving recording settings")
+		}
+		newRecordSettings := &model.RecordingSettings{
+			OrganizationID: organizationID,
+			Details: nil,
+		}
+		if err := r.DB.Create(newRecordSettings).Error; err != nil {
+			return nil, e.Wrap(err, "error creating new recording settings")
+		}
+		recording_settings = newRecordSettings
+	}
+	return recording_settings, nil
 }
 
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
@@ -432,3 +447,13 @@ func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *queryResolver) RecordingSetting(ctx context.Context, organiztionID int) (*model.RecordingSettings, error) {
+	panic(fmt.Errorf("not implemented"))
+}
