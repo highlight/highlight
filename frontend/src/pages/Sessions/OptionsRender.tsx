@@ -6,7 +6,7 @@ import written from 'written-number';
 import fuzzy from 'fuzzy';
 import { useQuery, useLazyQuery, gql } from '@apollo/client';
 
-import styles from './SessionsPage.module.css';
+import styles from './SessionsPage.module.scss';
 
 export const FieldOptions = ({
     input,
@@ -228,7 +228,7 @@ export const OptionsFilter = ({
                                 style={{
                                     backgroundColor:
                                         allResults[index].original ===
-                                        f.original
+                                            f.original
                                             ? '#F2EEFB'
                                             : 'transparent',
                                 }}
@@ -264,7 +264,7 @@ export const OptionsFilter = ({
                                 style={{
                                     backgroundColor:
                                         allResults[index].original ===
-                                        f.original
+                                            f.original
                                             ? '#F2EEFB'
                                             : 'transparent',
                                 }}

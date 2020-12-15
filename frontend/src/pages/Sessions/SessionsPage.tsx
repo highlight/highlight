@@ -18,7 +18,7 @@ import { Spinner } from '../../components/Spinner/Spinner';
 
 import AutosizeInput from 'react-input-autosize';
 
-import styles from './SessionsPage.module.css';
+import styles from './SessionsPage.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
@@ -238,21 +238,21 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                 }}
                             />
                         ) : (
-                            <DateOptions
-                                defaultText={
-                                    'Enter a time duration (e.g. 24 days, 2 minutes)'
-                                }
-                                input={params[activeParam].current ?? ''}
-                                onSelect={(option: Value) => {
-                                    if (!option) return;
-                                    var pcopy = [...paramsRef.current];
-                                    pcopy[activeParam].value = option;
-                                    mainInput.current?.focus();
-                                    setActiveParam(-1);
-                                    setParams(pcopy);
-                                }}
-                            />
-                        )}
+                                    <DateOptions
+                                        defaultText={
+                                            'Enter a time duration (e.g. 24 days, 2 minutes)'
+                                        }
+                                        input={params[activeParam].current ?? ''}
+                                        onSelect={(option: Value) => {
+                                            if (!option) return;
+                                            var pcopy = [...paramsRef.current];
+                                            pcopy[activeParam].value = option;
+                                            mainInput.current?.focus();
+                                            setActiveParam(-1);
+                                            setParams(pcopy);
+                                        }}
+                                    />
+                                )}
                     </div>
                 )}
                 <div ref={resultsRef}>
@@ -309,10 +309,10 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                         >
                                             <div className={styles.regTitle}>
                                                 {u?.os_name &&
-                                                u?.browser_name
+                                                    u?.browser_name
                                                     ? u?.os_name +
-                                                      ' • ' +
-                                                      u?.browser_name
+                                                    ' • ' +
+                                                    u?.browser_name
                                                     : 'Desktop • Chrome'}
                                             </div>
                                             <div className={styles.regSubTitle}>
@@ -330,8 +330,8 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                             <Spinner />
                         </div>
                     ) : (
-                        <></>
-                    )}
+                            <></>
+                        )}
                     <div style={{ height: 50 }}></div>
                 </div>
             </div>

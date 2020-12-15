@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 
-import devStyles from '../DevToolsWindow.module.css';
-import styles from './Option.module.css';
+import devStyles from '../DevToolsWindow.module.scss';
+import styles from './Option.module.scss';
 import { ReactComponent as Close } from '../../../../../static/close.svg';
 import {
     OpenDevToolsContext,

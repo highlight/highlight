@@ -1,7 +1,7 @@
 import React from 'react';
 
 // @ts-ignore
-import styles from './IntegrationDetector.module.css';
+import styles from './IntegrationDetector.module.scss';
 import { Tooltip } from 'antd';
 import { ReactComponent as CheckIcon } from '../../../static/verify-check.svg';
 
@@ -26,8 +26,8 @@ export const IntegrationDetector = ({
                         {integrated ? (
                             <CheckIcon className={styles.checkIcon} />
                         ) : (
-                            <div className="blob" />
-                        )}
+                                <div className="blob" />
+                            )}
                     </div>
                 </div>
             </Tooltip>
@@ -38,8 +38,8 @@ export const IntegrationDetector = ({
                         : 'Waiting for Verification.'}
                 </div>
             ) : (
-                <></>
-            )}
+                    <></>
+                )}
         </div>
     );
 };

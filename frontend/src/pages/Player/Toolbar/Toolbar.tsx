@@ -5,7 +5,7 @@ import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import { SettingsMenu } from './SettingsMenu/SettingsMenu';
 import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
 
-import styles from './Toolbar.module.css';
+import styles from './Toolbar.module.scss';
 import { Replayer } from 'rrweb';
 
 export const Toolbar = ({
@@ -27,9 +27,8 @@ export const Toolbar = ({
     const [openDevTools, setOpenDevTools] = useState(false);
     const [paused, setPaused] = useState(true);
     const timePercentage = Math.max((current / max) * 100, 0);
-    const indicatorStyle = `min(${
-        timePercentage.toString() + '%'
-    }, ${wrapperWidth}px - 15px)`;
+    const indicatorStyle = `min(${timePercentage.toString() + '%'
+        }, ${wrapperWidth}px - 15px)`;
 
     useEffect(() => {
         if (replayer) {
@@ -100,11 +99,11 @@ export const Toolbar = ({
                                 className={styles.playButtonStyle}
                             />
                         ) : (
-                            <FaPause
-                                fill="black"
-                                className={styles.playButtonStyle}
-                            />
-                        )}
+                                <FaPause
+                                    fill="black"
+                                    className={styles.playButtonStyle}
+                                />
+                            )}
                     </div>
                     <div
                         className={styles.undoSection}
