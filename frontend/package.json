@@ -49,7 +49,6 @@
         "react-scroll": "^1.8.1",
         "react-spinners": "^0.9.0",
         "react-spinners-kit": "^1.9.1",
-        "rrweb": "^0.9.7",
         "rrweb-snapshot": "^0.8.2",
         "stripe": "^8.128.0",
         "typescript": "~3.7.2",
