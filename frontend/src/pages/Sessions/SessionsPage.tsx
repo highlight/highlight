@@ -38,17 +38,17 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const [sessionData, setSessionData] = useState<any[]>([]);
     const [showDropdown, setShowDropdown] = useState<boolean>(true);
     const [createSegment, segmentData] = useMutation<
-        { createSegment: { segment: any } },
+        { createSegment: { name: string } },
         { organization_id: number; params: SearchParam[], name: string }
     >(
         gql`
             mutation CreateSegment(
                 $organization_id: ID!
                 $name: String!
-                $params: [Any]
+                $params: [Any]!
             ){
                 createSegment(organization_id: $organization_id, name: $name, params: $params) {
-                    segment
+                    name
                 }
             }
         `
