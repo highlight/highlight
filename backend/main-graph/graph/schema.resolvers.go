@@ -239,7 +239,10 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	// grab recording settings of org
-	recording_settings := *model.RecordingSettings{}
+	recording_settings, err := r.Query().RecordingSettings(organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying recording settings")
+	}
 	// list of maps, where each map represents a field query.
 	sessionIDsToJoin := []map[int]bool{}
 	sessions := []*model.Session{}
@@ -247,6 +250,10 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	ps, err := model.DecodeAndValidateParams(params)
 	if err != nil {
 		return nil, e.Wrap(err, "error decoding params")
+	}
+	// ignore based on recording settings
+	for det := range recording_settings.GetDetailsAsSlice(){
+		query = query.Where("identifier NOT LIKE ?","%"+det+"%")
 	}
 	for _, p := range ps {
 		switch key := p.Action; key {

@@ -30,6 +30,12 @@ type RecordingSettings struct {
 	Details        *string `json:"details"`
 }
 
+func (r *RecordingSettings) GetDetailsAsSlice() ([string]){
+	var result map[string]interface{}
+	json.Unmarshal([]byte(r.Details),&result)
+	return result
+}
+
 type Organization struct {
 	Model
 	Name         		*string
