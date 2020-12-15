@@ -14,7 +14,8 @@ export const Segments = () => {
 const Segment = () => {
     const { organization_id } = useParams();
     const { loading, error, data } = useQuery<
-        { segments: { organization_id: number; }; }
+        { segments: any[] },
+        { organization_id: number }
     >(
         gql`
             query GetSegment(
@@ -23,11 +24,16 @@ const Segment = () => {
                 segments(                      
                     organization_id: $organization_id
                 ) {
-                    name                    
-                    params                    
+                    name
+                    params{
+                        action
+                        type
+                        value
+                    }
                 }
             }
         `,
+        { variables: { organization_id: organization_id } }
     );
 
     return (
