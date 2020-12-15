@@ -451,7 +451,20 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 }
 
 func (r *queryResolver) Segments(ctx context.Context, organizationID int) ([]*model.Segment, error) {
-	panic(fmt.Errorf("not implemented"))
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+	// list of maps, where each map represents a field query.
+	org := &model.Organization{}
+	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying org")
+	}
+	segments := []*model.Segment{}
+	if err := r.DB.Where(org).Association("Segments").Find(&segments).Error; err != nil {
+		log.Errorf("error querying segments from organization: %v", err)
+	}
+	return segments, nil
 }
 
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
