@@ -6,7 +6,7 @@ import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { ReactComponent as PlusIcon } from '../../../static/plus.svg';
 import { ReactComponent as CheckIcon } from '../../../static/check.svg';
 
-import styles from './WorkspaceDropdown.module.css';
+import styles from './WorkspaceDropdown.module.scss';
 import { DemoContext } from '../../../DemoContext';
 
 export const WorkspaceDropdown = () => {
@@ -40,8 +40,8 @@ export const WorkspaceDropdown = () => {
                             {o.id === organization_id ? (
                                 <CheckIcon className={styles.plusIcon} />
                             ) : (
-                                <></>
-                            )}
+                                    <></>
+                                )}
                         </div>
                     </Link>
                 ))}
@@ -66,8 +66,8 @@ export const WorkspaceDropdown = () => {
                     {demo
                         ? 'Highlight'
                         : data?.organizations.find(
-                              (o) => o.id === organization_id
-                          )?.name}
+                            (o) => o.id === organization_id
+                        )?.name}
                 </div>
                 <DownIcon
                     className={styles.icon}

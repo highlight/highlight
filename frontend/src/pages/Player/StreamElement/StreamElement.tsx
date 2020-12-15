@@ -12,7 +12,7 @@ import { HighlightEvent } from '../HighlightEvent';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { mouseInteractionData } from 'rrweb/typings/types';
 import { StaticMap } from '../StaticMap/StaticMap';
-import styles from './StreamElement.module.css';
+import styles from './StreamElement.module.scss';
 
 export const StreamElement = ({
     e,
@@ -63,8 +63,8 @@ export const StreamElement = ({
                     ) : details.title === 'Referrer' ? (
                         <ReferrerIcon className={styles.defaultIcon} />
                     ) : (
-                        <HoverIcon className={styles.tiltedIcon} />
-                    )}
+                                                <HoverIcon className={styles.tiltedIcon} />
+                                            )}
                 </div>
                 <div
                     className={

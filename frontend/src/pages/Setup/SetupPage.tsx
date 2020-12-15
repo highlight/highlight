@@ -8,7 +8,7 @@ import React, {
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
 import { useParams } from 'react-router-dom';
-import styles from './SetupPage.module.css';
+import styles from './SetupPage.module.scss';
 import useFetch from 'use-http';
 import { Skeleton } from 'antd';
 import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
@@ -195,7 +195,7 @@ const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
                         <CodeBlock
                             text={`import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import './index.scss';
 import App from './App';
 import { H } from 'highlight.run'
  

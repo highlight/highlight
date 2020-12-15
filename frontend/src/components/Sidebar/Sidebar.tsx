@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import styles from './Sidebar.module.css';
+import styles from './Sidebar.module.scss';
 import { SidebarContext } from './SidebarContext';
 import classNames from 'classnames/bind';
 import { Link, useParams, useLocation } from 'react-router-dom';

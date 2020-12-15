@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import './App.css';
+import './App.scss';
 
-import styles from './App.module.css';
-import commonStyles from './Common.module.css';
+import styles from './App.module.scss';
+import commonStyles from './Common.module.scss';
 import { Spinner } from './components/Spinner/Spinner';
 import { NewMemberPage } from './pages/NewMember/NewMemberPage';
 import { NewWorkspacePage } from './pages/NewWorkspace/NewWorkspacePage';
@@ -59,23 +59,23 @@ const App = () => {
                 {!o_data.organizations.length ? (
                     <NewWorkspacePage />
                 ) : (
-                    <Switch>
-                        <Route path="/:organization_id/invite/:invite_id">
-                            <NewMemberPage />
-                        </Route>
-                        <Route path="/new">
-                            <NewWorkspacePage />
-                        </Route>
-                        <Route path="/:organization_id">
-                            <OrgRouter />
-                        </Route>
-                        <Route path="/">
-                            <Redirect
-                                to={`/${o_data?.organizations[0].id}`}
-                            />
-                        </Route>
-                    </Switch>
-                )}
+                        <Switch>
+                            <Route path="/:organization_id/invite/:invite_id">
+                                <NewMemberPage />
+                            </Route>
+                            <Route path="/new">
+                                <NewWorkspacePage />
+                            </Route>
+                            <Route path="/:organization_id">
+                                <OrgRouter />
+                            </Route>
+                            <Route path="/">
+                                <Redirect
+                                    to={`/${o_data?.organizations[0].id}`}
+                                />
+                            </Route>
+                        </Switch>
+                    )}
             </Router>
         </div>
     );
@@ -193,16 +193,16 @@ export const AuthAppRouter = () => {
                                     </span>
                                 </>
                             ) : (
-                                <>
-                                    Already have an account?{' '}
-                                    <span
-                                        onClick={changeState}
-                                        className={styles.loginStateSwitcher}
-                                    >
-                                        Sign in.
+                                    <>
+                                        Already have an account?{' '}
+                                        <span
+                                            onClick={changeState}
+                                            className={styles.loginStateSwitcher}
+                                        >
+                                            Sign in.
                                     </span>
-                                </>
-                            )}
+                                    </>
+                                )}
                         </div>
                     </div>
                     <input

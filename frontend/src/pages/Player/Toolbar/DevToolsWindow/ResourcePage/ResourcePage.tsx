@@ -6,8 +6,8 @@ import { Option, DevToolsSelect } from '../Option/Option';
 import { scroller, Element } from 'react-scroll';
 import { Skeleton } from 'antd';
 
-import devStyles from '../DevToolsWindow.module.css';
-import styles from './ResourcePage.module.css';
+import devStyles from '../DevToolsWindow.module.scss';
+import styles from './ResourcePage.module.scss';
 import { DemoContext } from '../../../../../DemoContext';
 
 export const ResourcePage = ({
@@ -161,7 +161,7 @@ export const ResourcePage = ({
                                     const actualPercent = Math.max(
                                         ((p.responseEnd - p.startTime) /
                                             networkRange) *
-                                            100,
+                                        100,
                                         0.1
                                     );
                                     const rightPaddingPercent =
@@ -246,10 +246,10 @@ export const ResourcePage = ({
                         </div>
                     </>
                 ) : (
-                    <div className={devStyles.emptySection}>
-                        No network resources.
-                    </div>
-                )}
+                            <div className={devStyles.emptySection}>
+                                No network resources.
+                            </div>
+                        )}
             </div>
         </>
     );

@@ -5,8 +5,8 @@ import { useMutation, gql } from '@apollo/client';
 import classNames from 'classnames/bind';
 import { loadStripe } from '@stripe/stripe-js';
 
-import commonStyles from '../../Common.module.css';
-import styles from './Billing.module.css';
+import commonStyles from '../../Common.module.scss';
+import styles from './Billing.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 enum BillingViewType {
