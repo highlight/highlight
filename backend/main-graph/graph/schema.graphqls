@@ -5,8 +5,14 @@ scalar Time
 
 type Session {
   id: ID!
-  details: String!
   user_id: ID!
+  os_name: String!
+  os_version: String!
+  browser_name: String!
+  browser_version: String!
+  city: String!
+  state: String!
+  postal: String!
   identifier: String!
   created_at: Time
   length: Int
@@ -63,4 +69,5 @@ type Mutation {
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
+  createCheckout(organization_id: ID!, price_id: String!): String!
 }

@@ -9,9 +9,8 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/mitchellh/mapstructure"
-	"github.com/rs/xid"
-
 	e "github.com/pkg/errors"
+	"github.com/rs/xid"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -82,10 +81,20 @@ type Session struct {
 	Model
 	UserID int `json:"user_id"`
 	// User provided identifier (see IdentifySession)
-	Identifier     string `json:"identifier"`
-	OrganizationID int    `json:"organization_id"`
-	Details        string `json:"details"`
-	Status         string `json:"status"`
+	Identifier     string  `json:"identifier"`
+	OrganizationID int     `json:"organization_id"`
+	// Location data based off user ip (see InitializeSession)
+	City           string  `json:"city"`
+	State          string  `json:"state"`
+	Postal         string  `json:"postal"`
+	Latitude       float64 `json:"latitude"`
+	Longitude      float64 `json:"longitude"`
+	// Details based off useragent (see Initialize Session)
+	OSName         string  `json:"os_name"`
+	OSVersion      string  `json:"os_version"`
+	BrowserName    string  `json:"browser_name"`
+	BrowserVersion string  `json:"browser_version"`
+	Status         string  `json:"status"`
 	EventsObjects  []EventsObject
 	// Tells us if the session has been parsed by a worker.
 	Processed bool `json:"processed"`

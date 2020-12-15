@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import 'antd/dist/antd.css';
-import './index.css';
+import './index.scss';
 import * as serviceWorker from './serviceWorker';
 
 import { ApolloProvider } from '@apollo/client';
@@ -18,7 +18,7 @@ if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
     options.backendUrl = 'http://localhost:8082';
 }
-H.init(2, options);
+H.init(parseInt(process.env.REACT_APP_FRONTEND_ORG ?? '1'), options);
 H.start();
 
 ReactDOM.render(
@@ -30,21 +30,6 @@ ReactDOM.render(
                         <DemoContext.Provider value={{ demo: true }}>
                             <DemoRouter />
                         </DemoContext.Provider>
-                    </Route>
-                    {/* TODO: Get rid of this soon! */}
-                    <Route path="/error">
-                        {() => {
-                            H._error();
-                            return <p>error</p>;
-                        }
-                        }
-                    </Route>
-                    <Route path="/throw">
-                        {() => {
-                            H._throw();
-                            return <p>throw</p>;
-                        }
-                        }
                     </Route>
                     <Route path="/">
                         <DemoContext.Provider value={{ demo: false }}>

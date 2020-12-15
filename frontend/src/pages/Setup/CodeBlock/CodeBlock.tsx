@@ -1,6 +1,6 @@
 import React from 'react';
 
-import styles from './CodeBlock.module.css';
+import styles from './CodeBlock.module.scss';
 import { message } from 'antd';
 import CopyToClipboard from 'react-copy-to-clipboard';
 

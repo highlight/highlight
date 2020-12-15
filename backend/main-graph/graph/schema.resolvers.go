@@ -18,6 +18,7 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	stripe "github.com/stripe/stripe-go"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -139,6 +140,36 @@ func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizati
 	return rec, nil
 }
 
+func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return "", e.Wrap(err, "admin is not in organization")
+	}
+
+	params := &stripe.CheckoutSessionParams{
+		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/success"),
+		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/checkoutCanceled"),
+		PaymentMethodTypes: stripe.StringSlice([]string{
+			"card",
+		}),
+		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
+			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
+				&stripe.CheckoutSessionSubscriptionDataItemsParams{
+					Plan: stripe.String(priceID),
+				},
+			},
+		},
+		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
+	}
+
+	stripe_session, err := r.StripeClient.CheckoutSessions.New(params)
+
+	if err != nil {
+		return "", e.Wrap(err, "error creating CheckoutSession in stripe")
+	}
+
+	return stripe_session.ID, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	session, err := r.isAdminSessionOwner(ctx, id)
 	if err != nil {
@@ -253,7 +284,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		return nil, e.Wrap(err, "session didn't like slice")
 	}
 	for _, det := range details {
-		query = query.Where("identifier NOT LIKE '%%"+det+"%%'\n")
+		query = query.Where("identifier NOT LIKE '%%" + det + "%%'\n")
 	}
 	// filter by params
 	ps, err := model.DecodeAndValidateParams(params)
@@ -428,10 +459,10 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 	recording_settings := &model.RecordingSettings{OrganizationID: organizationID}
 	res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recording_settings)
 	err := res.Error
-	if res.RecordNotFound(){
+	if res.RecordNotFound() {
 		newRecordSettings := &model.RecordingSettings{
 			OrganizationID: organizationID,
-			Details: nil,
+			Details:        nil,
 		}
 		if err := r.DB.Create(newRecordSettings).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new recording settings")
@@ -460,13 +491,3 @@ func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *queryResolver) RecordingSetting(ctx context.Context, organiztionID int) (*model.RecordingSettings, error) {
-	panic(fmt.Errorf("not implemented"))
-}

@@ -3,6 +3,7 @@ package graph
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/redis"
@@ -26,8 +27,28 @@ func ClientMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 		}
-		// Pass the user's id through context.
+		// get users ip for geolocation data
+		IPAddress := r.Header.Get("X-Real-Ip")
+		if IPAddress == "" {
+			IPAddress = r.Header.Get("X-Client-IP")
+		}
+		if IPAddress == "" {
+			IPAddress = r.Header.Get("X-Forwarded-For")
+			if IPAddress != "" && strings.Contains(IPAddress, ",") {
+				if ipList := strings.Split(IPAddress, ","); len(ipList) > 0 {
+					IPAddress = ipList[0]
+				}
+			}
+		}
+		if IPAddress == "" {
+			IPAddress = r.RemoteAddr
+		}
+		// get user-agent string
+		UserAgent := r.Header.Get("user-agent")
+		// Pass the user's id, ip address, and user agent through context.
 		ctx := context.WithValue(r.Context(), "uid", session.Values["uid"])
+		ctx = context.WithValue(ctx, "ip", IPAddress)
+		ctx = context.WithValue(ctx, "userAgent", UserAgent)
 		next(w, r.WithContext(ctx))
 	}
 }

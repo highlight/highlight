@@ -12,6 +12,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/slack-go/slack"
+	"github.com/stripe/stripe-go/client"
 
 	ha "github.com/99designs/gqlgen/handler"
 	cgraph "github.com/jay-khatri/fullstory/backend/client-graph/graph"
@@ -25,9 +26,10 @@ import (
 )
 
 var (
-	frontendURL = os.Getenv("FRONTEND_URI")
-	sendgridKey = os.Getenv("SENDGRID_API_KEY")
-	runtime     = flag.String("runtime", "dev", "the runtime of the backend; either dev/worker/server")
+	frontendURL  = os.Getenv("FRONTEND_URI")
+	sendgridKey  = os.Getenv("SENDGRID_API_KEY")
+	stripeApiKey = os.Getenv("STRIPE_API_KEY")
+	runtime      = flag.String("runtime", "dev", "the runtime of the backend; either dev/worker/server")
 )
 
 func health(w http.ResponseWriter, r *http.Request) {
@@ -85,10 +87,16 @@ func main() {
 	rd.SetupRedisStore()
 	db := model.SetupDB()
 	mux := http.NewServeMux()
+
+	stripeClient := &client.API{}
+	stripeClient.Init(stripeApiKey, nil)
+
 	main := &mgraph.Resolver{
-		DB:         db,
-		MailClient: sendgrid.NewSendClient(sendgridKey),
+		DB:           db,
+		MailClient:   sendgrid.NewSendClient(sendgridKey),
+		StripeClient: stripeClient,
 	}
+
 	mux.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
 		mgenerated.Config{
 			Resolvers: main,

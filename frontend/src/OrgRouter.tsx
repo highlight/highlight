@@ -11,12 +11,12 @@ import { Billing } from './pages/Billing/Billing';
 import { RecordingSettings } from './pages/RecordingSettings/RecordingSettings';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { useIntegrated } from './util/integrated';
-import styles from './App.module.css';
+import styles from './App.module.scss';
 import { WorkspaceSettings } from './pages/WorkspaceSettings/WorkspaceSettings';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { SidebarContext } from './components/Sidebar/SidebarContext';
 
-import commonStyles from './Common.module.css';
+import commonStyles from './Common.module.scss';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams();
