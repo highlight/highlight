@@ -121,17 +121,22 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 	return &org.ID, nil
 }
 
-func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizationID int, recordingDetails string) (*model.RecordingSettings, error) {
-	panic(fmt.Errorf("not implementation in progress"))
-	org := &model.Organization{}
-	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
+func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model.RecordingSettings, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+	rec := &model.RecordingSettings{}
+	res := r.DB.Where(&model.RecordingSettings{Model: model.Model{ID: organizationID}}).First(&rec)
 	if err := res.Error; err != nil || res.RecordNotFound() {
-		return &false, e.Wrap(err, "error querying org")
+		return nil, e.Wrap(err, "error querying record")
 	}
-	if err := r.DB.Model(org).RecordingSetting(recordingDetails).Error; err != nil {
-		return &false, e.Wrap(err, "error writing new recording settings")
+	if err := r.DB.Model(rec).Updates(&model.RecordingSettings{
+		OrganizationID: organizationID,
+		Details:        details,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing new recording settings")
 	}
-	return &true, nil
+	return rec, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
@@ -403,6 +408,10 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		}
 	}
 	return admin, nil
+}
+
+func (r *queryResolver) RecordingSetting(ctx context.Context, organiztionID int) (*model.RecordingSettings, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {

@@ -23,7 +23,6 @@ type Organization {
   id: ID!
   name: String!
   billing_email: String
-  recording_setting: RecordingSettings
 }
 
 type User {
@@ -54,6 +53,7 @@ type Query {
   organizations: [Organization]
   organization(id: ID!): Organization
   admin: Admin
+  recording_setting(organiztion_id: ID!): RecordingSettings
 }
 
 type Mutation {
@@ -62,5 +62,5 @@ type Mutation {
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-  editRecordingSettings(organization_id: ID!, recording_details: String!): RecordingSettings
+  editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
 }

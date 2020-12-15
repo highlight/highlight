@@ -8,6 +8,7 @@ import { Player } from './pages/Player/PlayerPage';
 import { SessionsPage } from './pages/Sessions/SessionsPage';
 import { WorkspaceTeam } from './pages/WorkspaceTeam/WorkspaceTeam';
 import { Billing } from './pages/Billing/Billing';
+import { RecordingSettings } from './pages/RecordingSettings/RecordingSettings';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { useIntegrated } from './util/integrated';
 import styles from './App.module.css';
@@ -16,7 +17,6 @@ import { Sidebar } from './components/Sidebar/Sidebar';
 import { SidebarContext } from './components/Sidebar/SidebarContext';
 
 import commonStyles from './Common.module.css';
-import { Foo } from './pages/Foo/Foo';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams();
@@ -54,8 +54,8 @@ export const OrgRouter = () => {
             <div className={commonStyles.bodyWrapper}>
                 <Sidebar />
                 <Switch>
-                    <Route path="/:organization_id/foo">
-                        <Foo />
+                    <Route path="/:organization_id/recording-settings">
+                        <RecordingSettings />
                     </Route>
                     <Route path="/:organization_id/sessions/:session_id">
                         <Player />
