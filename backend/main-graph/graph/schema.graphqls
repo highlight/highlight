@@ -53,7 +53,7 @@ type Query {
   organizations: [Organization]
   organization(id: ID!): Organization
   admin: Admin
-  recording_setting(organiztion_id: ID!): RecordingSettings
+  recording_settings(organiztion_id: ID!): RecordingSettings
 }
 
 type Mutation {

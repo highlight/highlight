@@ -238,6 +238,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
+	// grab recording settings of org
+	recording_settings := *model.RecordingSettings{}
 	// list of maps, where each map represents a field query.
 	sessionIDsToJoin := []map[int]bool{}
 	sessions := []*model.Session{}
