@@ -30,10 +30,16 @@ type RecordingSettings struct {
 	Details        *string `json:"details"`
 }
 
-func (r *RecordingSettings) GetDetailsAsSlice() ([string]){
-	var result map[string]interface{}
-	json.Unmarshal([]byte(r.Details),&result)
-	return result
+func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error){
+	var result []string
+	if r.Details == nil{
+		return result, nil
+	}
+	err := json.Unmarshal([]byte(*r.Details),&result)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing details json")
+	}
+	return result, nil
 }
 
 type Organization struct {
@@ -132,7 +138,8 @@ func SetupDB() *gorm.DB {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	DB.AutoMigrate(&MessagesObject{}, &EventsObject{}, &Organization{}, &Admin{}, &User{}, &Session{}, &Field{}, &EmailSignup{}, &ResourcesObject{})
+	//DB.LogMode(true)
+	DB.AutoMigrate(&RecordingSettings{},&MessagesObject{}, &EventsObject{}, &Organization{}, &Admin{}, &User{}, &Session{}, &Field{}, &EmailSignup{}, &ResourcesObject{})
 	return DB
 }
 

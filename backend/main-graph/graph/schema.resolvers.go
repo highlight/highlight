@@ -239,7 +239,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	// grab recording settings of org
-	recording_settings, err := r.Query().RecordingSettings(organizationID)
+	recording_settings, err := r.Query().RecordingSettings(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying recording settings")
 	}
@@ -247,13 +247,18 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	sessionIDsToJoin := []map[int]bool{}
 	sessions := []*model.Session{}
 	query := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc")
+	// ignore based on recording settings
+	details, err := recording_settings.GetDetailsAsSlice()
+	if err != nil {
+		return nil, e.Wrap(err, "session didn't like slice")
+	}
+	for _, det := range details {
+		query = query.Where("identifier NOT LIKE '%%"+det+"%%'\n")
+	}
+	// filter by params
 	ps, err := model.DecodeAndValidateParams(params)
 	if err != nil {
 		return nil, e.Wrap(err, "error decoding params")
-	}
-	// ignore based on recording settings
-	for det := range recording_settings.GetDetailsAsSlice(){
-		query = query.Where("identifier NOT LIKE ?","%"+det+"%")
 	}
 	for _, p := range ps {
 		switch key := p.Action; key {
@@ -397,7 +402,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		fbuser, err := AuthClient.GetUser(context.Background(), uid)
-		if err != nil {
+		if res.RecordNotFound() {
 			return nil, e.Wrap(err, "error retrieving user from firebase api")
 		}
 		newAdmin := &model.Admin{
@@ -422,10 +427,8 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error) {
 	recording_settings := &model.RecordingSettings{OrganizationID: organizationID}
 	res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recording_settings)
-	if err := res.Error; err != nil || res.RecordNotFound() {
-		if err != nil {
-			return nil, e.Wrap(err, "error retrieving recording settings")
-		}
+	err := res.Error
+	if res.RecordNotFound(){
 		newRecordSettings := &model.RecordingSettings{
 			OrganizationID: organizationID,
 			Details: nil,
@@ -434,6 +437,9 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 			return nil, e.Wrap(err, "error creating new recording settings")
 		}
 		recording_settings = newRecordSettings
+	}
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving recording settings")
 	}
 	return recording_settings, nil
 }
