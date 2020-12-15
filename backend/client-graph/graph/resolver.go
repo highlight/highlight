@@ -1,9 +1,16 @@
 package graph
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"os"
+
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
-
+	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 )
 
@@ -13,6 +20,22 @@ import (
 
 type Resolver struct {
 	DB *gorm.DB
+}
+
+type Location struct {
+	City      string      `json:"city"`
+	Postal    string      `json:"postal"`
+	Latitude  interface{} `json:"latitude"`
+	Longitude interface{} `json:"longitude"`
+	State     string      `json:"state"`
+}
+
+type DeviceDetails struct {
+	IsBot          bool `json:"is_bot"`
+	OSName         string `json:"os_name"`
+	OSVersion      string `json:"os_version"`
+	BrowserName    string `json:"browser_name"`
+	BrowserVersion string `json:"browser_version"`
 }
 
 func (r *Resolver) AppendProperties(sessionID int, propertiesObject map[string]string) error {
@@ -43,4 +66,64 @@ func (r *Resolver) AppendProperties(sessionID int, propertiesObject map[string]s
 		return e.Wrap(err, "error updating fields")
 	}
 	return nil
+}
+
+func GetLocationFromIP(ip string) (location Location, err error) {
+	ip, _, _ = net.SplitHostPort(ip)
+
+	var ipStr string
+	if os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT") == "prod" {
+		ipStr = net.ParseIP(ip).String()
+	} else {
+		ipStr = "99.98.244.156"
+	}
+
+	url := fmt.Sprintf("https://geolocation-db.com/json/%s", ipStr)
+	method := "GET"
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return location, err
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		return location, err
+	}
+
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return location, err
+	}
+
+	err = json.Unmarshal(body, &location)
+	if err != nil {
+		return location, err
+	}
+
+	// long and lat should be float
+	switch location.Longitude.(type) {
+	case float64:
+	default:
+		location.Longitude = nil
+	}
+	switch location.Latitude.(type) {
+	case float64:
+	default:
+		location.Latitude = nil
+	}
+
+	return location, nil
+}
+
+func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
+	userAgent := user_agent.New(userAgentString)
+	deviceDetails.IsBot = userAgent.Bot()
+	deviceDetails.OSName = userAgent.OSInfo().Name
+	deviceDetails.OSVersion = userAgent.OSInfo().Version
+	deviceDetails.BrowserName, deviceDetails.BrowserVersion = userAgent.Browser()
+	return deviceDetails
 }

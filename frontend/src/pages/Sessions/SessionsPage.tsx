@@ -52,9 +52,14 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                     params: $params
                 ) {
                     id
-                    details
                     user_id
                     identifier
+                    os_name
+                    browser_name
+                    browser_version
+                    city
+                    state
+                    postal
                     created_at
                     length
                 }
@@ -253,18 +258,6 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                 <div ref={resultsRef}>
                     {sessionData.map((u) => {
                         const created = new Date(u.created_at);
-                        let d: {
-                            browser?: {
-                                os?: string;
-                                name?: string;
-                            };
-                            city?: string;
-                            state?: string;
-                            postal?: string;
-                        } = {};
-                        try {
-                            d = JSON.parse(u?.details);
-                        } catch (error) { }
                         return (
                             <Link
                                 to={`/${organization_id}/sessions/${u.id}`}
@@ -315,16 +308,16 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                             }
                                         >
                                             <div className={styles.regTitle}>
-                                                {d?.browser?.os &&
-                                                    d?.browser?.name
-                                                    ? d?.browser?.os +
+                                                {u?.os_name &&
+                                                    u?.browser_name
+                                                    ? u?.os_name +
                                                     ' • ' +
-                                                    d?.browser?.name
+                                                    u?.browser_name
                                                     : 'Desktop • Chrome'}
                                             </div>
                                             <div className={styles.regSubTitle}>
-                                                {d?.city}, {d?.state}{' '}
-                                                {d?.postal}
+                                                {u?.city}{u?.city && u?.state && ','} {u?.state}{' '}
+                                                {u?.postal}
                                             </div>
                                         </div>
                                     </div>

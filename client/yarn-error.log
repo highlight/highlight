@@ -1,25 +1,25 @@
 Arguments: 
-  /usr/local/Cellar/node/14.8.0/bin/node /usr/local/Cellar/yarn/1.22.4/libexec/bin/yarn.js add webpack
+  /usr/local/Cellar/node/15.0.1/bin/node /usr/local/Cellar/yarn/1.22.10/libexec/bin/yarn.js add --dev webpack webpack-cli webpack-dev-server
 
 PATH: 
-  /usr/local/opt/libxml2/bin:/usr/local/opt/libxml2/bin:/usr/local/sbin:/Users/jaykhatri/../Cellar/python/3.6.5/bin/python3:/Users/jaykhatri/go/src/bin:~/Applications/calibre.app/Contents/MacOS/:/Users/jaykhatri/.rbenv/shims:/Users/jaykhatri/.rbenv/bin:/usr/local/opt/libxml2/bin:/usr/local/opt/libxml2/bin:/usr/local/sbin:/Users/jaykhatri/../Cellar/python/3.6.5/bin/python3:/Users/jaykhatri/go/src/bin:~/Applications/calibre.app/Contents/MacOS/:/Users/jaykhatri/.rbenv/shims:/Users/jaykhatri/.rbenv/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/jaykhatri/go/src:/Users/jaykhatri/go/bin:/Users/jaykhatri/.local/bin:/Users/jaykhatri/go/src/bin:/Users/jaykhatri/go/src/bin:/usr/local/opt/go/libexec/bin:/Users/jaykhatri/glib/tetgen/build:/usr/local/mongodb/bin:/Users/jaykhatri/.rvm/bin:/usr/local/opt/fzf/bin:/Users/jaykhatri/go/src:/Users/jaykhatri/go/bin:/Users/jaykhatri/.local/bin:/Users/jaykhatri/go/src/bin:/Users/jaykhatri/go/src/bin:/usr/local/opt/go/libexec/bin:/Users/jaykhatri/glib/tetgen/build:/usr/local/mongodb/bin:/Users/jaykhatri/.rvm/bin
+  /usr/local/opt/go/libexec/bin:/usr/local/opt/libxml2/bin:/usr/local/opt/libxml2/bin:/usr/local/sbin:/Users/jaykhatri/../Cellar/python/3.6.5/bin/python3:/Users/jaykhatri/go/src/bin:~/Applications/calibre.app/Contents/MacOS/:/Users/jaykhatri/.rbenv/shims:/Users/jaykhatri/.rbenv/bin:/Users/jaykhatri/.cargo/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/opt/libxml2/bin:/usr/local/sbin:/Users/jaykhatri/../Cellar/python/3.6.5/bin/python3:/Users/jaykhatri/go/src/bin:~/Applications/calibre.app/Contents/MacOS/:/Users/jaykhatri/.rbenv/shims:/Users/jaykhatri/.rbenv/bin:/Users/jaykhatri/.cargo/bin:/Users/jaykhatri/go/src:/Users/jaykhatri/go/bin:/Users/jaykhatri/.local/bin:/usr/local/opt/go/libexec/bin:/Users/jaykhatri/glib/tetgen/build:/usr/local/mongodb/bin:/Users/jaykhatri/.rvm/bin:/Users/jaykhatri/.fzf/bin:/Users/jaykhatri/go/src:/Users/jaykhatri/go/bin:/Users/jaykhatri/.local/bin:/Users/jaykhatri/go/src/bin:/Users/jaykhatri/go/src/bin:/usr/local/opt/go/libexec/bin:/Users/jaykhatri/glib/tetgen/build:/usr/local/mongodb/bin:/Users/jaykhatri/.rvm/bin
 
 Yarn version: 
-  1.22.4
+  1.22.10
 
 Node version: 
-  14.8.0
+  15.0.1
 
 Platform: 
   darwin x64
 
 Trace: 
-  SyntaxError: /Users/jaykhatri/Projects/fullstory/client/package.json: Unexpected token } in JSON at position 800
+  SyntaxError: /Users/jaykhatri/Projects/highlight/client/package.json: Unexpected token } in JSON at position 1050
       at JSON.parse (<anonymous>)
-      at /usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:1625:59
+      at /usr/local/Cellar/yarn/1.22.10/libexec/lib/cli.js:1625:59
       at Generator.next (<anonymous>)
-      at step (/usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:310:30)
-      at /usr/local/Cellar/yarn/1.22.4/libexec/lib/cli.js:321:13
+      at step (/usr/local/Cellar/yarn/1.22.10/libexec/lib/cli.js:310:30)
+      at /usr/local/Cellar/yarn/1.22.10/libexec/lib/cli.js:321:13
 
 npm manifest: 
   {
@@ -29,7 +29,7 @@ npm manifest:
     "main": "dist/index.js",
     "scripts": {
       "build": "webpack",
-      "dev": "webpack-dev-server --progress --colors --watch"
+      "dev": "doppler run -- webpack-dev-server --progress --colors --watch"
     },
     "repository": {
       "type": "git",
@@ -48,11 +48,14 @@ npm manifest:
       "babel-eslint": "^10.1.0",
       "babel-loader": "^8.0.6",
       "eslint": "^6.8.0",
+      "typescript": "^4.1.3"
     },
     "dependencies": {
-      "rrweb": "^0.9.0",
+      "@babel/plugin-transform-runtime": "^7.11.0",
+      "graphql": "^15.4.0",
+      "graphql-request": "^3.3.0",
+      "rrweb": "https://github.com/jay-khatri/rrweb",
       "uuid": "^8.3.0",
-      "webpack-dev-server": "^3.11.0"
     }
   }
 
@@ -714,6 +717,16 @@ Lockfile:
     dependencies:
       "@babel/helper-plugin-utils" "^7.10.4"
   
+  "@babel/plugin-transform-runtime@^7.11.0":
+    version "7.11.0"
+    resolved "https://registry.yarnpkg.com/@babel/plugin-transform-runtime/-/plugin-transform-runtime-7.11.0.tgz#e27f78eb36f19448636e05c33c90fd9ad9b8bccf"
+    integrity sha512-LFEsP+t3wkYBlis8w6/kmnd6Kb1dxTd+wGJ8MlxTGzQo//ehtqlVL4S9DNUa53+dtPSQobN2CXx4d81FqC58cw==
+    dependencies:
+      "@babel/helper-module-imports" "^7.10.4"
+      "@babel/helper-plugin-utils" "^7.10.4"
+      resolve "^1.8.1"
+      semver "^5.5.1"
+  
   "@babel/plugin-transform-shorthand-properties@^7.10.4":
     version "7.10.4"
     resolved "https://registry.yarnpkg.com/@babel/plugin-transform-shorthand-properties/-/plugin-transform-shorthand-properties-7.10.4.tgz#9fd25ec5cdd555bb7f473e5e6ee1c971eede4dd6"
@@ -897,6 +910,11 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/@types/color-name/-/color-name-1.1.1.tgz#1c1261bbeaa10a8055bbc5d8ab84b7b2afc846a0"
     integrity sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ==
   
+  "@types/css-font-loading-module@0.0.4":
+    version "0.0.4"
+    resolved "https://registry.yarnpkg.com/@types/css-font-loading-module/-/css-font-loading-module-0.0.4.tgz#94a835e27d1af444c65cba88523533c174463d64"
+    integrity sha512-ENdXf7MW4m9HeDojB2Ukbi7lYMIuQNBHVf98dbzaiG4EEJREBd6oleVAjrLRCrp7dm6CK1mmdmU9tcgF61acbw==
+  
   "@types/glob@^7.1.1":
     version "7.1.3"
     resolved "https://registry.yarnpkg.com/@types/glob/-/glob-7.1.3.tgz#e6ba80f36b7daad2c685acd9266382e68985c183"
@@ -919,11 +937,6 @@ Lockfile:
     version "14.6.0"
     resolved "https://registry.yarnpkg.com/@types/node/-/node-14.6.0.tgz#7d4411bf5157339337d7cff864d9ff45f177b499"
     integrity sha512-mikldZQitV94akrc4sCcSjtJfsTKt4p+e/s0AGscVA6XArQ9kFclP+ZiYUMnq987rc6QlYxXv/EivqlfSLxpKA==
-  
-  "@types/smoothscroll-polyfill@^0.3.0":
-    version "0.3.1"
-    resolved "https://registry.yarnpkg.com/@types/smoothscroll-polyfill/-/smoothscroll-polyfill-0.3.1.tgz#77fb3a6e116bdab4a5959122e3b8e201224dcd49"
-    integrity sha512-+KkHw4y+EyeCtVXET7woHUhIbfWFCflc0E0mZnSV+ZdjPQeHt/9KPEuT7gSW/kFQ8O3EG30PLO++YhChDt8+Ag==
   
   "@webassemblyjs/ast@1.9.0":
     version "1.9.0"
@@ -1071,9 +1084,9 @@ Lockfile:
       "@xtuc/long" "4.2.2"
   
   "@xstate/fsm@^1.4.0":
-    version "1.5.0"
-    resolved "https://registry.yarnpkg.com/@xstate/fsm/-/fsm-1.5.0.tgz#5b784dad7b6de554180d7769a0069abe2493e175"
-    integrity sha512-qDzQYetms294mlaEmxoON0XktqDVkk+QO4nKFa2uHp5CTvUDdRy3fH6k//Kybbiw5WUvXiOamUbN5m61q8qXZA==
+    version "1.5.1"
+    resolved "https://registry.yarnpkg.com/@xstate/fsm/-/fsm-1.5.1.tgz#b1ebedc77b11e4956fda0a6429cef986cd17979e"
+    integrity sha512-t8blLI0e90jCE71yUQHLH5uEljD1v0aC8PKkHUtNWEnXt81EOj7xBjnlwmaHn/8cmE2aSygiBElUpkRZUV9hXA==
   
   "@xtuc/ieee754@^1.2.0":
     version "1.2.0"
@@ -1289,6 +1302,11 @@ Lockfile:
     integrity sha512-zflvls11DCy+dQWzTW2dzuilv8Z5X/pjfmZOWba6TNIVDm+2UDaJmXSOXlasHKfNBs8oo3M0aT50fDEWfKZjXg==
     dependencies:
       lodash "^4.17.14"
+  
+  asynckit@^0.4.0:
+    version "0.4.0"
+    resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
+    integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
   
   atob@^2.1.2:
     version "2.1.2"
@@ -1754,6 +1772,13 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz#c2a09a87acbde69543de6f63fa3995c826c536a2"
     integrity sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
   
+  combined-stream@^1.0.8:
+    version "1.0.8"
+    resolved "https://registry.yarnpkg.com/combined-stream/-/combined-stream-1.0.8.tgz#c3d45a8b34fd730631a110a8a2520682b31d5a7f"
+    integrity sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==
+    dependencies:
+      delayed-stream "~1.0.0"
+  
   commander@^2.20.0:
     version "2.20.3"
     resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
@@ -1909,6 +1934,13 @@ Lockfile:
       safe-buffer "^5.0.1"
       sha.js "^2.4.8"
   
+  cross-fetch@^3.0.6:
+    version "3.0.6"
+    resolved "https://registry.yarnpkg.com/cross-fetch/-/cross-fetch-3.0.6.tgz#3a4040bc8941e653e0e9cf17f29ebcd177d3365c"
+    integrity sha512-KBPUbqgFjzWlVcURG+Svp9TlhA5uliYtiNx/0r8nv0pdypeQCRJ9IaSIc3q/x3q8t3F75cHuwxVql1HFGHCNJQ==
+    dependencies:
+      node-fetch "2.6.1"
+  
   cross-spawn@^6.0.0, cross-spawn@^6.0.5:
     version "6.0.5"
     resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-6.0.5.tgz#4a5ec7c64dfae22c3a14124dbacdee846d80cbc4"
@@ -2039,6 +2071,11 @@ Lockfile:
       p-map "^2.0.0"
       pify "^4.0.1"
       rimraf "^2.6.3"
+  
+  delayed-stream@~1.0.0:
+    version "1.0.0"
+    resolved "https://registry.yarnpkg.com/delayed-stream/-/delayed-stream-1.0.0.tgz#df3ae199acadfb7d440aaae0b29e2272b24ec619"
+    integrity sha1-3zrhmayt+31ECqrgsp4icrJOxhk=
   
   depd@~1.1.2:
     version "1.1.2"
@@ -2477,6 +2514,11 @@ Lockfile:
       snapdragon "^0.8.1"
       to-regex "^3.0.1"
   
+  extract-files@^9.0.0:
+    version "9.0.0"
+    resolved "https://registry.yarnpkg.com/extract-files/-/extract-files-9.0.0.tgz#8a7744f2437f81f5ed3250ed9f1550de902fe54a"
+    integrity sha512-CvdFfHkC95B4bBBk36hcEmvdR2awOdhhVUYH6S/zrVj3477zven/fJMYg7121h4T1xHZC+tetUpubpAhxwI7hQ==
+  
   fast-deep-equal@^3.1.1:
     version "3.1.3"
     resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz#3a7d56b559d6cbc3eb512325244e619a65c6c525"
@@ -2617,6 +2659,15 @@ Lockfile:
     version "1.0.2"
     resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
     integrity sha1-gQaNKVqBQuwKxybG4iAMMPttXoA=
+  
+  form-data@^3.0.0:
+    version "3.0.0"
+    resolved "https://registry.yarnpkg.com/form-data/-/form-data-3.0.0.tgz#31b7e39c85f1355b7139ee0c647cf0de7f83c682"
+    integrity sha512-CKMFDglpbMi6PyN+brwB9Q/GOw0eAnsrEZDgcsH5Krhz5Od/haKHAX0NmQfha2zPPz0JpWzA7GJHGSnvCRLWsg==
+    dependencies:
+      asynckit "^0.4.0"
+      combined-stream "^1.0.8"
+      mime-types "^2.1.12"
   
   forwarded@~0.1.2:
     version "0.1.2"
@@ -2793,6 +2844,20 @@ Lockfile:
     version "4.2.4"
     resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.2.4.tgz#2256bde14d3632958c465ebc96dc467ca07a29fb"
     integrity sha512-WjKPNJF79dtJAVniUlGGWHYGz2jWxT6VhN/4m1NdkbZ2nOsEF+cI1Edgql5zCRhs/VsQYRvrXctxktVXZUkixw==
+  
+  graphql-request@^3.3.0:
+    version "3.3.0"
+    resolved "https://registry.yarnpkg.com/graphql-request/-/graphql-request-3.3.0.tgz#1b9003f34b73cd40d691803d2d422fde5c713af3"
+    integrity sha512-NHj65WSIUh8j7TBYgzWU0fqvLfxrqFDrLG8nZUh+IREZw50ljR6JXlXRkr52/fL/46wpItiQNLDrG+UZI+KmzA==
+    dependencies:
+      cross-fetch "^3.0.6"
+      extract-files "^9.0.0"
+      form-data "^3.0.0"
+  
+  graphql@^15.4.0:
+    version "15.4.0"
+    resolved "https://registry.yarnpkg.com/graphql/-/graphql-15.4.0.tgz#e459dea1150da5a106486ba7276518b5295a4347"
+    integrity sha512-EB3zgGchcabbsU9cFe1j+yxdzKQKAbGUWRb13DsrsMN1yyfmmIq+2+L5MqVWcDCE4V89R5AyUOi7sMOGxdsYtA==
   
   handle-thing@^2.0.0:
     version "2.0.1"
@@ -3555,7 +3620,7 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/mime-db/-/mime-db-1.44.0.tgz#fa11c5eb0aca1334b4233cb4d52f10c5a6272f92"
     integrity sha512-/NOTfLrsPBVeH7YtFPgsVWveuL+4SjjYxaQ1xtM1KMFj7HdxlBlxeyNLzhyJVx7r4rZGJAZ/6lkKCitSc/Nmpg==
   
-  mime-types@~2.1.17, mime-types@~2.1.24:
+  mime-types@^2.1.12, mime-types@~2.1.17, mime-types@~2.1.24:
     version "2.1.27"
     resolved "https://registry.yarnpkg.com/mime-types/-/mime-types-2.1.27.tgz#47949f98e279ea53119f5722e0f34e529bec009f"
     integrity sha512-JIhqnCasI9yD+SsmkquHBxTSEuZdQX5BuQnS2Vc7puQQQ+8yiP5AY5uWhpdv4YL4VM5c6iliiYWPgJ/nJQLp7w==
@@ -3721,6 +3786,11 @@ Lockfile:
     version "1.0.5"
     resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
     integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
+  
+  node-fetch@2.6.1:
+    version "2.6.1"
+    resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.1.tgz#045bd323631f76ed2e2b55573394416b639a0052"
+    integrity sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
   
   node-forge@0.9.0:
     version "0.9.0"
@@ -4392,7 +4462,7 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/resolve-url/-/resolve-url-0.2.1.tgz#2c637fe77c893afd2a663fe21aa9080068e2052a"
     integrity sha1-LGN/53yJOv0qZj/iGqkIAGjiBSo=
   
-  resolve@^1.12.0, resolve@^1.3.2:
+  resolve@^1.12.0, resolve@^1.3.2, resolve@^1.8.1:
     version "1.17.0"
     resolved "https://registry.yarnpkg.com/resolve/-/resolve-1.17.0.tgz#b25941b54968231cc2d1bb76a79cb7f2c0bf8444"
     integrity sha512-ic+7JYiV8Vi2yzQGFWOkiZD5Z9z7O2Zhm9XMaTxdJExKasieFCr+yXZ/WmXsckHiKl12ar0y6XiXDx3m4RHn1w==
@@ -4439,22 +4509,20 @@ Lockfile:
       hash-base "^3.0.0"
       inherits "^2.0.1"
   
-  rrweb-snapshot@^0.8.0:
-    version "0.8.0"
-    resolved "https://registry.yarnpkg.com/rrweb-snapshot/-/rrweb-snapshot-0.8.0.tgz#43f119407cb7ec0fdbb30056d6149b1a2c76b79b"
-    integrity sha512-rPQmgragMixTOGQNtMDI31XzpbtaXt2aIB98LNqkeOjaCeo46+B1rxAMLsT3FDFFgmq8vo/cS101H6wiiyuwew==
+  rrweb-snapshot@^0.8.2:
+    version "0.8.2"
+    resolved "https://registry.yarnpkg.com/rrweb-snapshot/-/rrweb-snapshot-0.8.2.tgz#1e87c0369e37c8af484de5a82301a9b09883081c"
+    integrity sha512-KwD5NJeiPMgA+qRPf/0YIk0dKevOpj/2redYX+9Ker6FpyUlUBKaopEc9M3VbFnUqwgU9v109c9220PwhKEQcQ==
   
-  rrweb@^0.9.0:
-    version "0.9.0"
-    resolved "https://registry.yarnpkg.com/rrweb/-/rrweb-0.9.0.tgz#94e5370b931fcbad61280845a540f39a3e8eb13a"
-    integrity sha512-sfLu1Wu7rE85mZu0kSvdVoM3VwDNo1SPqnz7wl96sIC0RchcthxifhMLrldmI9/btdGCi8jJrpcEnuW09vpdWw==
+  "rrweb@https://github.com/jay-khatri/rrweb":
+    version "0.9.7"
+    resolved "https://github.com/jay-khatri/rrweb#99416d68a2619dcc8906d143b356b8058f5858a8"
     dependencies:
-      "@types/smoothscroll-polyfill" "^0.3.0"
+      "@types/css-font-loading-module" "0.0.4"
       "@xstate/fsm" "^1.4.0"
       mitt "^1.1.3"
       pako "^1.0.11"
-      rrweb-snapshot "^0.8.0"
-      smoothscroll-polyfill "^0.4.3"
+      rrweb-snapshot "^0.8.2"
   
   run-async@^2.4.0:
     version "2.4.1"
@@ -4532,7 +4600,7 @@ Lockfile:
     resolved "https://registry.yarnpkg.com/semver/-/semver-7.0.0.tgz#5f3ca35761e47e05b206c6daff2cf814f0316b8e"
     integrity sha512-+GB6zVA9LWh6zovYQLALHwv5rb2PHGlJi3lfiqIHxR0uuwCgefcOJc59v9fv1w8GbStwxuuqqAjI9NMAOOgq1A==
   
-  semver@^5.4.1, semver@^5.5.0, semver@^5.6.0:
+  semver@^5.4.1, semver@^5.5.0, semver@^5.5.1, semver@^5.6.0:
     version "5.7.1"
     resolved "https://registry.yarnpkg.com/semver/-/semver-5.7.1.tgz#a954f931aeba508d307bbf069eff0c01c96116f7"
     integrity sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==
@@ -4654,11 +4722,6 @@ Lockfile:
       ansi-styles "^3.2.0"
       astral-regex "^1.0.0"
       is-fullwidth-code-point "^2.0.0"
-  
-  smoothscroll-polyfill@^0.4.3:
-    version "0.4.4"
-    resolved "https://registry.yarnpkg.com/smoothscroll-polyfill/-/smoothscroll-polyfill-0.4.4.tgz#3a259131dc6930e6ca80003e1cb03b603b69abf8"
-    integrity sha512-TK5ZA9U5RqCwMpfoMq/l1mrH0JAR7y7KRvOBx0n2869aLxch+gT9GhN3yUfjiw+d/DiF1mKo14+hd62JyMmoBg==
   
   snapdragon-node@^2.0.1:
     version "2.1.1"
@@ -5099,6 +5162,11 @@ Lockfile:
     version "0.0.6"
     resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
     integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
+  
+  typescript@^4.1.3:
+    version "4.1.3"
+    resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.1.3.tgz#519d582bd94cba0cf8934c7d8e8467e473f53bb7"
+    integrity sha512-B3ZIOf1IKeH2ixgHhj6la6xdwR9QrLC5d1VKeCSY4tvkqhF2eqd9O7txNlS0PO3GrBAFIdr3L1ndNwteUbZLYg==
   
   unicode-canonical-property-names-ecmascript@^1.0.4:
     version "1.0.4"
