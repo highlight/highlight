@@ -120,15 +120,19 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 	return &org.ID, nil
 }
 
-func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name *string, params []model.Param) (*model.Segment, error) {
+func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name *string, params []interface{}) (*model.Segment, error) {
 	org := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error querying org")
 	}
+	ps, err := model.DecodeAndValidateParams(params)
+	if err != nil {
+		return nil, e.Wrap(err, "error decoding params")
+	}
 	segment := &model.Segment{
 		Name:           name,
-		Params:         params,
+		Params:         ps,
 		OrganizationID: organizationID,
 	}
 	if err := r.DB.Model(org).Association("Segments").Append(segment).Error; err != nil {
