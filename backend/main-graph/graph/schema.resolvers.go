@@ -23,7 +23,6 @@ import (
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
 	admin, err := r.Query().Admin(ctx)
-
 	if err != nil {
 		return nil, e.Wrap(err, "error getting admin")
 	}
