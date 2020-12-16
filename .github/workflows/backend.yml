@@ -12,4 +12,4 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v2
             - name: Build binary
-              run: go build .
+              run: cd backend && go build .

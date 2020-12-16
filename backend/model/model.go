@@ -171,6 +171,7 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 		if err != nil {
 			return nil, e.Wrap(err, "error creating decoder")
 		}
+
 		err = decoder.Decode(param)
 		if err != nil {
 			return nil, e.Wrap(err, "error decoding")
