@@ -2,6 +2,7 @@ name: Backend
 on:
     push:
         branches:
+            - '**'
             - '!master'
         paths:
             - 'backend/**'
