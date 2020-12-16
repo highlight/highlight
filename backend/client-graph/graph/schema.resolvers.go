@@ -17,7 +17,6 @@ import (
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int) (*model.Session, error) {
 	organization := &model.Organization{}
-
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "org doesn't exist")
