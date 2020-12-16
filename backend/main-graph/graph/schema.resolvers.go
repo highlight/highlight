@@ -121,10 +121,8 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name *string, params []interface{}) (*model.Segment, error) {
-	org := &model.Organization{}
-	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
-	if err := res.Error; err != nil || res.RecordNotFound() {
-		return nil, e.Wrap(err, "error querying org")
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
 	}
 	ps, err := model.DecodeAndValidateParams(params)
 	if err != nil {
@@ -135,8 +133,8 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 		Params:         ps,
 		OrganizationID: organizationID,
 	}
-	if err := r.DB.Model(org).Association("Segments").Append(segment).Error; err != nil {
-		return nil, e.Wrap(err, "error adding segment to association")
+	if err := r.DB.Create(segment).Error; err != nil {
+		return nil, e.Wrap(err, "error creating segment")
 	}
 	return segment, nil
 }
@@ -173,10 +171,6 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 	}
 
 	return stripe_session.ID, nil
-}
-
-func (r *paramResolver) Value(ctx context.Context, obj *model.Param) (interface{}, error) {
-	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
@@ -455,16 +449,15 @@ func (r *queryResolver) Segments(ctx context.Context, organizationID int) ([]*mo
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	// list of maps, where each map represents a field query.
-	org := &model.Organization{}
-	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
-	if err := res.Error; err != nil || res.RecordNotFound() {
-		return nil, e.Wrap(err, "error querying org")
-	}
 	segments := []*model.Segment{}
-	if err := r.DB.Where(org).Association("Segments").Find(&segments).Error; err != nil {
+	if err := r.DB.Where(model.Segment{OrganizationID: organizationID}).Find(&segments).Error; err != nil {
 		log.Errorf("error querying segments from organization: %v", err)
 	}
 	return segments, nil
+}
+
+func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) ([]*string, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
@@ -474,16 +467,16 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
-// Param returns generated.ParamResolver implementation.
-func (r *Resolver) Param() generated.ParamResolver { return &paramResolver{r} }
-
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
+
+// Segment returns generated.SegmentResolver implementation.
+func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver{r} }
 
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
 type mutationResolver struct{ *Resolver }
-type paramResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }

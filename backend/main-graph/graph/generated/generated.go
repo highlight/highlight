@@ -37,8 +37,8 @@ type Config struct {
 
 type ResolverRoot interface {
 	Mutation() MutationResolver
-	Param() ParamResolver
 	Query() QueryResolver
+	Segment() SegmentResolver
 	Session() SessionResolver
 }
 
@@ -67,12 +67,6 @@ type ComplexityRoot struct {
 		BillingEmail func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Name         func(childComplexity int) int
-	}
-
-	Param struct {
-		Action func(childComplexity int) int
-		Type   func(childComplexity int) int
-		Value  func(childComplexity int) int
 	}
 
 	Query struct {
@@ -128,9 +122,6 @@ type MutationResolver interface {
 	DeleteSegment(ctx context.Context, segmentID int) (*bool, error)
 	CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error)
 }
-type ParamResolver interface {
-	Value(ctx context.Context, obj *model.Param) (interface{}, error)
-}
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model.Session, error)
 	Events(ctx context.Context, sessionID int) ([]interface{}, error)
@@ -145,6 +136,9 @@ type QueryResolver interface {
 	Organization(ctx context.Context, id int) (*model.Organization, error)
 	Admin(ctx context.Context) (*model.Admin, error)
 	Segments(ctx context.Context, organizationID int) ([]*model.Segment, error)
+}
+type SegmentResolver interface {
+	Params(ctx context.Context, obj *model.Segment) ([]*string, error)
 }
 type SessionResolver interface {
 	UserObject(ctx context.Context, obj *model.Session) (interface{}, error)
@@ -302,27 +296,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Organization.Name(childComplexity), true
-
-	case "Param.action":
-		if e.complexity.Param.Action == nil {
-			break
-		}
-
-		return e.complexity.Param.Action(childComplexity), true
-
-	case "Param.type":
-		if e.complexity.Param.Type == nil {
-			break
-		}
-
-		return e.complexity.Param.Type(childComplexity), true
-
-	case "Param.value":
-		if e.complexity.Param.Value == nil {
-			break
-		}
-
-		return e.complexity.Param.Value(childComplexity), true
 
 	case "Query.admin":
 		if e.complexity.Query.Admin == nil {
@@ -680,15 +653,9 @@ type Organization {
   billing_email: String
 }
 
-type Param {
-  action: String!
-  type: String!
-  value: Any!
-}
-
 type Segment {
   name: String!
-  params: [Param]!
+  params: [String]
   organization_id: ID!
 }
 
@@ -1686,108 +1653,6 @@ func (ec *executionContext) _Organization_billing_email(ctx context.Context, fie
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Param_action(ctx context.Context, field graphql.CollectedField, obj *model.Param) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Param",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Action, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Param_type(ctx context.Context, field graphql.CollectedField, obj *model.Param) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Param",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Param_value(ctx context.Context, field graphql.CollectedField, obj *model.Param) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Param",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Param().Value(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(interface{})
-	fc.Result = res
-	return ec.marshalNAny2interface(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_session(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2382,27 +2247,24 @@ func (ec *executionContext) _Segment_params(ctx context.Context, field graphql.C
 		Object:   "Segment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Params, nil
+		return ec.resolvers.Segment().Params(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.([]model.Param)
+	res := resTmp.([]*string)
 	fc.Result = res
-	return ec.marshalNParam2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐParam(ctx, field.Selections, res)
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Segment_organization_id(ctx context.Context, field graphql.CollectedField, obj *model.Segment) (ret graphql.Marshaler) {
@@ -4085,52 +3947,6 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 	return out
 }
 
-var paramImplementors = []string{"Param"}
-
-func (ec *executionContext) _Param(ctx context.Context, sel ast.SelectionSet, obj *model.Param) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, paramImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Param")
-		case "action":
-			out.Values[i] = ec._Param_action(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "type":
-			out.Values[i] = ec._Param_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
-		case "value":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Param_value(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -4318,17 +4134,23 @@ func (ec *executionContext) _Segment(ctx context.Context, sel ast.SelectionSet, 
 		case "name":
 			out.Values[i] = ec._Segment_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "params":
-			out.Values[i] = ec._Segment_params(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Segment_params(ctx, field, obj)
+				return res
+			})
 		case "organization_id":
 			out.Values[i] = ec._Segment_organization_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -4700,27 +4522,6 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNAny2interface(ctx context.Context, v interface{}) (interface{}, error) {
-	res, err := graphql.UnmarshalAny(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNAny2interface(ctx context.Context, sel ast.SelectionSet, v interface{}) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := graphql.MarshalAny(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) unmarshalNAny2ᚕinterface(ctx context.Context, v interface{}) ([]interface{}, error) {
 	var vSlice []interface{}
 	if v != nil {
@@ -4794,43 +4595,6 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) marshalNParam2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐParam(ctx context.Context, sel ast.SelectionSet, v []model.Param) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOParam2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐParam(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -5289,10 +5053,6 @@ func (ec *executionContext) marshalOOrganization2ᚖgithubᚗcomᚋjayᚑkhatri�
 		return graphql.Null
 	}
 	return ec._Organization(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOParam2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐParam(ctx context.Context, sel ast.SelectionSet, v model.Param) graphql.Marshaler {
-	return ec._Param(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalOSegment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSegment(ctx context.Context, sel ast.SelectionSet, v []*model.Segment) graphql.Marshaler {

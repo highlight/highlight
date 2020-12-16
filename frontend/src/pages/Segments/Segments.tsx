@@ -18,7 +18,7 @@ const Segment = () => {
         { organization_id: number }
     >(
         gql`
-            query GetSegment(
+            query GetSegments(
                 $organization_id: ID!
             ) {
                 segments(                      

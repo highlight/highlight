@@ -25,15 +25,9 @@ type Organization {
   billing_email: String
 }
 
-type Param {
-  action: String!
-  type: String!
-  value: Any!
-}
-
 type Segment {
   name: String!
-  params: [Param]!
+  params: [String]
   organization_id: ID!
 }
 
