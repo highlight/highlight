@@ -4,7 +4,7 @@ on:
         paths:
             - 'backend/**'
 jobs:
-    client:
+    backend:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout

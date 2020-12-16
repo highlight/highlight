@@ -4,7 +4,7 @@ on:
         paths:
             - 'frontend/**'
 jobs:
-    firstload:
+    frontend:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
