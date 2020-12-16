@@ -10,6 +10,7 @@ import { DemoContext } from '../../../DemoContext';
 export const MetadataBox = () => {
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
+
     const { loading, error, data } = useQuery<{
         session: {
             os_name: string;
