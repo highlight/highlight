@@ -9,14 +9,15 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int) (*model.Session, error) {
 	organization := &model.Organization{}
+
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "org doesn't exist")
