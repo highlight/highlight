@@ -33,8 +33,12 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	// Create a RecordingSettings object.
-
+	if err := r.DB.Create(&model.RecordingSettings{
+		OrganizationID: org.ID,
+		Details:        nil,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new recording settings")
+	}
 	msg := slack.WebhookMessage{Text: fmt.
 		Sprintf("```NEW WORKSPACE \nid: %v\nname: %v\nadmin_email: %v```", org.ID, *org.Name, *admin.Email)}
 	if err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg); err != nil {
@@ -433,7 +437,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		fbuser, err := AuthClient.GetUser(context.Background(), uid)
-		if res.RecordNotFound() {
+		if err != nil {
 			return nil, e.Wrap(err, "error retrieving user from firebase api")
 		}
 		newAdmin := &model.Admin{
@@ -456,8 +460,8 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 }
 
 func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error) {
-	recording_settings := &model.RecordingSettings{OrganizationID: organizationID}
-	res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recording_settings)
+	recordingSettings := &model.RecordingSettings{OrganizationID: organizationID}
+	res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recordingSettings)
 	err := res.Error
 	if res.RecordNotFound() {
 		newRecordSettings := &model.RecordingSettings{
@@ -467,12 +471,12 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 		if err := r.DB.Create(newRecordSettings).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new recording settings")
 		}
-		recording_settings = newRecordSettings
+		recordingSettings = newRecordSettings
 	}
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieving recording settings")
 	}
-	return recording_settings, nil
+	return recordingSettings, nil
 }
 
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
