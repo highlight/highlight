@@ -8,7 +8,6 @@ import { Player } from './pages/Player/PlayerPage';
 import { SessionsPage } from './pages/Sessions/SessionsPage';
 import { WorkspaceTeam } from './pages/WorkspaceTeam/WorkspaceTeam';
 import { Billing } from './pages/Billing/Billing';
-import { RecordingSettings } from './pages/RecordingSettings/RecordingSettings';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { useIntegrated } from './util/integrated';
 import styles from './App.module.scss';
@@ -54,9 +53,6 @@ export const OrgRouter = () => {
             <div className={commonStyles.bodyWrapper}>
                 <Sidebar />
                 <Switch>
-                    <Route path="/:organization_id/recording-settings">
-                        <RecordingSettings />
-                    </Route>
                     <Route path="/:organization_id/sessions/:session_id">
                         <Player />
                     </Route>
