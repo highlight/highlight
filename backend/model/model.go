@@ -29,12 +29,12 @@ type RecordingSettings struct {
 	Details        *string `json:"details"`
 }
 
-func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error){
+func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error) {
 	var result []string
-	if r.Details == nil{
+	if r.Details == nil {
 		return result, nil
 	}
-	err := json.Unmarshal([]byte(*r.Details),&result)
+	err := json.Unmarshal([]byte(*r.Details), &result)
 	if err != nil {
 		return nil, e.Wrap(err, "error parsing details json")
 	}
@@ -43,13 +43,13 @@ func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error){
 
 type Organization struct {
 	Model
-	Name         		*string
-	BillingEmail 		*string
-	Secret       		*string `json:"-"`
-	RecordingSetting	RecordingSettings
-	Users        		[]User
-	Admins       		[]Admin `gorm:"many2many:organization_admins;"`
-	Fields       		[]Field
+	Name             *string
+	BillingEmail     *string
+	Secret           *string `json:"-"`
+	RecordingSetting RecordingSettings
+	Users            []User
+	Admins           []Admin `gorm:"many2many:organization_admins;"`
+	Fields           []Field
 }
 
 func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
@@ -81,20 +81,20 @@ type Session struct {
 	Model
 	UserID int `json:"user_id"`
 	// User provided identifier (see IdentifySession)
-	Identifier     string  `json:"identifier"`
-	OrganizationID int     `json:"organization_id"`
+	Identifier     string `json:"identifier"`
+	OrganizationID int    `json:"organization_id"`
 	// Location data based off user ip (see InitializeSession)
-	City           string  `json:"city"`
-	State          string  `json:"state"`
-	Postal         string  `json:"postal"`
-	Latitude       float64 `json:"latitude"`
-	Longitude      float64 `json:"longitude"`
+	City      string  `json:"city"`
+	State     string  `json:"state"`
+	Postal    string  `json:"postal"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 	// Details based off useragent (see Initialize Session)
-	OSName         string  `json:"os_name"`
-	OSVersion      string  `json:"os_version"`
-	BrowserName    string  `json:"browser_name"`
-	BrowserVersion string  `json:"browser_version"`
-	Status         string  `json:"status"`
+	OSName         string `json:"os_name"`
+	OSVersion      string `json:"os_version"`
+	BrowserName    string `json:"browser_name"`
+	BrowserVersion string `json:"browser_version"`
+	Status         string `json:"status"`
 	EventsObjects  []EventsObject
 	// Tells us if the session has been parsed by a worker.
 	Processed bool `json:"processed"`
@@ -147,8 +147,18 @@ func SetupDB() *gorm.DB {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	//DB.LogMode(true)
-	DB.AutoMigrate(&RecordingSettings{},&MessagesObject{}, &EventsObject{}, &Organization{}, &Admin{}, &User{}, &Session{}, &Field{}, &EmailSignup{}, &ResourcesObject{})
+	DB.AutoMigrate(
+		&RecordingSettings{}, 
+		&MessagesObject{}, 
+		&EventsObject{}, 
+		&Organization{}, 
+		&Admin{}, 
+		&User{}, 
+		&Session{}, 
+		&Field{}, 
+		&EmailSignup{}, 
+		&ResourcesObject{}
+	)
 	return DB
 }
 
