@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 
 import styles from './Segments.module.css';
@@ -25,17 +25,17 @@ const Segment = () => {
                     organization_id: $organization_id
                 ) {
                     name
-                    params{
-                        action
-                        type
-                        value
-                    }
+                    params
                 }
             }
         `,
         { variables: { organization_id: organization_id } }
     );
 
+    const params = data?.segments[0].params
+    console.log("DATA: " + params)
+    console.log("error: " + JSON.stringify(error))
+    console.log("loading: " + JSON.stringify(loading))
     return (
         <>
             <div className={styles.test}>

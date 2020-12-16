@@ -119,7 +119,7 @@ type Field struct {
 type Segment struct {
 	Model
 	Name *string
-	Params []*Param
+	Params *string `json:"params"`
 	OrganizationID int
 }
 

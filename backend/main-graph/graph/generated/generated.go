@@ -38,7 +38,6 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
-	Segment() SegmentResolver
 	Session() SessionResolver
 }
 
@@ -146,9 +145,6 @@ type QueryResolver interface {
 	Admin(ctx context.Context) (*model.Admin, error)
 	Segments(ctx context.Context, organizationID int) ([]*model.Segment, error)
 	RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error)
-}
-type SegmentResolver interface {
-	Params(ctx context.Context, obj *model.Segment) ([]*string, error)
 }
 type SessionResolver interface {
 	UserObject(ctx context.Context, obj *model.Session) (interface{}, error)
@@ -716,7 +712,7 @@ type Organization {
 
 type Segment {
   name: String!
-  params: [String]
+  params: String!
   organization_id: ID!
 }
 
@@ -2527,24 +2523,27 @@ func (ec *executionContext) _Segment_params(ctx context.Context, field graphql.C
 		Object:   "Segment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Segment().Params(rctx, obj)
+		return obj.Params, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Segment_organization_id(ctx context.Context, field graphql.CollectedField, obj *model.Segment) (ret graphql.Marshaler) {
@@ -4464,23 +4463,17 @@ func (ec *executionContext) _Segment(ctx context.Context, sel ast.SelectionSet, 
 		case "name":
 			out.Values[i] = ec._Segment_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "params":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Segment_params(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._Segment_params(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "organization_id":
 			out.Values[i] = ec._Segment_organization_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))

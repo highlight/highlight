@@ -33,7 +33,7 @@ type Organization {
 
 type Segment {
   name: String!
-  params: [String]
+  params: String!
   organization_id: ID!
 }
 

@@ -130,13 +130,14 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	ps, err := model.DecodeAndValidateParams(params)
+	paramJSON, err := json.Marshal(params)
 	if err != nil {
-		return nil, e.Wrap(err, "error decoding params")
+		return nil, e.Wrap(err, "failed at marshaling params")
 	}
+	paramString := string(paramJSON)
 	segment := &model.Segment{
 		Name:           name,
-		Params:         ps,
+		Params:         &paramString,
 		OrganizationID: organizationID,
 	}
 	if err := r.DB.Create(segment).Error; err != nil {
@@ -509,10 +510,6 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 	return recordingSettings, nil
 }
 
-func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) ([]*string, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
 	return obj.UserObject, nil
 }
@@ -523,13 +520,9 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-// Segment returns generated.SegmentResolver implementation.
-func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver{r} }
-
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
