@@ -1,8 +1,8 @@
 name: Backend
 on:
     push:
-        branches-ignore:
-            - 'refs/head/master'
+        branches:
+            - '!master'
         paths:
             - 'backend/**'
 jobs:
