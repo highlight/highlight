@@ -19,6 +19,12 @@ type Session {
   user_object: Any
 }
 
+type RecordingSettings {
+  id: ID!
+  organization_id: ID!
+  details: String!
+}
+
 type Organization {
   id: ID!
   name: String!
@@ -53,6 +59,7 @@ type Query {
   organizations: [Organization]
   organization(id: ID!): Organization
   admin: Admin
+  recording_settings(organization_id: ID!): RecordingSettings
 }
 
 type Mutation {
@@ -61,5 +68,6 @@ type Mutation {
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
+  editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
   createCheckout(organization_id: ID!, price_id: String!): String!
 }

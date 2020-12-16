@@ -18,7 +18,7 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
-	"github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -32,6 +32,12 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	}
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
+	}
+	if err := r.DB.Create(&model.RecordingSettings{
+		OrganizationID: org.ID,
+		Details:        nil,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new recording settings")
 	}
 	msg := slack.WebhookMessage{Text: fmt.
 		Sprintf("```NEW WORKSPACE \nid: %v\nname: %v\nadmin_email: %v```", org.ID, *org.Name, *admin.Email)}
@@ -118,6 +124,24 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 		return nil, e.Wrap(err, "error adding admin to association")
 	}
 	return &org.ID, nil
+}
+
+func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model.RecordingSettings, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+	rec := &model.RecordingSettings{}
+	res := r.DB.Where(&model.RecordingSettings{Model: model.Model{ID: organizationID}}).First(&rec)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying record")
+	}
+	if err := r.DB.Model(rec).Updates(&model.RecordingSettings{
+		OrganizationID: organizationID,
+		Details:        details,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing new recording settings")
+	}
+	return rec, nil
 }
 
 func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error) {
@@ -249,10 +273,24 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
+	// grab recording settings of org
+	recording_settings, err := r.Query().RecordingSettings(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying recording settings")
+	}
 	// list of maps, where each map represents a field query.
 	sessionIDsToJoin := []map[int]bool{}
 	sessions := []*model.Session{}
 	query := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc")
+	// ignore based on recording settings
+	details, err := recording_settings.GetDetailsAsSlice()
+	if err != nil {
+		return nil, e.Wrap(err, "session didn't like slice")
+	}
+	for _, det := range details {
+		query = query.Where("identifier NOT LIKE '%%" + det + "%%'\n")
+	}
+	// filter by params
 	ps, err := model.DecodeAndValidateParams(params)
 	if err != nil {
 		return nil, e.Wrap(err, "error decoding params")
@@ -400,7 +438,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		fbuser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
-			return nil, e.Wrap(err, "error retrieiving user from firebase api")
+			return nil, e.Wrap(err, "error retrieving user from firebase api")
 		}
 		newAdmin := &model.Admin{
 			UID:   &uid,
@@ -419,6 +457,26 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		}
 	}
 	return admin, nil
+}
+
+func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error) {
+	recordingSettings := &model.RecordingSettings{OrganizationID: organizationID}
+	res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recordingSettings)
+	err := res.Error
+	if res.RecordNotFound() {
+		newRecordSettings := &model.RecordingSettings{
+			OrganizationID: organizationID,
+			Details:        nil,
+		}
+		if err := r.DB.Create(newRecordSettings).Error; err != nil {
+			return nil, e.Wrap(err, "error creating new recording settings")
+		}
+		recordingSettings = newRecordSettings
+	}
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving recording settings")
+	}
+	return recordingSettings, nil
 }
 
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
