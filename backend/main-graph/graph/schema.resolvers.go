@@ -461,9 +461,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 
 func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error) {
 	recordingSettings := &model.RecordingSettings{OrganizationID: organizationID}
-	res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recordingSettings)
-	err := res.Error
-	if res.RecordNotFound() {
+	if res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recordingSettings); res.RecordNotFound() || res.Error != nil {
 		newRecordSettings := &model.RecordingSettings{
 			OrganizationID: organizationID,
 			Details:        nil,
@@ -472,9 +470,6 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 			return nil, e.Wrap(err, "error creating new recording settings")
 		}
 		recordingSettings = newRecordSettings
-	}
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving recording settings")
 	}
 	return recordingSettings, nil
 }
