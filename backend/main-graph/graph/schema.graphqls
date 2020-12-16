@@ -19,6 +19,12 @@ type Session {
   user_object: Any
 }
 
+type RecordingSettings {
+  id: ID!
+  organization_id: ID!
+  details: String!
+}
+
 type Organization {
   id: ID!
   name: String!
@@ -60,6 +66,7 @@ type Query {
   organization(id: ID!): Organization
   admin: Admin
   segments(organization_id: ID!): [Segment]
+  recording_settings(organization_id: ID!): RecordingSettings
 }
 
 type Mutation {
@@ -70,5 +77,6 @@ type Mutation {
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
   createSegment(organization_id: ID!, name: String, params: [Any]!): Segment
   deleteSegment(segment_id: ID!): Boolean
+  editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
   createCheckout(organization_id: ID!, price_id: String!): String!
 }

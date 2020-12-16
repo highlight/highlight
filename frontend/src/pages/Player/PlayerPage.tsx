@@ -51,6 +51,8 @@ export const Player = () => {
             context: { headers: { 'Highlight-Demo': demo } },
         }
     );
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const resizePlayer = (replayer: Replayer): boolean => {
         const width = replayer?.wrapper?.getBoundingClientRect().width;
         const height = replayer?.wrapper?.getBoundingClientRect().height;
@@ -94,6 +96,7 @@ export const Player = () => {
     // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
     useEffect(() => {
         replayer && resizePlayer(replayer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sizes, replayer]);
 
     useEffect(() => {

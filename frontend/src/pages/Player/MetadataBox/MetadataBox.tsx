@@ -6,11 +6,11 @@ import { Avatar } from '../../../components/Avatar/Avatar';
 
 import styles from './MetadataBox.module.scss';
 import { DemoContext } from '../../../DemoContext';
-import { stringify } from 'querystring';
 
 export const MetadataBox = () => {
-    const { session_id } = useParams();
+    const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
+
     const { loading, error, data } = useQuery<{
         session: {
             os_name: string;
