@@ -11,5 +11,5 @@ jobs:
               uses: actions/checkout@v2
             - name: Setup Go
               uses: actions/setup-go@v2
-            - name: Version
-              run: go version
+            - name: Build binary
+              run: go build .
