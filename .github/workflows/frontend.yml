@@ -1,8 +1,9 @@
 name: Frontend
 on:
     push:
-        branches-ignore:
-            - 'refs/head/master'
+        branches:
+            - '**'
+            - '!master'
         paths:
             - 'frontend/**'
 jobs:
