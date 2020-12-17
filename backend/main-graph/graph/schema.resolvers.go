@@ -147,7 +147,11 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 }
 
 func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	if err := r.DB.Delete(&model.Segment{Model: model.Model{ID: segmentID}}).Error; err != nil {
+		return nil, e.Wrap(err, "error deleting segment")
+	}
+	t := true
+	return &t, nil
 }
 
 func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model.RecordingSettings, error) {
