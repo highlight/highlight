@@ -41,7 +41,7 @@ func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error) {
 	return result, nil
 }
 
-func (segment *Segment) GetParamsAsSlice() ([]interface{}, error){
+func (segment *Segment) GetParamsAsSlice() ([]interface{}, error) {
 	var result []interface{}
 	if segment.Params == nil {
 		return result, nil
@@ -55,13 +55,13 @@ func (segment *Segment) GetParamsAsSlice() ([]interface{}, error){
 
 type Organization struct {
 	Model
-	Name         *string
-	BillingEmail *string
-	Secret       *string `json:"-"`
-	Users        []User
-	Admins       []Admin `gorm:"many2many:organization_admins;"`
-	Fields       []Field
-	Segments 	 []Segment `gorm:"foreignKey:ID;"`
+	Name             *string
+	BillingEmail     *string
+	Secret           *string `json:"-"`
+	Users            []User
+	Admins           []Admin `gorm:"many2many:organization_admins;"`
+	Fields           []Field
+	Segments         []Segment `gorm:"foreignKey:ID;"`
 	RecordingSetting RecordingSettings
 }
 
@@ -130,8 +130,8 @@ type Field struct {
 
 type Segment struct {
 	Model
-	Name *string
-	Params *string `json:"params"`
+	Name           *string
+	Params         *string `json:"params"`
 	OrganizationID int
 }
 
