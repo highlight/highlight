@@ -31,7 +31,7 @@ type Location struct {
 }
 
 type DeviceDetails struct {
-	IsBot          bool `json:"is_bot"`
+	IsBot          bool   `json:"is_bot"`
 	OSName         string `json:"os_name"`
 	OSVersion      string `json:"os_version"`
 	BrowserName    string `json:"browser_name"`
