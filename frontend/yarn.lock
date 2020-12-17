@@ -8168,7 +8168,7 @@ loglevel@^1.6.8:
 
 logrocket@^1.0.14:
   version "1.0.14"
-  resolved "https://registry.yarnpkg.com/logrocket/-/logrocket-1.0.14.tgz"
+  resolved "https://registry.yarnpkg.com/logrocket/-/logrocket-1.0.14.tgz#afe61a6b993691a706154e83fe2c05e8174a650d"
   integrity sha512-notwwiIiXOmWSKQDsW8UrFJPu81u9rd6YaIFBmx6uF0XtXXwNQ+Mvteh5WHdABWcQ2nN4I7QkQrCAocYDx7OVg==
 
 long@^4.0.0:
