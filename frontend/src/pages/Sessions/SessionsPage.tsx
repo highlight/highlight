@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useContext } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
-import { useLazyQuery, gql, useMutation } from '@apollo/client';
+import { useLazyQuery, gql } from '@apollo/client';
 import { MillisToMinutesAndSecondsVerbose } from '../../util/time';
 import { ReactComponent as PlayButton } from '../../static/play-button.svg';
 import { FaSearch, FaTimes } from 'react-icons/fa';
@@ -20,7 +20,6 @@ import AutosizeInput from 'react-input-autosize';
 
 import styles from './SessionsPage.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
-import { Button } from 'antd';
 
 export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const countDebounced = useDebouncedCallback(() => {
