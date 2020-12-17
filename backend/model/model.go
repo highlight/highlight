@@ -41,15 +41,28 @@ func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error) {
 	return result, nil
 }
 
+func (segment *Segment) GetParamsAsSlice() ([]interface{}, error) {
+	var result []interface{}
+	if segment.Params == nil {
+		return result, nil
+	}
+	err := json.Unmarshal([]byte(*segment.Params), &result)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing params json")
+	}
+	return result, nil
+}
+
 type Organization struct {
 	Model
 	Name             *string
 	BillingEmail     *string
 	Secret           *string `json:"-"`
-	RecordingSetting RecordingSettings
 	Users            []User
 	Admins           []Admin `gorm:"many2many:organization_admins;"`
 	Fields           []Field
+	Segments         []Segment `gorm:"foreignKey:ID;"`
+	RecordingSetting RecordingSettings
 }
 
 func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
@@ -115,6 +128,13 @@ type Field struct {
 	Sessions       []Session `gorm:"many2many:session_fields;"`
 }
 
+type Segment struct {
+	Model
+	Name           *string
+	Params         *string `json:"params"`
+	OrganizationID int
+}
+
 type ResourcesObject struct {
 	Model
 	SessionID int
@@ -152,6 +172,7 @@ func SetupDB() *gorm.DB {
 		&MessagesObject{},
 		&EventsObject{},
 		&Organization{},
+		&Segment{},
 		&Admin{},
 		&User{},
 		&Session{},

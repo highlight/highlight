@@ -31,6 +31,12 @@ type Organization {
   billing_email: String
 }
 
+type Segment {
+  name: String!
+  params: [Any]!
+  organization_id: ID!
+}
+
 type User {
   id: ID!
 }
@@ -59,6 +65,7 @@ type Query {
   organizations: [Organization]
   organization(id: ID!): Organization
   admin: Admin
+  segments(organization_id: ID!): [Segment]
   recording_settings(organization_id: ID!): RecordingSettings
 }
 
@@ -68,6 +75,8 @@ type Mutation {
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
+  createSegment(organization_id: ID!, name: String, params: [Any]!): Segment
+  deleteSegment(segment_id: ID!): Boolean
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
   createCheckout(organization_id: ID!, price_id: String!): String!
 }
