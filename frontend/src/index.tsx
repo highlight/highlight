@@ -11,6 +11,7 @@ import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
 import { DemoContext } from './DemoContext';
 import { H, HighlightOptions } from 'highlight.run';
 import { DemoRouter } from './DemoRouter';
+import { QueryParamProvider } from 'use-query-params';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = { debug: true, manualStart: true };
@@ -25,18 +26,20 @@ ReactDOM.render(
     <React.StrictMode>
         <ApolloProvider client={client}>
             <Router>
-                <Switch>
-                    <Route path="/demo" exact>
-                        <DemoContext.Provider value={{ demo: true }}>
-                            <DemoRouter />
-                        </DemoContext.Provider>
-                    </Route>
-                    <Route path="/">
-                        <DemoContext.Provider value={{ demo: false }}>
-                            <AuthAppRouter />
-                        </DemoContext.Provider>
-                    </Route>
-                </Switch>
+                <QueryParamProvider ReactRouterRoute={Route}>
+                    <Switch>
+                        <Route path="/demo" exact>
+                            <DemoContext.Provider value={{ demo: true }}>
+                                <DemoRouter />
+                            </DemoContext.Provider>
+                        </Route>
+                        <Route path="/">
+                            <DemoContext.Provider value={{ demo: false }}>
+                                <AuthAppRouter />
+                            </DemoContext.Provider>
+                        </Route>
+                    </Switch>
+                </QueryParamProvider>
             </Router>
         </ApolloProvider>
     </React.StrictMode>,

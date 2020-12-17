@@ -6,6 +6,7 @@ import { MillisToMinutesAndSecondsVerbose } from '../../util/time';
 import { ReactComponent as PlayButton } from '../../static/play-button.svg';
 import { FaSearch, FaTimes } from 'react-icons/fa';
 import { useDebouncedCallback } from 'use-debounce';
+import { useQueryParam, BooleanParam, StringParam } from 'use-query-params';
 import { IntegrationCard } from './IntegrationCard/IntegrationCard';
 import {
     Value,
@@ -34,6 +35,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const [activeParam, setActiveParam] = useState<number>(-1);
     const [mainInputText, setMainInputText] = useState('');
     const { organization_id } = useParams();
+    const [segmentsOn] = useQueryParam('segments', BooleanParam);
     const [sessionData, setSessionData] = useState<any[]>([]);
     const [showDropdown, setShowDropdown] = useState<boolean>(true);
     const [getSessions, { loading, error, data }] = useLazyQuery<
@@ -114,6 +116,8 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
             });
         }
     }, [count, params, getSessions, organization_id]);
+
+    console.log(segmentsOn);
 
     if (error) {
         return <p>{error.toString()}</p>;
