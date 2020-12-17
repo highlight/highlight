@@ -33,7 +33,8 @@ const Segment = () => {
     );
 
     const params = data?.segments[0].params
-    console.log("DATA: " + params)
+    if (params)
+        console.log("TYPE "+ params[0].description)
     console.log("error: " + JSON.stringify(error))
     console.log("loading: " + JSON.stringify(loading))
     return (

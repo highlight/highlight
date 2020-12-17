@@ -510,6 +510,14 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 	return recordingSettings, nil
 }
 
+func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) ([]interface{}, error) {
+	params, err := obj.GetParamsAsSlice()
+	if err != nil {
+		return nil, e.Wrap(err, "error getting params from segment")
+	}
+	return params, nil
+}
+
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
 	return obj.UserObject, nil
 }
@@ -520,9 +528,13 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// Segment returns generated.SegmentResolver implementation.
+func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver{r} }
+
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
