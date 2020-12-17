@@ -37,22 +37,6 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const { organization_id } = useParams();
     const [sessionData, setSessionData] = useState<any[]>([]);
     const [showDropdown, setShowDropdown] = useState<boolean>(true);
-    const [createSegment, segmentData] = useMutation<
-        { createSegment: { name: string } },
-        { organization_id: number; params: SearchParam[], name: string }
-    >(
-        gql`
-            mutation CreateSegment(
-                $organization_id: ID!
-                $name: String!
-                $params: [Any]!
-            ){
-                createSegment(organization_id: $organization_id, name: $name, params: $params) {
-                    name
-                }
-            }
-        `
-    );
     const [getSessions, { loading, error, data }] = useLazyQuery<
         { sessions: any[] },
         { count: number; organization_id: number; params: SearchParam[] }
@@ -194,18 +178,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                         </div>
                     </div>
                     <div className={styles.searchIconWrapper}>
-                        <Button onClick={()=> {
-                            console.log("org id: "+organization_id + "\nparams: " +JSON.stringify(params))
-                                createSegment({
-                                    variables: {
-                                        organization_id: organization_id,
-                                        params: params,
-                                        name: "Power Puff Girls",
-                                    }
-                                });
-                            }}>
-                            <FaSearch className={styles.searchIcon} />
-                        </Button>
+                        <FaSearch className={styles.searchIcon} />
                     </div>
                 </div>
                 {showDropdown && (

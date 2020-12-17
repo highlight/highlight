@@ -14,7 +14,6 @@ import styles from './App.module.scss';
 import { WorkspaceSettings } from './pages/WorkspaceSettings/WorkspaceSettings';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { SidebarContext } from './components/Sidebar/SidebarContext';
-import { Segments } from './pages/Segments/Segments';
 
 import commonStyles from './Common.module.scss';
 
@@ -68,9 +67,6 @@ export const OrgRouter = () => {
                     </Route>
                     <Route path="/:organization_id/billing">
                         <Billing />
-                    </Route>
-                    <Route path="/:organization_id/segments">
-                        <Segments />
                     </Route>
                     <Route path="/:organization_id/setup">
                         <SetupPage integrated={integrated} />
