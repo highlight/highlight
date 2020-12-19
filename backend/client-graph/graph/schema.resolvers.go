@@ -132,7 +132,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
 		return nil, fmt.Errorf("error decoding event data: %v", err)
 	}
-	if len(eventsParsed["events"]) >= 0 {
+	if len(eventsParsed["events"]) > 0 {
 		obj := &model.EventsObject{SessionID: sessionID, Events: events}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
@@ -143,7 +143,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding message data: %v", err)
 	}
-	if len(messagesParsed["messages"]) >= 0 {
+	if len(messagesParsed["messages"]) > 0 {
 		obj := &model.MessagesObject{SessionID: sessionID, Messages: messages}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating messages object")
@@ -154,7 +154,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding resource data: %v", err)
 	}
-	if len(resourcesParsed["resources"]) >= 0 {
+	if len(resourcesParsed["resources"]) > 0 {
 		obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating resources object")
