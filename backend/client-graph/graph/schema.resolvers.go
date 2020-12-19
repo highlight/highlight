@@ -11,6 +11,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -132,6 +133,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
 		return nil, fmt.Errorf("error decoding event data: %v", err)
 	}
+	pp.Println(eventsParsed)
 	if len(eventsParsed["events"]) > 0 {
 		obj := &model.EventsObject{SessionID: sessionID, Events: events}
 		if err := r.DB.Create(obj).Error; err != nil {
