@@ -53,14 +53,13 @@ class VirtualTree {
         id: number,
         parentId?: number
     ) {
-        let newTree: VTree;
+        let newTree: VTree = {
+            tagName,
+            attributes,
+            children: [],
+            parent: null,
+        };
         if (!this.root) {
-            newTree = {
-                tagName,
-                attributes,
-                children: [],
-                parent: null,
-            };
             this.root = newTree;
         } else if (parentId && this.map.has(parentId)) {
             const parent = this.map.get(parentId)!;
