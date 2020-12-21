@@ -72,7 +72,7 @@ class VirtualTree {
             };
             parent.children.push(newTree);
         } else {
-            throw new Error(
+            console.error(
                 `Invalid append: ${JSON.stringify({
                     tagName,
                     attributes,
