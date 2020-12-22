@@ -1,6 +1,6 @@
 import React from 'react';
 import commonStyles from '../../../Common.module.scss';
-// import styles from './BillingPlan.module.scss';
+import styles from './BillingPlanCard.module.scss';
 import { BillingPlan } from './BillingConfig'
 import classNames from 'classnames/bind';
 
@@ -15,24 +15,21 @@ export const BillingPlanCard = ({
     billingPlan: BillingPlan,
     onSelect: () => void
 }) => {
-    // needs stuff from config and function.
-    // although could move function here. 
-    // need to know if currently on that plan
-
-    const advertisedFeatureDivs = billingPlan.advertisedFeatures.map(featureString => <div>{featureString}</div>)
+    const advertisedFeatureDivs = billingPlan.advertisedFeatures.map(featureString => <div className={styles.advertisedFeature}>{featureString}</div>)
+    // TODO: read this value from server
     const isDisabled = false
-    return (<div>
-        <div >{billingPlan.planName}</div>
-        <div className={commonStyles.title}>{`$${billingPlan.monthlyPrice}`}</div>
-        <div>billed monthly</div>
-        <div>
+    return (<div className={styles.billingPlanCard}>
+        <div className={styles.billingPlanTitle}>{billingPlan.planName}</div>
+        <div className={classNames(commonStyles.title, styles.billingPlanPrice)}>{`$${billingPlan.monthlyPrice}`}</div>
+        <div className={styles.billingFrequency}>billed monthly</div>
+        <div className={styles.advertisedFeaturesWrapper}>
             {advertisedFeatureDivs}
         </div>
 
         <button
             type="submit"
             className={classNames(
-                commonStyles.submitButton,
+                commonStyles.tertiaryButton,
             )}
             disabled={isDisabled}
             onClick={onSelect}
@@ -40,5 +37,5 @@ export const BillingPlanCard = ({
             {isDisabled ? 'Current plan' : `Select ${billingPlan.planName} Plan`}
         </button>
 
-    </div>)
+    </div >)
 }

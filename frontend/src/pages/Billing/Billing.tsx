@@ -1,18 +1,12 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { useMutation, gql } from '@apollo/client';
 import { loadStripe } from '@stripe/stripe-js';
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard'
 import { basicPlan, startupPlan, enterprisePlan } from './BillingPlanCard/BillingConfig'
 
-import commonStyles from '../../Common.module.scss';
 import styles from './Billing.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
-
-enum BillingViewType {
-    Plans = "Plans", Invoices = "Invoices"
-}
 
 const getBillingResponseOrNull = (pathname: string, checkoutRedirectFailedMessage: string) => {
     const response = pathname.split('/')[3] ?? ''
@@ -40,7 +34,6 @@ const stripePromiseOrNull = getStripePromiseOrNull()
 export const Billing = () => {
     const { organization_id } = useParams();
 
-    const [billingView, setBillingView] = useState((BillingViewType.Plans))
     const { pathname } = useLocation();
     const [checkoutRedirectFailedMessage, setCheckoutRedirectFailedMessage] = useState<string>("")
 
@@ -64,13 +57,13 @@ export const Billing = () => {
         setOpenSidebar(true);
     }, [setOpenSidebar]);
 
-    const onSubmit = async () => {
-        // TODO: create config for the price plans
-        createCheckout({ variables: { organization_id: organization_id, price_id: "price_1HswN7Gz4ry65q421RTixaZB" } })
+    const createOnSelect = (price_id: string) => {
+        return async () => {
+            createCheckout({ variables: { organization_id: organization_id, price_id } })
+        }
     }
 
     if (data?.createCheckout && stripePromiseOrNull) {
-
         (async function () {
             const stripe = await stripePromiseOrNull;
             const result = stripe ? await stripe.redirectToCheckout({
@@ -95,27 +88,10 @@ export const Billing = () => {
                 <div className={styles.subTitle}>
                     Manage your billing information.
                 </div>
-                <RadioGroup<BillingViewType>
-                    labels={[BillingViewType.Plans, BillingViewType.Invoices]}
-                    onSelect={(p: BillingViewType) => setBillingView(p)}
-                    selectedLabel={billingView}
-                />
-                {/* Temporary button for testing server code */}
-                {/* <div>
-                    <button
-                        type="submit"
-                        className={classNames(
-                            commonStyles.submitButton,
-                        )}
-                        onClick={onSubmit}
-                    >
-                        Continue to billing page
-                    </button>
-                </div> */}
                 <div className={styles.billingPlanCardWrapper}>
-                    <BillingPlanCard billingPlan={basicPlan} onSelect={onSubmit}></BillingPlanCard>
-                    <BillingPlanCard billingPlan={startupPlan} onSelect={onSubmit}></BillingPlanCard>
-                    <BillingPlanCard billingPlan={enterprisePlan} onSelect={onSubmit}></BillingPlanCard>
+                    <BillingPlanCard billingPlan={basicPlan} onSelect={createOnSelect(basicPlan.priceId)}></BillingPlanCard>
+                    <BillingPlanCard billingPlan={startupPlan} onSelect={createOnSelect(startupPlan.priceId)}></BillingPlanCard>
+                    <BillingPlanCard billingPlan={enterprisePlan} onSelect={createOnSelect(enterprisePlan.priceId)}></BillingPlanCard>
                 </div>
             </div>
         </div >

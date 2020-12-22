@@ -16,7 +16,6 @@ export const RadioGroup = <T extends any>({
     const labelDivs = labels.map(label => {
         return label === selectedLabel ?
             <div style={{
-                borderRight: 'none',
                 borderColor: '#5629c6',
                 backgroundColor: '#5629c6',
                 color: 'white',
@@ -26,7 +25,6 @@ export const RadioGroup = <T extends any>({
             > {label} </div>
             : <div
                 style={{
-                    borderRight: 'none',
                     borderColor:
                         '#eaeaea',
                     backgroundColor:

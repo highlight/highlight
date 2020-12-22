@@ -2,6 +2,7 @@ export type BillingPlan = {
     planName: string;
     monthlyPrice: string;
     advertisedFeatures: string[];
+    priceId: string;
 }
 
 export const basicPlan: BillingPlan = {
@@ -12,7 +13,8 @@ export const basicPlan: BillingPlan = {
         'Unlimited dev tools access',
         'On premise deployments',
         'SSO/SAML'
-    ]
+    ],
+    priceId: "price_1HswN7Gz4ry65q421RTixaZB"
 }
 
 export const startupPlan: BillingPlan = {
@@ -23,7 +25,8 @@ export const startupPlan: BillingPlan = {
         'Unlimited dev tools access',
         'On premise deployments',
         'SSO/SAML'
-    ]
+    ],
+    priceId: "price_1I1GpaGz4ry65q42eha1NkFb"
 }
 
 export const enterprisePlan: BillingPlan = {
@@ -34,5 +37,6 @@ export const enterprisePlan: BillingPlan = {
         'Unlimited dev tools access',
         'On premise deployments',
         'SSO/SAML'
-    ]
+    ],
+    priceId: "price_1I1GpoGz4ry65q42rwSyiiCJ"
 }

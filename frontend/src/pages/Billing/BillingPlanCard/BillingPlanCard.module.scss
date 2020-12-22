@@ -1,0 +1,34 @@
+@import 'src/static/shared.scss';
+
+.billingPlanCard {
+    @include rounded-border;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    width: 275px;
+}   
+
+.billingPlanTitle {
+    font-size: 20px;
+    font-weight: 400;
+    color: $highlight-purple;
+    margin: 5px 0;
+}
+
+.billingFrequency {
+    margin-bottom: 5px;
+}
+
+
+.billingPlanPrice {
+    margin-bottom: 5px;
+}
+
+.advertisedFeaturesWrapper {
+    align-self: center;
+    margin: 5px 0 10px 0;
+}
+
+.advertisedFeature {
+    margin: 5px 0;
+}

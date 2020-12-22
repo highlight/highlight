@@ -11,7 +11,7 @@
 
 .billingPage {
     margin: 40px 80px 80px 80px;
-    width: 580px;
+    min-width: 650px;
 }
 
 .blankSidebar {
@@ -28,4 +28,9 @@
 .billingPlanCardWrapper {
     display: flex;
     flex-direction: row;
+    margin-top: 30px;
+}
+
+.billingPlanCardWrapper > *:not(:first-child) {
+    margin-left: 20px
 }

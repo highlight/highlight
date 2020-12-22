@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .sessionsBody {
     width: 100%;
     height: 100%;
@@ -142,11 +144,10 @@
 }
 
 .dropdown {
+    @include rounded-border;
     width: 100%;
-    border: 1px solid #eaeaea;
     max-width: 700px;
     background-color: white;
-    border-radius: 8px;
     padding: 16px;
     display: flex;
     margin-top: -10px;
@@ -154,12 +155,11 @@
 }
 
 .searchBar {
+    @include rounded-border;
     margin-top: 20px;
     margin-bottom: 25px;
     width: 100%;
     height: 48px;
-    border: 1px solid #eaeaea;
-    border-radius: 8px;
     display: flex;
     align-items: center;
     padding-left: 16px;
@@ -186,8 +186,7 @@
 .sessionCard {
     font-weight: 400;
     height: 80px;
-    border: 1px solid #eaeaea;
-    border-radius: 8px;
+    @include rounded-border;
     margin-top: 14px;
     margin-bottom: 14px;
     display: flex;
