@@ -72,10 +72,10 @@ func GetLocationFromIP(ip string) (location Location, err error) {
 	ip, _, _ = net.SplitHostPort(ip)
 
 	var ipStr string
-	if os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT") == "prod" {
-		ipStr = net.ParseIP(ip).String()
-	} else {
+	if os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT") == "dev" {
 		ipStr = "99.98.244.156"
+	} else {
+		ipStr = net.ParseIP(ip).String()
 	}
 
 	url := fmt.Sprintf("https://geolocation-db.com/json/%s", ipStr)
