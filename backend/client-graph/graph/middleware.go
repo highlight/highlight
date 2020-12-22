@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/google/martian/v3/log"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/redis"
 	e "github.com/pkg/errors"
@@ -43,6 +44,8 @@ func ClientMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		if IPAddress == "" {
 			IPAddress = r.RemoteAddr
 		}
+
+		log.Infof("ip address: %v \n", IPAddress)
 		// get user-agent string
 		UserAgent := r.Header.Get("user-agent")
 		// Pass the user's id, ip address, and user agent through context.
