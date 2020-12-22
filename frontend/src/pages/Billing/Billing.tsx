@@ -2,8 +2,9 @@ import React, { useEffect, useContext, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { useMutation, gql } from '@apollo/client';
-import classNames from 'classnames/bind';
 import { loadStripe } from '@stripe/stripe-js';
+import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard'
+import { basicPlan, startupPlan, enterprisePlan } from './BillingPlanCard/BillingConfig'
 
 import commonStyles from '../../Common.module.scss';
 import styles from './Billing.module.scss';
@@ -100,7 +101,7 @@ export const Billing = () => {
                     selectedLabel={billingView}
                 />
                 {/* Temporary button for testing server code */}
-                <div>
+                {/* <div>
                     <button
                         type="submit"
                         className={classNames(
@@ -110,8 +111,13 @@ export const Billing = () => {
                     >
                         Continue to billing page
                     </button>
+                </div> */}
+                <div className={styles.billingPlanCardWrapper}>
+                    <BillingPlanCard billingPlan={basicPlan} onSelect={onSubmit}></BillingPlanCard>
+                    <BillingPlanCard billingPlan={startupPlan} onSelect={onSubmit}></BillingPlanCard>
+                    <BillingPlanCard billingPlan={enterprisePlan} onSelect={onSubmit}></BillingPlanCard>
                 </div>
             </div>
-        </div>
+        </div >
     );
 };

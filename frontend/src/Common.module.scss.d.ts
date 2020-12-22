@@ -4,3 +4,4 @@ export const headerLink: string;
 export const input: string;
 export const secondaryButton: string;
 export const submitButton: string;
+export const title: string;
