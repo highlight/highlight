@@ -50,10 +50,30 @@
     justify-content: center;
 }
 
+.tertiaryButton {
+    width: 100%;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    height: 40px;
+    color:#5629c6;
+    margin: 8px 0px 8px 0px;
+    background-color: white;
+    border: 1px solid #5629c6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .headerLink {
     text-decoration: none;
     color: black;
     margin-right: 30px;
     font-size: 18px;
+    font-weight: 400;
+}
+
+.title {
+    font-size: 28px;
     font-weight: 400;
 }
