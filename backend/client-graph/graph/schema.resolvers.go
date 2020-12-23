@@ -42,7 +42,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID
 	}
 
 	// Get the user's ip, get geolocation data
-	var location Location
+	location := &Location{}
 	var err error
 	ip, ok := ctx.Value("ip").(string)
 	if ok {
@@ -52,7 +52,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID
 		}
 	}
 
-	log.Infof("ip address: %v \n", ip)
+	log.Infof("user: %v in org: %v has ip address: %v \n", user.ID, user.OrganizationID, ip)
 
 	// Parse the user-agent string
 	var deviceDetails DeviceDetails
