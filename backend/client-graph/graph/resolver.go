@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"os"
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
@@ -68,40 +66,31 @@ func (r *Resolver) AppendProperties(sessionID int, propertiesObject map[string]s
 	return nil
 }
 
-func GetLocationFromIP(ip string) (location Location, err error) {
-	ip, _, _ = net.SplitHostPort(ip)
-
-	var ipStr string
-	if os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT") == "dev" {
-		ipStr = "99.98.244.156"
-	} else {
-		ipStr = net.ParseIP(ip).String()
-	}
-
-	url := fmt.Sprintf("https://geolocation-db.com/json/%s", ipStr)
+func GetLocationFromIP(ip string) (location *Location, err error) {
+	url := fmt.Sprintf("https://geolocation-db.com/json/%s", ip)
 	method := "GET"
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
-		return location, err
+		return nil, err
 	}
 
 	res, err := client.Do(req)
 	if err != nil {
-		return location, err
+		return nil, err
 	}
 
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return location, err
+		return nil, err
 	}
 
 	err = json.Unmarshal(body, &location)
 	if err != nil {
-		return location, err
+		return nil, err
 	}
 
 	// long and lat should be float
