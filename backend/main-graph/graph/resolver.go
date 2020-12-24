@@ -21,11 +21,11 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 var (
-	WhitelistedUID = "GoDjf1dw7GVLJQrCHht03NsCdWb2"
+	WhitelistedUID = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	DemoSession    = os.Getenv("DEMO_SESSION")
 )
 
-type Resolver struct {
+type Resolver struct 
 	DB           *gorm.DB
 	MailClient   *sendgrid.Client
 	StripeClient *client.API
