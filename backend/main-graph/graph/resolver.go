@@ -25,7 +25,7 @@ var (
 	DemoSession    = os.Getenv("DEMO_SESSION")
 )
 
-type Resolver struct 
+type Resolver struct {
 	DB           *gorm.DB
 	MailClient   *sendgrid.Client
 	StripeClient *client.API
