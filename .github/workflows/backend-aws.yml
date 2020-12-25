@@ -1,7 +1,7 @@
-name: Backend
+name: Backend-AWS
 on: push
 jobs:
-    backend:
+    backend-aws:
         runs-on: ubuntu-latest
         env:
           working-directory: backend
