@@ -19,7 +19,7 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
       - name: Push the image
-        run: docker push {{ env.IMAGE_URL }}:${{ github.sha }}
+        run: docker push ${{ env.IMAGE_URL }}:${{ github.sha }}
       - name: Render Amazon ECS task definition
         id: render-task-definition
         uses: aws-actions/amazon-ecs-render-task-definition@v1
