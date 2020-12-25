@@ -36,6 +36,10 @@
                     "valueFrom": "/production/BACKEND_URI",
                     "name": "BACKEND_URI"
                 }
+                {
+                    "valueFrom": "/production/FIREBASE_SECRET",
+                    "name": "FIREBASE_SECRET"
+                }
             ],
             "dockerSecurityOptions": null,
             "memory": null,
