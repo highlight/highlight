@@ -27,6 +27,8 @@ jobs:
           task-definition: backend/task-definition.json
           container-name: backend-container
           image: ${{ env.IMAGE_URL }}:${{ github.sha }}
+      - name: Print
+        run: echo ${{ steps.render-task-definition.outputs.task-definition }} && cat ${{ steps.render-task-definition.outputs.task-definition }}
       - name: Deploy to Amazon ECS service
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
