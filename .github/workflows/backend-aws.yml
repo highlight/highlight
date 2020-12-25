@@ -1,21 +1,35 @@
 name: Backend-AWS
 on: push
+env:
+  IMAGE_URL: 173971919437.dkr.ecr.us-west-2.amazonaws.com/backend
 jobs:
-    backend-aws:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v2
-            - name: Build the image
-              run: docker build -t 173971919437.dkr.ecr.us-west-2.amazonaws.com/backend:${{ github.sha }} backend
-            - name: Configure AWS credentials
-              uses: aws-actions/configure-aws-credentials@v1
-              with:
-                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                aws-region: us-west-2
-            - name: Login to Amazon ECR
-              id: login-ecr
-              uses: aws-actions/amazon-ecr-login@v1
-            - name: Push the image
-              run: docker push 173971919437.dkr.ecr.us-west-2.amazonaws.com/backend:${{ github.sha }}
+  backend-aws:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build the image
+        run: docker build -t ${{ env.IMAGE_URL }}:${{ github.sha }} backend
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Push the image
+        run: docker push {{ env.IMAGE_URL }}:${{ github.sha }}
+      - name: Render Amazon ECS task definition
+        id: render-task-definition
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: backend/task-definition.json
+          container-name: backend
+          image: ${{ env.IMAGE_URL }}:${{ github.sha }}
+      - name: Deploy to Amazon ECS service
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-task-definition.outputs.task-definition }}
+          service: backend-service-2
+          cluster: highlight-prod-cluster
