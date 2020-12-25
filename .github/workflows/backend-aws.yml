@@ -3,13 +3,11 @@ on: push
 jobs:
     backend-aws:
         runs-on: ubuntu-latest
-        env:
-          working-directory: backend
         steps:
             - name: Checkout
               uses: actions/checkout@v2
             - name: Build the image
-              run: docker build -t 173971919437.dkr.ecr.us-west-2.amazonaws.com/backend:${{ github.sha }} .
+              run: docker build -t 173971919437.dkr.ecr.us-west-2.amazonaws.com/backend:${{ github.sha }} backend
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
               with:
