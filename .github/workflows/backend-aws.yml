@@ -3,9 +3,13 @@ on: push
 jobs:
     backend:
         runs-on: ubuntu-latest
+        env:
+          working-directory: backend
         steps:
             - name: Checkout
               uses: actions/checkout@v2
+            - name: Build the image
+              run: docker build -t 173971919437.dkr.ecr.us-west-2.amazonaws.com/backend:${{ github.sha }} .
             - name: Configure AWS credentials
               uses: aws-actions/configure-aws-credentials@v1
               with:
@@ -15,8 +19,5 @@ jobs:
             - name: Login to Amazon ECR
               id: login-ecr
               uses: aws-actions/amazon-ecr-login@v1
-            - name: Setup Go
-              uses: actions/setup-go@v2
-            - name: Build binary
-              run: cd backend && go build .
-
+            - name: Push the image
+              run: docker push 173971919437.dkr.ecr.us-west-2.amazonaws.com/backend:${{ github.sha }}
