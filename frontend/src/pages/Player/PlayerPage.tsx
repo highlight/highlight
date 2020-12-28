@@ -21,6 +21,7 @@ import useResizeAware from 'react-resize-aware';
 import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
 import { DemoContext } from '../../DemoContext';
+import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 export const Player = () => {
     var { session_id } = useParams();
@@ -32,6 +33,7 @@ export const Player = () => {
     const [replayerScale, setReplayerScale] = useState(1);
     const [playerLoading, setPlayerLoading] = useState(true);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
+    const { setOpenSidebar } = useContext(SidebarContext);
     const {
         loading: sessionLoading,
         error: sessionError,
@@ -51,6 +53,10 @@ export const Player = () => {
             context: { headers: { 'Highlight-Demo': demo } },
         }
     );
+
+    useEffect(() => {
+        setOpenSidebar(false)
+    }, [setOpenSidebar])
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const resizePlayer = (replayer: Replayer): boolean => {
