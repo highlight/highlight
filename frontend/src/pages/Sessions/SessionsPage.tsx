@@ -128,7 +128,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                 <div className={styles.searchBar}>
                     <div className={styles.searchInputSection}>
                         {params?.map((p, i) => (
-                            <div key={i} className={classNames(styles.optionInputWrapper, "rr-block")}>
+                            <div key={i} className={styles.optionInputWrapper}>
                                 <div className={styles.optionKey}>
                                     {p?.action}:
                                 </div>
@@ -277,7 +277,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                             <div
                                                 className={styles.blueTitle}
                                             >{`User#${u?.user_id}`}</div>
-                                            <div className={styles.regSubTitle}>
+                                            <div className={classNames(styles.regSubTitle, "rr-block")}>
                                                 {u?.identifier}
                                             </div>
                                         </div>
