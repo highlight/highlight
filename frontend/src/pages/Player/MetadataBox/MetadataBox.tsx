@@ -6,6 +6,7 @@ import { Avatar } from '../../../components/Avatar/Avatar';
 
 import styles from './MetadataBox.module.scss';
 import { DemoContext } from '../../../DemoContext';
+import classNames from 'classnames/bind';
 
 export const MetadataBox = () => {
     const { session_id } = useParams<{ session_id: string }>();

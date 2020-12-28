@@ -27,5 +27,5 @@ export const Avatar = ({
             )}`;
         }
     }, [seed]);
-    return <img alt="" style={style} ref={imageRef} />;
+    return <img className={"rr-block"} alt="" style={style} ref={imageRef} />;
 };

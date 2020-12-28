@@ -20,6 +20,7 @@ import AutosizeInput from 'react-input-autosize';
 
 import styles from './SessionsPage.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
+import classNames from 'classnames/bind';
 
 export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const countDebounced = useDebouncedCallback(() => {
@@ -276,7 +277,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                             <div
                                                 className={styles.blueTitle}
                                             >{`User#${u?.user_id}`}</div>
-                                            <div className={styles.regSubTitle}>
+                                            <div className={classNames(styles.regSubTitle, "rr-block")}>
                                                 {u?.identifier}
                                             </div>
                                         </div>

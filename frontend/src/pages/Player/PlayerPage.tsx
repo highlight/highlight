@@ -5,8 +5,8 @@ import {
     MouseInteractions,
     IncrementalSource,
     EventType,
-} from 'rrweb';
-import { eventWithTime, incrementalData } from 'rrweb/typings/types';
+} from '@highlight-run/rrweb';
+import { eventWithTime, incrementalData } from '@highlight-run/rrweb/typings/types';
 import { scroller } from 'react-scroll';
 import { Spinner } from '../../components/Spinner/Spinner';
 import { useQuery, gql } from '@apollo/client';

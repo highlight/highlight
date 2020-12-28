@@ -53,7 +53,7 @@ const Head: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                         to={demo ? '/' : `/${organization_id}/sessions`}
                     >
                         <HighlightLogoSmall className={styles.logo} />
-                        <span className={styles.logoText}>Highlight</span>
+                        <span className={classNames(styles.logoText, "rr-block")}>Highlight</span>
                     </Link>
                 </div>
                 <div className={styles.searchWrapper}>

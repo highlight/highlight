@@ -6,7 +6,7 @@ import { SettingsMenu } from './SettingsMenu/SettingsMenu';
 import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
 
 import styles from './Toolbar.module.scss';
-import { Replayer } from 'rrweb';
+import { Replayer } from '@highlight-run/rrweb';
 
 export const Toolbar = ({
     replayer,
