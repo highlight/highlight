@@ -20,6 +20,7 @@ import AutosizeInput from 'react-input-autosize';
 
 import styles from './SessionsPage.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
+import classNames from 'classnames';
 
 export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const countDebounced = useDebouncedCallback(() => {
@@ -127,7 +128,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                 <div className={styles.searchBar}>
                     <div className={styles.searchInputSection}>
                         {params?.map((p, i) => (
-                            <div key={i} className={styles.optionInputWrapper}>
+                            <div key={i} className={classNames(styles.optionInputWrapper, "rr-block")}>
                                 <div className={styles.optionKey}>
                                     {p?.action}:
                                 </div>
