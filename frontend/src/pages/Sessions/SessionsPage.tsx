@@ -20,7 +20,7 @@ import AutosizeInput from 'react-input-autosize';
 
 import styles from './SessionsPage.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
-import classNames from 'classnames';
+import classNames from 'classnames/bind';
 
 export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const countDebounced = useDebouncedCallback(() => {
