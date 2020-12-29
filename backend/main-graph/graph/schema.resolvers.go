@@ -202,6 +202,10 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 	return stripe_session.ID, nil
 }
 
+func (r *organizationResolver) VerboseID(ctx context.Context, obj *model.Organization) (string, error) {
+	return obj.VerboseID(), nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	session, err := r.isAdminSessionOwner(ctx, id)
 	if err != nil {
@@ -529,6 +533,9 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
+// Organization returns generated.OrganizationResolver implementation.
+func (r *Resolver) Organization() generated.OrganizationResolver { return &organizationResolver{r} }
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
@@ -539,6 +546,7 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
 type mutationResolver struct{ *Resolver }
+type organizationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }

@@ -25,6 +25,7 @@ export const FieldsForm = () => {
         gql`
             query GetOrganization($id: ID!) {
                 organization(id: $id) {
+                    id
                     name
                     billing_email
                 }

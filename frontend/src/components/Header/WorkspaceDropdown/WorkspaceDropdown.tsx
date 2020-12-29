@@ -33,6 +33,7 @@ export const WorkspaceDropdown = () => {
         gql`
             query GetOrganization($id: ID!) {
                 organization(id: $id) {
+                    id
                     name
                 }
             }

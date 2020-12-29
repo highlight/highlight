@@ -15,7 +15,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int) (*model.Session, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string) (*model.Session, error) {
+	organizationID := model.FromVerboseID(organizationVerboseID)
 	organization := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization)
 	if err := res.Error; err != nil || res.RecordNotFound() {

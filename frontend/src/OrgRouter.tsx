@@ -26,6 +26,7 @@ export const OrgRouter = () => {
         gql`
             query GetOrganization($id: ID!) {
                 organization(id: $id) {
+                    id
                     name
                 }
             }
