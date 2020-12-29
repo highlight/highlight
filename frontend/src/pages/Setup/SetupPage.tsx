@@ -46,10 +46,6 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
         setOpenSidebar(true);
     }, [setOpenSidebar]);
 
-    if (!data?.organization || loading) {
-        return <Skeleton />
-    }
-
     return (
         <div className={styles.setupWrapper}>
             <div className={styles.blankSidebar}></div>
@@ -67,46 +63,52 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                     labels={[PlatformType.React, PlatformType.Vue, PlatformType.Html, PlatformType.NextJs]}
                     onSelect={(p: PlatformType) => setPlatform(p)}
                 />
-                {platform === PlatformType.Html ? (
-                    <HtmlInstructions orgVerboseId={data?.organization.verbose_id} />
-                ) : (
-                        <JsAppInstructions orgVerboseId={data?.organization.verbose_id} platform={platform} />
-                    )}
-                <Section title="Identifying Users">
-                    <div className={styles.snippetSubHeading}>
-                        To tag sessions with user specific identifiers (name,
-                        email, etc.), you can call the
+                {
+                    !data?.organization || loading ?
+                        <Skeleton /> :
+                        <>
+                            {platform === PlatformType.Html ? (
+                                <HtmlInstructions orgVerboseId={data?.organization.verbose_id} />
+                            ) : (
+                                    <JsAppInstructions orgVerboseId={data?.organization.verbose_id} platform={platform} />
+                                )}
+                            <Section title="Identifying Users">
+                                <div className={styles.snippetSubHeading}>
+                                    To tag sessions with user specific identifiers (name,
+                                    email, etc.), you can call the
                         <span className={styles.codeBlockBasic}>
-                            {'H.identify(id: string, object: Object)'}
-                        </span>{' '}
+                                        {'H.identify(id: string, object: Object)'}
+                                    </span>{' '}
                         method in your javascript app. Here's an example:
                     </div>
-                    <CodeBlock
-                        onCopy={() =>
-                            window.analytics.track('Copied Code Snippet', {})
-                        }
-                        text={
-                            platform === PlatformType.NextJs
-                                ? `if (typeof window !== 'undefined') {
+                                <CodeBlock
+                                    onCopy={() =>
+                                        window.analytics.track('Copied Code Snippet', {})
+                                    }
+                                    text={
+                                        platform === PlatformType.NextJs
+                                            ? `if (typeof window !== 'undefined') {
     H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}
     )
 }`
-                                : `H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)`
-                        }
-                    />
-                </Section>
-                <Section title="Verify Installation" integrated={integrated}>
-                    <div className={styles.snippetSubHeading}>
-                        Please follow the setup instructions above to install
-                        Highlight. It should take less than a minute for us to
-                        detect installation.
+                                            : `H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)`
+                                    }
+                                />
+                            </Section>
+                            <Section title="Verify Installation" integrated={integrated}>
+                                <div className={styles.snippetSubHeading}>
+                                    Please follow the setup instructions above to install
+                                    Highlight. It should take less than a minute for us to
+                                    detect installation.
                     </div>
-                    <br />
-                    <IntegrationDetector
-                        integrated={integrated}
-                        verbose={true}
-                    />
-                </Section>
+                                <br />
+                                <IntegrationDetector
+                                    integrated={integrated}
+                                    verbose={true}
+                                />
+                            </Section>
+                        </>
+                }
             </div>
         </div>
     );
