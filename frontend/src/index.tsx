@@ -19,7 +19,7 @@ if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
     options.backendUrl = 'http://localhost:8082';
 }
-H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
+H.init(parseInt(process.env.REACT_APP_FRONTEND_ORG ?? '1') ?? 1, options);
 H.start();
 LogRocket.init('vcbmdo/highlight');
 
