@@ -51,7 +51,7 @@ export class Highlight {
     )
     if (typeof options.organizationID === 'string') {
       this.organizationID = options.organizationID
-    } else {
+    } else if (typeof options.organizationID === 'number') {
       this.organizationID = options.organizationID.toString()
     }
     this.sessionID = 0;
