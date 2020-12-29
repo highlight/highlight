@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -12,9 +13,24 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	log "github.com/sirupsen/logrus"
+	"github.com/speps/go-hashids"
 )
 
-var DB *gorm.DB
+var (
+	DB     *gorm.DB
+	HashID *hashids.HashID
+)
+
+func init() {
+	hd := hashids.NewData()
+	hd.MinLength = 8
+	hd.Alphabet = "abcdefghijklmnopqrstuvwxyz1234567890"
+	hid, err := hashids.NewWithData(hd)
+	if err != nil {
+		log.Fatalf("error creating hash id client: %v", err)
+	}
+	HashID = hid
+}
 
 type Model struct {
 	ID        int        `gorm:"primary_key" json:"id"`
@@ -63,6 +79,28 @@ type Organization struct {
 	Fields           []Field
 	Segments         []Segment `gorm:"foreignKey:ID;"`
 	RecordingSetting RecordingSettings
+}
+
+func (u *Organization) VerboseID() string {
+	str, err := HashID.Encode([]int{u.ID})
+	if err != nil {
+		log.Errorf("error generating hash id: %v", err)
+		str = strconv.Itoa(u.ID)
+	}
+	return str
+}
+
+func FromVerboseID(verboseId string) int {
+	// Try to convert the id to an integer in the case that the client is out of date.
+	if organizationID, err := strconv.Atoi(verboseId); err == nil {
+		return organizationID
+	}
+	// Otherwise, decode with HashID library
+	ints := HashID.Decode(verboseId)
+	if len(ints) != 1 {
+		return 1
+	}
+	return ints[0]
 }
 
 func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {

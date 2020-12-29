@@ -27,6 +27,7 @@ type RecordingSettings {
 
 type Organization {
   id: ID!
+  verbose_id: String!
   name: String!
   billing_email: String
 }

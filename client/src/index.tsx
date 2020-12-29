@@ -25,13 +25,13 @@ class Logger {
 }
 
 export type HighlightClassOptions = {
-  organizationID: number;
+  organizationID: number | string;
   debug?: boolean;
   backendUrl?: string;
 };
 
 export class Highlight {
-  organizationID: number;
+  organizationID: string;
   client: GraphQLClient;
   events: eventWithTime[];
   messages: ConsoleMessage[];
@@ -49,7 +49,11 @@ export class Highlight {
       `${backend}/client`,
       { headers: {} }
     )
-    this.organizationID = options.organizationID;
+    if (typeof options.organizationID === 'string') {
+      this.organizationID = options.organizationID
+    } else {
+      this.organizationID = options.organizationID.toString()
+    }
     this.sessionID = 0;
     this.events = [];
     this.networkContents = [];
@@ -106,16 +110,24 @@ export class Highlight {
   }
 
   // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
-  async initialize(organization_id?: number) {
+  async initialize(organization_id?: number | string) {
+    var org_id = ""
+    if (typeof organization_id === "number") {
+      org_id = organization_id.toString()
+    } else if (typeof organization_id === "string") {
+      org_id = organization_id
+    } else {
+      org_id = "0"
+    }
     try {
       if (organization_id) {
-        this.organizationID = organization_id;
+        this.organizationID = org_id;
       }
-      let gr = await this.client.request<{ initializeSession: { id: number, user_id: number, organization_id: number } }, { organization_id: number }>(
+      let gr = await this.client.request<{ initializeSession: { id: number, user_id: number, organization_id: number } }, { organization_verbose_id: string }>(
         gql`
-        mutation initializeSession($organization_id: ID!) {
+        mutation initializeSession($organization_verbose_id: String!) {
           initializeSession(
-            organization_id: $organization_id
+            organization_verbose_id: $organization_verbose_id
           ) {
             id
             user_id
@@ -124,15 +136,15 @@ export class Highlight {
         }
       `,
         {
-          organization_id: this.organizationID,
+          organization_verbose_id: this.organizationID,
         },
       );
-      console.log(gr);
       this.sessionID = gr.initializeSession.id;
       this.logger.log(
         `Loaded Highlight
 Remote: ${process.env.BACKEND_URI}
-Org: ${this.organizationID}
+Org ID: ${gr.initializeSession.organization_id}
+Verbose Org ID: ${this.organizationID}
 Session Data: 
 `,
         gr.initializeSession
