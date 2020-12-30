@@ -11,7 +11,7 @@ import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { DemoContext } from '../../DemoContext';
 
 export const Sidebar = () => {
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
     const { pathname } = useLocation();
     const { openSidebar } = useContext(SidebarContext);
     const { demo } = useContext(DemoContext);

@@ -158,6 +158,8 @@ type Session struct {
 
 type Field struct {
 	Model
+	// 'user_property', 'session_property'.
+	Type string
 	// 'email', 'identifier', etc.
 	Name string
 	// 'email@email.com'

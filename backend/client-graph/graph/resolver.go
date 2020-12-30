@@ -36,32 +36,38 @@ type DeviceDetails struct {
 	BrowserVersion string `json:"browser_version"`
 }
 
-func (r *Resolver) AppendProperties(sessionID int, propertiesObject map[string]string) error {
+func (r *Resolver) AppendProperties(sessionID int, userProperties map[string]string, sessionProperties map[string]string) error {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return e.Wrap(err, "error receiving session")
 	}
 
-	modelFields := []model.Field{}
-	for fk, fv := range propertiesObject {
-		// Get the field with org_id, name, value
+	modelFields := []*model.Field{}
+	for k, fv := range userProperties {
+		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: "user"})
+	}
+	for k, fv := range sessionProperties {
+		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: "session"})
+	}
+
+	err := r.AppendFields(modelFields)
+	if err != nil {
+		return e.Wrap(err, "error appending fields")
+	}
+	return nil
+}
+
+func (r *Resolver) AppendFields(fields []*model.Field) error {
+	for _, f := range fields {
 		field := &model.Field{}
-		res = r.DB.Where(&model.Field{OrganizationID: session.OrganizationID, Name: fk, Value: fv}).First(&field)
+		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
 		if err := res.Error; err != nil || res.RecordNotFound() {
-			f := &model.Field{OrganizationID: session.OrganizationID, Name: fk, Value: fv}
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
-			field = f
 		}
-		modelFields = append(modelFields, *field)
-	}
-
-	re := r.DB.Model(&session).Association("Fields").Append(modelFields)
-	if err := re.Error; err != nil {
-		return e.Wrap(err, "error updating fields")
 	}
 	return nil
 }

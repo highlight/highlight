@@ -34,7 +34,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const { setOpenSidebar } = useContext(SidebarContext);
     const [activeParam, setActiveParam] = useState<number>(-1);
     const [mainInputText, setMainInputText] = useState('');
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
     const [sessionData, setSessionData] = useState<any[]>([]);
     const [showDropdown, setShowDropdown] = useState<boolean>(true);
     const [getSessions, { loading, error, data }] = useLazyQuery<
@@ -108,7 +108,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
         ) {
             getSessions({
                 variables: {
-                    organization_id: organization_id,
+                    organization_id: parseInt(organization_id),
                     params: paramsRef.current,
                     count: count,
                 },

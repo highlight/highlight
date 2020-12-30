@@ -37,7 +37,6 @@ type Config struct {
 
 type ResolverRoot interface {
 	Mutation() MutationResolver
-	Organization() OrganizationResolver
 	Query() QueryResolver
 	Segment() SegmentResolver
 	Session() SessionResolver
@@ -51,6 +50,11 @@ type ComplexityRoot struct {
 		Email func(childComplexity int) int
 		ID    func(childComplexity int) int
 		Name  func(childComplexity int) int
+	}
+
+	Field struct {
+		Name  func(childComplexity int) int
+		Value func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -73,20 +77,21 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Admin             func(childComplexity int) int
-		Admins            func(childComplexity int, organizationID int) int
-		Events            func(childComplexity int, sessionID int) int
-		FieldSuggestion   func(childComplexity int, organizationID int, field string, query string) int
-		Fields            func(childComplexity int, organizationID int) int
-		IsIntegrated      func(childComplexity int, organizationID int) int
-		Messages          func(childComplexity int, sessionID int) int
-		Organization      func(childComplexity int, id int) int
-		Organizations     func(childComplexity int) int
-		RecordingSettings func(childComplexity int, organizationID int) int
-		Resources         func(childComplexity int, sessionID int) int
-		Segments          func(childComplexity int, organizationID int) int
-		Session           func(childComplexity int, id int) int
-		Sessions          func(childComplexity int, organizationID int, count int, params []interface{}) int
+		Admin               func(childComplexity int) int
+		Admins              func(childComplexity int, organizationID int) int
+		Events              func(childComplexity int, sessionID int) int
+		FieldSuggestion     func(childComplexity int, organizationID int, field string, query string) int
+		Fields              func(childComplexity int, organizationID int) int
+		IsIntegrated        func(childComplexity int, organizationID int) int
+		Messages            func(childComplexity int, sessionID int) int
+		Organization        func(childComplexity int, id int) int
+		Organizations       func(childComplexity int) int
+		RecordingSettings   func(childComplexity int, organizationID int) int
+		Resources           func(childComplexity int, sessionID int) int
+		Segments            func(childComplexity int, organizationID int) int
+		Session             func(childComplexity int, id int) int
+		Sessions            func(childComplexity int, organizationID int, count int, params []interface{}) int
+		UserFieldSuggestion func(childComplexity int, organizationID int, query string) int
 	}
 
 	RecordingSettings struct {
@@ -133,9 +138,6 @@ type MutationResolver interface {
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model.RecordingSettings, error)
 	CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error)
 }
-type OrganizationResolver interface {
-	VerboseID(ctx context.Context, obj *model.Organization) (string, error)
-}
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model.Session, error)
 	Events(ctx context.Context, sessionID int) ([]interface{}, error)
@@ -146,6 +148,7 @@ type QueryResolver interface {
 	Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model.Session, error)
 	Fields(ctx context.Context, organizationID int) ([]*string, error)
 	FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error)
+	UserFieldSuggestion(ctx context.Context, organizationID int, query string) ([]*model.Field, error)
 	Organizations(ctx context.Context) ([]*model.Organization, error)
 	Organization(ctx context.Context, id int) (*model.Organization, error)
 	Admin(ctx context.Context) (*model.Admin, error)
@@ -194,6 +197,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.Name(childComplexity), true
+
+	case "Field.name":
+		if e.complexity.Field.Name == nil {
+			break
+		}
+
+		return e.complexity.Field.Name(childComplexity), true
+
+	case "Field.value":
+		if e.complexity.Field.Value == nil {
+			break
+		}
+
+		return e.complexity.Field.Value(childComplexity), true
 
 	case "Mutation.addAdminToOrganization":
 		if e.complexity.Mutation.AddAdminToOrganization == nil {
@@ -489,6 +506,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["params"].([]interface{})), true
 
+	case "Query.user_field_suggestion":
+		if e.complexity.Query.UserFieldSuggestion == nil {
+			break
+		}
+
+		args, err := ec.field_Query_user_field_suggestion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UserFieldSuggestion(childComplexity, args["organization_id"].(int), args["query"].(string)), true
+
 	case "RecordingSettings.details":
 		if e.complexity.RecordingSettings.Details == nil {
 			break
@@ -743,6 +772,11 @@ type Admin {
   email: String!
 }
 
+type Field {
+  name: String!
+  value: String!
+}
+
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
@@ -758,6 +792,10 @@ type Query {
     field: String!
     query: String!
   ): [String]
+  user_field_suggestion(
+    organization_id: ID!
+    query: String!
+  ): [Field]
   organizations: [Organization]
   organization(id: ID!): Organization
   admin: Admin
@@ -1222,6 +1260,30 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_user_field_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("query"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1360,6 +1422,74 @@ func (ec *executionContext) _Admin_email(ctx context.Context, field graphql.Coll
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Field_name(ctx context.Context, field graphql.CollectedField, obj *model.Field) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Field",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Field_value(ctx context.Context, field graphql.CollectedField, obj *model.Field) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Field",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1758,7 +1888,7 @@ func (ec *executionContext) _Organization_verbose_id(ctx context.Context, field 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Organization().VerboseID(rctx, obj)
+		return obj.VerboseID(), nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2180,6 +2310,44 @@ func (ec *executionContext) _Query_field_suggestion(ctx context.Context, field g
 	res := resTmp.([]*string)
 	fc.Result = res
 	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_user_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_user_field_suggestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UserFieldSuggestion(rctx, args["organization_id"].(int), args["query"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Field)
+	fc.Result = res
+	return ec.marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_organizations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4198,6 +4366,38 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var fieldImplementors = []string{"Field"}
+
+func (ec *executionContext) _Field(ctx context.Context, sel ast.SelectionSet, obj *model.Field) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, fieldImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Field")
+		case "name":
+			out.Values[i] = ec._Field_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._Field_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -4259,26 +4459,17 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 		case "id":
 			out.Values[i] = ec._Organization_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "verbose_id":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Organization_verbose_id(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._Organization_verbose_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "name":
 			out.Values[i] = ec._Organization_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "billing_email":
 			out.Values[i] = ec._Organization_billing_email(ctx, field, obj)
@@ -4405,6 +4596,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_field_suggestion(ctx, field)
+				return res
+			})
+		case "user_field_suggestion":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_user_field_suggestion(ctx, field)
 				return res
 			})
 		case "organizations":
@@ -5379,6 +5581,53 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v []*model.Field) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOField2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOField2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v *model.Field) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Field(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface{}) (*int, error) {

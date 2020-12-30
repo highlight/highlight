@@ -48,6 +48,11 @@ type Admin {
   email: String!
 }
 
+type Field {
+  name: String!
+  value: String!
+}
+
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
@@ -63,6 +68,10 @@ type Query {
     field: String!
     query: String!
   ): [String]
+  user_field_suggestion(
+    organization_id: ID!
+    query: String!
+  ): [Field]
   organizations: [Organization]
   organization(id: ID!): Organization
   admin: Admin

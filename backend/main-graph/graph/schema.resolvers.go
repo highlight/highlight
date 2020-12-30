@@ -13,6 +13,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -200,10 +201,6 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 	}
 
 	return stripe_session.ID, nil
-}
-
-func (r *organizationResolver) VerboseID(ctx context.Context, obj *model.Organization) (string, error) {
-	return obj.VerboseID(), nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
@@ -443,6 +440,25 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 	return fieldStrings, nil
 }
 
+func (r *queryResolver) UserFieldSuggestion(ctx context.Context, organizationID int, query string) ([]*model.Field, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	fields := []*model.Field{}
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "user"}).
+		Where("length(value) > ?", 0).
+		Where("value ILIKE ?", "%"+query+"%").
+		Limit(20).
+		Find(&fields)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying field suggestion")
+	}
+	for _, v := range fields {
+		pp.Println(v.Name, v.Value)
+	}
+	return fields, nil
+}
+
 func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
 	admin, err := r.Query().Admin(ctx)
 	if err != nil {
@@ -533,9 +549,6 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
-// Organization returns generated.OrganizationResolver implementation.
-func (r *Resolver) Organization() generated.OrganizationResolver { return &organizationResolver{r} }
-
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
@@ -546,7 +559,6 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
 type mutationResolver struct{ *Resolver }
-type organizationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
