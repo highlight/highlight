@@ -38,6 +38,10 @@ type Segment {
   organization_id: ID!
 }
 
+input SearchParams {
+  user_properties: [String]
+}
+
 type User {
   id: ID!
 }
@@ -61,6 +65,7 @@ type Query {
   admins(organization_id: ID!): [Admin]
   isIntegrated(organization_id: ID!): Boolean
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
+  sessionsBETA(organization_id: ID!, count: Int!, params: SearchParams): [Session]
   # gets all the organizations of a user
   fields(organization_id: ID!): [String]
   field_suggestion(

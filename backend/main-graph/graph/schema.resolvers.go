@@ -407,6 +407,10 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	return sessions[:count], nil
 }
 
+func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParams) ([]*model.Session, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*string, error) {
 	rows, err := r.DB.Model(&model.Field{}).
 		Where(&model.Field{OrganizationID: organizationID}).

@@ -91,6 +91,7 @@ type ComplexityRoot struct {
 		Segments            func(childComplexity int, organizationID int) int
 		Session             func(childComplexity int, id int) int
 		Sessions            func(childComplexity int, organizationID int, count int, params []interface{}) int
+		SessionsBeta        func(childComplexity int, organizationID int, count int, params *model.SearchParams) int
 		UserFieldSuggestion func(childComplexity int, organizationID int, query string) int
 	}
 
@@ -146,6 +147,7 @@ type QueryResolver interface {
 	Admins(ctx context.Context, organizationID int) ([]*model.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model.Session, error)
+	SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParams) ([]*model.Session, error)
 	Fields(ctx context.Context, organizationID int) ([]*string, error)
 	FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error)
 	UserFieldSuggestion(ctx context.Context, organizationID int, query string) ([]*model.Field, error)
@@ -506,6 +508,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["params"].([]interface{})), true
 
+	case "Query.sessionsBETA":
+		if e.complexity.Query.SessionsBeta == nil {
+			break
+		}
+
+		args, err := ec.field_Query_sessionsBETA_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SessionsBeta(childComplexity, args["organization_id"].(int), args["count"].(int), args["params"].(*model.SearchParams)), true
+
 	case "Query.user_field_suggestion":
 		if e.complexity.Query.UserFieldSuggestion == nil {
 			break
@@ -762,6 +776,10 @@ type Segment {
   organization_id: ID!
 }
 
+input SearchParams {
+  user_properties: [String]
+}
+
 type User {
   id: ID!
 }
@@ -785,6 +803,7 @@ type Query {
   admins(organization_id: ID!): [Admin]
   isIntegrated(organization_id: ID!): Boolean
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
+  sessionsBETA(organization_id: ID!, count: Int!, params: SearchParams): [Session]
   # gets all the organizations of a user
   fields(organization_id: ID!): [String]
   field_suggestion(
@@ -1224,6 +1243,39 @@ func (ec *executionContext) field_Query_session_args(ctx context.Context, rawArg
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_sessionsBETA_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["count"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("count"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["count"] = arg1
+	var arg2 *model.SearchParams
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		arg2, err = ec.unmarshalOSearchParams2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSearchParams(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg2
 	return args, nil
 }
 
@@ -2223,6 +2275,44 @@ func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.C
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["count"].(int), args["params"].([]interface{}))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Session)
+	fc.Result = res
+	return ec.marshalOSession2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_sessionsBETA_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SessionsBeta(rctx, args["organization_id"].(int), args["count"].(int), args["params"].(*model.SearchParams))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4321,6 +4411,26 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputSearchParams(ctx context.Context, obj interface{}) (model.SearchParams, error) {
+	var it model.SearchParams
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "user_properties":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("user_properties"))
+			it.UserProperties, err = ec.unmarshalOString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -4574,6 +4684,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sessions(ctx, field)
+				return res
+			})
+		case "sessionsBETA":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_sessionsBETA(ctx, field)
 				return res
 			})
 		case "fields":
@@ -5706,6 +5827,14 @@ func (ec *executionContext) marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkh
 		return graphql.Null
 	}
 	return ec._RecordingSettings(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSearchParams2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSearchParams(ctx context.Context, v interface{}) (*model.SearchParams, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSearchParams(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOSegment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSegment(ctx context.Context, sel ast.SelectionSet, v []*model.Segment) graphql.Marshaler {

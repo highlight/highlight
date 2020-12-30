@@ -14,6 +14,23 @@
     position: relative;
 }
 
+.advancedText {
+    margin-right: 8px;
+}
+
+.advancedIcon {
+    margin-top: 4px;
+    height: 100%;
+}
+
+.advancedSearchButton {
+    cursor: pointer;
+    margin: 10px 0 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
 .sessionsHeader {
     font-size: 35px;
     font-weight: 300;

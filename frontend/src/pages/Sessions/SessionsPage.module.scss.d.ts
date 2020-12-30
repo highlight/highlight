@@ -1,3 +1,6 @@
+export const advancedIcon: string;
+export const advancedSearchButton: string;
+export const advancedText: string;
 export const blueTitle: string;
 export const dropdown: string;
 export const dropdownDivider: string;

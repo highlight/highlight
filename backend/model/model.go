@@ -181,6 +181,10 @@ type ResourcesObject struct {
 	Resources string
 }
 
+type SearchParams struct {
+	UserProperties []*string `json:"user_properties"`
+}
+
 type MessagesObject struct {
 	Model
 	SessionID int
