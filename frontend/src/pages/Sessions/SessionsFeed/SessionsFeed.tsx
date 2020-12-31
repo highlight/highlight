@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
 import { ReactComponent as PlayButton } from '../../../static/play-button.svg';
 import styles from './SessionsFeed.module.scss';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
 import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
@@ -26,6 +27,7 @@ export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [count, setCount] = useState(10);
     const [loadData, setLoadData] = useState(false);
+    const [loadingState, setLoadingState] = useState(false);
     const [data, setData] = useState<Array<Session>>([]);
     const { searchParams } = useContext(SearchContext);
     const { refetch } = useQuery<
@@ -48,14 +50,22 @@ export const SessionFeed = () => {
     }
 `, { skip: true });
 
+    // On the component mount, shoot out a request.
     useEffect(() => {
         setLoadData(true);
     }, [])
+
+    // When the search params change, shoot out another request.
+    useEffect(() => {
+        setLoadData(true);
+        setLoadingState(true);
+    }, [searchParams])
 
     useEffect(() => {
         if (!loadData) return;
         refetch({ params: searchParams, count: count + 10, organization_id: parseInt(organization_id) }).then((res) => {
             setLoadData(false);
+            setLoadingState(false);
             setData(res.data.sessionsBETA)
             setCount(c => c + 10)
         })
@@ -68,6 +78,14 @@ export const SessionFeed = () => {
             setLoadData(true)
         },
     });
+
+    if (loadingState) {
+        return (
+            <SkeletonTheme color={"#F5F5F5"} highlightColor={"#FCFCFC"}>
+                <Skeleton height={80} count={3} style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }} />
+            </SkeletonTheme>
+        )
+    }
 
     return (
         <div ref={infiniteRef as RefObject<HTMLDivElement>}>
