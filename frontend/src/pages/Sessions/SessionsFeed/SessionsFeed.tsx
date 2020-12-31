@@ -1,15 +1,11 @@
 import { gql, useQuery } from '@apollo/client';
-import React, { RefObject, useContext, useEffect, useRef, useState } from 'react';
+import React, { RefObject, useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
 import { ReactComponent as PlayButton } from '../../../static/play-button.svg';
 import styles from './SessionsFeed.module.scss';
 import classNames from 'classnames/bind';
 import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
-import { Skeleton } from 'antd';
-import { useDebouncedCallback } from 'use-debounce/lib';
-import InfiniteScroll from 'react-infinite-scroller';
-import { Spinner } from '../../../components/Spinner/Spinner';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 
 type Session = {
@@ -28,12 +24,11 @@ type Session = {
 
 export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const resultsRef = useRef<HTMLDivElement>(null);
     const [count, setCount] = useState(10);
     const [loadData, setLoadData] = useState(false);
     const [data, setData] = useState<Array<Session>>([]);
     const { searchParams } = useContext(SearchContext);
-    const { refetch, loading } = useQuery<
+    const { refetch } = useQuery<
         { sessionsBETA: Session[] },
         { count: number; organization_id: number; params: SearchParams }
     >(
@@ -64,7 +59,7 @@ export const SessionFeed = () => {
             setData(res.data.sessionsBETA)
             setCount(c => c + 10)
         })
-    }, [loadData])
+    }, [loadData, count, organization_id, refetch, searchParams])
 
     const infiniteRef = useInfiniteScroll({
         loading: loadData,
