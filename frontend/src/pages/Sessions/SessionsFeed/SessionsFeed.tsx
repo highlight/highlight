@@ -1,13 +1,12 @@
 import { gql, useQuery } from '@apollo/client';
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { RefObject, useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
 import { ReactComponent as PlayButton } from '../../../static/play-button.svg';
 import styles from './SessionsFeed.module.scss';
 import classNames from 'classnames/bind';
 import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
-import { Skeleton } from 'antd';
-import { useDebouncedCallback } from 'use-debounce/lib';
+import useInfiniteScroll from 'react-infinite-scroll-hook';
 
 type Session = {
     id: number;
@@ -25,10 +24,11 @@ type Session = {
 
 export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const resultsRef = useRef<HTMLDivElement>(null);
     const [count, setCount] = useState(10);
+    const [loadData, setLoadData] = useState(false);
+    const [data, setData] = useState<Array<Session>>([]);
     const { searchParams } = useContext(SearchContext);
-    const { loading, data } = useQuery<
+    const { refetch } = useQuery<
         { sessionsBETA: Session[] },
         { count: number; organization_id: number; params: SearchParams }
     >(
@@ -46,38 +46,36 @@ export const SessionFeed = () => {
             id, user_id, identifier, os_name, browser_name, browser_version, city, state, postal, created_at, length
         }
     }
-`, { variables: { params: searchParams, count, organization_id: parseInt(organization_id) } });
-
-    const countDebounced = useDebouncedCallback(() => {
-        setCount((count) => count + 10);
-    }, 500);
+`, { skip: true });
 
     useEffect(() => {
-        document.addEventListener('scroll', (e: any) => {
-            var refHeight = resultsRef?.current?.getBoundingClientRect().bottom;
-            const innerHeight = window?.innerHeight;
-            if (!refHeight) {
-                refHeight = 0;
-            }
-            const diff = Math.abs(refHeight - innerHeight);
-            if (diff < 50) {
-                countDebounced.callback();
-            }
-        });
-        return () => {
-            document.removeEventListener('scroll', (e) => console.log(e));
-        };
-    }, [countDebounced]);
+        setLoadData(true);
+    }, [])
 
-    if (loading) {
-        return <Skeleton />
-    }
+    useEffect(() => {
+        if (!loadData) return;
+        refetch({ params: searchParams, count: count + 10, organization_id: parseInt(organization_id) }).then((res) => {
+            setLoadData(false);
+            setData(res.data.sessionsBETA)
+            setCount(c => c + 10)
+        })
+    }, [loadData, count, organization_id, refetch, searchParams])
+
+    const infiniteRef = useInfiniteScroll({
+        loading: loadData,
+        hasNextPage: true,
+        onLoadMore: () => {
+            setLoadData(true)
+        },
+    });
+
     return (
-        <div ref={resultsRef}>
-            {data?.sessionsBETA.map((u) =>
+        <div ref={infiniteRef as RefObject<HTMLDivElement>}>
+            {data.map((u) =>
                 <SessionCard session={u} />
             )}
-        </div>);
+        </div >
+    );
 }
 
 const SessionCard = ({ session }: { session: Session }) => {
