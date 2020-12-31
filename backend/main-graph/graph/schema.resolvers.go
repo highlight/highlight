@@ -13,7 +13,6 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -473,13 +472,10 @@ func (r *queryResolver) UserFieldSuggestion(ctx context.Context, organizationID 
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "user"}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
-		Limit(20).
+		Limit(8).
 		Find(&fields)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error querying field suggestion")
-	}
-	for _, v := range fields {
-		pp.Println(v.Name, v.Value)
 	}
 	return fields, nil
 }

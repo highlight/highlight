@@ -28,7 +28,7 @@ export const SessionFeed = () => {
     const resultsRef = useRef<HTMLDivElement>(null);
     const [count, setCount] = useState(10);
     const { searchParams } = useContext(SearchContext);
-    const { loading, error, data } = useQuery<
+    const { loading, data } = useQuery<
         { sessionsBETA: Session[] },
         { count: number; organization_id: number; params: SearchParams }
     >(
