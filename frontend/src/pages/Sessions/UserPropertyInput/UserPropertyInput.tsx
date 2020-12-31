@@ -37,10 +37,10 @@ export const UserPropertyInput = () => {
                     return { name: o.name, value: o.value }
                 }) ?? [];
                 setSearchParams((params: SearchParams) => {
-                    return { ...params, userProperties: newOptions }
+                    return { ...params, user_properties: newOptions }
                 })
             }}
-            value={searchParams.userProperties.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })}
+            value={searchParams.user_properties.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })}
             loadOptions={generateOptions}
         />
     );

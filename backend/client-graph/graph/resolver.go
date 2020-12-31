@@ -51,14 +51,15 @@ func (r *Resolver) AppendProperties(sessionID int, userProperties map[string]str
 		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: "session"})
 	}
 
-	err := r.AppendFields(modelFields)
+	err := r.AppendFields(modelFields, session)
 	if err != nil {
 		return e.Wrap(err, "error appending fields")
 	}
 	return nil
 }
 
-func (r *Resolver) AppendFields(fields []*model.Field) error {
+func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
+	fieldsToAppend := []*model.Field{}
 	for _, f := range fields {
 		field := &model.Field{}
 		res := r.DB.Where(f).First(&field)
@@ -67,7 +68,15 @@ func (r *Resolver) AppendFields(fields []*model.Field) error {
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
+			fieldsToAppend = append(fieldsToAppend, f)
+		} else {
+			fieldsToAppend = append(fieldsToAppend, field)
 		}
+	}
+	// We append to this session in the join table regardless.
+	re := r.DB.Model(session).Association("Fields").Append(fieldsToAppend)
+	if err := re.Error; err != nil {
+		return e.Wrap(err, "error updating fields")
 	}
 	return nil
 }

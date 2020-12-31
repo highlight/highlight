@@ -182,7 +182,12 @@ type ResourcesObject struct {
 }
 
 type SearchParams struct {
-	UserProperties []*string `json:"user_properties"`
+	UserProperties []*UserProperty `json:"user_properties"`
+}
+
+type UserProperty struct {
+	Name  string
+	Value string
 }
 
 type MessagesObject struct {

@@ -6,13 +6,13 @@ export type UserProperty = {
 }
 
 export type SearchParams = {
-    userProperties: Array<UserProperty>;
+    user_properties: Array<UserProperty>;
 }
 
 export const SearchContext = React.createContext<{
     searchParams: SearchParams;
     setSearchParams: React.Dispatch<React.SetStateAction<SearchParams>>;
 }>({
-    searchParams: { userProperties: [] },
+    searchParams: { user_properties: [] },
     setSearchParams: params => console.warn('noop'),
 });

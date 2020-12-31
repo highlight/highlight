@@ -39,7 +39,12 @@ type Segment {
 }
 
 input SearchParams {
-  user_properties: [String]
+  user_properties: [UserProperty]
+}
+
+input UserProperty {
+  name: String!
+  value: String!
 }
 
 type User {

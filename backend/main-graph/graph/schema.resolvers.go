@@ -408,7 +408,28 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 }
 
 func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParams) ([]*model.Session, error) {
-	panic(fmt.Errorf("not implemented"))
+	queriedSessions := []*model.Session{}
+	if err := r.DB.Where("organization_id = ?", organizationID).Where("processed = ?", true).Where("length > ?", 1000).Order("created_at desc").Preload("Fields").Find(&queriedSessions).Error; err != nil {
+		return nil, e.Wrap(err, "error querying initial set of sessions")
+	}
+	sessions := []*model.Session{}
+	for _, session := range queriedSessions {
+		passed := 0
+		for _, prop := range params.UserProperties {
+			for _, field := range session.Fields {
+				if prop.Name == field.Name && prop.Value == field.Value {
+					passed++
+				}
+			}
+		}
+		if passed == len(params.UserProperties) {
+			sessions = append(sessions, session)
+		}
+	}
+	if len(sessions) < count {
+		count = len(sessions)
+	}
+	return sessions[:count], nil
 }
 
 func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*string, error) {
