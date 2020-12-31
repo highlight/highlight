@@ -93,17 +93,19 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		deviceDetails = GetDeviceDetails(userAgentString)
 	}
 
-	fields := map[string]string{
-		"identifier":      userIdentifier,
+	userProperties := map[string]string{
+		"identifier": userIdentifier,
+	}
+	sessionProperties := map[string]string{
 		"os_name":         deviceDetails.OSName,
 		"os_version":      deviceDetails.OSVersion,
 		"browser_name":    deviceDetails.BrowserName,
 		"browser_version": deviceDetails.BrowserVersion,
 	}
 	for k, v := range obj {
-		fields[k] = fmt.Sprintf("%v", v)
+		userProperties[k] = fmt.Sprintf("%v", v)
 	}
-	err = r.AppendProperties(sessionID, fields)
+	err = r.AppendProperties(sessionID, userProperties, sessionProperties)
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
@@ -123,7 +125,7 @@ func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, pro
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(sessionID, fields)
+	err := r.AppendProperties(sessionID, nil, fields)
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}

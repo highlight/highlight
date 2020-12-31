@@ -202,10 +202,6 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 	return stripe_session.ID, nil
 }
 
-func (r *organizationResolver) VerboseID(ctx context.Context, obj *model.Organization) (string, error) {
-	return obj.VerboseID(), nil
-}
-
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	session, err := r.isAdminSessionOwner(ctx, id)
 	if err != nil {
@@ -410,6 +406,31 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	return sessions[:count], nil
 }
 
+func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParams) ([]*model.Session, error) {
+	queriedSessions := []*model.Session{}
+	if err := r.DB.Where("organization_id = ?", organizationID).Where("processed = ?", true).Where("length > ?", 1000).Order("created_at desc").Preload("Fields").Find(&queriedSessions).Error; err != nil {
+		return nil, e.Wrap(err, "error querying initial set of sessions")
+	}
+	sessions := []*model.Session{}
+	for _, session := range queriedSessions {
+		passed := 0
+		for _, prop := range params.UserProperties {
+			for _, field := range session.Fields {
+				if prop.Name == field.Name && prop.Value == field.Value {
+					passed++
+				}
+			}
+		}
+		if passed == len(params.UserProperties) {
+			sessions = append(sessions, session)
+		}
+	}
+	if len(sessions) < count {
+		count = len(sessions)
+	}
+	return sessions[:count], nil
+}
+
 func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*string, error) {
 	rows, err := r.DB.Model(&model.Field{}).
 		Where(&model.Field{OrganizationID: organizationID}).
@@ -441,6 +462,22 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 		fieldStrings = append(fieldStrings, &fields[i].Value)
 	}
 	return fieldStrings, nil
+}
+
+func (r *queryResolver) UserFieldSuggestion(ctx context.Context, organizationID int, query string) ([]*model.Field, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	fields := []*model.Field{}
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "user"}).
+		Where("length(value) > ?", 0).
+		Where("value ILIKE ?", "%"+query+"%").
+		Limit(8).
+		Find(&fields)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying field suggestion")
+	}
+	return fields, nil
 }
 
 func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
@@ -533,9 +570,6 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
-// Organization returns generated.OrganizationResolver implementation.
-func (r *Resolver) Organization() generated.OrganizationResolver { return &organizationResolver{r} }
-
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
@@ -546,7 +580,6 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
 type mutationResolver struct{ *Resolver }
-type organizationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }

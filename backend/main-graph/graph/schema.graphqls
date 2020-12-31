@@ -38,6 +38,15 @@ type Segment {
   organization_id: ID!
 }
 
+input SearchParams {
+  user_properties: [UserProperty]
+}
+
+input UserProperty {
+  name: String!
+  value: String!
+}
+
 type User {
   id: ID!
 }
@@ -48,6 +57,11 @@ type Admin {
   email: String!
 }
 
+type Field {
+  name: String!
+  value: String!
+}
+
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
@@ -56,6 +70,7 @@ type Query {
   admins(organization_id: ID!): [Admin]
   isIntegrated(organization_id: ID!): Boolean
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
+  sessionsBETA(organization_id: ID!, count: Int!, params: SearchParams): [Session]
   # gets all the organizations of a user
   fields(organization_id: ID!): [String]
   field_suggestion(
@@ -63,6 +78,10 @@ type Query {
     field: String!
     query: String!
   ): [String]
+  user_field_suggestion(
+    organization_id: ID!
+    query: String!
+  ): [Field]
   organizations: [Organization]
   organization(id: ID!): Organization
   admin: Admin

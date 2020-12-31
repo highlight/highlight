@@ -158,6 +158,8 @@ type Session struct {
 
 type Field struct {
 	Model
+	// 'user_property', 'session_property'.
+	Type string
 	// 'email', 'identifier', etc.
 	Name string
 	// 'email@email.com'
@@ -177,6 +179,15 @@ type ResourcesObject struct {
 	Model
 	SessionID int
 	Resources string
+}
+
+type SearchParams struct {
+	UserProperties []*UserProperty `json:"user_properties"`
+}
+
+type UserProperty struct {
+	Name  string
+	Value string
 }
 
 type MessagesObject struct {
