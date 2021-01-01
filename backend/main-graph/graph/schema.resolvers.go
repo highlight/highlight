@@ -13,7 +13,6 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -408,7 +407,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 }
 
 func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParams) ([]*model.Session, error) {
-	pp.Println(params)
 	queriedSessions := []*model.Session{}
 	query := r.DB.Where("organization_id = ?", organizationID).
 		Where("processed = ?", true).
