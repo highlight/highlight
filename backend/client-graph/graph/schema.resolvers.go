@@ -9,13 +9,14 @@ import (
 	"fmt"
 	"time"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID int) (*model.Session, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string) (*model.Session, error) {
+	organizationID := model.FromVerboseID(organizationVerboseID)
 	organization := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization)
 	if err := res.Error; err != nil || res.RecordNotFound() {
@@ -42,14 +43,17 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationID
 	}
 
 	// Get the user's ip, get geolocation data
-	var location Location
+	location := &Location{}
 	var err error
-	if ip, ok := ctx.Value("ip").(string); ok {
+	ip, ok := ctx.Value("ip").(string)
+	if ok {
 		location, err = GetLocationFromIP(ip)
 		if err != nil {
 			log.Errorf("error getting user's location: %v", err)
 		}
 	}
+
+	log.Infof("user: %v in org: %v has ip address: %v \n", user.ID, user.OrganizationID, ip)
 
 	// Parse the user-agent string
 	var deviceDetails DeviceDetails
@@ -89,17 +93,19 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		deviceDetails = GetDeviceDetails(userAgentString)
 	}
 
-	fields := map[string]string{
-		"identifier":      userIdentifier,
+	userProperties := map[string]string{
+		"identifier": userIdentifier,
+	}
+	sessionProperties := map[string]string{
 		"os_name":         deviceDetails.OSName,
 		"os_version":      deviceDetails.OSVersion,
 		"browser_name":    deviceDetails.BrowserName,
 		"browser_version": deviceDetails.BrowserVersion,
 	}
 	for k, v := range obj {
-		fields[k] = fmt.Sprintf("%v", v)
+		userProperties[k] = fmt.Sprintf("%v", v)
 	}
-	err = r.AppendProperties(sessionID, fields)
+	err = r.AppendProperties(sessionID, userProperties, sessionProperties)
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
@@ -119,7 +125,7 @@ func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, pro
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(sessionID, fields)
+	err := r.AppendProperties(sessionID, nil, fields)
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
@@ -132,7 +138,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
 		return nil, fmt.Errorf("error decoding event data: %v", err)
 	}
-	if len(eventsParsed["events"]) >= 0 {
+	if len(eventsParsed["events"]) > 0 {
 		obj := &model.EventsObject{SessionID: sessionID, Events: events}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
@@ -143,7 +149,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding message data: %v", err)
 	}
-	if len(messagesParsed["messages"]) >= 0 {
+	if len(messagesParsed["messages"]) > 0 {
 		obj := &model.MessagesObject{SessionID: sessionID, Messages: messages}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating messages object")
@@ -154,7 +160,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding resource data: %v", err)
 	}
-	if len(resourcesParsed["resources"]) >= 0 {
+	if len(resourcesParsed["resources"]) > 0 {
 		obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating resources object")

@@ -1,0 +1,36 @@
+.title {
+    font-size: 28px;
+    font-weight: 400;
+}
+
+.subTitle {
+    margin-top: 5px;
+    font-size: 18px;
+    font-weight: 300;
+}
+
+.billingPage {
+    margin: 40px 80px 80px 80px;
+    min-width: 650px;
+}
+
+.blankSidebar {
+    height: 100%;
+    width: 280px;
+}
+
+.billingPageWrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.billingPlanCardWrapper {
+    display: flex;
+    flex-direction: row;
+    margin-top: 30px;
+}
+
+.billingPlanCardWrapper > *:not(:first-child) {
+    margin-left: 20px
+}

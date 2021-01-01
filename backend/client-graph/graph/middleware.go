@@ -43,6 +43,7 @@ func ClientMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		if IPAddress == "" {
 			IPAddress = r.RemoteAddr
 		}
+
 		// get user-agent string
 		UserAgent := r.Header.Get("user-agent")
 		// Pass the user's id, ip address, and user agent through context.

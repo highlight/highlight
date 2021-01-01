@@ -1,0 +1,70 @@
+@import 'src/static/shared.scss';
+
+.playButton {
+    margin-right: 30px;
+    margin-left: 15px;
+    height: 45px;
+    width: 45px;
+}
+
+.loadingDiv {
+    height: 50px;
+    margin-bottom: 100px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.blueTitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 15px;
+    color: #5629c6;
+    font-weight: 400;
+}
+
+.sessionTextSection {
+    width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sessionTextWrapper {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.sessionCard {
+    font-weight: 400;
+    height: 80px;
+    @include rounded-border;
+    margin-top: 14px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px;
+    cursor: pointer;
+}
+
+.regSubTitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 3px;
+    font-size: 14px;
+    color: black;
+    font-weight: 200;
+}
+
+.regTitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 15px;
+    font-weight: 300;
+    color: black;
+}

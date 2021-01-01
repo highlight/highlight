@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import 'antd/dist/antd.css';
-import './index.css';
+import './index.scss';
 import * as serviceWorker from './serviceWorker';
 
 import { ApolloProvider } from '@apollo/client';
@@ -11,6 +11,7 @@ import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
 import { DemoContext } from './DemoContext';
 import { H, HighlightOptions } from 'highlight.run';
 import { DemoRouter } from './DemoRouter';
+import LogRocket from 'logrocket';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = { debug: true, manualStart: true };
@@ -18,8 +19,10 @@ if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
     options.backendUrl = 'http://localhost:8082';
 }
-H.init(1, options);
+H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
+LogRocket.init('vcbmdo/highlight');
+
 
 ReactDOM.render(
     <React.StrictMode>

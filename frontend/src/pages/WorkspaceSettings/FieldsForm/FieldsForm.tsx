@@ -2,8 +2,8 @@ import React from 'react';
 
 import { useForm } from 'react-hook-form';
 
-import styles from './FieldsForm.module.css';
-import commonStyles from '../../../Common.module.css';
+import styles from './FieldsForm.module.scss';
+import commonStyles from '../../../Common.module.scss';
 import classNames from 'classnames/bind';
 import { useMutation, gql, useQuery } from '@apollo/client';
 import { useParams } from 'react-router-dom';
@@ -25,6 +25,7 @@ export const FieldsForm = () => {
         gql`
             query GetOrganization($id: ID!) {
                 organization(id: $id) {
+                    id
                     name
                     billing_email
                 }
@@ -114,8 +115,8 @@ export const FieldsForm = () => {
                             style={{ fontSize: 18, color: 'white' }}
                         />
                     ) : (
-                        'Save'
-                    )}
+                            'Save'
+                        )}
                 </button>
             </div>
         </form>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import './App.css';
+import './App.scss';
 
-import commonStyles from './Common.module.css';
+import commonStyles from './Common.module.scss';
 import { SidebarContext } from './components/Sidebar/SidebarContext';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { Header } from './components/Header/Header';

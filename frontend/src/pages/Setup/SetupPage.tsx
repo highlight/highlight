@@ -8,12 +8,13 @@ import React, {
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
 import { useParams } from 'react-router-dom';
-import styles from './SetupPage.module.css';
+import styles from './SetupPage.module.scss';
 import useFetch from 'use-http';
 import { Skeleton } from 'antd';
 import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
+import { gql, useQuery } from '@apollo/client';
 
 enum PlatformType {
     Html = "HTML",
@@ -25,6 +26,21 @@ enum PlatformType {
 export const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const [platform, setPlatform] = useState(PlatformType.React);
     const { setOpenSidebar } = useContext(SidebarContext);
+    const { organization_id } = useParams<{ organization_id: string }>();
+    const { data, loading } = useQuery<
+        { organization: { verbose_id: string } },
+        { id: number }
+    >(
+        gql`
+            query GetOrganization($id: ID!) {
+                organization(id: $id) {
+                    id
+                    verbose_id
+                }
+            }
+        `,
+        { variables: { id: Number(organization_id) } }
+    );
 
     useEffect(() => {
         setOpenSidebar(true);
@@ -47,57 +63,64 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                     labels={[PlatformType.React, PlatformType.Vue, PlatformType.Html, PlatformType.NextJs]}
                     onSelect={(p: PlatformType) => setPlatform(p)}
                 />
-                {platform === PlatformType.Html ? (
-                    <HtmlInstructions />
-                ) : (
-                        <JsAppInstructions platform={platform} />
-                    )}
-                <Section title="Identifying Users">
-                    <div className={styles.snippetSubHeading}>
-                        To tag sessions with user specific identifiers (name,
-                        email, etc.), you can call the
+                {
+                    !data?.organization || loading ?
+                        <Skeleton /> :
+                        <>
+                            {platform === PlatformType.Html ? (
+                                <HtmlInstructions orgVerboseId={data?.organization.verbose_id} />
+                            ) : (
+                                    <JsAppInstructions orgVerboseId={data?.organization.verbose_id} platform={platform} />
+                                )}
+                            <Section title="Identifying Users">
+                                <div className={styles.snippetSubHeading}>
+                                    To tag sessions with user specific identifiers (name,
+                                    email, etc.), you can call the
                         <span className={styles.codeBlockBasic}>
-                            {'Hx.identify(id: string, object: Object)'}
-                        </span>{' '}
+                                        {'H.identify(id: string, object: Object)'}
+                                    </span>{' '}
                         method in your javascript app. Here's an example:
                     </div>
-                    <CodeBlock
-                        onCopy={() =>
-                            window.analytics.track('Copied Code Snippet', {})
-                        }
-                        text={
-                            platform === PlatformType.NextJs
-                                ? `if (typeof window === )H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)
-                    `
-                                : `H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)`
-                        }
-                    />
-                </Section>
-                <Section title="Verify Installation" integrated={integrated}>
-                    <div className={styles.snippetSubHeading}>
-                        Please follow the setup instructions above to install
-                        Highlight. It should take less than a minute for us to
-                        detect installation.
+                                <CodeBlock
+                                    onCopy={() =>
+                                        window.analytics.track('Copied Code Snippet', {})
+                                    }
+                                    text={
+                                        platform === PlatformType.NextJs
+                                            ? `if (typeof window !== 'undefined') {
+    H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}
+    )
+}`
+                                            : `H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)`
+                                    }
+                                />
+                            </Section>
+                            <Section title="Verify Installation" integrated={integrated}>
+                                <div className={styles.snippetSubHeading}>
+                                    Please follow the setup instructions above to install
+                                    Highlight. It should take less than a minute for us to
+                                    detect installation.
                     </div>
-                    <br />
-                    <IntegrationDetector
-                        integrated={integrated}
-                        verbose={true}
-                    />
-                </Section>
+                                <br />
+                                <IntegrationDetector
+                                    integrated={integrated}
+                                    verbose={true}
+                                />
+                            </Section>
+                        </>
+                }
             </div>
         </div>
     );
 };
 
-const HtmlInstructions = () => {
+const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
     const { loading, error, data = '' } = useFetch<string>(
         'https://unpkg.com/highlight.run@latest',
         {},
         []
     );
     const codeStr = data.replace(/(\r\n|\n|\r)/gm, '');
-    const { organization_id } = useParams();
 
     return (
         <Section title="Installing the SDK">
@@ -118,7 +141,7 @@ const HtmlInstructions = () => {
                             }
                             text={`<script>
 ${codeStr}
-window.H.init(${organization_id})
+window.H.init("${orgVerboseId}")
 </script>`}
                         />
                     )}
@@ -127,8 +150,7 @@ window.H.init(${organization_id})
     );
 };
 
-const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
-    const { organization_id } = useParams();
+const JsAppInstructions = ({ platform, orgVerboseId }: { platform: PlatformType, orgVerboseId: string }) => {
     return (
         <>
             <Section title="Installing the SDK">
@@ -169,16 +191,16 @@ const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
                     and then calling{' '}
                     <span
                         className={styles.codeBlockBasic}
-                    >{`H.init(${organization_id})`}</span>{' '}
+                    >{`H.init("${orgVerboseId}")`}</span>{' '}
                     as soon as you can in your site's startup process. <br />
                     {platform !== PlatformType.NextJs ? (
                         <CodeBlock
-                            text={`H.init(${organization_id}) // ${organization_id} is your ORG_ID`}
+                            text={`H.init("${orgVerboseId}") // "${orgVerboseId}" is your ORG_ID`}
                         />
                     ) : (
                             <CodeBlock
                                 text={`if (typeof window !== 'undefined') {
-    H.init(${organization_id}) // ${organization_id} is your ORG_ID
+    H.init("${orgVerboseId}") // "${orgVerboseId}" is your ORG_ID
 }`}
                             />
                         )}
@@ -195,11 +217,11 @@ const JsAppInstructions = ({ platform }: { platform: PlatformType }) => {
                         <CodeBlock
                             text={`import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import './index.scss';
 import App from './App';
 import { H } from 'highlight.run'
  
-H.init(${organization_id}); // ${organization_id} is your ORG_ID
+H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
  
 ReactDOM.render(<App />, document.getElementById('root'));`}
                         />
@@ -209,7 +231,7 @@ ReactDOM.render(<App />, document.getElementById('root'));`}
 import App from './App.vue';
 import { H } from 'highlight.run';
  
-H.init(${organization_id}); // ${organization_id} is your ORG_ID
+H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
 Vue.prototype.$H = H;
  
 new Vue({
@@ -222,7 +244,7 @@ new Vue({
 import { H } from 'highlight.run';
 
 if (typeof window !== 'undefined') {
-  H.init(${organization_id}); // ${organization_id} is your ORG_ID
+  H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
 }
 
 function MyApp({ Component, pageProps }) {

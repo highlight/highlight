@@ -1,6 +1,6 @@
 import React from 'react';
-import commonStyles from '../../../Common.module.css';
-import styles from './DangerForm.module.css';
+import commonStyles from '../../../Common.module.scss';
+import styles from './DangerForm.module.scss';
 import { useForm } from 'react-hook-form';
 import classNames from 'classnames/bind';
 import { gql, useQuery, useMutation } from '@apollo/client';
@@ -50,43 +50,43 @@ export const DangerForm = () => {
             {loading ? (
                 <Skeleton />
             ) : (
-                <>
-                    <div className={styles.dangerSubTitle}>
-                        This will immediately remove all team members and
-                        projects, and cancel your subscription. Please type '
+                    <>
+                        <div className={styles.dangerSubTitle}>
+                            This will immediately remove all team members and
+                            projects, and cancel your subscription. Please type '
                         {`${data?.organization.name}`}' to confirm.
                     </div>
-                    <div className={styles.dangerRow}>
-                        <input
-                            placeholder={`Please type '${data?.organization.name}'`}
-                            className={commonStyles.input}
-                            name="text"
-                            ref={register({
-                                required: true,
-                                validate: (value) =>
-                                    value === data?.organization.name,
-                            })}
-                        />
-                        <button
-                            className={classNames(
-                                commonStyles.submitButton,
-                                styles.deleteButton
-                            )}
-                        >
-                            {deleteLoading ? (
-                                <CircularSpinner
-                                    style={{ fontSize: 18, color: 'white' }}
-                                />
-                            ) : (
-                                'Delete'
-                            )}
-                        </button>
-                        <div className={commonStyles.errorMessage}>
-                            {errors.text && 'Entered the incorrect text!'}
+                        <div className={styles.dangerRow}>
+                            <input
+                                placeholder={`Please type '${data?.organization.name}'`}
+                                className={commonStyles.input}
+                                name="text"
+                                ref={register({
+                                    required: true,
+                                    validate: (value) =>
+                                        value === data?.organization.name,
+                                })}
+                            />
+                            <button
+                                className={classNames(
+                                    commonStyles.submitButton,
+                                    styles.deleteButton
+                                )}
+                            >
+                                {deleteLoading ? (
+                                    <CircularSpinner
+                                        style={{ fontSize: 18, color: 'white' }}
+                                    />
+                                ) : (
+                                        'Delete'
+                                    )}
+                            </button>
+                            <div className={commonStyles.errorMessage}>
+                                {errors.text && 'Entered the incorrect text!'}
+                            </div>
                         </div>
-                    </div>
-                </>
-            )}
+                    </>
+                )}
         </form>
     );
 };

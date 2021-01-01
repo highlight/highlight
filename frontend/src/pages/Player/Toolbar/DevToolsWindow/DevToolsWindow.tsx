@@ -7,7 +7,7 @@ import {
     OpenDevToolsContext,
 } from '../DevToolsContext/DevToolsContext';
 
-import styles from './DevToolsWindow.module.css';
+import styles from './DevToolsWindow.module.scss';
 
 export const DevToolsWindow = ({
     time,
@@ -25,12 +25,12 @@ export const DevToolsWindow = ({
                     {isConsole ? (
                         <ConsolePage time={time} />
                     ) : (
-                        <ResourcePage startTime={startTime} time={time} />
-                    )}
+                            <ResourcePage startTime={startTime} time={time} />
+                        )}
                 </div>
             ) : (
-                <></>
-            )}
+                    <></>
+                )}
         </IsConsoleContext.Provider>
     );
 };

@@ -6,8 +6,8 @@ import { Skeleton } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
 import { ConsoleMessage } from '../../../../../util/shared-types';
 
-import styles from './ConsolePage.module.css';
-import devStyles from '../DevToolsWindow.module.css';
+import styles from './ConsolePage.module.scss';
+import devStyles from '../DevToolsWindow.module.scss';
 import { DemoContext } from '../../../../../DemoContext';
 
 export const ConsolePage = ({ time }: { time: number }) => {

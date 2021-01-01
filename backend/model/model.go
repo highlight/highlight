@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -12,9 +13,24 @@ import (
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	log "github.com/sirupsen/logrus"
+	"github.com/speps/go-hashids"
 )
 
-var DB *gorm.DB
+var (
+	DB     *gorm.DB
+	HashID *hashids.HashID
+)
+
+func init() {
+	hd := hashids.NewData()
+	hd.MinLength = 8
+	hd.Alphabet = "abcdefghijklmnopqrstuvwxyz1234567890"
+	hid, err := hashids.NewWithData(hd)
+	if err != nil {
+		log.Fatalf("error creating hash id client: %v", err)
+	}
+	HashID = hid
+}
 
 type Model struct {
 	ID        int        `gorm:"primary_key" json:"id"`
@@ -23,14 +39,68 @@ type Model struct {
 	DeletedAt *time.Time `json:"deleted_at"`
 }
 
+type RecordingSettings struct {
+	Model
+	OrganizationID int     `json:"organization_id"`
+	Details        *string `json:"details"`
+}
+
+func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error) {
+	var result []string
+	if r.Details == nil {
+		return result, nil
+	}
+	err := json.Unmarshal([]byte(*r.Details), &result)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing details json")
+	}
+	return result, nil
+}
+
+func (segment *Segment) GetParamsAsSlice() ([]interface{}, error) {
+	var result []interface{}
+	if segment.Params == nil {
+		return result, nil
+	}
+	err := json.Unmarshal([]byte(*segment.Params), &result)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing params json")
+	}
+	return result, nil
+}
+
 type Organization struct {
 	Model
-	Name         *string
-	BillingEmail *string
-	Secret       *string `json:"-"`
-	Users        []User
-	Admins       []Admin `gorm:"many2many:organization_admins;"`
-	Fields       []Field
+	Name             *string
+	BillingEmail     *string
+	Secret           *string `json:"-"`
+	Users            []User
+	Admins           []Admin `gorm:"many2many:organization_admins;"`
+	Fields           []Field
+	Segments         []Segment `gorm:"foreignKey:ID;"`
+	RecordingSetting RecordingSettings
+}
+
+func (u *Organization) VerboseID() string {
+	str, err := HashID.Encode([]int{u.ID})
+	if err != nil {
+		log.Errorf("error generating hash id: %v", err)
+		str = strconv.Itoa(u.ID)
+	}
+	return str
+}
+
+func FromVerboseID(verboseId string) int {
+	// Try to convert the id to an integer in the case that the client is out of date.
+	if organizationID, err := strconv.Atoi(verboseId); err == nil {
+		return organizationID
+	}
+	// Otherwise, decode with HashID library
+	ints := HashID.Decode(verboseId)
+	if len(ints) != 1 {
+		return 1
+	}
+	return ints[0]
 }
 
 func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
@@ -62,20 +132,20 @@ type Session struct {
 	Model
 	UserID int `json:"user_id"`
 	// User provided identifier (see IdentifySession)
-	Identifier     string  `json:"identifier"`
-	OrganizationID int     `json:"organization_id"`
+	Identifier     string `json:"identifier"`
+	OrganizationID int    `json:"organization_id"`
 	// Location data based off user ip (see InitializeSession)
-	City           string  `json:"city"`
-	State          string  `json:"state"`
-	Postal         string  `json:"postal"`
-	Latitude       float64 `json:"latitude"`
-	Longitude      float64 `json:"longitude"`
+	City      string  `json:"city"`
+	State     string  `json:"state"`
+	Postal    string  `json:"postal"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 	// Details based off useragent (see Initialize Session)
-	OSName         string  `json:"os_name"`
-	OSVersion      string  `json:"os_version"`
-	BrowserName    string  `json:"browser_name"`
-	BrowserVersion string  `json:"browser_version"`
-	Status         string  `json:"status"`
+	OSName         string `json:"os_name"`
+	OSVersion      string `json:"os_version"`
+	BrowserName    string `json:"browser_name"`
+	BrowserVersion string `json:"browser_version"`
+	Status         string `json:"status"`
 	EventsObjects  []EventsObject
 	// Tells us if the session has been parsed by a worker.
 	Processed bool `json:"processed"`
@@ -88,6 +158,8 @@ type Session struct {
 
 type Field struct {
 	Model
+	// 'user_property', 'session_property'.
+	Type string
 	// 'email', 'identifier', etc.
 	Name string
 	// 'email@email.com'
@@ -96,10 +168,36 @@ type Field struct {
 	Sessions       []Session `gorm:"many2many:session_fields;"`
 }
 
+type Segment struct {
+	Model
+	Name           *string
+	Params         *string `json:"params"`
+	OrganizationID int
+}
+
 type ResourcesObject struct {
 	Model
 	SessionID int
 	Resources string
+}
+
+type SearchParams struct {
+	UserProperties []*UserProperty `json:"user_properties"`
+	DateRange      *DateRange      `json:"date_range"`
+	Browser        *string         `json:"browser"`
+	OS             *string         `json:"os"`
+	VisitedURL     *string         `json:"visited_url"`
+	Referrer       *string         `json:"referrer"`
+}
+
+type DateRange struct {
+	StartDate time.Time
+	EndDate   time.Time
+}
+
+type UserProperty struct {
+	Name  string
+	Value string
 }
 
 type MessagesObject struct {
@@ -128,7 +226,19 @@ func SetupDB() *gorm.DB {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	DB.AutoMigrate(&MessagesObject{}, &EventsObject{}, &Organization{}, &Admin{}, &User{}, &Session{}, &Field{}, &EmailSignup{}, &ResourcesObject{})
+	DB.AutoMigrate(
+		&RecordingSettings{},
+		&MessagesObject{},
+		&EventsObject{},
+		&Organization{},
+		&Segment{},
+		&Admin{},
+		&User{},
+		&Session{},
+		&Field{},
+		&EmailSignup{},
+		&ResourcesObject{},
+	)
 	return DB
 }
 

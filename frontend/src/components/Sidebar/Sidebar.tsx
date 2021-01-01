@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import styles from './Sidebar.module.css';
+import styles from './Sidebar.module.scss';
 import { SidebarContext } from './SidebarContext';
 import classNames from 'classnames/bind';
 import { Link, useParams, useLocation } from 'react-router-dom';
@@ -11,7 +11,7 @@ import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { DemoContext } from '../../DemoContext';
 
 export const Sidebar = () => {
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
     const { pathname } = useLocation();
     const { openSidebar } = useContext(SidebarContext);
     const { demo } = useContext(DemoContext);

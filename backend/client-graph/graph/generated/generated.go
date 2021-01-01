@@ -44,7 +44,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddProperties     func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		IdentifySession   func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
-		InitializeSession func(childComplexity int, organizationID int) int
+		InitializeSession func(childComplexity int, organizationVerboseID string) int
 		PushPayload       func(childComplexity int, sessionID int, events string, messages string, resources string) int
 	}
 
@@ -59,7 +59,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	InitializeSession(ctx context.Context, organizationID int) (*model.Session, error)
+	InitializeSession(ctx context.Context, organizationVerboseID string) (*model.Session, error)
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
 	AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error)
@@ -114,7 +114,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InitializeSession(childComplexity, args["organization_id"].(int)), true
+		return e.complexity.Mutation.InitializeSession(childComplexity, args["organization_verbose_id"].(string)), true
 
 	case "Mutation.pushPayload":
 		if e.complexity.Mutation.PushPayload == nil {
@@ -224,7 +224,7 @@ type Session {
 }
 
 type Mutation {
-  initializeSession(organization_id: ID!): Session
+  initializeSession(organization_verbose_id: String!): Session
   identifySession(
     session_id: ID!
     user_identifier: String!
@@ -301,15 +301,15 @@ func (ec *executionContext) field_Mutation_identifySession_args(ctx context.Cont
 func (ec *executionContext) field_Mutation_initializeSession_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+	var arg0 string
+	if tmp, ok := rawArgs["organization_verbose_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_verbose_id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["organization_id"] = arg0
+	args["organization_verbose_id"] = arg0
 	return args, nil
 }
 
@@ -432,7 +432,7 @@ func (ec *executionContext) _Mutation_initializeSession(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InitializeSession(rctx, args["organization_id"].(int))
+		return ec.resolvers.Mutation().InitializeSession(rctx, args["organization_verbose_id"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

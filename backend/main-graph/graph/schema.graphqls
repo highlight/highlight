@@ -19,10 +19,42 @@ type Session {
   user_object: Any
 }
 
+type RecordingSettings {
+  id: ID!
+  organization_id: ID!
+  details: String!
+}
+
 type Organization {
   id: ID!
+  verbose_id: String!
   name: String!
   billing_email: String
+}
+
+type Segment {
+  name: String!
+  params: [Any]!
+  organization_id: ID!
+}
+
+input SearchParams {
+  user_properties: [UserProperty]
+  date_range: DateRange
+  os: String
+  browser: String
+  visited_url: String
+  referrer: String
+}
+
+input DateRange {
+  start_date: Time
+  end_date: Time
+}
+
+input UserProperty {
+  name: String!
+  value: String!
 }
 
 type User {
@@ -35,6 +67,11 @@ type Admin {
   email: String!
 }
 
+type Field {
+  name: String!
+  value: String!
+}
+
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
@@ -43,16 +80,29 @@ type Query {
   admins(organization_id: ID!): [Admin]
   isIntegrated(organization_id: ID!): Boolean
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
+  sessionsBETA(organization_id: ID!, count: Int!, params: SearchParams): [Session]
   # gets all the organizations of a user
+  field_suggestionBETA(
+    organization_id: ID!
+    name: String!
+    query: String!
+  ): [Field]
+  user_field_suggestion(
+    organization_id: ID!
+    query: String!
+  ): [Field]
+  organizations: [Organization]
+  organization(id: ID!): Organization
+  admin: Admin
+  segments(organization_id: ID!): [Segment]
+  recording_settings(organization_id: ID!): RecordingSettings
+  # TO DELETE
   fields(organization_id: ID!): [String]
   field_suggestion(
     organization_id: ID!
     field: String!
     query: String!
   ): [String]
-  organizations: [Organization]
-  organization(id: ID!): Organization
-  admin: Admin
 }
 
 type Mutation {
@@ -61,5 +111,8 @@ type Mutation {
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
+  createSegment(organization_id: ID!, name: String, params: [Any]!): Segment
+  deleteSegment(segment_id: ID!): Boolean
+  editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
   createCheckout(organization_id: ID!, price_id: String!): String!
 }

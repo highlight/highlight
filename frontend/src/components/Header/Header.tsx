@@ -7,7 +7,7 @@ import { UserDropdown } from './UserDropdown/UserDropdown';
 import { FaSearch } from 'react-icons/fa';
 import * as Mousetrap from 'mousetrap';
 
-import styles from './Header.module.css';
+import styles from './Header.module.scss';
 import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../Sidebar/SidebarContext';
 import classNames from 'classnames/bind';

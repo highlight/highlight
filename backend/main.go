@@ -117,7 +117,7 @@ func main() {
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, handler)
 	w := &worker.Worker{R: main}
-	log.Infof("listening with runtime: %v\n", *runtime)
+	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
 	if rt := *runtime; rt == "dev" {
 		go func() {
 			w.Start()

@@ -10,15 +10,16 @@ import { WorkspaceTeam } from './pages/WorkspaceTeam/WorkspaceTeam';
 import { Billing } from './pages/Billing/Billing';
 import { SetupPage } from './pages/Setup/SetupPage';
 import { useIntegrated } from './util/integrated';
-import styles from './App.module.css';
+import styles from './App.module.scss';
 import { WorkspaceSettings } from './pages/WorkspaceSettings/WorkspaceSettings';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { SidebarContext } from './components/Sidebar/SidebarContext';
 
-import commonStyles from './Common.module.css';
+import commonStyles from './Common.module.scss';
+import { SessionsPageBeta } from './pages/Sessions/SessionsPageBeta';
 
 export const OrgRouter = () => {
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
     const { loading, error, data } = useQuery<
         { organization: { name: string } },
         { id: number }
@@ -26,14 +27,15 @@ export const OrgRouter = () => {
         gql`
             query GetOrganization($id: ID!) {
                 organization(id: $id) {
+                    id
                     name
                 }
             }
         `,
-        { variables: { id: organization_id } }
+        { variables: { id: parseInt(organization_id) } }
     );
     const { integrated, loading: integratedLoading } = useIntegrated(
-        organization_id
+        parseInt(organization_id)
     );
     const [openSidebar, setOpenSidebar] = useState(false);
 
@@ -55,6 +57,9 @@ export const OrgRouter = () => {
                 <Switch>
                     <Route path="/:organization_id/sessions/:session_id">
                         <Player />
+                    </Route>
+                    <Route path="/:organization_id/sessions-beta">
+                        <SessionsPageBeta integrated={integrated} />
                     </Route>
                     <Route path="/:organization_id/sessions">
                         <SessionsPage integrated={integrated} />

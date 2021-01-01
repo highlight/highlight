@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"os"
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
@@ -31,77 +29,83 @@ type Location struct {
 }
 
 type DeviceDetails struct {
-	IsBot          bool `json:"is_bot"`
+	IsBot          bool   `json:"is_bot"`
 	OSName         string `json:"os_name"`
 	OSVersion      string `json:"os_version"`
 	BrowserName    string `json:"browser_name"`
 	BrowserVersion string `json:"browser_version"`
 }
 
-func (r *Resolver) AppendProperties(sessionID int, propertiesObject map[string]string) error {
+func (r *Resolver) AppendProperties(sessionID int, userProperties map[string]string, sessionProperties map[string]string) error {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return e.Wrap(err, "error receiving session")
 	}
 
-	modelFields := []model.Field{}
-	for fk, fv := range propertiesObject {
-		// Get the field with org_id, name, value
+	modelFields := []*model.Field{}
+	for k, fv := range userProperties {
+		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: "user"})
+	}
+	for k, fv := range sessionProperties {
+		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: "session"})
+	}
+
+	err := r.AppendFields(modelFields, session)
+	if err != nil {
+		return e.Wrap(err, "error appending fields")
+	}
+	return nil
+}
+
+func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
+	fieldsToAppend := []*model.Field{}
+	for _, f := range fields {
 		field := &model.Field{}
-		res = r.DB.Where(&model.Field{OrganizationID: session.OrganizationID, Name: fk, Value: fv}).First(&field)
+		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
 		if err := res.Error; err != nil || res.RecordNotFound() {
-			f := &model.Field{OrganizationID: session.OrganizationID, Name: fk, Value: fv}
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
-			field = f
+			fieldsToAppend = append(fieldsToAppend, f)
+		} else {
+			fieldsToAppend = append(fieldsToAppend, field)
 		}
-		modelFields = append(modelFields, *field)
 	}
-
-	re := r.DB.Model(&session).Association("Fields").Append(modelFields)
+	// We append to this session in the join table regardless.
+	re := r.DB.Model(session).Association("Fields").Append(fieldsToAppend)
 	if err := re.Error; err != nil {
 		return e.Wrap(err, "error updating fields")
 	}
 	return nil
 }
 
-func GetLocationFromIP(ip string) (location Location, err error) {
-	ip, _, _ = net.SplitHostPort(ip)
-
-	var ipStr string
-	if os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT") == "prod" {
-		ipStr = net.ParseIP(ip).String()
-	} else {
-		ipStr = "99.98.244.156"
-	}
-
-	url := fmt.Sprintf("https://geolocation-db.com/json/%s", ipStr)
+func GetLocationFromIP(ip string) (location *Location, err error) {
+	url := fmt.Sprintf("https://geolocation-db.com/json/%s", ip)
 	method := "GET"
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, nil)
 	if err != nil {
-		return location, err
+		return nil, err
 	}
 
 	res, err := client.Do(req)
 	if err != nil {
-		return location, err
+		return nil, err
 	}
 
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return location, err
+		return nil, err
 	}
 
 	err = json.Unmarshal(body, &location)
 	if err != nil {
-		return location, err
+		return nil, err
 	}
 
 	// long and lat should be float

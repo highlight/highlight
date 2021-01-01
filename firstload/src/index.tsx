@@ -8,7 +8,7 @@ export type HighlightOptions = {
 };
 
 type HighlightPublicInterface = {
-    init: (orgID: number, debug?: HighlightOptions) => void;
+    init: (orgID: number | string, debug?: HighlightOptions) => void;
     identify: (identify: string, obj: any) => void;
     getSessionURL: () => Promise<string>;
     start: () => void;
@@ -30,7 +30,7 @@ var script: HTMLScriptElement;
 var highlight_obj: Highlight;
 export const H: HighlightPublicInterface = {
     options: undefined,
-    init: (orgID: number, options?: HighlightOptions) => {
+    init: (orgID: number | string, options?: HighlightOptions) => {
         try {
             H.options = options;
             script = document.createElement('script');

@@ -1,0 +1,35 @@
+.searchBar {
+    position: fixed;
+    height: 100%;
+    background-color: white;
+    z-index: 100;
+    width: 280px;
+    border-left: 1px solid #eaeaea;
+    transition: right 0.3s;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.header {
+    font-size: 12px;
+    color: #888888;
+    margin-bottom: 8px;
+}
+
+.searchSection {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.title {
+    font-size: 22px;
+}
+
+.searchBarOpen {
+    right: 0;
+}
+
+.searchBarClosed {
+    right: -280px;
+}

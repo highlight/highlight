@@ -18,9 +18,10 @@ import { HighlightEvent } from './HighlightEvent';
 import { StaticMap, buildStaticMap } from './StaticMap/StaticMap';
 // @ts-ignore
 import useResizeAware from 'react-resize-aware';
-import styles from './PlayerPage.module.css';
+import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
 import { DemoContext } from '../../DemoContext';
+import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 export const Player = () => {
     var { session_id } = useParams();
@@ -32,6 +33,7 @@ export const Player = () => {
     const [replayerScale, setReplayerScale] = useState(1);
     const [playerLoading, setPlayerLoading] = useState(true);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
+    const { setOpenSidebar } = useContext(SidebarContext);
     const {
         loading: sessionLoading,
         error: sessionError,
@@ -51,6 +53,12 @@ export const Player = () => {
             context: { headers: { 'Highlight-Demo': demo } },
         }
     );
+
+    useEffect(() => {
+        setOpenSidebar(false)
+    }, [setOpenSidebar])
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const resizePlayer = (replayer: Replayer): boolean => {
         const width = replayer?.wrapper?.getBoundingClientRect().width;
         const height = replayer?.wrapper?.getBoundingClientRect().height;
@@ -94,6 +102,7 @@ export const Player = () => {
     // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
     useEffect(() => {
         replayer && resizePlayer(replayer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sizes, replayer]);
 
     useEffect(() => {
@@ -209,19 +218,19 @@ const EventStream = ({
                 {loadingMap || !events.length || !staticMap ? (
                     <Skeleton active />
                 ) : (
-                    replayer &&
-                    events
-                        .filter(usefulEvent)
-                        .map((e: HighlightEvent, i: number) => (
-                            <StreamElement
-                                e={e}
-                                key={i}
-                                start={replayer.getMetaData().startTime}
-                                isCurrent={e.identifier === currEvent}
-                                nodeMap={staticMap}
-                            />
-                        ))
-                )}
+                        replayer &&
+                        events
+                            .filter(usefulEvent)
+                            .map((e: HighlightEvent, i: number) => (
+                                <StreamElement
+                                    e={e}
+                                    key={i}
+                                    start={replayer.getMetaData().startTime}
+                                    isCurrent={e.identifier === currEvent}
+                                    nodeMap={staticMap}
+                                />
+                            ))
+                    )}
             </div>
         </>
     );

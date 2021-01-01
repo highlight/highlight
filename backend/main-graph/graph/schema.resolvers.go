@@ -18,7 +18,7 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
-	"github.com/stripe/stripe-go"
+	stripe "github.com/stripe/stripe-go"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -32,6 +32,12 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	}
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
+	}
+	if err := r.DB.Create(&model.RecordingSettings{
+		OrganizationID: org.ID,
+		Details:        nil,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating new recording settings")
 	}
 	msg := slack.WebhookMessage{Text: fmt.
 		Sprintf("```NEW WORKSPACE \nid: %v\nname: %v\nadmin_email: %v```", org.ID, *org.Name, *admin.Email)}
@@ -118,6 +124,52 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 		return nil, e.Wrap(err, "error adding admin to association")
 	}
 	return &org.ID, nil
+}
+
+func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name *string, params []interface{}) (*model.Segment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+	paramJSON, err := json.Marshal(params)
+	if err != nil {
+		return nil, e.Wrap(err, "failed at marshaling params")
+	}
+	paramString := string(paramJSON)
+	segment := &model.Segment{
+		Name:           name,
+		Params:         &paramString,
+		OrganizationID: organizationID,
+	}
+	if err := r.DB.Create(segment).Error; err != nil {
+		return nil, e.Wrap(err, "error creating segment")
+	}
+	return segment, nil
+}
+
+func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*bool, error) {
+	if err := r.DB.Delete(&model.Segment{Model: model.Model{ID: segmentID}}).Error; err != nil {
+		return nil, e.Wrap(err, "error deleting segment")
+	}
+	t := true
+	return &t, nil
+}
+
+func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model.RecordingSettings, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+	rec := &model.RecordingSettings{}
+	res := r.DB.Where(&model.RecordingSettings{Model: model.Model{ID: organizationID}}).First(&rec)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying record")
+	}
+	if err := r.DB.Model(rec).Updates(&model.RecordingSettings{
+		OrganizationID: organizationID,
+		Details:        details,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing new recording settings")
+	}
+	return rec, nil
 }
 
 func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error) {
@@ -249,10 +301,24 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
+	// grab recording settings of org
+	recording_settings, err := r.Query().RecordingSettings(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying recording settings")
+	}
 	// list of maps, where each map represents a field query.
 	sessionIDsToJoin := []map[int]bool{}
 	sessions := []*model.Session{}
 	query := r.DB.Where(&model.Session{OrganizationID: organizationID, Processed: true}).Where("length > ?", 1000).Order("created_at desc")
+	// ignore based on recording settings
+	details, err := recording_settings.GetDetailsAsSlice()
+	if err != nil {
+		return nil, e.Wrap(err, "session didn't like slice")
+	}
+	for _, det := range details {
+		query = query.Where("identifier NOT LIKE '%%" + det + "%%'\n")
+	}
+	// filter by params
 	ps, err := model.DecodeAndValidateParams(params)
 	if err != nil {
 		return nil, e.Wrap(err, "error decoding params")
@@ -340,6 +406,184 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	return sessions[:count], nil
 }
 
+func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParams) ([]*model.Session, error) {
+	queriedSessions := []*model.Session{}
+	query := r.DB.Where("organization_id = ?", organizationID).
+		Where("processed = ?", true).
+		Where("length > ?", 1000).
+		Order("created_at desc")
+
+	if d := params.DateRange; d != nil {
+		query = query.Where("created_at > ? and created_at < ?", d.StartDate, d.EndDate)
+	}
+
+	if os := params.OS; os != nil {
+		query = query.Where("os_name = ?", os)
+	}
+
+	if browser := params.Browser; browser != nil {
+		query = query.Where("browser_name = ?", browser)
+	}
+
+	if err := query.Preload("Fields").Find(&queriedSessions).Error; err != nil {
+		return nil, e.Wrap(err, "error querying initial set of sessions")
+	}
+
+	// Find sessions that have all the specified user properties.
+	sessions := []*model.Session{}
+	for _, session := range queriedSessions {
+		passed := 0
+		for _, prop := range params.UserProperties {
+			for _, field := range session.Fields {
+				if prop.Name == field.Name && prop.Value == field.Value {
+					passed++
+				}
+			}
+		}
+		if passed == len(params.UserProperties) {
+			sessions = append(sessions, session)
+		}
+	}
+
+	// Find session that have the visited url.
+	if params.VisitedURL != nil {
+		visitedSessions := []*model.Session{}
+		for _, session := range sessions {
+			for _, field := range session.Fields {
+				if field.Name == "visited-url" && field.Value == *params.VisitedURL {
+					visitedSessions = append(visitedSessions, session)
+				}
+			}
+		}
+		sessions = visitedSessions
+	}
+
+	// Find session that have the referrer.
+	if params.Referrer != nil {
+		referredSessions := []*model.Session{}
+		for _, session := range sessions {
+			for _, field := range session.Fields {
+				if field.Name == "referrer" && field.Value == *params.Referrer {
+					referredSessions = append(referredSessions, session)
+				}
+			}
+		}
+		sessions = referredSessions
+	}
+
+	if len(sessions) < count {
+		count = len(sessions)
+	}
+	return sessions[:count], nil
+}
+
+func (r *queryResolver) FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model.Field, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	fields := []*model.Field{}
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Name: name}).
+		Where("length(value) > ?", 0).
+		Where("value ILIKE ?", "%"+query+"%").
+		Limit(8).
+		Find(&fields)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying field suggestion")
+	}
+	return fields, nil
+}
+
+func (r *queryResolver) UserFieldSuggestion(ctx context.Context, organizationID int, query string) ([]*model.Field, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	fields := []*model.Field{}
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "user"}).
+		Where("length(value) > ?", 0).
+		Where("value ILIKE ?", "%"+query+"%").
+		Limit(8).
+		Find(&fields)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying field suggestion")
+	}
+	return fields, nil
+}
+
+func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieiving user")
+	}
+	orgs := []*model.Organization{}
+	if err := r.DB.Model(&admin).Association("Organizations").Find(&orgs).Error; err != nil {
+		return nil, e.Wrap(err, "error getting associated organizations")
+	}
+	return orgs, nil
+}
+
+func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
+	org, err := r.isAdminInOrganization(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	return org, nil
+}
+
+func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
+	uid := fmt.Sprintf("%v", ctx.Value("uid"))
+	admin := &model.Admin{UID: &uid}
+	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		fbuser, err := AuthClient.GetUser(context.Background(), uid)
+		if err != nil {
+			return nil, e.Wrap(err, "error retrieving user from firebase api")
+		}
+		newAdmin := &model.Admin{
+			UID:   &uid,
+			Name:  &fbuser.DisplayName,
+			Email: &fbuser.Email,
+		}
+		if err := r.DB.Create(newAdmin).Error; err != nil {
+			return nil, e.Wrap(err, "error creating new admin")
+		}
+		admin = newAdmin
+		msg := slack.WebhookMessage{Text: fmt.
+			Sprintf("```NEW USER \nid: %v\nname: %v\nemail: %v```", newAdmin.ID, *newAdmin.Name, *newAdmin.Email)}
+		err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+		if err != nil {
+			log.Errorf("error sending slack hook: %v", err)
+		}
+	}
+	return admin, nil
+}
+
+func (r *queryResolver) Segments(ctx context.Context, organizationID int) ([]*model.Segment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+	// list of maps, where each map represents a field query.
+	segments := []*model.Segment{}
+	if err := r.DB.Where(model.Segment{OrganizationID: organizationID}).Find(&segments).Error; err != nil {
+		log.Errorf("error querying segments from organization: %v", err)
+	}
+	return segments, nil
+}
+
+func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error) {
+	recordingSettings := &model.RecordingSettings{OrganizationID: organizationID}
+	if res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recordingSettings); res.RecordNotFound() || res.Error != nil {
+		newRecordSettings := &model.RecordingSettings{
+			OrganizationID: organizationID,
+			Details:        nil,
+		}
+		if err := r.DB.Create(newRecordSettings).Error; err != nil {
+			return nil, e.Wrap(err, "error creating new recording settings")
+		}
+		recordingSettings = newRecordSettings
+	}
+	return recordingSettings, nil
+}
+
 func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*string, error) {
 	rows, err := r.DB.Model(&model.Field{}).
 		Where(&model.Field{OrganizationID: organizationID}).
@@ -373,52 +617,12 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 	return fieldStrings, nil
 }
 
-func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
-	admin, err := r.Query().Admin(ctx)
+func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) ([]interface{}, error) {
+	params, err := obj.GetParamsAsSlice()
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieiving user")
+		return nil, e.Wrap(err, "error getting params from segment")
 	}
-	orgs := []*model.Organization{}
-	if err := r.DB.Model(&admin).Association("Organizations").Find(&orgs).Error; err != nil {
-		return nil, e.Wrap(err, "error getting associated organizations")
-	}
-	return orgs, nil
-}
-
-func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
-	org, err := r.isAdminInOrganization(ctx, id)
-	if err != nil {
-		return nil, e.Wrap(err, "error querying organization")
-	}
-	return org, nil
-}
-
-func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
-	uid := fmt.Sprintf("%v", ctx.Value("uid"))
-	admin := &model.Admin{UID: &uid}
-	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
-	if err := res.Error; err != nil || res.RecordNotFound() {
-		fbuser, err := AuthClient.GetUser(context.Background(), uid)
-		if err != nil {
-			return nil, e.Wrap(err, "error retrieiving user from firebase api")
-		}
-		newAdmin := &model.Admin{
-			UID:   &uid,
-			Name:  &fbuser.DisplayName,
-			Email: &fbuser.Email,
-		}
-		if err := r.DB.Create(newAdmin).Error; err != nil {
-			return nil, e.Wrap(err, "error creating new admin")
-		}
-		admin = newAdmin
-		msg := slack.WebhookMessage{Text: fmt.
-			Sprintf("```NEW USER \nid: %v\nname: %v\nemail: %v```", newAdmin.ID, *newAdmin.Name, *newAdmin.Email)}
-		err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
-		if err != nil {
-			log.Errorf("error sending slack hook: %v", err)
-		}
-	}
-	return admin, nil
+	return params, nil
 }
 
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
@@ -431,9 +635,13 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+// Segment returns generated.SegmentResolver implementation.
+func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver{r} }
+
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }

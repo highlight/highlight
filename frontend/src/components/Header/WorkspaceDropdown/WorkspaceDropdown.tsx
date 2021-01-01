@@ -6,13 +6,13 @@ import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { ReactComponent as PlusIcon } from '../../../static/plus.svg';
 import { ReactComponent as CheckIcon } from '../../../static/check.svg';
 
-import styles from './WorkspaceDropdown.module.css';
+import styles from './WorkspaceDropdown.module.scss';
 import { DemoContext } from '../../../DemoContext';
 
 export const WorkspaceDropdown = () => {
     const [visible, setVisible] = useState(false);
     const { demo } = useContext(DemoContext);
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
     const { data } = useQuery<{
         organizations: Array<{ id: number; name: string }>;
     }>(
@@ -26,6 +26,20 @@ export const WorkspaceDropdown = () => {
         `,
         { skip: demo }
     );
+    const { data: currentOrg } = useQuery<
+        { organization: { name: string } },
+        { id: number }
+    >(
+        gql`
+            query GetOrganization($id: ID!) {
+                organization(id: $id) {
+                    id
+                    name
+                }
+            }
+        `,
+        { variables: { id: parseInt(organization_id) || 0 } }
+    );
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>
@@ -37,11 +51,11 @@ export const WorkspaceDropdown = () => {
                     >
                         <div className={styles.orgItem}>
                             <div className={styles.orgText}>{o.name}</div>
-                            {o.id === organization_id ? (
+                            {o.id.toString() === organization_id ? (
                                 <CheckIcon className={styles.plusIcon} />
                             ) : (
-                                <></>
-                            )}
+                                    <></>
+                                )}
                         </div>
                     </Link>
                 ))}
@@ -65,9 +79,7 @@ export const WorkspaceDropdown = () => {
                 <div className={styles.orgNameText}>
                     {demo
                         ? 'Highlight'
-                        : data?.organizations.find(
-                              (o) => o.id === organization_id
-                          )?.name}
+                        : currentOrg?.organization.name}
                 </div>
                 <DownIcon
                     className={styles.icon}
