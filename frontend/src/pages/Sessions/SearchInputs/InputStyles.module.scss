@@ -1,0 +1,26 @@
+.commonInputWrapper {
+    padding: 10px 0 10px 0;
+}
+
+.switchRow {
+    display: flex;
+}
+
+.switchText {
+    margin-left: 8px;
+}
+
+.datePicker {
+    border-color: #eaeaea;
+    border-radius: 8px;
+    height: 45px;
+    font-weight: 300 !important;
+    font-family: 'AvenirNext';
+    font-size: 14px;
+}
+
+.iconWrapper {
+    margin: 0 10px 0 0px;
+    display: flex;
+    fill: #808080 !important;
+}

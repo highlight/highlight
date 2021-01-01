@@ -1,3 +1,5 @@
+export const antPickerInput: string;
+export const antPickerSuffix: string;
 export const app: string;
 export const appHeader: string;
 export const appLink: string;

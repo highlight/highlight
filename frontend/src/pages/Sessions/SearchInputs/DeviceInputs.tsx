@@ -5,6 +5,8 @@ import { SearchContext } from '../SearchContext/SearchContext';
 import AsyncSelect from 'react-select/async';
 import { gql, useQuery } from '@apollo/client';
 
+import inputStyles from './InputStyles.module.scss';
+
 export const OperatingSystemInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { setSearchParams } = useContext(SearchContext);
@@ -33,13 +35,16 @@ export const OperatingSystemInput = () => {
     }
 
     return (
-        <AsyncSelect
-            placeholder={"Operating System"}
-            cacheOptions
-            loadOptions={generateOptions}
-            defaultOptions
-            onChange={onChange}
-        />
+        <div className={inputStyles.commonInputWrapper}>
+            <AsyncSelect
+                placeholder={"Operating System"}
+                cacheOptions
+                styles={{ control: (provided, state) => ({ ...provided, borderColor: "#eaeaea", borderRadius: 8, minHeight: 45 }) }}
+                loadOptions={generateOptions}
+                defaultOptions
+                onChange={onChange}
+            />
+        </div >
     );
 }
 
@@ -71,12 +76,15 @@ export const BrowserInput = () => {
     }
 
     return (
-        <AsyncSelect
-            placeholder={"Browser"}
-            cacheOptions
-            loadOptions={generateOptions}
-            defaultOptions
-            onChange={onChange}
-        />
+        <div className={inputStyles.commonInputWrapper}>
+            <AsyncSelect
+                placeholder={"Browser"}
+                cacheOptions
+                styles={{ control: (provided, state) => ({ ...provided, borderColor: "#eaeaea", borderRadius: 8, minHeight: 45 }) }}
+                loadOptions={generateOptions}
+                defaultOptions
+                onChange={onChange}
+            />
+        </div>
     );
 }

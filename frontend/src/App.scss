@@ -2,6 +2,17 @@
     text-align: center;
 }
 
+.ant-picker-input input::placeholder {
+    color: #808080;
+    font-weight: 300;
+    font-size: 14px;
+}
+
+.ant-picker-suffix {
+    color: #808080;
+}
+
+
 input[name='option-input'] {
     outline: none !important;
     border: none !important;

@@ -5,10 +5,10 @@ import { SearchSidebar } from './SearchSidebar/SearchSidebar';
 import { SearchContext, SearchParams } from './SearchContext/SearchContext';
 import { ReactComponent as ExpandIcon } from '../../static/expand.svg';
 import { SessionFeed } from './SessionsFeed/SessionsFeed';
-import { UserPropertyInput } from './SearchInputs/UserPropertyInput';
+import { UserPropertyInput } from './SearchInputs/UserPropertyInputs';
 
 export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
-    const [searchParams, setSearchParams] = useState<SearchParams>({ user_properties: [] });
+    const [searchParams, setSearchParams] = useState<SearchParams>({ user_properties: [], identified: false });
     const [openSidebar, setOpenSidebar] = useState<boolean>(false);
     return (
         <SearchContext.Provider value={{ searchParams, setSearchParams }}>

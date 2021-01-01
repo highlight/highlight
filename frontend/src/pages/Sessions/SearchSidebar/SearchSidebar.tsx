@@ -3,7 +3,7 @@ import styles from './SearchSidebar.module.scss';
 import classNames from 'classnames/bind';
 import { DateInput } from '../SearchInputs/DateInput';
 import { BrowserInput, OperatingSystemInput } from '../SearchInputs/DeviceInputs';
-import { UserPropertyInput } from '../SearchInputs/UserPropertyInput';
+import { UserPropertyInput, IdentifiedUsersSwitch } from '../SearchInputs/UserPropertyInputs';
 import { ReferrerInput, VisitedUrlInput } from '../SearchInputs/SessionInputs';
 
 export const SearchSidebar = ({ open }: { open: boolean }) => {
@@ -27,6 +27,7 @@ export const SearchSidebar = ({ open }: { open: boolean }) => {
                 <div className={styles.searchSection}>
                     <div className={styles.header}>USER PROPERTIES</div>
                     <UserPropertyInput />
+                    <IdentifiedUsersSwitch />
                 </div>
                 <div className={styles.searchSection}>
                     <div className={styles.header}>DATE RANGE</div>

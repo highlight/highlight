@@ -45,6 +45,7 @@ input SearchParams {
   browser: String
   visited_url: String
   referrer: String
+  identified: Boolean
 }
 
 input DateRange {

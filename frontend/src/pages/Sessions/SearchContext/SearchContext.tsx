@@ -12,12 +12,13 @@ export type SearchParams = {
     browser?: string;
     visited_url?: string;
     referrer?: string;
+    identified: boolean;
 }
 
 export const SearchContext = React.createContext<{
     searchParams: SearchParams;
     setSearchParams: React.Dispatch<React.SetStateAction<SearchParams>>;
 }>({
-    searchParams: { user_properties: [] },
+    searchParams: { user_properties: [], identified: false },
     setSearchParams: params => console.warn('noop'),
 });

@@ -421,6 +421,10 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		query = query.Where("os_name = ?", os)
 	}
 
+	if identified := params.Identified; identified {
+		query = query.Where("length(identifier) > ?", 0)
+	}
+
 	if browser := params.Browser; browser != nil {
 		query = query.Where("browser_name = ?", browser)
 	}
