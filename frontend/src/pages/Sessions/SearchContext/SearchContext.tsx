@@ -10,6 +10,8 @@ export type SearchParams = {
     date_range?: { start_date: Date; end_date: Date };
     os?: string;
     browser?: string;
+    visited_url?: string;
+    referrer?: string;
 }
 
 export const SearchContext = React.createContext<{

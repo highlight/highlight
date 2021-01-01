@@ -5,7 +5,7 @@ import { SearchContext } from '../SearchContext/SearchContext';
 import AsyncSelect from 'react-select/async';
 import { gql, useQuery } from '@apollo/client';
 
-export const OperatingSystemInput = () => {
+export const VisitedUrlInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { setSearchParams } = useContext(SearchContext);
 
@@ -20,7 +20,7 @@ export const OperatingSystemInput = () => {
         `, { skip: true });
 
     const generateOptions = async (input: string): Promise<OptionsType<OptionTypeBase> | void[]> => {
-        var fetched = await refetch({ organization_id: parseInt(organization_id), query: input, name: "os_name" })
+        var fetched = await refetch({ organization_id: parseInt(organization_id), query: input, name: "visited-url" })
         var suggestions = fetched.data.field_suggestionBETA
             .map(e => e.value)
             .filter((v, i, a) => a.indexOf(v) === i)
@@ -29,12 +29,12 @@ export const OperatingSystemInput = () => {
     }
 
     const onChange = (current: ValueType<{ label: string; value: string }, false>) => {
-        setSearchParams(params => ({ ...params, os: current?.value }))
+        setSearchParams(params => ({ ...params, visited_url: current?.value }))
     }
 
     return (
         <AsyncSelect
-            placeholder={"Operating System"}
+            placeholder={"Visited URL"}
             cacheOptions
             loadOptions={generateOptions}
             defaultOptions
@@ -43,7 +43,7 @@ export const OperatingSystemInput = () => {
     );
 }
 
-export const BrowserInput = () => {
+export const ReferrerInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { setSearchParams } = useContext(SearchContext);
 
@@ -58,7 +58,7 @@ export const BrowserInput = () => {
         `, { skip: true });
 
     const generateOptions = async (input: string): Promise<OptionsType<OptionTypeBase> | void[]> => {
-        var fetched = await refetch({ organization_id: parseInt(organization_id), query: input, name: "browser_name" })
+        var fetched = await refetch({ organization_id: parseInt(organization_id), query: input, name: "referrer" })
         var suggestions = fetched.data.field_suggestionBETA
             .map(e => e.value)
             .filter((v, i, a) => a.indexOf(v) === i)
@@ -67,12 +67,12 @@ export const BrowserInput = () => {
     }
 
     const onChange = (current: ValueType<{ label: string; value: string }, false>) => {
-        setSearchParams(params => ({ ...params, browser: current?.value }))
+        setSearchParams(params => ({ ...params, referrer: current?.value }))
     }
 
     return (
         <AsyncSelect
-            placeholder={"Browser"}
+            placeholder={"Referrer"}
             cacheOptions
             loadOptions={generateOptions}
             defaultOptions

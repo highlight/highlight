@@ -429,6 +429,8 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	if err := query.Preload("Fields").Find(&queriedSessions).Error; err != nil {
 		return nil, e.Wrap(err, "error querying initial set of sessions")
 	}
+
+	// Find sessions that have all the specified user properties.
 	sessions := []*model.Session{}
 	for _, session := range queriedSessions {
 		passed := 0
@@ -443,6 +445,20 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 			sessions = append(sessions, session)
 		}
 	}
+
+	// Find session that have the visited url.
+	if params.VisitedURL != nil {
+		visitedSessions := []*model.Session{}
+		for _, session := range sessions {
+			for _, field := range session.Fields {
+				if field.Name == "visited-url" && field.Value == *params.VisitedURL {
+					visitedSessions = append(visitedSessions, session)
+				}
+			}
+		}
+		sessions = visitedSessions
+	}
+
 	if len(sessions) < count {
 		count = len(sessions)
 	}

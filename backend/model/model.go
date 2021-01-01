@@ -186,6 +186,8 @@ type SearchParams struct {
 	DateRange      *DateRange      `json:"date_range"`
 	Browser        *string         `json:"browser"`
 	OS             *string         `json:"os"`
+	VisitedURL     *string         `json:"visited_url"`
+	Referrer       *string         `json:"referrer"`
 }
 
 type DateRange struct {

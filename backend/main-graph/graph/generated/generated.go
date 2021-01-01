@@ -795,6 +795,8 @@ input SearchParams {
   date_range: DateRange
   os: String
   browser: String
+  visited_url: String
+  referrer: String
 }
 
 input DateRange {
@@ -4578,6 +4580,22 @@ func (ec *executionContext) unmarshalInputSearchParams(ctx context.Context, obj 
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("browser"))
 			it.Browser, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "visited_url":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("visited_url"))
+			it.VisitedURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "referrer":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("referrer"))
+			it.Referrer, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

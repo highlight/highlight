@@ -43,6 +43,8 @@ input SearchParams {
   date_range: DateRange
   os: String
   browser: String
+  visited_url: String
+  referrer: String
 }
 
 input DateRange {
