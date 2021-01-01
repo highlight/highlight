@@ -408,6 +408,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 }
 
 func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParams) ([]*model.Session, error) {
+	pp.Println(params)
 	queriedSessions := []*model.Session{}
 	query := r.DB.Where("organization_id = ?", organizationID).
 		Where("processed = ?", true).
@@ -459,6 +460,19 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		sessions = visitedSessions
 	}
 
+	// Find session that have the referrer.
+	if params.Referrer != nil {
+		referredSessions := []*model.Session{}
+		for _, session := range sessions {
+			for _, field := range session.Fields {
+				if field.Name == "referrer" && field.Value == *params.Referrer {
+					referredSessions = append(referredSessions, session)
+				}
+			}
+		}
+		sessions = referredSessions
+	}
+
 	if len(sessions) < count {
 		count = len(sessions)
 	}
@@ -466,7 +480,6 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 }
 
 func (r *queryResolver) FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model.Field, error) {
-	pp.Println(organizationID, name, query)
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
@@ -479,7 +492,6 @@ func (r *queryResolver) FieldSuggestionBeta(ctx context.Context, organizationID 
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error querying field suggestion")
 	}
-	pp.Println(fields)
 	return fields, nil
 }
 
