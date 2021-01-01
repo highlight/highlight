@@ -7,6 +7,9 @@ export type UserProperty = {
 
 export type SearchParams = {
     user_properties: Array<UserProperty>;
+    date_range?: { start_date: Date; end_date: Date };
+    os?: string;
+    browser?: string;
 }
 
 export const SearchContext = React.createContext<{

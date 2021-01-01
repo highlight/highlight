@@ -40,6 +40,14 @@ type Segment {
 
 input SearchParams {
   user_properties: [UserProperty]
+  date_range: DateRange
+  os: String
+  browser: String
+}
+
+input DateRange {
+  start_date: Time
+  end_date: Time
 }
 
 input UserProperty {
@@ -72,12 +80,11 @@ type Query {
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
   sessionsBETA(organization_id: ID!, count: Int!, params: SearchParams): [Session]
   # gets all the organizations of a user
-  fields(organization_id: ID!): [String]
-  field_suggestion(
+  field_suggestionBETA(
     organization_id: ID!
-    field: String!
+    name: String!
     query: String!
-  ): [String]
+  ): [Field]
   user_field_suggestion(
     organization_id: ID!
     query: String!
@@ -87,6 +94,13 @@ type Query {
   admin: Admin
   segments(organization_id: ID!): [Segment]
   recording_settings(organization_id: ID!): RecordingSettings
+  # TO DELETE
+  fields(organization_id: ID!): [String]
+  field_suggestion(
+    organization_id: ID!
+    field: String!
+    query: String!
+  ): [String]
 }
 
 type Mutation {

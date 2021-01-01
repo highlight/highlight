@@ -13,6 +13,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -408,7 +409,24 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParams) ([]*model.Session, error) {
 	queriedSessions := []*model.Session{}
-	if err := r.DB.Where("organization_id = ?", organizationID).Where("processed = ?", true).Where("length > ?", 1000).Order("created_at desc").Preload("Fields").Find(&queriedSessions).Error; err != nil {
+	query := r.DB.Where("organization_id = ?", organizationID).
+		Where("processed = ?", true).
+		Where("length > ?", 1000).
+		Order("created_at desc")
+
+	if d := params.DateRange; d != nil {
+		query = query.Where("created_at > ? and created_at < ?", d.StartDate, d.EndDate)
+	}
+
+	if os := params.OS; os != nil {
+		query = query.Where("os_name = ?", os)
+	}
+
+	if browser := params.Browser; browser != nil {
+		query = query.Where("browser_name = ?", browser)
+	}
+
+	if err := query.Preload("Fields").Find(&queriedSessions).Error; err != nil {
 		return nil, e.Wrap(err, "error querying initial set of sessions")
 	}
 	sessions := []*model.Session{}
@@ -431,37 +449,22 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	return sessions[:count], nil
 }
 
-func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*string, error) {
-	rows, err := r.DB.Model(&model.Field{}).
-		Where(&model.Field{OrganizationID: organizationID}).
-		Select("distinct(name)").Rows()
-	if err != nil {
-		return nil, e.Wrap(err, "error querying field suggestion")
+func (r *queryResolver) FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model.Field, error) {
+	pp.Println(organizationID, name, query)
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "error querying organization")
 	}
-	defer rows.Close()
-	fields := []*string{}
-	for rows.Next() {
-		var field string
-		rows.Scan(&field)
-		fields = append(fields, &field)
-	}
-	return fields, nil
-}
-
-func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error) {
-	fields := []model.Field{}
-	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Name: field}).
-		Order(fmt.Sprintf(`levenshtein(value, '%v')`, query)).
-		Limit(15).
+	fields := []*model.Field{}
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Name: name}).
+		Where("length(value) > ?", 0).
+		Where("value ILIKE ?", "%"+query+"%").
+		Limit(8).
 		Find(&fields)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error querying field suggestion")
 	}
-	fieldStrings := []*string{}
-	for i := range fields {
-		fieldStrings = append(fieldStrings, &fields[i].Value)
-	}
-	return fieldStrings, nil
+	pp.Println(fields)
+	return fields, nil
 }
 
 func (r *queryResolver) UserFieldSuggestion(ctx context.Context, organizationID int, query string) ([]*model.Field, error) {
@@ -553,6 +556,39 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 		recordingSettings = newRecordSettings
 	}
 	return recordingSettings, nil
+}
+
+func (r *queryResolver) Fields(ctx context.Context, organizationID int) ([]*string, error) {
+	rows, err := r.DB.Model(&model.Field{}).
+		Where(&model.Field{OrganizationID: organizationID}).
+		Select("distinct(name)").Rows()
+	if err != nil {
+		return nil, e.Wrap(err, "error querying field suggestion")
+	}
+	defer rows.Close()
+	fields := []*string{}
+	for rows.Next() {
+		var field string
+		rows.Scan(&field)
+		fields = append(fields, &field)
+	}
+	return fields, nil
+}
+
+func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error) {
+	fields := []model.Field{}
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Name: field}).
+		Order(fmt.Sprintf(`levenshtein(value, '%v')`, query)).
+		Limit(15).
+		Find(&fields)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying field suggestion")
+	}
+	fieldStrings := []*string{}
+	for i := range fields {
+		fieldStrings = append(fieldStrings, &fields[i].Value)
+	}
+	return fieldStrings, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) ([]interface{}, error) {
