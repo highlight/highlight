@@ -1,7 +1,10 @@
 import React from 'react';
 import styles from './SearchSidebar.module.scss';
 import classNames from 'classnames/bind';
-import { UserPropertyInput } from '../UserPropertyInput/UserPropertyInput';
+import { DateInput } from '../SearchInputs/DateInput';
+import { BrowserInput, OperatingSystemInput } from '../SearchInputs/DeviceInputs';
+import { UserPropertyInput } from '../SearchInputs/UserPropertyInput';
+import { ReferrerInput, VisitedUrlInput } from '../SearchInputs/SessionInputs';
 
 export const SearchSidebar = ({ open }: { open: boolean }) => {
     return (
@@ -24,6 +27,20 @@ export const SearchSidebar = ({ open }: { open: boolean }) => {
                 <div className={styles.searchSection}>
                     <div className={styles.header}>USER PROPERTIES</div>
                     <UserPropertyInput />
+                </div>
+                <div className={styles.searchSection}>
+                    <div className={styles.header}>DATE RANGE</div>
+                    <DateInput />
+                </div>
+                <div className={styles.searchSection}>
+                    <div className={styles.header}>DEVICE DETAILS</div>
+                    <OperatingSystemInput />
+                    <BrowserInput />
+                </div>
+                <div className={styles.searchSection}>
+                    <div className={styles.header}>SESSION DETAILS</div>
+                    <VisitedUrlInput />
+                    <ReferrerInput />
                 </div>
             </div>
         </div>

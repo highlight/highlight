@@ -81,6 +81,7 @@ type ComplexityRoot struct {
 		Admins              func(childComplexity int, organizationID int) int
 		Events              func(childComplexity int, sessionID int) int
 		FieldSuggestion     func(childComplexity int, organizationID int, field string, query string) int
+		FieldSuggestionBeta func(childComplexity int, organizationID int, name string, query string) int
 		Fields              func(childComplexity int, organizationID int) int
 		IsIntegrated        func(childComplexity int, organizationID int) int
 		Messages            func(childComplexity int, sessionID int) int
@@ -148,14 +149,15 @@ type QueryResolver interface {
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model.Session, error)
 	SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParams) ([]*model.Session, error)
-	Fields(ctx context.Context, organizationID int) ([]*string, error)
-	FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error)
+	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model.Field, error)
 	UserFieldSuggestion(ctx context.Context, organizationID int, query string) ([]*model.Field, error)
 	Organizations(ctx context.Context) ([]*model.Organization, error)
 	Organization(ctx context.Context, id int) (*model.Organization, error)
 	Admin(ctx context.Context) (*model.Admin, error)
 	Segments(ctx context.Context, organizationID int) ([]*model.Segment, error)
 	RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error)
+	Fields(ctx context.Context, organizationID int) ([]*string, error)
+	FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model.Segment) ([]interface{}, error)
@@ -392,6 +394,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FieldSuggestion(childComplexity, args["organization_id"].(int), args["field"].(string), args["query"].(string)), true
+
+	case "Query.field_suggestionBETA":
+		if e.complexity.Query.FieldSuggestionBeta == nil {
+			break
+		}
+
+		args, err := ec.field_Query_field_suggestionBETA_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FieldSuggestionBeta(childComplexity, args["organization_id"].(int), args["name"].(string), args["query"].(string)), true
 
 	case "Query.fields":
 		if e.complexity.Query.Fields == nil {
@@ -778,6 +792,16 @@ type Segment {
 
 input SearchParams {
   user_properties: [UserProperty]
+  date_range: DateRange
+  os: String
+  browser: String
+  visited_url: String
+  referrer: String
+}
+
+input DateRange {
+  start_date: Time
+  end_date: Time
 }
 
 input UserProperty {
@@ -810,12 +834,11 @@ type Query {
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
   sessionsBETA(organization_id: ID!, count: Int!, params: SearchParams): [Session]
   # gets all the organizations of a user
-  fields(organization_id: ID!): [String]
-  field_suggestion(
+  field_suggestionBETA(
     organization_id: ID!
-    field: String!
+    name: String!
     query: String!
-  ): [String]
+  ): [Field]
   user_field_suggestion(
     organization_id: ID!
     query: String!
@@ -825,6 +848,13 @@ type Query {
   admin: Admin
   segments(organization_id: ID!): [Segment]
   recording_settings(organization_id: ID!): RecordingSettings
+  # TO DELETE
+  fields(organization_id: ID!): [String]
+  field_suggestion(
+    organization_id: ID!
+    field: String!
+    query: String!
+  ): [String]
 }
 
 type Mutation {
@@ -1095,6 +1125,39 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 		}
 	}
 	args["session_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_field_suggestionBETA_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("query"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg2
 	return args, nil
 }
 
@@ -2331,7 +2394,7 @@ func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graph
 	return ec.marshalOSession2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_fields(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_field_suggestionBETA(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2347,7 +2410,7 @@ func (ec *executionContext) _Query_fields(ctx context.Context, field graphql.Col
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_fields_args(ctx, rawArgs)
+	args, err := ec.field_Query_field_suggestionBETA_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2355,7 +2418,7 @@ func (ec *executionContext) _Query_fields(ctx context.Context, field graphql.Col
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Fields(rctx, args["organization_id"].(int))
+		return ec.resolvers.Query().FieldSuggestionBeta(rctx, args["organization_id"].(int), args["name"].(string), args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2364,47 +2427,9 @@ func (ec *executionContext) _Query_fields(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*string)
+	res := resTmp.([]*model.Field)
 	fc.Result = res
-	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_field_suggestion_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FieldSuggestion(rctx, args["organization_id"].(int), args["field"].(string), args["query"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*string)
-	fc.Result = res
-	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+	return ec.marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2619,6 +2644,82 @@ func (ec *executionContext) _Query_recording_settings(ctx context.Context, field
 	res := resTmp.(*model.RecordingSettings)
 	fc.Result = res
 	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_fields(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_fields_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Fields(rctx, args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_field_suggestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FieldSuggestion(rctx, args["organization_id"].(int), args["field"].(string), args["query"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4416,6 +4517,34 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputDateRange(ctx context.Context, obj interface{}) (model.DateRange, error) {
+	var it model.DateRange
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "start_date":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("start_date"))
+			it.StartDate, err = ec.unmarshalOTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "end_date":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("end_date"))
+			it.EndDate, err = ec.unmarshalOTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSearchParams(ctx context.Context, obj interface{}) (model.SearchParams, error) {
 	var it model.SearchParams
 	var asMap = obj.(map[string]interface{})
@@ -4427,6 +4556,46 @@ func (ec *executionContext) unmarshalInputSearchParams(ctx context.Context, obj 
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("user_properties"))
 			it.UserProperties, err = ec.unmarshalOUserProperty2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUserProperty(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "date_range":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("date_range"))
+			it.DateRange, err = ec.unmarshalODateRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDateRange(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "os":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("os"))
+			it.OS, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "browser":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("browser"))
+			it.Browser, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "visited_url":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("visited_url"))
+			it.VisitedURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "referrer":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("referrer"))
+			it.Referrer, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -4730,7 +4899,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_sessionsBETA(ctx, field)
 				return res
 			})
-		case "fields":
+		case "field_suggestionBETA":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -4738,18 +4907,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_fields(ctx, field)
-				return res
-			})
-		case "field_suggestion":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_field_suggestion(ctx, field)
+				res = ec._Query_field_suggestionBETA(ctx, field)
 				return res
 			})
 		case "user_field_suggestion":
@@ -4816,6 +4974,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_recording_settings(ctx, field)
+				return res
+			})
+		case "fields":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_fields(ctx, field)
+				return res
+			})
+		case "field_suggestion":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_field_suggestion(ctx, field)
 				return res
 			})
 		case "__type":
@@ -5735,6 +5915,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) unmarshalODateRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDateRange(ctx context.Context, v interface{}) (*model.DateRange, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputDateRange(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v []*model.Field) graphql.Marshaler {

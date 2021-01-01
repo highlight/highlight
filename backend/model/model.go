@@ -183,6 +183,16 @@ type ResourcesObject struct {
 
 type SearchParams struct {
 	UserProperties []*UserProperty `json:"user_properties"`
+	DateRange      *DateRange      `json:"date_range"`
+	Browser        *string         `json:"browser"`
+	OS             *string         `json:"os"`
+	VisitedURL     *string         `json:"visited_url"`
+	Referrer       *string         `json:"referrer"`
+}
+
+type DateRange struct {
+	StartDate time.Time
+	EndDate   time.Time
 }
 
 type UserProperty struct {
