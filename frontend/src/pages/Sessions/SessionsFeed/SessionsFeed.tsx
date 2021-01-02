@@ -72,6 +72,7 @@ export const SessionFeed = () => {
     }, [loadData, count, organization_id, refetch, searchParams])
 
     const infiniteRef = useInfiniteScroll({
+        checkInterval: 1200, // frequency to check (1.2s)
         loading: loadData,
         hasNextPage: true,
         onLoadMore: () => {

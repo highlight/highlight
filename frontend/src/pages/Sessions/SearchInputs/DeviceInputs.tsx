@@ -4,8 +4,12 @@ import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import { SearchContext } from '../SearchContext/SearchContext';
 import AsyncSelect from 'react-select/async';
 import { gql, useQuery } from '@apollo/client';
+import { ReactComponent as OSIcon } from '../../../static/os.svg';
+import { ReactComponent as BrowserIcon } from '../../../static/browser.svg';
+
 
 import inputStyles from './InputStyles.module.scss';
+import { SharedSelectStyleProps } from './SearchInputUtil';
 
 export const OperatingSystemInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -39,8 +43,9 @@ export const OperatingSystemInput = () => {
             <AsyncSelect
                 placeholder={"Operating System"}
                 cacheOptions
-                styles={{ control: (provided, state) => ({ ...provided, borderColor: "#eaeaea", borderRadius: 8, minHeight: 45 }) }}
+                styles={SharedSelectStyleProps}
                 loadOptions={generateOptions}
+                components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><OSIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
                 defaultOptions
                 onChange={onChange}
             />
@@ -80,7 +85,8 @@ export const BrowserInput = () => {
             <AsyncSelect
                 placeholder={"Browser"}
                 cacheOptions
-                styles={{ control: (provided, state) => ({ ...provided, borderColor: "#eaeaea", borderRadius: 8, minHeight: 45 }) }}
+                styles={SharedSelectStyleProps}
+                components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><BrowserIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
                 loadOptions={generateOptions}
                 defaultOptions
                 onChange={onChange}

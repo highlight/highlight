@@ -31,6 +31,7 @@ const getStripePromiseOrNull = () => {
 const stripePromiseOrNull = getStripePromiseOrNull()
 
 
+
 export const Billing = () => {
     const { organization_id } = useParams();
 

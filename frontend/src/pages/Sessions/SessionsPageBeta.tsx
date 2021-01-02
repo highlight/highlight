@@ -9,21 +9,14 @@ import { UserPropertyInput } from './SearchInputs/UserPropertyInputs';
 
 export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
     const [searchParams, setSearchParams] = useState<SearchParams>({ user_properties: [], identified: false });
-    const [openSidebar, setOpenSidebar] = useState<boolean>(false);
     return (
         <SearchContext.Provider value={{ searchParams, setSearchParams }}>
             <div className={styles.sessionsBody}>
                 <div className={styles.sessionsSection}>
                     <UserPropertyInput />
-                    <div className={styles.advancedSearchButton} onClick={() => setOpenSidebar(!openSidebar)}>
-                        <div className={styles.advancedText}>Advanced Search</div>
-                        <div className={styles.advancedIcon}>
-                            <ExpandIcon />
-                        </div>
-                    </div>
                     <SessionFeed />
                 </div>
-                <SearchSidebar open={openSidebar} />
+                <SearchSidebar />
             </div>
         </SearchContext.Provider >
     );

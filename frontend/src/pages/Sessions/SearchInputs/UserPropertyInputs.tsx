@@ -8,6 +8,8 @@ import { Switch } from 'antd';
 import inputStyles from './InputStyles.module.scss'
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import { input } from '../../../Common.module.scss';
+import { useState } from 'react';
+import classNames from 'classnames/bind';
 
 export const UserPropertyInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -56,11 +58,17 @@ export const UserPropertyInput = () => {
 
 export const IdentifiedUsersSwitch = () => {
     const { setSearchParams } = useContext(SearchContext);
+    const [on, setOn] = useState(false)
     return (
         <div className={inputStyles.commonInputWrapper}>
             <div className={inputStyles.switchRow}>
-                <Switch onChange={(val: boolean) => setSearchParams(params => ({ ...params, identified: val }))} />
-                <div className={inputStyles.switchText}>Only show identified users</div>
+                <Switch
+                    onChange={(val: boolean) => {
+                        setOn(val)
+                        setSearchParams(params => ({ ...params, identified: val }))
+                    }}
+                />
+                <div className={classNames(inputStyles.switchText, on && inputStyles.switchTextSelected)}>Only show identified users</div>
             </div>
         </div>
     );

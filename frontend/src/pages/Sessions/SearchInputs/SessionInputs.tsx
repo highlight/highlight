@@ -4,6 +4,10 @@ import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import { SearchContext } from '../SearchContext/SearchContext';
 import AsyncSelect from 'react-select/async';
 import { gql, useQuery } from '@apollo/client';
+import inputStyles from './InputStyles.module.scss';
+import { ReactComponent as URLIcon } from '../../../static/link.svg';
+import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
+import { SharedSelectStyleProps } from './SearchInputUtil';
 
 export const VisitedUrlInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -33,13 +37,17 @@ export const VisitedUrlInput = () => {
     }
 
     return (
-        <AsyncSelect
-            placeholder={"Visited URL"}
-            cacheOptions
-            loadOptions={generateOptions}
-            defaultOptions
-            onChange={onChange}
-        />
+        <div className={inputStyles.commonInputWrapper}>
+            <AsyncSelect
+                placeholder={"Visited URL"}
+                styles={SharedSelectStyleProps}
+                cacheOptions
+                components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><URLIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
+                loadOptions={generateOptions}
+                defaultOptions
+                onChange={onChange}
+            />
+        </div>
     );
 }
 
@@ -71,12 +79,16 @@ export const ReferrerInput = () => {
     }
 
     return (
-        <AsyncSelect
-            placeholder={"Referrer"}
-            cacheOptions
-            loadOptions={generateOptions}
-            defaultOptions
-            onChange={onChange}
-        />
+        <div className={inputStyles.commonInputWrapper}>
+            <AsyncSelect
+                placeholder={"Referrer"}
+                cacheOptions
+                loadOptions={generateOptions}
+                styles={SharedSelectStyleProps}
+                components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><ReferrerIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
+                defaultOptions
+                onChange={onChange}
+            />
+        </div >
     );
 }

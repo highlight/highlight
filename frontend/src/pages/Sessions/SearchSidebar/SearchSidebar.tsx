@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './SearchSidebar.module.scss';
 import classNames from 'classnames/bind';
 import { DateInput } from '../SearchInputs/DateInput';
 import { BrowserInput, OperatingSystemInput } from '../SearchInputs/DeviceInputs';
 import { UserPropertyInput, IdentifiedUsersSwitch } from '../SearchInputs/UserPropertyInputs';
 import { ReferrerInput, VisitedUrlInput } from '../SearchInputs/SessionInputs';
+import Collapsible from 'react-collapsible';
+import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
+import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
 
-export const SearchSidebar = ({ open }: { open: boolean }) => {
+export const SearchSidebar = () => {
+    const [open, setOpen] = useState(false);
     return (
         <div
             className={classNames([
@@ -14,6 +18,9 @@ export const SearchSidebar = ({ open }: { open: boolean }) => {
                 open ? styles.searchBarOpen : styles.searchBarClosed
             ])}
         >
+            <div className={styles.sideTab} onClick={() => setOpen(o => !o)}>
+                <Hamburger className={styles.hamburgerSide} />
+            </div>
             <div
                 style={{
                     flexGrow: 1,
@@ -24,26 +31,62 @@ export const SearchSidebar = ({ open }: { open: boolean }) => {
                 }}
             >
                 <div className={styles.title}>Advanced Search</div>
-                <div className={styles.searchSection}>
-                    <div className={styles.header}>USER PROPERTIES</div>
+                <SearchSection title="User Properties" open>
                     <UserPropertyInput />
                     <IdentifiedUsersSwitch />
-                </div>
-                <div className={styles.searchSection}>
-                    <div className={styles.header}>DATE RANGE</div>
+                </SearchSection>
+                <SearchSection title="Date Range" open>
                     <DateInput />
-                </div>
-                <div className={styles.searchSection}>
-                    <div className={styles.header}>DEVICE DETAILS</div>
+                </SearchSection>
+                <SearchSection title="Device Details" open>
                     <OperatingSystemInput />
                     <BrowserInput />
-                </div>
-                <div className={styles.searchSection}>
-                    <div className={styles.header}>SESSION DETAILS</div>
+                </SearchSection>
+                <SearchSection title="Session Details" open>
                     <VisitedUrlInput />
                     <ReferrerInput />
-                </div>
+                </SearchSection>
             </div>
         </div>
     );
 };
+
+
+type SearchSectionProps = {
+    title: string;
+    open: boolean;
+};
+
+const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
+    children,
+    title,
+    open
+}) => {
+    const [isOpen, setIsOpen] = useState<boolean>(open);
+    const header = (
+        <div className={styles.headerWrapper}>
+            <DownIcon
+                className={styles.icon}
+                style={{
+                    transform: !isOpen ? 'rotate(180deg)' : 'rotate(360deg)',
+                }}
+            />
+            <div className={styles.header}>{title}</div>
+        </div>
+    );
+    return (
+        <div className={styles.searchSectionWrapper}>
+            <Collapsible
+                open
+                onOpening={() => setIsOpen(true)}
+                onClosing={() => setIsOpen(false)}
+                trigger={header}
+                transitionTime={150}
+            >
+                <div className={styles.searchSection}>
+                    {children}
+                </div>
+            </Collapsible>
+        </div>
+    );
+}
