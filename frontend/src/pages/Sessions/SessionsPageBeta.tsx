@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import styles from './SessionsPage.module.scss';
 import { SearchSidebar } from './SearchSidebar/SearchSidebar';
 import { SearchContext, SearchParams } from './SearchContext/SearchContext';
-import { ReactComponent as ExpandIcon } from '../../static/expand.svg';
 import { SessionFeed } from './SessionsFeed/SessionsFeed';
 import { UserPropertyInput } from './SearchInputs/UserPropertyInputs';
 

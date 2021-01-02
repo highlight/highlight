@@ -7,7 +7,6 @@ import { gql, useQuery } from '@apollo/client';
 import { Switch } from 'antd';
 import inputStyles from './InputStyles.module.scss'
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
-import { input } from '../../../Common.module.scss';
 import { useState } from 'react';
 import classNames from 'classnames/bind';
 
