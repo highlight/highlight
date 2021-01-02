@@ -797,6 +797,7 @@ input SearchParams {
   browser: String
   visited_url: String
   referrer: String
+  identified: Boolean
 }
 
 input DateRange {
@@ -4596,6 +4597,14 @@ func (ec *executionContext) unmarshalInputSearchParams(ctx context.Context, obj 
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("referrer"))
 			it.Referrer, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "identified":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("identified"))
+			it.Identified, err = ec.unmarshalOBoolean2bool(ctx, v)
 			if err != nil {
 				return it, err
 			}
