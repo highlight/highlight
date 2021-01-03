@@ -22,16 +22,15 @@ export const SearchSidebar = () => {
                 <Hamburger className={styles.hamburgerSide} />
             </div>
             <div
-                style={{
-                    flexGrow: 1,
-                    height: '100%',
-                    position: 'relative',
-                    width: '100%',
-                    padding: 20,
-                }}
+                className={styles.sideContentWrapper}
             >
-                <div className={styles.hideWrapper} onClick={() => setOpen(false)}>
-                    <span className={styles.hideText}>Hide</span>
+                <div className={styles.hideRow} onClick={() => setOpen(false)}>
+                    <div className={styles.hideWrapper}>
+                        <span className={styles.hideText}>Hide</span>
+                        <DownIcon
+                            className={styles.hideIcon}
+                        />
+                    </div>
                 </div>
                 <div className={styles.title}>Advanced Search</div>
                 <SearchSection title="User Properties" open>
