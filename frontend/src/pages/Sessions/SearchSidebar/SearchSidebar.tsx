@@ -10,7 +10,7 @@ import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
 
 export const SearchSidebar = () => {
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
     return (
         <div
             className={classNames([
@@ -18,7 +18,7 @@ export const SearchSidebar = () => {
                 open ? styles.searchBarOpen : styles.searchBarClosed
             ])}
         >
-            <div className={styles.sideTab} onClick={() => setOpen(o => !o)}>
+            <div className={classNames(styles.sideTab, open ? styles.sideTabHidden : styles.sideTabVisible)} onClick={() => setOpen(o => !o)}>
                 <Hamburger className={styles.hamburgerSide} />
             </div>
             <div
@@ -30,6 +30,9 @@ export const SearchSidebar = () => {
                     padding: 20,
                 }}
             >
+                <div className={styles.hideWrapper} onClick={() => setOpen(false)}>
+                    <span className={styles.hideText}>Hide</span>
+                </div>
                 <div className={styles.title}>Advanced Search</div>
                 <SearchSection title="User Properties" open>
                     <UserPropertyInput />
@@ -82,6 +85,8 @@ const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
                 onClosing={() => setIsOpen(false)}
                 trigger={header}
                 transitionTime={150}
+                style={{ margin: 10 }}
+                contentOuterClassName={isOpen ? styles.contentOuterOpen : styles.contentOuterClosed}
             >
                 <div className={styles.searchSection}>
                     {children}

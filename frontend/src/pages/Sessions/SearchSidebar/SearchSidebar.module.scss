@@ -9,6 +9,16 @@
     display: flex;
     align-items: center;
     flex-direction: column;
+    height: calc(100vh - 80px);
+    overflow-y: scroll;
+}
+
+.contentOuterOpen {
+    overflow: visible !important;
+}
+
+.contentOuterClosed {
+    overflow: hidden;
 }
 
 .header {
@@ -32,10 +42,10 @@
 }
 
 .sideTab {
-    position: absolute;
+    position: fixed;
     background-color: white;
-    left: -50px;
-    top: 50px;
+    right: 0;
+    top: 180px;
     height: 50px;
     cursor: pointer;
     width: 50px;
@@ -48,6 +58,28 @@
     justify-content: center;
 }
 
+.hideWrapper {
+    height: 22px;
+}
+
+.hideText {
+    float: right;
+    cursor: pointer;
+}
+
+
+.sideTabVisible {
+    visibility: visible;
+}
+
+.sideTabHidden {
+    visibility: hidden;
+}
+
+.hideButton {
+    margin-left: auto;
+}
+
 .hamburgerSide {
     height: 20px;
     width: 20px;
@@ -56,6 +88,10 @@
 .title {
     font-size: 20px;
     margin-bottom: 10px;
+}
+
+.emptyDiv {
+    height: 40px;
 }
 
 .searchBarOpen {
