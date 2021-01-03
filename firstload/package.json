@@ -2,7 +2,7 @@
     "name": "highlight.run",
     "version": "1.0.47",
     "scripts": {
-        "build": "webpack --mode=production",
+        "build": "webpack --mode=production --config=./webpack.config.js",
         "dev": "doppler run -- webpack-dev-server --progress --colors --watch"
     },
     "main": "dist/firstload/src/index.js",
@@ -14,7 +14,5 @@
         "webpack-cli": "^3.3.12",
         "webpack-dev-server": "^3.11.0"
     },
-    "dependencies": {
-        "nodemon": "^2.0.6"
-    }
+    "dependencies": {}
 }
