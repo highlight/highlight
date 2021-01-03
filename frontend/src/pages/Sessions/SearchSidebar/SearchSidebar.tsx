@@ -10,7 +10,11 @@ import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
 
 export const SearchSidebar = () => {
+<<<<<<< HEAD
     const [open, setOpen] = useState(true);
+=======
+    const [open, setOpen] = useState(false);
+>>>>>>> master
     return (
         <div
             className={classNames([
@@ -18,7 +22,11 @@ export const SearchSidebar = () => {
                 open ? styles.searchBarOpen : styles.searchBarClosed
             ])}
         >
+<<<<<<< HEAD
             <div className={classNames(styles.sideTab, open ? styles.sideTabHidden : styles.sideTabVisible)} onClick={() => setOpen(o => !o)}>
+=======
+            <div className={styles.sideTab} onClick={() => setOpen(o => !o)}>
+>>>>>>> master
                 <Hamburger className={styles.hamburgerSide} />
             </div>
             <div
@@ -49,7 +57,10 @@ export const SearchSidebar = () => {
                     <VisitedUrlInput />
                     <ReferrerInput />
                 </SearchSection>
+<<<<<<< HEAD
                 <div className={styles.emptyDiv} />
+=======
+>>>>>>> master
             </div>
         </div>
     );
@@ -86,8 +97,11 @@ const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
                 onClosing={() => setIsOpen(false)}
                 trigger={header}
                 transitionTime={150}
+<<<<<<< HEAD
                 style={{ margin: 10 }}
                 contentOuterClassName={isOpen ? styles.contentOuterOpen : styles.contentOuterClosed}
+=======
+>>>>>>> master
             >
                 <div className={styles.searchSection}>
                     {children}
