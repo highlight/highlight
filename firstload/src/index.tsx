@@ -1,4 +1,4 @@
-import { HighlightWarning, Highlight, HighlightClassOptions } from '../../client/src/index';
+import { Highlight, HighlightClassOptions } from '../../client/src/index';
 
 export type HighlightOptions = {
     debug?: boolean;
@@ -6,6 +6,10 @@ export type HighlightOptions = {
     backendUrl?: string;
     manualStart?: boolean;
 };
+
+const HighlightWarning = (context: string, msg: any) => {
+    console.warn(`Highlight Warning: (${context}): `, msg)
+}
 
 type HighlightPublicInterface = {
     init: (orgID: number | string, debug?: HighlightOptions) => void;

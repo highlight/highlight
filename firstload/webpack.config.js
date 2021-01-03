@@ -34,7 +34,7 @@ module.exports = {
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
   },
   optimization: {
-    minimize: true
+    removeEmptyChunks: false,
   },
   devtool: 'source-map',
 };
