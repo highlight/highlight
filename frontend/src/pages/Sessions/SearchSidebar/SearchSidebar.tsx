@@ -23,46 +23,43 @@ export const SearchSidebar = () => {
             ])}
         >
 <<<<<<< HEAD
-            <div className={classNames(styles.sideTab, open ? styles.sideTabHidden : styles.sideTabVisible)} onClick={() => setOpen(o => !o)}>
+<div className={classNames(styles.sideTab, open ? styles.sideTabHidden : styles.sideTabVisible)} onClick={() => setOpen(o => !o)}>
 =======
             <div className={styles.sideTab} onClick={() => setOpen(o => !o)}>
 >>>>>>> master
-                <Hamburger className={styles.hamburgerSide} />
-            </div>
-            <div
-                style={{
-                    flexGrow: 1,
-                    height: '100%',
-                    position: 'relative',
-                    width: '100%',
-                    padding: 20,
-                }}
-            >
-                <div className={styles.hideWrapper} onClick={() => setOpen(false)}>
-                    <span className={styles.hideText}>Hide</span>
-                </div>
-                <div className={styles.title}>Advanced Search</div>
-                <SearchSection title="User Properties" open>
-                    <UserPropertyInput />
-                    <IdentifiedUsersSwitch />
-                </SearchSection>
-                <SearchSection title="Date Range" open>
-                    <DateInput />
-                </SearchSection>
-                <SearchSection title="Device Details" open>
-                    <OperatingSystemInput />
-                    <BrowserInput />
-                </SearchSection>
-                <SearchSection title="Session Details" open>
-                    <VisitedUrlInput />
-                    <ReferrerInput />
-                </SearchSection>
-<<<<<<< HEAD
-                <div className={styles.emptyDiv} />
-=======
->>>>>>> master
-            </div>
+        <Hamburger className={styles.hamburgerSide} />
+    </div>
+    <div
+        style={{
+            flexGrow: 1,
+            height: '100%',
+            position: 'relative',
+            width: '100%',
+            padding: 20,
+        }}
+    >
+        <div className={styles.hideWrapper} onClick={() => setOpen(false)}>
+            <span className={styles.hideText}>Hide</span>
         </div>
+        <div className={styles.title}>Advanced Search</div>
+        <SearchSection title="User Properties" open>
+            <UserPropertyInput />
+            <IdentifiedUsersSwitch />
+        </SearchSection>
+        <SearchSection title="Date Range" open>
+            <DateInput />
+        </SearchSection>
+        <SearchSection title="Device Details" open>
+            <OperatingSystemInput />
+            <BrowserInput />
+        </SearchSection>
+        <SearchSection title="Session Details" open>
+            <VisitedUrlInput />
+            <ReferrerInput />
+        </SearchSection>
+        <div className={styles.emptyDiv} />
+    </div>
+</div>
     );
 };
 
