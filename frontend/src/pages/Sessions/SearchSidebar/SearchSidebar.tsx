@@ -10,11 +10,7 @@ import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
 
 export const SearchSidebar = () => {
-<<<<<<< HEAD
     const [open, setOpen] = useState(true);
-=======
-    const [open, setOpen] = useState(false);
->>>>>>> master
     return (
         <div
             className={classNames([
@@ -22,44 +18,40 @@ export const SearchSidebar = () => {
                 open ? styles.searchBarOpen : styles.searchBarClosed
             ])}
         >
-<<<<<<< HEAD
-<div className={classNames(styles.sideTab, open ? styles.sideTabHidden : styles.sideTabVisible)} onClick={() => setOpen(o => !o)}>
-=======
-            <div className={styles.sideTab} onClick={() => setOpen(o => !o)}>
->>>>>>> master
-        <Hamburger className={styles.hamburgerSide} />
-    </div>
-    <div
-        style={{
-            flexGrow: 1,
-            height: '100%',
-            position: 'relative',
-            width: '100%',
-            padding: 20,
-        }}
-    >
-        <div className={styles.hideWrapper} onClick={() => setOpen(false)}>
-            <span className={styles.hideText}>Hide</span>
+            <div className={classNames(styles.sideTab, open ? styles.sideTabHidden : styles.sideTabVisible)} onClick={() => setOpen(o => !o)}>
+                <Hamburger className={styles.hamburgerSide} />
+            </div>
+            <div
+                style={{
+                    flexGrow: 1,
+                    height: '100%',
+                    position: 'relative',
+                    width: '100%',
+                    padding: 20,
+                }}
+            >
+                <div className={styles.hideWrapper} onClick={() => setOpen(false)}>
+                    <span className={styles.hideText}>Hide</span>
+                </div>
+                <div className={styles.title}>Advanced Search</div>
+                <SearchSection title="User Properties" open>
+                    <UserPropertyInput />
+                    <IdentifiedUsersSwitch />
+                </SearchSection>
+                <SearchSection title="Date Range" open>
+                    <DateInput />
+                </SearchSection>
+                <SearchSection title="Device Details" open>
+                    <OperatingSystemInput />
+                    <BrowserInput />
+                </SearchSection>
+                <SearchSection title="Session Details" open>
+                    <VisitedUrlInput />
+                    <ReferrerInput />
+                </SearchSection>
+                <div className={styles.emptyDiv} />
+            </div>
         </div>
-        <div className={styles.title}>Advanced Search</div>
-        <SearchSection title="User Properties" open>
-            <UserPropertyInput />
-            <IdentifiedUsersSwitch />
-        </SearchSection>
-        <SearchSection title="Date Range" open>
-            <DateInput />
-        </SearchSection>
-        <SearchSection title="Device Details" open>
-            <OperatingSystemInput />
-            <BrowserInput />
-        </SearchSection>
-        <SearchSection title="Session Details" open>
-            <VisitedUrlInput />
-            <ReferrerInput />
-        </SearchSection>
-        <div className={styles.emptyDiv} />
-    </div>
-</div>
     );
 };
 
@@ -94,11 +86,8 @@ const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
                 onClosing={() => setIsOpen(false)}
                 trigger={header}
                 transitionTime={150}
-<<<<<<< HEAD
                 style={{ margin: 10 }}
                 contentOuterClassName={isOpen ? styles.contentOuterOpen : styles.contentOuterClosed}
-=======
->>>>>>> master
             >
                 <div className={styles.searchSection}>
                     {children}
