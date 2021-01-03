@@ -49,6 +49,7 @@ export const SearchSidebar = () => {
                     <VisitedUrlInput />
                     <ReferrerInput />
                 </SearchSection>
+                <div className={styles.emptyDiv} />
             </div>
         </div>
     );
