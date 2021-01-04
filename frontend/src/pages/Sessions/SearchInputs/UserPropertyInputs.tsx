@@ -34,7 +34,10 @@ export const UserPropertyInput = () => {
         <div className={inputStyles.commonInputWrapper}>
             <AsyncSelect
                 isMulti
-                styles={{ control: (provided, state) => ({ ...provided, borderColor: "#eaeaea", borderRadius: 8, minHeight: 45 }) }}
+                styles={{
+                    control: (provided, state) => ({ ...provided, borderColor: "#eaeaea", borderRadius: 8, minHeight: 45 }),
+                    multiValue: (provided, state) => ({ ...provided, backgroundColor: '#F2EEFB' }),
+                }}
                 cacheOptions
                 placeholder={"Select a property..."}
                 isClearable={false}

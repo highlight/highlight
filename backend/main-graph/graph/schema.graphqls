@@ -3,6 +3,12 @@
 scalar Any
 scalar Time
 
+type Field {
+  name: String!
+  value: String!
+  type: String
+}
+
 type Session {
   id: ID!
   user_id: ID!
@@ -17,6 +23,7 @@ type Session {
   created_at: Time
   length: Int
   user_object: Any
+  fields: [Field]
 }
 
 type RecordingSettings {
@@ -66,11 +73,6 @@ type Admin {
   id: ID!
   name: String!
   email: String!
-}
-
-type Field {
-  name: String!
-  value: String!
 }
 
 type Query {

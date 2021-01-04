@@ -3,12 +3,22 @@
     height: 100%;
     background-color: white;
     z-index: 100;
-    width: 280px;
+    width: 320px;
     border-left: 1px solid #eaeaea;
     transition: right 0.3s;
     display: flex;
     align-items: center;
     flex-direction: column;
+    height: calc(100vh - 80px);
+    overflow-y: scroll;
+}
+
+.contentOuterOpen {
+    overflow: visible !important;
+}
+
+.contentOuterClosed {
+    overflow: hidden;
 }
 
 .header {
@@ -32,10 +42,10 @@
 }
 
 .sideTab {
-    position: absolute;
+    position: fixed;
     background-color: white;
-    left: -50px;
-    top: 50px;
+    right: 0;
+    top: 180px;
     height: 50px;
     cursor: pointer;
     width: 50px;
@@ -45,7 +55,40 @@
     border-style: solid;
     display: flex;
     align-items: center;
+    z-index: 100;
     justify-content: center;
+}
+
+.hideRow {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    color: #808080;
+}
+
+.hideWrapper {
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    float: right;
+}
+
+.hideText {
+    float: right;
+    cursor: pointer;
+}
+
+.sideTabVisible {
+    visibility: visible;
+}
+
+.sideTabHidden {
+    visibility: hidden;
+}
+
+.hideButton {
+    margin-left: auto;
 }
 
 .hamburgerSide {
@@ -53,9 +96,22 @@
     width: 20px;
 }
 
+.sideContentWrapper {
+    flex-grow: 1;
+    height: 100%;
+    position: relative;
+    width: 100%;
+    padding: 20px 30px 20px 30px;
+}
+
+
 .title {
     font-size: 20px;
     margin-bottom: 10px;
+}
+
+.emptyDiv {
+    height: 80px;
 }
 
 .searchBarOpen {
@@ -63,7 +119,20 @@
 }
 
 .searchBarClosed {
-    right: -280px;
+    right: -320px;
+}
+
+.hideIcon {
+    transform: rotate(-90deg);
+    height: 12px;
+    width: 12px;
+    margin-left: -5px;
+    float: right;
+    cursor: pointer;
+    margin-left: 5px;
+    margin-bottom: 2px;
+    color: #808080;
+    fill: #808080;
 }
 
 .icon {

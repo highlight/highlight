@@ -10,7 +10,7 @@ import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
 
 export const SearchSidebar = () => {
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(true);
     return (
         <div
             className={classNames([
@@ -18,18 +18,20 @@ export const SearchSidebar = () => {
                 open ? styles.searchBarOpen : styles.searchBarClosed
             ])}
         >
-            <div className={styles.sideTab} onClick={() => setOpen(o => !o)}>
+            <div className={classNames(styles.sideTab, open ? styles.sideTabHidden : styles.sideTabVisible)} onClick={() => setOpen(o => !o)}>
                 <Hamburger className={styles.hamburgerSide} />
             </div>
             <div
-                style={{
-                    flexGrow: 1,
-                    height: '100%',
-                    position: 'relative',
-                    width: '100%',
-                    padding: 20,
-                }}
+                className={styles.sideContentWrapper}
             >
+                <div className={styles.hideRow} onClick={() => setOpen(false)}>
+                    <div className={styles.hideWrapper}>
+                        <span className={styles.hideText}>Hide</span>
+                        <DownIcon
+                            className={styles.hideIcon}
+                        />
+                    </div>
+                </div>
                 <div className={styles.title}>Advanced Search</div>
                 <SearchSection title="User Properties" open>
                     <UserPropertyInput />
@@ -46,6 +48,7 @@ export const SearchSidebar = () => {
                     <VisitedUrlInput />
                     <ReferrerInput />
                 </SearchSection>
+                <div className={styles.emptyDiv} />
             </div>
         </div>
     );
@@ -82,6 +85,8 @@ const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
                 onClosing={() => setIsOpen(false)}
                 trigger={header}
                 transitionTime={150}
+                style={{ margin: 10 }}
+                contentOuterClassName={isOpen ? styles.contentOuterOpen : styles.contentOuterClosed}
             >
                 <div className={styles.searchSection}>
                     {children}

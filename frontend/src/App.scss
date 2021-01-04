@@ -2,6 +2,10 @@
     text-align: center;
 }
 
+.Collapsible__contentInner {
+    margin: 1px;
+}
+
 .ant-picker-input input::placeholder {
     color: #808080;
     font-weight: 300;
@@ -10,6 +14,10 @@
 
 .ant-picker-suffix {
     color: #808080;
+}
+
+.ant-picker-input > input {
+    font-weight: 300;
 }
 
 

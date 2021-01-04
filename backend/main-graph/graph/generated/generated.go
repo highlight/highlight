@@ -54,6 +54,7 @@ type ComplexityRoot struct {
 
 	Field struct {
 		Name  func(childComplexity int) int
+		Type  func(childComplexity int) int
 		Value func(childComplexity int) int
 	}
 
@@ -113,6 +114,7 @@ type ComplexityRoot struct {
 		BrowserVersion func(childComplexity int) int
 		City           func(childComplexity int) int
 		CreatedAt      func(childComplexity int) int
+		Fields         func(childComplexity int) int
 		ID             func(childComplexity int) int
 		Identifier     func(childComplexity int) int
 		Length         func(childComplexity int) int
@@ -208,6 +210,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Field.Name(childComplexity), true
+
+	case "Field.type":
+		if e.complexity.Field.Type == nil {
+			break
+		}
+
+		return e.complexity.Field.Type(childComplexity), true
 
 	case "Field.value":
 		if e.complexity.Field.Value == nil {
@@ -616,6 +625,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.CreatedAt(childComplexity), true
 
+	case "Session.fields":
+		if e.complexity.Session.Fields == nil {
+			break
+		}
+
+		return e.complexity.Session.Fields(childComplexity), true
+
 	case "Session.id":
 		if e.complexity.Session.ID == nil {
 			break
@@ -755,6 +771,12 @@ var sources = []*ast.Source{
 scalar Any
 scalar Time
 
+type Field {
+  name: String!
+  value: String!
+  type: String
+}
+
 type Session {
   id: ID!
   user_id: ID!
@@ -769,6 +791,7 @@ type Session {
   created_at: Time
   length: Int
   user_object: Any
+  fields: [Field]
 }
 
 type RecordingSettings {
@@ -818,11 +841,6 @@ type Admin {
   id: ID!
   name: String!
   email: String!
-}
-
-type Field {
-  name: String!
-  value: String!
 }
 
 type Query {
@@ -1611,6 +1629,37 @@ func (ec *executionContext) _Field_value(ctx context.Context, field graphql.Coll
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Field_type(ctx context.Context, field graphql.CollectedField, obj *model.Field) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Field",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3429,6 +3478,37 @@ func (ec *executionContext) _Session_user_object(ctx context.Context, field grap
 	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_fields(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Session",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Fields, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Field)
+	fc.Result = res
+	return ec.marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4708,6 +4788,8 @@ func (ec *executionContext) _Field(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "type":
+			out.Values[i] = ec._Field_type(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5181,6 +5263,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 				res = ec._Session_user_object(ctx, field, obj)
 				return res
 			})
+		case "fields":
+			out.Values[i] = ec._Session_fields(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
