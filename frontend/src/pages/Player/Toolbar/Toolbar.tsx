@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
+import { useLocalStorage } from '@rehooks/local-storage';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import { SettingsMenu } from './SettingsMenu/SettingsMenu';
@@ -22,9 +23,9 @@ export const Toolbar = ({
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [current, setCurrent] = useState(0);
-    const [speed, setSpeed] = useState(2);
-    const [skipInactive, setSkipInactive] = useState(false);
-    const [openDevTools, setOpenDevTools] = useState(false);
+    const [speed, setSpeed] = useLocalStorage('highlightMenuSpeed', 2);
+    const [skipInactive, setSkipInactive] = useLocalStorage('highlightMenuSkipInactive', false);
+    const [openDevTools, setOpenDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
     const [paused, setPaused] = useState(true);
     const timePercentage = Math.max((current / max) * 100, 0);
     const indicatorStyle = `min(${timePercentage.toString() + '%'
