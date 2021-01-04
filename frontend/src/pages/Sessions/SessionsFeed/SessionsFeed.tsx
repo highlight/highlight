@@ -125,7 +125,7 @@ const SessionCard = ({ session }: { session: Session }) => {
             onMouseLeave={() => setHovered(false)}
         >
             <div className={styles.sessionCard}>
-                {hovered && <div className={styles.hoverBorder} />}
+                <div className={classNames(styles.hoverBorderLeft, hovered && styles.hoverBorderOn)} />
                 <div className={styles.avatarWrapper}>
                     <Avatar seed={session.identifier ? session.identifier : session.user_id.toString()} style={{ height: 60, width: 60 }} />
                 </div>
@@ -204,6 +204,7 @@ const SessionCard = ({ session }: { session: Session }) => {
                         {session.postal}
                     </div>
                 </div>
+                <div className={classNames(styles.hoverBorderRight, hovered && styles.hoverBorderOn)} />
             </div>
         </Link>
     );
