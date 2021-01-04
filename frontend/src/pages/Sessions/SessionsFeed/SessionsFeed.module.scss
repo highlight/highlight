@@ -13,6 +13,9 @@
     font-size: 12px;
     font-weight: 200;
     margin: 4px 0 4px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .middleText {
@@ -30,6 +33,9 @@
     font-size: 12px;
     font-weight: 200;
     margin: 4px 0 4px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .playButton {
@@ -76,14 +82,30 @@
     justify-content: space-between;
 }
 
-.hoverBorder {
+.hoverBorderRight {
     height: 60px;
-    background-color: #5629C6;
     width: 5px;
     position: absolute;
     border-radius: 5px;
+    transition: 0.3s;
+    right: -3px;
+    transition: 0.3s;
+    background-color: transparent;
+}
+
+.hoverBorderLeft {
+    height: 60px;
+    width: 5px;
+    position: absolute;
+    border-radius: 5px;
+    transition: 0.3s;
     left: -3px;
     transition: 0.3s;
+    background-color: transparent;
+}
+
+.hoverBorderOn {
+    background-color: #5629C6;
 }
 
 .sessionCard {
