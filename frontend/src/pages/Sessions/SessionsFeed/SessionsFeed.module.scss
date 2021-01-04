@@ -13,6 +13,9 @@
     font-size: 12px;
     font-weight: 200;
     margin: 4px 0 4px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .middleText {
@@ -30,6 +33,9 @@
     font-size: 12px;
     font-weight: 200;
     margin: 4px 0 4px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .playButton {

@@ -127,7 +127,7 @@ const SessionCard = ({ session }: { session: Session }) => {
             <div className={styles.sessionCard}>
                 {hovered && <div className={styles.hoverBorder} />}
                 <div className={styles.avatarWrapper}>
-                    <Avatar seed={session.identifier} style={{ height: 60, width: 60 }} />
+                    <Avatar seed={session.identifier ? session.identifier : session.user_id.toString()} style={{ height: 60, width: 60 }} />
                 </div>
                 <div
                     className={
