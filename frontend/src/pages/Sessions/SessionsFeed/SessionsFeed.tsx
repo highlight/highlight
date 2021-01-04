@@ -116,13 +116,17 @@ export const SessionFeed = () => {
 
 const SessionCard = ({ session }: { session: Session }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const [hovered, setHovered] = useState(false);
     const created = new Date(session.created_at);
     return (
         <Link
             to={`/${organization_id}/sessions/${session.id}`}
             key={session.id}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
         >
             <div className={styles.sessionCard}>
+                {hovered && <div className={styles.hoverBorder} />}
                 <div className={styles.avatarWrapper}>
                     <Avatar seed={session.identifier} style={{ height: 60, width: 60 }} />
                 </div>

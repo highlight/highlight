@@ -69,7 +69,18 @@
     justify-content: space-between;
 }
 
+.hoverBorder {
+    height: 60px;
+    background-color: #5629C6;
+    width: 5px;
+    position: absolute;
+    border-radius: 5px;
+    left: -3px;
+    transition: 0.3s;
+}
+
 .sessionCard {
+    position: relative;
     font-weight: 400;
     height: 110px;
     @include rounded-border;

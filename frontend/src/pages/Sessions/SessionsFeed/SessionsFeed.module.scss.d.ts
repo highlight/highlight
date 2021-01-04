@@ -1,6 +1,7 @@
 export const avatarWrapper: string;
 export const blueTitle: string;
 export const bottomText: string;
+export const hoverBorder: string;
 export const loadingDiv: string;
 export const middleText: string;
 export const playButton: string;
