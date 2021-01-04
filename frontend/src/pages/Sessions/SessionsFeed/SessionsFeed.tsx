@@ -2,7 +2,6 @@ import { gql, useQuery } from '@apollo/client';
 import React, { RefObject, useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
-import { ReactComponent as PlayButton } from '../../../static/play-button.svg';
 import styles from './SessionsFeed.module.scss';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
@@ -141,9 +140,9 @@ const SessionCard = ({ session }: { session: Session }) => {
                     <div className={classNames(styles.middleText, "rr-block")}>
                         {session?.identifier}
                     </div>
-                    {session.fields.
-                        filter(f => f.type === "user" && f.name !== "identifier" && f.value.length).
-                        map(f =>
+                    {session.fields
+                        .filter(f => f.type === "user" && f.name !== "identifier" && f.value.length)
+                        .map(f =>
                             <Tag color="#F2EEFB"><span style={{ color: 'black', fontWeight: 300 }}>
                                 {f.name}:&nbsp;{f.value}
                             </span></Tag>
