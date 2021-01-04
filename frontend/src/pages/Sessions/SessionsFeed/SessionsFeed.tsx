@@ -188,18 +188,15 @@ const SessionCard = ({ session }: { session: Session }) => {
                 >
                     <div className={styles.topText}>
                         {session.browser_name}
-                        &nbsp;/&nbsp;
-                        {session.browser_version}
+                        {session.browser_version && " / " + session.browser_version}
                     </div>
                     <div className={styles.middleText}>
                         {session.os_name}
-                        &nbsp;/&nbsp;
-                        {session.os_version}
+                        {session.os_version && " / " + session.os_version}
                     </div>
                     <div className={styles.bottomText}>
                         {session.city}
-                        ,&nbsp;
-                        {session.state}
+                        {session.state && ", " + session.state}
                         &nbsp;
                         {session.postal}
                     </div>
