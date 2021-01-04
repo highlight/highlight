@@ -98,7 +98,7 @@ export const SessionFeed = () => {
     if (loadingState) {
         return (
             <SkeletonTheme color={"#F5F5F5"} highlightColor={"#FCFCFC"}>
-                <Skeleton height={80} count={3} style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }} />
+                <Skeleton height={110} count={3} style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }} />
             </SkeletonTheme>
         )
     }
@@ -140,13 +140,15 @@ const SessionCard = ({ session }: { session: Session }) => {
                     <div className={classNames(styles.middleText, "rr-block")}>
                         {session?.identifier}
                     </div>
-                    {session.fields
-                        .filter(f => f.type === "user" && f.name !== "identifier" && f.value.length)
-                        .map(f =>
-                            <Tag color="#F2EEFB"><span style={{ color: 'black', fontWeight: 300 }}>
-                                {f.name}:&nbsp;{f.value}
-                            </span></Tag>
-                        )}
+                    <div className={styles.tagWrapper}>
+                        {session.fields
+                            .filter(f => f.type === "user" && f.name !== "identifier" && f.value.length)
+                            .map(f =>
+                                <Tag color="#F2EEFB"><span style={{ color: 'black', fontWeight: 300 }}>
+                                    {f.name}:&nbsp;{f.value}
+                                </span></Tag>
+                            )}
+                    </div>
                 </div>
                 <div
                     className={
@@ -185,15 +187,21 @@ const SessionCard = ({ session }: { session: Session }) => {
                     }
                 >
                     <div className={styles.topText}>
-                        {session.os_version}
-                    </div>
-                    <div className={styles.middleText}>
-                        {session.os_name}
-                    </div>
-                    <div className={styles.bottomText}>
                         {session.browser_name}
                         &nbsp;/&nbsp;
                         {session.browser_version}
+                    </div>
+                    <div className={styles.middleText}>
+                        {session.os_name}
+                        &nbsp;/&nbsp;
+                        {session.os_version}
+                    </div>
+                    <div className={styles.bottomText}>
+                        {session.city}
+                        ,&nbsp;
+                        {session.state}
+                        &nbsp;
+                        {session.postal}
                     </div>
                 </div>
             </div>
