@@ -151,7 +151,7 @@ type Session struct {
 	Processed bool `json:"processed"`
 	// The length of a session.
 	Length           int64      `json:"length"`
-	Fields           []Field    `gorm:"many2many:session_fields;"`
+	Fields           []*Field   `json:"fields" gorm:"many2many:session_fields;"`
 	UserObject       JSONB      `json:"user_object" sql:"type:jsonb"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
 }

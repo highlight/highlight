@@ -64,7 +64,7 @@ export const MetadataBox = () => {
                             <div className={styles.userAvatarWrapper}>
                                 <Avatar
                                     style={{ width: 75 }}
-                                    seed={data?.session.user_id.toString() ?? ''}
+                                    seed={data?.session.identifier ?? ''}
                                 />
                             </div>
                             <div className={styles.userContentWrapper}>
