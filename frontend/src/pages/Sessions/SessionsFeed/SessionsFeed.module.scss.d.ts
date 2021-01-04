@@ -10,4 +10,5 @@ export const regTitle: string;
 export const sessionCard: string;
 export const sessionTextSection: string;
 export const sessionTextWrapper: string;
+export const tagWrapper: string;
 export const topText: string;

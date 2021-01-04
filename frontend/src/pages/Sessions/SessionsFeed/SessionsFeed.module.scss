@@ -63,6 +63,13 @@
     text-overflow: ellipsis;
 }
 
+.tagWrapper {
+    display: flex;
+    flex-flow: row wrap;
+    overflow: hidden;
+    height: 22px;
+}
+
 .sessionTextWrapper {
     display: flex;
     width: 100%;
