@@ -45,6 +45,7 @@ export const VisitedUrlInput = () => {
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><URLIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
                 loadOptions={generateOptions}
                 defaultOptions
+                isClearable
                 onChange={onChange}
             />
         </div>
@@ -75,7 +76,6 @@ export const ReferrerInput = () => {
     }
 
     const onChange = (current: ValueType<{ label: string; value: string }, false>) => {
-        console.log(current);
         setSearchParams(params => ({ ...params, referrer: current?.value }))
     }
 
