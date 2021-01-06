@@ -86,6 +86,7 @@ export const ReferrerInput = () => {
                 loadOptions={generateOptions}
                 styles={SharedSelectStyleProps}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><ReferrerIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
+                defaultMenuIsOpen
                 defaultOptions
                 onChange={onChange}
             />

@@ -1,5 +1,6 @@
 import { DatePicker } from 'antd';
 import React, { useContext } from 'react';
+import { start } from 'repl';
 import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
 
@@ -10,10 +11,12 @@ export const DateInput = () => {
             <DatePicker.RangePicker
                 className={inputStyles.datePicker}
                 onChange={(date: any, dateStrings: [string, string]) => {
+                    const start_date = dateStrings[0] ? new Date(dateStrings[0]) : undefined;
+                    const end_date = dateStrings[1] ? new Date(dateStrings[0]) : undefined;
                     setSearchParams((params: SearchParams): SearchParams => {
                         return {
                             ...params,
-                            date_range: { start_date: new Date(dateStrings[0]), end_date: new Date(dateStrings[1]) },
+                            date_range: (!start_date || !end_date) ? undefined : { start_date, end_date },
                         }
                     })
                 }} />
