@@ -5,6 +5,29 @@
     height: 100%;
     display: flex;
     justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.userInputWrapper {
+    width: 700px;
+}
+
+.mainUserInput {
+    position: fixed;
+    top: 80px;
+    padding-top: 30px;
+    width: 100%;
+    background-color: white;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fixedPlaceholder {
+    height: 60px;
+    width: 100%;
 }
 
 .sessionsSection {

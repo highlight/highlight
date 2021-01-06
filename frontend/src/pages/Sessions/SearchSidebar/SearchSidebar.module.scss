@@ -1,9 +1,8 @@
 .searchBar {
     position: fixed;
     background-color: white;
-    z-index: 100;
+    z-index: 800;
     width: 320px;
-    border: 1px solid #eaeaea;
     transition: right 0.3s;
     display: flex;
     align-items: center;
@@ -12,8 +11,6 @@
     margin-right: 20px;
     height: calc(80vh - 80px);
     transition: 0.3s;
-    overflow-y: scroll;
-    border-radius: 8px;
 }
 
 .contentOuterOpen {
@@ -62,11 +59,31 @@
     justify-content: center;
 }
 
+.titleSection {
+    border: 1px solid #eaeaea;
+    padding: 20px 20px 0px 20px;
+    border-radius: 8px 8px 0 0;
+    border-color: #eaeaea #eaeaea white #eaeaea;
+}
+
+.contentSection {
+    overflow-y: scroll;
+    border: 1px solid #eaeaea;
+    border-color: #eaeaea #eaeaea #eaeaea #eaeaea;
+    max-height: calc(100% - 40px);
+    border-radius: 8px 8px 8px 8px;
+    padding: 20px 20px 0px 20px;
+    margin-bottom: 20px;
+}
+
 .hideRow {
     display: flex;
     justify-content: flex-end;
     align-items: center;
     color: #808080;
+    position: absolute;
+    top: -30px;
+    width: 100%;
 }
 
 .hideWrapper {
@@ -104,7 +121,6 @@
     height: 100%;
     position: relative;
     width: 100%;
-    padding: 20px 30px 20px 30px;
 }
 
 

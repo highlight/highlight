@@ -15,10 +15,15 @@ export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
     return (
         <SearchContext.Provider value={{ searchParams, setSearchParams }}>
             <div className={styles.sessionsBody}>
+                <div className={styles.fixedPlaceholder} />
+                <div className={styles.mainUserInput}>
+                    <div className={styles.userInputWrapper}>
+                        <UserPropertyInput />
+                    </div>
+                </div>
                 <div className={styles.sessionsSection}
                     ref={feedRef}
                 >
-                    <UserPropertyInput />
                     <SessionFeed />
                 </div>
                 <SearchSidebar feedPosition={{ top, right }} />
