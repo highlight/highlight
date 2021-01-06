@@ -12,7 +12,6 @@ import { UserPropertyInput } from './SearchInputs/UserPropertyInputs';
 export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
     const [feedRef, { top, right }] = useDimensions();
     const [searchParams, setSearchParams] = useState<SearchParams>({ user_properties: [], identified: false });
-    const [feedPosition, setFeedPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
     return (
         <SearchContext.Provider value={{ searchParams, setSearchParams }}>
             <div className={styles.sessionsBody}>
