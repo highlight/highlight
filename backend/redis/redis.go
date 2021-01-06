@@ -25,8 +25,8 @@ func SetupRedisStore() {
 	}
 	s.Options = &sessions.Options{
 		HttpOnly: true,
-		// Expires every 10 years (we will IPO by then).
-		MaxAge:   20 * 365 * 24 * 60 * 60,
+		// Expires every 5 days.
+		MaxAge:   5 * 24 * 60 * 60,
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 	}
