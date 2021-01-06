@@ -104,11 +104,10 @@ export const SessionFeed = () => {
     }
 
     return (
-        <div ref={infiniteRef as RefObject<HTMLDivElement>}>
+        <div className={styles.feedContent} ref={infiniteRef as RefObject<HTMLDivElement>}>
             {data.map((u) => {
                 return <SessionCard session={u} />;
-            }
-            )}
+            })}
         </div >
     );
 }

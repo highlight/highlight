@@ -1,15 +1,17 @@
 .searchBar {
     position: fixed;
-    height: 100%;
     background-color: white;
     z-index: 100;
     width: 320px;
-    border-left: 1px solid #eaeaea;
+    border: 1px solid #eaeaea;
     transition: right 0.3s;
     display: flex;
     align-items: center;
     flex-direction: column;
-    height: calc(100vh - 80px);
+    margin-top: 40px;
+    margin-right: 20px;
+    height: calc(80vh - 80px);
+    transition: 0.3s;
     overflow-y: scroll;
     border-radius: 8px;
 }

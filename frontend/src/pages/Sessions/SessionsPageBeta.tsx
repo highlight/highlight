@@ -4,18 +4,25 @@ import styles from './SessionsPage.module.scss';
 import { SearchSidebar } from './SearchSidebar/SearchSidebar';
 import { SearchContext, SearchParams } from './SearchContext/SearchContext';
 import { SessionFeed } from './SessionsFeed/SessionsFeed';
+
+// @ts-ignore
+import useDimensions from "react-use-dimensions";
 import { UserPropertyInput } from './SearchInputs/UserPropertyInputs';
 
 export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
+    const [feedRef, { top, right }] = useDimensions();
     const [searchParams, setSearchParams] = useState<SearchParams>({ user_properties: [], identified: false });
+    const [feedPosition, setFeedPosition] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
     return (
         <SearchContext.Provider value={{ searchParams, setSearchParams }}>
             <div className={styles.sessionsBody}>
-                <div className={styles.sessionsSection}>
+                <div className={styles.sessionsSection}
+                    ref={feedRef}
+                >
                     <UserPropertyInput />
                     <SessionFeed />
                 </div>
-                <SearchSidebar />
+                <SearchSidebar feedPosition={{ top, right }} />
             </div>
         </SearchContext.Provider >
     );
