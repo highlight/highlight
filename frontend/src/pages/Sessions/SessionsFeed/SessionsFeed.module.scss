@@ -108,6 +108,17 @@
     background-color: #5629C6;
 }
 
+.feedWrapper {
+    display: flex;
+    width: 100%;
+}
+
+.feedContent {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
 .sessionCard {
     position: relative;
     font-weight: 400;

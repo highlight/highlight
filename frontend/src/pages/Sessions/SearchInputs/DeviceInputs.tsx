@@ -42,6 +42,7 @@ export const OperatingSystemInput = () => {
         <div className={inputStyles.commonInputWrapper}>
             <AsyncSelect
                 placeholder={"Operating System"}
+                isClearable
                 cacheOptions
                 styles={SharedSelectStyleProps}
                 loadOptions={generateOptions}
@@ -84,6 +85,7 @@ export const BrowserInput = () => {
         <div className={inputStyles.commonInputWrapper}>
             <AsyncSelect
                 placeholder={"Browser"}
+                isClearable
                 cacheOptions
                 styles={SharedSelectStyleProps}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><BrowserIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}

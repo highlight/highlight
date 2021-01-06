@@ -45,6 +45,7 @@ export const VisitedUrlInput = () => {
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><URLIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
                 loadOptions={generateOptions}
                 defaultOptions
+                isClearable
                 onChange={onChange}
             />
         </div>
@@ -83,6 +84,7 @@ export const ReferrerInput = () => {
             <AsyncSelect
                 placeholder={"Referrer"}
                 cacheOptions
+                isClearable
                 loadOptions={generateOptions}
                 styles={SharedSelectStyleProps}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><ReferrerIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}

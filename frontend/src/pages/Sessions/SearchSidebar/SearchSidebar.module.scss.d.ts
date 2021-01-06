@@ -1,5 +1,6 @@
 export const contentOuterClosed: string;
 export const contentOuterOpen: string;
+export const contentSection: string;
 export const emptyDiv: string;
 export const hamburgerSide: string;
 export const header: string;
@@ -20,3 +21,4 @@ export const sideTab: string;
 export const sideTabHidden: string;
 export const sideTabVisible: string;
 export const title: string;
+export const titleSection: string;

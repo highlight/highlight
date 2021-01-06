@@ -3,7 +3,7 @@ import React, { RefObject, useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
 import styles from './SessionsFeed.module.scss';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import Skeleton from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
 import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
@@ -97,18 +97,18 @@ export const SessionFeed = () => {
 
     if (loadingState) {
         return (
-            <SkeletonTheme color={"#F5F5F5"} highlightColor={"#FCFCFC"}>
-                <Skeleton height={110} count={3} style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }} />
-            </SkeletonTheme>
+            <Skeleton height={110} count={3} style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }} />
         )
     }
 
     return (
-        <div ref={infiniteRef as RefObject<HTMLDivElement>}>
+        <div className={styles.feedContent} ref={infiniteRef as RefObject<HTMLDivElement>}>
             {data.map((u) => {
                 return <SessionCard session={u} />;
+            })}
+            {loadData &&
+                <Skeleton height={110} count={3} style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }} />
             }
-            )}
         </div >
     );
 }

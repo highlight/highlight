@@ -12,6 +12,7 @@ import { DemoContext } from './DemoContext';
 import { H, HighlightOptions } from 'highlight.run';
 import { DemoRouter } from './DemoRouter';
 import LogRocket from 'logrocket';
+import { SkeletonTheme } from 'react-loading-skeleton';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = { debug: true, manualStart: true };
@@ -27,22 +28,24 @@ LogRocket.init('vcbmdo/highlight');
 ReactDOM.render(
     <React.StrictMode>
         <ApolloProvider client={client}>
-            <Router>
-                <Switch>
-                    <Route path="/demo" exact>
-                        <DemoContext.Provider value={{ demo: true }}>
-                            <DemoRouter />
-                        </DemoContext.Provider>
-                    </Route>
-                    <Route path="/">
-                        <DemoContext.Provider value={{ demo: false }}>
-                            <AuthAppRouter />
-                        </DemoContext.Provider>
-                    </Route>
-                </Switch>
-            </Router>
+            <SkeletonTheme color={"#F5F5F5"} highlightColor={"#FCFCFC"}>
+                <Router>
+                    <Switch>
+                        <Route path="/demo" exact>
+                            <DemoContext.Provider value={{ demo: true }}>
+                                <DemoRouter />
+                            </DemoContext.Provider>
+                        </Route>
+                        <Route path="/">
+                            <DemoContext.Provider value={{ demo: false }}>
+                                <AuthAppRouter />
+                            </DemoContext.Provider>
+                        </Route>
+                    </Switch>
+                </Router>
+            </SkeletonTheme >
         </ApolloProvider>
-    </React.StrictMode>,
+    </React.StrictMode >,
     document.getElementById('root')
 );
 
