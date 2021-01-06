@@ -75,6 +75,7 @@ export const ReferrerInput = () => {
     }
 
     const onChange = (current: ValueType<{ label: string; value: string }, false>) => {
+        console.log(current);
         setSearchParams(params => ({ ...params, referrer: current?.value }))
     }
 
@@ -83,10 +84,10 @@ export const ReferrerInput = () => {
             <AsyncSelect
                 placeholder={"Referrer"}
                 cacheOptions
+                isClearable
                 loadOptions={generateOptions}
                 styles={SharedSelectStyleProps}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><ReferrerIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
-                defaultMenuIsOpen
                 defaultOptions
                 onChange={onChange}
             />
