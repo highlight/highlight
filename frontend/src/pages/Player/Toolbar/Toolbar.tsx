@@ -5,6 +5,7 @@ import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import { SettingsMenu } from './SettingsMenu/SettingsMenu';
 import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
+import Draggable from 'react-draggable'; 
 
 import styles from './Toolbar.module.scss';
 import { Replayer } from 'rrweb';
@@ -27,15 +28,16 @@ export const Toolbar = ({
     const [skipInactive, setSkipInactive] = useLocalStorage('highlightMenuSkipInactive', false);
     const [openDevTools, setOpenDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
     const [paused, setPaused] = useState(true);
-    const timePercentage = Math.max((current / max) * 100, 0);
-    const indicatorStyle = `min(${timePercentage.toString() + '%'
-        }, ${wrapperWidth}px - 15px)`;
+
+    const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
 
     useEffect(() => {
         if (replayer) {
             setInterval(() => {
                 if (!paused) {
-                    setCurrent(replayer.getCurrentTime());
+                    if (!isNaN(replayer.getCurrentTime())) {
+                        setCurrent(replayer.getCurrentTime());
+                    }
                 }
             }, 50);
         }
@@ -48,6 +50,46 @@ export const Toolbar = ({
     useEffect(() => {
         replayer?.setConfig({ skipInactive, speed });
     }, [replayer, skipInactive, speed]);
+
+    useEffect(() => {
+        setTimeout(() => {
+            replayer?.pause((lastCanvasPreview / wrapperWidth) * max)
+        }, 1);
+    }, [lastCanvasPreview]);
+
+    let endLogger = (e: any, data: any) => {
+        let newTime = (e.x / wrapperWidth) * max
+        newTime = Math.max(0, newTime)
+        newTime = Math.min(max, newTime)
+
+        setCurrent(newTime)
+        setLastCanvasPreview(e.x)
+
+        if (paused) {
+            setCurrent(newTime);
+            replayer?.pause(newTime);
+        } else {
+            setCurrent(newTime);
+            replayer?.play(newTime);
+        }
+    };
+
+    let startDraggable = (e: any, data: any) => {
+        setLastCanvasPreview(e.x)
+        if (!paused) {
+            replayer?.pause();
+            setPaused(true);
+        } 
+    }
+
+    let onDraggable  = (e: any, data: any) => {
+        let newTime = (e.x / (wrapperWidth)) * max
+
+        setCurrent(newTime);
+        if (e.x - lastCanvasPreview > 10) {
+            setLastCanvasPreview(e.x)
+        } 
+    }
 
     return (
         <>
@@ -73,12 +115,23 @@ export const Toolbar = ({
                 }}
             >
                 <div className={styles.sliderRail}></div>
-                <div
-                    className={styles.indicator}
-                    style={{
-                        marginLeft: indicatorStyle,
+
+                <Draggable
+                    axis="x"
+                    bounds="parent"
+                    onStop={endLogger}
+                    onDrag={onDraggable}
+                    onStart={startDraggable}
+                    position={{
+                        x: Math.max((current / max) * wrapperWidth - 15, 0),
+                        y: 0
                     }}
-                />
+                >
+                    <div
+                        className={styles.indicator}
+                    />
+                </Draggable>
+
             </div>
             <div className={styles.toolbarSection}>
                 <div className={styles.toolbarLeftSection}>

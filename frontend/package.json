@@ -40,6 +40,7 @@
         "react-collapsible": "^2.8.1",
         "react-copy-to-clipboard": "^5.0.2",
         "react-dom": "^16.13.1",
+        "react-draggable": "^4.4.3",
         "react-dropdown": "^1.8.0",
         "react-firebase-hooks": "^2.2.0",
         "react-hook-form": "^6.9.1",
