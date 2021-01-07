@@ -7,11 +7,14 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/redis"
+
+	beeline "github.com/honeycombio/beeline-go"
 	e "github.com/pkg/errors"
 )
 
 func ClientMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		beeline.AddField(r.Context(), "backend", "client-graph")
 		session, _ := redis.Store.Get(r, "highlight-session")
 		// If the session is new (or empty), create a brand new user.
 		if session.IsNew || session.Values["uid"] == nil {

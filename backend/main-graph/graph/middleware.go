@@ -9,6 +9,7 @@ import (
 	"firebase.google.com/go/auth"
 
 	firebase "firebase.google.com/go"
+	beeline "github.com/honeycombio/beeline-go"
 	e "github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -41,6 +42,7 @@ func init() {
 func AdminMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// If we're on a demo domain, we have some special logic.
+		beeline.AddField(r.Context(), "backend", "main-graph")
 		var uid string
 		if r.Header.Get(DemoHeader) != "true" {
 			token := r.Header.Get("token")
