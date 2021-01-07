@@ -106,9 +106,6 @@ export const SessionFeed = () => {
             {data.map((u) => {
                 return <SessionCard session={u} />;
             })}
-            {loadData &&
-                <Skeleton height={110} count={3} style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }} />
-            }
         </div >
     );
 }
