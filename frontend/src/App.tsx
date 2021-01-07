@@ -56,26 +56,22 @@ const App = () => {
     return (
         <div className={styles.appBody}>
             <Router>
-                {!o_data.organizations.length ? (
-                    <NewWorkspacePage />
-                ) : (
-                        <Switch>
-                            <Route path="/:organization_id/invite/:invite_id">
-                                <NewMemberPage />
-                            </Route>
-                            <Route path="/new">
-                                <NewWorkspacePage />
-                            </Route>
-                            <Route path="/:organization_id">
-                                <OrgRouter />
-                            </Route>
-                            <Route path="/">
-                                <Redirect
-                                    to={`/${o_data?.organizations[0].id}`}
-                                />
-                            </Route>
-                        </Switch>
-                    )}
+                <Switch>
+                    <Route path="/:organization_id/invite/:invite_id">
+                        <NewMemberPage />
+                    </Route>
+                    <Route path="/new">
+                        <NewWorkspacePage />
+                    </Route>
+                    <Route path="/:organization_id">
+                        <OrgRouter />
+                    </Route>
+                    <Route path="/">
+                        <Redirect
+                            to={o_data.length ? `/${o_data?.organizations[0].id}` : `/new`}
+                        />
+                    </Route>
+                </Switch>
             </Router>
         </div>
     );
