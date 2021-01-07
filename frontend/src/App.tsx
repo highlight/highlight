@@ -33,7 +33,7 @@ H.getSessionURL().then((url) => {
 });
 
 const App = () => {
-    const { loading: o_loading, error: o_error, data: o_data } = useQuery(gql`
+    const { loading: o_loading, error: o_error, data: o_data } = useQuery<{ organizations: Array<{ id: number }> }>(gql`
         query GetOrganizations {
             organizations {
                 id
@@ -68,7 +68,7 @@ const App = () => {
                     </Route>
                     <Route path="/">
                         <Redirect
-                            to={o_data.length ? `/${o_data?.organizations[0].id}` : `/new`}
+                            to={o_data?.organizations.length ? `/${o_data?.organizations[0].id}` : `/new`}
                         />
                     </Route>
                 </Switch>
