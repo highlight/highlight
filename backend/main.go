@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/gorilla/handlers"
+	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/rs/cors"
@@ -15,6 +16,7 @@ import (
 	"github.com/stripe/stripe-go/client"
 
 	ha "github.com/99designs/gqlgen/handler"
+	beeline "github.com/honeycombio/beeline-go"
 	cgraph "github.com/jay-khatri/fullstory/backend/client-graph/graph"
 	cgenerated "github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
@@ -91,6 +93,12 @@ func main() {
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
+	beeline.Init(beeline.Config{
+		WriteKey: "5ef6d60bb0e65ec29ac69cc60b1c2a84",
+		Dataset:  "highlight-backend",
+	})
+	defer beeline.Close()
+
 	main := &mgraph.Resolver{
 		DB:           db,
 		MailClient:   sendgrid.NewSendClient(sendgridKey),
@@ -115,7 +123,7 @@ func main() {
 		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
 	}).Handler(mux)
 
-	loggedRouter := handlers.LoggingHandler(os.Stdout, handler)
+	loggedRouter := handlers.LoggingHandler(os.Stdout, hnynethttp.WrapHandler(handler))
 	w := &worker.Worker{R: main}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
 	if rt := *runtime; rt == "dev" {

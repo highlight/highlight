@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis/v7"
 	"github.com/gorilla/sessions"
 	"gopkg.in/boj/redistore.v1"
 )
