@@ -11,7 +11,7 @@ export const DateInput = () => {
                 className={inputStyles.datePicker}
                 onChange={(date: any, dateStrings: [string, string]) => {
                     const start_date = dateStrings[0] ? new Date(dateStrings[0]) : undefined;
-                    const end_date = dateStrings[1] ? new Date(dateStrings[0]) : undefined;
+                    const end_date = dateStrings[1] ? new Date(dateStrings[1]) : undefined;
                     setSearchParams((params: SearchParams): SearchParams => {
                         return {
                             ...params,

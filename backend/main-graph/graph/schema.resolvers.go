@@ -13,6 +13,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -413,6 +414,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		Where("length > ?", 1000).
 		Order("created_at desc")
 
+	pp.Println(params.DateRange)
 	if d := params.DateRange; d != nil {
 		query = query.Where("created_at > ? and created_at < ?", d.StartDate, d.EndDate)
 	}
