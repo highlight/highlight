@@ -74,8 +74,19 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		BrowserName:    deviceDetails.BrowserName,
 		BrowserVersion: deviceDetails.BrowserVersion,
 	}
+
 	if err := r.DB.Create(session).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session")
+	}
+
+	sessionProperties := map[string]string{
+		"os_name":         deviceDetails.OSName,
+		"os_version":      deviceDetails.OSVersion,
+		"browser_name":    deviceDetails.BrowserName,
+		"browser_version": deviceDetails.BrowserVersion,
+	}
+	if err := r.AppendProperties(session.ID, nil, sessionProperties); err != nil {
+		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
 	return session, nil
 }
@@ -86,27 +97,13 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		return nil, fmt.Errorf("error converting userObject interface type")
 	}
 
-	// Parse the user-agent string
-	var deviceDetails DeviceDetails
-	var err error
-	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
-		deviceDetails = GetDeviceDetails(userAgentString)
-	}
-
 	userProperties := map[string]string{
 		"identifier": userIdentifier,
-	}
-	sessionProperties := map[string]string{
-		"os_name":         deviceDetails.OSName,
-		"os_version":      deviceDetails.OSVersion,
-		"browser_name":    deviceDetails.BrowserName,
-		"browser_version": deviceDetails.BrowserVersion,
 	}
 	for k, v := range obj {
 		userProperties[k] = fmt.Sprintf("%v", v)
 	}
-	err = r.AppendProperties(sessionID, userProperties, sessionProperties)
-	if err != nil {
+	if err := r.AppendProperties(sessionID, userProperties, nil); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
 	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{Identifier: userIdentifier})
