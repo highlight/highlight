@@ -33,8 +33,6 @@ export const Toolbar = ({
     const [isDragged, setIsDragged] = useState(false);
 
 
-    // Resize player
-
     // When not paused and not dragged, update the current time.
     // When the current time is updated, the function calls itself again.
     useEffect(() => {
@@ -48,8 +46,8 @@ export const Toolbar = ({
     }, [replayer, paused, isDragged, current]);
 
     useEffect(() => {
-        setTimeout(() => onResize(), 50);
-    }, [openDevTools, onResize]);
+        onResize()
+    }, [openDevTools, onResize])
 
     useEffect(() => {
         replayer?.setConfig({ skipInactive, speed });
