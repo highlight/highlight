@@ -14,3 +14,4 @@ export const snippetHeading: string;
 export const snippetHeadingTwo: string;
 export const snippetSubHeading: string;
 export const subTitle: string;
+export const triggerWrapper: string;

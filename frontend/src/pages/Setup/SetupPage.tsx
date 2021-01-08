@@ -15,6 +15,7 @@ import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { gql, useQuery } from '@apollo/client';
+import Collapsible from 'react-collapsible';
 
 enum PlatformType {
     Html = "HTML",
@@ -271,19 +272,8 @@ export const Section: FunctionComponent<SectionProps> = ({
     integrated,
 }) => {
     const [expanded, setExpanded] = useState(false);
-    return (
-        <div
-            className={styles.section}
-            style={{ cursor: !expanded ? 'pointer' : 'inherit' }}
-            onClick={() => !expanded && setExpanded(true)}
-        >
-            <DownIcon
-                className={styles.icon}
-                style={{
-                    transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                }}
-                onClick={() => setExpanded((e) => !e)}
-            />
+    const trigger = (
+        <div className={styles.triggerWrapper}>
             <div className={styles.snippetHeadingTwo}>
                 <span style={{ marginRight: 8 }}>{title}</span>
                 {!expanded && integrated !== undefined ? (
@@ -295,14 +285,34 @@ export const Section: FunctionComponent<SectionProps> = ({
                         <></>
                     )}
             </div>
-            {expanded ? (
-                <>
-                    <div style={{ height: 10 }} />
-                    {children}
-                </>
-            ) : (
-                    <></>
-                )}
+            <DownIcon
+                className={styles.icon}
+                style={{
+                    transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+                onClick={() => setExpanded((e) => !e)}
+            />
+        </div>
+    );
+    return (
+        <div className={styles.section}>
+            <Collapsible
+                open={expanded}
+                onOpening={() => setExpanded(true)}
+                onClosing={() => setExpanded(false)}
+                trigger={trigger}
+                transitionTime={150}
+                style={{ margin: 10 }}
+            >
+                {expanded ? (
+                    <>
+                        <div style={{ height: 10 }} />
+                        {children}
+                    </>
+                ) : (
+                        <></>
+                    )}
+            </Collapsible>
         </div>
     );
 };
