@@ -33,6 +33,8 @@ export const Toolbar = ({
     const [isDragged, setIsDragged] = useState(false);
 
 
+    // Resize player
+
     // When not paused and not dragged, update the current time.
     // When the current time is updated, the function calls itself again.
     useEffect(() => {
@@ -44,24 +46,6 @@ export const Toolbar = ({
             }
         }
     }, [replayer, paused, isDragged, current]);
-
-    /*
-    useEffect(() => {
-        if (replayer) {
-            var lastInterval = setInterval(() => {
-                if (!paused ) {
-                    if (!isNaN(replayer.getCurrentTime())) {
-                        setCurrent(replayer.getCurrentTime());
-                    }
-                }
-            }, 50);
-
-            if (isDragged) {
-                clearInterval(lastInterval);
-            }
-        }
-    }, [replayer, paused, isDragged]);
-    */
 
     useEffect(() => {
         setTimeout(() => onResize(), 50);
