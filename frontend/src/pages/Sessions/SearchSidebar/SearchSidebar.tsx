@@ -44,23 +44,21 @@ export const SearchSidebar = ({ feedPosition }: { feedPosition: { top: number; r
                             />
                         </div>
                     </div>
-                    <div className={styles.contentSection}>
-                        <SearchSection title="User Properties" open>
-                            <UserPropertyInput />
-                            <IdentifiedUsersSwitch />
-                        </SearchSection>
-                        <SearchSection title="Date Range" open={false}>
-                            <DateInput />
-                        </SearchSection>
-                        <SearchSection title="Device Details" open={false}>
-                            <OperatingSystemInput />
-                            <BrowserInput />
-                        </SearchSection>
-                        <SearchSection title="Session Details" open={false}>
-                            <VisitedUrlInput />
-                            <ReferrerInput />
-                        </SearchSection>
-                    </div>
+                    <SearchSection title="User Properties" open>
+                        <UserPropertyInput />
+                        <IdentifiedUsersSwitch />
+                    </SearchSection>
+                    <SearchSection title="Date Range" open={false}>
+                        <DateInput />
+                    </SearchSection>
+                    <SearchSection title="Device Details" open={false}>
+                        <OperatingSystemInput />
+                        <BrowserInput />
+                    </SearchSection>
+                    <SearchSection title="Session Details" open={false}>
+                        <VisitedUrlInput />
+                        <ReferrerInput />
+                    </SearchSection>
                     <div className={commonStyles.submitButton}>Save as Segment</div>
                 </div>
             </div >
@@ -82,13 +80,13 @@ const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
     const [isOpen, setIsOpen] = useState<boolean>(open);
     const header = (
         <div className={styles.headerWrapper}>
+            <div className={styles.header}>{title}</div>
             <DownIcon
                 className={styles.icon}
                 style={{
                     transform: !isOpen ? 'rotate(180deg)' : 'rotate(360deg)',
                 }}
             />
-            <div className={styles.header}>{title}</div>
         </div>
     );
     return (

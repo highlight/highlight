@@ -9,7 +9,7 @@
     flex-direction: column;
     margin-top: 40px;
     margin-right: 20px;
-    height: calc(80vh - 80px);
+    height: calc(100vh - 80px);
     transition: 0.3s;
 }
 
@@ -34,10 +34,13 @@
 
 .searchSection {
     margin-top: 4px;
-    margin-bottom: 14px;
 }
 
 .searchSectionWrapper {
+    border: 1px solid #eaeaea;
+    border-color: #eaeaea #eaeaea #eaeaea #eaeaea;
+    padding: 16px;
+    border-radius: 8px;
     margin-bottom: 14px;
 }
 
@@ -64,16 +67,6 @@
     padding: 20px 20px 0px 20px;
     border-radius: 8px 8px 0 0;
     border-color: #eaeaea #eaeaea white #eaeaea;
-}
-
-.contentSection {
-    overflow-y: scroll;
-    border: 1px solid #eaeaea;
-    border-color: #eaeaea #eaeaea #eaeaea #eaeaea;
-    max-height: calc(100% - 40px);
-    border-radius: 8px 8px 8px 8px;
-    padding: 20px 20px 0px 20px;
-    margin-bottom: 20px;
 }
 
 .hideRow {
@@ -121,6 +114,7 @@
     height: 100%;
     position: relative;
     width: 100%;
+    overflow-y: scroll;
 }
 
 
@@ -159,8 +153,6 @@
     transition: 0.4s;
     height: 14px;
     width: 14px;
-    margin-left: -5px;
-    float: right;
     cursor: pointer;
-    margin-right: 10px;
+    margin-left: auto;
 }
