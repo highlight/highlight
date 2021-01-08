@@ -56,6 +56,11 @@
     transition: 0.4s;
 }
 
+.triggerWrapper {
+    display: flex;
+    flex-direction: row;
+}
+
 .calloutInner {
     padding: 10px;
     padding-left: 0px;
