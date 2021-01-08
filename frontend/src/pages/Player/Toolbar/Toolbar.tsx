@@ -30,18 +30,38 @@ export const Toolbar = ({
     const [paused, setPaused] = useState(true);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
+    const [isDragged, setIsDragged] = useState(false);
 
+
+    // When not paused and not dragged, update the current time.
+    // When the current time is updated, the function calls itself again.
     useEffect(() => {
         if (replayer) {
-            setInterval(() => {
-                if (!paused) {
+            if (!paused && !isDragged) {
+                setTimeout(() => {
+                    setCurrent(replayer.getCurrentTime());
+                }, 50)
+            }
+        }
+    }, [replayer, paused, isDragged, current]);
+
+    /*
+    useEffect(() => {
+        if (replayer) {
+            var lastInterval = setInterval(() => {
+                if (!paused ) {
                     if (!isNaN(replayer.getCurrentTime())) {
                         setCurrent(replayer.getCurrentTime());
                     }
                 }
             }, 50);
+
+            if (isDragged) {
+                clearInterval(lastInterval);
+            }
         }
-    }, [replayer, paused]);
+    }, [replayer, paused, isDragged]);
+    */
 
     useEffect(() => {
         setTimeout(() => onResize(), 50);
@@ -55,7 +75,7 @@ export const Toolbar = ({
         setTimeout(() => {
             replayer?.pause((lastCanvasPreview / wrapperWidth) * max)
         }, 1);
-    }, [lastCanvasPreview]);
+    }, [replayer, lastCanvasPreview, wrapperWidth, max]);
 
     let endLogger = (e: any, data: any) => {
         let newTime = (e.x / wrapperWidth) * max
@@ -64,7 +84,8 @@ export const Toolbar = ({
 
         setCurrent(newTime)
         setLastCanvasPreview(e.x)
-
+        setIsDragged(false)
+        
         if (paused) {
             setCurrent(newTime);
             replayer?.pause(newTime);
@@ -75,7 +96,8 @@ export const Toolbar = ({
     };
 
     let startDraggable = (e: any, data: any) => {
-        setLastCanvasPreview(e.x)
+        setLastCanvasPreview(data.x)
+        setIsDragged(true)
         if (!paused) {
             replayer?.pause();
             setPaused(true);
@@ -83,11 +105,14 @@ export const Toolbar = ({
     }
 
     let onDraggable  = (e: any, data: any) => {
-        let newTime = (e.x / (wrapperWidth)) * max
+        let newTime = (data.x / (wrapperWidth)) * max
 
         setCurrent(newTime);
-        if (e.x - lastCanvasPreview > 10) {
-            setLastCanvasPreview(e.x)
+
+        // TODO: Add Math.abs to enable both forward and backward scrolling
+        // Only forward is supported due as going backwards creates a time heavy operation
+        if (data.x - lastCanvasPreview > 10) {
+            setLastCanvasPreview(data.x)
         } 
     }
 
@@ -137,13 +162,17 @@ export const Toolbar = ({
                 <div className={styles.toolbarLeftSection}>
                     <div
                         className={styles.playSection}
+
+                        // TODO: Add waiting toggle, so a user does not pause while the player is loading.
                         onClick={() => {
                             if (paused) {
                                 replayer?.play(current);
                                 setPaused(false);
+                                setIsDragged(false);
                             } else {
                                 replayer?.pause();
                                 setPaused(true);
+                                setIsDragged(false);
                             }
                         }}
                     >
