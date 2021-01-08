@@ -316,9 +316,3 @@ export const Section: FunctionComponent<SectionProps> = ({
         </div>
     );
 };
-
-{/* <div
-className={styles.section}
-style={{ cursor: !expanded ? 'pointer' : 'inherit' }}
-onClick={() => !expanded && setExpanded(true)}
-> */}
