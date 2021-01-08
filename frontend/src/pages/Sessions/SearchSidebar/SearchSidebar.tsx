@@ -36,14 +36,6 @@ export const SearchSidebar = ({ feedPosition }: { feedPosition: { top: number; r
                 <div
                     className={styles.sideContentWrapper}
                 >
-                    <div className={styles.hideRow} onClick={() => setOpen(false)}>
-                        <div className={styles.hideWrapper}>
-                            <span className={styles.hideText}>Hide</span>
-                            <DownIcon
-                                className={styles.hideIcon}
-                            />
-                        </div>
-                    </div>
                     <SearchSection title="User Properties" open>
                         <UserPropertyInput />
                         <IdentifiedUsersSwitch />

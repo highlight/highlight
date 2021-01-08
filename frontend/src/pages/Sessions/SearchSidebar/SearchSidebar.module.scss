@@ -69,29 +69,6 @@
     border-color: #eaeaea #eaeaea white #eaeaea;
 }
 
-.hideRow {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    color: #808080;
-    position: absolute;
-    top: -30px;
-    width: 100%;
-}
-
-.hideWrapper {
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    display: flex;
-    float: right;
-}
-
-.hideText {
-    float: right;
-    cursor: pointer;
-}
-
 .sideTabVisible {
     visibility: visible;
 }
