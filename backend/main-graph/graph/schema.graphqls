@@ -45,6 +45,7 @@ type Segment {
   organization_id: ID!
 }
 
+# Add excluded...
 input SearchParams {
   user_properties: [UserProperty]
   date_range: DateRange

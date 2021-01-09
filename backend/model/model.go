@@ -181,6 +181,7 @@ type ResourcesObject struct {
 	Resources string
 }
 
+// add excluded...
 type SearchParams struct {
 	UserProperties []*UserProperty `json:"user_properties"`
 	DateRange      *DateRange      `json:"date_range"`

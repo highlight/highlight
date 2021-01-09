@@ -433,6 +433,8 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		return nil, e.Wrap(err, "error querying initial set of sessions")
 	}
 
+	// Apply actual filtering here.
+
 	// Find sessions that have all the specified user properties.
 	sessions := []*model.Session{}
 	for _, session := range queriedSessions {
