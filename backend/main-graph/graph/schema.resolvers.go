@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
+	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
@@ -126,18 +127,40 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 	return &org.ID, nil
 }
 
-func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name *string, params []interface{}) (*model.Segment, error) {
+func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name *string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	paramJSON, err := json.Marshal(params)
-	if err != nil {
-		return nil, e.Wrap(err, "failed at marshaling params")
+
+	// Parse the inputType into the regular type.
+	modelParams := &model.SearchParams{
+		Browser:    params.Browser,
+		OS:         params.Os,
+		VisitedURL: params.VisitedURL,
+		Referrer:   params.Referrer,
 	}
-	paramString := string(paramJSON)
+	if params.Identified != nil {
+		modelParams.Identified = *params.Identified
+	}
+	if params.DateRange != nil {
+		if params.DateRange.StartDate != nil {
+			modelParams.DateRange.StartDate = *params.DateRange.StartDate
+		}
+		if params.DateRange.EndDate != nil {
+			modelParams.DateRange.EndDate = *params.DateRange.EndDate
+		}
+	}
+	for _, property := range params.UserProperties {
+		newProperty := &model.UserProperty{
+			Name:  property.Name,
+			Value: property.Value,
+		}
+		modelParams.UserProperties = append(modelParams.UserProperties, newProperty)
+	}
+
 	segment := &model.Segment{
 		Name:           name,
-		Params:         &paramString,
+		Params:         modelParams,
 		OrganizationID: organizationID,
 	}
 	if err := r.DB.Create(segment).Error; err != nil {
@@ -406,7 +429,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	return sessions[:count], nil
 }
 
-func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParams) ([]*model.Session, error) {
+func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *model1.SearchParamsInput) ([]*model.Session, error) {
 	queriedSessions := []*model.Session{}
 	query := r.DB.Where("organization_id = ?", organizationID).
 		Where("processed = ?", true).
@@ -417,11 +440,11 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		query = query.Where("created_at > ? and created_at < ?", d.StartDate, d.EndDate)
 	}
 
-	if os := params.OS; os != nil {
+	if os := params.Os; os != nil {
 		query = query.Where("os_name = ?", os)
 	}
 
-	if identified := params.Identified; identified {
+	if identified := params.Identified; identified != nil && *identified {
 		query = query.Where("length(identifier) > ?", 0)
 	}
 
@@ -621,14 +644,6 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 	return fieldStrings, nil
 }
 
-func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) ([]interface{}, error) {
-	params, err := obj.GetParamsAsSlice()
-	if err != nil {
-		return nil, e.Wrap(err, "error getting params from segment")
-	}
-	return params, nil
-}
-
 func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (interface{}, error) {
 	return obj.UserObject, nil
 }
@@ -639,13 +654,9 @@ func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResol
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
-// Segment returns generated.SegmentResolver implementation.
-func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver{r} }
-
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
-type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }

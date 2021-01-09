@@ -41,11 +41,21 @@ type Organization {
 
 type Segment {
   name: String!
-  params: [Any]!
+  params: SearchParams!
   organization_id: ID!
 }
 
-input SearchParams {
+input SearchParamsInput {
+  user_properties: [UserPropertyInput]
+  date_range: DateRangeInput
+  os: String
+  browser: String
+  visited_url: String
+  referrer: String
+  identified: Boolean
+}
+
+type SearchParams {
   user_properties: [UserProperty]
   date_range: DateRange
   os: String
@@ -55,12 +65,22 @@ input SearchParams {
   identified: Boolean
 }
 
-input DateRange {
+type DateRange {
   start_date: Time
   end_date: Time
 }
 
-input UserProperty {
+input DateRangeInput {
+  start_date: Time
+  end_date: Time
+}
+
+type UserProperty {
+  name: String!
+  value: String!
+}
+
+input UserPropertyInput {
   name: String!
   value: String!
 }
@@ -83,7 +103,7 @@ type Query {
   admins(organization_id: ID!): [Admin]
   isIntegrated(organization_id: ID!): Boolean
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
-  sessionsBETA(organization_id: ID!, count: Int!, params: SearchParams): [Session]
+  sessionsBETA(organization_id: ID!, count: Int!, params: SearchParamsInput): [Session]
   # gets all the organizations of a user
   field_suggestionBETA(
     organization_id: ID!
@@ -114,7 +134,7 @@ type Mutation {
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-  createSegment(organization_id: ID!, name: String, params: [Any]!): Segment
+  createSegment(organization_id: ID!, name: String, params: SearchParamsInput!): Segment
   deleteSegment(segment_id: ID!): Boolean
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
   createCheckout(organization_id: ID!, price_id: String!): String!
