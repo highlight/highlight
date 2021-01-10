@@ -1,11 +1,12 @@
 import { gql, useQuery } from '@apollo/client';
 import React, { useContext, useEffect, useState } from 'react';
-import { Link, Redirect, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import { ReactComponent as PlusIcon } from '../../../../static/plus.svg';
 import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg';
 import { Dropdown, Tag } from 'antd';
+import Skeleton from 'react-loading-skeleton';
 
 import styles from './SegmentPicker.module.scss';
 import { SearchSection } from '../SearchSection/SearchSection';
@@ -14,7 +15,7 @@ export const SegmentPicker = () => {
     const { setSearchParams, setIsSegment, isSegment } = useContext(SearchContext);
     const [visible, setVisible] = useState(false);
     const { segment_id, organization_id } = useParams<{ segment_id: string, organization_id: string }>();
-    const { loading, error, data } = useQuery<
+    const { loading, data } = useQuery<
         { segments: Array<{ name: string; id: string; params: SearchParams; }> },
         { organization_id: number }
     >(
@@ -69,7 +70,7 @@ export const SegmentPicker = () => {
         } else {
             setIsSegment(false)
         }
-    }, [currentSegment])
+    }, [currentSegment, setIsSegment, setSearchParams])
 
     return (
         <SearchSection title="Segment" open={false} titleSideComponent={
@@ -78,28 +79,32 @@ export const SegmentPicker = () => {
             </Tag>
         }>
             {!data?.segments.length ?
-                <p>no segments, go create one!</p> :
-                <Dropdown
-                    placement={'bottomLeft'}
-                    overlay={menu}
-                    onVisibleChange={(v) => setVisible(v)}
-                >
-                    <div
-                        className={styles.dropdownHandler}
-                        onClick={(e) => e.preventDefault()}
+                <div className={styles.noSegmentsText}>
+                    No segments here :(. Feel free to create one by clicking <span style={{ color: "#5629c6" }}>Save as Segment</span>!
+                </div> :
+                loading ?
+                    <Skeleton /> :
+                    <Dropdown
+                        placement={'bottomLeft'}
+                        overlay={menu}
+                        onVisibleChange={(v) => setVisible(v)}
                     >
-                        <div className={styles.segmentNameText}>
-                            {!isSegment ? <span style={{ color: "#808080" }}>None</span> : currentSegment?.name}
+                        <div
+                            className={styles.dropdownHandler}
+                            onClick={(e) => e.preventDefault()}
+                        >
+                            <div className={styles.segmentNameText}>
+                                {!isSegment ? <span style={{ color: "#808080" }}>Select a Segment</span> : currentSegment?.name}
+                            </div>
+                            <DownIcon
+                                className={styles.downIcon}
+                                style={{
+                                    fill: !isSegment ? "#808080" : "black",
+                                    transform: visible ? 'rotate(180deg)' : 'rotate(0deg)',
+                                }}
+                            />
                         </div>
-                        <DownIcon
-                            className={styles.downIcon}
-                            style={{
-                                fill: !isSegment ? "#808080" : "black",
-                                transform: visible ? 'rotate(180deg)' : 'rotate(0deg)',
-                            }}
-                        />
-                    </div>
-                </Dropdown>
+                    </Dropdown>
             }
         </SearchSection>
     );

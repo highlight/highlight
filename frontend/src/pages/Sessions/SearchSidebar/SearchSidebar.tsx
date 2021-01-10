@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './SearchSidebar.module.scss';
 import classNames from 'classnames/bind';
 import { DateInput } from '../SearchInputs/DateInput';

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 
 import commonStyles from '../../../../Common.module.scss';
 import { gql, useMutation } from '@apollo/client';
@@ -17,8 +17,8 @@ export const SegmentButtons = () => {
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
     const { organization_id, segment_id } = useParams<{ organization_id: string; segment_id: string }>();
     const [createClicked, setCreateClicked] = useState(false);
-    const { setSearchParams, searchParams, isSegment } = useContext(SearchContext);
-    const [editSegment, { loading: editLoading, data: editData }] = useMutation<
+    const { searchParams, isSegment } = useContext(SearchContext);
+    const [editSegment, editSegmentOptions] = useMutation<
         boolean,
         { organization_id: number; id: number; params: SearchParams }
     >(
@@ -37,7 +37,7 @@ export const SegmentButtons = () => {
         `,
         { refetchQueries: ['GetSegments'] }
     );
-    const [createSegment, { loading, data }] = useMutation<
+    const [createSegment, { loading }] = useMutation<
         { id: number },
         { organization_id: number; name: string; params: SearchParams }
     >(
@@ -135,8 +135,13 @@ export const SegmentButtons = () => {
                     }}
                     className={commonStyles.submitButton}
                 >
-                    Update Current Segment
-
+                    {editSegmentOptions.loading ? (
+                        <CircularSpinner
+                            style={{ fontSize: 18, color: 'white' }}
+                        />
+                    ) : (
+                            'Update Current Segment'
+                        )}
                 </div>
                 <div
                     onClick={() => setCreateClicked(true)}

@@ -1,4 +1,4 @@
-import { OptionTypeBase, Styles } from 'react-select';
+import { Styles } from 'react-select';
 
 export const SharedSelectStyleProps: Styles<{ label: string; value: string }, false> = {
     control: (provided, state) => ({ ...provided, borderColor: "#eaeaea", borderRadius: 8, minHeight: 45 }),
