@@ -6,7 +6,7 @@ import { Spinner } from '../../../components/Spinner/Spinner';
 import styles from './IntegrationCard.module.scss';
 
 export const IntegrationCard = () => {
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
     return (
         <>
             <div className={styles.cardWrapper}>

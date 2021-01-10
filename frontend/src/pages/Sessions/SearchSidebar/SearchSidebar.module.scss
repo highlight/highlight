@@ -7,41 +7,9 @@
     display: flex;
     align-items: center;
     flex-direction: column;
-    margin-top: 40px;
-    margin-right: 20px;
+    padding-top: 40px;
     height: calc(100vh - 80px);
     transition: 0.3s;
-}
-
-.contentOuterOpen {
-    overflow: visible !important;
-}
-
-.contentOuterClosed {
-    overflow: hidden;
-}
-
-.header {
-    font-size: 14px;
-    color: black;
-}
-
-.headerWrapper {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-}
-
-.searchSection {
-    margin-top: 4px;
-}
-
-.searchSectionWrapper {
-    border: 1px solid #eaeaea;
-    border-color: #eaeaea #eaeaea #eaeaea #eaeaea;
-    padding: 16px;
-    border-radius: 8px;
-    margin-bottom: 14px;
 }
 
 .sideTab {
@@ -87,8 +55,6 @@
 }
 
 .sideContentWrapper {
-    flex-grow: 1;
-    height: 100%;
     position: relative;
     width: 100%;
     overflow-y: scroll;

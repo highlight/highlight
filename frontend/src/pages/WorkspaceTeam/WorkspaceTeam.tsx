@@ -16,7 +16,7 @@ type Inputs = {
 };
 
 export const WorkspaceTeam = () => {
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
     const { data: orgData } = useQuery<
@@ -31,7 +31,7 @@ export const WorkspaceTeam = () => {
                 }
             }
         `,
-        { variables: { id: organization_id } }
+        { variables: { id: parseInt(organization_id) } }
     );
     const { data, error, loading } = useQuery<
         { admins: { id: number; name: string; email: string }[] },
@@ -46,7 +46,7 @@ export const WorkspaceTeam = () => {
                 }
             }
         `,
-        { variables: { organization_id } }
+        { variables: { organization_id: parseInt(organization_id) } }
     );
 
     const { setOpenSidebar } = useContext(SidebarContext);
@@ -75,7 +75,7 @@ export const WorkspaceTeam = () => {
 
     const onSubmit = (data: Inputs) => {
         sendInviteEmail({
-            variables: { organization_id, email: data.email },
+            variables: { organization_id: parseInt(organization_id), email: data.email },
         }).then(() => {
             message.success(`Invite email sent to ${data.email}!`, 5);
             reset();

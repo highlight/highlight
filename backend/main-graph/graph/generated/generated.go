@@ -39,6 +39,7 @@ type Config struct {
 type ResolverRoot interface {
 	Mutation() MutationResolver
 	Query() QueryResolver
+	Segment() SegmentResolver
 	Session() SessionResolver
 }
 
@@ -67,11 +68,12 @@ type ComplexityRoot struct {
 		AddAdminToOrganization func(childComplexity int, organizationID int, inviteID string) int
 		CreateCheckout         func(childComplexity int, organizationID int, priceID string) int
 		CreateOrganization     func(childComplexity int, name string) int
-		CreateSegment          func(childComplexity int, organizationID int, name *string, params model.SearchParamsInput) int
+		CreateSegment          func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
 		DeleteOrganization     func(childComplexity int, id int) int
 		DeleteSegment          func(childComplexity int, segmentID int) int
 		EditOrganization       func(childComplexity int, id int, name *string, billingEmail *string) int
 		EditRecordingSettings  func(childComplexity int, organizationID int, details *string) int
+		EditSegment            func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
 		SendAdminInvite        func(childComplexity int, organizationID int, email string) int
 	}
 
@@ -119,6 +121,7 @@ type ComplexityRoot struct {
 	}
 
 	Segment struct {
+		ID             func(childComplexity int) int
 		Name           func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
 		Params         func(childComplexity int) int
@@ -157,7 +160,8 @@ type MutationResolver interface {
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
-	CreateSegment(ctx context.Context, organizationID int, name *string, params model.SearchParamsInput) (*model1.Segment, error)
+	CreateSegment(ctx context.Context, organizationID int, name string, params model.SearchParamsInput) (*model1.Segment, error)
+	EditSegment(ctx context.Context, id int, organizationID int, params model.SearchParamsInput) (*bool, error)
 	DeleteSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
 	CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error)
@@ -180,6 +184,9 @@ type QueryResolver interface {
 	RecordingSettings(ctx context.Context, organizationID int) (*model1.RecordingSettings, error)
 	Fields(ctx context.Context, organizationID int) ([]*string, error)
 	FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error)
+}
+type SegmentResolver interface {
+	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
 }
 type SessionResolver interface {
 	UserObject(ctx context.Context, obj *model1.Session) (interface{}, error)
@@ -302,7 +309,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSegment(childComplexity, args["organization_id"].(int), args["name"].(*string), args["params"].(model.SearchParamsInput)), true
+		return e.complexity.Mutation.CreateSegment(childComplexity, args["organization_id"].(int), args["name"].(string), args["params"].(model.SearchParamsInput)), true
 
 	case "Mutation.deleteOrganization":
 		if e.complexity.Mutation.DeleteOrganization == nil {
@@ -351,6 +358,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditRecordingSettings(childComplexity, args["organization_id"].(int), args["details"].(*string)), true
+
+	case "Mutation.editSegment":
+		if e.complexity.Mutation.EditSegment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_editSegment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["organization_id"].(int), args["params"].(model.SearchParamsInput)), true
 
 	case "Mutation.sendAdminInvite":
 		if e.complexity.Mutation.SendAdminInvite == nil {
@@ -656,6 +675,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SearchParams.VisitedURL(childComplexity), true
 
+	case "Segment.id":
+		if e.complexity.Segment.ID == nil {
+			break
+		}
+
+		return e.complexity.Segment.ID(childComplexity), true
+
 	case "Segment.name":
 		if e.complexity.Segment.Name == nil {
 			break
@@ -902,11 +928,14 @@ type Organization {
 }
 
 type Segment {
+  id: ID!
   name: String!
   params: SearchParams!
   organization_id: ID!
 }
 
+# NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI, 
+# edit both Foo and FooInput
 input SearchParamsInput {
   user_properties: [UserPropertyInput]
   date_range: DateRangeInput
@@ -996,7 +1025,8 @@ type Mutation {
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-  createSegment(organization_id: ID!, name: String, params: SearchParamsInput!): Segment
+  createSegment(organization_id: ID!, name: String!, params: SearchParamsInput!): Segment
+  editSegment(id: ID!, organization_id: ID!, params: SearchParamsInput!): Boolean
   deleteSegment(segment_id: ID!): Boolean
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
   createCheckout(organization_id: ID!, price_id: String!): String!
@@ -1084,10 +1114,10 @@ func (ec *executionContext) field_Mutation_createSegment_args(ctx context.Contex
 		}
 	}
 	args["organization_id"] = arg0
-	var arg1 *string
+	var arg1 string
 	if tmp, ok := rawArgs["name"]; ok {
 		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1189,6 +1219,39 @@ func (ec *executionContext) field_Mutation_editRecordingSettings_args(ctx contex
 		}
 	}
 	args["details"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg1
+	var arg2 model.SearchParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		arg2, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg2
 	return args, nil
 }
 
@@ -2052,7 +2115,7 @@ func (ec *executionContext) _Mutation_createSegment(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSegment(rctx, args["organization_id"].(int), args["name"].(*string), args["params"].(model.SearchParamsInput))
+		return ec.resolvers.Mutation().CreateSegment(rctx, args["organization_id"].(int), args["name"].(string), args["params"].(model.SearchParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2064,6 +2127,44 @@ func (ec *executionContext) _Mutation_createSegment(ctx context.Context, field g
 	res := resTmp.(*model1.Segment)
 	fc.Result = res
 	return ec.marshalOSegment2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSegment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_editSegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_editSegment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().EditSegment(rctx, args["id"].(int), args["organization_id"].(int), args["params"].(model.SearchParamsInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteSegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3336,6 +3437,40 @@ func (ec *executionContext) _SearchParams_identified(ctx context.Context, field 
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Segment_id(ctx context.Context, field graphql.CollectedField, obj *model1.Segment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Segment",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Segment_name(ctx context.Context, field graphql.CollectedField, obj *model1.Segment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3381,13 +3516,13 @@ func (ec *executionContext) _Segment_params(ctx context.Context, field graphql.C
 		Object:   "Segment",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Params, nil
+		return ec.resolvers.Segment().Params(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5315,6 +5450,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addAdminToOrganization(ctx, field)
 		case "createSegment":
 			out.Values[i] = ec._Mutation_createSegment(ctx, field)
+		case "editSegment":
+			out.Values[i] = ec._Mutation_editSegment(ctx, field)
 		case "deleteSegment":
 			out.Values[i] = ec._Mutation_deleteSegment(ctx, field)
 		case "editRecordingSettings":
@@ -5675,20 +5812,34 @@ func (ec *executionContext) _Segment(ctx context.Context, sel ast.SelectionSet, 
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Segment")
+		case "id":
+			out.Values[i] = ec._Segment_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "name":
 			out.Values[i] = ec._Segment_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "params":
-			out.Values[i] = ec._Segment_params(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Segment_params(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "organization_id":
 			out.Values[i] = ec._Segment_organization_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -6137,6 +6288,10 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNSearchParams2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSearchParams(ctx context.Context, sel ast.SelectionSet, v model1.SearchParams) graphql.Marshaler {
+	return ec._SearchParams(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNSearchParams2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSearchParams(ctx context.Context, sel ast.SelectionSet, v *model1.SearchParams) graphql.Marshaler {

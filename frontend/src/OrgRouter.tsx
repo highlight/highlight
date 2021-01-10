@@ -58,6 +58,9 @@ export const OrgRouter = () => {
                     <Route path="/:organization_id/sessions/:session_id">
                         <Player />
                     </Route>
+                    <Route path="/:organization_id/sessions-beta/segment/:segment_id">
+                        <SessionsPageBeta integrated={integrated} />
+                    </Route>
                     <Route path="/:organization_id/sessions-beta">
                         <SessionsPageBeta integrated={integrated} />
                     </Route>

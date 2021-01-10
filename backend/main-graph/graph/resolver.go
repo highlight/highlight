@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
 	"github.com/k0kubun/pp"
@@ -61,6 +62,36 @@ func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*mode
 		}
 	}
 	return nil, e.New("admin doesn't exist in organization")
+}
+
+func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
+	// Parse the inputType into the regular type.
+	modelParams := &model.SearchParams{
+		Browser:    params.Browser,
+		OS:         params.Os,
+		VisitedURL: params.VisitedURL,
+		Referrer:   params.Referrer,
+	}
+	if params.Identified != nil {
+		modelParams.Identified = *params.Identified
+	}
+	if params.DateRange != nil {
+		modelParams.DateRange = &model.DateRange{}
+		if params.DateRange.StartDate != nil {
+			modelParams.DateRange.StartDate = *params.DateRange.StartDate
+		}
+		if params.DateRange.EndDate != nil {
+			modelParams.DateRange.EndDate = *params.DateRange.EndDate
+		}
+	}
+	for _, property := range params.UserProperties {
+		newProperty := &model.UserProperty{
+			Name:  property.Name,
+			Value: property.Value,
+		}
+		modelParams.UserProperties = append(modelParams.UserProperties, newProperty)
+	}
+	return modelParams
 }
 
 func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*model.Session, error) {

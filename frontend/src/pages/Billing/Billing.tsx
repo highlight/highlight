@@ -33,7 +33,7 @@ const stripePromiseOrNull = getStripePromiseOrNull()
 
 
 export const Billing = () => {
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
 
     const { pathname } = useLocation();
     const [checkoutRedirectFailedMessage, setCheckoutRedirectFailedMessage] = useState<string>("")
@@ -60,7 +60,7 @@ export const Billing = () => {
 
     const createOnSelect = (price_id: string) => {
         return async () => {
-            createCheckout({ variables: { organization_id: organization_id, price_id } })
+            createCheckout({ variables: { organization_id: parseInt(organization_id), price_id } })
         }
     }
 

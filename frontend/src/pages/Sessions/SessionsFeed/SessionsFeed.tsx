@@ -48,7 +48,7 @@ export const SessionFeed = () => {
     query GetSessionsBETA(
         $organization_id: ID!
         $count: Int!
-        $params: SearchParams
+        $params: SearchParamsInput
     ) {
         sessionsBETA(
             organization_id: $organization_id

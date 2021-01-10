@@ -50,7 +50,7 @@ export const UserPropertyInput = () => {
                         return { ...params, user_properties: newOptions }
                     })
                 }}
-                value={searchParams.user_properties.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })}
+                value={searchParams?.user_properties?.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })}
                 loadOptions={generateOptions}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><UserIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
             />

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
@@ -9,9 +10,11 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/k0kubun/pp"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
 	"github.com/speps/go-hashids"
+	"gorm.io/gorm/clause"
 
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -175,8 +178,25 @@ type SearchParams struct {
 type Segment struct {
 	Model
 	Name           *string
-	Params         *SearchParams `json:"params"`
+	Params         *string `json:"params"`
+	UserObject     JSONB   `json:"user_object" sql:"type:jsonb"`
 	OrganizationID int
+}
+
+func (s *SearchParams) GormDataType() string {
+	pp.Println("datatype", s.GormDataType())
+	out, err := json.Marshal(s)
+	if err != nil {
+		return ""
+	}
+	return string(out)
+}
+
+func (s *SearchParams) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
+	pp.Println("value", s.GormDataType())
+	return clause.Expr{
+		SQL: fmt.Sprintf("ST_PointFromText(%v)", s.GormDataType()),
+	}
 }
 
 type DateRange struct {

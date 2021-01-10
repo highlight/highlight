@@ -19,7 +19,7 @@ export const FieldOptions = ({
     onSelect: (option: Value) => void;
     defaultText: string;
 }) => {
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
     const [results, setResults] = useState<fuzzy.FilterResult<Value>[]>([]);
     const index = useKeySelector(results.length, (i: number) => {
         onSelect(results[i]?.original);
@@ -45,7 +45,7 @@ export const FieldOptions = ({
 
     useEffect(() => {
         fieldSuggestion({
-            variables: { field, query: input, organization_id },
+            variables: { field, query: input, organization_id: parseInt(organization_id) },
         });
     }, [input, fieldSuggestion, organization_id, field]);
 
@@ -148,7 +148,7 @@ export const OptionsFilter = ({
     params: SearchParam[];
     onSelect: (action: SearchParam) => void;
 }) => {
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
     const isUserProperty = (property: fuzzy.FilterResult<SearchParam>) =>
         !['referrer', 'segment-event', 'visited-url'].includes(
             property.original.action

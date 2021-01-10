@@ -19,7 +19,11 @@ export type SearchParams = {
 export const SearchContext = React.createContext<{
     searchParams: SearchParams;
     setSearchParams: React.Dispatch<React.SetStateAction<SearchParams>>;
+    isSegment: boolean;
+    setIsSegment: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
     searchParams: { user_properties: [], identified: false },
     setSearchParams: params => console.warn('noop'),
+    isSegment: false,
+    setIsSegment: val => console.warn('poop'),
 });
