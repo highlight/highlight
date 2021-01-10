@@ -4,10 +4,6 @@ import styles from './BillingPlanCard.module.scss';
 import { BillingPlan } from './BillingConfig'
 import classNames from 'classnames/bind';
 
-type Inputs = {
-    text: string;
-};
-
 export const BillingPlanCard = ({
     billingPlan,
     onSelect

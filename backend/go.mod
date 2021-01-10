@@ -36,4 +36,5 @@ require (
 	google.golang.org/api v0.31.0
 	google.golang.org/appengine v1.6.6
 	gopkg.in/boj/redistore.v1 v1.0.0-20160128113310-fc113767cd6b
+	gorm.io/gorm v1.20.10
 )

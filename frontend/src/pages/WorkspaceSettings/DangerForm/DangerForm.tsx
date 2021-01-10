@@ -13,7 +13,7 @@ type Inputs = {
 };
 
 export const DangerForm = () => {
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
     const { loading, data } = useQuery<
         { organization: { name: string } },
         { id: number }
@@ -25,7 +25,7 @@ export const DangerForm = () => {
                 }
             }
         `,
-        { variables: { id: organization_id } }
+        { variables: { id: parseInt(organization_id) } }
     );
     const [
         deleteOrganization,
@@ -40,7 +40,7 @@ export const DangerForm = () => {
     );
     const { register, handleSubmit, errors } = useForm<Inputs>();
     const onSubmit = () => {
-        deleteOrganization({ variables: { id: organization_id } });
+        deleteOrganization({ variables: { id: parseInt(organization_id) } });
     };
     if (deleteData?.deleteOrganization) {
         return <Redirect to={`/`} />;

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
+	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
@@ -126,17 +127,20 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 	return &org.ID, nil
 }
 
-func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name *string, params []interface{}) (*model.Segment, error) {
+func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	paramJSON, err := json.Marshal(params)
+	modelParams := InputToParams(&params)
+	// Convert to json to store in the db.
+	paramBytes, err := json.Marshal(modelParams)
 	if err != nil {
-		return nil, e.Wrap(err, "failed at marshaling params")
+		return nil, e.Wrap(err, "error unmarshaling search params")
 	}
-	paramString := string(paramJSON)
+	paramString := string(paramBytes)
+
 	segment := &model.Segment{
-		Name:           name,
+		Name:           &name,
 		Params:         &paramString,
 		OrganizationID: organizationID,
 	}
@@ -144,6 +148,26 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 		return nil, e.Wrap(err, "error creating segment")
 	}
 	return segment, nil
+}
+
+func (r *mutationResolver) EditSegment(ctx context.Context, id int, organizationID int, params modelInputs.SearchParamsInput) (*bool, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+	modelParams := InputToParams(&params)
+	// Convert to json to store in the db.
+	paramBytes, err := json.Marshal(modelParams)
+	if err != nil {
+		return nil, e.Wrap(err, "error unmarshaling search params")
+	}
+	paramString := string(paramBytes)
+	if err := r.DB.Model(&model.Segment{Model: model.Model{ID: id}}).Updates(&model.Segment{
+		Params: &paramString,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing new recording settings")
+	}
+	t := true
+	return &t, nil
 }
 
 func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*bool, error) {
@@ -406,7 +430,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	return sessions[:count], nil
 }
 
-func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParams) ([]*model.Session, error) {
+func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *modelInputs.SearchParamsInput) ([]*model.Session, error) {
 	queriedSessions := []*model.Session{}
 	query := r.DB.Where("organization_id = ?", organizationID).
 		Where("processed = ?", true).
@@ -417,11 +441,11 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		query = query.Where("created_at > ? and created_at < ?", d.StartDate, d.EndDate)
 	}
 
-	if os := params.OS; os != nil {
+	if os := params.Os; os != nil {
 		query = query.Where("os_name = ?", os)
 	}
 
-	if identified := params.Identified; identified {
+	if identified := params.Identified; identified != nil && *identified {
 		query = query.Where("length(identifier) > ?", 0)
 	}
 
@@ -621,10 +645,13 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 	return fieldStrings, nil
 }
 
-func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) ([]interface{}, error) {
-	params, err := obj.GetParamsAsSlice()
-	if err != nil {
-		return nil, e.Wrap(err, "error getting params from segment")
+func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
+	params := &model.SearchParams{}
+	if obj.Params == nil {
+		return params, nil
+	}
+	if err := json.Unmarshal([]byte(*obj.Params), params); err != nil {
+		return nil, e.Wrapf(err, "error unmarshaling segment params")
 	}
 	return params, nil
 }

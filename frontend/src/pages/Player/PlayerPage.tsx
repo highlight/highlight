@@ -24,7 +24,7 @@ import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 export const Player = () => {
-    var { session_id } = useParams();
+    var { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [time, setTime] = useState(0);
@@ -47,8 +47,8 @@ export const Player = () => {
         {
             variables: {
                 session_id: demo
-                    ? process.env.REACT_APP_DEMO_SESSION
-                    : session_id,
+                    ? process.env.REACT_APP_DEMO_SESSION ?? ""
+                    : session_id ?? "",
             },
             context: { headers: { 'Highlight-Demo': demo } },
         }

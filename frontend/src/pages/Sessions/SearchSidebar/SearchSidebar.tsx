@@ -5,10 +5,10 @@ import { DateInput } from '../SearchInputs/DateInput';
 import { BrowserInput, OperatingSystemInput } from '../SearchInputs/DeviceInputs';
 import { UserPropertyInput, IdentifiedUsersSwitch } from '../SearchInputs/UserPropertyInputs';
 import { ReferrerInput, VisitedUrlInput } from '../SearchInputs/SessionInputs';
-import Collapsible from 'react-collapsible';
-import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
+import { SegmentButtons } from './SegmentButtons/SegmentButtons';
 import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
-import commonStyles from '../../../Common.module.scss';
+import { SegmentPicker } from './SegmentPicker/SegmentPicker';
+import { SearchSection } from './SearchSection/SearchSection'
 
 export const SearchSidebar = ({ feedPosition }: { feedPosition: { top: number; right: number } }) => {
     const [open, setOpen] = useState(true);
@@ -36,6 +36,7 @@ export const SearchSidebar = ({ feedPosition }: { feedPosition: { top: number; r
                 <div
                     className={styles.sideContentWrapper}
                 >
+                    <SegmentPicker />
                     <SearchSection title="User Properties" open>
                         <UserPropertyInput />
                         <IdentifiedUsersSwitch />
@@ -51,51 +52,9 @@ export const SearchSidebar = ({ feedPosition }: { feedPosition: { top: number; r
                         <VisitedUrlInput />
                         <ReferrerInput />
                     </SearchSection>
-                    <div className={commonStyles.submitButton}>Save as Segment</div>
                 </div>
+                <SegmentButtons />
             </div >
         </>
     );
 };
-
-
-type SearchSectionProps = {
-    title: string;
-    open: boolean;
-};
-
-const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
-    children,
-    title,
-    open
-}) => {
-    const [isOpen, setIsOpen] = useState<boolean>(open);
-    const header = (
-        <div className={styles.headerWrapper}>
-            <div className={styles.header}>{title}</div>
-            <DownIcon
-                className={styles.icon}
-                style={{
-                    transform: !isOpen ? 'rotate(180deg)' : 'rotate(360deg)',
-                }}
-            />
-        </div>
-    );
-    return (
-        <div className={styles.searchSectionWrapper}>
-            <Collapsible
-                open={open}
-                onOpening={() => setIsOpen(true)}
-                onClosing={() => setIsOpen(false)}
-                trigger={header}
-                transitionTime={150}
-                style={{ margin: 10 }}
-                contentOuterClassName={isOpen ? styles.contentOuterOpen : styles.contentOuterClosed}
-            >
-                <div className={styles.searchSection}>
-                    {children}
-                </div>
-            </Collapsible>
-        </div>
-    );
-}

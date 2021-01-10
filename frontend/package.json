@@ -17,7 +17,6 @@
         "@types/jest": "^24.0.0",
         "@types/mousetrap": "^1.6.4",
         "@types/node": "^12.0.0",
-        "@types/rc-slider": "^8.6.6",
         "@types/react": "^16.9.49",
         "@types/react-copy-to-clipboard": "^4.3.0",
         "@types/react-dom": "^16.9.0",
@@ -35,7 +34,6 @@
         "mousetrap": "^1.6.5",
         "node-sass": "4.14.1",
         "parse-duration": "^0.4.4",
-        "rc-slider": "^9.3.1",
         "react": "^16.13.1",
         "react-collapsible": "^2.8.1",
         "react-copy-to-clipboard": "^5.0.2",
@@ -60,7 +58,7 @@
         "rrweb": "^0.9.7",
         "rrweb-snapshot": "^0.8.2",
         "stripe": "^8.128.0",
-        "typescript": "~3.7.2",
+        "typescript": "^3.9.7",
         "use-debounce": "^5.0.1",
         "use-http": "^1.0.13",
         "written-number": "^0.9.1"
@@ -88,6 +86,12 @@
         ]
     },
     "devDependencies": {
-        "typed-scss-modules": "^3.4.0"
+        "typed-scss-modules": "^3.4.0",
+        "@typescript-eslint/eslint-plugin": "^4.12.0",
+        "@typescript-eslint/parser": "^4.12.0"
+    },
+    "resolutions": {
+        "**/@typescript-eslint/eslint-plugin": "^4.12.0",
+        "**/@typescript-eslint/parser": "^4.12.0"
     }
 }

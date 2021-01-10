@@ -3,11 +3,13 @@ import React, { useContext } from 'react';
 import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
 
+const { RangePicker } = DatePicker;
+
 export const DateInput = () => {
     const { setSearchParams } = useContext(SearchContext);
     return (
         <div className={inputStyles.commonInputWrapper}>
-            <DatePicker.RangePicker
+            <RangePicker
                 className={inputStyles.datePicker}
                 onChange={(date: any, dateStrings: [string, string]) => {
                     const start_date = dateStrings[0] ? new Date(dateStrings[0]) : undefined;
@@ -18,7 +20,8 @@ export const DateInput = () => {
                             date_range: (!start_date || !end_date) ? undefined : { start_date, end_date },
                         }
                     })
-                }} />
+                }}
+            />
         </div>
     );
 

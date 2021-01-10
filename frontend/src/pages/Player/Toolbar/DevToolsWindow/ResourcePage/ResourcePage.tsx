@@ -51,7 +51,7 @@ export const ResourcePage = ({
 
     useEffect(() => {
         const optionSet = new Set<string>();
-        rawResources?.map((r) => {
+        rawResources?.forEach((r) => {
             if (!optionSet.has(r.initiatorType)) {
                 optionSet.add(r.initiatorType);
             }

@@ -9,7 +9,7 @@ import commonStyles from '../../Common.module.scss';
 import { CircularSpinner, Spinner } from '../../components/Spinner/Spinner';
 
 export const NewMemberPage = () => {
-    const { invite_id, organization_id } = useParams();
+    const { invite_id, organization_id } = useParams<{ organization_id: string; invite_id: string }>();
     const [adminAdded, setAdminAdded] = useState(false);
     const [addAdmin, { loading: addLoading }] = useMutation<
         { id: number },
@@ -57,7 +57,7 @@ export const NewMemberPage = () => {
                     className={commonStyles.submitButton}
                     onClick={() => {
                         addAdmin({
-                            variables: { organization_id, invite_id },
+                            variables: { organization_id: parseInt(organization_id), invite_id },
                         }).then(() => {
                             setAdminAdded(true);
                         });

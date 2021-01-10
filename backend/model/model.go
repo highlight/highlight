@@ -1,6 +1,7 @@
 package model
 
 import (
+	"context"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
@@ -9,11 +10,14 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
+	"github.com/k0kubun/pp"
 	"github.com/mitchellh/mapstructure"
-	e "github.com/pkg/errors"
 	"github.com/rs/xid"
-	log "github.com/sirupsen/logrus"
 	"github.com/speps/go-hashids"
+	"gorm.io/gorm/clause"
+
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -53,18 +57,6 @@ func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error) {
 	err := json.Unmarshal([]byte(*r.Details), &result)
 	if err != nil {
 		return nil, e.Wrap(err, "error parsing details json")
-	}
-	return result, nil
-}
-
-func (segment *Segment) GetParamsAsSlice() ([]interface{}, error) {
-	var result []interface{}
-	if segment.Params == nil {
-		return result, nil
-	}
-	err := json.Unmarshal([]byte(*segment.Params), &result)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing params json")
 	}
 	return result, nil
 }
@@ -168,13 +160,6 @@ type Field struct {
 	Sessions       []Session `gorm:"many2many:session_fields;"`
 }
 
-type Segment struct {
-	Model
-	Name           *string
-	Params         *string `json:"params"`
-	OrganizationID int
-}
-
 type ResourcesObject struct {
 	Model
 	SessionID int
@@ -189,6 +174,29 @@ type SearchParams struct {
 	VisitedURL     *string         `json:"visited_url"`
 	Referrer       *string         `json:"referrer"`
 	Identified     bool            `json:"identified"`
+}
+type Segment struct {
+	Model
+	Name           *string
+	Params         *string `json:"params"`
+	UserObject     JSONB   `json:"user_object" sql:"type:jsonb"`
+	OrganizationID int
+}
+
+func (s *SearchParams) GormDataType() string {
+	pp.Println("datatype", s.GormDataType())
+	out, err := json.Marshal(s)
+	if err != nil {
+		return ""
+	}
+	return string(out)
+}
+
+func (s *SearchParams) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
+	pp.Println("value", s.GormDataType())
+	return clause.Expr{
+		SQL: fmt.Sprintf("ST_PointFromText(%v)", s.GormDataType()),
+	}
 }
 
 type DateRange struct {

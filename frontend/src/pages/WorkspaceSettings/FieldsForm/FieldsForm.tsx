@@ -16,7 +16,7 @@ type Inputs = {
 };
 
 export const FieldsForm = () => {
-    const { organization_id } = useParams();
+    const { organization_id } = useParams<{ organization_id: string }>();
     const { register, handleSubmit, errors } = useForm<Inputs>();
     const { data } = useQuery<
         { organization: { name: string; billing_email: string } },
@@ -31,7 +31,7 @@ export const FieldsForm = () => {
                 }
             }
         `,
-        { variables: { id: organization_id } }
+        { variables: { id: parseInt(organization_id) } }
     );
     const [
         editOrganization,
@@ -62,7 +62,7 @@ export const FieldsForm = () => {
     const onSubmit = (inputs: Inputs) => {
         editOrganization({
             variables: {
-                id: organization_id,
+                id: parseInt(organization_id),
                 name: inputs.name,
                 billing_email: inputs.email,
             },
