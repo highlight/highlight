@@ -10,5 +10,6 @@ export const sideContentWrapper: string;
 export const sideTab: string;
 export const sideTabHidden: string;
 export const sideTabVisible: string;
+export const subTitle: string;
 export const title: string;
 export const titleSection: string;
