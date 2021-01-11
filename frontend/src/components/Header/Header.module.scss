@@ -6,6 +6,7 @@
     border-bottom: 1px solid #eaeaea;
     position: fixed;
     z-index: 100;
+    flex-direction: column;
 }
 
 .headerPlaceholder {
@@ -28,13 +29,53 @@
     user-select: none;
 }
 
+.headerContent {
+    display: flex;
+    flex-grow: 1;
+}
+
 .searchWrapper {
-    position: absolute;
     width: 100%;
     height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.trialWrapperHidden {
+    visibility: hidden;
+}
+
+.trialLink {
+    color: white;
+    text-decoration: underline;
+}
+
+.trialWrapper {
+    width: 100%;
+    color: white;
+    background-color: #5629c6;
+    z-index: 1000 ;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 1s;
+}
+
+.trialCloseStyle {
+    position: absolute;
+    right: 0;
+    height: 12px;
+    width: 12px;
+    margin: 0 5px 0 5px;
+    cursor: pointer;
+    fill: white;
+}
+
+.trialTimeText {
+    font-size: 12px;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 .commandWrapper {
@@ -63,7 +104,7 @@
 }
 
 .searchBar {
-    width: 500px;
+    width: 50px;
     height: 40px;
     border: 1px solid #eaeaea;
     border-radius: 8px;
