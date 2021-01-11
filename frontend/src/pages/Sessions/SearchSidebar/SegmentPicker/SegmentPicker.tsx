@@ -40,7 +40,7 @@ export const SegmentPicker = () => {
             <div className={styles.dropdownInner}>
                 {data?.segments.map((s) => (
                     <Link
-                        to={`/${organization_id}/sessions-beta/segment/${s.id}`}
+                        to={`/${organization_id}/sessions/segment/${s.id}`}
                         key={s.id}
                     >
                         <div className={styles.segmentItem}>
@@ -53,7 +53,7 @@ export const SegmentPicker = () => {
                         </div>
                     </Link>
                 ))}
-                <Link className={styles.newSearchDiv} to={`/${organization_id}/sessions-beta/`}>
+                <Link className={styles.newSearchDiv} to={`/${organization_id}/sessions/`}>
                     New Search
                     <PlusIcon className={styles.plusIcon} />
                 </Link>
