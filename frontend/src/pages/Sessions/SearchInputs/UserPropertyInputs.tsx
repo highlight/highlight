@@ -10,7 +10,7 @@ import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import { useState } from 'react';
 import classNames from 'classnames/bind';
 
-export const UserPropertyInput = (include: boolean) => {
+export const UserPropertyInput = ({include}:{include: boolean}) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
@@ -46,6 +46,7 @@ export const UserPropertyInput = (include: boolean) => {
                     var newOptions: Array<UserProperty> = options?.map(o => {
                         return { name: o.name, value: o.value }
                     }) ?? [];
+                    console.log(include)
                     if(include){
                         setSearchParams((params: SearchParams) => {
                             return { ...params, user_properties: newOptions }
