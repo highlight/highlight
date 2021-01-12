@@ -1,5 +1,6 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { ReactComponent as HighlightLogoSmall } from '../../static/highlight-logo-small.svg';
+import { ReactComponent as Banner } from '../../static/banner.svg';
 import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { ReactComponent as Close } from '../../static/close.svg';
 import { Link, withRouter } from 'react-router-dom';
@@ -92,6 +93,7 @@ const TrialBanner = ({ timeRemaining }: { timeRemaining: Duration }) => {
     return (
         bannerPresent ?
             <div className={styles.trialWrapper} >
+                <Banner className={styles.bannerSvg} />
                 <div className={classNames(styles.trialTimeText)}>
                     {timeRemaining.days}&nbsp;days left in your trial. Pick a plan <Link onClick={() => setBannerPresent(false)} className={styles.trialLink} to={`/${organization_id}/billing`}>here!</Link>
                 </div>

@@ -1,3 +1,4 @@
+export const bannerSvg: string;
 export const commandContainer: string;
 export const commandWrapper: string;
 export const dontSelect: string;
