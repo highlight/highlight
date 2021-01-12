@@ -27,9 +27,11 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err != nil {
 		return nil, e.Wrap(err, "error getting admin")
 	}
+	trialEnd := time.Now().AddDate(0, 0, 14)
 	org := &model.Organization{
-		Name:   &name,
-		Admins: []model.Admin{*admin},
+		Name:         &name,
+		Admins:       []model.Admin{*admin},
+		TrialEndDate: &trialEnd,
 	}
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")

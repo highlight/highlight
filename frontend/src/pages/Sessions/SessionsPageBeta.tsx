@@ -8,11 +8,17 @@ import { SessionFeed } from './SessionsFeed/SessionsFeed';
 // @ts-ignore
 import useDimensions from "react-use-dimensions";
 import { UserPropertyInput } from './SearchInputs/UserPropertyInputs';
+import { IntegrationCard } from './IntegrationCard/IntegrationCard';
 
 export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
     const [feedRef, { top, right }] = useDimensions();
     const [searchParams, setSearchParams] = useState<SearchParams>({ user_properties: [], identified: false });
     const [isSegment, setIsSegment] = useState<boolean>(false);
+
+    if (!integrated) {
+        return <IntegrationCard />
+    }
+
     return (
         <SearchContext.Provider value={{ searchParams, setSearchParams, isSegment, setIsSegment }}>
             <div className={styles.sessionsBody}>

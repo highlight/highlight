@@ -71,6 +71,7 @@ type Organization struct {
 	Fields           []Field
 	Segments         []Segment `gorm:"foreignKey:ID;"`
 	RecordingSetting RecordingSettings
+	TrialEndDate     *time.Time `json:"trial_end_date"`
 }
 
 func (u *Organization) VerboseID() string {

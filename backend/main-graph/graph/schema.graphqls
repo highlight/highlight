@@ -37,6 +37,7 @@ type Organization {
   verbose_id: String!
   name: String!
   billing_email: String
+  trial_end_date: Time
 }
 
 type Segment {

@@ -10,12 +10,12 @@ import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
 import { useParams } from 'react-router-dom';
 import styles from './SetupPage.module.scss';
 import useFetch from 'use-http';
-import { Skeleton } from 'antd';
 import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { gql, useQuery } from '@apollo/client';
 import Collapsible from 'react-collapsible';
+import Skeleton from 'react-loading-skeleton';
 
 enum PlatformType {
     Html = "HTML",
@@ -66,7 +66,11 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                 />
                 {
                     !data?.organization || loading ?
-                        <Skeleton /> :
+                        <Skeleton
+                            height={75}
+                            count={3}
+                            style={{ borderRadius: 8, marginBottom: 14 }}
+                        /> :
                         <>
                             {platform === PlatformType.Html ? (
                                 <HtmlInstructions orgVerboseId={data?.organization.verbose_id} />
@@ -134,7 +138,7 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
             </div>
             <div>
                 {loading || error ? (
-                    <Skeleton active />
+                    <Skeleton />
                 ) : (
                         <CodeBlock
                             onCopy={() =>

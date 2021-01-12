@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Redirect, useParams } from 'react-router-dom';
 import { Spinner } from './components/Spinner/Spinner';
 import { Header } from './components/Header/Header';
@@ -17,11 +17,13 @@ import { SidebarContext } from './components/Sidebar/SidebarContext';
 
 import commonStyles from './Common.module.scss';
 import { SessionsPageBeta } from './pages/Sessions/SessionsPageBeta';
+import { Duration, MillisToDaysHoursMinSeconds } from './util/time';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const [trialTimeRemaining, setTrialTimeRemaining] = useState<Duration | undefined>(undefined)
     const { loading, error, data } = useQuery<
-        { organization: { name: string } },
+        { organization: { name: string; trial_end_date: number } },
         { id: number }
     >(
         gql`
@@ -29,15 +31,25 @@ export const OrgRouter = () => {
                 organization(id: $id) {
                     id
                     name
+                    trial_end_date
                 }
             }
         `,
         { variables: { id: parseInt(organization_id) } }
     );
+
     const { integrated, loading: integratedLoading } = useIntegrated(
         parseInt(organization_id)
     );
     const [openSidebar, setOpenSidebar] = useState(false);
+
+    useEffect(() => {
+        const diff =
+            new Date(data?.organization.trial_end_date ?? 0).valueOf() -
+            Date.now().valueOf();
+        const trialTimeRemaining = diff > 0 ? MillisToDaysHoursMinSeconds(diff) : undefined;
+        setTrialTimeRemaining(trialTimeRemaining);
+    }, [data])
 
     if (error) {
         return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
@@ -51,20 +63,20 @@ export const OrgRouter = () => {
     }
     return (
         <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
-            <Header />
+            <Header trialTimeRemaining={trialTimeRemaining} />
             <div className={commonStyles.bodyWrapper}>
                 <Sidebar />
                 <Switch>
                     <Route path="/:organization_id/sessions/:session_id">
                         <Player />
                     </Route>
-                    <Route path="/:organization_id/sessions-beta/segment/:segment_id">
-                        <SessionsPageBeta integrated={integrated} />
-                    </Route>
-                    <Route path="/:organization_id/sessions-beta">
+                    <Route path="/:organization_id/sessions/segment/:segment_id">
                         <SessionsPageBeta integrated={integrated} />
                     </Route>
                     <Route path="/:organization_id/sessions">
+                        <SessionsPageBeta integrated={integrated} />
+                    </Route>
+                    <Route path="/:organization_id/sessions-old">
                         <SessionsPage integrated={integrated} />
                     </Route>
                     <Route path="/:organization_id/settings">
@@ -86,6 +98,6 @@ export const OrgRouter = () => {
                     </Route>
                 </Switch>
             </div>
-        </SidebarContext.Provider>
+        </SidebarContext.Provider >
     );
 };
