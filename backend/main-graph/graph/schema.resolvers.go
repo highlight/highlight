@@ -468,7 +468,14 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 				}
 			}
 		}
-		if passed == len(params.UserProperties) {
+		for _, prop := range params.ExcludedProperties {
+			for _, field := range session.Fields {
+				if prop.Name == field.Name && prop.Value != field.Value {
+					passed++
+				}
+			}
+		}
+		if passed == len(params.UserProperties)+len(params.ExcludedProperties) {
 			sessions = append(sessions, session)
 		}
 	}

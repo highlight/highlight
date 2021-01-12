@@ -168,6 +168,7 @@ type ResourcesObject struct {
 
 type SearchParams struct {
 	UserProperties []*UserProperty `json:"user_properties"`
+	ExcludedProperties []*UserProperty `json:"user_properties"`
 	DateRange      *DateRange      `json:"date_range"`
 	Browser        *string         `json:"browser"`
 	OS             *string         `json:"os"`

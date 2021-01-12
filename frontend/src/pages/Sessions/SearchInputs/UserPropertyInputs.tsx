@@ -46,7 +46,6 @@ export const UserPropertyInput = ({include}:{include: boolean}) => {
                     var newOptions: Array<UserProperty> = options?.map(o => {
                         return { name: o.name, value: o.value }
                     }) ?? [];
-                    console.log(include)
                     if(include){
                         setSearchParams((params: SearchParams) => {
                             return { ...params, user_properties: newOptions }
@@ -59,7 +58,11 @@ export const UserPropertyInput = ({include}:{include: boolean}) => {
                     }
                     
                 }}
-                value={searchParams?.user_properties?.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })}
+                value={
+                    include ?
+                    searchParams?.user_properties?.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })
+                    : searchParams?.excluded_properties?.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })
+                }
                 loadOptions={generateOptions}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><UserIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
             />

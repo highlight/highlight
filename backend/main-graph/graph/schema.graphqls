@@ -50,6 +50,7 @@ type Segment {
 # edit both Foo and FooInput
 input SearchParamsInput {
   user_properties: [UserPropertyInput]
+  excluded_properties: [UserPropertyInput]
   date_range: DateRangeInput
   os: String
   browser: String
@@ -60,6 +61,7 @@ input SearchParamsInput {
 
 type SearchParams {
   user_properties: [UserProperty]
+  excluded_properties: [UserProperty]
   date_range: DateRange
   os: String
   browser: String
