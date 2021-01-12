@@ -70,16 +70,13 @@ export const Player = () => {
         const widthScale = (targetWidth - 80) / width;
         const heightScale = (targetHeight - 80) / height;
         const scale = Math.min(heightScale, widthScale);
-        const endHeight = (targetHeight - height * scale) / 2;
-        const endWidth = (targetWidth - width * scale) / 2;
+
+        // why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
         replayer?.wrapper?.setAttribute(
             'style',
-            `
-      transform: scale(${replayerScale * scale});
-      top: ${endHeight}px;
-      left: ${endWidth}px;
-      `
+            `transform: scale(${replayerScale * scale}) translate(-50%, -50%)`
         );
+
         setReplayerScale((s) => {
             return s * scale;
         });
@@ -138,7 +135,7 @@ export const Player = () => {
                             style={{
                                 visibility: playerLoading
                                     ? 'hidden'
-                                    : 'visible',
+                                    : 'visible'
                             }}
                             className={styles.rrwebPlayerDiv}
                             id="player"
