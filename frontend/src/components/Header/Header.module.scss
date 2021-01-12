@@ -58,22 +58,31 @@
     z-index: 1000 ;
     display: flex;
     align-items: center;
+    height: 15px;
     justify-content: center;
     transition: 1s;
+}
+
+.bannerSvg {
+    position: absolute;
+    top: 17px;
+    transform: scale(2,2);
 }
 
 .trialCloseStyle {
     position: absolute;
     right: 0;
-    height: 12px;
-    width: 12px;
+    height: 8px;
+    width: 8px;
     margin: 0 5px 0 5px;
     cursor: pointer;
     fill: white;
 }
 
 .trialTimeText {
+    z-index: 100;
     font-size: 12px;
+    margin-top: 15px;
     padding-top: 4px;
     padding-bottom: 4px;
 }
