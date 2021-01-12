@@ -78,6 +78,12 @@
     padding-bottom: 4px;
 }
 
+.searchText {
+    height: 100%;
+    align-self: flex-end;
+    height: max-content;
+}
+
 .searchPrompt {
     border: 1px solid #eaeaea;
     padding: 6px;

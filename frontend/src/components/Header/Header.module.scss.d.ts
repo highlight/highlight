@@ -12,6 +12,7 @@ export const logoWrapper: string;
 export const rightHeader: string;
 export const searchBar: string;
 export const searchPrompt: string;
+export const searchText: string;
 export const searchWrapper: string;
 export const trialCloseStyle: string;
 export const trialLink: string;
