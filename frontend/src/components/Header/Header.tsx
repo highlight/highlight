@@ -66,9 +66,12 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({ hist
                         </Link>
                     </div>
                     <div className={styles.rightHeader}>
-                        <div className={classNames(styles.commandWrapper, styles.dontSelect)}>
+                        <div className={styles.searchPrompt}>
+                            <div className={classNames(styles.commandWrapper, styles.dontSelect)}>
+                                Start a search with
                             <div className={styles.commandContainer}>⌘</div>
-                            <div className={styles.commandContainer}>K</div>
+                                <div className={styles.commandContainer}>K</div>
+                            </div>
                         </div>
                         <UserDropdown />
                     </div>
