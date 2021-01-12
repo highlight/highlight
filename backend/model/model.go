@@ -224,8 +224,9 @@ type EventsObject struct {
 func SetupDB() *gorm.DB {
 	log.Println("setting up database")
 	psqlConf := fmt.Sprintf(
-		"host=%s port=5432 user=%s dbname=%s password=%s sslmode=disable",
+		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
 		os.Getenv("PSQL_HOST"),
+		os.Getenv("PSQL_PORT"),
 		os.Getenv("PSQL_USER"),
 		os.Getenv("PSQL_DB"),
 		os.Getenv("PSQL_PASSWORD"))
