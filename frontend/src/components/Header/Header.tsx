@@ -5,7 +5,6 @@ import { ReactComponent as Close } from '../../static/close.svg';
 import { Link, withRouter } from 'react-router-dom';
 import { useParams, RouteComponentProps } from 'react-router-dom';
 import { UserDropdown } from './UserDropdown/UserDropdown';
-import { FaSearch } from 'react-icons/fa';
 import * as Mousetrap from 'mousetrap';
 
 import styles from './Header.module.scss';
