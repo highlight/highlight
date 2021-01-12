@@ -39,11 +39,11 @@ export const SearchSidebar = ({ feedPosition }: { feedPosition: { top: number; r
                     <SegmentPicker />
                     <SearchSection title="User Properties" open>
                         <div className={classNames(styles.subTitle)}>
-                            Included... 
+                            Included Properties... 
                         </div>
                         <UserPropertyInput include/>
                         <div className={classNames(styles.subTitle)}>
-                            Excluded... 
+                            Excluded Properties... 
                         </div>
                         <UserPropertyInput include={false}/>
                         <IdentifiedUsersSwitch />

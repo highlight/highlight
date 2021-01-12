@@ -463,6 +463,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	sessions := []*model.Session{}
 	for _, session := range queriedSessions {
 		passed := 0
+		excluded := 0
 		for _, prop := range params.UserProperties {
 			for _, field := range session.Fields {
 				if prop.Name == field.Name && prop.Value == field.Value {
@@ -473,11 +474,11 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		for _, prop := range params.ExcludedProperties {
 			for _, field := range session.Fields {
 				if prop.Name == field.Name && prop.Value != field.Value {
-					passed++
+					excluded++
 				}
 			}
 		}
-		if passed == len(params.UserProperties)+len(params.ExcludedProperties) {
+		if passed == len(params.UserProperties) && excluded == len(params.ExcludedProperties) {
 			sessions = append(sessions, session)
 		}
 	}
