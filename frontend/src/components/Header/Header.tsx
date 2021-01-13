@@ -48,7 +48,6 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({ hist
                         <Hamburger
                             className={styles.hamburger}
                             onClick={() => {
-                                console.log('clicked');
                                 setOpenSidebar(!openSidebar)
                             }}
                             style={{
@@ -87,7 +86,6 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({ hist
 
 
 const TrialBanner = ({ timeRemaining }: { timeRemaining: Duration }) => {
-    console.log(timeRemaining);
     const { organization_id } = useParams<{ organization_id: string }>();
     const [bannerPresent, setBannerPresent] = useState(true);
     return (

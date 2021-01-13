@@ -16,6 +16,7 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { gql, useQuery } from '@apollo/client';
 import Collapsible from 'react-collapsible';
 import Skeleton from 'react-loading-skeleton';
+import { H } from 'highlight.run';
 
 enum PlatformType {
     Html = "HTML",
@@ -87,8 +88,10 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         method in your javascript app. Here's an example:
                     </div>
                                 <CodeBlock
-                                    onCopy={() =>
+                                    onCopy={() => {
                                         window.analytics.track('Copied Code Snippet', {})
+                                        H.track("Copied Code Snippet (Highlight Event)", { copied: "code snippet" })
+                                    }
                                     }
                                     text={
                                         platform === PlatformType.NextJs
@@ -141,8 +144,10 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
                     <Skeleton />
                 ) : (
                         <CodeBlock
-                            onCopy={() =>
+                            onCopy={() => {
                                 window.analytics.track('Copied Script', {})
+                                H.track("Copied Script (Highlight Event)", { copied: "script" })
+                            }
                             }
                             text={`<script>
 ${codeStr}
