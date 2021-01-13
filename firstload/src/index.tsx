@@ -33,6 +33,7 @@ declare var window: HighlightWindow;
 
 var script: HTMLScriptElement;
 var highlight_obj: Highlight;
+var initCalled: boolean;
 export const H: HighlightPublicInterface = {
     options: undefined,
     init: (orgID: number | string, options?: HighlightOptions) => {
@@ -56,6 +57,7 @@ export const H: HighlightPublicInterface = {
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);
+                    initCalled = true;
                 }
             });
         } catch (e) {
@@ -76,6 +78,7 @@ export const H: HighlightPublicInterface = {
                     if (highlight_obj) {
                         clearInterval(interval);
                         highlight_obj.initialize();
+                        initCalled = true;
                     }
                 }, 200);
             } else {
@@ -110,6 +113,12 @@ export const H: HighlightPublicInterface = {
     },
     onHighlightReady: (func: () => void) => {
         try {
+            if (!initCalled) {
+                HighlightWarning("onHighlightReady", `
+                        init()/start() hasn't been called at this point. 
+                        Please don't use highlight methods without initializing the library
+                        `)
+            }
             if (highlight_obj && highlight_obj.ready) {
                 func();
             }

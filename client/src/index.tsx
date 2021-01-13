@@ -63,6 +63,9 @@ export class Highlight {
   }
 
   async identify(user_identifier: string, user_object = {}) {
+    if (!this.sessionID) {
+      HighlightWarning("addProperties", "Highlight was never initialized")
+    }
     await this.client.request(
       gql`
         mutation identifySession(
@@ -90,6 +93,9 @@ export class Highlight {
   }
 
   async addProperties(properties_obj = {}) {
+    if (!this.sessionID) {
+      HighlightWarning("addProperties", "Highlight was never initialized")
+    }
     await this.client.request(
       gql`
         mutation addProperties($session_id: ID!, $properties_object: Any) {
