@@ -10,7 +10,7 @@ import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import { useState } from 'react';
 import classNames from 'classnames/bind';
 
-export const UserPropertyInput = () => {
+export const UserPropertyInput = ({include}:{include: boolean}) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
@@ -46,11 +46,23 @@ export const UserPropertyInput = () => {
                     var newOptions: Array<UserProperty> = options?.map(o => {
                         return { name: o.name, value: o.value }
                     }) ?? [];
-                    setSearchParams((params: SearchParams) => {
-                        return { ...params, user_properties: newOptions }
-                    })
+                    if(include){
+                        setSearchParams((params: SearchParams) => {
+                            return { ...params, user_properties: newOptions }
+                        })  
+                    }
+                    else{
+                        setSearchParams((params: SearchParams) => {
+                            return { ...params, excluded_properties: newOptions }
+                        })
+                    }
+                    
                 }}
-                value={searchParams?.user_properties?.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })}
+                value={
+                    include ?
+                    searchParams?.user_properties?.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })
+                    : searchParams?.excluded_properties?.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })
+                }
                 loadOptions={generateOptions}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><UserIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
             />

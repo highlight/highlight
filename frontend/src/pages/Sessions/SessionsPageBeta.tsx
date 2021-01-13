@@ -25,7 +25,7 @@ export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
                 <div className={styles.fixedPlaceholder} />
                 <div className={styles.mainUserInput}>
                     <div className={styles.userInputWrapper}>
-                        <UserPropertyInput />
+                        <UserPropertyInput include/>
                     </div>
                 </div>
                 <div className={styles.sessionsSection}

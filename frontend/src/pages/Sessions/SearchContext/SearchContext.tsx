@@ -5,9 +5,9 @@ export type UserProperty = {
     value: string;
 }
 
-// Add an 'excluded_identifier_substrings' to this type.
 export type SearchParams = {
     user_properties: Array<UserProperty>;
+    excluded_properties?: Array<UserProperty>;
     date_range?: { start_date: Date; end_date: Date };
     os?: string;
     browser?: string;

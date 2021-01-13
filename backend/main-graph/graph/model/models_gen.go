@@ -12,13 +12,14 @@ type DateRangeInput struct {
 }
 
 type SearchParamsInput struct {
-	UserProperties []*UserPropertyInput `json:"user_properties"`
-	DateRange      *DateRangeInput      `json:"date_range"`
-	Os             *string              `json:"os"`
-	Browser        *string              `json:"browser"`
-	VisitedURL     *string              `json:"visited_url"`
-	Referrer       *string              `json:"referrer"`
-	Identified     *bool                `json:"identified"`
+	UserProperties     []*UserPropertyInput `json:"user_properties"`
+	ExcludedProperties []*UserPropertyInput `json:"excluded_properties"`
+	DateRange          *DateRangeInput      `json:"date_range"`
+	Os                 *string              `json:"os"`
+	Browser            *string              `json:"browser"`
+	VisitedURL         *string              `json:"visited_url"`
+	Referrer           *string              `json:"referrer"`
+	Identified         *bool                `json:"identified"`
 }
 
 type UserPropertyInput struct {
