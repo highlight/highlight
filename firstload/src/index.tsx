@@ -57,7 +57,6 @@ export const H: HighlightPublicInterface = {
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);
-                    remoteLibraryInitialized = true;
                 }
             });
         } catch (e) {
@@ -113,12 +112,6 @@ export const H: HighlightPublicInterface = {
     },
     onHighlightReady: (func: () => void) => {
         try {
-            if (!remoteLibraryInitialized) {
-                HighlightWarning("onHighlightReady", `
-                        The remote highlight library hasn't been initialized at this point (via init() or init() + start()). 
-                        Please don't use highlight methods without initializing the library.
-                        `)
-            }
             if (highlight_obj && highlight_obj.ready) {
                 func();
             }
