@@ -67,11 +67,11 @@ export const OrgRouter = () => {
             <div className={commonStyles.bodyWrapper}>
                 <Sidebar />
                 <Switch>
-                    <Route path="/:organization_id/sessions/:session_id">
-                        <Player />
-                    </Route>
                     <Route path="/:organization_id/sessions/segment/:segment_id">
                         <SessionsPageBeta integrated={integrated} />
+                    </Route>
+                    <Route path="/:organization_id/sessions/:session_id">
+                        <Player />
                     </Route>
                     <Route path="/:organization_id/sessions">
                         <SessionsPageBeta integrated={integrated} />
