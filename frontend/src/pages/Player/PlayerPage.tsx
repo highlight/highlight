@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
+import testSession from "./session.json";
 import { useParams } from 'react-router-dom';
 import {
     Replayer,
@@ -37,7 +38,7 @@ export const Player = () => {
     const {
         loading: sessionLoading,
         error: sessionError,
-        data: sessionData,
+        data: sessionDataDEPRECTATED,
     } = useQuery<{ events: any[] }, { session_id: string }>(
         gql`
             query GetEvents($session_id: ID!) {
@@ -58,55 +59,55 @@ export const Player = () => {
         setOpenSidebar(false)
     }, [setOpenSidebar])
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const resizePlayer = (replayer: Replayer): boolean => {
-        const width = replayer?.wrapper?.getBoundingClientRect().width;
-        const height = replayer?.wrapper?.getBoundingClientRect().height;
-        const targetWidth = playerWrapperRef.current?.clientWidth;
-        const targetHeight = playerWrapperRef.current?.clientHeight;
-        if (!width || !targetWidth || !height || !targetHeight) {
-            return false;
-        }
-        const widthScale = (targetWidth - 80) / width;
-        const heightScale = (targetHeight - 80) / height;
-        const scale = Math.min(heightScale, widthScale);
+    // // eslint-disable-next-line react-hooks/exhaustive-deps
+    // const resizePlayer = (replayer: Replayer): boolean => {
+    //     const width = replayer?.wrapper?.getBoundingClientRect().width;
+    //     const height = replayer?.wrapper?.getBoundingClientRect().height;
+    //     const targetWidth = playerWrapperRef.current?.clientWidth;
+    //     const targetHeight = playerWrapperRef.current?.clientHeight;
+    //     if (!width || !targetWidth || !height || !targetHeight) {
+    //         return false;
+    //     }
+    //     const widthScale = (targetWidth - 80) / width;
+    //     const heightScale = (targetHeight - 80) / height;
+    //     const scale = Math.min(heightScale, widthScale);
 
-        // why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
-        replayer?.wrapper?.setAttribute(
-            'style',
-            `transform: scale(${replayerScale * scale}) translate(-50%, -50%)`
-        );
+    //     // why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
+    //     replayer?.wrapper?.setAttribute(
+    //         'style',
+    //         `transform: scale(${replayerScale * scale}) translate(-50%, -50%)`
+    //     );
 
-        setReplayerScale((s) => {
-            return s * scale;
-        });
-        setPlayerLoading(false);
-        return true;
-    };
+    //     setReplayerScale((s) => {
+    //         return s * scale;
+    //     });
+    //     setPlayerLoading(false);
+    //     return true;
+    // };
 
     // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
-    useEffect(() => {
-        const i = window.setInterval(() => {
-            if (replayer && resizePlayer(replayer)) {
-                clearInterval(i);
-            }
-        }, 200);
-        return () => {
-            i && clearInterval(i);
-        };
-    }, [resizePlayer, replayer]);
+    // useEffect(() => {
+    //     const i = window.setInterval(() => {
+    //         if (replayer && resizePlayer(replayer)) {
+    //             clearInterval(i);
+    //         }
+    //     }, 200);
+    //     return () => {
+    //         i && clearInterval(i);
+    //     };
+    // }, [resizePlayer, replayer]);
 
     // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
-    useEffect(() => {
-        replayer && resizePlayer(replayer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sizes, replayer]);
+    // useEffect(() => {
+    //     replayer && resizePlayer(replayer);
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [sizes, replayer]);
 
     useEffect(() => {
-        if (sessionData?.events?.length ?? 0 > 1) {
+        if (testSession?.data.events?.length ?? 0 > 1) {
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] =
-                sessionData?.events.map((e: HighlightEvent, i: number) => {
+                testSession.data.events.map((e: any, i: number) => {
                     return { ...e, identifier: i.toString() };
                 }) ?? [];
             let r = new Replayer(newEvents, {
@@ -116,7 +117,7 @@ export const Player = () => {
             setReplayer(r);
             r.getTimeOffset();
         }
-    }, [sessionData]);
+    }, [testSession]);
 
     if (sessionError) {
         return <p>{sessionError.toString()}</p>;
@@ -132,15 +133,9 @@ export const Player = () => {
                     >
                         {resizeListener}
                         <div
-                            style={{
-                                visibility: playerLoading
-                                    ? 'hidden'
-                                    : 'visible'
-                            }}
                             className={styles.rrwebPlayerDiv}
                             id="player"
                         />
-                        {(playerLoading || sessionLoading) && <Spinner />}
                     </div>
                 </div>
                 <Toolbar
@@ -149,7 +144,7 @@ export const Player = () => {
                         replayer?.pause(newTime);
                         setTime(newTime);
                     }}
-                    onResize={() => replayer && resizePlayer(replayer)}
+                    onResize={() => { }}
                 />
             </div>
             <div className={styles.playerRightSection}>
@@ -194,6 +189,7 @@ const EventStream = ({
     useEffect(() => {
         if (!replayer) return;
         replayer.on('event-cast', (e: any) => {
+            console.log(e);
             const event = e as HighlightEvent;
             if (usefulEvent(event)) {
                 setCurrEvent(event.identifier);
