@@ -33,7 +33,7 @@ declare var window: HighlightWindow;
 
 var script: HTMLScriptElement;
 var highlight_obj: Highlight;
-var initCalled: boolean;
+var remoteLibraryInitialized: boolean;
 export const H: HighlightPublicInterface = {
     options: undefined,
     init: (orgID: number | string, options?: HighlightOptions) => {
@@ -57,7 +57,7 @@ export const H: HighlightPublicInterface = {
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);
-                    initCalled = true;
+                    remoteLibraryInitialized = true;
                 }
             });
         } catch (e) {
@@ -78,7 +78,7 @@ export const H: HighlightPublicInterface = {
                     if (highlight_obj) {
                         clearInterval(interval);
                         highlight_obj.initialize();
-                        initCalled = true;
+                        remoteLibraryInitialized = true;
                     }
                 }, 200);
             } else {
@@ -113,10 +113,10 @@ export const H: HighlightPublicInterface = {
     },
     onHighlightReady: (func: () => void) => {
         try {
-            if (!initCalled) {
+            if (!remoteLibraryInitialized) {
                 HighlightWarning("onHighlightReady", `
-                        init()/start() hasn't been called at this point. 
-                        Please don't use highlight methods without initializing the library
+                        The remote highlight library hasn't been initialized at this point (via init() or init() + start()). 
+                        Please don't use highlight methods without initializing the library.
                         `)
             }
             if (highlight_obj && highlight_obj.ready) {
