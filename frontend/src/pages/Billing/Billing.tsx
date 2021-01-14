@@ -1,6 +1,6 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { useMutation, gql } from '@apollo/client';
+import { useMutation, gql, useQuery } from '@apollo/client';
 import { loadStripe } from '@stripe/stripe-js';
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard'
 import { basicPlan, startupPlan, enterprisePlan } from './BillingPlanCard/BillingConfig'
@@ -39,6 +39,25 @@ export const Billing = () => {
     const [checkoutRedirectFailedMessage, setCheckoutRedirectFailedMessage] = useState<string>("")
 
     const { setOpenSidebar } = useContext(SidebarContext);
+
+    const {
+        loading: billingLoading,
+        error: billingError,
+        data: billingData,
+    } = useQuery<{ billingDetails: string }, { organization_id: number }>(
+        gql`
+            query GetBillingDetails($organization_id: ID!) {
+                billingDetails(organization_id: $organization_id)
+            }
+        `,
+        {
+            variables: {
+                organization_id: parseInt(organization_id)
+            },
+        }
+    );
+
+    console.log(billingData);
 
     const [createCheckout, { data }] = useMutation<
         { createCheckout: string },
@@ -90,9 +109,9 @@ export const Billing = () => {
                     Manage your billing information.
                 </div>
                 <div className={styles.billingPlanCardWrapper}>
-                    <BillingPlanCard billingPlan={basicPlan} onSelect={createOnSelect(basicPlan.planName)}></BillingPlanCard>
-                    <BillingPlanCard billingPlan={startupPlan} onSelect={createOnSelect(startupPlan.planName)}></BillingPlanCard>
-                    <BillingPlanCard billingPlan={enterprisePlan} onSelect={createOnSelect(enterprisePlan.planName)}></BillingPlanCard>
+                    <BillingPlanCard current={billingData?.billingDetails === basicPlan.planName} billingPlan={basicPlan} onSelect={createOnSelect(basicPlan.planName)}></BillingPlanCard>
+                    <BillingPlanCard current={billingData?.billingDetails === startupPlan.planName} billingPlan={startupPlan} onSelect={createOnSelect(startupPlan.planName)}></BillingPlanCard>
+                    <BillingPlanCard current={billingData?.billingDetails === enterprisePlan.planName} billingPlan={enterprisePlan} onSelect={createOnSelect(enterprisePlan.planName)}></BillingPlanCard>
                 </div>
             </div>
         </div >

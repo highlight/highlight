@@ -110,6 +110,7 @@ type Query {
   isIntegrated(organization_id: ID!): Boolean
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
   sessionsBETA(organization_id: ID!, count: Int!, params: SearchParamsInput): [Session]
+  billingDetails(organization_id: ID!): Plan!
   # gets all the organizations of a user
   field_suggestionBETA(
     organization_id: ID!
@@ -152,5 +153,4 @@ type Mutation {
   deleteSegment(segment_id: ID!): Boolean
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
   createCheckout(organization_id: ID!, plan: Plan!): String
-  billingDetails(organization_id: ID!): Plan!
 }

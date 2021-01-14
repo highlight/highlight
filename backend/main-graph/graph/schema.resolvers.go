@@ -14,14 +14,12 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go"
-	"github.com/stripe/stripe-go/customer"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -32,7 +30,7 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	trialEnd := time.Now().AddDate(0, 0, 14)
 
 	params := &stripe.CustomerParams{}
-	c, err := customer.New(params)
+	c, err := r.StripeClient.Customers.New(params)
 	if err != nil {
 		return nil, e.Wrap(err, "error creating stripe customer")
 	}
@@ -230,7 +228,24 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 		org.StripeCustomerID = &c.ID
 	}
 
-	params := &stripe.CheckoutSessionParams{
+	// Check if there's already a subscription on the user. If there is, we do an update and return early.
+	params := &stripe.CustomerParams{}
+	params.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
+	if err != nil {
+		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
+	}
+	if len(c.Subscriptions.Data) == 1 {
+		_, err := r.StripeClient.Subscriptions.Update(c.Subscriptions.Data[0].ID, &stripe.SubscriptionParams{})
+		if err != nil {
+			return nil, e.Wrap(err, "couldn't update subscription")
+		}
+		ret := ""
+		return &ret, nil
+	}
+
+	// If there's no existing subscription, we create a checkout.
+	checkoutSessionParams := &stripe.CheckoutSessionParams{
 		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/success"),
 		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/checkoutCanceled"),
 		PaymentMethodTypes: stripe.StringSlice([]string{
@@ -247,31 +262,12 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 	}
 
-	stripe_session, err := r.StripeClient.CheckoutSessions.New(params)
+	stripeSession, err := r.StripeClient.CheckoutSessions.New(checkoutSessionParams)
 	if err != nil {
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
 
-	return &stripe_session.ID, nil
-}
-
-func (r *mutationResolver) BillingDetails(ctx context.Context, organizationID int) (modelInputs.Plan, error) {
-	none := modelInputs.PlanNone
-	org, err := r.isAdminInOrganization(ctx, organizationID)
-	if err != nil {
-		return none, e.Wrap(err, "admin not found in org")
-	}
-	if org.StripeCustomerID == nil {
-		return none, nil
-	}
-	params := &stripe.CustomerParams{}
-	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
-	if err != nil {
-		return none, e.Wrap(err, "couldn't retrieve customer")
-	}
-	pp.Println(c)
-	return modelInputs.PlanBasic, nil
+	return &stripeSession.ID, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
@@ -559,6 +555,31 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		count = len(sessions)
 	}
 	return sessions[:count], nil
+}
+
+func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) (modelInputs.Plan, error) {
+	none := modelInputs.PlanNone
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return none, e.Wrap(err, "admin not found in org")
+	}
+	if org.StripeCustomerID == nil {
+		return none, nil
+	}
+	params := &stripe.CustomerParams{}
+	params.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
+	if err != nil {
+		return none, e.Wrap(err, "couldn't retrieve customer")
+	}
+	if len(c.Subscriptions.Data) == 0 {
+		return none, nil
+	}
+	if len(c.Subscriptions.Data[0].Items.Data) == 0 {
+		return none, nil
+	}
+	plan := FromPriceID(c.Subscriptions.Data[0].Items.Data[0].Plan.ID)
+	return plan, nil
 }
 
 func (r *queryResolver) FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model.Field, error) {
