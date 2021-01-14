@@ -129,22 +129,6 @@ export const ResourcePage = ({
         if(context) {
             context.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Don't make segments if the width is too small to support it
-            if(canvas.width > 325) {
-                for(let i = 0; i < 5; i++) {
-                    const segment = (i / 5) * canvas.width
-                    const msValue = Math.floor((i / 5) * networkRange)
-                    
-                    if(i != 0) {
-                        context.fillStyle = "whitesmoke";
-                        context.fillRect (segment, 0, 4, canvas.height);    
-                    }
-
-                    context.font = "12px Arial";
-                    context.fillStyle = "#777";
-                    context.fillText(msValue.toString() + "ms", segment + 6, 12, 100);
-                }
-            }
             // The actual div width, and the width of the canvas are different. This balances it.
             const realX = (posX / canvas.offsetWidth) * canvas.width
 
@@ -157,13 +141,7 @@ export const ResourcePage = ({
                 context.fillStyle = "#777";
 
                 const msValue = Math.floor((realX / canvas.width) * networkRange)
-                context.fillText(msValue.toString() + "ms", realX + 4, 40, 100);
-
-                // Optional
-                if(realX > 100) {
-                    context.font = "12px Arial";
-                    context.fillText(msValue.toString() + "ms", 6, 27, 100);
-                }
+                context.fillText(msValue.toString() + "ms", realX + 4, 45, 100);
             }
         }
     }
@@ -216,7 +194,15 @@ export const ResourcePage = ({
                             <div className={styles.networkColumn}>TYPE</div>
                             <div className={styles.networkColumn}>NAME</div>
                             <div className={styles.networkColumn}>Timing</div>
-                            <div className={styles.networkColumn}></div>
+                            <div className={styles.networkColumn}>
+                                <div className={styles.networkTimestampGrid}>
+                                    <div>{Math.floor((0 / 5) * networkRange)}ms </div>
+                                    <div>{Math.floor((1 / 5) * networkRange)}ms </div>
+                                    <div>{Math.floor((2 / 5) * networkRange)}ms </div>
+                                    <div>{Math.floor((3 / 5) * networkRange)}ms </div>
+                                    <div>{Math.floor((4 / 5) * networkRange)}ms </div>
+                                </div>
+                            </div>
                         </div>
                         <div
                             id="networkStreamWrapper"

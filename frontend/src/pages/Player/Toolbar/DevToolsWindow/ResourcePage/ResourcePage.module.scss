@@ -92,3 +92,15 @@
     background-color: #5629c6;
     border-radius: 4px;
 }
+
+.networkTimestampGrid {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(5, 20%);
+}
+
+@media only screen and (max-width: 1150px) {
+    .networkTimestampGrid {
+        display: none;
+    }
+}

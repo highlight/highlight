@@ -4,6 +4,7 @@ export const networkColumn: string;
 export const networkRow: string;
 export const networkStreamWrapper: string;
 export const networkTableWrapper: string;
+export const networkTimestampGrid: string;
 export const networkTimingColumn: string;
 export const networkTimingHeader: string;
 export const networkTopBar: string;
