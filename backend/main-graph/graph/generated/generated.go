@@ -66,7 +66,8 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddAdminToOrganization func(childComplexity int, organizationID int, inviteID string) int
-		CreateCheckout         func(childComplexity int, organizationID int, priceID string) int
+		BillingDetails         func(childComplexity int, organizationID int) int
+		CreateCheckout         func(childComplexity int, organizationID int, plan model.Plan) int
 		CreateOrganization     func(childComplexity int, name string) int
 		CreateSegment          func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
 		DeleteOrganization     func(childComplexity int, id int) int
@@ -166,7 +167,8 @@ type MutationResolver interface {
 	EditSegment(ctx context.Context, id int, organizationID int, params model.SearchParamsInput) (*bool, error)
 	DeleteSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
-	CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error)
+	CreateCheckout(ctx context.Context, organizationID int, plan model.Plan) (*string, error)
+	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -277,6 +279,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddAdminToOrganization(childComplexity, args["organization_id"].(int), args["invite_id"].(string)), true
 
+	case "Mutation.billingDetails":
+		if e.complexity.Mutation.BillingDetails == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_billingDetails_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.BillingDetails(childComplexity, args["organization_id"].(int)), true
+
 	case "Mutation.createCheckout":
 		if e.complexity.Mutation.CreateCheckout == nil {
 			break
@@ -287,7 +301,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateCheckout(childComplexity, args["organization_id"].(int), args["price_id"].(string)), true
+		return e.complexity.Mutation.CreateCheckout(childComplexity, args["organization_id"].(int), args["plan"].(model.Plan)), true
 
 	case "Mutation.createOrganization":
 		if e.complexity.Mutation.CreateOrganization == nil {
@@ -1038,6 +1052,13 @@ type Query {
   ): [String]
 }
 
+enum Plan {
+  None
+  Basic
+  Startup
+  Enterprise
+}
+
 type Mutation {
   createOrganization(name: String!): Organization
   editOrganization(id: ID!, name: String, billing_email: String): Organization
@@ -1048,7 +1069,8 @@ type Mutation {
   editSegment(id: ID!, organization_id: ID!, params: SearchParamsInput!): Boolean
   deleteSegment(segment_id: ID!): Boolean
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
-  createCheckout(organization_id: ID!, price_id: String!): String!
+  createCheckout(organization_id: ID!, plan: Plan!): String
+  billingDetails(organization_id: ID!): Plan!
 }
 `, BuiltIn: false},
 }
@@ -1082,6 +1104,21 @@ func (ec *executionContext) field_Mutation_addAdminToOrganization_args(ctx conte
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_billingDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createCheckout_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1094,15 +1131,15 @@ func (ec *executionContext) field_Mutation_createCheckout_args(ctx context.Conte
 		}
 	}
 	args["organization_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["price_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("price_id"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg1 model.Plan
+	if tmp, ok := rawArgs["plan"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("plan"))
+		arg1, err = ec.unmarshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["price_id"] = arg1
+	args["plan"] = arg1
 	return args, nil
 }
 
@@ -2286,7 +2323,45 @@ func (ec *executionContext) _Mutation_createCheckout(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateCheckout(rctx, args["organization_id"].(int), args["price_id"].(string))
+		return ec.resolvers.Mutation().CreateCheckout(rctx, args["organization_id"].(int), args["plan"].(model.Plan))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_billingDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_billingDetails_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().BillingDetails(rctx, args["organization_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2298,9 +2373,9 @@ func (ec *executionContext) _Mutation_createCheckout(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.Plan)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
@@ -5547,6 +5622,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_editRecordingSettings(ctx, field)
 		case "createCheckout":
 			out.Values[i] = ec._Mutation_createCheckout(ctx, field)
+		case "billingDetails":
+			out.Values[i] = ec._Mutation_billingDetails(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -6381,6 +6458,16 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, v interface{}) (model.Plan, error) {
+	var res model.Plan
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v model.Plan) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNSearchParams2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSearchParams(ctx context.Context, sel ast.SelectionSet, v model1.SearchParams) graphql.Marshaler {

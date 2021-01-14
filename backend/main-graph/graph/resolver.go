@@ -39,6 +39,18 @@ func profile(msg string, fid int, t time.Time) time.Time {
 	return time.Now()
 }
 
+func ToPriceID(plan modelInputs.Plan) string {
+	switch plan {
+	case modelInputs.PlanBasic:
+		return os.Getenv("BASIC_PLAN_PRICE_ID")
+	case modelInputs.PlanStartup:
+		return os.Getenv("STARTUP_PLAN_PRICE_ID")
+	case modelInputs.PlanEnterprise:
+		return os.Getenv("ENTERPRISE_PLAN_PRICE_ID")
+	}
+	return ""
+}
+
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {

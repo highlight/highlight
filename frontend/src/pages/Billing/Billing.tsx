@@ -42,13 +42,13 @@ export const Billing = () => {
 
     const [createCheckout, { data }] = useMutation<
         { createCheckout: string },
-        { organization_id: number; price_id: string }
+        { organization_id: number; plan: string }
     >(
         gql`
-            mutation CreateCheckout($organization_id: ID!, $price_id: String!) {
+            mutation CreateCheckout($organization_id: ID!, $plan: Plan!) {
                 createCheckout(
                     organization_id: $organization_id 
-                    price_id: $price_id
+                    plan: $plan
                 ) 
             }
         `
@@ -58,9 +58,9 @@ export const Billing = () => {
         setOpenSidebar(true);
     }, [setOpenSidebar]);
 
-    const createOnSelect = (price_id: string) => {
+    const createOnSelect = (plan: string) => {
         return async () => {
-            createCheckout({ variables: { organization_id: parseInt(organization_id), price_id } })
+            createCheckout({ variables: { organization_id: parseInt(organization_id), plan } })
         }
     }
 
@@ -90,9 +90,9 @@ export const Billing = () => {
                     Manage your billing information.
                 </div>
                 <div className={styles.billingPlanCardWrapper}>
-                    <BillingPlanCard billingPlan={basicPlan} onSelect={createOnSelect(basicPlan.priceId)}></BillingPlanCard>
-                    <BillingPlanCard billingPlan={startupPlan} onSelect={createOnSelect(startupPlan.priceId)}></BillingPlanCard>
-                    <BillingPlanCard billingPlan={enterprisePlan} onSelect={createOnSelect(enterprisePlan.priceId)}></BillingPlanCard>
+                    <BillingPlanCard billingPlan={basicPlan} onSelect={createOnSelect(basicPlan.planName)}></BillingPlanCard>
+                    <BillingPlanCard billingPlan={startupPlan} onSelect={createOnSelect(startupPlan.planName)}></BillingPlanCard>
+                    <BillingPlanCard billingPlan={enterprisePlan} onSelect={createOnSelect(enterprisePlan.planName)}></BillingPlanCard>
                 </div>
             </div>
         </div >

@@ -14,12 +14,14 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/customer"
 )
 
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
@@ -28,10 +30,19 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 		return nil, e.Wrap(err, "error getting admin")
 	}
 	trialEnd := time.Now().AddDate(0, 0, 14)
+
+	params := &stripe.CustomerParams{}
+	c, err := customer.New(params)
+	if err != nil {
+		return nil, e.Wrap(err, "error creating stripe customer")
+	}
+
 	org := &model.Organization{
-		Name:         &name,
-		Admins:       []model.Admin{*admin},
-		TrialEndDate: &trialEnd,
+		StripeCustomerID: &c.ID,
+		Name:             &name,
+		Admins:           []model.Admin{*admin},
+		TrialEndDate:     &trialEnd,
+		BillingEmail:     admin.Email,
 	}
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
@@ -198,9 +209,25 @@ func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizati
 	return rec, nil
 }
 
-func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
-		return "", e.Wrap(err, "admin is not in organization")
+func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID int, plan modelInputs.Plan) (*string, error) {
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	// For older workspaces, if there's no customer ID, we create a StripeCustomer obj.
+	if org.StripeCustomerID == nil {
+		params := &stripe.CustomerParams{}
+		c, err := r.StripeClient.Customers.New(params)
+		if err != nil {
+			return nil, e.Wrap(err, "error creating stripe customer")
+		}
+		if err := r.DB.Model(org).Updates(&model.Organization{
+			StripeCustomerID: &c.ID,
+		}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating org fields")
+		}
+		org.StripeCustomerID = &c.ID
 	}
 
 	params := &stripe.CheckoutSessionParams{
@@ -209,10 +236,11 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 		PaymentMethodTypes: stripe.StringSlice([]string{
 			"card",
 		}),
+		Customer: org.StripeCustomerID,
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
-				&stripe.CheckoutSessionSubscriptionDataItemsParams{
-					Plan: stripe.String(priceID),
+				{
+					Plan: stripe.String(ToPriceID(plan)),
 				},
 			},
 		},
@@ -220,12 +248,30 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 	}
 
 	stripe_session, err := r.StripeClient.CheckoutSessions.New(params)
-
 	if err != nil {
-		return "", e.Wrap(err, "error creating CheckoutSession in stripe")
+		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
 
-	return stripe_session.ID, nil
+	return &stripe_session.ID, nil
+}
+
+func (r *mutationResolver) BillingDetails(ctx context.Context, organizationID int) (modelInputs.Plan, error) {
+	none := modelInputs.PlanNone
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return none, e.Wrap(err, "admin not found in org")
+	}
+	if org.StripeCustomerID == nil {
+		return none, nil
+	}
+	params := &stripe.CustomerParams{}
+	params.AddExpand("subscriptions")
+	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
+	if err != nil {
+		return none, e.Wrap(err, "couldn't retrieve customer")
+	}
+	pp.Println(c)
+	return modelInputs.PlanBasic, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {

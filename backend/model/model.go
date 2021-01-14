@@ -64,6 +64,7 @@ func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error) {
 type Organization struct {
 	Model
 	Name             *string
+	StripeCustomerID *string
 	BillingEmail     *string
 	Secret           *string `json:"-"`
 	Users            []User
@@ -168,14 +169,14 @@ type ResourcesObject struct {
 }
 
 type SearchParams struct {
-	UserProperties []*UserProperty `json:"user_properties"`
+	UserProperties     []*UserProperty `json:"user_properties"`
 	ExcludedProperties []*UserProperty `json:"excluded_properties"`
-	DateRange      *DateRange      `json:"date_range"`
-	Browser        *string         `json:"browser"`
-	OS             *string         `json:"os"`
-	VisitedURL     *string         `json:"visited_url"`
-	Referrer       *string         `json:"referrer"`
-	Identified     bool            `json:"identified"`
+	DateRange          *DateRange      `json:"date_range"`
+	Browser            *string         `json:"browser"`
+	OS                 *string         `json:"os"`
+	VisitedURL         *string         `json:"visited_url"`
+	Referrer           *string         `json:"referrer"`
+	Identified         bool            `json:"identified"`
 }
 type Segment struct {
 	Model

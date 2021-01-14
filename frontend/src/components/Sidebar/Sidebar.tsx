@@ -9,6 +9,7 @@ import { ReactComponent as SetupIcon } from '../../static/setup-icon.svg';
 import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg';
 import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { DemoContext } from '../../DemoContext';
+import { FaSuitcase, FaUserFriends, FaPlay, FaPlug, FaMoneyCheckAlt } from 'react-icons/fa';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -33,16 +34,18 @@ export const Sidebar = () => {
                 ])}
                 to={demo ? '/' : `/${organization_id}/sessions`}
             >
-                <SessionsIcon />
+                <FaPlay className={styles.sessionsIcon} />
                 <span className={styles.rowText}>Sessions</span>
             </Link>
             <Link
                 className={classNames([styles.row, !page && styles.selected])}
                 to={demo ? '/' : `/${organization_id}/setup`}
             >
-                <SetupIcon />
+                <FaPlug className={styles.setupIcon} />
                 <span className={styles.rowText}>Setup</span>
             </Link>
+            <div className={styles.divider} />
+            <div className={styles.settingsTitle}>Settings</div>
             <Link
                 className={classNames([
                     styles.row,
@@ -50,7 +53,7 @@ export const Sidebar = () => {
                 ])}
                 to={demo ? '/' : `/${organization_id}/settings`}
             >
-                <WorkspaceIcon />
+                <FaSuitcase className={styles.workspaceIcon} />
                 <span className={styles.rowText}>Workspace</span>
             </Link>
             <Link
@@ -60,18 +63,19 @@ export const Sidebar = () => {
                 ])}
                 to={demo ? '/' : `/${organization_id}/team`}
             >
-                <TeamIcon />
+                <FaUserFriends className={styles.teamIcon} />
                 <span className={styles.rowText}>Team</span>
             </Link>
-            {/* <Link
+            <Link
                 className={classNames([
                     styles.row,
                     page.includes('billing') && styles.selected,
                 ])}
                 to={demo ? '/' : `/${organization_id}/billing`}
             >
+                <FaMoneyCheckAlt className={styles.teamIcon} />
                 <span className={styles.rowText}>Billing</span>
-            </Link> */}
+            </Link>
             <div
                 style={{
                     flexGrow: 1,

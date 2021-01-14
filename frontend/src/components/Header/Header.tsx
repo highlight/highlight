@@ -87,17 +87,13 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({ hist
 
 const TrialBanner = ({ timeRemaining }: { timeRemaining: Duration }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const [bannerPresent, setBannerPresent] = useState(true);
     return (
-        bannerPresent ?
-            <div className={styles.trialWrapper} >
-                <Banner className={styles.bannerSvg} />
-                <div className={classNames(styles.trialTimeText)}>
-                    {timeRemaining.days}&nbsp;days left in your trial. Pick a plan <Link onClick={() => setBannerPresent(false)} className={styles.trialLink} to={`/${organization_id}/billing`}>here!</Link>
-                </div>
-                <Close className={styles.trialCloseStyle} onClick={() => setBannerPresent(false)} />
-            </div > :
-            <></>
+        <div className={styles.trialWrapper} >
+            <Banner className={styles.bannerSvg} />
+            <div className={classNames(styles.trialTimeText)}>
+                {timeRemaining.days}&nbsp;day(s) left in your trial. Pick a plan <Link className={styles.trialLink} to={`/${organization_id}/billing`}>here!</Link>
+            </div>
+        </div >
     )
 }
 

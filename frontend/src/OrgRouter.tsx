@@ -14,6 +14,7 @@ import styles from './App.module.scss';
 import { WorkspaceSettings } from './pages/WorkspaceSettings/WorkspaceSettings';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { SidebarContext } from './components/Sidebar/SidebarContext';
+import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
 
 import commonStyles from './Common.module.scss';
 import { SessionsPageBeta } from './pages/Sessions/SessionsPageBeta';

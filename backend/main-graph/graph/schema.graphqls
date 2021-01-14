@@ -134,6 +134,13 @@ type Query {
   ): [String]
 }
 
+enum Plan {
+  None
+  Basic
+  Startup
+  Enterprise
+}
+
 type Mutation {
   createOrganization(name: String!): Organization
   editOrganization(id: ID!, name: String, billing_email: String): Organization
@@ -144,5 +151,6 @@ type Mutation {
   editSegment(id: ID!, organization_id: ID!, params: SearchParamsInput!): Boolean
   deleteSegment(segment_id: ID!): Boolean
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
-  createCheckout(organization_id: ID!, price_id: String!): String!
+  createCheckout(organization_id: ID!, plan: Plan!): String
+  billingDetails(organization_id: ID!): Plan!
 }
