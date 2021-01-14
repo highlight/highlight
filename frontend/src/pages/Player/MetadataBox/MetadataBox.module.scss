@@ -1,9 +1,9 @@
 .locationBox {
     border-bottom: 1px solid #eaeaea;
     box-sizing: border-box;
-    height: 150px;
     display: grid;
     grid-template-columns: 120px 230px;
+    padding: 10px 0px;
     flex-direction: column;
     background-color: white;
     z-index: 1;
@@ -76,4 +76,43 @@
     width: 60px;
     background-color: #f2eefb;
     border-radius: 50%;
+}
+
+.tagWrapper {
+    display: flex;
+    flex: 1;
+    flex-flow: row wrap;
+    overflow: hidden;
+    height: 24px;
+}
+
+.tagWrapperExpanded {
+    display: flex;
+    flex: 1;
+    flex-flow: row wrap;
+}
+
+.tagDiv {
+    display: flex;
+    width: 100%;
+    padding-bottom: 8px;
+    padding-right: 20px;
+}
+
+.tagEllipsis {
+    display: block;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.expandArrow:hover {
+    cursor: pointer;
+    opacity: 1;
+}
+
+.expandArrow {
+    flex: 0 0 16px;
+    opacity: 0.7;
+    padding-top: 2px;
 }
