@@ -151,7 +151,7 @@ type Session struct {
 
 type Field struct {
 	Model
-	// 'user_property', 'session_property'.
+	// 'user', 'session', 'track'.
 	Type string
 	// 'email', 'identifier', etc.
 	Name string
@@ -168,14 +168,14 @@ type ResourcesObject struct {
 }
 
 type SearchParams struct {
-	UserProperties []*UserProperty `json:"user_properties"`
+	UserProperties     []*UserProperty `json:"user_properties"`
 	ExcludedProperties []*UserProperty `json:"excluded_properties"`
-	DateRange      *DateRange      `json:"date_range"`
-	Browser        *string         `json:"browser"`
-	OS             *string         `json:"os"`
-	VisitedURL     *string         `json:"visited_url"`
-	Referrer       *string         `json:"referrer"`
-	Identified     bool            `json:"identified"`
+	DateRange          *DateRange      `json:"date_range"`
+	Browser            *string         `json:"browser"`
+	OS                 *string         `json:"os"`
+	VisitedURL         *string         `json:"visited_url"`
+	Referrer           *string         `json:"referrer"`
+	Identified         bool            `json:"identified"`
 }
 type Segment struct {
 	Model

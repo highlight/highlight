@@ -11,7 +11,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
+	model1 "github.com/jay-khatri/fullstory/backend/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -42,7 +43,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		AddProperties     func(childComplexity int, sessionID int, propertiesObject interface{}) int
+		AddProperties     func(childComplexity int, sessionID int, propertiesObject interface{}, typeArg *model.PropertyType) int
 		IdentifySession   func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
 		InitializeSession func(childComplexity int, organizationVerboseID string) int
 		PushPayload       func(childComplexity int, sessionID int, events string, messages string, resources string) int
@@ -59,9 +60,9 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	InitializeSession(ctx context.Context, organizationVerboseID string) (*model.Session, error)
+	InitializeSession(ctx context.Context, organizationVerboseID string) (*model1.Session, error)
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
-	AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
+	AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}, typeArg *model.PropertyType) (*int, error)
 	PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error)
 }
 
@@ -90,7 +91,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddProperties(childComplexity, args["session_id"].(int), args["properties_object"].(interface{})), true
+		return e.complexity.Mutation.AddProperties(childComplexity, args["session_id"].(int), args["properties_object"].(interface{}), args["type"].(*model.PropertyType)), true
 
 	case "Mutation.identifySession":
 		if e.complexity.Mutation.IdentifySession == nil {
@@ -223,6 +224,11 @@ type Session {
   organization_id: ID!
 }
 
+enum PropertyType {
+  TRACK
+  SESSION
+}
+
 type Mutation {
   initializeSession(organization_verbose_id: String!): Session
   identifySession(
@@ -230,7 +236,7 @@ type Mutation {
     user_identifier: String!
     user_object: Any
   ): ID
-  addProperties(session_id: ID!, properties_object: Any): ID
+  addProperties(session_id: ID!, properties_object: Any, type: PropertyType): ID
   pushPayload(session_id: ID!, events: String!, messages: String!, resources: String!): ID
 }
 `, BuiltIn: false},
@@ -262,6 +268,15 @@ func (ec *executionContext) field_Mutation_addProperties_args(ctx context.Contex
 		}
 	}
 	args["properties_object"] = arg1
+	var arg2 *model.PropertyType
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("type"))
+		arg2, err = ec.unmarshalOPropertyType2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋclientᚑgraphᚋgraphᚋmodelᚐPropertyType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg2
 	return args, nil
 }
 
@@ -441,7 +456,7 @@ func (ec *executionContext) _Mutation_initializeSession(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Session)
+	res := resTmp.(*model1.Session)
 	fc.Result = res
 	return ec.marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
 }
@@ -508,7 +523,7 @@ func (ec *executionContext) _Mutation_addProperties(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddProperties(rctx, args["session_id"].(int), args["properties_object"].(interface{}))
+		return ec.resolvers.Mutation().AddProperties(rctx, args["session_id"].(int), args["properties_object"].(interface{}), args["type"].(*model.PropertyType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -629,7 +644,7 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 	return ec.marshalO__Schema2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐSchema(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Session_id(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+func (ec *executionContext) _Session_id(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -663,7 +678,7 @@ func (ec *executionContext) _Session_id(ctx context.Context, field graphql.Colle
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Session_user_id(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+func (ec *executionContext) _Session_user_id(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -697,7 +712,7 @@ func (ec *executionContext) _Session_user_id(ctx context.Context, field graphql.
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Session_organization_id(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+func (ec *executionContext) _Session_organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1860,7 +1875,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 var sessionImplementors = []string{"Session"}
 
-func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, obj *model.Session) graphql.Marshaler {
+func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, obj *model1.Session) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, sessionImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -2468,7 +2483,23 @@ func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.Selec
 	return graphql.MarshalIntID(*v)
 }
 
-func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model.Session) graphql.Marshaler {
+func (ec *executionContext) unmarshalOPropertyType2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋclientᚑgraphᚋgraphᚋmodelᚐPropertyType(ctx context.Context, v interface{}) (*model.PropertyType, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(model.PropertyType)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOPropertyType2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋclientᚑgraphᚋgraphᚋmodelᚐPropertyType(ctx context.Context, sel ast.SelectionSet, v *model.PropertyType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model1.Session) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

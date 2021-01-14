@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
+	genModel "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -113,7 +114,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
+func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}, typeArg *genModel.PropertyType) (*int, error) {
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("error converting userObject interface type")
