@@ -1,3 +1,4 @@
+export const canvasNetworkWrapper: string;
 export const nameSection: string;
 export const networkColumn: string;
 export const networkRow: string;

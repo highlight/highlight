@@ -2,7 +2,7 @@
     color: #808080;
     width: 100%;
     display: grid;
-    grid-template-columns: 130px 200px 80px 1fr;
+    grid-template-columns: 130px 200px 90px 1fr;
     padding-left: 25px;
     padding-right: 25px;
     padding-bottom: 8px;
@@ -16,12 +16,21 @@
     padding-right: 25px;
     height: 40px;
     display: grid;
-    grid-template-columns: 130px 200px 80px 1fr;
+    grid-template-columns: 130px 200px 90px 1fr;
     font-size: 13px;
 }
 
 .networkTableWrapper {
     height: calc(100% - 45px);
+    position: relative;
+}
+.canvasNetworkWrapper {
+    position: absolute;
+    background-attachment: fixed;
+    height: 100%;
+    // calc(total width - padding left - padding right - TYPE - NAME - TIMING)
+    width: calc(100% - 25px - 25px - 130px - 200px - 90px);
+    margin-left: calc(25px + 130px + 200px + 90px);
 }
 
 .networkStreamWrapper {

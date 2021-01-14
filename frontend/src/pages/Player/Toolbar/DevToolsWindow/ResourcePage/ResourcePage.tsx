@@ -117,6 +117,70 @@ export const ResourcePage = ({
         }
     }, [currentResources, startTime, time, currentResource]);
 
+    const updateCanvas = (posX: number) => {
+        var canvas = document.getElementById("canvasNetworkWrapper") as HTMLCanvasElement;
+
+        // Important for text-scaling
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+    
+        var context = canvas.getContext("2d");
+
+        if(context) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Don't make segments if the width is too small to support it
+            if(canvas.width > 325) {
+                for(let i = 0; i < 5; i++) {
+                    const segment = (i / 5) * canvas.width
+                    const msValue = Math.floor((i / 5) * networkRange)
+                    
+                    if(i != 0) {
+                        context.fillStyle = "whitesmoke";
+                        context.fillRect (segment, 0, 4, canvas.height);    
+                    }
+
+                    context.font = "12px Arial";
+                    context.fillStyle = "#777";
+                    context.fillText(msValue.toString() + "ms", segment + 6, 12, 100);
+                }
+            }
+            // The actual div width, and the width of the canvas are different. This balances it.
+            const realX = (posX / canvas.offsetWidth) * canvas.width
+
+            if(context) {
+
+                context.fillStyle = "red";
+                context.fillRect (realX, 0, 1, canvas.height);
+
+                context.font = "18px Arial";
+                context.fillStyle = "#777";
+
+                const msValue = Math.floor((realX / canvas.width) * networkRange)
+                context.fillText(msValue.toString() + "ms", realX + 4, 40, 100);
+
+                // Optional
+                if(realX > 100) {
+                    context.font = "12px Arial";
+                    context.fillText(msValue.toString() + "ms", 6, 27, 100);
+                }
+            }
+        }
+    }
+
+    const drawMouseHover = (event: any) => {
+        var canvas = document.getElementById("canvasNetworkWrapper") as HTMLCanvasElement;
+
+        let x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft
+        x -= canvas.offsetLeft
+
+        updateCanvas(x)
+    }
+
+    window.onresize = () => {
+        updateCanvas(0)
+    }
+
     return (
         <>
             <div className={devStyles.topBar}>
@@ -140,11 +204,19 @@ export const ResourcePage = ({
                     </div>
                 ) : currentResources.length ? (
                     <>
+                        <canvas 
+                            id="canvasNetworkWrapper" 
+                            className={styles.canvasNetworkWrapper}
+                            width="800px"
+                            height="400px"
+                            onMouseMove={(e) => drawMouseHover(e)}
+                        >
+                        </canvas>
                         <div className={styles.networkTopBar}>
                             <div className={styles.networkColumn}>TYPE</div>
                             <div className={styles.networkColumn}>NAME</div>
-                            <div className={styles.networkColumn}>TIME</div>
-                            <div className={styles.networkColumn}>TIMING</div>
+                            <div className={styles.networkColumn}>Timing</div>
+                            <div className={styles.networkColumn}></div>
                         </div>
                         <div
                             id="networkStreamWrapper"
@@ -206,7 +278,7 @@ export const ResourcePage = ({
                                                     {(
                                                         p.responseEnd -
                                                         p.startTime
-                                                    ).toFixed(2)}
+                                                    ).toFixed(2)} ms
                                                 </div>
                                                 <div
                                                     className={
@@ -227,6 +299,7 @@ export const ResourcePage = ({
                                                         }
                                                         style={{
                                                             width: `${actualPercent}%`,
+                                                            zIndex: 100
                                                         }}
                                                     />
                                                     <div
