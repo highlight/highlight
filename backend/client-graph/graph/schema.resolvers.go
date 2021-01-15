@@ -114,6 +114,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	return &sessionID, nil
 }
 
+// @TODO: Call this AddSessionProperties.
 func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}, typeArg *genModel.PropertyType) (*int, error) {
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
@@ -129,6 +130,23 @@ func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, pro
 	}
 	return &sessionID, nil
 }
+
+// @TODO: Call this AddTrackProperties.
+// func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}, typeArg *genModel.PropertyType) (*int, error) {
+// 	obj, ok := propertiesObject.(map[string]interface{})
+// 	if !ok {
+// 		return nil, fmt.Errorf("error converting userObject interface type")
+// 	}
+// 	fields := map[string]string{}
+// 	for k, v := range obj {
+// 		fields[k] = fmt.Sprintf("%v", v)
+// 	}
+// 	err := r.AppendProperties(sessionID, nil, fields)
+// 	if err != nil {
+// 		return nil, e.Wrap(err, "error adding set of properites to db")
+// 	}
+// 	return &sessionID, nil
+// }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error) {
 	eventsParsed := make(map[string][]interface{})
