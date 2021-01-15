@@ -77,7 +77,6 @@ export const Sidebar = () => {
                 ])}
                 to={demo ? '/' : `/${organization_id}/billing`}
             >
-                {page.includes('billing') && <div className={styles.selectedDiv} />}
                 <CreditCardIcon />
                 <span className={styles.rowText}>Billing</span>
             </Link>

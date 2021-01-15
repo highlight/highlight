@@ -69,10 +69,14 @@ export const Billing = () => {
         const response = pathname.split('/')[3] ?? ''
         if (response === "success") {
             message.success("Billing change applied!", 5)
-        } else if (checkoutRedirectFailedMessage) {
+        }
+        if (checkoutRedirectFailedMessage) {
             message.error(checkoutRedirectFailedMessage, 5)
         }
-    }, [pathname])
+        if (billingError) {
+            message.error(checkoutRedirectFailedMessage, 5)
+        }
+    }, [pathname, checkoutRedirectFailedMessage, billingError])
 
     const createOnSelect = (plan: string) => {
         return async () => {
