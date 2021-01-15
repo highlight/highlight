@@ -7,7 +7,6 @@ import { Avatar } from '../../../components/Avatar/Avatar';
 
 import styles from './MetadataBox.module.scss';
 import { DemoContext } from '../../../DemoContext';
-import Collapsible from 'react-collapsible';
 
 type Field = {
     type: string;
