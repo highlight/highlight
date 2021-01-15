@@ -14,6 +14,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -235,8 +236,21 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
-	if len(c.Subscriptions.Data) == 1 {
-		_, err := r.StripeClient.Subscriptions.Update(c.Subscriptions.Data[0].ID, &stripe.SubscriptionParams{})
+	pp.Println(len(c.Subscriptions.Data))
+	pp.Println(len(c.Subscriptions.Data[0].Items.Data))
+	if len(c.Subscriptions.Data) == 1 && len(c.Subscriptions.Data[0].Items.Data) == 1 {
+		plan := ToPriceID(plan)
+		subscriptionParams := &stripe.SubscriptionParams{
+			CancelAtPeriodEnd: stripe.Bool(false),
+			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
+			Items: []*stripe.SubscriptionItemsParams{
+				{
+					ID:   stripe.String(c.Subscriptions.Data[0].Items.Data[0].ID),
+					Plan: &plan,
+				},
+			},
+		}
+		_, err := r.StripeClient.Subscriptions.Update(c.Subscriptions.Data[0].ID, subscriptionParams)
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}

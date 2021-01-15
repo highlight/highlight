@@ -8,17 +8,8 @@ import { basicPlan, startupPlan, enterprisePlan } from './BillingPlanCard/Billin
 import styles from './Billing.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
-const getBillingResponseOrNull = (pathname: string, checkoutRedirectFailedMessage: string) => {
-    const response = pathname.split('/')[3] ?? ''
-    if (response === "success") {
-        return <p className={styles.subTitle}>Thank you for your purchase. Checkout completed successfully.</p>
-    } else if (checkoutRedirectFailedMessage) {
-        return <p className={styles.subTitle}>{checkoutRedirectFailedMessage}</p>
-    }
-
-    return null
-
-}
+import Skeleton from 'react-loading-skeleton';
+import { message } from 'antd';
 
 const getStripePromiseOrNull = () => {
     const stripe_publishable_key = process.env.REACT_APP_STRIPE_API_PK
@@ -34,7 +25,6 @@ const stripePromiseOrNull = getStripePromiseOrNull()
 
 export const Billing = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-
     const { pathname } = useLocation();
     const [checkoutRedirectFailedMessage, setCheckoutRedirectFailedMessage] = useState<string>("")
 
@@ -57,8 +47,6 @@ export const Billing = () => {
         }
     );
 
-    console.log(billingData);
-
     const [createCheckout, { data }] = useMutation<
         { createCheckout: string },
         { organization_id: number; plan: string }
@@ -77,9 +65,21 @@ export const Billing = () => {
         setOpenSidebar(true);
     }, [setOpenSidebar]);
 
+    useEffect(() => {
+        const response = pathname.split('/')[3] ?? ''
+        if (response === "success") {
+            message.success("Billing change applied!", 5)
+        } else if (checkoutRedirectFailedMessage) {
+            message.error(checkoutRedirectFailedMessage, 5)
+        }
+    }, [pathname])
+
     const createOnSelect = (plan: string) => {
         return async () => {
-            createCheckout({ variables: { organization_id: parseInt(organization_id), plan } })
+            createCheckout({
+                refetchQueries: ["GetBillingDetails"],
+                variables: { organization_id: parseInt(organization_id), plan }
+            }).then(r => !r.data?.createCheckout && message.success("Billing change applied!", 5));
         }
     }
 
@@ -103,15 +103,20 @@ export const Billing = () => {
         <div className={styles.billingPageWrapper}>
             <div className={styles.blankSidebar}></div>
             <div className={styles.billingPage}>
-                {getBillingResponseOrNull(pathname, checkoutRedirectFailedMessage)}
                 <div className={styles.title}>Billing</div>
                 <div className={styles.subTitle}>
                     Manage your billing information.
                 </div>
                 <div className={styles.billingPlanCardWrapper}>
-                    <BillingPlanCard current={billingData?.billingDetails === basicPlan.planName} billingPlan={basicPlan} onSelect={createOnSelect(basicPlan.planName)}></BillingPlanCard>
-                    <BillingPlanCard current={billingData?.billingDetails === startupPlan.planName} billingPlan={startupPlan} onSelect={createOnSelect(startupPlan.planName)}></BillingPlanCard>
-                    <BillingPlanCard current={billingData?.billingDetails === enterprisePlan.planName} billingPlan={enterprisePlan} onSelect={createOnSelect(enterprisePlan.planName)}></BillingPlanCard>
+                    {
+                        billingLoading ?
+                            <Skeleton style={{ borderRadius: 8, marginRight: 20 }} count={3} height={300} width={275} /> :
+                            <>
+                                <BillingPlanCard current={billingData?.billingDetails === basicPlan.planName} billingPlan={basicPlan} onSelect={createOnSelect(basicPlan.planName)}></BillingPlanCard>
+                                <BillingPlanCard current={billingData?.billingDetails === startupPlan.planName} billingPlan={startupPlan} onSelect={createOnSelect(startupPlan.planName)}></BillingPlanCard>
+                                <BillingPlanCard current={billingData?.billingDetails === enterprisePlan.planName} billingPlan={enterprisePlan} onSelect={createOnSelect(enterprisePlan.planName)}></BillingPlanCard>
+                            </>
+                    }
                 </div>
             </div>
         </div >
