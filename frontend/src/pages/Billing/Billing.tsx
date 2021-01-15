@@ -27,6 +27,7 @@ export const Billing = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { pathname } = useLocation();
     const [checkoutRedirectFailedMessage, setCheckoutRedirectFailedMessage] = useState<string>("")
+    const [loading, setLoading] = useState<boolean>(false)
 
     const { setOpenSidebar } = useContext(SidebarContext);
 
@@ -34,6 +35,7 @@ export const Billing = () => {
         loading: billingLoading,
         error: billingError,
         data: billingData,
+        refetch,
     } = useQuery<{ billingDetails: string }, { organization_id: number }>(
         gql`
             query GetBillingDetails($organization_id: ID!) {
@@ -76,10 +78,17 @@ export const Billing = () => {
 
     const createOnSelect = (plan: string) => {
         return async () => {
+            setLoading(true);
             createCheckout({
-                refetchQueries: ["GetBillingDetails"],
                 variables: { organization_id: parseInt(organization_id), plan }
-            }).then(r => !r.data?.createCheckout && message.success("Billing change applied!", 5));
+            }).then(r => {
+                if (!r.data?.createCheckout) {
+                    message.success("Billing change applied!", 5);
+                }
+                refetch().then(() => {
+                    setLoading(false);
+                });
+            });
         }
     }
 
@@ -109,7 +118,7 @@ export const Billing = () => {
                 </div>
                 <div className={styles.billingPlanCardWrapper}>
                     {
-                        billingLoading ?
+                        billingLoading || loading ?
                             <Skeleton style={{ borderRadius: 8, marginRight: 20 }} count={3} height={300} width={275} /> :
                             <>
                                 <BillingPlanCard current={billingData?.billingDetails === basicPlan.planName} billingPlan={basicPlan} onSelect={createOnSelect(basicPlan.planName)}></BillingPlanCard>
