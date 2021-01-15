@@ -2,11 +2,12 @@ import React, { useContext, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
 import { Skeleton, Tag } from 'antd';
-import { UpOutlined, DownOutlined } from '@ant-design/icons';
+import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { Avatar } from '../../../components/Avatar/Avatar';
 
 import styles from './MetadataBox.module.scss';
 import { DemoContext } from '../../../DemoContext';
+import Collapsible from 'react-collapsible';
 
 type Field = {
     type: string;
@@ -124,12 +125,15 @@ export const MetadataBox = () => {
                                         </Tag>
                                     ))}
                             </div>
-                            <div
+                            <DownIcon
                                 className={styles.expandArrow}
-                                onClick={() => setExpanded(!expanded)}
-                            >
-                                {expanded ? <UpOutlined /> : <DownOutlined />}
-                            </div>
+                                style={{
+                                    transform: expanded
+                                        ? 'rotate(180deg)'
+                                        : 'rotate(0deg)',
+                                }}
+                                onClick={() => setExpanded((e) => !e)}
+                            />
                         </div>
                         <div className={styles.userInfoWrapper}>
                             <div className={styles.userText}>

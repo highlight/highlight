@@ -106,13 +106,10 @@
     text-overflow: ellipsis;
 }
 
-.expandArrow:hover {
-    cursor: pointer;
-    opacity: 1;
-}
-
 .expandArrow {
     flex: 0 0 16px;
+    cursor: pointer;
     opacity: 0.7;
-    padding-top: 2px;
+    margin-top: 4px;
+    transition: 0.2s;
 }
