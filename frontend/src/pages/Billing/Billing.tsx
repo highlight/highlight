@@ -47,13 +47,13 @@ export const Billing = () => {
         }
     );
 
-    const [createCheckout, { data }] = useMutation<
-        { createCheckout: string },
+    const [createOrUpdateSubscription, { data }] = useMutation<
+        { createOrUpdateSubscription: string },
         { organization_id: number; plan: string }
     >(
         gql`
-            mutation CreateCheckout($organization_id: ID!, $plan: Plan!) {
-                createCheckout(
+            mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {
+                createOrUpdateSubscription(
                     organization_id: $organization_id 
                     plan: $plan
                 ) 
@@ -77,10 +77,10 @@ export const Billing = () => {
     const createOnSelect = (plan: string) => {
         return async () => {
             setLoading(true);
-            createCheckout({
+            createOrUpdateSubscription({
                 variables: { organization_id: parseInt(organization_id), plan }
             }).then(r => {
-                if (!r.data?.createCheckout) {
+                if (!r.data?.createOrUpdateSubscription) {
                     message.success("Billing change applied!", 5);
                 }
                 refetch().then(() => {
@@ -90,11 +90,11 @@ export const Billing = () => {
         }
     }
 
-    if (data?.createCheckout && stripePromiseOrNull) {
+    if (data?.createOrUpdateSubscription && stripePromiseOrNull) {
         (async function () {
             const stripe = await stripePromiseOrNull;
             const result = stripe ? await stripe.redirectToCheckout({
-                sessionId: data.createCheckout,
+                sessionId: data.createOrUpdateSubscription,
             }) : { error: "Error: could not load stripe client." };
 
             if (result.error) {

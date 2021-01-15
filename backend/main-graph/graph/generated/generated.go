@@ -65,16 +65,16 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToOrganization func(childComplexity int, organizationID int, inviteID string) int
-		CreateCheckout         func(childComplexity int, organizationID int, plan model.Plan) int
-		CreateOrganization     func(childComplexity int, name string) int
-		CreateSegment          func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
-		DeleteOrganization     func(childComplexity int, id int) int
-		DeleteSegment          func(childComplexity int, segmentID int) int
-		EditOrganization       func(childComplexity int, id int, name *string, billingEmail *string) int
-		EditRecordingSettings  func(childComplexity int, organizationID int, details *string) int
-		EditSegment            func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
-		SendAdminInvite        func(childComplexity int, organizationID int, email string) int
+		AddAdminToOrganization     func(childComplexity int, organizationID int, inviteID string) int
+		CreateOrUpdateSubscription func(childComplexity int, organizationID int, plan model.Plan) int
+		CreateOrganization         func(childComplexity int, name string) int
+		CreateSegment              func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
+		DeleteOrganization         func(childComplexity int, id int) int
+		DeleteSegment              func(childComplexity int, segmentID int) int
+		EditOrganization           func(childComplexity int, id int, name *string, billingEmail *string) int
+		EditRecordingSettings      func(childComplexity int, organizationID int, details *string) int
+		EditSegment                func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
+		SendAdminInvite            func(childComplexity int, organizationID int, email string) int
 	}
 
 	Organization struct {
@@ -167,7 +167,7 @@ type MutationResolver interface {
 	EditSegment(ctx context.Context, id int, organizationID int, params model.SearchParamsInput) (*bool, error)
 	DeleteSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
-	CreateCheckout(ctx context.Context, organizationID int, plan model.Plan) (*string, error)
+	CreateOrUpdateSubscription(ctx context.Context, organizationID int, plan model.Plan) (*string, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -279,17 +279,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddAdminToOrganization(childComplexity, args["organization_id"].(int), args["invite_id"].(string)), true
 
-	case "Mutation.createCheckout":
-		if e.complexity.Mutation.CreateCheckout == nil {
+	case "Mutation.createOrUpdateSubscription":
+		if e.complexity.Mutation.CreateOrUpdateSubscription == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createCheckout_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_createOrUpdateSubscription_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateCheckout(childComplexity, args["organization_id"].(int), args["plan"].(model.Plan)), true
+		return e.complexity.Mutation.CreateOrUpdateSubscription(childComplexity, args["organization_id"].(int), args["plan"].(model.Plan)), true
 
 	case "Mutation.createOrganization":
 		if e.complexity.Mutation.CreateOrganization == nil {
@@ -1070,7 +1070,9 @@ type Mutation {
   editSegment(id: ID!, organization_id: ID!, params: SearchParamsInput!): Boolean
   deleteSegment(segment_id: ID!): Boolean
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
-  createCheckout(organization_id: ID!, plan: Plan!): String
+  # If this endpoint returns a checkout_id, we initiate a stripe checkout. 
+  # Otherwise, we simply update the subscription.
+  createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
 }
 `, BuiltIn: false},
 }
@@ -1104,7 +1106,7 @@ func (ec *executionContext) field_Mutation_addAdminToOrganization_args(ctx conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createCheckout_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_createOrUpdateSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -2299,7 +2301,7 @@ func (ec *executionContext) _Mutation_editRecordingSettings(ctx context.Context,
 	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createCheckout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_createOrUpdateSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2315,7 +2317,7 @@ func (ec *executionContext) _Mutation_createCheckout(ctx context.Context, field 
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createCheckout_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_createOrUpdateSubscription_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2323,7 +2325,7 @@ func (ec *executionContext) _Mutation_createCheckout(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateCheckout(rctx, args["organization_id"].(int), args["plan"].(model.Plan))
+		return ec.resolvers.Mutation().CreateOrUpdateSubscription(rctx, args["organization_id"].(int), args["plan"].(model.Plan))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5620,8 +5622,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_deleteSegment(ctx, field)
 		case "editRecordingSettings":
 			out.Values[i] = ec._Mutation_editRecordingSettings(ctx, field)
-		case "createCheckout":
-			out.Values[i] = ec._Mutation_createCheckout(ctx, field)
+		case "createOrUpdateSubscription":
+			out.Values[i] = ec._Mutation_createOrUpdateSubscription(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

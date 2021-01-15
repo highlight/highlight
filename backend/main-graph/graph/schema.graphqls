@@ -152,5 +152,7 @@ type Mutation {
   editSegment(id: ID!, organization_id: ID!, params: SearchParamsInput!): Boolean
   deleteSegment(segment_id: ID!): Boolean
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
-  createCheckout(organization_id: ID!, plan: Plan!): String
+  # If this endpoint returns a checkout_id, we initiate a stripe checkout. 
+  # Otherwise, we simply update the subscription.
+  createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
 }

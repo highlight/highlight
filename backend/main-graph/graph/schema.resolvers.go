@@ -14,7 +14,6 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -208,7 +207,7 @@ func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizati
 	return rec, nil
 }
 
-func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID int, plan modelInputs.Plan) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, plan modelInputs.Plan) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -236,8 +235,7 @@ func (r *mutationResolver) CreateCheckout(ctx context.Context, organizationID in
 	if err != nil {
 		return nil, e.Wrap(err, "couldn't retrieve stripe customer data")
 	}
-	pp.Println(len(c.Subscriptions.Data))
-	pp.Println(len(c.Subscriptions.Data[0].Items.Data))
+	// If there's a single subscription on the user and a single price item on the subscription
 	if len(c.Subscriptions.Data) == 1 && len(c.Subscriptions.Data[0].Items.Data) == 1 {
 		plan := ToPriceID(plan)
 		subscriptionParams := &stripe.SubscriptionParams{
