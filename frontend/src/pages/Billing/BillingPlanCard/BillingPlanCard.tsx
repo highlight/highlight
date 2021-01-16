@@ -6,32 +6,34 @@ import classNames from 'classnames/bind';
 
 export const BillingPlanCard = ({
     billingPlan,
-    onSelect
+    onSelect,
+    current
 }: {
+    current: boolean
     billingPlan: BillingPlan,
     onSelect: () => void
 }) => {
     const advertisedFeatureDivs = billingPlan.advertisedFeatures.map(featureString => <div className={styles.advertisedFeature}>{featureString}</div>)
-    // TODO: read this value from server
-    const isDisabled = false
-    return (<div className={styles.billingPlanCard}>
-        <div className={styles.billingPlanTitle}>{billingPlan.planName}</div>
-        <div className={classNames(commonStyles.title, styles.billingPlanPrice)}>{`$${billingPlan.monthlyPrice}`}</div>
-        <div className={styles.billingFrequency}>billed monthly</div>
-        <div className={styles.advertisedFeaturesWrapper}>
-            {advertisedFeatureDivs}
-        </div>
+    return (
+        <div className={styles.billingPlanCard}>
+            <div className={styles.billingPlanTitle}>{billingPlan.planName}</div>
+            <div className={classNames(commonStyles.title, styles.billingPlanPrice)}>{`$${billingPlan.monthlyPrice}`}</div>
+            <div className={styles.billingFrequency}>billed monthly</div>
+            <div className={styles.advertisedFeaturesWrapper}>
+                {advertisedFeatureDivs}
+            </div>
 
-        <button
-            type="submit"
-            className={classNames(
-                commonStyles.tertiaryButton,
-            )}
-            disabled={isDisabled}
-            onClick={onSelect}
-        >
-            {isDisabled ? 'Current plan' : `Select ${billingPlan.planName} Plan`}
-        </button>
+            <button
+                type="submit"
+                className={
+                    current ? commonStyles.secondaryButton : commonStyles.submitButton
+                }
+                disabled={current}
+                onClick={onSelect}
+            >
+                {current ? 'Current plan' : `Select ${billingPlan.planName} Plan`}
+            </button>
 
-    </div >)
+        </div >
+    );
 }

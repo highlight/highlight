@@ -3,6 +3,9 @@
 package model
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 )
 
@@ -25,4 +28,49 @@ type SearchParamsInput struct {
 type UserPropertyInput struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+type Plan string
+
+const (
+	PlanNone       Plan = "None"
+	PlanBasic      Plan = "Basic"
+	PlanStartup    Plan = "Startup"
+	PlanEnterprise Plan = "Enterprise"
+)
+
+var AllPlan = []Plan{
+	PlanNone,
+	PlanBasic,
+	PlanStartup,
+	PlanEnterprise,
+}
+
+func (e Plan) IsValid() bool {
+	switch e {
+	case PlanNone, PlanBasic, PlanStartup, PlanEnterprise:
+		return true
+	}
+	return false
+}
+
+func (e Plan) String() string {
+	return string(e)
+}
+
+func (e *Plan) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = Plan(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid Plan", str)
+	}
+	return nil
+}
+
+func (e Plan) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

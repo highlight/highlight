@@ -89,6 +89,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Admin               func(childComplexity int) int
 		Admins              func(childComplexity int, organizationID int) int
+		BillingDetails      func(childComplexity int, organizationID int) int
 		Events              func(childComplexity int, sessionID int) int
 		FieldSuggestion     func(childComplexity int, organizationID int, field string, query string) int
 		FieldSuggestionBeta func(childComplexity int, organizationID int, name string, query string) int
@@ -169,7 +170,7 @@ type MutationResolver interface {
 	EditSegment(ctx context.Context, id int, organizationID int, params model.SearchParamsInput) (*bool, error)
 	DeleteSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
-	CreateCheckout(ctx context.Context, organizationID int, priceID string) (string, error)
+	CreateOrUpdateSubscription(ctx context.Context, organizationID int, plan model.Plan) (*string, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -180,6 +181,7 @@ type QueryResolver interface {
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model1.Session, error)
 	SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParamsInput) ([]*model1.Session, error)
+	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	UserFieldSuggestion(ctx context.Context, organizationID int, query string) ([]*model1.Field, error)
 	Organizations(ctx context.Context) ([]*model1.Organization, error)
@@ -280,17 +282,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.AddAdminToOrganization(childComplexity, args["organization_id"].(int), args["invite_id"].(string)), true
 
-	case "Mutation.createCheckout":
-		if e.complexity.Mutation.CreateCheckout == nil {
+	case "Mutation.createOrUpdateSubscription":
+		if e.complexity.Mutation.CreateOrUpdateSubscription == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_createCheckout_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_createOrUpdateSubscription_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateCheckout(childComplexity, args["organization_id"].(int), args["price_id"].(string)), true
+		return e.complexity.Mutation.CreateOrUpdateSubscription(childComplexity, args["organization_id"].(int), args["plan"].(model.Plan)), true
 
 	case "Mutation.createOrganization":
 		if e.complexity.Mutation.CreateOrganization == nil {
@@ -453,6 +455,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Admins(childComplexity, args["organization_id"].(int)), true
+
+	case "Query.billingDetails":
+		if e.complexity.Query.BillingDetails == nil {
+			break
+		}
+
+		args, err := ec.field_Query_billingDetails_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.BillingDetails(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.events":
 		if e.complexity.Query.Events == nil {
@@ -1037,6 +1051,7 @@ type Query {
   isIntegrated(organization_id: ID!): Boolean
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
   sessionsBETA(organization_id: ID!, count: Int!, params: SearchParamsInput): [Session]
+  billingDetails(organization_id: ID!): Plan!
   # gets all the organizations of a user
   field_suggestionBETA(
     organization_id: ID!
@@ -1061,6 +1076,13 @@ type Query {
   ): [String]
 }
 
+enum Plan {
+  None
+  Basic
+  Startup
+  Enterprise
+}
+
 type Mutation {
   createOrganization(name: String!): Organization
   editOrganization(id: ID!, name: String, billing_email: String): Organization
@@ -1072,7 +1094,9 @@ type Mutation {
   editSegment(id: ID!, organization_id: ID!, params: SearchParamsInput!): Boolean
   deleteSegment(segment_id: ID!): Boolean
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
-  createCheckout(organization_id: ID!, price_id: String!): String!
+  # If this endpoint returns a checkout_id, we initiate a stripe checkout. 
+  # Otherwise, we simply update the subscription.
+  createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
 }
 `, BuiltIn: false},
 }
@@ -1106,7 +1130,7 @@ func (ec *executionContext) field_Mutation_addAdminToOrganization_args(ctx conte
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_createCheckout_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_createOrUpdateSubscription_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -1118,15 +1142,15 @@ func (ec *executionContext) field_Mutation_createCheckout_args(ctx context.Conte
 		}
 	}
 	args["organization_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["price_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("price_id"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+	var arg1 model.Plan
+	if tmp, ok := rawArgs["plan"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("plan"))
+		arg1, err = ec.unmarshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["price_id"] = arg1
+	args["plan"] = arg1
 	return args, nil
 }
 
@@ -1353,6 +1377,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 }
 
 func (ec *executionContext) field_Query_admins_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -2339,7 +2378,7 @@ func (ec *executionContext) _Mutation_editRecordingSettings(ctx context.Context,
 	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createCheckout(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_createOrUpdateSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2355,7 +2394,7 @@ func (ec *executionContext) _Mutation_createCheckout(ctx context.Context, field 
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createCheckout_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_createOrUpdateSubscription_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2363,21 +2402,18 @@ func (ec *executionContext) _Mutation_createCheckout(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateCheckout(rctx, args["organization_id"].(int), args["price_id"].(string))
+		return ec.resolvers.Mutation().CreateOrUpdateSubscription(rctx, args["organization_id"].(int), args["plan"].(model.Plan))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
@@ -2846,6 +2882,47 @@ func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graph
 	res := resTmp.([]*model1.Session)
 	fc.Result = res
 	return ec.marshalOSession2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_billingDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_billingDetails_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().BillingDetails(rctx, args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.Plan)
+	fc.Result = res
+	return ec.marshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_field_suggestionBETA(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5655,11 +5732,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_deleteSegment(ctx, field)
 		case "editRecordingSettings":
 			out.Values[i] = ec._Mutation_editRecordingSettings(ctx, field)
-		case "createCheckout":
-			out.Values[i] = ec._Mutation_createCheckout(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+		case "createOrUpdateSubscription":
+			out.Values[i] = ec._Mutation_createOrUpdateSubscription(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5813,6 +5887,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sessionsBETA(ctx, field)
+				return res
+			})
+		case "billingDetails":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_billingDetails(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "field_suggestionBETA":
@@ -6493,6 +6581,16 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, v interface{}) (model.Plan, error) {
+	var res model.Plan
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v model.Plan) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNSearchParams2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSearchParams(ctx context.Context, sel ast.SelectionSet, v model1.SearchParams) graphql.Marshaler {

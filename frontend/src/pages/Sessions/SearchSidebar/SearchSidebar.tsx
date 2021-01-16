@@ -41,11 +41,11 @@ export const SearchSidebar = ({ feedPosition }: { feedPosition: { top: number; r
                         <div className={classNames(styles.subTitle)}>
                             Included Properties
                         </div>
-                        <UserPropertyInput include/>
+                        <UserPropertyInput include />
                         <div className={classNames(styles.subTitle)}>
-                            Excluded Properties 
+                            Excluded Properties
                         </div>
-                        <UserPropertyInput include={false}/>
+                        <UserPropertyInput include={false} />
                         <IdentifiedUsersSwitch />
                     </SearchSection>
                     <SearchSection title="Date Range" open={false}>

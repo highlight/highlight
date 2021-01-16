@@ -16,6 +16,7 @@ import (
 	"github.com/speps/go-hashids"
 	"gorm.io/gorm/clause"
 
+	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -64,7 +65,9 @@ func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error) {
 type Organization struct {
 	Model
 	Name             *string
+	StripeCustomerID *string
 	BillingEmail     *string
+	Plan             modelInputs.Plan
 	Secret           *string `json:"-"`
 	Users            []User
 	Admins           []Admin `gorm:"many2many:organization_admins;"`

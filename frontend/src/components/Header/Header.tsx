@@ -1,8 +1,7 @@
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { ReactComponent as HighlightLogoSmall } from '../../static/highlight-logo-small.svg';
 import { ReactComponent as Banner } from '../../static/banner.svg';
 import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
-import { ReactComponent as Close } from '../../static/close.svg';
 import { Link, withRouter } from 'react-router-dom';
 import { useParams, RouteComponentProps } from 'react-router-dom';
 import { UserDropdown } from './UserDropdown/UserDropdown';
@@ -87,17 +86,13 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({ hist
 
 const TrialBanner = ({ timeRemaining }: { timeRemaining: Duration }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const [bannerPresent, setBannerPresent] = useState(true);
     return (
-        bannerPresent ?
-            <div className={styles.trialWrapper} >
-                <Banner className={styles.bannerSvg} />
-                <div className={classNames(styles.trialTimeText)}>
-                    {timeRemaining.days}&nbsp;days left in your trial. Pick a plan <Link onClick={() => setBannerPresent(false)} className={styles.trialLink} to={`/${organization_id}/billing`}>here!</Link>
-                </div>
-                <Close className={styles.trialCloseStyle} onClick={() => setBannerPresent(false)} />
-            </div > :
-            <></>
+        <div className={styles.trialWrapper} >
+            <Banner className={styles.bannerSvg} />
+            <div className={classNames(styles.trialTimeText)}>
+                {timeRemaining.days}&nbsp;day(s) left in your trial. Pick a plan <Link className={styles.trialLink} to={`/${organization_id}/billing`}>here!</Link>
+            </div>
+        </div >
     )
 }
 
