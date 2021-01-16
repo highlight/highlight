@@ -65,17 +65,18 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToOrganization func(childComplexity int, organizationID int, inviteID string) int
-		CreateCheckout         func(childComplexity int, organizationID int, priceID string) int
-		CreateOrganization     func(childComplexity int, name string) int
-		CreateSegment          func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
-		DeleteOrganization     func(childComplexity int, id int) int
-		DeleteSegment          func(childComplexity int, segmentID int) int
-		EditOrganization       func(childComplexity int, id int, name *string, billingEmail *string) int
-		EditRecordingSettings  func(childComplexity int, organizationID int, details *string) int
-		EditSegment            func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
-		MarkSessionAsViewed    func(childComplexity int, id int) int
-		SendAdminInvite        func(childComplexity int, organizationID int, email string) int
+		AddAdminToOrganization 	   func(childComplexity int, organizationID int, inviteID string) int
+		CreateOrUpdateSubscription func(childComplexity int, organizationID int, plan model.Plan) int
+		CreateCheckout             func(childComplexity int, organizationID int, priceID string) int
+		CreateOrganization         func(childComplexity int, name string) int
+		CreateSegment              func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
+		DeleteOrganization         func(childComplexity int, id int) int
+		DeleteSegment              func(childComplexity int, segmentID int) int
+		EditOrganization           func(childComplexity int, id int, name *string, billingEmail *string) int
+		EditRecordingSettings      func(childComplexity int, organizationID int, details *string) int
+		EditSegment                func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
+		MarkSessionAsViewed        func(childComplexity int, id int) int
+		SendAdminInvite            func(childComplexity int, organizationID int, email string) int
 	}
 
 	Organization struct {
