@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
 import { Skeleton, Tag } from 'antd';
@@ -65,6 +65,18 @@ export const MetadataBox = () => {
         }
     );
     const created = new Date(data?.session.created_at ?? 0);
+    const [parsedFields, setParsedFields] = useState<Array<Field>>([]);
+
+    useEffect(() => {
+        setParsedFields(
+            data?.session?.fields.filter(
+                (f) =>
+                    f.type === 'user' &&
+                    f.name !== 'identifier' &&
+                    f.value.length
+            ) || []
+        );
+    }, [data]);
     return (
         <div className={styles.locationBox}>
             {loading ? (
@@ -90,22 +102,16 @@ export const MetadataBox = () => {
                                 </div>
                             )}
                         </div>
-                        <div className={styles.tagDiv}>
-                            <div
-                                className={
-                                    expanded
-                                        ? styles.tagWrapperExpanded
-                                        : styles.tagWrapper
-                                }
-                            >
-                                {data?.session.fields
-                                    .filter(
-                                        (f) =>
-                                            f.type === 'user' &&
-                                            f.name !== 'identifier' &&
-                                            f.value.length
-                                    )
-                                    .map((f) => (
+                        {parsedFields.length > 0 ? (
+                            <div className={styles.tagDiv}>
+                                <div
+                                    className={
+                                        expanded
+                                            ? styles.tagWrapperExpanded
+                                            : styles.tagWrapper
+                                    }
+                                >
+                                    {parsedFields.map((f) => (
                                         <Tag
                                             color="#F2EEFB"
                                             style={{
@@ -123,17 +129,20 @@ export const MetadataBox = () => {
                                             </span>
                                         </Tag>
                                     ))}
+                                </div>
+                                <DownIcon
+                                    className={styles.expandArrow}
+                                    style={{
+                                        transform: expanded
+                                            ? 'rotate(180deg)'
+                                            : 'rotate(0deg)',
+                                    }}
+                                    onClick={() => setExpanded((e) => !e)}
+                                />
                             </div>
-                            <DownIcon
-                                className={styles.expandArrow}
-                                style={{
-                                    transform: expanded
-                                        ? 'rotate(180deg)'
-                                        : 'rotate(0deg)',
-                                }}
-                                onClick={() => setExpanded((e) => !e)}
-                            />
-                        </div>
+                        ) : (
+                            <div></div>
+                        )}
                         <div className={styles.userInfoWrapper}>
                             <div className={styles.userText}>
                                 {data?.session.city
