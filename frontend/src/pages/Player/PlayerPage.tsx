@@ -34,13 +34,13 @@ export const Player = () => {
     const [playerLoading, setPlayerLoading] = useState(true);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
-    const [markSessionAsViewed, { loading, data, error }] = useMutation<
+    const [markSessionAsViewed] = useMutation<
         { markSessionAsViewed: Boolean },
         { id: number }
     >(
         gql`
-            mutation MarkSessionAsViewed($name: String!) {
-                markSessionAsViewed(name: $name)
+            mutation MarkSessionAsViewed($id: ID!) {
+                markSessionAsViewed(id: $id)
             }
         `
     );

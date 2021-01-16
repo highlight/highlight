@@ -24,6 +24,7 @@ type Session {
   length: Int
   user_object: Any
   fields: [Field]
+  viewed: Boolean
 }
 
 type RecordingSettings {

@@ -147,6 +147,8 @@ type Session struct {
 	Fields           []*Field   `json:"fields" gorm:"many2many:session_fields;"`
 	UserObject       JSONB      `json:"user_object" sql:"type:jsonb"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
+	// Custom properties
+	Viewed bool `json:"viewed"`
 }
 
 type Field struct {
@@ -168,14 +170,14 @@ type ResourcesObject struct {
 }
 
 type SearchParams struct {
-	UserProperties []*UserProperty `json:"user_properties"`
+	UserProperties     []*UserProperty `json:"user_properties"`
 	ExcludedProperties []*UserProperty `json:"excluded_properties"`
-	DateRange      *DateRange      `json:"date_range"`
-	Browser        *string         `json:"browser"`
-	OS             *string         `json:"os"`
-	VisitedURL     *string         `json:"visited_url"`
-	Referrer       *string         `json:"referrer"`
-	Identified     bool            `json:"identified"`
+	DateRange          *DateRange      `json:"date_range"`
+	Browser            *string         `json:"browser"`
+	OS                 *string         `json:"os"`
+	VisitedURL         *string         `json:"visited_url"`
+	Referrer           *string         `json:"referrer"`
+	Identified         bool            `json:"identified"`
 }
 type Segment struct {
 	Model
