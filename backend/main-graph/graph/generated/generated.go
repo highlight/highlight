@@ -65,8 +65,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToOrganization     func(childComplexity int, organizationID int, inviteID string) int
+		AddAdminToOrganization 	   func(childComplexity int, organizationID int, inviteID string) int
 		CreateOrUpdateSubscription func(childComplexity int, organizationID int, plan model.Plan) int
+		CreateCheckout             func(childComplexity int, organizationID int, priceID string) int
 		CreateOrganization         func(childComplexity int, name string) int
 		CreateSegment              func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
 		DeleteOrganization         func(childComplexity int, id int) int
@@ -74,6 +75,7 @@ type ComplexityRoot struct {
 		EditOrganization           func(childComplexity int, id int, name *string, billingEmail *string) int
 		EditRecordingSettings      func(childComplexity int, organizationID int, details *string) int
 		EditSegment                func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
+		MarkSessionAsViewed        func(childComplexity int, id int) int
 		SendAdminInvite            func(childComplexity int, organizationID int, email string) int
 	}
 
@@ -145,6 +147,7 @@ type ComplexityRoot struct {
 		State          func(childComplexity int) int
 		UserID         func(childComplexity int) int
 		UserObject     func(childComplexity int) int
+		Viewed         func(childComplexity int) int
 	}
 
 	User struct {
@@ -160,6 +163,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateOrganization(ctx context.Context, name string) (*model1.Organization, error)
 	EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Organization, error)
+	MarkSessionAsViewed(ctx context.Context, id int) (*bool, error)
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
@@ -374,6 +378,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["organization_id"].(int), args["params"].(model.SearchParamsInput)), true
+
+	case "Mutation.markSessionAsViewed":
+		if e.complexity.Mutation.MarkSessionAsViewed == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_markSessionAsViewed_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MarkSessionAsViewed(childComplexity, args["id"].(int)), true
 
 	case "Mutation.sendAdminInvite":
 		if e.complexity.Mutation.SendAdminInvite == nil {
@@ -831,6 +847,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.UserObject(childComplexity), true
 
+	case "Session.viewed":
+		if e.complexity.Session.Viewed == nil {
+			break
+		}
+
+		return e.complexity.Session.Viewed(childComplexity), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
@@ -942,6 +965,7 @@ type Session {
   length: Int
   user_object: Any
   fields: [Field]
+  viewed: Boolean
 }
 
 type RecordingSettings {
@@ -1063,6 +1087,7 @@ enum Plan {
 type Mutation {
   createOrganization(name: String!): Organization
   editOrganization(id: ID!, name: String, billing_email: String): Organization
+  markSessionAsViewed(id: ID!): Boolean
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
@@ -1295,6 +1320,21 @@ func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context,
 		}
 	}
 	args["params"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_markSessionAsViewed_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -2033,6 +2073,44 @@ func (ec *executionContext) _Mutation_editOrganization(ctx context.Context, fiel
 	res := resTmp.(*model1.Organization)
 	fc.Result = res
 	return ec.marshalOOrganization2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_markSessionAsViewed(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_markSessionAsViewed_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().MarkSessionAsViewed(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4195,6 +4273,37 @@ func (ec *executionContext) _Session_fields(ctx context.Context, field graphql.C
 	return ec.marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_viewed(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Session",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Viewed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model1.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5608,6 +5717,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createOrganization(ctx, field)
 		case "editOrganization":
 			out.Values[i] = ec._Mutation_editOrganization(ctx, field)
+		case "markSessionAsViewed":
+			out.Values[i] = ec._Mutation_markSessionAsViewed(ctx, field)
 		case "deleteOrganization":
 			out.Values[i] = ec._Mutation_deleteOrganization(ctx, field)
 		case "sendAdminInvite":
@@ -6111,6 +6222,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			})
 		case "fields":
 			out.Values[i] = ec._Session_fields(ctx, field, obj)
+		case "viewed":
+			out.Values[i] = ec._Session_viewed(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

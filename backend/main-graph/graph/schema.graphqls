@@ -24,6 +24,7 @@ type Session {
   length: Int
   user_object: Any
   fields: [Field]
+  viewed: Boolean
 }
 
 type RecordingSettings {
@@ -145,6 +146,7 @@ enum Plan {
 type Mutation {
   createOrganization(name: String!): Organization
   editOrganization(id: ID!, name: String, billing_email: String): Organization
+  markSessionAsViewed(id: ID!): Boolean
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID

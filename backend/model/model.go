@@ -150,6 +150,8 @@ type Session struct {
 	Fields           []*Field   `json:"fields" gorm:"many2many:session_fields;"`
 	UserObject       JSONB      `json:"user_object" sql:"type:jsonb"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
+	// Custom properties
+	Viewed bool `json:"viewed"`
 }
 
 type Field struct {

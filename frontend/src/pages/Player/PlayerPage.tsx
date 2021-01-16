@@ -9,7 +9,7 @@ import {
 import { eventWithTime, incrementalData } from 'rrweb/typings/types';
 import { scroller } from 'react-scroll';
 import { Spinner } from '../../components/Spinner/Spinner';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery, gql, useMutation } from '@apollo/client';
 import { Skeleton } from 'antd';
 import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
@@ -34,6 +34,17 @@ export const Player = () => {
     const [playerLoading, setPlayerLoading] = useState(true);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
+    const [markSessionAsViewed] = useMutation<
+        { markSessionAsViewed: Boolean },
+        { id: number }
+    >(
+        gql`
+            mutation MarkSessionAsViewed($id: ID!) {
+                markSessionAsViewed(id: $id)
+            }
+        `
+    );
+
     const {
         loading: sessionLoading,
         error: sessionError,
@@ -53,6 +64,12 @@ export const Player = () => {
             context: { headers: { 'Highlight-Demo': demo } },
         }
     );
+
+    useEffect(() => {
+        if (session_id) {
+            markSessionAsViewed({ variables: { id: parseInt(session_id) } })
+        }
+    }, [session_id, markSessionAsViewed])
 
     useEffect(() => {
         setOpenSidebar(false)
