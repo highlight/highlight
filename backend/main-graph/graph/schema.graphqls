@@ -110,6 +110,7 @@ type Query {
   isIntegrated(organization_id: ID!): Boolean
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
   sessionsBETA(organization_id: ID!, count: Int!, params: SearchParamsInput): [Session]
+  billingDetails(organization_id: ID!): Plan!
   # gets all the organizations of a user
   field_suggestionBETA(
     organization_id: ID!
@@ -134,6 +135,13 @@ type Query {
   ): [String]
 }
 
+enum Plan {
+  None
+  Basic
+  Startup
+  Enterprise
+}
+
 type Mutation {
   createOrganization(name: String!): Organization
   editOrganization(id: ID!, name: String, billing_email: String): Organization
@@ -144,5 +152,7 @@ type Mutation {
   editSegment(id: ID!, organization_id: ID!, params: SearchParamsInput!): Boolean
   deleteSegment(segment_id: ID!): Boolean
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
-  createCheckout(organization_id: ID!, price_id: String!): String!
+  # If this endpoint returns a checkout_id, we initiate a stripe checkout. 
+  # Otherwise, we simply update the subscription.
+  createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
 }

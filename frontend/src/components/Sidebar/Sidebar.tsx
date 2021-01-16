@@ -8,6 +8,7 @@ import { ReactComponent as SessionsIcon } from '../../static/sessions-icon.svg';
 import { ReactComponent as SetupIcon } from '../../static/setup-icon.svg';
 import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg';
 import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
+import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
 import { DemoContext } from '../../DemoContext';
 
 export const Sidebar = () => {
@@ -37,12 +38,18 @@ export const Sidebar = () => {
                 <span className={styles.rowText}>Sessions</span>
             </Link>
             <Link
-                className={classNames([styles.row, !page && styles.selected])}
+                className={classNames([styles.row,
+                (!page || page.includes('setup')) && styles.selected])
+                }
                 to={demo ? '/' : `/${organization_id}/setup`}
             >
                 <SetupIcon />
                 <span className={styles.rowText}>Setup</span>
             </Link>
+            <div className={styles.settingsDivider} />
+            <div className={styles.settingsTitle}>
+                Settings
+            </div>
             <Link
                 className={classNames([
                     styles.row,
@@ -63,15 +70,16 @@ export const Sidebar = () => {
                 <TeamIcon />
                 <span className={styles.rowText}>Team</span>
             </Link>
-            {/* <Link
+            <Link
                 className={classNames([
                     styles.row,
                     page.includes('billing') && styles.selected,
                 ])}
                 to={demo ? '/' : `/${organization_id}/billing`}
             >
+                <CreditCardIcon />
                 <span className={styles.rowText}>Billing</span>
-            </Link> */}
+            </Link>
             <div
                 style={{
                     flexGrow: 1,

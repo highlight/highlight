@@ -1,6 +1,6 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { useMutation, gql } from '@apollo/client';
+import { useMutation, gql, useQuery } from '@apollo/client';
 import { loadStripe } from '@stripe/stripe-js';
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard'
 import { basicPlan, startupPlan, enterprisePlan } from './BillingPlanCard/BillingConfig'
@@ -8,17 +8,8 @@ import { basicPlan, startupPlan, enterprisePlan } from './BillingPlanCard/Billin
 import styles from './Billing.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
-const getBillingResponseOrNull = (pathname: string, checkoutRedirectFailedMessage: string) => {
-    const response = pathname.split('/')[3] ?? ''
-    if (response === "success") {
-        return <p className={styles.subTitle}>Thank you for your purchase. Checkout completed successfully.</p>
-    } else if (checkoutRedirectFailedMessage) {
-        return <p className={styles.subTitle}>{checkoutRedirectFailedMessage}</p>
-    }
-
-    return null
-
-}
+import Skeleton from 'react-loading-skeleton';
+import { message } from 'antd';
 
 const getStripePromiseOrNull = () => {
     const stripe_publishable_key = process.env.REACT_APP_STRIPE_API_PK
@@ -30,25 +21,41 @@ const getStripePromiseOrNull = () => {
 
 const stripePromiseOrNull = getStripePromiseOrNull()
 
-
-
 export const Billing = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-
     const { pathname } = useLocation();
     const [checkoutRedirectFailedMessage, setCheckoutRedirectFailedMessage] = useState<string>("")
+    const [loading, setLoading] = useState<boolean>(false)
 
     const { setOpenSidebar } = useContext(SidebarContext);
 
-    const [createCheckout, { data }] = useMutation<
-        { createCheckout: string },
-        { organization_id: number; price_id: string }
+    const {
+        loading: billingLoading,
+        error: billingError,
+        data: billingData,
+        refetch,
+    } = useQuery<{ billingDetails: string }, { organization_id: number }>(
+        gql`
+            query GetBillingDetails($organization_id: ID!) {
+                billingDetails(organization_id: $organization_id)
+            }
+        `,
+        {
+            variables: {
+                organization_id: parseInt(organization_id)
+            },
+        }
+    );
+
+    const [createOrUpdateSubscription, { data }] = useMutation<
+        { createOrUpdateSubscription: string },
+        { organization_id: number; plan: string }
     >(
         gql`
-            mutation CreateCheckout($organization_id: ID!, $price_id: String!) {
-                createCheckout(
+            mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {
+                createOrUpdateSubscription(
                     organization_id: $organization_id 
-                    price_id: $price_id
+                    plan: $plan
                 ) 
             }
         `
@@ -58,17 +65,40 @@ export const Billing = () => {
         setOpenSidebar(true);
     }, [setOpenSidebar]);
 
-    const createOnSelect = (price_id: string) => {
+    useEffect(() => {
+        const response = pathname.split('/')[3] ?? ''
+        if (response === "success") {
+            message.success("Billing change applied!", 5)
+        }
+        if (checkoutRedirectFailedMessage) {
+            message.error(checkoutRedirectFailedMessage, 5)
+        }
+        if (billingError) {
+            message.error(checkoutRedirectFailedMessage, 5)
+        }
+    }, [pathname, checkoutRedirectFailedMessage, billingError])
+
+    const createOnSelect = (plan: string) => {
         return async () => {
-            createCheckout({ variables: { organization_id: parseInt(organization_id), price_id } })
+            setLoading(true);
+            createOrUpdateSubscription({
+                variables: { organization_id: parseInt(organization_id), plan }
+            }).then(r => {
+                if (!r.data?.createOrUpdateSubscription) {
+                    message.success("Billing change applied!", 5);
+                }
+                refetch().then(() => {
+                    setLoading(false);
+                });
+            });
         }
     }
 
-    if (data?.createCheckout && stripePromiseOrNull) {
+    if (data?.createOrUpdateSubscription && stripePromiseOrNull) {
         (async function () {
             const stripe = await stripePromiseOrNull;
             const result = stripe ? await stripe.redirectToCheckout({
-                sessionId: data.createCheckout,
+                sessionId: data.createOrUpdateSubscription,
             }) : { error: "Error: could not load stripe client." };
 
             if (result.error) {
@@ -84,15 +114,20 @@ export const Billing = () => {
         <div className={styles.billingPageWrapper}>
             <div className={styles.blankSidebar}></div>
             <div className={styles.billingPage}>
-                {getBillingResponseOrNull(pathname, checkoutRedirectFailedMessage)}
                 <div className={styles.title}>Billing</div>
                 <div className={styles.subTitle}>
                     Manage your billing information.
                 </div>
                 <div className={styles.billingPlanCardWrapper}>
-                    <BillingPlanCard billingPlan={basicPlan} onSelect={createOnSelect(basicPlan.priceId)}></BillingPlanCard>
-                    <BillingPlanCard billingPlan={startupPlan} onSelect={createOnSelect(startupPlan.priceId)}></BillingPlanCard>
-                    <BillingPlanCard billingPlan={enterprisePlan} onSelect={createOnSelect(enterprisePlan.priceId)}></BillingPlanCard>
+                    {
+                        billingLoading || loading ?
+                            <Skeleton style={{ borderRadius: 8, marginRight: 20 }} count={3} height={300} width={275} /> :
+                            <>
+                                <BillingPlanCard current={billingData?.billingDetails === basicPlan.planName} billingPlan={basicPlan} onSelect={createOnSelect(basicPlan.planName)}></BillingPlanCard>
+                                <BillingPlanCard current={billingData?.billingDetails === startupPlan.planName} billingPlan={startupPlan} onSelect={createOnSelect(startupPlan.planName)}></BillingPlanCard>
+                                <BillingPlanCard current={billingData?.billingDetails === enterprisePlan.planName} billingPlan={enterprisePlan} onSelect={createOnSelect(enterprisePlan.planName)}></BillingPlanCard>
+                            </>
+                    }
                 </div>
             </div>
         </div >
