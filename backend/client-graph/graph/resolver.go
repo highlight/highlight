@@ -36,6 +36,7 @@ type DeviceDetails struct {
 	BrowserVersion string `json:"browser_version"`
 }
 
+//Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, userProperties map[string]string, sessionProperties map[string]string) error {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)

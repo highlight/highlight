@@ -8,6 +8,11 @@ type Session {
   organization_id: ID!
 }
 
+enum PropertyType{
+  TRACK
+  SESSION
+}
+
 type Mutation {
   initializeSession(organization_verbose_id: String!): Session
   identifySession(
@@ -15,6 +20,6 @@ type Mutation {
     user_identifier: String!
     user_object: Any
   ): ID
-  addProperties(session_id: ID!, properties_object: Any): ID
+  addProperties(session_id: ID!, properties_object: Any, type: PropertyType): ID #make sure this works
   pushPayload(session_id: ID!, events: String!, messages: String!, resources: String!): ID
 }

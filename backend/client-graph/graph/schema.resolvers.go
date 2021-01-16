@@ -113,6 +113,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	return &sessionID, nil
 }
 
+//Split into AddTrackProperties & AddSessionProperties
 func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
