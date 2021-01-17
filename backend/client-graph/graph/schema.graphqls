@@ -20,6 +20,8 @@ type Mutation {
     user_identifier: String!
     user_object: Any
   ): ID
-  addProperties(session_id: ID!, properties_object: Any, type: PropertyType): ID #make sure this works
+  #addProperties(session_id: ID!, properties_object: Any, type: PropertyType): ID #make sure this works
+  addSessionProperties(session_id: ID!, properties_object: Any, type: PropertyType = PropertyType.TRACK): ID
+  addSessionProperties(session_id: ID!, properties_object: Any, type: PropertyType = PropertyType.SESSION): ID
   pushPayload(session_id: ID!, events: String!, messages: String!, resources: String!): ID
 }
