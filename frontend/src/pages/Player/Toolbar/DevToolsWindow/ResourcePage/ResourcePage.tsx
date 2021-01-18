@@ -140,7 +140,7 @@ export const ResourcePage = ({
                 context.font = "18px Arial";
                 context.fillStyle = "#777";
 
-                const msValue = Math.floor((realX / canvas.width) * networkRange)
+                const msValue = Math.max(0, Math.floor((realX / canvas.width) * networkRange))
                 context.fillText(msValue.toString() + "ms", realX + 4, 45, 100);
             }
         }
