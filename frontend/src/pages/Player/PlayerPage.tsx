@@ -10,7 +10,7 @@ import { eventWithTime, incrementalData } from 'rrweb/typings/types';
 import { scroller } from 'react-scroll';
 import { Spinner } from '../../components/Spinner/Spinner';
 import { useQuery, gql, useMutation } from '@apollo/client';
-import { Skeleton } from 'antd';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
 import { MetadataBox } from './MetadataBox/MetadataBox';
@@ -157,7 +157,12 @@ export const Player = () => {
                             className={styles.rrwebPlayerDiv}
                             id="player"
                         />
-                        {(playerLoading || sessionLoading) && <Spinner />}
+                        {
+                            (playerLoading || sessionLoading) ?
+                                <PlayerSkeleton height={playerWrapperRef.current?.clientHeight} />
+                                :
+                                <></>
+                        }
                     </div>
                 </div>
                 <Toolbar
@@ -230,7 +235,7 @@ const EventStream = ({
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
                 {loadingMap || !events.length || !staticMap ? (
-                    <Skeleton active />
+                    <Skeleton count={4} height={35} style={{ margin: 8 }} />
                 ) : (
                         replayer &&
                         events
@@ -249,6 +254,18 @@ const EventStream = ({
         </>
     );
 };
+
+const PlayerSkeleton = ({ height }: { height: number | undefined }) => {
+    const adjusted = (height ?? 80) - 80
+    return (
+        <SkeletonTheme color={"white"} highlightColor={"#f5f5f5"}>
+            <Skeleton
+                height={adjusted}
+                width={adjusted} />
+        </SkeletonTheme>
+    );
+
+}
 
 // used in filter() type methods to fetch events we want
 const usefulEvent = (e: eventWithTime): boolean => {
