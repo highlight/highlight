@@ -141,7 +141,7 @@ export const MetadataBox = () => {
                                 />
                             </div>
                         ) : (
-                            <div></div>
+                            <></>
                         )}
                         <div className={styles.userInfoWrapper}>
                             <div className={styles.userText}>
