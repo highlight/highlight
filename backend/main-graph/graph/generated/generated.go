@@ -65,16 +65,15 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToOrganization 	   func(childComplexity int, organizationID int, inviteID string) int
+		AddAdminToOrganization     func(childComplexity int, organizationID int, inviteID string) int
 		CreateOrUpdateSubscription func(childComplexity int, organizationID int, plan model.Plan) int
-		CreateCheckout             func(childComplexity int, organizationID int, priceID string) int
 		CreateOrganization         func(childComplexity int, name string) int
-		CreateSegment              func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
+		CreateSegment              func(childComplexity int, organizationID int, name string, description string, params model.SearchParamsInput) int
 		DeleteOrganization         func(childComplexity int, id int) int
 		DeleteSegment              func(childComplexity int, segmentID int) int
 		EditOrganization           func(childComplexity int, id int, name *string, billingEmail *string) int
 		EditRecordingSettings      func(childComplexity int, organizationID int, details *string) int
-		EditSegment                func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
+		EditSegment                func(childComplexity int, id int, organizationID int, name string, description string, params model.SearchParamsInput) int
 		MarkSessionAsViewed        func(childComplexity int, id int) int
 		SendAdminInvite            func(childComplexity int, organizationID int, email string) int
 	}
@@ -167,8 +166,8 @@ type MutationResolver interface {
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
-	CreateSegment(ctx context.Context, organizationID int, name string, params model.SearchParamsInput) (*model1.Segment, error)
-	EditSegment(ctx context.Context, id int, organizationID int, params model.SearchParamsInput) (*bool, error)
+	CreateSegment(ctx context.Context, organizationID int, name string, description string, params model.SearchParamsInput) (*model1.Segment, error)
+	EditSegment(ctx context.Context, id int, organizationID int, name string, description string, params model.SearchParamsInput) (*bool, error)
 	DeleteSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
 	CreateOrUpdateSubscription(ctx context.Context, organizationID int, plan model.Plan) (*string, error)
@@ -317,7 +316,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSegment(childComplexity, args["organization_id"].(int), args["name"].(string), args["params"].(model.SearchParamsInput)), true
+		return e.complexity.Mutation.CreateSegment(childComplexity, args["organization_id"].(int), args["name"].(string), args["description"].(string), args["params"].(model.SearchParamsInput)), true
 
 	case "Mutation.deleteOrganization":
 		if e.complexity.Mutation.DeleteOrganization == nil {
@@ -377,7 +376,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["organization_id"].(int), args["params"].(model.SearchParamsInput)), true
+		return e.complexity.Mutation.EditSegment(childComplexity, args["id"].(int), args["organization_id"].(int), args["name"].(string), args["description"].(string), args["params"].(model.SearchParamsInput)), true
 
 	case "Mutation.markSessionAsViewed":
 		if e.complexity.Mutation.MarkSessionAsViewed == nil {
@@ -1091,8 +1090,8 @@ type Mutation {
   deleteOrganization(id: ID!): Boolean
   sendAdminInvite(organization_id: ID!, email: String!): String
   addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-  createSegment(organization_id: ID!, name: String!, params: SearchParamsInput!): Segment
-  editSegment(id: ID!, organization_id: ID!, params: SearchParamsInput!): Boolean
+  createSegment(organization_id: ID!, name: String!, description: String!, params: SearchParamsInput!): Segment
+  editSegment(id: ID!, organization_id: ID!, name: String!, description: String!, params: SearchParamsInput!): Boolean
   deleteSegment(segment_id: ID!): Boolean
   editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
   # If this endpoint returns a checkout_id, we initiate a stripe checkout. 
@@ -1191,15 +1190,24 @@ func (ec *executionContext) field_Mutation_createSegment_args(ctx context.Contex
 		}
 	}
 	args["name"] = arg1
-	var arg2 model.SearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
-		arg2, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+	var arg2 string
+	if tmp, ok := rawArgs["description"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("description"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg2
+	args["description"] = arg2
+	var arg3 model.SearchParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		arg3, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg3
 	return args, nil
 }
 
@@ -1311,15 +1319,33 @@ func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context,
 		}
 	}
 	args["organization_id"] = arg1
-	var arg2 model.SearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
-		arg2, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+	var arg2 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg2
+	args["name"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["description"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("description"))
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["description"] = arg3
+	var arg4 model.SearchParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		arg4, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg4
 	return args, nil
 }
 
@@ -2251,7 +2277,7 @@ func (ec *executionContext) _Mutation_createSegment(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSegment(rctx, args["organization_id"].(int), args["name"].(string), args["params"].(model.SearchParamsInput))
+		return ec.resolvers.Mutation().CreateSegment(rctx, args["organization_id"].(int), args["name"].(string), args["description"].(string), args["params"].(model.SearchParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2289,7 +2315,7 @@ func (ec *executionContext) _Mutation_editSegment(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().EditSegment(rctx, args["id"].(int), args["organization_id"].(int), args["params"].(model.SearchParamsInput))
+		return ec.resolvers.Mutation().EditSegment(rctx, args["id"].(int), args["organization_id"].(int), args["name"].(string), args["description"].(string), args["params"].(model.SearchParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

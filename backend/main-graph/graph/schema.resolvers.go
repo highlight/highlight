@@ -152,7 +152,7 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 	return &org.ID, nil
 }
 
-func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
+func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name string, description string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -166,6 +166,7 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 
 	segment := &model.Segment{
 		Name:           &name,
+		Description:    &description,
 		Params:         &paramString,
 		OrganizationID: organizationID,
 	}
@@ -175,7 +176,7 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 	return segment, nil
 }
 
-func (r *mutationResolver) EditSegment(ctx context.Context, id int, organizationID int, params modelInputs.SearchParamsInput) (*bool, error) {
+func (r *mutationResolver) EditSegment(ctx context.Context, id int, organizationID int, name string, description string, params modelInputs.SearchParamsInput) (*bool, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -187,7 +188,9 @@ func (r *mutationResolver) EditSegment(ctx context.Context, id int, organization
 	}
 	paramString := string(paramBytes)
 	if err := r.DB.Model(&model.Segment{Model: model.Model{ID: id}}).Updates(&model.Segment{
-		Params: &paramString,
+		Description: &description,
+		Name:        &name,
+		Params:      &paramString,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing new recording settings")
 	}

@@ -185,6 +185,7 @@ type SearchParams struct {
 type Segment struct {
 	Model
 	Name           *string
+	Description    *string
 	Params         *string `json:"params"`
 	UserObject     JSONB   `json:"user_object" sql:"type:jsonb"`
 	OrganizationID int
