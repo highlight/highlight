@@ -8,7 +8,6 @@ import {
 } from 'rrweb';
 import { eventWithTime, incrementalData } from 'rrweb/typings/types';
 import { scroller } from 'react-scroll';
-import { Spinner } from '../../components/Spinner/Spinner';
 import { useQuery, gql, useMutation } from '@apollo/client';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Toolbar } from './Toolbar/Toolbar';
