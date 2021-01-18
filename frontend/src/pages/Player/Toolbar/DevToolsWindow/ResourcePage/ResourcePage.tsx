@@ -137,7 +137,7 @@ export const ResourcePage = ({
                 context.fillStyle = "red";
                 context.fillRect (realX, 0, 1, canvas.height);
 
-                context.font = "18px Arial";
+                context.font = "12px Arial";
                 context.fillStyle = "#777";
 
                 const msValue = Math.max(0, Math.floor((realX / canvas.width) * networkRange))
