@@ -31,6 +31,7 @@
         "graphql": "^15.3.0",
         "highlight.run": "1.0.50",
         "logrocket": "^1.0.14",
+        "moment": "^2.29.1",
         "mousetrap": "^1.6.5",
         "node-sass": "4.14.1",
         "parse-duration": "^0.4.4",

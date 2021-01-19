@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
 import { SearchContext, SearchParams, UserProperty } from '../SearchContext/SearchContext';
@@ -71,12 +71,14 @@ export const UserPropertyInput = ({include}:{include: boolean}) => {
 }
 
 export const IdentifiedUsersSwitch = () => {
-    const { setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useContext(SearchContext);
     const [on, setOn] = useState(false)
+    useEffect(() => setOn(searchParams.identified), [searchParams]);
     return (
         <div className={inputStyles.commonInputWrapper}>
             <div className={inputStyles.switchRow}>
                 <Switch
+                    checked={on}
                     onChange={(val: boolean) => {
                         setOn(val)
                         setSearchParams(params => ({ ...params, identified: val }))
