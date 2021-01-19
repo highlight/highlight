@@ -37,7 +37,7 @@ type DeviceDetails struct {
 }
 
 //Change to AppendProperties(sessionId,properties,type)
-func (r *Resolver) AppendProperties(sessionID int, userProperties map[string]string, sessionProperties map[string]string) error {
+func (r *Resolver) AppendProperties(sessionID int, userProperties map[string]string, sessionProperties map[string]string, propType string) error {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil || res.RecordNotFound() {
@@ -49,7 +49,7 @@ func (r *Resolver) AppendProperties(sessionID int, userProperties map[string]str
 		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: "user"})
 	}
 	for k, fv := range sessionProperties {
-		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: "session"})
+		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: propType})
 	}
 
 	err := r.AppendFields(modelFields, session)

@@ -85,7 +85,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		"browser_name":    deviceDetails.BrowserName,
 		"browser_version": deviceDetails.BrowserVersion,
 	}
-	if err := r.AppendProperties(session.ID, nil, sessionProperties); err != nil {
+	if err := r.AppendProperties(session.ID, nil, sessionProperties, "session"); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
 	return session, nil
@@ -103,7 +103,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	for k, v := range obj {
 		userProperties[k] = fmt.Sprintf("%v", v)
 	}
-	if err := r.AppendProperties(sessionID, userProperties, nil); err != nil {
+	if err := r.AppendProperties(sessionID, userProperties, nil, "none"); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
 	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{Identifier: userIdentifier})
@@ -113,8 +113,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	return &sessionID, nil
 }
 
-//Split into AddTrackProperties & AddSessionProperties
-func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
+func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
 	obj, ok := propertiesObject.(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("error converting userObject interface type")
@@ -123,7 +122,23 @@ func (r *mutationResolver) AddProperties(ctx context.Context, sessionID int, pro
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(sessionID, nil, fields)
+	err := r.AppendProperties(sessionID, nil, fields, "track")
+	if err != nil {
+		return nil, e.Wrap(err, "error adding set of properites to db")
+	}
+	return &sessionID, nil
+}
+
+func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error) {
+	obj, ok := propertiesObject.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error converting userObject interface type")
+	}
+	fields := map[string]string{}
+	for k, v := range obj {
+		fields[k] = fmt.Sprintf("%v", v)
+	}
+	err := r.AppendProperties(sessionID, nil, fields, "session")
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
