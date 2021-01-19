@@ -11,7 +11,7 @@ export const DateInput = () => {
     return (
         <div className={inputStyles.commonInputWrapper}>
             <RangePicker
-                value ={[moment(searchParams.date_range?.start_date), moment(searchParams.date_range?.end_date)]}
+                value ={searchParams.date_range ? [moment(searchParams.date_range.start_date), moment(searchParams.date_range.end_date)] : null}
                 className={inputStyles.datePicker}
                 onChange={(date: any, dateStrings: [string, string]) => {
                     const start_date = dateStrings[0] ? new Date(dateStrings[0]) : undefined;
