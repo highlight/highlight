@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
 import { SearchContext, SearchParams, UserProperty } from '../SearchContext/SearchContext';
