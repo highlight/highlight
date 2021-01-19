@@ -73,12 +73,11 @@ export const UserPropertyInput = ({include}:{include: boolean}) => {
 export const IdentifiedUsersSwitch = () => {
     const { searchParams, setSearchParams } = useContext(SearchContext);
     const [on, setOn] = useState(false)
-    useEffect(() => setOn(searchParams.identified), [searchParams]);
     return (
         <div className={inputStyles.commonInputWrapper}>
             <div className={inputStyles.switchRow}>
                 <Switch
-                    checked={on}
+                    checked={searchParams.identified}
                     onChange={(val: boolean) => {
                         setOn(val)
                         setSearchParams(params => ({ ...params, identified: val }))
