@@ -297,11 +297,15 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
-	session, err := r.isAdminSessionOwner(ctx, id)
-	if err != nil {
+	if _, err := r.isAdminSessionOwner(ctx, id); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	return session, nil
+	sessionObj := &model.Session{}
+	res := r.DB.Preload("Fields").Where(&model.Session{Model: model.Model{ID: id}}).First(&sessionObj)
+	if res.Error != nil {
+		return nil, fmt.Errorf("error reading from session: %v", res.Error)
+	}
+	return sessionObj, nil
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
