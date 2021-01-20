@@ -536,6 +536,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	for _, session := range queriedSessions {
 		passed := 0
 		excluded := 0
+		tracked := 0
 		for _, prop := range params.UserProperties {
 			for _, field := range session.Fields {
 				if prop.Name == field.Name && prop.Value == field.Value {
@@ -550,7 +551,14 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 				}
 			}
 		}
-		if passed == len(params.UserProperties) && excluded == len(params.ExcludedProperties) {
+		for _, prop := range params.TrackProperties {
+			for _, field := range session.Fields {
+				if prop.Name == field.Name && prop.Value != field.Value {
+					tracked++
+				}
+			}
+		}
+		if passed == len(params.UserProperties) && excluded == len(params.ExcludedProperties) && tracked == len(params.TrackProperties) {
 			sessions = append(sessions, session)
 		}
 	}
@@ -790,6 +798,8 @@ type sessionResolver struct{ *Resolver }
 //  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
+type searchParamsResolver struct{ *Resolver }
+
 func (r *queryResolver) UserFieldSuggestion(ctx context.Context, organizationID int, query string) ([]*model.Field, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "error querying organization")

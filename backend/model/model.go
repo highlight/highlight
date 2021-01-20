@@ -173,14 +173,15 @@ type ResourcesObject struct {
 }
 
 type SearchParams struct {
-	UserProperties     []*UserProperty `json:"user_properties"`
-	ExcludedProperties []*UserProperty `json:"excluded_properties"`
-	DateRange          *DateRange      `json:"date_range"`
-	Browser            *string         `json:"browser"`
-	OS                 *string         `json:"os"`
-	VisitedURL         *string         `json:"visited_url"`
-	Referrer           *string         `json:"referrer"`
-	Identified         bool            `json:"identified"`
+	UserProperties     	[]*UserProperty `json:"user_properties"`
+	ExcludedProperties 	[]*UserProperty `json:"excluded_properties"`
+	TrackProperties 	[]*UserProperty `json:"track_properties"`
+	DateRange          	*DateRange      `json:"date_range"`
+	Browser            	*string         `json:"browser"`
+	OS                 	*string         `json:"os"`
+	VisitedURL         	*string         `json:"visited_url"`
+	Referrer           	*string         `json:"referrer"`
+	Identified         	bool            `json:"identified"`
 }
 type Segment struct {
 	Model

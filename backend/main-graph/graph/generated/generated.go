@@ -120,6 +120,7 @@ type ComplexityRoot struct {
 		Identified         func(childComplexity int) int
 		OS                 func(childComplexity int) int
 		Referrer           func(childComplexity int) int
+		TrackProperties    func(childComplexity int) int
 		UserProperties     func(childComplexity int) int
 		VisitedURL         func(childComplexity int) int
 	}
@@ -706,6 +707,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SearchParams.Referrer(childComplexity), true
 
+	case "SearchParams.track_properties":
+		if e.complexity.SearchParams.TrackProperties == nil {
+			break
+		}
+
+		return e.complexity.SearchParams.TrackProperties(childComplexity), true
+
 	case "SearchParams.user_properties":
 		if e.complexity.SearchParams.UserProperties == nil {
 			break
@@ -993,6 +1001,7 @@ type Segment {
 input SearchParamsInput {
   user_properties: [UserPropertyInput]
   excluded_properties: [UserPropertyInput]
+  track_properties: [UserPropertyInput]
   date_range: DateRangeInput
   os: String
   browser: String
@@ -1004,6 +1013,7 @@ input SearchParamsInput {
 type SearchParams {
   user_properties: [UserProperty]
   excluded_properties: [UserProperty]
+  track_properties: [UserProperty]
   date_range: DateRange
   os: String
   browser: String
@@ -3496,6 +3506,37 @@ func (ec *executionContext) _SearchParams_excluded_properties(ctx context.Contex
 	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SearchParams_track_properties(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SearchParams",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TrackProperties, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.UserProperty)
+	fc.Result = res
+	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SearchParams_date_range(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5520,6 +5561,14 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "track_properties":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("track_properties"))
+			it.TrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "date_range":
 			var err error
 
@@ -6079,6 +6128,8 @@ func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._SearchParams_user_properties(ctx, field, obj)
 		case "excluded_properties":
 			out.Values[i] = ec._SearchParams_excluded_properties(ctx, field, obj)
+		case "track_properties":
+			out.Values[i] = ec._SearchParams_track_properties(ctx, field, obj)
 		case "date_range":
 			out.Values[i] = ec._SearchParams_date_range(ctx, field, obj)
 		case "os":

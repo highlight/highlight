@@ -212,7 +212,7 @@ Session Data:
                 properties: obj.properties,
               })
             );
-            highlightThis.addSessionProperties(properties);
+            highlightThis.addTrackProperties(properties);
           }
         }, 100);
         send.call(this, data);
