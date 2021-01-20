@@ -92,11 +92,11 @@ export class Highlight {
     );
   }
 
-  async addProperties(properties_obj = {}) {
+  async addSessionProperties(properties_obj = {}) {
     await this.client.request(
       gql`
-        mutation addProperties($session_id: ID!, $properties_object: Any) {
-          addProperties(
+        mutation addSessionProperties($session_id: ID!, $properties_object: Any) {
+          adSessiondProperties(
             session_id: $session_id
             properties_object: $properties_object
           )
@@ -108,7 +108,7 @@ export class Highlight {
       },
     );
     this.logger.log(
-      `AddProperties to session (${this.sessionID}) w/ obj: ${JSON.stringify(
+      `AddSessionProperties to session (${this.sessionID}) w/ obj: ${JSON.stringify(
         properties_obj
       )} @ ${process.env.BACKEND_URI}`
     );
@@ -190,18 +190,18 @@ Session Data:
                 properties: obj.properties,
               })
             );
-            highlightThis.addProperties(properties);
+            highlightThis.addSessionProperties(properties);
           }
         }, 100);
         send.call(this, data);
       };
       if (document.referrer) {
         addCustomEvent<string>('Referrer', document.referrer);
-        highlightThis.addProperties({ referrer: document.referrer });
+        highlightThis.addSessionProperties({ referrer: document.referrer });
       }
       PathListener((url: string) => {
         addCustomEvent<string>('Navigate', url);
-        highlightThis.addProperties({ 'visited-url': url });
+        highlightThis.addSessionProperties({ 'visited-url': url });
       });
       ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
       this.ready = true;

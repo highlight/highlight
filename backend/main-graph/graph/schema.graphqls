@@ -118,9 +118,10 @@ type Query {
     name: String!
     query: String!
   ): [Field]
-  user_field_suggestion(
+  property_suggestion(
     organization_id: ID!
     query: String!
+    type: String!
   ): [Field]
   organizations: [Organization]
   organization(id: ID!): Organization
