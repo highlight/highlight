@@ -48,7 +48,6 @@
 .eventStreamContainer {
     color: white;
     width: 100%;
-    height: calc(100vh - 230px);
     overflow-y: scroll;
     position: relative;
     padding: 30px;
@@ -115,7 +114,7 @@
     height: calc(100vh - 80px);
     overflow: auto;
     display: grid;
-    grid-template-rows: 150px 1fr;
+    grid-template-rows: auto 1fr;
     box-sizing: border-box;
 }
 

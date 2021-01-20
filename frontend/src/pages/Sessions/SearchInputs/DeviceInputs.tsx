@@ -13,7 +13,7 @@ import { SharedSelectStyleProps } from './SearchInputUtil';
 
 export const OperatingSystemInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useContext(SearchContext);
 
     const { refetch } = useQuery<{ field_suggestionBETA: Array<{ name: string; value: string }> }, { organization_id: number; query: string; name: string }>(
         gql`
@@ -44,6 +44,7 @@ export const OperatingSystemInput = () => {
                 placeholder={"Operating System"}
                 isClearable
                 cacheOptions
+                value={searchParams.os ? {label: searchParams.os, value: searchParams.os} : null}
                 styles={SharedSelectStyleProps}
                 loadOptions={generateOptions}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><OSIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
@@ -56,7 +57,7 @@ export const OperatingSystemInput = () => {
 
 export const BrowserInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useContext(SearchContext);
 
     const { refetch } = useQuery<{ field_suggestionBETA: Array<{ name: string; value: string }> }, { organization_id: number; query: string; name: string }>(
         gql`
@@ -87,6 +88,7 @@ export const BrowserInput = () => {
                 placeholder={"Browser"}
                 isClearable
                 cacheOptions
+                value={searchParams.browser ? {label: searchParams.browser, value: searchParams.browser} : null}
                 styles={SharedSelectStyleProps}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><BrowserIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
                 loadOptions={generateOptions}
