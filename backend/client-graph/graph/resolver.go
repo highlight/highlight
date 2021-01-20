@@ -36,7 +36,20 @@ type DeviceDetails struct {
 	BrowserVersion string `json:"browser_version"`
 }
 
-func (r *Resolver) AppendProperties(sessionID int, userProperties map[string]string, sessionProperties map[string]string) error {
+type Property string
+
+var PropertyType = struct {
+	USER	Property
+	SESSION	Property
+	TRACK	Property
+}{
+	USER: 		"user",
+	SESSION: 	"session",
+	TRACK: 		"track",
+}
+
+//Change to AppendProperties(sessionId,properties,type)
+func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil || res.RecordNotFound() {
@@ -44,11 +57,8 @@ func (r *Resolver) AppendProperties(sessionID int, userProperties map[string]str
 	}
 
 	modelFields := []*model.Field{}
-	for k, fv := range userProperties {
-		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: "user"})
-	}
-	for k, fv := range sessionProperties {
-		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: "session"})
+	for k, fv := range properties {
+		modelFields = append(modelFields, &model.Field{OrganizationID: session.OrganizationID, Name: k, Value: fv, Type: string(propType)})
 	}
 
 	err := r.AppendFields(modelFields, session)
