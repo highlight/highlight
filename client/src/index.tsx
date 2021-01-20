@@ -28,6 +28,7 @@ export type HighlightClassOptions = {
   organizationID: number | string;
   debug?: boolean;
   backendUrl?: string;
+  disableNetworkRecording?: boolean;
 };
 
 export class Highlight {
@@ -39,10 +40,12 @@ export class Highlight {
   sessionID: number;
   ready: boolean;
   logger: Logger;
+  disableNetworkRecording?: boolean;
 
   constructor(options: HighlightClassOptions) {
     // If debug is set to false, disable all console logs.
     this.ready = false;
+    this.disableNetworkRecording = options.disableNetworkRecording;
     this.logger = new Logger(options.debug ?? false);
     const backend = options?.backendUrl ? options.backendUrl : process.env.BACKEND_URI;
     this.client = new GraphQLClient(
@@ -213,14 +216,17 @@ Session Data:
       if (!this.sessionID) {
         return;
       }
-      const resources = performance
-        .getEntriesByType('resource')
-        .filter(
-          (r) =>
-            !r.name.includes(
-              process.env.BACKEND_URI ?? 'https://api.highlight.run'
-            )
-        );
+      var resources: Array<any> = [];
+      if (!this.disableNetworkRecording) {
+        resources = performance
+          .getEntriesByType('resource')
+          .filter(
+            (r) =>
+              !r.name.includes(
+                process.env.BACKEND_URI ?? 'https://api.highlight.run'
+              )
+          );
+      }
       const resourcesString = JSON.stringify({ resources: resources });
       const messagesString = JSON.stringify({ messages: this.messages });
       const eventsString = JSON.stringify({ events: this.events });
@@ -230,7 +236,9 @@ Session Data:
       this.events = [];
       this.messages = [];
       this.networkContents = [];
-      performance.clearResourceTimings();
+      if (!this.disableNetworkRecording) {
+        performance.clearResourceTimings();
+      }
       await this.client.request(
         gql`
         mutation PushPayload(

@@ -5,6 +5,7 @@ export type HighlightOptions = {
     scriptUrl?: string;
     backendUrl?: string;
     manualStart?: boolean;
+    disableNetworkRecording?: boolean;
 };
 
 const HighlightWarning = (context: string, msg: any) => {
@@ -53,6 +54,7 @@ export const H: HighlightPublicInterface = {
                     organizationID: orgID,
                     debug: options?.debug,
                     backendUrl: options?.backendUrl,
+                    disableNetworkRecording: options?.disableNetworkRecording,
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);
