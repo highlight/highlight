@@ -15,7 +15,6 @@ type Mutation {
     user_identifier: String!
     user_object: Any
   ): ID
-  addTrackProperties(session_id: ID!, properties_object: Any): ID
-  addSessionProperties(session_id: ID!, properties_object: Any): ID
+  addProperties(session_id: ID!, properties_object: Any): ID
   pushPayload(session_id: ID!, events: String!, messages: String!, resources: String!): ID
 }
