@@ -114,6 +114,28 @@ export class Highlight {
     );
   }
 
+  async addTrackProperties(properties_obj = {}) {
+    await this.client.request(
+      gql`
+        mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
+          addTrackProperties(
+            session_id: $session_id
+            properties_object: $properties_object
+          )
+        }
+      `,
+      {
+        session_id: this.sessionID,
+        properties_object: properties_obj,
+      },
+    );
+    this.logger.log(
+      `AddTrackProperties to session (${this.sessionID}) w/ obj: ${JSON.stringify(
+        properties_obj
+      )} @ ${process.env.BACKEND_URI}`
+    );
+  }
+
   // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
   async initialize(organization_id?: number | string) {
     var org_id = ""

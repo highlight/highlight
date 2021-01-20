@@ -66,7 +66,7 @@ export const H: HighlightPublicInterface = {
     },
     track: (event: string, obj: any) => {
         try {
-            H.onHighlightReady(() => highlight_obj.addProperties({ ...obj, event: event }));
+            H.onHighlightReady(() => highlight_obj.addTrackProperties({ ...obj, event: event }));
         } catch (e) {
             HighlightWarning("track", e)
         }
