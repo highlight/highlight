@@ -85,7 +85,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		"browser_name":    deviceDetails.BrowserName,
 		"browser_version": deviceDetails.BrowserVersion,
 	}
-	if err := r.AppendProperties(session.ID, sessionProperties, SessionProp.SESSION); err != nil {
+	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
 	return session, nil
@@ -103,7 +103,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	for k, v := range obj {
 		userProperties[k] = fmt.Sprintf("%v", v)
 	}
-	if err := r.AppendProperties(sessionID, userProperties, SessionProp.USER); err != nil {
+	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
 	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{Identifier: userIdentifier})
@@ -122,7 +122,7 @@ func (r *mutationResolver) AddTrackProperties(ctx context.Context, sessionID int
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(sessionID, fields, SessionProp.TRACK)
+	err := r.AppendProperties(sessionID, fields, PropertyType.TRACK)
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
@@ -138,7 +138,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	for k, v := range obj {
 		fields[k] = fmt.Sprintf("%v", v)
 	}
-	err := r.AppendProperties(sessionID, fields, SessionProp.SESSION)
+	err := r.AppendProperties(sessionID, fields, PropertyType.SESSION)
 	if err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
