@@ -86,6 +86,8 @@ export const SegmentButtons = () => {
         });
     };
     useEffect(() => {
+        // Compares original params and current search params to check if they are different
+        // Removes undefined, null fields, and empty arrays when comparing
         setParamsIsDifferent(
             !_.isEqual(
                 _.omitBy(_.pickBy(searchParams, _.identity), (v) => Array.isArray(v) && v.length === 0),

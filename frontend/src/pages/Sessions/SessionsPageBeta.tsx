@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 
 import styles from './SessionsPage.module.scss';
 import { SegmentSidebar } from './SegmentSidebar/SegmentSidebar';
@@ -10,12 +10,16 @@ import { SessionFeed } from './SessionsFeed/SessionsFeed';
 import useDimensions from "react-use-dimensions";
 import { UserPropertyInput } from './SearchInputs/UserPropertyInputs';
 import { IntegrationCard } from './IntegrationCard/IntegrationCard';
+import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
     const [feedRef, { top, right, x }] = useDimensions();
     const [searchParams, setSearchParams] = useState<SearchParams>({ user_properties: [], identified: false });
     const [existingParams, setExistingParams] = useState<SearchParams>({ user_properties: [], identified: false });
     const [isSegment, setIsSegment] = useState<boolean>(false);
+    const { setOpenSidebar } = useContext(SidebarContext);
+    
+    useEffect(() => setOpenSidebar(false), [setOpenSidebar])
 
     if (!integrated) {
         return <IntegrationCard />
