@@ -115,6 +115,13 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 		}
 		modelParams.UserProperties = append(modelParams.UserProperties, newProperty)
 	}
+	for _, property := range params.ExcludedProperties {
+		newProperty := &model.UserProperty{
+			Name:  property.Name,
+			Value: property.Value,
+		}
+		modelParams.ExcludedProperties = append(modelParams.ExcludedProperties, newProperty)
+	}
 	return modelParams
 }
 

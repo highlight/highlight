@@ -12,7 +12,7 @@ import styles from './SegmentPicker.module.scss';
 import { SearchSection } from '../SearchSection/SearchSection';
 
 export const SegmentPicker = () => {
-    const { setSearchParams, setIsSegment, isSegment } = useContext(SearchContext);
+    const { setSearchParams, setIsSegment, setExistingParams, isSegment } = useContext(SearchContext);
     const [visible, setVisible] = useState(false);
     const { segment_id, organization_id } = useParams<{ segment_id: string, organization_id: string }>();
     const { loading, data } = useQuery<
@@ -26,6 +26,7 @@ export const SegmentPicker = () => {
                     name
                     params {
                         user_properties { name, value }
+                        excluded_properties { name, value }
                         date_range { start_date, end_date }
                         os, browser, visited_url, referrer, identified
                     }
@@ -67,10 +68,11 @@ export const SegmentPicker = () => {
             var parsed: SearchParams = sanitize(newParams);
             setIsSegment(true);
             setSearchParams(parsed);
+            setExistingParams(parsed);
         } else {
             setIsSegment(false)
         }
-    }, [currentSegment, setIsSegment, setSearchParams])
+    }, [currentSegment, setIsSegment, setSearchParams, setExistingParams])
 
     return (
         <SearchSection title="Segment" open={false} titleSideComponent={
