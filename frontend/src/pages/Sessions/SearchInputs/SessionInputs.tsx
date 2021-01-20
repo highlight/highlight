@@ -11,7 +11,7 @@ import { SharedSelectStyleProps } from './SearchInputUtil';
 
 export const VisitedUrlInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useContext(SearchContext);
 
     const { refetch } = useQuery<{ field_suggestionBETA: Array<{ name: string; value: string }> }, { organization_id: number; query: string; name: string }>(
         gql`
@@ -42,6 +42,7 @@ export const VisitedUrlInput = () => {
                 placeholder={"Visited URL"}
                 styles={SharedSelectStyleProps}
                 cacheOptions
+                value={searchParams.visited_url ? {label: searchParams.visited_url, value: searchParams.visited_url} : null}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><URLIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
                 loadOptions={generateOptions}
                 defaultOptions
@@ -54,7 +55,7 @@ export const VisitedUrlInput = () => {
 
 export const ReferrerInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useContext(SearchContext);
 
     const { refetch } = useQuery<{ field_suggestionBETA: Array<{ name: string; value: string }> }, { organization_id: number; query: string; name: string }>(
         gql`
@@ -85,6 +86,7 @@ export const ReferrerInput = () => {
                 placeholder={"Referrer"}
                 cacheOptions
                 isClearable
+                value={searchParams.referrer ? {label: searchParams.referrer, value: searchParams.referrer} : null}
                 loadOptions={generateOptions}
                 styles={SharedSelectStyleProps}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><ReferrerIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
