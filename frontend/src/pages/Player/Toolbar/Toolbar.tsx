@@ -46,10 +46,6 @@ export const Toolbar = ({
     }, [replayer, paused, isDragged, current]);
 
     useEffect(() => {
-        onResize()
-    }, [openDevTools, onResize])
-
-    useEffect(() => {
         replayer?.setConfig({ skipInactive, speed });
     }, [replayer, skipInactive, speed]);
 
@@ -98,6 +94,10 @@ export const Toolbar = ({
         } 
     }
 
+    window.onresize = () => {
+        onResize()
+    }
+    
     return (
         <>
             <OpenDevToolsContext.Provider

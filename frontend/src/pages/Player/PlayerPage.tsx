@@ -100,18 +100,6 @@ export const Player = () => {
         return true;
     };
 
-    // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
-    useEffect(() => {
-        const i = window.setInterval(() => {
-            if (replayer && resizePlayer(replayer)) {
-                clearInterval(i);
-            }
-        }, 200);
-        return () => {
-            i && clearInterval(i);
-        };
-    }, [resizePlayer, replayer]);
-
     // On any change to replayer, 'sizes', or 'showConsole', refresh the size of the player.
     useEffect(() => {
         replayer && resizePlayer(replayer);
@@ -136,6 +124,13 @@ export const Player = () => {
 
     if (sessionError) {
         return <p>{sessionError.toString()}</p>;
+    }
+
+    // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
+    window.onresize = () => {
+        if (replayer) {
+            resizePlayer(replayer)
+        }
     }
 
     return (
