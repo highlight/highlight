@@ -8,6 +8,7 @@ export type UserProperty = {
 export type SearchParams = {
     user_properties: Array<UserProperty>;
     excluded_properties?: Array<UserProperty>;
+    track_properties?: Array<UserProperty>;
     date_range?: { start_date: Date; end_date: Date };
     os?: string;
     browser?: string;

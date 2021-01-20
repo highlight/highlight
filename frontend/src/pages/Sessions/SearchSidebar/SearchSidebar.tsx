@@ -4,6 +4,7 @@ import classNames from 'classnames/bind';
 import { DateInput } from '../SearchInputs/DateInput';
 import { BrowserInput, OperatingSystemInput } from '../SearchInputs/DeviceInputs';
 import { UserPropertyInput, IdentifiedUsersSwitch } from '../SearchInputs/UserPropertyInputs';
+import { TrackPropertyInput } from '../SearchInputs/TrackPropertyInputs';
 import { ReferrerInput, VisitedUrlInput } from '../SearchInputs/SessionInputs';
 import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
 import { SearchSection } from './SearchSection/SearchSection'
@@ -44,6 +45,9 @@ export const SearchSidebar = ({ feedPosition }: { feedPosition: { top: number; r
                         </div>
                         <UserPropertyInput include={false} />
                         <IdentifiedUsersSwitch />
+                    </SearchSection>
+                    <SearchSection title="Track Properties" open={false}>
+                        <TrackPropertyInput />
                     </SearchSection>
                     <SearchSection title="Date Range" open={false}>
                         <DateInput />
