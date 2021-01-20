@@ -96,7 +96,7 @@ export class Highlight {
     await this.client.request(
       gql`
         mutation addSessionProperties($session_id: ID!, $properties_object: Any) {
-          adSessiondProperties(
+          addSessionProperties(
             session_id: $session_id
             properties_object: $properties_object
           )
