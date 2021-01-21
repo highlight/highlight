@@ -4,7 +4,7 @@ import classNames from 'classnames/bind';
 import { DateInput } from '../SearchInputs/DateInput';
 import { BrowserInput, OperatingSystemInput } from '../SearchInputs/DeviceInputs';
 import { UserPropertyInput, IdentifiedUsersSwitch } from '../SearchInputs/UserPropertyInputs';
-import { ReferrerInput, VisitedUrlInput } from '../SearchInputs/SessionInputs';
+import { ReferrerInput, VisitedUrlInput, ViewedSessionsSwitch } from '../SearchInputs/SessionInputs';
 import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
 import { SearchSection } from './SearchSection/SearchSection'
 
@@ -55,6 +55,7 @@ export const SearchSidebar = ({ feedPosition }: { feedPosition: { top: number; r
                     <SearchSection title="Session Details" open={false}>
                         <VisitedUrlInput />
                         <ReferrerInput />
+                        <ViewedSessionsSwitch />
                     </SearchSection>
                 </div>
             </div >

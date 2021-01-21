@@ -181,6 +181,7 @@ type SearchParams struct {
 	VisitedURL         *string         `json:"visited_url"`
 	Referrer           *string         `json:"referrer"`
 	Identified         bool            `json:"identified"`
+	HideViewed         bool            `json:"hide_viewed"`
 }
 type Segment struct {
 	Model

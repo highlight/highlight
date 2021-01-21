@@ -59,6 +59,7 @@ input SearchParamsInput {
   visited_url: String
   referrer: String
   identified: Boolean
+  hide_viewed: Boolean
 }
 
 type SearchParams {
@@ -70,6 +71,7 @@ type SearchParams {
   visited_url: String
   referrer: String
   identified: Boolean
+  hide_viewed: Boolean
 }
 
 type DateRange {

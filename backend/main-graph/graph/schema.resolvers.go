@@ -523,6 +523,10 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		query = query.Where("length(identifier) > ?", 0)
 	}
 
+	if viewed := params.HideViewed; viewed != nil && *viewed {
+		query = query.Where("viewed = ?", false)
+	}
+
 	if browser := params.Browser; browser != nil {
 		query = query.Where("browser_name = ?", browser)
 	}

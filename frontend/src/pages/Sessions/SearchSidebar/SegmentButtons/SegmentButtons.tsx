@@ -65,7 +65,7 @@ export const SegmentButtons = () => {
                         user_properties { name, value }
                         excluded_properties { name, value }
                         date_range { start_date, end_date }
-                        os, browser, visited_url, referrer, identified
+                        os, browser, visited_url, referrer, identified, hide_viewed
                     }
                 }
             }

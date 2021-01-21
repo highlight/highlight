@@ -1,12 +1,14 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import { SearchContext } from '../SearchContext/SearchContext';
 import AsyncSelect from 'react-select/async';
 import { gql, useQuery } from '@apollo/client';
 import inputStyles from './InputStyles.module.scss';
+import { Switch } from 'antd';
 import { ReactComponent as URLIcon } from '../../../static/link.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
+import classNames from 'classnames/bind';
 import { SharedSelectStyleProps } from './SearchInputUtil';
 
 export const VisitedUrlInput = () => {
@@ -94,5 +96,24 @@ export const ReferrerInput = () => {
                 onChange={onChange}
             />
         </div >
+    );
+}
+
+export const ViewedSessionsSwitch = () => {
+    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const [on, setOn] = useState(false)
+    return (
+        <div className={inputStyles.commonInputWrapper}>
+            <div className={inputStyles.switchRow}>
+                <Switch
+                    checked={searchParams.hide_viewed || false}
+                    onChange={(val: boolean) => {
+                        setOn(val)
+                        setSearchParams(params => ({ ...params, hide_viewed: val }))
+                    }}
+                />
+                <div className={classNames(inputStyles.switchText, on && inputStyles.switchTextSelected)}>Hide viewed sessions</div>
+            </div>
+        </div>
     );
 }
