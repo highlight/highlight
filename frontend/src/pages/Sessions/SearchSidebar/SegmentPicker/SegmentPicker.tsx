@@ -54,6 +54,7 @@ export const SegmentPicker = () => {
                         visited_url
                         referrer
                         identified
+                        hide_viewed
                     }
                 }
             }

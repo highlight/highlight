@@ -117,6 +117,7 @@ type ComplexityRoot struct {
 		Browser            func(childComplexity int) int
 		DateRange          func(childComplexity int) int
 		ExcludedProperties func(childComplexity int) int
+		HideViewed         func(childComplexity int) int
 		Identified         func(childComplexity int) int
 		OS                 func(childComplexity int) int
 		Referrer           func(childComplexity int) int
@@ -686,6 +687,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SearchParams.ExcludedProperties(childComplexity), true
 
+	case "SearchParams.hide_viewed":
+		if e.complexity.SearchParams.HideViewed == nil {
+			break
+		}
+
+		return e.complexity.SearchParams.HideViewed(childComplexity), true
+
 	case "SearchParams.identified":
 		if e.complexity.SearchParams.Identified == nil {
 			break
@@ -1008,6 +1016,7 @@ input SearchParamsInput {
   visited_url: String
   referrer: String
   identified: Boolean
+  hide_viewed: Boolean
 }
 
 type SearchParams {
@@ -1020,6 +1029,7 @@ type SearchParams {
   visited_url: String
   referrer: String
   identified: Boolean
+  hide_viewed: Boolean
 }
 
 type DateRange {
@@ -3723,6 +3733,37 @@ func (ec *executionContext) _SearchParams_identified(ctx context.Context, field 
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SearchParams_hide_viewed(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SearchParams",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HideViewed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Segment_id(ctx context.Context, field graphql.CollectedField, obj *model1.Segment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5617,6 +5658,14 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "hide_viewed":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("hide_viewed"))
+			it.HideViewed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -6142,6 +6191,8 @@ func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._SearchParams_referrer(ctx, field, obj)
 		case "identified":
 			out.Values[i] = ec._SearchParams_identified(ctx, field, obj)
+		case "hide_viewed":
+			out.Values[i] = ec._SearchParams_hide_viewed(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
