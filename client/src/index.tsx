@@ -220,19 +220,11 @@ Session Data:
       };
       if (document.referrer) {
         addCustomEvent<string>('Referrer', document.referrer);
-<<<<<<< HEAD
-        highlightThis.addSessionProperties({ referrer: document.referrer });
-      }
-      PathListener((url: string) => {
-        addCustomEvent<string>('Navigate', url);
-        highlightThis.addSessionProperties({ 'visited-url': url });
-=======
         highlightThis.addProperties({ referrer: document.referrer }, "session");
       }
       PathListener((url: string) => {
         addCustomEvent<string>('Navigate', url);
         highlightThis.addProperties({ 'visited-url': url }, "session");
->>>>>>> master
       });
       ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
       this.ready = true;
