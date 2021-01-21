@@ -114,7 +114,7 @@ export class Highlight {
         )} @ ${process.env.BACKEND_URI}`
       );
     }
-    else if(typeArg == "track" || typeArg == ""){
+    else {
       await this.client.request(
         gql`
           mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
