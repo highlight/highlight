@@ -65,9 +65,8 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToOrganization 	   func(childComplexity int, organizationID int, inviteID string) int
+		AddAdminToOrganization     func(childComplexity int, organizationID int, inviteID string) int
 		CreateOrUpdateSubscription func(childComplexity int, organizationID int, plan model.Plan) int
-		CreateCheckout             func(childComplexity int, organizationID int, priceID string) int
 		CreateOrganization         func(childComplexity int, name string) int
 		CreateSegment              func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
 		DeleteOrganization         func(childComplexity int, id int) int

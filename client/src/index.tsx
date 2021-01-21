@@ -92,26 +92,49 @@ export class Highlight {
     );
   }
 
-  async addProperties(properties_obj = {}) {
-    await this.client.request(
-      gql`
-        mutation addProperties($session_id: ID!, $properties_object: Any) {
-          addProperties(
-            session_id: $session_id
-            properties_object: $properties_object
-          )
-        }
-      `,
-      {
-        session_id: this.sessionID,
-        properties_object: properties_obj,
-      },
-    );
-    this.logger.log(
-      `AddProperties to session (${this.sessionID}) w/ obj: ${JSON.stringify(
-        properties_obj
-      )} @ ${process.env.BACKEND_URI}`
-    );
+  async addProperties(properties_obj = {}, typeArg?: string) {
+    if(typeArg == "session"){
+      await this.client.request(
+        gql`
+          mutation addSessionProperties($session_id: ID!, $properties_object: Any) {
+            addSessionProperties(
+              session_id: $session_id
+              properties_object: $properties_object
+            )
+          }
+        `,
+        {
+          session_id: this.sessionID,
+          properties_object: properties_obj,
+        },
+      );
+      this.logger.log(
+        `AddSessionProperties to session (${this.sessionID}) w/ obj: ${JSON.stringify(
+          properties_obj
+        )} @ ${process.env.BACKEND_URI}`
+      );
+    }
+    else {
+      await this.client.request(
+        gql`
+          mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
+            addTrackProperties(
+              session_id: $session_id
+              properties_object: $properties_object
+            )
+          }
+        `,
+        {
+          session_id: this.sessionID,
+          properties_object: properties_obj,
+        },
+      );
+      this.logger.log(
+        `AddTrackProperties to session (${this.sessionID}) w/ obj: ${JSON.stringify(
+          properties_obj
+        )} @ ${process.env.BACKEND_URI}`
+      );
+    }
   }
 
   // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
@@ -197,11 +220,11 @@ Session Data:
       };
       if (document.referrer) {
         addCustomEvent<string>('Referrer', document.referrer);
-        highlightThis.addProperties({ referrer: document.referrer });
+        highlightThis.addProperties({ referrer: document.referrer }, "session");
       }
       PathListener((url: string) => {
         addCustomEvent<string>('Navigate', url);
-        highlightThis.addProperties({ 'visited-url': url });
+        highlightThis.addProperties({ 'visited-url': url }, "session");
       });
       ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
       this.ready = true;
