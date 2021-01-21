@@ -22,7 +22,6 @@ if (dev) {
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
-H.track("hello", "there")
 LogRocket.init('vcbmdo/highlight');
 
 
