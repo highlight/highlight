@@ -12,11 +12,19 @@ import styles from './SegmentPicker.module.scss';
 import { SearchSection } from '../SearchSection/SearchSection';
 
 export const SegmentPicker = () => {
-    const { setSearchParams, setIsSegment, setExistingParams, isSegment } = useContext(SearchContext);
+    const {
+        setSearchParams,
+        setIsSegment,
+        setExistingParams,
+        isSegment,
+    } = useContext(SearchContext);
     const [visible, setVisible] = useState(false);
-    const { segment_id, organization_id } = useParams<{ segment_id: string, organization_id: string }>();
+    const { segment_id, organization_id } = useParams<{
+        segment_id: string;
+        organization_id: string;
+    }>();
     const { loading, data } = useQuery<
-        { segments: Array<{ name: string; id: string; params: SearchParams; }> },
+        { segments: Array<{ name: string; id: string; params: SearchParams }> },
         { organization_id: number }
     >(
         gql`
@@ -25,17 +33,30 @@ export const SegmentPicker = () => {
                     id
                     name
                     params {
-                        user_properties { name, value }
-                        excluded_properties { name, value }
-                        date_range { start_date, end_date }
-                        os, browser, visited_url, referrer, identified
+                        user_properties {
+                            name
+                            value
+                        }
+                        excluded_properties {
+                            name
+                            value
+                        }
+                        date_range {
+                            start_date
+                            end_date
+                        }
+                        os
+                        browser
+                        visited_url
+                        referrer
+                        identified
                     }
                 }
             }
         `,
         { variables: { organization_id: parseInt(organization_id) } }
     );
-    const currentSegment = data?.segments.find(s => s.id === segment_id);
+    const currentSegment = data?.segments.find((s) => s.id === segment_id);
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>
@@ -49,12 +70,15 @@ export const SegmentPicker = () => {
                             {s.id === currentSegment?.id ? (
                                 <CheckIcon className={styles.checkIcon} />
                             ) : (
-                                    <></>
-                                )}
+                                <></>
+                            )}
                         </div>
                     </Link>
                 ))}
-                <Link className={styles.newSearchDiv} to={`/${organization_id}/sessions/`}>
+                <Link
+                    className={styles.newSearchDiv}
+                    to={`/${organization_id}/sessions/`}
+                >
                     New Search
                     <PlusIcon className={styles.plusIcon} />
                 </Link>
@@ -70,52 +94,65 @@ export const SegmentPicker = () => {
             setSearchParams(parsed);
             setExistingParams(parsed);
         } else {
-            setIsSegment(false)
+            setIsSegment(false);
         }
-    }, [currentSegment, setIsSegment, setSearchParams, setExistingParams])
+    }, [currentSegment, setIsSegment, setSearchParams, setExistingParams]);
 
     return (
-        <SearchSection title="Segment" open={false} titleSideComponent={
-            <Tag color="#F2EEFB" style={{ marginLeft: 10, color: "black" }}>
-                {currentSegment ? currentSegment?.name : "None"}
-            </Tag>
-        }>
-            {!data?.segments.length ?
-                <div className={styles.noSegmentsText}>
-                    No segments here :(. Feel free to create one by clicking <span style={{ color: "#5629c6" }}>Save as Segment</span>!
-                </div> :
-                loading ?
-                    <Skeleton /> :
-                    <Dropdown
-                        placement={'bottomLeft'}
-                        overlay={menu}
-                        onVisibleChange={(v) => setVisible(v)}
-                    >
-                        <div
-                            className={styles.dropdownHandler}
-                            onClick={(e) => e.preventDefault()}
-                        >
-                            <div className={styles.segmentNameText}>
-                                {!isSegment ? <span style={{ color: "#808080" }}>Select a Segment</span> : currentSegment?.name}
-                            </div>
-                            <DownIcon
-                                className={styles.downIcon}
-                                style={{
-                                    fill: !isSegment ? "#808080" : "black",
-                                    transform: visible ? 'rotate(180deg)' : 'rotate(0deg)',
-                                }}
-                            />
-                        </div>
-                    </Dropdown>
+        <SearchSection
+            title="Segment"
+            open={false}
+            titleSideComponent={
+                <Tag color="#F2EEFB" style={{ marginLeft: 10, color: 'black' }}>
+                    {currentSegment ? currentSegment?.name : 'None'}
+                </Tag>
             }
+        >
+            {!data?.segments.length ? (
+                <div className={styles.noSegmentsText}>
+                    No segments here :(. Feel free to create one by clicking{' '}
+                    <span style={{ color: '#5629c6' }}>Save as Segment</span>!
+                </div>
+            ) : loading ? (
+                <Skeleton />
+            ) : (
+                <Dropdown
+                    placement={'bottomLeft'}
+                    overlay={menu}
+                    onVisibleChange={(v) => setVisible(v)}
+                >
+                    <div
+                        className={styles.dropdownHandler}
+                        onClick={(e) => e.preventDefault()}
+                    >
+                        <div className={styles.segmentNameText}>
+                            {!isSegment ? (
+                                <span style={{ color: '#808080' }}>
+                                    Select a Segment
+                                </span>
+                            ) : (
+                                currentSegment?.name
+                            )}
+                        </div>
+                        <DownIcon
+                            className={styles.downIcon}
+                            style={{
+                                fill: !isSegment ? '#808080' : 'black',
+                                transform: visible
+                                    ? 'rotate(180deg)'
+                                    : 'rotate(0deg)',
+                            }}
+                        />
+                    </div>
+                </Dropdown>
+            )}
         </SearchSection>
     );
-
-}
-
+};
 
 const sanitize = (object: any): any => {
-    const omitTypename = (key: any, value: any) => (key === '__typename' ? undefined : value)
-    const newPayload = JSON.parse(JSON.stringify(object), omitTypename)
+    const omitTypename = (key: any, value: any) =>
+        key === '__typename' ? undefined : value;
+    const newPayload = JSON.parse(JSON.stringify(object), omitTypename);
     return newPayload;
-}
+};
