@@ -42,10 +42,11 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Mutation struct {
-		AddProperties     func(childComplexity int, sessionID int, propertiesObject interface{}) int
-		IdentifySession   func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
-		InitializeSession func(childComplexity int, organizationVerboseID string) int
-		PushPayload       func(childComplexity int, sessionID int, events string, messages string, resources string) int
+		AddSessionProperties func(childComplexity int, sessionID int, propertiesObject interface{}) int
+		AddTrackProperties   func(childComplexity int, sessionID int, propertiesObject interface{}) int
+		IdentifySession      func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
+		InitializeSession    func(childComplexity int, organizationVerboseID string) int
+		PushPayload          func(childComplexity int, sessionID int, events string, messages string, resources string) int
 	}
 
 	Query struct {
@@ -61,7 +62,8 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	InitializeSession(ctx context.Context, organizationVerboseID string) (*model.Session, error)
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
-	AddProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
+	AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
+	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error)
 }
 
@@ -80,17 +82,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	_ = ec
 	switch typeName + "." + field {
 
-	case "Mutation.addProperties":
-		if e.complexity.Mutation.AddProperties == nil {
+	case "Mutation.addSessionProperties":
+		if e.complexity.Mutation.AddSessionProperties == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_addProperties_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_addSessionProperties_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddProperties(childComplexity, args["session_id"].(int), args["properties_object"].(interface{})), true
+		return e.complexity.Mutation.AddSessionProperties(childComplexity, args["session_id"].(int), args["properties_object"].(interface{})), true
+
+	case "Mutation.addTrackProperties":
+		if e.complexity.Mutation.AddTrackProperties == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addTrackProperties_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddTrackProperties(childComplexity, args["session_id"].(int), args["properties_object"].(interface{})), true
 
 	case "Mutation.identifySession":
 		if e.complexity.Mutation.IdentifySession == nil {
@@ -230,7 +244,8 @@ type Mutation {
     user_identifier: String!
     user_object: Any
   ): ID
-  addProperties(session_id: ID!, properties_object: Any): ID
+  addTrackProperties(session_id: ID!, properties_object: Any): ID
+  addSessionProperties(session_id: ID!, properties_object: Any): ID
   pushPayload(session_id: ID!, events: String!, messages: String!, resources: String!): ID
 }
 `, BuiltIn: false},
@@ -241,7 +256,31 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
-func (ec *executionContext) field_Mutation_addProperties_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_addSessionProperties_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
+	var arg1 interface{}
+	if tmp, ok := rawArgs["properties_object"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("properties_object"))
+		arg1, err = ec.unmarshalOAny2interface(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["properties_object"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addTrackProperties_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -484,7 +523,7 @@ func (ec *executionContext) _Mutation_identifySession(ctx context.Context, field
 	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_addProperties(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_addTrackProperties(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -500,7 +539,7 @@ func (ec *executionContext) _Mutation_addProperties(ctx context.Context, field g
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_addProperties_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_addTrackProperties_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -508,7 +547,45 @@ func (ec *executionContext) _Mutation_addProperties(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddProperties(rctx, args["session_id"].(int), args["properties_object"].(interface{}))
+		return ec.resolvers.Mutation().AddTrackProperties(rctx, args["session_id"].(int), args["properties_object"].(interface{}))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addSessionProperties(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addSessionProperties_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddSessionProperties(rctx, args["session_id"].(int), args["properties_object"].(interface{}))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1813,8 +1890,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_initializeSession(ctx, field)
 		case "identifySession":
 			out.Values[i] = ec._Mutation_identifySession(ctx, field)
-		case "addProperties":
-			out.Values[i] = ec._Mutation_addProperties(ctx, field)
+		case "addTrackProperties":
+			out.Values[i] = ec._Mutation_addTrackProperties(ctx, field)
+		case "addSessionProperties":
+			out.Values[i] = ec._Mutation_addSessionProperties(ctx, field)
 		case "pushPayload":
 			out.Values[i] = ec._Mutation_pushPayload(ctx, field)
 		default:
