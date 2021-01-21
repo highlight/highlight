@@ -55,7 +55,7 @@ export const SessionFeed = () => {
             count: $count
             params: $params
         ) {
-            id, user_id, identifier, os_name, os_version, browser_name, browser_version, city, state, postal, created_at, length, 
+            id, user_id, identifier, os_name, os_version, browser_name, browser_version, city, state, postal, created_at, length, viewed
             fields {
                 name
                 value

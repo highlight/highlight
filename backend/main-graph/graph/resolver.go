@@ -99,6 +99,9 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 	if params.Identified != nil {
 		modelParams.Identified = *params.Identified
 	}
+	if params.HideViewed != nil {
+		modelParams.HideViewed = *params.HideViewed
+	}
 	if params.DateRange != nil {
 		modelParams.DateRange = &model.DateRange{}
 		if params.DateRange.StartDate != nil {
