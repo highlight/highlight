@@ -17,6 +17,7 @@ type DateRangeInput struct {
 type SearchParamsInput struct {
 	UserProperties     []*UserPropertyInput `json:"user_properties"`
 	ExcludedProperties []*UserPropertyInput `json:"excluded_properties"`
+	TrackProperties    []*UserPropertyInput `json:"track_properties"`
 	DateRange          *DateRangeInput      `json:"date_range"`
 	Os                 *string              `json:"os"`
 	Browser            *string              `json:"browser"`

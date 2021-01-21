@@ -53,6 +53,7 @@ type Segment {
 input SearchParamsInput {
   user_properties: [UserPropertyInput]
   excluded_properties: [UserPropertyInput]
+  track_properties: [UserPropertyInput]
   date_range: DateRangeInput
   os: String
   browser: String
@@ -64,6 +65,7 @@ input SearchParamsInput {
 type SearchParams {
   user_properties: [UserProperty]
   excluded_properties: [UserProperty]
+  track_properties: [UserProperty]
   date_range: DateRange
   os: String
   browser: String
@@ -118,9 +120,10 @@ type Query {
     name: String!
     query: String!
   ): [Field]
-  user_field_suggestion(
+  property_suggestion(
     organization_id: ID!
     query: String!
+    type: String!
   ): [Field]
   organizations: [Organization]
   organization(id: ID!): Organization

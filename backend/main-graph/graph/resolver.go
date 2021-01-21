@@ -122,6 +122,13 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 		}
 		modelParams.ExcludedProperties = append(modelParams.ExcludedProperties, newProperty)
 	}
+	for _, property := range params.TrackProperties {
+		newProperty := &model.UserProperty{
+			Name:  property.Name,
+			Value: property.Value,
+		}
+		modelParams.TrackProperties = append(modelParams.TrackProperties, newProperty)
+	}
 	return modelParams
 }
 

@@ -536,6 +536,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	for _, session := range queriedSessions {
 		passed := 0
 		excluded := 0
+		tracked := 0
 		for _, prop := range params.UserProperties {
 			for _, field := range session.Fields {
 				if prop.Name == field.Name && prop.Value == field.Value {
@@ -550,7 +551,14 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 				}
 			}
 		}
-		if passed == len(params.UserProperties) && excluded == len(params.ExcludedProperties) {
+		for _, prop := range params.TrackProperties {
+			for _, field := range session.Fields {
+				if prop.Name == field.Name && prop.Value != field.Value {
+					tracked++
+				}
+			}
+		}
+		if passed == len(params.UserProperties) && excluded == len(params.ExcludedProperties) && tracked == len(params.TrackProperties) {
 			sessions = append(sessions, session)
 		}
 	}
@@ -628,12 +636,12 @@ func (r *queryResolver) FieldSuggestionBeta(ctx context.Context, organizationID 
 	return fields, nil
 }
 
-func (r *queryResolver) UserFieldSuggestion(ctx context.Context, organizationID int, query string) ([]*model.Field, error) {
+func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model.Field, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
-	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "user"}).
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
 		Limit(8).

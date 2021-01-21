@@ -14,10 +14,10 @@ export const UserPropertyInput = ({include}:{include: boolean}) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
-    const { refetch } = useQuery<{ user_field_suggestion: Array<{ name: string; value: string }> }, { organization_id: number; query: string }>(
+    const { refetch } = useQuery<{ property_suggestion: Array<{ name: string; value: string }> }, { organization_id: number; query: string; }>(
         gql`
-            query GetUserFieldSuggestion($organization_id: ID!, $query: String!) {
-                user_field_suggestion(organization_id: $organization_id, query: $query) {
+            query GetPropertySuggestion($organization_id: ID!, $query: String!) {
+                property_suggestion(organization_id: $organization_id, query: $query, type: "user") {
                     name
                     value
                 }
@@ -26,7 +26,7 @@ export const UserPropertyInput = ({include}:{include: boolean}) => {
 
     const generateOptions = async (input: string): Promise<OptionsType<OptionTypeBase> | void[]> => {
         var fetched = await refetch({ organization_id: parseInt(organization_id), query: input })
-        var suggestions = fetched.data.user_field_suggestion.map(f => { return { label: f.name + ": " + f.value, value: f.value, name: f.name } });
+        var suggestions = fetched.data.property_suggestion.map(f => { return { label: f.name + ": " + f.value, value: f.value, name: f.name } });
         return suggestions;
     }
 

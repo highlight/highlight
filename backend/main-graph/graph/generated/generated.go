@@ -98,13 +98,13 @@ type ComplexityRoot struct {
 		Messages            func(childComplexity int, sessionID int) int
 		Organization        func(childComplexity int, id int) int
 		Organizations       func(childComplexity int) int
+		PropertySuggestion  func(childComplexity int, organizationID int, query string, typeArg string) int
 		RecordingSettings   func(childComplexity int, organizationID int) int
 		Resources           func(childComplexity int, sessionID int) int
 		Segments            func(childComplexity int, organizationID int) int
 		Session             func(childComplexity int, id int) int
 		Sessions            func(childComplexity int, organizationID int, count int, params []interface{}) int
 		SessionsBeta        func(childComplexity int, organizationID int, count int, params *model.SearchParamsInput) int
-		UserFieldSuggestion func(childComplexity int, organizationID int, query string) int
 	}
 
 	RecordingSettings struct {
@@ -120,6 +120,7 @@ type ComplexityRoot struct {
 		Identified         func(childComplexity int) int
 		OS                 func(childComplexity int) int
 		Referrer           func(childComplexity int) int
+		TrackProperties    func(childComplexity int) int
 		UserProperties     func(childComplexity int) int
 		VisitedURL         func(childComplexity int) int
 	}
@@ -183,7 +184,7 @@ type QueryResolver interface {
 	SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParamsInput) ([]*model1.Session, error)
 	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
-	UserFieldSuggestion(ctx context.Context, organizationID int, query string) ([]*model1.Field, error)
+	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
 	Organizations(ctx context.Context) ([]*model1.Organization, error)
 	Organization(ctx context.Context, id int) (*model1.Organization, error)
 	Admin(ctx context.Context) (*model1.Admin, error)
@@ -559,6 +560,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Organizations(childComplexity), true
 
+	case "Query.property_suggestion":
+		if e.complexity.Query.PropertySuggestion == nil {
+			break
+		}
+
+		args, err := ec.field_Query_property_suggestion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.PropertySuggestion(childComplexity, args["organization_id"].(int), args["query"].(string), args["type"].(string)), true
+
 	case "Query.recording_settings":
 		if e.complexity.Query.RecordingSettings == nil {
 			break
@@ -631,18 +644,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SessionsBeta(childComplexity, args["organization_id"].(int), args["count"].(int), args["params"].(*model.SearchParamsInput)), true
 
-	case "Query.user_field_suggestion":
-		if e.complexity.Query.UserFieldSuggestion == nil {
-			break
-		}
-
-		args, err := ec.field_Query_user_field_suggestion_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.UserFieldSuggestion(childComplexity, args["organization_id"].(int), args["query"].(string)), true
-
 	case "RecordingSettings.details":
 		if e.complexity.RecordingSettings.Details == nil {
 			break
@@ -705,6 +706,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SearchParams.Referrer(childComplexity), true
+
+	case "SearchParams.track_properties":
+		if e.complexity.SearchParams.TrackProperties == nil {
+			break
+		}
+
+		return e.complexity.SearchParams.TrackProperties(childComplexity), true
 
 	case "SearchParams.user_properties":
 		if e.complexity.SearchParams.UserProperties == nil {
@@ -993,6 +1001,7 @@ type Segment {
 input SearchParamsInput {
   user_properties: [UserPropertyInput]
   excluded_properties: [UserPropertyInput]
+  track_properties: [UserPropertyInput]
   date_range: DateRangeInput
   os: String
   browser: String
@@ -1004,6 +1013,7 @@ input SearchParamsInput {
 type SearchParams {
   user_properties: [UserProperty]
   excluded_properties: [UserProperty]
+  track_properties: [UserProperty]
   date_range: DateRange
   os: String
   browser: String
@@ -1058,9 +1068,10 @@ type Query {
     name: String!
     query: String!
   ): [Field]
-  user_field_suggestion(
+  property_suggestion(
     organization_id: ID!
     query: String!
+    type: String!
   ): [Field]
   organizations: [Organization]
   organization(id: ID!): Organization
@@ -1547,6 +1558,39 @@ func (ec *executionContext) field_Query_organization_args(ctx context.Context, r
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_property_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("query"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["type"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("type"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["type"] = arg2
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_recording_settings_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1670,30 +1714,6 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 		}
 	}
 	args["params"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_user_field_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["organization_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("query"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg1
 	return args, nil
 }
 
@@ -2963,7 +2983,7 @@ func (ec *executionContext) _Query_field_suggestionBETA(ctx context.Context, fie
 	return ec.marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_user_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_property_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2979,7 +2999,7 @@ func (ec *executionContext) _Query_user_field_suggestion(ctx context.Context, fi
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_user_field_suggestion_args(ctx, rawArgs)
+	args, err := ec.field_Query_property_suggestion_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -2987,7 +3007,7 @@ func (ec *executionContext) _Query_user_field_suggestion(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UserFieldSuggestion(rctx, args["organization_id"].(int), args["query"].(string))
+		return ec.resolvers.Query().PropertySuggestion(rctx, args["organization_id"].(int), args["query"].(string), args["type"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3473,6 +3493,37 @@ func (ec *executionContext) _SearchParams_excluded_properties(ctx context.Contex
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.ExcludedProperties, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.UserProperty)
+	fc.Result = res
+	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SearchParams_track_properties(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SearchParams",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TrackProperties, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5510,6 +5561,14 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "track_properties":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("track_properties"))
+			it.TrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "date_range":
 			var err error
 
@@ -5914,7 +5973,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_field_suggestionBETA(ctx, field)
 				return res
 			})
-		case "user_field_suggestion":
+		case "property_suggestion":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -5922,7 +5981,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_user_field_suggestion(ctx, field)
+				res = ec._Query_property_suggestion(ctx, field)
 				return res
 			})
 		case "organizations":
@@ -6069,6 +6128,8 @@ func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._SearchParams_user_properties(ctx, field, obj)
 		case "excluded_properties":
 			out.Values[i] = ec._SearchParams_excluded_properties(ctx, field, obj)
+		case "track_properties":
+			out.Values[i] = ec._SearchParams_track_properties(ctx, field, obj)
 		case "date_range":
 			out.Values[i] = ec._SearchParams_date_range(ctx, field, obj)
 		case "os":

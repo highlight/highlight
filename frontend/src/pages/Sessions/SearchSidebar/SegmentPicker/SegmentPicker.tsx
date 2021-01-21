@@ -41,6 +41,10 @@ export const SegmentPicker = () => {
                             name
                             value
                         }
+                        track_properties {
+                            name
+                            value
+                        }
                         date_range {
                             start_date
                             end_date
