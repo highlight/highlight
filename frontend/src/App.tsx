@@ -16,6 +16,7 @@ import {
     Route,
     BrowserRouter as Router,
     Redirect,
+    useHistory,
 } from 'react-router-dom';
 import { H } from 'highlight.run';
 import * as Sentry from '@sentry/react';
@@ -78,6 +79,7 @@ const App = () => {
 };
 
 export const AuthAdminRouter = () => {
+    const history = useHistory();
     const { loading, error, data } = useQuery<{
         admin: { id: string; name: string; email: string };
     }>(gql`
@@ -94,12 +96,16 @@ export const AuthAdminRouter = () => {
         if (admin) {
             const { email, id, name } = admin;
             H.identify(email, { id, name });
+            window.CommandBar.boot({
+                id: email,
+            });
             window.analytics.identify(id, {
                 name,
                 email,
             });
         }
     }, [admin]);
+
     if (error) {
         return <p>{'AuthAdminRouter error: ' + JSON.stringify(error)}</p>;
     }

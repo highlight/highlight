@@ -93,7 +93,7 @@ export class Highlight {
   }
 
   async addProperties(properties_obj = {}, typeArg?: string) {
-    if(typeArg == "session"){
+    if (typeArg == "session") {
       await this.client.request(
         gql`
           mutation addSessionProperties($session_id: ID!, $properties_object: Any) {

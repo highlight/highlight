@@ -1,11 +1,11 @@
 .searchBar {
     position: fixed;
     background-color: white;
-    z-index: 800;
     width: 320px;
     transition: right 0.3s;
     display: flex;
     align-items: center;
+    z-index: 300;
     flex-direction: column;
     padding-top: 40px;
     height: calc(100vh - 80px);

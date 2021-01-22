@@ -8,7 +8,6 @@ export const TopSearchBar = () => {
     const [focus, setFocus] = useState(true);
     return (
         <>
-            <div className={classNames(styles.backdrop, focus && styles.blurred)} />
             <div className={styles.searchBarWrapper}>
                 <Search className={styles.searchIcon} />
                 <input

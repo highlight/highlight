@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Dropdown } from 'antd';
 import { useQuery, gql } from '@apollo/client';
 import { useParams, Link } from 'react-router-dom';
@@ -27,7 +27,7 @@ export const WorkspaceDropdown = () => {
         { skip: demo }
     );
     const { data: currentOrg } = useQuery<
-        { organization: { name: string } },
+        { organization: { name: string, id: number } },
         { id: number }
     >(
         gql`
@@ -40,6 +40,11 @@ export const WorkspaceDropdown = () => {
         `,
         { variables: { id: parseInt(organization_id) || 0 } }
     );
+
+    useEffect(() => {
+        window.CommandBar.addContext({ organization_id });
+    }, [currentOrg])
+
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>

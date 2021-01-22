@@ -13,6 +13,7 @@ import { SidebarContext } from '../Sidebar/SidebarContext';
 import classNames from 'classnames/bind';
 import { Duration } from '../../util/time';
 import { TopSearchBar } from './TopSearchBar/TopSearchBar';
+import { gql, useQuery } from '@apollo/client';
 
 type HeaderProps = {
     trialTimeRemaining?: Duration;
@@ -24,20 +25,28 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({ hist
     const { setOpenSidebar, openSidebar } = useContext(SidebarContext);
     const { trialTimeRemaining } = props;
 
-    useEffect(() => {
-        const keys = ['command+k', 'ctrl+k'];
-        const method = () => {
-            history.push(`/${organization_id}/sessions`);
-        };
+    const { refetch } = useQuery<{ user_field_suggestion: Array<{ name: string; value: string }> }, { organization_id: number; query: string }>(
+        gql`
+            query GetUserFieldSuggestion($organization_id: ID!, $query: String!) {
+                user_field_suggestion(organization_id: $organization_id, query: $query) {
+                    name
+                    value
+                }
+            }
+        `, { skip: true });
 
-        // @ts-ignore
-        Mousetrap.bind(keys, method);
 
-        return () => {
-            // @ts-ignore
-            Mousetrap.unbind(keys, method);
-        };
-    }, [history, organization_id]);
+    React.useEffect(() => {
+        window.CommandBar.addRouter((newUrl: any) => {
+            console.log(newUrl);
+            console.log(history);
+            history.push(newUrl)
+        });
+        window.CommandBar.addSearch("user_field_suggestion", async (input: string) => {
+            const val = await refetch({ query: input, organization_id: parseInt(organization_id) })
+            return val.data.user_field_suggestion;
+        })
+    }, [])
 
     return (
         <>
@@ -62,8 +71,8 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({ hist
                         >
                             <HighlightLogoSmall className={styles.logo} />
                             <span className={styles.logoText}>Highlight</span>
-                            <TopSearchBar />
                         </Link>
+                        <TopSearchBar />
                     </div>
                     <div className={styles.rightHeader}>
                         <UserDropdown />

@@ -19,17 +19,15 @@
 }
 
 .backdrop {
+    position: fixed;
     height: 100%;
     width: 100%;
-    position: fixed;
+    z-index: 4000;
     background-position: center;
     background-repeat: no-repeat;
     background-size: cover;
-    z-index: 0;
-}
-
-.blurred {
-    z-index: 5000;
+    top: 0;
+    left: 0;
     opacity: 0.5;
     filter: alpha(opacity = 50); /* required for opacity to work in IE */
     background-color: white;

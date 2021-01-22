@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
 import { SearchContext, SearchParams, UserProperty } from '../SearchContext/SearchContext';
@@ -10,7 +10,7 @@ import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import { useState } from 'react';
 import classNames from 'classnames/bind';
 
-export const UserPropertyInput = ({include}:{include: boolean}) => {
+export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
@@ -46,22 +46,22 @@ export const UserPropertyInput = ({include}:{include: boolean}) => {
                     var newOptions: Array<UserProperty> = options?.map(o => {
                         return { name: o.name, value: o.value }
                     }) ?? [];
-                    if(include){
+                    if (include) {
                         setSearchParams((params: SearchParams) => {
                             return { ...params, user_properties: newOptions }
-                        })  
+                        })
                     }
-                    else{
+                    else {
                         setSearchParams((params: SearchParams) => {
                             return { ...params, excluded_properties: newOptions }
                         })
                     }
-                    
+
                 }}
                 value={
                     include ?
-                    searchParams?.user_properties?.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })
-                    : searchParams?.excluded_properties?.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })
+                        searchParams?.user_properties?.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })
+                        : searchParams?.excluded_properties?.map(p => { return { label: p.name + ": " + p.value, value: p.value, name: p.name } })
                 }
                 loadOptions={generateOptions}
                 components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><UserIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
