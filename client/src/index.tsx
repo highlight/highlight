@@ -234,6 +234,7 @@ export class Highlight {
         if (reloaded) {
           addCustomEvent<string>('Reload', url);
           reloaded = false;
+          highlightThis.addProperties({ reload: true }, "session");
         } else {
           addCustomEvent<string>('Navigate', url);
         }
