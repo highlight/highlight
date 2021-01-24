@@ -13,3 +13,4 @@ export const sideTabVisible: string;
 export const subTitle: string;
 export const title: string;
 export const titleSection: string;
+export const toggleSection: string;

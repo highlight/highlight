@@ -31,6 +31,7 @@ type Session = {
     created_at: string;
     length: number;
     fields: Array<Field>;
+    viewed: boolean;
 }
 
 export const SessionFeed = () => {
@@ -124,6 +125,7 @@ const SessionCard = ({ session }: { session: Session }) => {
             <div className={styles.sessionCard}>
                 <div className={classNames(styles.hoverBorderLeft, hovered && styles.hoverBorderOn)} />
                 <div className={styles.avatarWrapper}>
+                    <div className={styles.readMarker} style={{backgroundColor: session.viewed ? "none" : "#5629c6"}}></div>
                     <Avatar seed={session.identifier ? session.identifier : session.user_id.toString()} style={{ height: 60, width: 60 }} />
                 </div>
                 <div
