@@ -142,7 +142,7 @@ export const SessionFeed = () => {
         >
             <div
                 className={styles.resultCount}
-            >{`${data.totalCount} results`}</div>
+            >{`${data.totalCount} sessions`}</div>
             {data.sessions.map((u) => {
                 return <SessionCard session={u} />;
             })}

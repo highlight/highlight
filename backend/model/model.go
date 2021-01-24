@@ -125,7 +125,6 @@ type User struct {
 }
 
 type SessionResults struct {
-	Model
 	Sessions   []Session
 	TotalCount int
 }
