@@ -151,32 +151,40 @@ export class Highlight {
       if (organization_id) {
         this.organizationID = org_id;
       }
-      let gr = await this.client.request<{ initializeSession: { id: number, user_id: number, organization_id: number } }, { organization_verbose_id: string }>(
-        gql`
-        mutation initializeSession($organization_verbose_id: String!) {
-          initializeSession(
-            organization_verbose_id: $organization_verbose_id
-          ) {
-            id
-            user_id
-            organization_id
+      let storedID = Number(window.sessionStorage.getItem("currentSessionID")) || null;
+      let reloaded = false;
+      if (storedID) {
+        this.sessionID = storedID;
+        reloaded = true;
+      } else {
+        let gr = await this.client.request<{ initializeSession: { id: number, user_id: number, organization_id: number } }, { organization_verbose_id: string }>(
+          gql`
+          mutation initializeSession($organization_verbose_id: String!) {
+            initializeSession(
+              organization_verbose_id: $organization_verbose_id
+            ) {
+              id
+              user_id
+              organization_id
+            }
           }
-        }
-      `,
-        {
-          organization_verbose_id: this.organizationID,
-        },
-      );
-      this.sessionID = gr.initializeSession.id;
-      this.logger.log(
-        `Loaded Highlight
-Remote: ${process.env.BACKEND_URI}
-Org ID: ${gr.initializeSession.organization_id}
-Verbose Org ID: ${this.organizationID}
-Session Data: 
-`,
-        gr.initializeSession
-      );
+        `,
+          {
+            organization_verbose_id: this.organizationID,
+          },
+        );
+        this.sessionID = gr.initializeSession.id;
+        this.logger.log(
+          `Loaded Highlight
+  Remote: ${process.env.BACKEND_URI}
+  Org ID: ${gr.initializeSession.organization_id}
+  Verbose Org ID: ${this.organizationID}
+  Session Data: 
+  `,
+          gr.initializeSession
+        );
+        window.sessionStorage.setItem("currentSessionID", this.sessionID.toString());
+      }
       setInterval(() => {
         this._save();
       }, 5 * 1000);
@@ -223,7 +231,13 @@ Session Data:
         highlightThis.addProperties({ referrer: document.referrer }, "session");
       }
       PathListener((url: string) => {
-        addCustomEvent<string>('Navigate', url);
+        if (reloaded) {
+          addCustomEvent<string>('Reload', url);
+          reloaded = false;
+          highlightThis.addProperties({ reload: true }, "session");
+        } else {
+          addCustomEvent<string>('Navigate', url);
+        }
         highlightThis.addProperties({ 'visited-url': url }, "session");
       });
       ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));

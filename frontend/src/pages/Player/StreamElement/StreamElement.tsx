@@ -7,6 +7,7 @@ import { ReactComponent as DownIcon } from '../../../static/down.svg';
 import { ReactComponent as UpIcon } from '../../../static/up.svg';
 import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
 import { ReactComponent as NavigateIcon } from '../../../static/navigate.svg';
+import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
 import { HighlightEvent } from '../HighlightEvent';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
@@ -60,6 +61,8 @@ export const StreamElement = ({
                         <SegmentIcon className={styles.defaultIcon} />
                     ) : details.title === 'Navigate' ? (
                         <NavigateIcon className={styles.defaultIcon} />
+                    ) : details.title === 'Reload' ? (
+                        <ReloadIcon className={styles.defaultIcon} />
                     ) : details.title === 'Referrer' ? (
                         <ReferrerIcon className={styles.defaultIcon} />
                     ) : (
