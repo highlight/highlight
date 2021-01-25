@@ -221,7 +221,7 @@ export class Highlight {
                 properties: obj.properties,
               })
             );
-            highlightThis.addProperties(properties);
+            highlightThis.addProperties(properties, "track");
           } else if (obj.type === 'identify') {
             highlightThis.logger.log(
               `Adding segment identify event (${JSON.stringify({ id: obj.userId, traits: obj.traits })}) @ ${process.env.BACKEND_URI
