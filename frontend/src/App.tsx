@@ -93,7 +93,6 @@ export const AuthAdminRouter = () => {
     useEffect(() => {
         if (admin) {
             const { email, id, name } = admin;
-            H.identify(email, { id, name });
             window.analytics.identify(id, {
                 name,
                 email,
