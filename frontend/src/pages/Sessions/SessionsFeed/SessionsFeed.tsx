@@ -47,7 +47,7 @@ export const SessionFeed = () => {
         sessions: [],
         totalCount: -1,
     });
-    const { searchParams } = useContext(SearchContext);
+    const { searchParams, setTotalCount } = useContext(SearchContext);
     const { refetch } = useQuery<
         { sessionsBETA: SessionResults },
         { count: number; organization_id: number; params: SearchParams }
@@ -111,6 +111,7 @@ export const SessionFeed = () => {
             setLoadData(false);
             setLoadingState(false);
             setData(res.data.sessionsBETA);
+            setTotalCount(res.data.sessionsBETA.totalCount);
             setCount((c) => c + 10);
         });
     }, [loadData, count, organization_id, refetch, searchParams]);
@@ -141,9 +142,6 @@ export const SessionFeed = () => {
             className={styles.feedContent}
             ref={infiniteRef as RefObject<HTMLDivElement>}
         >
-            <div
-                className={styles.resultCount}
-            >{`${data.totalCount} sessions`}</div>
             {data.sessions.map((u) => {
                 return <SessionCard session={u} />;
             })}

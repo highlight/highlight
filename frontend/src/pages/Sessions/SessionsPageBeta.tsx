@@ -7,42 +7,60 @@ import { SearchContext, SearchParams } from './SearchContext/SearchContext';
 import { SessionFeed } from './SessionsFeed/SessionsFeed';
 
 // @ts-ignore
-import useDimensions from "react-use-dimensions";
+import useDimensions from 'react-use-dimensions';
 import { UserPropertyInput } from './SearchInputs/UserPropertyInputs';
 import { IntegrationCard } from './IntegrationCard/IntegrationCard';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
     const [feedRef, { top, right, x }] = useDimensions();
-    const [searchParams, setSearchParams] = useState<SearchParams>({ user_properties: [], identified: false });
-    const [existingParams, setExistingParams] = useState<SearchParams>({ user_properties: [], identified: false });
+    const [searchParams, setSearchParams] = useState<SearchParams>({
+        user_properties: [],
+        identified: false,
+    });
+    const [existingParams, setExistingParams] = useState<SearchParams>({
+        user_properties: [],
+        identified: false,
+    });
     const [isSegment, setIsSegment] = useState<boolean>(false);
+    const [totalCount, setTotalCount] = useState<number>(-1);
     const { setOpenSidebar } = useContext(SidebarContext);
-    
-    useEffect(() => setOpenSidebar(false), [setOpenSidebar])
+
+    useEffect(() => setOpenSidebar(false), [setOpenSidebar]);
 
     if (!integrated) {
-        return <IntegrationCard />
+        return <IntegrationCard />;
     }
 
     return (
-        <SearchContext.Provider value={{ searchParams, setSearchParams, existingParams, setExistingParams, isSegment, setIsSegment }}>
+        <SearchContext.Provider
+            value={{
+                searchParams,
+                setSearchParams,
+                existingParams,
+                setExistingParams,
+                isSegment,
+                setIsSegment,
+                totalCount,
+                setTotalCount,
+            }}
+        >
             <div className={styles.sessionsBody}>
                 <div className={styles.fixedPlaceholder} />
                 <SegmentSidebar feedPosition={{ top, x }} />
                 <div className={styles.mainUserInput}>
                     <div className={styles.userInputWrapper}>
-                        <UserPropertyInput include/>
+                        <UserPropertyInput include />
+                        <div
+                            className={styles.resultCount}
+                        >{`${totalCount} sessions`}</div>
                     </div>
                 </div>
-                <div className={styles.sessionsSection}
-                    ref={feedRef}
-                >
+                <div className={styles.sessionsSection} ref={feedRef}>
                     <SessionFeed />
                 </div>
                 <SearchSidebar feedPosition={{ top, right }} />
             </div>
-        </SearchContext.Provider >
+        </SearchContext.Provider>
     );
 };
-

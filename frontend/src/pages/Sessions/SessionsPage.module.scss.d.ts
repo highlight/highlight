@@ -21,6 +21,7 @@ export const optionsValue: string;
 export const playButton: string;
 export const regSubTitle: string;
 export const regTitle: string;
+export const resultCount: string;
 export const searchBar: string;
 export const searchIcon: string;
 export const searchIconWrapper: string;

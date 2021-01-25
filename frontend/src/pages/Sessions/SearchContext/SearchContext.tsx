@@ -23,6 +23,8 @@ export const SearchContext = React.createContext<{
     setSearchParams: React.Dispatch<React.SetStateAction<SearchParams>>;
     existingParams: SearchParams;
     setExistingParams: React.Dispatch<React.SetStateAction<SearchParams>>;
+    totalCount: Number;
+    setTotalCount: React.Dispatch<React.SetStateAction<number>>;
     isSegment: boolean;
     setIsSegment: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
@@ -32,4 +34,6 @@ export const SearchContext = React.createContext<{
     setExistingParams: (params) => console.warn('goop'),
     isSegment: false,
     setIsSegment: (val) => console.warn('poop'),
+    totalCount: -1,
+    setTotalCount: (val) => console.warn('doop'),
 });
