@@ -230,6 +230,12 @@ type EventsObject struct {
 	Events    string
 }
 
+/*type Error struct {
+	Model
+	SessionID int
+	Data    string
+}*/
+
 func SetupDB() *gorm.DB {
 	log.Println("setting up database")
 	psqlConf := fmt.Sprintf(
