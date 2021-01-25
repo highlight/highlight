@@ -34,7 +34,7 @@ export type HighlightClassOptions = {
 
 type PropertyType = {
   type?: "track" | "session";
-  source: Source;
+  source?: Source;
 }
 
 type Source = "segment" | undefined;
@@ -73,7 +73,7 @@ export class Highlight {
     this.messages = [];
   }
 
-  async identify(user_identifier: string, user_object = {}, source: Source) {
+  async identify(user_identifier: string, user_object = {}, source?: Source) {
     if (source === "segment") {
       addCustomEvent("Segment Identify", JSON.stringify({ user_identifier, ...user_object }))
     } else {
@@ -99,8 +99,9 @@ export class Highlight {
         user_object: user_object,
       },
     );
+    const sourceString = source === "segment" ? source : "default"
     this.logger.log(
-      `Identify (${user_identifier}) w/ obj: ${JSON.stringify(user_object)} @ ${process.env.BACKEND_URI
+      `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${JSON.stringify(user_object)} @ ${process.env.BACKEND_URI
       }`
     );
   }
@@ -155,8 +156,9 @@ export class Highlight {
           properties_object: properties_obj,
         },
       );
+      const sourceString = typeArg?.source === "segment" ? typeArg.source : "default"
       this.logger.log(
-        `AddTrackProperties to session (${this.sessionID}) w/ obj: ${JSON.stringify(
+        `AddTrackProperties to session (${this.sessionID}, source: ${sourceString}) w/ obj: ${JSON.stringify(
           properties_obj
         )} @ ${process.env.BACKEND_URI}`
       );
@@ -246,7 +248,7 @@ export class Highlight {
               `Adding segment identify event (${JSON.stringify({ id: obj.userId, traits: obj.traits })}) @ ${process.env.BACKEND_URI
               }, org: ${highlightThis.organizationID}`
             );
-            highlightThis.identify(obj.userId, obj.traits);
+            highlightThis.identify(obj.userId, obj.traits, "segment");
           }
         }, 100);
         send.call(this, data);
