@@ -234,7 +234,7 @@ const EventStream = ({
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
                 {loadingMap || !events.length || !staticMap ? (
-                    <Skeleton count={4} height={35} style={{ margin: 8 }} />
+                    <Skeleton count={4} height={35} style={{ marginTop: 8, marginBottom: 8 }} />
                 ) : (
                         replayer &&
                         events

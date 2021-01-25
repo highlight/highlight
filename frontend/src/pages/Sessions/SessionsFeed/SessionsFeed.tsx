@@ -33,15 +33,23 @@ type Session = {
     viewed: boolean;
 };
 
+type SessionResults = {
+    sessions: Array<Session>;
+    totalCount: number;
+};
+
 export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [count, setCount] = useState(10);
     const [loadData, setLoadData] = useState(false);
     const [loadingState, setLoadingState] = useState(false);
-    const [data, setData] = useState<Array<Session>>([]);
+    const [data, setData] = useState<SessionResults>({
+        sessions: [],
+        totalCount: -1,
+    });
     const { searchParams } = useContext(SearchContext);
     const { refetch } = useQuery<
-        { sessionsBETA: Session[] },
+        { sessionsBETA: SessionResults },
         { count: number; organization_id: number; params: SearchParams }
     >(
         gql`
@@ -55,24 +63,27 @@ export const SessionFeed = () => {
                     count: $count
                     params: $params
                 ) {
-                    id
-                    user_id
-                    identifier
-                    os_name
-                    os_version
-                    browser_name
-                    browser_version
-                    city
-                    state
-                    postal
-                    created_at
-                    length
-                    viewed
-                    fields {
-                        name
-                        value
-                        type
+                    sessions {
+                        id
+                        user_id
+                        identifier
+                        os_name
+                        os_version
+                        browser_name
+                        browser_version
+                        city
+                        state
+                        postal
+                        created_at
+                        length
+                        viewed
+                        fields {
+                            name
+                            value
+                            type
+                        }
                     }
+                    totalCount
                 }
             }
         `,
@@ -109,7 +120,9 @@ export const SessionFeed = () => {
         loading: loadData,
         hasNextPage: true,
         onLoadMore: () => {
-            setLoadData(true);
+            if (data.sessions.length < data.totalCount) {
+                setLoadData(true);
+            }
         },
     });
 
@@ -128,9 +141,20 @@ export const SessionFeed = () => {
             className={styles.feedContent}
             ref={infiniteRef as RefObject<HTMLDivElement>}
         >
-            {data.map((u) => {
+            <div
+                className={styles.resultCount}
+            >{`${data.totalCount} sessions`}</div>
+            {data.sessions.map((u) => {
                 return <SessionCard session={u} />;
             })}
+            {data.sessions.length < data.totalCount ? (
+                <Skeleton
+                    height={110}
+                    style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }}
+                />
+            ) : (
+                <></>
+            )}
         </div>
     );
 };

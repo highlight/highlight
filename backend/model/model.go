@@ -124,6 +124,11 @@ type User struct {
 	Sessions       []Session
 }
 
+type SessionResults struct {
+	Sessions   []Session
+	TotalCount int
+}
+
 type Session struct {
 	Model
 	UserID int `json:"user_id"`

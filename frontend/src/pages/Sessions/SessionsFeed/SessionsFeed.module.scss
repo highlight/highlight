@@ -1,7 +1,6 @@
 @import 'src/static/shared.scss';
 
-
-.avatarWrapper{
+.avatarWrapper {
     width: 100px;
     display: flex;
     align-items: center;
@@ -17,7 +16,7 @@
 }
 
 .topText {
-    color: #A8A8A8;
+    color: #a8a8a8;
     font-size: 12px;
     font-weight: 200;
     margin: 4px 0 4px 0;
@@ -37,7 +36,7 @@
 }
 
 .bottomText {
-    color:black;
+    color: black;
     font-size: 12px;
     font-weight: 200;
     margin: 4px 0 4px 0;
@@ -113,7 +112,7 @@
 }
 
 .hoverBorderOn {
-    background-color: #5629C6;
+    background-color: #5629c6;
 }
 
 .feedWrapper {
@@ -125,6 +124,11 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+}
+
+.resultCount {
+    margin: 12px 8px 0px 8px;
+    color: #a8a8a8;
 }
 
 .sessionCard {
