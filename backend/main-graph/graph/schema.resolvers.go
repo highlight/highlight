@@ -327,25 +327,6 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	return allEvents["events"], nil
 }
 
-func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]interface{}, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
-	}
-	errorsObjs := []*model.ErrorsObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.ErrorsObject{OrganizationID: organizationID}).Find(&errorsObjs); res.Error != nil {
-		return nil, fmt.Errorf("error reading from events: %v", res.Error)
-	}
-	allErrors := make(map[string][]interface{})
-	for _, errorsObj := range errorsObjs {
-		subErrors := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(errorsObj.Errors), &subErrors); err != nil {
-			return nil, fmt.Errorf("error decoding event data: %v", err)
-		}
-		allErrors["errors"] = append(subErrors["errors"], allErrors["errors"]...)
-	}
-	return allErrors["errors"], nil
-}
-
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
