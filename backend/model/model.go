@@ -230,11 +230,11 @@ type EventsObject struct {
 	Events    string
 }
 
-/*type Error struct {
+type ErrorsObject struct {
 	Model
 	SessionID int
-	Data    string
-}*/
+	Errors	  string
+}
 
 func SetupDB() *gorm.DB {
 	log.Println("setting up database")

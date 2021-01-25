@@ -6,8 +6,10 @@ import { GraphQLClient, gql } from 'graphql-request'
 
 import {
   ConsoleMessage,
+  ErrorMessage,
   NetworkResourceContent,
 } from '../../frontend/src/util/shared-types';
+import { ErrorListener } from 'listeners/error-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
   console.warn(`Highlight Warning: (${context}): `, msg)
@@ -35,6 +37,7 @@ export class Highlight {
   organizationID: string;
   client: GraphQLClient;
   events: eventWithTime[];
+  errors: ErrorMessage[];
   messages: ConsoleMessage[];
   networkContents: NetworkResourceContent[];
   sessionID: number;
@@ -61,6 +64,7 @@ export class Highlight {
     }
     this.sessionID = 0;
     this.events = [];
+    this.errors = [];
     this.networkContents = [];
     this.messages = [];
   }
@@ -240,7 +244,11 @@ export class Highlight {
         }
         highlightThis.addProperties({ 'visited-url': url }, "session");
       });
-      ConsoleListener((c: ConsoleMessage) => highlightThis.messages.push(c));
+      ConsoleListener((c: ConsoleMessage) => {
+        if(c.type == "Error") highlightThis.errors.push({event:"Console Error: " + c.value})
+        highlightThis.messages.push(c)
+      });
+      ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
       this.ready = true;
     } catch (e) {
       HighlightWarning("initializeSession", e)
@@ -266,11 +274,13 @@ export class Highlight {
       }
       const resourcesString = JSON.stringify({ resources: resources });
       const messagesString = JSON.stringify({ messages: this.messages });
+      const errorsString = JSON.stringify({ errors: this.errors });
       const eventsString = JSON.stringify({ events: this.events });
       this.logger.log(
         `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
       );
       this.events = [];
+      this.errors = [];
       this.messages = [];
       this.networkContents = [];
       if (!this.disableNetworkRecording) {
@@ -283,12 +293,14 @@ export class Highlight {
           $events: String!
           $messages: String!
           $resources: String!
+          $errors: String!
         ) {
           pushPayload(
             session_id: $session_id
             events: $events
             messages: $messages
             resources: $resources
+            errors: $errors
           )
         }
       `,
@@ -297,6 +309,7 @@ export class Highlight {
           events: eventsString,
           messages: messagesString,
           resources: resourcesString,
+          errors: errorsString,
         },
       );
     } catch (e) {

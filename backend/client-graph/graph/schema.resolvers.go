@@ -145,7 +145,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors string) (*int, error) {
 	eventsParsed := make(map[string][]interface{})
 	// unmarshal events
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
@@ -177,6 +177,17 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating resources object")
+		}
+	}
+	// unmarshal error
+	errorsParsed := make(map[string][]interface{})
+	if err := json.Unmarshal([]byte(errors), &errorsParsed); err != nil {
+		return nil, fmt.Errorf("error decoding resource data: %v", err)
+	}
+	if len(errorsParsed["errors"]) > 0 {
+		obj := &model.ErrorsObject{SessionID: sessionID, Errors: errors}
+		if err := r.DB.Create(obj).Error; err != nil {
+			return nil, e.Wrap(err, "error creating errors object")
 		}
 	}
 	now := time.Now()
