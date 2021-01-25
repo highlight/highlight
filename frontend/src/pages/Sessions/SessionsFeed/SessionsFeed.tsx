@@ -114,7 +114,7 @@ export const SessionFeed = () => {
             setTotalCount(res.data.sessionsBETA.totalCount);
             setCount((c) => c + 10);
         });
-    }, [loadData, count, organization_id, refetch, searchParams]);
+    }, [loadData, count, organization_id, refetch, searchParams, setTotalCount]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
