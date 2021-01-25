@@ -95,7 +95,7 @@ export const AuthAdminRouter = () => {
             const { email, id, name } = admin;
             window.analytics.identify(email, {
                 id,
-                email,
+                name,
             });
         }
     }, [admin]);
