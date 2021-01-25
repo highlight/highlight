@@ -8,7 +8,7 @@ import classNames from 'classnames/bind';
 import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { Avatar } from '../../../components/Avatar/Avatar';
-import { Tag } from 'antd';
+import { Tag, Tooltip } from 'antd';
 
 type Field = {
     type: string;
@@ -30,6 +30,7 @@ type Session = {
     created_at: string;
     length: number;
     fields: Array<Field>;
+    viewed: boolean;
 };
 
 type SessionResults = {
@@ -251,6 +252,15 @@ const SessionCard = ({ session }: { session: Session }) => {
                         &nbsp;
                         {session.postal}
                     </div>
+                </div>
+                <div className={styles.sessionTextSection}>
+                    {session.viewed ? (
+                        <></>
+                    ) : (
+                        <Tooltip title="Unread Session">
+                            <div className={styles.readMarker}></div>
+                        </Tooltip>
+                    )}
                 </div>
                 <div
                     className={classNames(

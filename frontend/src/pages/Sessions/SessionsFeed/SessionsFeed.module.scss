@@ -7,6 +7,14 @@
     justify-content: center;
 }
 
+.readMarker {
+    border-radius: 10px;
+    width: 8px;
+    height: 8px;
+    margin-left: 6px;
+    background-color: #5629c6;
+}
+
 .topText {
     color: #a8a8a8;
     font-size: 12px;
@@ -129,7 +137,7 @@
     height: 110px;
     @include rounded-border;
     display: grid;
-    grid-template-columns: auto 1fr 1fr 1fr;
+    grid-template-columns: auto 1fr 1fr 1fr 14px;
     margin-top: 14px;
     margin-bottom: 14px;
     align-items: center;
