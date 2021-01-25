@@ -10,12 +10,11 @@ import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import { Tag } from 'antd';
 
-
 type Field = {
     type: string;
     name: string;
     value: string;
-}
+};
 
 type Session = {
     id: number;
@@ -31,84 +30,133 @@ type Session = {
     created_at: string;
     length: number;
     fields: Array<Field>;
-}
+};
+
+type SessionResults = {
+    sessions: Array<Session>;
+    totalCount: number;
+};
 
 export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [count, setCount] = useState(10);
     const [loadData, setLoadData] = useState(false);
     const [loadingState, setLoadingState] = useState(false);
-    const [data, setData] = useState<Array<Session>>([]);
+    const [data, setData] = useState<SessionResults>({
+        sessions: [],
+        totalCount: -1,
+    });
     const { searchParams } = useContext(SearchContext);
     const { refetch } = useQuery<
-        { sessionsBETA: Session[] },
+        { sessionsBETA: SessionResults },
         { count: number; organization_id: number; params: SearchParams }
     >(
         gql`
-    query GetSessionsBETA(
-        $organization_id: ID!
-        $count: Int!
-        $params: SearchParamsInput
-    ) {
-        sessionsBETA(
-            organization_id: $organization_id
-            count: $count
-            params: $params
-        ) {
-            id, user_id, identifier, os_name, os_version, browser_name, browser_version, city, state, postal, created_at, length, viewed
-            fields {
-                name
-                value
-                type
+            query GetSessionsBETA(
+                $organization_id: ID!
+                $count: Int!
+                $params: SearchParamsInput
+            ) {
+                sessionsBETA(
+                    organization_id: $organization_id
+                    count: $count
+                    params: $params
+                ) {
+                    sessions {
+                        id
+                        user_id
+                        identifier
+                        os_name
+                        os_version
+                        browser_name
+                        browser_version
+                        city
+                        state
+                        postal
+                        created_at
+                        length
+                        viewed
+                        fields {
+                            name
+                            value
+                            type
+                        }
+                    }
+                    totalCount
+                }
             }
-        }
-    }
-`, { skip: true });
+        `,
+        { skip: true }
+    );
 
     // On the component mount, shoot out a request.
     useEffect(() => {
         setLoadData(true);
-    }, [])
+    }, []);
 
     // When the search params change, shoot out another request.
     useEffect(() => {
         setLoadData(true);
         setLoadingState(true);
-    }, [searchParams])
+    }, [searchParams]);
 
     useEffect(() => {
         if (!loadData) return;
-        refetch({ params: searchParams, count: count + 10, organization_id: parseInt(organization_id) }).then((res) => {
+        refetch({
+            params: searchParams,
+            count: count + 10,
+            organization_id: parseInt(organization_id),
+        }).then((res) => {
             setLoadData(false);
             setLoadingState(false);
-            setData(res.data.sessionsBETA)
-            setCount(c => c + 10)
-        })
-    }, [loadData, count, organization_id, refetch, searchParams])
+            setData(res.data.sessionsBETA);
+            setCount((c) => c + 10);
+        });
+    }, [loadData, count, organization_id, refetch, searchParams]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
         loading: loadData,
         hasNextPage: true,
         onLoadMore: () => {
-            setLoadData(true)
+            if (data.sessions.length < data.totalCount) {
+                setLoadData(true);
+            }
         },
     });
 
     if (loadingState) {
         return (
-            <Skeleton height={110} count={3} style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }} />
-        )
+            <Skeleton
+                height={110}
+                count={3}
+                style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }}
+            />
+        );
     }
 
     return (
-        <div className={styles.feedContent} ref={infiniteRef as RefObject<HTMLDivElement>}>
-            {data.map((u) => {
+        <div
+            className={styles.feedContent}
+            ref={infiniteRef as RefObject<HTMLDivElement>}
+        >
+            <div
+                className={styles.resultCount}
+            >{`${data.totalCount} sessions`}</div>
+            {data.sessions.map((u) => {
                 return <SessionCard session={u} />;
             })}
-        </div >
+            {data.sessions.length < data.totalCount ? (
+                <Skeleton
+                    height={110}
+                    style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }}
+                />
+            ) : (
+                <></>
+            )}
+        </div>
     );
-}
+};
 
 const SessionCard = ({ session }: { session: Session }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -122,84 +170,95 @@ const SessionCard = ({ session }: { session: Session }) => {
             onMouseLeave={() => setHovered(false)}
         >
             <div className={styles.sessionCard}>
-                <div className={classNames(styles.hoverBorderLeft, hovered && styles.hoverBorderOn)} />
-                <div className={styles.avatarWrapper}>
-                    <Avatar seed={session.identifier ? session.identifier : session.user_id.toString()} style={{ height: 60, width: 60 }} />
-                </div>
                 <div
-                    className={
-                        styles.sessionTextSection
-                    }
-                >
+                    className={classNames(
+                        styles.hoverBorderLeft,
+                        hovered && styles.hoverBorderOn
+                    )}
+                />
+                <div className={styles.avatarWrapper}>
+                    <Avatar
+                        seed={
+                            session.identifier
+                                ? session.identifier
+                                : session.user_id.toString()
+                        }
+                        style={{ height: 60, width: 60 }}
+                    />
+                </div>
+                <div className={styles.sessionTextSection}>
                     <div
                         className={styles.topText}
                     >{`User#${session?.user_id}`}</div>
-                    <div className={classNames(styles.middleText, "rr-block")}>
+                    <div className={classNames(styles.middleText, 'rr-block')}>
                         {session?.identifier}
                     </div>
                     <div className={styles.tagWrapper}>
                         {session.fields
-                            .filter(f => f.type === "user" && f.name !== "identifier" && f.value.length)
-                            .map(f =>
-                                <Tag color="#F2EEFB"><span style={{ color: 'black', fontWeight: 300 }}>
-                                    {f.name}:&nbsp;{f.value}
-                                </span></Tag>
-                            )}
+                            .filter(
+                                (f) =>
+                                    f.type === 'user' &&
+                                    f.name !== 'identifier' &&
+                                    f.value.length
+                            )
+                            .map((f) => (
+                                <Tag color="#F2EEFB">
+                                    <span
+                                        style={{
+                                            color: 'black',
+                                            fontWeight: 300,
+                                        }}
+                                    >
+                                        {f.name}:&nbsp;{f.value}
+                                    </span>
+                                </Tag>
+                            ))}
                     </div>
                 </div>
-                <div
-                    className={
-                        styles.sessionTextSection
-                    }
-                >
+                <div className={styles.sessionTextSection}>
                     <div className={styles.topText}>
-                        {MillisToMinutesAndSecondsVerbose(
-                            session?.length
-                        ) || '30 min 20 sec'}
+                        {MillisToMinutesAndSecondsVerbose(session?.length) ||
+                            '30 min 20 sec'}
                     </div>
                     <div className={styles.middleText}>
-                        {created.toLocaleString(
-                            'en-us',
-                            {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric',
-                            }
-                        )}
+                        {created.toLocaleString('en-us', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                        })}
                     </div>
                     <div className={styles.bottomText}>
-                        {created.toLocaleString(
-                            'en-us',
-                            {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                timeZoneName: 'short',
-                            }
-                        )}
+                        {created.toLocaleString('en-us', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            timeZoneName: 'short',
+                        })}
                     </div>
                 </div>
-                <div
-                    className={
-                        styles.sessionTextSection
-                    }
-                >
+                <div className={styles.sessionTextSection}>
                     <div className={styles.topText}>
                         {session.browser_name}
-                        {session.browser_version && " / " + session.browser_version}
+                        {session.browser_version &&
+                            ' / ' + session.browser_version}
                     </div>
                     <div className={styles.middleText}>
                         {session.os_name}
-                        {session.os_version && " / " + session.os_version}
+                        {session.os_version && ' / ' + session.os_version}
                     </div>
                     <div className={styles.bottomText}>
                         {session.city}
-                        {session.state && ", " + session.state}
+                        {session.state && ', ' + session.state}
                         &nbsp;
                         {session.postal}
                     </div>
                 </div>
-                <div className={classNames(styles.hoverBorderRight, hovered && styles.hoverBorderOn)} />
+                <div
+                    className={classNames(
+                        styles.hoverBorderRight,
+                        hovered && styles.hoverBorderOn
+                    )}
+                />
             </div>
         </Link>
     );
-}
+};

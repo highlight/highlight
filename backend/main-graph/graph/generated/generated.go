@@ -151,6 +151,11 @@ type ComplexityRoot struct {
 		Viewed         func(childComplexity int) int
 	}
 
+	SessionResults struct {
+		Sessions   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
 	User struct {
 		ID func(childComplexity int) int
 	}
@@ -182,7 +187,7 @@ type QueryResolver interface {
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model1.Session, error)
-	SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParamsInput) ([]*model1.Session, error)
+	SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
@@ -869,6 +874,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Viewed(childComplexity), true
 
+	case "SessionResults.sessions":
+		if e.complexity.SessionResults.Sessions == nil {
+			break
+		}
+
+		return e.complexity.SessionResults.Sessions(childComplexity), true
+
+	case "SessionResults.totalCount":
+		if e.complexity.SessionResults.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.SessionResults.TotalCount(childComplexity), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
@@ -1062,6 +1081,11 @@ type Admin {
   email: String!
 }
 
+type SessionResults {
+  sessions: [Session]!
+  totalCount: Int!
+}
+
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
@@ -1070,7 +1094,7 @@ type Query {
   admins(organization_id: ID!): [Admin]
   isIntegrated(organization_id: ID!): Boolean
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
-  sessionsBETA(organization_id: ID!, count: Int!, params: SearchParamsInput): [Session]
+  sessionsBETA(organization_id: ID!, count: Int!, params: SearchParamsInput): SessionResults
   billingDetails(organization_id: ID!): Plan!
   # gets all the organizations of a user
   field_suggestionBETA(
@@ -2909,9 +2933,9 @@ func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.Session)
+	res := resTmp.(*model1.SessionResults)
 	fc.Result = res
-	return ec.marshalOSession2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+	return ec.marshalOSessionResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_billingDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4393,6 +4417,74 @@ func (ec *executionContext) _Session_viewed(ctx context.Context, field graphql.C
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SessionResults_sessions(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SessionResults",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Sessions, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]model1.Session)
+	fc.Result = res
+	return ec.marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SessionResults_totalCount(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SessionResults",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model1.User) (ret graphql.Marshaler) {
@@ -6346,6 +6438,38 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var sessionResultsImplementors = []string{"SessionResults"}
+
+func (ec *executionContext) _SessionResults(ctx context.Context, sel ast.SelectionSet, obj *model1.SessionResults) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sessionResultsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SessionResults")
+		case "sessions":
+			out.Values[i] = ec._SessionResults_sessions(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+			out.Values[i] = ec._SessionResults_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var userImplementors = []string{"User"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model1.User) graphql.Marshaler {
@@ -6722,6 +6846,43 @@ func (ec *executionContext) marshalNSearchParams2ᚖgithubᚗcomᚋjayᚑkhatri�
 func (ec *executionContext) unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx context.Context, v interface{}) (model.SearchParamsInput, error) {
 	res, err := ec.unmarshalInputSearchParamsInput(ctx, v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v []model1.Session) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOSession2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
@@ -7306,6 +7467,10 @@ func (ec *executionContext) marshalOSegment2ᚖgithubᚗcomᚋjayᚑkhatriᚋful
 	return ec._Segment(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOSession2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model1.Session) graphql.Marshaler {
+	return ec._Session(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalOSession2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v []*model1.Session) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -7351,6 +7516,13 @@ func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋful
 		return graphql.Null
 	}
 	return ec._Session(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOSessionResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx context.Context, sel ast.SelectionSet, v *model1.SessionResults) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SessionResults(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
