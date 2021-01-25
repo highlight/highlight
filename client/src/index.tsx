@@ -245,7 +245,7 @@ export class Highlight {
         highlightThis.addProperties({ 'visited-url': url }, "session");
       });
       ConsoleListener((c: ConsoleMessage) => {
-        if(c.type == "Error") highlightThis.errors.push({event:"Console Error: " + c.value})
+        if(c.type == "Error") highlightThis.errors.push({event:c.value, type: "console"})
         highlightThis.messages.push(c)
       });
       ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));

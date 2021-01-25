@@ -109,7 +109,7 @@ type Admin {
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
-  errors(session_id: ID!): [Any]
+  errors(organization_id: ID!): [Any]
   messages(session_id: ID!): [Any]
   resources(session_id: ID!): [Any]
   admins(organization_id: ID!): [Admin]

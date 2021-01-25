@@ -90,7 +90,7 @@ type ComplexityRoot struct {
 		Admin               func(childComplexity int) int
 		Admins              func(childComplexity int, organizationID int) int
 		BillingDetails      func(childComplexity int, organizationID int) int
-		Errors              func(childComplexity int, sessionID int) int
+		Errors              func(childComplexity int, organizationID int) int
 		Events              func(childComplexity int, sessionID int) int
 		FieldSuggestion     func(childComplexity int, organizationID int, field string, query string) int
 		FieldSuggestionBeta func(childComplexity int, organizationID int, name string, query string) int
@@ -178,7 +178,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
 	Events(ctx context.Context, sessionID int) ([]interface{}, error)
-	Errors(ctx context.Context, sessionID int) ([]interface{}, error)
+	Errors(ctx context.Context, organizationID int) ([]interface{}, error)
 	Messages(ctx context.Context, sessionID int) ([]interface{}, error)
 	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
@@ -482,7 +482,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Errors(childComplexity, args["session_id"].(int)), true
+		return e.complexity.Query.Errors(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.events":
 		if e.complexity.Query.Events == nil {
@@ -1079,7 +1079,7 @@ type Admin {
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
-  errors(session_id: ID!): [Any]
+  errors(organization_id: ID!): [Any]
   messages(session_id: ID!): [Any]
   resources(session_id: ID!): [Any]
   admins(organization_id: ID!): [Admin]
@@ -1446,14 +1446,14 @@ func (ec *executionContext) field_Query_errors_args(ctx context.Context, rawArgs
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["session_id"] = arg0
+	args["organization_id"] = arg0
 	return args, nil
 }
 
@@ -2740,7 +2740,7 @@ func (ec *executionContext) _Query_errors(ctx context.Context, field graphql.Col
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Errors(rctx, args["session_id"].(int))
+		return ec.resolvers.Query().Errors(rctx, args["organization_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

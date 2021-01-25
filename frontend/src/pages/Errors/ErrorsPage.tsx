@@ -1,14 +1,28 @@
 import React from 'react';
 import {useState, useEffect} from 'react';
+import { useParams } from 'react-router-dom';
+import { gql, useQuery } from '@apollo/client';
 import {Button} from 'antd';
 import styles from './ErrorsPage.module.scss';
 
+
 export const ErrorsPage = () => {
-    const [data, setData] = useState<Array<Error>>([]);
+    const { organization_id } = useParams<{ organization_id: string }>();
+    const { data } = useQuery<
+        { errors: [] },
+        { organization_id: number }
+    >(
+        gql`
+        query Errors(
+            $organization_id: ID!
+        ) {
+            errors(
+                organization_id: $organization_id
+            )
+        }
+    `, {variables: {organization_id: parseInt(organization_id)}, pollInterval: 5000});
 
-    useEffect
-
-    function throwError() : void {
+    const throwError = () : void => {
         /*try {
             throw new Error("Bad stuff");
         } catch (error) {
@@ -19,8 +33,8 @@ export const ErrorsPage = () => {
         throw new Error("This error is from a throw");
     }
 
-    function consoleError(): void{
-        console.log("This error was from the console")
+    const consoleError = (): void => {
+        console.error("This error was from the console")
     }
 
     return (
@@ -30,9 +44,7 @@ export const ErrorsPage = () => {
                 <Button type="primary" onClick={consoleError}>Console Error</Button>
             </div>
             <div className={styles.errorText}> 
-                {Errors.map((object: any) => (
-                    <p>{object.message} --- {object.stack}</p>
-                ))}
+                {JSON.stringify(data)}
             </div>
         </div>
     )
