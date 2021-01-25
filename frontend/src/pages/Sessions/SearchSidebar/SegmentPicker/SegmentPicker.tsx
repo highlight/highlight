@@ -100,6 +100,10 @@ export const SegmentPicker = () => {
             setExistingParams(parsed);
         } else {
             setIsSegment(false);
+            setExistingParams({
+                user_properties: [],
+                identified: false,
+            });
         }
     }, [currentSegment, setIsSegment, setSearchParams, setExistingParams]);
 
