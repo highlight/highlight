@@ -238,16 +238,8 @@ export class Highlight {
           if (obj.type === 'track') {
             const properties: { [key: string]: string } = {};
             properties['segment-event'] = obj.event;
-            highlightThis.logger.log(
-              `Adding segment track event (${JSON.stringify(properties)}) @ ${process.env.BACKEND_URI
-              }, org: ${highlightThis.organizationID}`
-            );
             highlightThis.addProperties(properties, { type: "track", source: "segment" });
           } else if (obj.type === 'identify') {
-            highlightThis.logger.log(
-              `Adding segment identify event (${JSON.stringify({ id: obj.userId, traits: obj.traits })}) @ ${process.env.BACKEND_URI
-              }, org: ${highlightThis.organizationID}`
-            );
             highlightThis.identify(obj.userId, obj.traits, "segment");
           }
         }, 100);
