@@ -92,8 +92,8 @@ export class Highlight {
     );
   }
 
-  async addProperties(properties_obj = {}, typeArg?: string) {
-    if(typeArg == "session"){
+  async addProperties(properties_obj = {}, typeArg?: "session" | "track") {
+    if (typeArg == "session") {
       await this.client.request(
         gql`
           mutation addSessionProperties($session_id: ID!, $properties_object: Any) {
@@ -211,7 +211,7 @@ export class Highlight {
             const properties: { [key: string]: string } = {};
             properties['segment-event'] = obj.event;
             highlightThis.logger.log(
-              `Adding (${JSON.stringify(properties)}) @ ${process.env.BACKEND_URI
+              `Adding segment track event (${JSON.stringify(properties)}) @ ${process.env.BACKEND_URI
               }, org: ${highlightThis.organizationID}`
             );
             addCustomEvent<string>(
@@ -222,6 +222,12 @@ export class Highlight {
               })
             );
             highlightThis.addProperties(properties);
+          } else if (obj.type === 'identify') {
+            highlightThis.logger.log(
+              `Adding segment identify event (${JSON.stringify({ id: obj.userId, traits: obj.traits })}) @ ${process.env.BACKEND_URI
+              }, org: ${highlightThis.organizationID}`
+            );
+            highlightThis.identify(obj.userId, obj.traits);
           }
         }, 100);
         send.call(this, data);
