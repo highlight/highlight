@@ -34,8 +34,10 @@ export type HighlightClassOptions = {
 
 type PropertyType = {
   type?: "track" | "session";
-  source?: "segment"
+  source: Source;
 }
+
+type Source = "segment" | undefined;
 
 export class Highlight {
   organizationID: string;
@@ -71,7 +73,12 @@ export class Highlight {
     this.messages = [];
   }
 
-  async identify(user_identifier: string, user_object = {}) {
+  async identify(user_identifier: string, user_object = {}, source: Source) {
+    if (source === "segment") {
+      addCustomEvent("Segment Identify", JSON.stringify({ user_identifier, ...user_object }))
+    } else {
+      addCustomEvent("Identify", JSON.stringify({ user_identifier, ...user_object }))
+    }
     await this.client.request(
       gql`
         mutation identifySession(
@@ -233,7 +240,7 @@ export class Highlight {
               `Adding segment track event (${JSON.stringify(properties)}) @ ${process.env.BACKEND_URI
               }, org: ${highlightThis.organizationID}`
             );
-            highlightThis.addProperties(properties, "track");
+            highlightThis.addProperties(properties, { type: "track", source: "segment" });
           } else if (obj.type === 'identify') {
             highlightThis.logger.log(
               `Adding segment identify event (${JSON.stringify({ id: obj.userId, traits: obj.traits })}) @ ${process.env.BACKEND_URI
