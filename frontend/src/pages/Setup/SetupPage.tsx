@@ -89,7 +89,7 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                     </div>
                                 <CodeBlock
                                     onCopy={() => {
-                                        window.analytics.track('Copied Code Snippet', {})
+                                        window.analytics.track('Copied Code Snippet', { copied: "code snippet" })
                                         H.track("Copied Code Snippet (Highlight Event)", { copied: "code snippet" })
                                     }
                                     }
