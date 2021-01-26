@@ -124,11 +124,17 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    padding-top: 24px;
 }
 
 .resultCount {
-    margin: 12px 8px 0px 8px;
+    margin: 0px -3px;
+    padding: 10px 5px 6px 5px;
     color: #a8a8a8;
+    background-color: white;
+    position: fixed;
+    width: 706px;
+    z-index: 10;
 }
 
 .sessionCard {
