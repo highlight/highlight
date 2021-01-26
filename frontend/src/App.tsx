@@ -97,6 +97,10 @@ export const AuthAdminRouter = () => {
                 id,
                 name,
             });
+            H.identify(email, {
+                id,
+                name,
+            });
         }
     }, [admin]);
     if (error) {

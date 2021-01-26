@@ -74,6 +74,7 @@ export class Highlight {
   }
 
   async identify(user_identifier: string, user_object = {}, source?: Source) {
+    console.log('1');
     if (source === "segment") {
       addCustomEvent("Segment Identify", JSON.stringify({ user_identifier, ...user_object }))
     } else {
