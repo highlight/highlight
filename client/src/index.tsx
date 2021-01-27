@@ -1,5 +1,5 @@
-import { addCustomEvent, record } from 'rrweb';
-import { eventWithTime } from 'rrweb/typings/types';
+import { addCustomEvent, record } from '@highlight-run/rrweb';
+import { eventWithTime } from '@highlight-run/rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient, gql } from 'graphql-request'

@@ -1,6 +1,6 @@
-import { IncrementalSource, EventType } from 'rrweb';
+import { IncrementalSource, EventType } from '@highlight-run/rrweb';
 import { serializedNodeWithId, NodeType } from 'rrweb-snapshot';
-import { eventWithTime } from 'rrweb/typings/types';
+import { eventWithTime } from '@highlight-run/rrweb/typings/types';
 
 type Attributes = {
     [key: string]: string | number | boolean | null;
