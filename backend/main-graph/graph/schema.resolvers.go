@@ -327,12 +327,12 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	return allEvents["events"], nil
 }
 
-func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]interface{}, error) {
+func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]*model.ErrorObject, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	errorsObjs := []*model.ErrorObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.ErrorObject{OrganizationID: organizationID}).Find(&errorsObjs); res.Error != nil {
+	errorObjs := []*model.ErrorObject{}
+	if res := r.DB.Order("created_at desc").Where(&model.ErrorObject{OrganizationID: organizationID}).Find(&errorObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
 	return errorObjs, nil

@@ -10,7 +10,7 @@ export type ErrorMessage = {
     source?: string | undefined;
     lineno?: number | undefined;
     colno?: number | undefined;
-    error?: Error | undefined;
+    trace?: Error | undefined;
 };
 
 export type NetworkResourceContent = {

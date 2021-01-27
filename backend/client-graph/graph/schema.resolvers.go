@@ -145,7 +145,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors string) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, organizationID int, sessionID int, events string, messages string, resources string, errors string) (*int, error) {
 	eventsParsed := make(map[string][]interface{})
 	// unmarshal events
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
@@ -185,8 +185,20 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		return nil, fmt.Errorf("error decoding resource data: %v", err)
 	}
 	if len(errorsParsed["errors"]) > 0 {
-		for err := range errorsParsed["errors"] {
-			console.log(err)
+		for _, v := range errorsParsed["errors"] {
+			obj := &model.ErrorObject{
+				OrganizationID: organizationID,
+				SessionID:      sessionID,
+				Event:          v.(map[string]interface{})["event"].(string),
+				Type:           v.(map[string]interface{})["type"].(string),
+				Source:         v.(map[string]interface{})["source"].(*string),
+				LineNo:         v.(map[string]interface{})["lineno"].(*int),
+				ColumnNo:       v.(map[string]interface{})["colno"].(*int),
+				Trace:          v.(map[string]interface{})["trace"].(*string),
+			}
+			if err := r.DB.Create(obj).Error; err != nil {
+				return nil, e.Wrap(err, "error creating resources object")
+			}
 		}
 	}
 	now := time.Now()

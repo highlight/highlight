@@ -2,6 +2,7 @@ import React from 'react';
 import {useState, useEffect} from 'react';
 import { useParams } from 'react-router-dom';
 import { gql, useQuery } from '@apollo/client';
+import {ErrorMessage} from '../../util/shared-types'
 import {Button} from 'antd';
 import styles from './ErrorsPage.module.scss';
 
@@ -9,7 +10,7 @@ import styles from './ErrorsPage.module.scss';
 export const ErrorsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data } = useQuery<
-        { errors: [] },
+        { errors: ErrorMessage[] },
         { organization_id: number }
     >(
         gql`
@@ -18,7 +19,9 @@ export const ErrorsPage = () => {
         ) {
             errors(
                 organization_id: $organization_id
-            )
+            ){
+                event, type, source, line_no, column_no, trace
+            }
         }
     `, {variables: {organization_id: parseInt(organization_id)}, pollInterval: 5000});
 

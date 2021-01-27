@@ -190,7 +190,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
 	Events(ctx context.Context, sessionID int) ([]interface{}, error)
-	Errors(ctx context.Context, organizationID int) ([]interface{}, error)
+	Errors(ctx context.Context, organizationID int) ([]*model1.ErrorObject, error)
 	Messages(ctx context.Context, sessionID int) ([]interface{}, error)
 	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
@@ -1166,7 +1166,7 @@ type Admin {
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
-  errors(organization_id: ID!): [Any]
+  errors(organization_id: ID!): [ErrorObject]
   messages(session_id: ID!): [Any]
   resources(session_id: ID!): [Any]
   admins(organization_id: ID!): [Admin]
@@ -3130,9 +3130,9 @@ func (ec *executionContext) _Query_errors(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]interface{})
+	res := resTmp.([]*model1.ErrorObject)
 	fc.Result = res
-	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
+	return ec.marshalOErrorObject2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -7639,6 +7639,53 @@ func (ec *executionContext) unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkha
 	}
 	res, err := ec.unmarshalInputDateRangeInput(ctx, v)
 	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOErrorObject2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorObject) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOErrorObject2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOErrorObject2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorObject) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ErrorObject(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v []*model1.Field) graphql.Marshaler {

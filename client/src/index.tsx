@@ -1,6 +1,7 @@
 import { addCustomEvent, record } from 'rrweb';
 import { eventWithTime } from 'rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
+import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient, gql } from 'graphql-request'
 
@@ -9,7 +10,6 @@ import {
   ErrorMessage,
   NetworkResourceContent,
 } from '../../frontend/src/util/shared-types';
-import { ErrorListener } from 'listeners/error-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
   console.warn(`Highlight Warning: (${context}): `, msg)
@@ -277,7 +277,7 @@ export class Highlight {
       const errorsString = JSON.stringify({ errors: this.errors });
       const eventsString = JSON.stringify({ events: this.events });
       this.logger.log(
-        `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
+        `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
       );
       this.events = [];
       this.errors = [];
@@ -289,6 +289,7 @@ export class Highlight {
       await this.client.request(
         gql`
         mutation PushPayload(
+          $organization_id: ID!
           $session_id: ID!
           $events: String!
           $messages: String!
@@ -296,6 +297,7 @@ export class Highlight {
           $errors: String!
         ) {
           pushPayload(
+            organization_id: $organization_id
             session_id: $session_id
             events: $events
             messages: $messages
@@ -305,6 +307,7 @@ export class Highlight {
         }
       `,
         {
+          organization_id: this.organizationID,
           session_id: this.sessionID,
           events: eventsString,
           messages: messagesString,
