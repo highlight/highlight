@@ -207,6 +207,7 @@ export class Highlight {
   Remote: ${process.env.BACKEND_URI}
   Org ID: ${gr.initializeSession.organization_id}
   Verbose Org ID: ${this.organizationID}
+  SessionID: ${this.sessionID}
   Session Data: 
   `,
           gr.initializeSession
@@ -287,7 +288,7 @@ export class Highlight {
       const messagesString = JSON.stringify({ messages: this.messages });
       const eventsString = JSON.stringify({ events: this.events });
       this.logger.log(
-        `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
+        `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionID}`
       );
       this.events = [];
       this.messages = [];
