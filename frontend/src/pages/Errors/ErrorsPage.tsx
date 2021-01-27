@@ -23,13 +23,6 @@ export const ErrorsPage = () => {
     `, {variables: {organization_id: parseInt(organization_id)}, pollInterval: 5000});
 
     const throwError = () : void => {
-        /*try {
-            throw new Error("Bad stuff");
-        } catch (error) {
-            setErrors([
-                ...Errors, error
-            ]);
-        }*/
         throw new Error("This error is from a throw");
     }
 

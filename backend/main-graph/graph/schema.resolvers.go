@@ -331,19 +331,11 @@ func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]inter
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	errorsObjs := []*model.ErrorsObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.ErrorsObject{OrganizationID: organizationID}).Find(&errorsObjs); res.Error != nil {
+	errorsObjs := []*model.ErrorObject{}
+	if res := r.DB.Order("created_at desc").Where(&model.ErrorObject{OrganizationID: organizationID}).Find(&errorsObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
-	allErrors := make(map[string][]interface{})
-	for _, errorsObj := range errorsObjs {
-		subErrors := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(errorsObj.Errors), &subErrors); err != nil {
-			return nil, fmt.Errorf("error decoding event data: %v", err)
-		}
-		allErrors["errors"] = append(subErrors["errors"], allErrors["errors"]...)
-	}
-	return allErrors["errors"], nil
+	return errorObjs, nil
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {

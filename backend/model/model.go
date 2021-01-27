@@ -230,11 +230,16 @@ type EventsObject struct {
 	Events    string
 }
 
-type ErrorsObject struct {
+type ErrorObject struct {
 	Model
 	OrganizationID 	int
 	SessionID 		int
-	Errors	  		string
+	Event 			string
+    Type			string
+    Source 			*string
+    LineNo		 	*int
+    ColumnNo	 	*int
+	Trace 			*string
 }
 
 func SetupDB() *gorm.DB {
@@ -256,7 +261,7 @@ func SetupDB() *gorm.DB {
 		&RecordingSettings{},
 		&MessagesObject{},
 		&EventsObject{},
-		&ErrorsObject{},
+		&ErrorObject{},
 		&Organization{},
 		&Segment{},
 		&Admin{},
