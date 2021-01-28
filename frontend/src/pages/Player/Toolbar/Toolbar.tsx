@@ -60,6 +60,17 @@ export const Toolbar = ({
         }, 1);
     }, [replayer, lastCanvasPreview, wrapperWidth, max]);
 
+    // Automatically start the video if the user has set the preference.
+    useEffect(() => {
+        /** We only auto start if the current timestamp is 0. This is to prevent starting a paused video when the toggle gets enabled. */
+        if (autoPlayVideo && replayer && current === 0) {
+            setTimeout(() => {
+                replayer.play(0);
+                setPaused(false);
+            }, 100);
+        }
+    }, [autoPlayVideo, replayer]);
+
     let endLogger = (e: any, data: any) => {
         let newTime = (e.x / wrapperWidth) * max
         newTime = Math.max(0, newTime)
