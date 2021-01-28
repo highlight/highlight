@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+	"strconv"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
@@ -186,15 +187,31 @@ func (r *mutationResolver) PushPayload(ctx context.Context, organizationID int, 
 	}
 	if len(errorsParsed["errors"]) > 0 {
 		for _, v := range errorsParsed["errors"] {
+			var source *string = nil
+			var line_no *int = nil
+			var column_no *int = nil
+			var trace *string = nil
+			if v.(map[string]interface{})["source"] != nil {
+				*source = v.(map[string]interface{})["source"].(string)
+			}
+			if v.(map[string]interface{})["lineno"] != nil {
+				*line_no, _ = strconv.Atoi(v.(map[string]interface{})["lineno"].(string))
+			}
+			if v.(map[string]interface{})["colno"] != nil {
+				*column_no, _ = strconv.Atoi(v.(map[string]interface{})["colno"].(string))
+			}
+			if v.(map[string]interface{})["trace"] != nil {
+				*trace = v.(map[string]interface{})["trace"].(string)
+			}
 			obj := &model.ErrorObject{
 				OrganizationID: organizationID,
 				SessionID:      sessionID,
 				Event:          v.(map[string]interface{})["event"].(string),
 				Type:           v.(map[string]interface{})["type"].(string),
-				Source:         v.(map[string]interface{})["source"].(*string),
-				LineNo:         v.(map[string]interface{})["lineno"].(*int),
-				ColumnNo:       v.(map[string]interface{})["colno"].(*int),
-				Trace:          v.(map[string]interface{})["trace"].(*string),
+				Source:         source,
+				LineNo:         line_no,
+				ColumnNo:       column_no,
+				Trace:          trace,
 			}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return nil, e.Wrap(err, "error creating resources object")
