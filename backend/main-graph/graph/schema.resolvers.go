@@ -22,14 +22,6 @@ import (
 	stripe "github.com/stripe/stripe-go"
 )
 
-func (r *errorObjectResolver) LineNo(ctx context.Context, obj *model.ErrorObject) (*int, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *errorObjectResolver) ColumnNo(ctx context.Context, obj *model.ErrorObject) (*int, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
 	admin, err := r.Query().Admin(ctx)
 	if err != nil {
