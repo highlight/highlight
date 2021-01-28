@@ -69,7 +69,7 @@ export const Toolbar = ({
                 setPaused(false);
             }, 100);
         }
-    }, [autoPlayVideo, replayer]);
+    }, [autoPlayVideo, replayer, current]);
 
     let endLogger = (e: any, data: any) => {
         let newTime = (e.x / wrapperWidth) * max
