@@ -235,7 +235,6 @@ type EventsObject struct {
 	Events    string
 }
 
-<<<<<<< HEAD
 type ErrorObject struct {
 	Model
 	OrganizationID 	int
@@ -248,8 +247,6 @@ type ErrorObject struct {
 	Trace 			string
 }
 
-=======
->>>>>>> master
 func SetupDB() *gorm.DB {
 	log.Println("setting up database")
 	psqlConf := fmt.Sprintf(
@@ -269,10 +266,7 @@ func SetupDB() *gorm.DB {
 		&RecordingSettings{},
 		&MessagesObject{},
 		&EventsObject{},
-<<<<<<< HEAD
 		&ErrorObject{},
-=======
->>>>>>> master
 		&Organization{},
 		&Segment{},
 		&Admin{},

@@ -126,10 +126,7 @@ type SessionResults {
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
-<<<<<<< HEAD
   errors(organization_id: ID!): [ErrorObject]
-=======
->>>>>>> master
   messages(session_id: ID!): [Any]
   resources(session_id: ID!): [Any]
   admins(organization_id: ID!): [Admin]
