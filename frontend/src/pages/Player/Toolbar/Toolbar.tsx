@@ -27,6 +27,7 @@ export const Toolbar = ({
     const [speed, setSpeed] = useLocalStorage('highlightMenuSpeed', 2);
     const [skipInactive, setSkipInactive] = useLocalStorage('highlightMenuSkipInactive', false);
     const [openDevTools, setOpenDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
+    const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage('highlightMenuAutoPlayVideo', false);
     const [paused, setPaused] = useState(true);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
@@ -209,6 +210,8 @@ export const Toolbar = ({
                             setSpeed(s);
                             replayer?.setConfig({ speed: s });
                         }}
+                        autoPlayVideo={autoPlayVideo}
+                        onAutoPlayVideoChange={() => {setAutoPlayVideo(!autoPlayVideo)}}
                     />
                 </div>
             </div>

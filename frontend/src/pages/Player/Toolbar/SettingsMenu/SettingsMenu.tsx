@@ -10,16 +10,20 @@ import styles from './SettingsMenu.module.scss';
 export const SettingsMenu = ({
     skipInactive,
     openDevTools,
+    autoPlayVideo,
     speed,
     onSkipInactiveChange,
     onOpenDevToolsChange,
+    onAutoPlayVideoChange,
     onSpeedChange,
 }: {
     skipInactive: boolean;
     openDevTools: boolean;
+    autoPlayVideo: boolean;
     speed: number;
     onSkipInactiveChange: () => void;
     onOpenDevToolsChange: () => void;
+    onAutoPlayVideoChange: () => void;
     onSpeedChange: (s: number) => void;
 }) => {
     const [openSpeedMenu, setOpenSpeedMenu] = useState(false);
@@ -97,6 +101,14 @@ export const SettingsMenu = ({
                                             checked={skipInactive}
                                             className={styles.switchStyle}
                                             onChange={onSkipInactiveChange}
+                                        />
+                                    </div>
+                                    <div className={toolbarStyles.dropdownSection}>
+                                        <span>Autoplay Video</span>
+                                        <Switch
+                                            checked={autoPlayVideo}
+                                            className={styles.switchStyle}
+                                            onChange={onAutoPlayVideoChange}
                                         />
                                     </div>
                                     <div
