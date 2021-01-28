@@ -245,10 +245,10 @@ export class Highlight {
         highlightThis.addProperties({ 'visited-url': url }, "session");
       });
       ConsoleListener((c: ConsoleMessage) => {
-        if(c.type == "Error") highlightThis.errors.push({event:c.value, type: "console"})
+        if(c.type == "Error" && this.organizationID == "1") highlightThis.errors.push({event:c.value, type: "console"})
         highlightThis.messages.push(c)
       });
-      ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
+      if(this.organizationID == "1") ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
       this.ready = true;
     } catch (e) {
       HighlightWarning("initializeSession", e)
