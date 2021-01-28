@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MouseInteractions, EventType } from 'rrweb';
+import { MouseInteractions, EventType } from '@highlight-run/rrweb';
 import { Element } from 'react-scroll';
 import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
@@ -11,7 +11,7 @@ import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
 import { HighlightEvent } from '../HighlightEvent';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
-import { mouseInteractionData } from 'rrweb/typings/types';
+import { mouseInteractionData } from '@highlight-run/rrweb/typings/types';
 import { StaticMap } from '../StaticMap/StaticMap';
 import styles from './StreamElement.module.scss';
 
@@ -66,8 +66,8 @@ export const StreamElement = ({
                     ) : details.title === 'Referrer' ? (
                         <ReferrerIcon className={styles.defaultIcon} />
                     ) : (
-                                                <HoverIcon className={styles.tiltedIcon} />
-                                            )}
+                                                    <HoverIcon className={styles.tiltedIcon} />
+                                                )}
                 </div>
                 <div
                     className={
