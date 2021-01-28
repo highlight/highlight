@@ -39,18 +39,13 @@ export const H: HighlightPublicInterface = {
     init: (orgID: number | string, options?: HighlightOptions) => {
         try {
             H.options = options;
-            var scriptSeed = window.sessionStorage.getItem("scriptSeed")|| "";
-            if (scriptSeed === "") {
-                scriptSeed = (new Date().getMilliseconds()).toString();
-                window.sessionStorage.setItem("scriptSeed", scriptSeed);
-            }
             script = document.createElement('script');
             var scriptSrc = options?.scriptUrl
                 ? options.scriptUrl
                 : 'https://static.highlight.run/index.js';
             script.setAttribute(
                 'src',
-                scriptSrc + '?' + scriptSeed
+                scriptSrc + '?' + new Date().getMilliseconds()
             );
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
