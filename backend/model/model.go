@@ -236,10 +236,10 @@ type ErrorObject struct {
 	SessionID 		int
 	Event 			string
     Type			string
-    Source 			*string
-    LineNo		 	*int
-    ColumnNo	 	*int
-	Trace 			*string
+    Source 			string
+    LineNo		 	float64
+    ColumnNo	 	float64
+	Trace 			string
 }
 
 func SetupDB() *gorm.DB {
