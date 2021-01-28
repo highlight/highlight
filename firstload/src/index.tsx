@@ -45,7 +45,7 @@ export const H: HighlightPublicInterface = {
                 : 'https://static.highlight.run/index.js';
             script.setAttribute(
                 'src',
-                scriptSrc + '?' + (window.sessionStorage.getItem("currentSessionID") || new Date().getMilliseconds())
+                scriptSrc + '?' + new Date().getMilliseconds()
             );
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
