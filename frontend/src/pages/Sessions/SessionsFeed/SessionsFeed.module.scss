@@ -124,14 +124,14 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    padding-top: 24px;
+    padding-top: 30px;
 }
 
 .resultCount {
     margin: 0px -3px;
-    padding: 10px 5px 6px 5px;
+    padding: 8px 5px 16px 5px;
     color: #a8a8a8;
-    background-color: white;
+    background: linear-gradient(to top, rgba(255,255,255,0), rgba(255,255,255,1) 30%);
     position: fixed;
     width: 706px;
     z-index: 10;

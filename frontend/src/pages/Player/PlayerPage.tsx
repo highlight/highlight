@@ -125,6 +125,7 @@ export const Player = () => {
                 sessionData?.events.map((e: HighlightEvent, i: number) => {
                     return { ...e, identifier: i.toString() };
                 }) ?? [];
+            console.log(newEvents)
             let r = new Replayer(newEvents, {
                 root: document.getElementById('player') as HTMLElement,
             });
