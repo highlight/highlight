@@ -145,7 +145,11 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
+<<<<<<< HEAD
 func (r *mutationResolver) PushPayload(ctx context.Context, organizationID int, sessionID int, events string, messages string, resources string, errors string) (*int, error) {
+=======
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string) (*int, error) {
+>>>>>>> master
 	eventsParsed := make(map[string][]interface{})
 	// unmarshal events
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {

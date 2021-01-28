@@ -327,6 +327,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	return allEvents["events"], nil
 }
 
+<<<<<<< HEAD
 func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]*model.ErrorObject, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
@@ -338,6 +339,8 @@ func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]*mode
 	return errorObjs, nil
 }
 
+=======
+>>>>>>> master
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -515,8 +518,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	return sessions[:count], nil
 }
 
-func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *modelInputs.SearchParamsInput) ([]*model.Session, error) {
-	queriedSessions := []*model.Session{}
+func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+	queriedSessions := []model.Session{}
 	query := r.DB.Where("organization_id = ?", organizationID).
 		Where("processed = ?", true).
 		Where("length > ?", 1000).
@@ -547,7 +550,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	}
 
 	// Find sessions that have all the specified user properties.
-	sessions := []*model.Session{}
+	sessions := []model.Session{}
 	for _, session := range queriedSessions {
 		passed := 0
 		excluded := 0
@@ -580,7 +583,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 
 	// Find session that have the visited url.
 	if params.VisitedURL != nil {
-		visitedSessions := []*model.Session{}
+		visitedSessions := []model.Session{}
 		for _, session := range sessions {
 			for _, field := range session.Fields {
 				if field.Name == "visited-url" && field.Value == *params.VisitedURL {
@@ -593,7 +596,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 
 	// Find session that have the referrer.
 	if params.Referrer != nil {
-		referredSessions := []*model.Session{}
+		referredSessions := []model.Session{}
 		for _, session := range sessions {
 			for _, field := range session.Fields {
 				if field.Name == "referrer" && field.Value == *params.Referrer {
@@ -607,7 +610,11 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	if len(sessions) < count {
 		count = len(sessions)
 	}
-	return sessions[:count], nil
+	sessionList := &model.SessionResults{
+		Sessions:   sessions[:count],
+		TotalCount: len(sessions),
+	}
+	return sessionList, nil
 }
 
 func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) (modelInputs.Plan, error) {

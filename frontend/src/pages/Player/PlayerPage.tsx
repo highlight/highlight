@@ -5,8 +5,8 @@ import {
     MouseInteractions,
     IncrementalSource,
     EventType,
-} from 'rrweb';
-import { eventWithTime, incrementalData } from 'rrweb/typings/types';
+} from '@highlight-run/rrweb';
+import { eventWithTime, incrementalData } from '@highlight-run/rrweb/typings/types';
 import { scroller } from 'react-scroll';
 import { useQuery, gql, useMutation } from '@apollo/client';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';

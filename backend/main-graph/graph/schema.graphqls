@@ -118,16 +118,24 @@ type Admin {
   email: String!
 }
 
+type SessionResults {
+  sessions: [Session]!
+  totalCount: Int!
+}
+
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
+<<<<<<< HEAD
   errors(organization_id: ID!): [ErrorObject]
+=======
+>>>>>>> master
   messages(session_id: ID!): [Any]
   resources(session_id: ID!): [Any]
   admins(organization_id: ID!): [Admin]
   isIntegrated(organization_id: ID!): Boolean
   sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
-  sessionsBETA(organization_id: ID!, count: Int!, params: SearchParamsInput): [Session]
+  sessionsBETA(organization_id: ID!, count: Int!, params: SearchParamsInput): SessionResults
   billingDetails(organization_id: ID!): Plan!
   # gets all the organizations of a user
   field_suggestionBETA(

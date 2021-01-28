@@ -5,10 +5,10 @@ import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import { SettingsMenu } from './SettingsMenu/SettingsMenu';
 import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
-import Draggable from 'react-draggable'; 
+import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
-import { Replayer } from 'rrweb';
+import { Replayer } from '@highlight-run/rrweb';
 
 export const Toolbar = ({
     replayer,
@@ -67,7 +67,7 @@ export const Toolbar = ({
         setCurrent(newTime)
         setLastCanvasPreview(e.x)
         setIsDragged(false)
-        
+
         if (paused) {
             setCurrent(newTime);
             replayer?.pause(newTime);
@@ -83,10 +83,10 @@ export const Toolbar = ({
         if (!paused) {
             replayer?.pause();
             setPaused(true);
-        } 
+        }
     }
 
-    let onDraggable  = (e: any, data: any) => {
+    let onDraggable = (e: any, data: any) => {
         let newTime = (data.x / (wrapperWidth)) * max
 
         setCurrent(newTime);
@@ -95,7 +95,7 @@ export const Toolbar = ({
         // Only forward is supported due as going backwards creates a time heavy operation
         if (data.x - lastCanvasPreview > 10) {
             setLastCanvasPreview(data.x)
-        } 
+        }
     }
 
     return (

@@ -9,7 +9,6 @@ import { SessionsPage } from './pages/Sessions/SessionsPage';
 import { WorkspaceTeam } from './pages/WorkspaceTeam/WorkspaceTeam';
 import { Billing } from './pages/Billing/Billing';
 import { SetupPage } from './pages/Setup/SetupPage';
-import { ErrorsPage } from './pages/Errors/ErrorsPage';
 import { useIntegrated } from './util/integrated';
 import styles from './App.module.scss';
 import { WorkspaceSettings } from './pages/WorkspaceSettings/WorkspaceSettings';
@@ -91,9 +90,6 @@ export const OrgRouter = () => {
                     </Route>
                     <Route path="/:organization_id/setup">
                         <SetupPage integrated={integrated} />
-                    </Route>
-                    <Route path="/:organization_id/errors">
-                        <ErrorsPage />
                     </Route>
                     <Route path="/:organization_id">
                         {integrated ? <Redirect to={`/${organization_id}/sessions`} /> :
