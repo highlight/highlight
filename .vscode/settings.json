@@ -5,9 +5,6 @@
     "[go]": {
         "editor.defaultFormatter": "golang.go"
     },
-    "go.languageServerExperimentalFeatures": {
-        "diagnostics": true
-    },
     "editor.hover.enabled": true,
     "editor.colorDecorators": true
 }
