@@ -1,4 +1,16 @@
 {
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "go.formatTool": "goimports",
+    "[go]": {
+        "editor.defaultFormatter": "golang.go",
+        "editor.formatOnSave": true
+    },
+    "gopls.experimentalWorkspaceModule": true,
+    "go.languageServerExperimentalFeatures": {
+        "diagnostics": true
+    },
+    "editor.codeActionsOnSave": { "source.organizeImports": true },
+    "editor.hover.enabled": true,
+    "editor.colorDecorators": true
 }

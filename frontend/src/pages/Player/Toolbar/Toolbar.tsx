@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
+import { Replayer } from '@highlight-run/rrweb';
 import { useLocalStorage } from '@rehooks/local-storage';
+import React, { useEffect, useRef, useState } from 'react';
+import Draggable from 'react-draggable';
+import { FaPause, FaPlay, FaUndoAlt } from 'react-icons/fa';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
+import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import { SettingsMenu } from './SettingsMenu/SettingsMenu';
-import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
-import Draggable from 'react-draggable';
-
 import styles from './Toolbar.module.scss';
-import { Replayer } from '@highlight-run/rrweb';
 
 export const Toolbar = ({
     replayer,
