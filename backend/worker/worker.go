@@ -7,14 +7,12 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/pkg/errors"
-
 	"github.com/slack-go/slack"
 
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
 	log "github.com/sirupsen/logrus"
 )
 
-// Worker yo
 type Worker struct {
 	R *mgraph.Resolver
 }
