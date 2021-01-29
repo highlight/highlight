@@ -14,6 +14,7 @@ jobs:
               uses: actions/checkout@v2
             - name: Setup Go
               uses: actions/setup-go@v2
+            # taken from https://stackoverflow.com/questions/39792766/checking-to-find-out-if-go-code-has-been-formatted
             - name: Check formatting
               run: test -z $(gofmt -l your-dir)
             - name: Build binary
