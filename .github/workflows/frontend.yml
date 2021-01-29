@@ -19,5 +19,7 @@ jobs:
                   registry-url: https://registry.npmjs.org
             - name: Install main dependencies
               run: cd frontend && yarn install
+            - name: Runs linting
+              run: cd frontend && yarn lint
             - name: Build Bundle
               run: cd frontend && CI=true yarn build
