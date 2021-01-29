@@ -9,6 +9,7 @@ import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import { Tag, Tooltip } from 'antd';
+import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 
 type Field = {
     type: string;
@@ -138,9 +139,16 @@ export const SessionFeed = () => {
 
     return (
         <>
-            <div
-                className={styles.resultCount}
-            >{`${data.totalCount} sessions`}</div>
+            <div className={styles.fixedContent}>
+                <div className={styles.mainUserInput}>
+                    <div className={styles.userInputWrapper}>
+                        <UserPropertyInput include />
+                    </div>
+                </div>
+                <div
+                    className={styles.resultCount}
+                >{`${data.totalCount} sessions`}</div>
+            </div>
             <div
                 className={styles.feedContent}
                 ref={infiniteRef as RefObject<HTMLDivElement>}
