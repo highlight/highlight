@@ -13,7 +13,7 @@ export const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
     children,
     title,
     open,
-    titleSideComponent
+    titleSideComponent,
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(open);
     const header = (
@@ -39,12 +39,12 @@ export const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
                 trigger={header}
                 transitionTime={150}
                 style={{ margin: 10 }}
-                contentOuterClassName={isOpen ? styles.contentOuterOpen : styles.contentOuterClosed}
+                contentOuterClassName={
+                    isOpen ? styles.contentOuterOpen : styles.contentOuterClosed
+                }
             >
-                <div className={styles.searchSection}>
-                    {children}
-                </div>
+                <div className={styles.searchSection}>{children}</div>
             </Collapsible>
         </div>
     );
-}
+};

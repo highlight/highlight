@@ -66,8 +66,8 @@ export const StreamElement = ({
                     ) : details.title === 'Referrer' ? (
                         <ReferrerIcon className={styles.defaultIcon} />
                     ) : (
-                                                    <HoverIcon className={styles.tiltedIcon} />
-                                                )}
+                        <HoverIcon className={styles.tiltedIcon} />
+                    )}
                 </div>
                 <div
                     className={

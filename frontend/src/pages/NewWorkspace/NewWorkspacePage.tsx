@@ -72,8 +72,8 @@ export const NewWorkspacePage = () => {
                                 style={{ fontSize: 18, color: 'white' }}
                             />
                         ) : (
-                                'Create Workspace'
-                            )}
+                            'Create Workspace'
+                        )}
                     </button>
                 </form>
             </div>

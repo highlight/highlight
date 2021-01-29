@@ -15,37 +15,77 @@ export const VisitedUrlInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
-    const { refetch } = useQuery<{ field_suggestionBETA: Array<{ name: string; value: string }> }, { organization_id: number; query: string; name: string }>(
+    const { refetch } = useQuery<
+        { field_suggestionBETA: Array<{ name: string; value: string }> },
+        { organization_id: number; query: string; name: string }
+    >(
         gql`
-            query GetFieldSuggestionBETA($organization_id: ID!, $name: String!, $query: String!) {
-                field_suggestionBETA(organization_id: $organization_id, name: $name, query: $query) {
+            query GetFieldSuggestionBETA(
+                $organization_id: ID!
+                $name: String!
+                $query: String!
+            ) {
+                field_suggestionBETA(
+                    organization_id: $organization_id
+                    name: $name
+                    query: $query
+                ) {
                     name
                     value
                 }
             }
-        `, { skip: true });
+        `,
+        { skip: true }
+    );
 
-    const generateOptions = async (input: string): Promise<OptionsType<OptionTypeBase> | void[]> => {
-        var fetched = await refetch({ organization_id: parseInt(organization_id), query: input, name: "visited-url" })
+    const generateOptions = async (
+        input: string
+    ): Promise<OptionsType<OptionTypeBase> | void[]> => {
+        var fetched = await refetch({
+            organization_id: parseInt(organization_id),
+            query: input,
+            name: 'visited-url',
+        });
         var suggestions = fetched.data.field_suggestionBETA
-            .map(e => e.value)
+            .map((e) => e.value)
             .filter((v, i, a) => a.indexOf(v) === i)
-            .map(f => { return { label: f, value: f } });
+            .map((f) => {
+                return { label: f, value: f };
+            });
         return suggestions;
-    }
+    };
 
-    const onChange = (current: ValueType<{ label: string; value: string }, false>) => {
-        setSearchParams(params => ({ ...params, visited_url: current?.value }))
-    }
+    const onChange = (
+        current: ValueType<{ label: string; value: string }, false>
+    ) => {
+        setSearchParams((params) => ({
+            ...params,
+            visited_url: current?.value,
+        }));
+    };
 
     return (
         <div className={inputStyles.commonInputWrapper}>
             <AsyncSelect
-                placeholder={"Visited URL"}
+                placeholder={'Visited URL'}
                 styles={SharedSelectStyleProps}
                 cacheOptions
-                value={searchParams.visited_url ? {label: searchParams.visited_url, value: searchParams.visited_url} : null}
-                components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><URLIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
+                value={
+                    searchParams.visited_url
+                        ? {
+                              label: searchParams.visited_url,
+                              value: searchParams.visited_url,
+                          }
+                        : null
+                }
+                components={{
+                    DropdownIndicator: () => (
+                        <div className={inputStyles.iconWrapper}>
+                            <URLIcon fill="#808080" />
+                        </div>
+                    ),
+                    IndicatorSeparator: () => null,
+                }}
                 loadOptions={generateOptions}
                 defaultOptions
                 isClearable
@@ -53,67 +93,114 @@ export const VisitedUrlInput = () => {
             />
         </div>
     );
-}
+};
 
 export const ReferrerInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
-    const { refetch } = useQuery<{ field_suggestionBETA: Array<{ name: string; value: string }> }, { organization_id: number; query: string; name: string }>(
+    const { refetch } = useQuery<
+        { field_suggestionBETA: Array<{ name: string; value: string }> },
+        { organization_id: number; query: string; name: string }
+    >(
         gql`
-            query GetFieldSuggestionBETA($organization_id: ID!, $name: String!, $query: String!) {
-                field_suggestionBETA(organization_id: $organization_id, name: $name, query: $query) {
+            query GetFieldSuggestionBETA(
+                $organization_id: ID!
+                $name: String!
+                $query: String!
+            ) {
+                field_suggestionBETA(
+                    organization_id: $organization_id
+                    name: $name
+                    query: $query
+                ) {
                     name
                     value
                 }
             }
-        `, { skip: true });
+        `,
+        { skip: true }
+    );
 
-    const generateOptions = async (input: string): Promise<OptionsType<OptionTypeBase> | void[]> => {
-        var fetched = await refetch({ organization_id: parseInt(organization_id), query: input, name: "referrer" })
+    const generateOptions = async (
+        input: string
+    ): Promise<OptionsType<OptionTypeBase> | void[]> => {
+        var fetched = await refetch({
+            organization_id: parseInt(organization_id),
+            query: input,
+            name: 'referrer',
+        });
         var suggestions = fetched.data.field_suggestionBETA
-            .map(e => e.value)
+            .map((e) => e.value)
             .filter((v, i, a) => a.indexOf(v) === i)
-            .map(f => { return { label: f, value: f } });
+            .map((f) => {
+                return { label: f, value: f };
+            });
         return suggestions;
-    }
+    };
 
-    const onChange = (current: ValueType<{ label: string; value: string }, false>) => {
-        setSearchParams(params => ({ ...params, referrer: current?.value }))
-    }
+    const onChange = (
+        current: ValueType<{ label: string; value: string }, false>
+    ) => {
+        setSearchParams((params) => ({ ...params, referrer: current?.value }));
+    };
 
     return (
         <div className={inputStyles.commonInputWrapper}>
             <AsyncSelect
-                placeholder={"Referrer"}
+                placeholder={'Referrer'}
                 cacheOptions
                 isClearable
-                value={searchParams.referrer ? {label: searchParams.referrer, value: searchParams.referrer} : null}
+                value={
+                    searchParams.referrer
+                        ? {
+                              label: searchParams.referrer,
+                              value: searchParams.referrer,
+                          }
+                        : null
+                }
                 loadOptions={generateOptions}
                 styles={SharedSelectStyleProps}
-                components={{ DropdownIndicator: () => <div className={inputStyles.iconWrapper}><ReferrerIcon fill="#808080" /></div>, IndicatorSeparator: () => null }}
+                components={{
+                    DropdownIndicator: () => (
+                        <div className={inputStyles.iconWrapper}>
+                            <ReferrerIcon fill="#808080" />
+                        </div>
+                    ),
+                    IndicatorSeparator: () => null,
+                }}
                 defaultOptions
                 onChange={onChange}
             />
-        </div >
+        </div>
     );
-}
+};
 
 export const ViewedSessionsSwitch = () => {
     const { searchParams, setSearchParams } = useContext(SearchContext);
-    const [on, setOn] = useState(false)
+    const [on, setOn] = useState(false);
     return (
         <div className={inputStyles.commonInputWrapper}>
             <div className={inputStyles.switchRow}>
                 <Switch
                     checked={searchParams.hide_viewed || false}
                     onChange={(val: boolean) => {
-                        setOn(val)
-                        setSearchParams(params => ({ ...params, hide_viewed: val }))
+                        setOn(val);
+                        setSearchParams((params) => ({
+                            ...params,
+                            hide_viewed: val,
+                        }));
                     }}
                 />
-                <div className={classNames(inputStyles.switchText, on && inputStyles.switchTextSelected)}>Hide viewed sessions</div>
+                <div
+                    className={classNames(
+                        inputStyles.switchText,
+                        on && inputStyles.switchTextSelected
+                    )}
+                >
+                    Hide viewed sessions
+                </div>
             </div>
         </div>
     );
-}
+};

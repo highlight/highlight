@@ -25,12 +25,12 @@ export const DevToolsWindow = ({
                     {isConsole ? (
                         <ConsolePage time={time} />
                     ) : (
-                            <ResourcePage startTime={startTime} time={time} />
-                        )}
+                        <ResourcePage startTime={startTime} time={time} />
+                    )}
                 </div>
             ) : (
-                    <></>
-                )}
+                <></>
+            )}
         </IsConsoleContext.Provider>
     );
 };

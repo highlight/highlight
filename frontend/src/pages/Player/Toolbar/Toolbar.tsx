@@ -25,16 +25,24 @@ export const Toolbar = ({
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [current, setCurrent] = useState(0);
     const [speed, setSpeed] = useLocalStorage('highlightMenuSpeed', 2);
-    const [skipInactive, setSkipInactive] = useLocalStorage('highlightMenuSkipInactive', false);
-    const [openDevTools, setOpenDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
-    const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage('highlightMenuAutoPlayVideo', false);
+    const [skipInactive, setSkipInactive] = useLocalStorage(
+        'highlightMenuSkipInactive',
+        false
+    );
+    const [openDevTools, setOpenDevTools] = useLocalStorage(
+        'highlightMenuOpenDevTools',
+        false
+    );
+    const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
+        'highlightMenuAutoPlayVideo',
+        false
+    );
     const [paused, setPaused] = useState(true);
     // Represents whether the user has directly or indirectly interacted with the player.
     const [touched, setTouched] = useState(false);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const [isDragged, setIsDragged] = useState(false);
-
 
     // When not paused and not dragged, update the current time.
     // When the current time is updated, the function calls itself again.
@@ -43,14 +51,14 @@ export const Toolbar = ({
             if (!paused && !isDragged) {
                 setTimeout(() => {
                     setCurrent(replayer.getCurrentTime());
-                }, 50)
+                }, 50);
             }
         }
     }, [replayer, paused, isDragged, current]);
 
     useEffect(() => {
-        onResize()
-    }, [openDevTools, onResize])
+        onResize();
+    }, [openDevTools, onResize]);
 
     useEffect(() => {
         replayer?.setConfig({ skipInactive, speed });
@@ -58,7 +66,7 @@ export const Toolbar = ({
 
     useEffect(() => {
         setTimeout(() => {
-            replayer?.pause((lastCanvasPreview / wrapperWidth) * max)
+            replayer?.pause((lastCanvasPreview / wrapperWidth) * max);
         }, 1);
     }, [replayer, lastCanvasPreview, wrapperWidth, max]);
 
@@ -79,13 +87,13 @@ export const Toolbar = ({
     }, [current]);
 
     let endLogger = (e: any, data: any) => {
-        let newTime = (e.x / wrapperWidth) * max
-        newTime = Math.max(0, newTime)
-        newTime = Math.min(max, newTime)
+        let newTime = (e.x / wrapperWidth) * max;
+        newTime = Math.max(0, newTime);
+        newTime = Math.min(max, newTime);
 
-        setCurrent(newTime)
-        setLastCanvasPreview(e.x)
-        setIsDragged(false)
+        setCurrent(newTime);
+        setLastCanvasPreview(e.x);
+        setIsDragged(false);
 
         if (paused) {
             setCurrent(newTime);
@@ -97,25 +105,25 @@ export const Toolbar = ({
     };
 
     let startDraggable = (e: any, data: any) => {
-        setLastCanvasPreview(data.x)
-        setIsDragged(true)
+        setLastCanvasPreview(data.x);
+        setIsDragged(true);
         if (!paused) {
             replayer?.pause();
             setPaused(true);
         }
-    }
+    };
 
     let onDraggable = (e: any, data: any) => {
-        let newTime = (data.x / (wrapperWidth)) * max
+        let newTime = (data.x / wrapperWidth) * max;
 
         setCurrent(newTime);
 
         // TODO: Add Math.abs to enable both forward and backward scrolling
         // Only forward is supported due as going backwards creates a time heavy operation
         if (data.x - lastCanvasPreview > 10) {
-            setLastCanvasPreview(data.x)
+            setLastCanvasPreview(data.x);
         }
-    }
+    };
 
     return (
         <>
@@ -150,20 +158,16 @@ export const Toolbar = ({
                     onStart={startDraggable}
                     position={{
                         x: Math.max((current / max) * wrapperWidth - 15, 0),
-                        y: 0
+                        y: 0,
                     }}
                 >
-                    <div
-                        className={styles.indicator}
-                    />
+                    <div className={styles.indicator} />
                 </Draggable>
-
             </div>
             <div className={styles.toolbarSection}>
                 <div className={styles.toolbarLeftSection}>
                     <div
                         className={styles.playSection}
-
                         // TODO: Add waiting toggle, so a user does not pause while the player is loading.
                         onClick={() => {
                             if (paused) {
@@ -183,11 +187,11 @@ export const Toolbar = ({
                                 className={styles.playButtonStyle}
                             />
                         ) : (
-                                <FaPause
-                                    fill="black"
-                                    className={styles.playButtonStyle}
-                                />
-                            )}
+                            <FaPause
+                                fill="black"
+                                className={styles.playButtonStyle}
+                            />
+                        )}
                     </div>
                     <div
                         className={styles.undoSection}
@@ -229,7 +233,9 @@ export const Toolbar = ({
                             replayer?.setConfig({ speed: s });
                         }}
                         autoPlayVideo={autoPlayVideo}
-                        onAutoPlayVideoChange={() => {setAutoPlayVideo(!autoPlayVideo)}}
+                        onAutoPlayVideoChange={() => {
+                            setAutoPlayVideo(!autoPlayVideo);
+                        }}
                     />
                 </div>
             </div>

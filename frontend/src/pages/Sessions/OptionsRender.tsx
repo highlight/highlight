@@ -45,7 +45,11 @@ export const FieldOptions = ({
 
     useEffect(() => {
         fieldSuggestion({
-            variables: { field, query: input, organization_id: parseInt(organization_id) },
+            variables: {
+                field,
+                query: input,
+                organization_id: parseInt(organization_id),
+            },
         });
     }, [input, fieldSuggestion, organization_id, field]);
 
@@ -228,7 +232,7 @@ export const OptionsFilter = ({
                                 style={{
                                     backgroundColor:
                                         allResults[index].original ===
-                                            f.original
+                                        f.original
                                             ? '#F2EEFB'
                                             : 'transparent',
                                 }}
@@ -264,7 +268,7 @@ export const OptionsFilter = ({
                                 style={{
                                     backgroundColor:
                                         allResults[index].original ===
-                                            f.original
+                                        f.original
                                             ? '#F2EEFB'
                                             : 'transparent',
                                 }}
