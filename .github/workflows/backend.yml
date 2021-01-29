@@ -15,6 +15,6 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v2
             - name: Check formatting
-              run: gofmt -l .
+              run: test -z $(gofmt -l your-dir)
             - name: Build binary
               run: cd backend && go build .
