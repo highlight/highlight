@@ -39,13 +39,13 @@ type DeviceDetails struct {
 type Property string
 
 var PropertyType = struct {
-	USER	Property
-	SESSION	Property
-	TRACK	Property
+	USER    Property
+	SESSION Property
+	TRACK   Property
 }{
-	USER: 		"user",
-	SESSION: 	"session",
-	TRACK: 		"track",
+	USER:    "user",
+	SESSION: "session",
+	TRACK:   "track",
 }
 
 //Change to AppendProperties(sessionId,properties,type)
