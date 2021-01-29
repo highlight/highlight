@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
 import { useLocalStorage } from '@rehooks/local-storage';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
@@ -8,17 +8,16 @@ import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
 import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
-import { Replayer } from '@highlight-run/rrweb';
+import ReplayerContext from '../ReplayerContext';
 
 export const Toolbar = ({
-    replayer,
     onSelect,
     onResize,
 }: {
-    replayer: Replayer | undefined;
     onSelect: (newTime: number) => void;
     onResize: () => void;
 }) => {
+    const { replayer } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLDivElement>(null);
     const wrapperWidth =
