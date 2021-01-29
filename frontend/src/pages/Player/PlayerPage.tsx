@@ -38,7 +38,6 @@ export const Player = () => {
     const [resizeListener, sizes] = useResizeAware();
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
     const [replayerScale, setReplayerScale] = useState(1);
-    const [playerLoading, setPlayerLoading] = useState(true);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMutation<
@@ -104,7 +103,6 @@ export const Player = () => {
         setReplayerScale((s) => {
             return s * scale;
         });
-        setPlayerLoading(false);
         return true;
     };
 
@@ -148,6 +146,8 @@ export const Player = () => {
         return <p>{sessionError.toString()}</p>;
     }
 
+    const isReplayerReady = replayerState === ReplayerState.Loaded;
+
     return (
         <RePlayerContext.Provider value={{ replayer, state: replayerState }}>
             <div className={styles.playerBody}>
@@ -160,14 +160,14 @@ export const Player = () => {
                             {resizeListener}
                             <div
                                 style={{
-                                    visibility: playerLoading
-                                        ? 'hidden'
-                                        : 'visible',
+                                    visibility: isReplayerReady
+                                        ? 'visible'
+                                        : 'hidden',
                                 }}
                                 className={styles.rrwebPlayerDiv}
                                 id="player"
                             />
-                            {playerLoading || sessionLoading ? (
+                            {!isReplayerReady || sessionLoading ? (
                                 <PlayerSkeleton
                                     height={
                                         playerWrapperRef.current?.clientHeight
