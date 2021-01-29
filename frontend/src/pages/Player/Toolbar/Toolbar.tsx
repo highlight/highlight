@@ -29,6 +29,8 @@ export const Toolbar = ({
     const [openDevTools, setOpenDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
     const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage('highlightMenuAutoPlayVideo', false);
     const [paused, setPaused] = useState(true);
+    // Represents whether the user has directly or indirectly interacted with the player.
+    const [touched, setTouched] = useState(false);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const [isDragged, setIsDragged] = useState(false);
@@ -60,16 +62,21 @@ export const Toolbar = ({
         }, 1);
     }, [replayer, lastCanvasPreview, wrapperWidth, max]);
 
-    // Automatically start the video if the user has set the preference.
+    // Automatically start the player if the user has set the preference.
     useEffect(() => {
-        /** We only auto start if the current timestamp is 0. This is to prevent starting a paused video when the toggle gets enabled. */
-        if (autoPlayVideo && replayer && current === 0) {
+        if (autoPlayVideo && replayer && !touched) {
             setTimeout(() => {
                 replayer.play(0);
                 setPaused(false);
             }, 100);
         }
-    }, [autoPlayVideo, replayer, current]);
+    }, [autoPlayVideo, replayer, current, touched]);
+
+    useEffect(() => {
+        if (current > 0) {
+            setTouched(true);
+        }
+    }, [current]);
 
     let endLogger = (e: any, data: any) => {
         let newTime = (e.x / wrapperWidth) * max
