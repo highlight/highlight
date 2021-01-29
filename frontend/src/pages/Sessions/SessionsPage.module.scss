@@ -3,20 +3,32 @@
 .sessionsBody {
     width: 100%;
     height: 100%;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    align-items: center;
+
+    display: grid;
+    grid-template-columns: minmax(20px, 60px) 300px 1fr 300px minmax(20px, 60px);
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 0px 0px;
+    grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
+    column-gap: 30px;
+    padding-top: 36px;
+}
+
+.leftPanel {
+    grid-area: Left-Panel;
+}
+.centerPanel {
+    grid-area: Center-Panel;
+}
+.rightPanel {
+    grid-area: Right-Panel;
 }
 
 .userInputWrapper {
-    width: 700px;
+    width: 100%;
 }
 
 .mainUserInput {
-    position: fixed;
-    top: 80px;
-    padding-top: 30px;
+    position: relative;
     width: 100%;
     background-color: white;
     z-index: 500;
@@ -26,14 +38,12 @@
 }
 
 .fixedPlaceholder {
+    grid-area: Center-Panel;
     height: 60px;
     width: 100%;
 }
 
 .sessionsSection {
-    margin: 30px;
-    max-width: 700px;
-    width: 700px;
     position: relative;
 }
 

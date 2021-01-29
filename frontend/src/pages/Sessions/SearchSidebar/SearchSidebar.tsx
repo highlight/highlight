@@ -35,13 +35,7 @@ export const SearchSidebar = ({
     }, []);
     return (
         <>
-            <div
-                className={classNames([styles.searchBar])}
-                style={{
-                    left: open ? feedPosition.right + 20 : width,
-                    top: 80,
-                }}
-            >
+            <div className={classNames([styles.searchBar])}>
                 <div
                     className={classNames(
                         styles.sideTab,

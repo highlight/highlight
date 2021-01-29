@@ -52,17 +52,23 @@ export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
             }}
         >
             <div className={styles.sessionsBody}>
-                <div className={styles.fixedPlaceholder} />
-                <SegmentSidebar feedPosition={{ top, x }} />
-                <div className={styles.mainUserInput}>
-                    <div className={styles.userInputWrapper}>
-                        <UserPropertyInput include />
+                {/* <div className={styles.fixedPlaceholder} /> */}
+                <div className={styles.leftPanel}>
+                    <SegmentSidebar feedPosition={{ top, x }} />
+                </div>
+                <div className={styles.centerPanel}>
+                    <div className={styles.mainUserInput}>
+                        <div className={styles.userInputWrapper}>
+                            <UserPropertyInput include />
+                        </div>
+                    </div>
+                    <div className={styles.sessionsSection} ref={feedRef}>
+                        <SessionFeed />
                     </div>
                 </div>
-                <div className={styles.sessionsSection} ref={feedRef}>
-                    <SessionFeed />
+                <div className={styles.rightPanel}>
+                    <SearchSidebar feedPosition={{ top, right }} />
                 </div>
-                <SearchSidebar feedPosition={{ top, right }} />
             </div>
         </SearchContext.Provider>
     );

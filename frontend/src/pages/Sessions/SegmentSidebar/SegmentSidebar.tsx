@@ -21,13 +21,7 @@ export const SegmentSidebar = ({
     }, []);
     return (
         <>
-            <div
-                className={classNames([styles.searchBar])}
-                style={{
-                    right: open ? width - feedPosition.x + 20 : width,
-                    top: 80,
-                }}
-            >
+            <div className={classNames([styles.searchBar])}>
                 <div
                     className={classNames(
                         styles.sideTab,

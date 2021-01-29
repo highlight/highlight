@@ -183,90 +183,101 @@ const SessionCard = ({ session }: { session: Session }) => {
                         hovered && styles.hoverBorderOn
                     )}
                 />
-                <div className={styles.avatarWrapper}>
-                    <Avatar
-                        seed={
-                            session.identifier
-                                ? session.identifier
-                                : session.user_id.toString()
-                        }
-                        style={{ height: 60, width: 60 }}
-                    />
-                </div>
-                <div className={styles.sessionTextSection}>
-                    <div
-                        className={styles.topText}
-                    >{`User#${session?.user_id}`}</div>
-                    <div className={classNames(styles.middleText, 'rr-block')}>
-                        {session?.identifier}
+                <div className={styles.sessionCardContentWrapper}>
+                    <div className={styles.avatarWrapper}>
+                        <Avatar
+                            seed={
+                                session.identifier
+                                    ? session.identifier
+                                    : session.user_id.toString()
+                            }
+                            style={{ height: 60, width: 60 }}
+                        />
                     </div>
-                    <div className={styles.tagWrapper}>
-                        {session.fields
-                            .filter(
-                                (f) =>
-                                    f.type === 'user' &&
-                                    f.name !== 'identifier' &&
-                                    f.value.length
-                            )
-                            .map((f) => (
-                                <Tag color="#F2EEFB">
-                                    <span
-                                        style={{
-                                            color: 'black',
-                                            fontWeight: 300,
-                                        }}
-                                    >
-                                        {f.name}:&nbsp;{f.value}
-                                    </span>
-                                </Tag>
-                            ))}
+                    <div className={styles.sessionTextSectionWrapper}>
+                        <div className={styles.sessionTextSection}>
+                            <div
+                                className={styles.topText}
+                            >{`User#${session?.user_id}`}</div>
+                            <div
+                                className={classNames(
+                                    styles.middleText,
+                                    'rr-block'
+                                )}
+                            >
+                                {session?.identifier}
+                            </div>
+                            <div className={styles.tagWrapper}>
+                                {session.fields
+                                    .filter(
+                                        (f) =>
+                                            f.type === 'user' &&
+                                            f.name !== 'identifier' &&
+                                            f.value.length
+                                    )
+                                    .map((f) => (
+                                        <Tag color="#F2EEFB">
+                                            <span
+                                                style={{
+                                                    color: 'black',
+                                                    fontWeight: 300,
+                                                }}
+                                            >
+                                                {f.name}:&nbsp;{f.value}
+                                            </span>
+                                        </Tag>
+                                    ))}
+                            </div>
+                        </div>
+                        <div className={styles.sessionTextSection}>
+                            <div className={styles.topText}>
+                                {MillisToMinutesAndSecondsVerbose(
+                                    session?.length
+                                ) || '30 min 20 sec'}
+                            </div>
+                            <div className={styles.middleText}>
+                                {created.toLocaleString('en-us', {
+                                    day: 'numeric',
+                                    month: 'long',
+                                    year: 'numeric',
+                                })}
+                            </div>
+                            <div className={styles.bottomText}>
+                                {created.toLocaleString('en-us', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    timeZoneName: 'short',
+                                })}
+                            </div>
+                        </div>
+                        <div className={styles.sessionTextSection}>
+                            <div className={styles.topText}>
+                                {session.browser_name}
+                                {session.browser_version &&
+                                    ' / ' + session.browser_version}
+                            </div>
+                            <div className={styles.middleText}>
+                                {session.os_name}
+                                {session.os_version &&
+                                    ' / ' + session.os_version}
+                            </div>
+                            <div className={styles.bottomText}>
+                                {session.city}
+                                {session.state && ', ' + session.state}
+                                &nbsp;
+                                {session.postal}
+                            </div>
+                        </div>
+                        <div className={styles.sessionTextSection}>
+                            {session.viewed ? (
+                                <></>
+                            ) : (
+                                <Tooltip title="Unread Session">
+                                    <div className={styles.readMarker}></div>
+                                </Tooltip>
+                            )}
+                        </div>
                     </div>
-                </div>
-                <div className={styles.sessionTextSection}>
-                    <div className={styles.topText}>
-                        {MillisToMinutesAndSecondsVerbose(session?.length) ||
-                            '30 min 20 sec'}
-                    </div>
-                    <div className={styles.middleText}>
-                        {created.toLocaleString('en-us', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                        })}
-                    </div>
-                    <div className={styles.bottomText}>
-                        {created.toLocaleString('en-us', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            timeZoneName: 'short',
-                        })}
-                    </div>
-                </div>
-                <div className={styles.sessionTextSection}>
-                    <div className={styles.topText}>
-                        {session.browser_name}
-                        {session.browser_version &&
-                            ' / ' + session.browser_version}
-                    </div>
-                    <div className={styles.middleText}>
-                        {session.os_name}
-                        {session.os_version && ' / ' + session.os_version}
-                    </div>
-                    <div className={styles.bottomText}>
-                        {session.city}
-                        {session.state && ', ' + session.state}
-                        &nbsp;
-                        {session.postal}
-                    </div>
-                </div>
-                <div className={styles.sessionTextSection}>
-                    {session.viewed ? (
-                        <></>
-                    ) : (
-                        <Tooltip title="Unread Session">
-                            <div className={styles.readMarker}></div>
-                        </Tooltip>
-                    )}
                 </div>
                 <div
                     className={classNames(
