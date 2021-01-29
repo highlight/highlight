@@ -27,7 +27,10 @@ export const Toolbar = ({
     const [speed, setSpeed] = useLocalStorage('highlightMenuSpeed', 2);
     const [skipInactive, setSkipInactive] = useLocalStorage('highlightMenuSkipInactive', false);
     const [openDevTools, setOpenDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
+    const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage('highlightMenuAutoPlayVideo', false);
     const [paused, setPaused] = useState(true);
+    // Represents whether the user has directly or indirectly interacted with the player.
+    const [touched, setTouched] = useState(false);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const [isDragged, setIsDragged] = useState(false);
@@ -58,6 +61,22 @@ export const Toolbar = ({
             replayer?.pause((lastCanvasPreview / wrapperWidth) * max)
         }, 1);
     }, [replayer, lastCanvasPreview, wrapperWidth, max]);
+
+    // Automatically start the player if the user has set the preference.
+    useEffect(() => {
+        if (autoPlayVideo && replayer && !touched) {
+            setTimeout(() => {
+                replayer.play(0);
+                setPaused(false);
+            }, 100);
+        }
+    }, [autoPlayVideo, replayer, current, touched]);
+
+    useEffect(() => {
+        if (current > 0) {
+            setTouched(true);
+        }
+    }, [current]);
 
     let endLogger = (e: any, data: any) => {
         let newTime = (e.x / wrapperWidth) * max
@@ -209,6 +228,8 @@ export const Toolbar = ({
                             setSpeed(s);
                             replayer?.setConfig({ speed: s });
                         }}
+                        autoPlayVideo={autoPlayVideo}
+                        onAutoPlayVideoChange={() => {setAutoPlayVideo(!autoPlayVideo)}}
                     />
                 </div>
             </div>
