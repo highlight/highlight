@@ -8,11 +8,17 @@
     justify-content: center;
 }
 
+.readMarkerContainer {
+    display: flex;
+    align-items: center;
+    width: auto;
+    margin-left: 6px;
+}
+
 .readMarker {
     border-radius: 10px;
     width: 8px;
     height: 8px;
-    margin-left: 6px;
     background-color: #5629c6;
 }
 
@@ -157,7 +163,6 @@
 
 .sessionCardContentWrapper {
     display: flex;
-    flex-wrap: wrap;
     flex-grow: 1;
     align-items: center;
 }
@@ -165,8 +170,12 @@
 .sessionTextSectionWrapper {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-evenly;
+    justify-content: space-between;
     flex-grow: 1;
+
+    @media screen and (max-width: 1200px) {
+        flex-direction: column;
+    }
 }
 
 .regSubTitle {

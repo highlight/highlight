@@ -268,7 +268,7 @@ const SessionCard = ({ session }: { session: Session }) => {
                                 {session.postal}
                             </div>
                         </div>
-                        <div className={styles.sessionTextSection}>
+                        <div className={styles.readMarkerContainer}>
                             {session.viewed ? (
                                 <></>
                             ) : (

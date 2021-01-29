@@ -10,6 +10,7 @@ export const loadingDiv: string;
 export const middleText: string;
 export const playButton: string;
 export const readMarker: string;
+export const readMarkerContainer: string;
 export const regSubTitle: string;
 export const regTitle: string;
 export const resultCount: string;
