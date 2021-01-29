@@ -5,10 +5,7 @@
     height: 100%;
 
     display: grid;
-    grid-template-columns: minmax(20px, 60px) 300px minmax(auto, 700px) 300px minmax(
-            20px,
-            60px
-        );
+    grid-template-columns: auto 300px minmax(auto, 700px) 300px auto;
     grid-template-rows: 1fr 1fr 1fr;
     gap: 0px 0px;
     grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
