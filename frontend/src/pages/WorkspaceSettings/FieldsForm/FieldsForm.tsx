@@ -115,8 +115,8 @@ export const FieldsForm = () => {
                             style={{ fontSize: 18, color: 'white' }}
                         />
                     ) : (
-                            'Save'
-                        )}
+                        'Save'
+                    )}
                 </button>
             </div>
         </form>

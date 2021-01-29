@@ -21,5 +21,6 @@ const authLink = setContext((_, { headers }) => {
 export const client = new ApolloClient({
     link: authLink.concat(httpLink),
     cache: new InMemoryCache(),
-    connectToDevTools: process.env.REACT_APP_ENVIRONMENT === 'dev' ? true : false,
+    connectToDevTools:
+        process.env.REACT_APP_ENVIRONMENT === 'dev' ? true : false,
 });

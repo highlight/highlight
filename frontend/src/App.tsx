@@ -33,7 +33,9 @@ H.getSessionURL().then((url) => {
 });
 
 const App = () => {
-    const { loading: o_loading, error: o_error, data: o_data } = useQuery<{ organizations: Array<{ id: number }> }>(gql`
+    const { loading: o_loading, error: o_error, data: o_data } = useQuery<{
+        organizations: Array<{ id: number }>;
+    }>(gql`
         query GetOrganizations {
             organizations {
                 id
@@ -68,7 +70,11 @@ const App = () => {
                     </Route>
                     <Route path="/">
                         <Redirect
-                            to={o_data?.organizations.length ? `/${o_data?.organizations[0].id}` : `/new`}
+                            to={
+                                o_data?.organizations.length
+                                    ? `/${o_data?.organizations[0].id}`
+                                    : `/new`
+                            }
                         />
                     </Route>
                 </Switch>
@@ -122,9 +128,14 @@ type Inputs = {
 };
 
 export const AuthAppRouter = () => {
-    const { watch, register, handleSubmit, errors, reset, setError } = useForm<
-        Inputs
-    >();
+    const {
+        watch,
+        register,
+        handleSubmit,
+        errors,
+        reset,
+        setError,
+    } = useForm<Inputs>();
     const [signIn, setSignIn] = useState<boolean>(true);
     const [firebaseError, setFirebaseError] = useState('');
     const [user, loading, error] = useAuthState(auth);
@@ -192,16 +203,16 @@ export const AuthAppRouter = () => {
                                     </span>
                                 </>
                             ) : (
-                                    <>
-                                        Already have an account?{' '}
-                                        <span
-                                            onClick={changeState}
-                                            className={styles.loginStateSwitcher}
-                                        >
-                                            Sign in.
+                                <>
+                                    Already have an account?{' '}
+                                    <span
+                                        onClick={changeState}
+                                        className={styles.loginStateSwitcher}
+                                    >
+                                        Sign in.
                                     </span>
-                                    </>
-                                )}
+                                </>
+                            )}
                         </div>
                     </div>
                     <input

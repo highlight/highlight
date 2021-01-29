@@ -1,89 +1,89 @@
 .consoleButton {
-	height: 30px;
-	width: max-content;
-	padding: 10px;
-	margin-left: auto;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background-color: #5629c6;
-	border-radius: 8px;
-	color: white;
-	cursor: pointer;
+    height: 30px;
+    width: max-content;
+    padding: 10px;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #5629c6;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
 }
 
 .consolePageWrapper {
-	background-color: white;
-	width: 100%;
-	height: 100%;
+    background-color: white;
+    width: 100%;
+    height: 100%;
 }
 
 .messageText {
-	padding-right: 25px;
+    padding-right: 25px;
 }
 
 .consoleStreamWrapper {
-	background-color: white;
-	word-wrap: break-word;
-	display: flex;
-	flex-direction: column;
-	overflow-y: auto;
-	overflow-x: hidden;
-	height: calc(100% - 45px);
+    background-color: white;
+    word-wrap: break-word;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: calc(100% - 45px);
 }
 
 .consoleMessage {
-	display: grid;
-	grid-template-columns: 25px 1fr;
-	word-break: break-all;
-	border-bottom: 1px solid #eaeaea;
-	font-weight: 400;
-	font-size: 12px;
-	padding-bottom: 8px;
-	padding-top: 8px;
+    display: grid;
+    grid-template-columns: 25px 1fr;
+    word-break: break-all;
+    border-bottom: 1px solid #eaeaea;
+    font-weight: 400;
+    font-size: 12px;
+    padding-bottom: 8px;
+    padding-top: 8px;
 }
 
 .directionIcon {
-	width: 16px;
-	height: 16px;
-	margin-left: 8px;
-	fill: white;
+    width: 16px;
+    height: 16px;
+    margin-left: 8px;
+    fill: white;
 }
 
 .consoleButtonWrapper {
-	font-weight: 400;
-	font-size: 11px;
-	display: flex;
-	align-items: center;
-	height: 100%;
-	padding: 10px;
-	width: 100%;
+    font-weight: 400;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 10px;
+    width: 100%;
 }
 
 .currentIndicator {
-	width: 6px;
-	height: 6px;
-	border-radius: 50%;
-	background-color: blue;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: blue;
 }
 
 .currentIndicatorWrapper {
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
 }
 
 .closeIcon {
-	height: 15px;
-	width: 15px;
-	fill: grey;
+    height: 15px;
+    width: 15px;
+    fill: grey;
 }
 
 .closeIconWrapper {
-	height: 100%;
-	margin: 14px;
-	margin-left: auto;
-	cursor: pointer;
+    height: 100%;
+    margin: 14px;
+    margin-left: auto;
+    cursor: pointer;
 }

@@ -24,11 +24,10 @@ H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
 LogRocket.init('vcbmdo/highlight');
 
-
 ReactDOM.render(
     <React.StrictMode>
         <ApolloProvider client={client}>
-            <SkeletonTheme color={"#F5F5F5"} highlightColor={"#FCFCFC"}>
+            <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
                 <Router>
                     <Switch>
                         <Route path="/demo" exact>
@@ -43,9 +42,9 @@ ReactDOM.render(
                         </Route>
                     </Switch>
                 </Router>
-            </SkeletonTheme >
+            </SkeletonTheme>
         </ApolloProvider>
-    </React.StrictMode >,
+    </React.StrictMode>,
     document.getElementById('root')
 );
 

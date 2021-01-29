@@ -6,7 +6,10 @@ import {
     IncrementalSource,
     EventType,
 } from '@highlight-run/rrweb';
-import { eventWithTime, incrementalData } from '@highlight-run/rrweb/typings/types';
+import {
+    eventWithTime,
+    incrementalData,
+} from '@highlight-run/rrweb/typings/types';
 import { scroller } from 'react-scroll';
 import { useQuery, gql, useMutation } from '@apollo/client';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
@@ -57,8 +60,8 @@ export const Player = () => {
         {
             variables: {
                 session_id: demo
-                    ? process.env.REACT_APP_DEMO_SESSION ?? ""
-                    : session_id ?? "",
+                    ? process.env.REACT_APP_DEMO_SESSION ?? ''
+                    : session_id ?? '',
             },
             context: { headers: { 'Highlight-Demo': demo } },
         }
@@ -66,13 +69,13 @@ export const Player = () => {
 
     useEffect(() => {
         if (session_id) {
-            markSessionAsViewed({ variables: { id: parseInt(session_id) } })
+            markSessionAsViewed({ variables: { id: parseInt(session_id) } });
         }
-    }, [session_id, markSessionAsViewed])
+    }, [session_id, markSessionAsViewed]);
 
     useEffect(() => {
-        setOpenSidebar(false)
-    }, [setOpenSidebar])
+        setOpenSidebar(false);
+    }, [setOpenSidebar]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const resizePlayer = (replayer: Replayer): boolean => {
@@ -151,17 +154,18 @@ export const Player = () => {
                             style={{
                                 visibility: playerLoading
                                     ? 'hidden'
-                                    : 'visible'
+                                    : 'visible',
                             }}
                             className={styles.rrwebPlayerDiv}
                             id="player"
                         />
-                        {
-                            (playerLoading || sessionLoading) ?
-                                <PlayerSkeleton height={playerWrapperRef.current?.clientHeight} />
-                                :
-                                <></>
-                        }
+                        {playerLoading || sessionLoading ? (
+                            <PlayerSkeleton
+                                height={playerWrapperRef.current?.clientHeight}
+                            />
+                        ) : (
+                            <></>
+                        )}
                     </div>
                 </div>
                 <Toolbar
@@ -234,37 +238,38 @@ const EventStream = ({
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
                 {loadingMap || !events.length || !staticMap ? (
-                    <Skeleton count={4} height={35} style={{ marginTop: 8, marginBottom: 8 }} />
+                    <Skeleton
+                        count={4}
+                        height={35}
+                        style={{ marginTop: 8, marginBottom: 8 }}
+                    />
                 ) : (
-                        replayer &&
-                        events
-                            .filter(usefulEvent)
-                            .map((e: HighlightEvent, i: number) => (
-                                <StreamElement
-                                    e={e}
-                                    key={i}
-                                    start={replayer.getMetaData().startTime}
-                                    isCurrent={e.identifier === currEvent}
-                                    nodeMap={staticMap}
-                                />
-                            ))
-                    )}
+                    replayer &&
+                    events
+                        .filter(usefulEvent)
+                        .map((e: HighlightEvent, i: number) => (
+                            <StreamElement
+                                e={e}
+                                key={i}
+                                start={replayer.getMetaData().startTime}
+                                isCurrent={e.identifier === currEvent}
+                                nodeMap={staticMap}
+                            />
+                        ))
+                )}
             </div>
         </>
     );
 };
 
 const PlayerSkeleton = ({ height }: { height: number | undefined }) => {
-    const adjusted = (height ?? 80) - 80
+    const adjusted = (height ?? 80) - 80;
     return (
-        <SkeletonTheme color={"white"} highlightColor={"#f5f5f5"}>
-            <Skeleton
-                height={adjusted}
-                width={adjusted} />
+        <SkeletonTheme color={'white'} highlightColor={'#f5f5f5'}>
+            <Skeleton height={adjusted} width={adjusted} />
         </SkeletonTheme>
     );
-
-}
+};
 
 // used in filter() type methods to fetch events we want
 const usefulEvent = (e: eventWithTime): boolean => {

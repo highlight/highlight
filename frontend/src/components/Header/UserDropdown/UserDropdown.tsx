@@ -33,33 +33,33 @@ export const UserDropdown = () => {
                 {a_loading || a_error ? (
                     <Skeleton />
                 ) : (
-                        <>
-                            <div className={styles.userCopy}>
-                                <div className={styles.dropdownName}>
-                                    {a_data?.admin.name}
-                                </div>
-                                <div className={styles.dropdownEmail}>
-                                    {a_data?.admin.email}
-                                </div>
+                    <>
+                        <div className={styles.userCopy}>
+                            <div className={styles.dropdownName}>
+                                {a_data?.admin.name}
                             </div>
-                            <div
-                                className={styles.dropdownLogout}
-                                onClick={async () => {
-                                    try {
-                                        auth.signOut();
-                                    } catch (e) {
-                                        console.log(e);
-                                    }
-                                    client.cache.reset();
-                                }}
-                            >
-                                <span className={styles.dropdownLogoutText}>
-                                    Logout
+                            <div className={styles.dropdownEmail}>
+                                {a_data?.admin.email}
+                            </div>
+                        </div>
+                        <div
+                            className={styles.dropdownLogout}
+                            onClick={async () => {
+                                try {
+                                    auth.signOut();
+                                } catch (e) {
+                                    console.log(e);
+                                }
+                                client.cache.reset();
+                            }}
+                        >
+                            <span className={styles.dropdownLogoutText}>
+                                Logout
                             </span>
-                                <FiLogOut className={styles.logoutIcon} />
-                            </div>
-                        </>
-                    )}
+                            <FiLogOut className={styles.logoutIcon} />
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

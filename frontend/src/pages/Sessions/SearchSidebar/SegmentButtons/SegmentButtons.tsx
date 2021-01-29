@@ -21,9 +21,12 @@ export const SegmentButtons = () => {
         segment_id: string;
     }>();
     const [createClicked, setCreateClicked] = useState(false);
-    const { searchParams, isSegment, existingParams, setExistingParams } = useContext(
-        SearchContext
-    );
+    const {
+        searchParams,
+        isSegment,
+        existingParams,
+        setExistingParams,
+    } = useContext(SearchContext);
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [editSegment, editSegmentOptions] = useMutation<
         boolean,
@@ -62,10 +65,24 @@ export const SegmentButtons = () => {
                     name
                     id
                     params {
-                        user_properties { name, value }
-                        excluded_properties { name, value }
-                        date_range { start_date, end_date }
-                        os, browser, visited_url, referrer, identified, hide_viewed
+                        user_properties {
+                            name
+                            value
+                        }
+                        excluded_properties {
+                            name
+                            value
+                        }
+                        date_range {
+                            start_date
+                            end_date
+                        }
+                        os
+                        browser
+                        visited_url
+                        referrer
+                        identified
+                        hide_viewed
                     }
                 }
             }
@@ -90,8 +107,14 @@ export const SegmentButtons = () => {
         // Removes undefined, null fields, and empty arrays when comparing
         setParamsIsDifferent(
             !_.isEqual(
-                _.omitBy(_.pickBy(searchParams, _.identity), (v) => Array.isArray(v) && v.length === 0),
-                _.omitBy(_.pickBy(existingParams, _.identity), (v) => Array.isArray(v) && v.length === 0)
+                _.omitBy(
+                    _.pickBy(searchParams, _.identity),
+                    (v) => Array.isArray(v) && v.length === 0
+                ),
+                _.omitBy(
+                    _.pickBy(existingParams, _.identity),
+                    (v) => Array.isArray(v) && v.length === 0
+                )
             )
         );
     }, [searchParams, existingParams]);
@@ -152,7 +175,7 @@ export const SegmentButtons = () => {
                                 })
                                     .then(() => {
                                         message.success('Updated Segment!', 5);
-                                        setExistingParams(searchParams)
+                                        setExistingParams(searchParams);
                                     })
                                     .catch(() => {
                                         message.error(
