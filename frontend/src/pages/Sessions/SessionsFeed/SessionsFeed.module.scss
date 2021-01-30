@@ -166,7 +166,7 @@
         rgba(255, 255, 255, 0),
         rgba(255, 255, 255, 1) 30%
     );
-    width: 706px;
+    width: 100%;
     z-index: 10;
 }
 
@@ -190,6 +190,7 @@
     display: flex;
     flex-grow: 1;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .sessionTextSectionWrapper {
