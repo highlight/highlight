@@ -52,7 +52,7 @@ export const Toolbar = ({
                 }, 50);
             }
         }
-    }, [replayer, paused, isDragged, time]);
+    }, [replayer, paused, isDragged, time, setTime]);
 
     useEffect(() => {
         onResize();
