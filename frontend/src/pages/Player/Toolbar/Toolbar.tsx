@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
 import { useLocalStorage } from '@rehooks/local-storage';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
@@ -8,22 +8,20 @@ import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
 import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
-import { Replayer } from '@highlight-run/rrweb';
+import ReplayerContext from '../ReplayerContext';
 
 export const Toolbar = ({
-    replayer,
     onSelect,
     onResize,
 }: {
-    replayer: Replayer | undefined;
     onSelect: (newTime: number) => void;
     onResize: () => void;
 }) => {
+    const { replayer, setTime, time } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLDivElement>(null);
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
-    const [current, setCurrent] = useState(0);
     const [speed, setSpeed] = useLocalStorage('highlightMenuSpeed', 2);
     const [skipInactive, setSkipInactive] = useLocalStorage(
         'highlightMenuSkipInactive',
@@ -50,11 +48,11 @@ export const Toolbar = ({
         if (replayer) {
             if (!paused && !isDragged) {
                 setTimeout(() => {
-                    setCurrent(replayer.getCurrentTime());
+                    setTime(replayer.getCurrentTime());
                 }, 50);
             }
         }
-    }, [replayer, paused, isDragged, current]);
+    }, [replayer, paused, isDragged, time, setTime]);
 
     useEffect(() => {
         onResize();
@@ -78,28 +76,28 @@ export const Toolbar = ({
                 setPaused(false);
             }, 100);
         }
-    }, [autoPlayVideo, replayer, current, touched]);
+    }, [autoPlayVideo, replayer, time, touched]);
 
     useEffect(() => {
-        if (current > 0) {
+        if (time > 0) {
             setTouched(true);
         }
-    }, [current]);
+    }, [time]);
 
     let endLogger = (e: any, data: any) => {
         let newTime = (e.x / wrapperWidth) * max;
         newTime = Math.max(0, newTime);
         newTime = Math.min(max, newTime);
 
-        setCurrent(newTime);
+        setTime(newTime);
         setLastCanvasPreview(e.x);
         setIsDragged(false);
 
         if (paused) {
-            setCurrent(newTime);
+            setTime(newTime);
             replayer?.pause(newTime);
         } else {
-            setCurrent(newTime);
+            setTime(newTime);
             replayer?.play(newTime);
         }
     };
@@ -116,7 +114,7 @@ export const Toolbar = ({
     let onDraggable = (e: any, data: any) => {
         let newTime = (data.x / wrapperWidth) * max;
 
-        setCurrent(newTime);
+        setTime(newTime);
 
         // TODO: Add Math.abs to enable both forward and backward scrolling
         // Only forward is supported due as going backwards creates a time heavy operation
@@ -134,7 +132,7 @@ export const Toolbar = ({
                 }}
             >
                 <DevToolsWindow
-                    time={(replayer?.getMetaData().startTime ?? 0) + current}
+                    time={(replayer?.getMetaData().startTime ?? 0) + time}
                     startTime={replayer?.getMetaData().startTime ?? 0}
                 />
             </OpenDevToolsContext.Provider>
@@ -143,7 +141,7 @@ export const Toolbar = ({
                 ref={sliderWrapperRef}
                 onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                     const ratio = e.clientX / wrapperWidth;
-                    setCurrent(ratio * max);
+                    setTime(ratio * max);
                     setPaused(true);
                     onSelect(ratio * max);
                 }}
@@ -157,7 +155,7 @@ export const Toolbar = ({
                     onDrag={onDraggable}
                     onStart={startDraggable}
                     position={{
-                        x: Math.max((current / max) * wrapperWidth - 15, 0),
+                        x: Math.max((time / max) * wrapperWidth - 15, 0),
                         y: 0,
                     }}
                 >
@@ -171,7 +169,7 @@ export const Toolbar = ({
                         // TODO: Add waiting toggle, so a user does not pause while the player is loading.
                         onClick={() => {
                             if (paused) {
-                                replayer?.play(current);
+                                replayer?.play(time);
                                 setPaused(false);
                                 setIsDragged(false);
                             } else {
@@ -196,13 +194,12 @@ export const Toolbar = ({
                     <div
                         className={styles.undoSection}
                         onClick={() => {
-                            const newTime =
-                                current - 7000 < 0 ? 0 : current - 7000;
+                            const newTime = time - 7000 < 0 ? 0 : time - 7000;
                             if (paused) {
-                                setCurrent(newTime);
+                                setTime(newTime);
                                 replayer?.pause(newTime);
                             } else {
-                                setCurrent(newTime);
+                                setTime(newTime);
                                 replayer?.play(newTime);
                             }
                         }}
@@ -213,7 +210,7 @@ export const Toolbar = ({
                         />
                     </div>
                     <div className={styles.timeSection}>
-                        {MillisToMinutesAndSeconds(current)}&nbsp;/&nbsp;
+                        {MillisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
                         {MillisToMinutesAndSeconds(max)}
                     </div>
                 </div>

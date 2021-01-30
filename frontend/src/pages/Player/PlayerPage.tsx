@@ -24,16 +24,19 @@ import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
 import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
+import ReplayerContext, { ReplayerState } from './ReplayerContext';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
+    const [replayerState, setReplayerState] = useState<ReplayerState>(
+        ReplayerState.NotLoaded
+    );
     const [time, setTime] = useState(0);
     const [resizeListener, sizes] = useResizeAware();
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
     const [replayerScale, setReplayerScale] = useState(1);
-    const [playerLoading, setPlayerLoading] = useState(true);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMutation<
@@ -99,7 +102,6 @@ export const Player = () => {
         setReplayerScale((s) => {
             return s * scale;
         });
-        setPlayerLoading(false);
         return true;
     };
 
@@ -123,6 +125,7 @@ export const Player = () => {
 
     useEffect(() => {
         if (sessionData?.events?.length ?? 0 > 1) {
+            setReplayerState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] =
                 sessionData?.events.map((e: HighlightEvent, i: number) => {
@@ -133,6 +136,7 @@ export const Player = () => {
             });
             setEvents(newEvents);
             setReplayer(r);
+            setReplayerState(ReplayerState.Loaded);
             r.getTimeOffset();
         }
     }, [sessionData]);
@@ -141,63 +145,59 @@ export const Player = () => {
         return <p>{sessionError.toString()}</p>;
     }
 
+    const isReplayerReady = replayerState === ReplayerState.Loaded;
+
     return (
-        <div className={styles.playerBody}>
-            <div className={styles.playerLeftSection}>
-                <div className={styles.rrwebPlayerSection}>
-                    <div
-                        className={styles.rrwebPlayerWrapper}
-                        ref={playerWrapperRef}
-                    >
-                        {resizeListener}
+        <ReplayerContext.Provider
+            value={{ replayer, state: replayerState, time, setTime }}
+        >
+            <div className={styles.playerBody}>
+                <div className={styles.playerLeftSection}>
+                    <div className={styles.rrwebPlayerSection}>
                         <div
-                            style={{
-                                visibility: playerLoading
-                                    ? 'hidden'
-                                    : 'visible',
-                            }}
-                            className={styles.rrwebPlayerDiv}
-                            id="player"
-                        />
-                        {playerLoading || sessionLoading ? (
-                            <PlayerSkeleton
-                                height={playerWrapperRef.current?.clientHeight}
+                            className={styles.rrwebPlayerWrapper}
+                            ref={playerWrapperRef}
+                        >
+                            {resizeListener}
+                            <div
+                                style={{
+                                    visibility: isReplayerReady
+                                        ? 'visible'
+                                        : 'hidden',
+                                }}
+                                className={styles.rrwebPlayerDiv}
+                                id="player"
                             />
-                        ) : (
-                            <></>
-                        )}
+                            {!isReplayerReady || sessionLoading ? (
+                                <PlayerSkeleton
+                                    height={
+                                        playerWrapperRef.current?.clientHeight
+                                    }
+                                />
+                            ) : (
+                                <></>
+                            )}
+                        </div>
                     </div>
+                    <Toolbar
+                        onSelect={(newTime: number) => {
+                            replayer?.pause(newTime);
+                            setTime(newTime);
+                        }}
+                        onResize={() => replayer && resizePlayer(replayer)}
+                    />
                 </div>
-                <Toolbar
-                    replayer={replayer}
-                    onSelect={(newTime: number) => {
-                        replayer?.pause(newTime);
-                        setTime(newTime);
-                    }}
-                    onResize={() => replayer && resizePlayer(replayer)}
-                />
+                <div className={styles.playerRightSection}>
+                    <MetadataBox />
+                    <EventStream events={events} />{' '}
+                </div>
             </div>
-            <div className={styles.playerRightSection}>
-                <MetadataBox />
-                <EventStream
-                    replayer={replayer}
-                    events={events}
-                    time={time}
-                />{' '}
-            </div>
-        </div>
+        </ReplayerContext.Provider>
     );
 };
 
-const EventStream = ({
-    events,
-    time,
-    replayer,
-}: {
-    events: HighlightEvent[];
-    time: number;
-    replayer: Replayer | undefined;
-}) => {
+const EventStream = ({ events }: { events: HighlightEvent[] }) => {
+    const { replayer, time } = useContext(ReplayerContext);
     const [currEvent, setCurrEvent] = useState('');
     const [loadingMap, setLoadingMap] = useState(true);
     const [staticMap, setStaticMap] = useState<StaticMap | undefined>(
