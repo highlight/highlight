@@ -148,7 +148,9 @@ export const Player = () => {
     const isReplayerReady = replayerState === ReplayerState.Loaded;
 
     return (
-        <ReplayerContext.Provider value={{ replayer, state: replayerState }}>
+        <ReplayerContext.Provider
+            value={{ replayer, state: replayerState, time, setTime }}
+        >
             <div className={styles.playerBody}>
                 <div className={styles.playerLeftSection}>
                     <div className={styles.rrwebPlayerSection}>
@@ -187,21 +189,15 @@ export const Player = () => {
                 </div>
                 <div className={styles.playerRightSection}>
                     <MetadataBox />
-                    <EventStream events={events} time={time} />{' '}
+                    <EventStream events={events} />{' '}
                 </div>
             </div>
         </ReplayerContext.Provider>
     );
 };
 
-const EventStream = ({
-    events,
-    time,
-}: {
-    events: HighlightEvent[];
-    time: number;
-}) => {
-    const { replayer } = useContext(ReplayerContext);
+const EventStream = ({ events }: { events: HighlightEvent[] }) => {
+    const { replayer, time } = useContext(ReplayerContext);
     const [currEvent, setCurrEvent] = useState('');
     const [loadingMap, setLoadingMap] = useState(true);
     const [staticMap, setStaticMap] = useState<StaticMap | undefined>(
