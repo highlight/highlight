@@ -17,13 +17,13 @@ import (
 //
 // It serves as dependency injection for your app, add any dependencies you require here.
 
-		type Resolver struct {
+type Resolver struct {
 	DB *gorm.DB
 }
 
 type Location struct {
 	City      string      `json:"city"`
-			Postal    string      `json:"postal"`
+	Postal    string      `json:"postal"`
 	Latitude  interface{} `json:"latitude"`
 	Longitude interface{} `json:"longitude"`
 	State     string      `json:"state"`
@@ -32,7 +32,7 @@ type Location struct {
 type DeviceDetails struct {
 	IsBot          bool   `json:"is_bot"`
 	OSName         string `json:"os_name"`
-			OSVersion      string `json:"os_version"`
+	OSVersion      string `json:"os_version"`
 	BrowserName    string `json:"browser_name"`
 	BrowserVersion string `json:"browser_version"`
 }
@@ -45,13 +45,13 @@ var PropertyType = struct {
 	TRACK   Property
 }{
 	USER:    "user",
-			SESSION: "session",
+	SESSION: "session",
 	TRACK:   "track",
 }
 
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
-			session := &model.Session{}
+	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return e.Wrap(err, "error receiving session")
