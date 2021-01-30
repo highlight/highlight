@@ -105,14 +105,15 @@
     flex-grow: 1;
     height: 100%;
     background-color: #f5f5f5;
-    overflow: auto;
+    overflow: hidden;
 }
 
 .playerRightSection {
     border-left: 1px solid #eaeaea;
     width: 350px;
     height: calc(100vh - 80px);
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: grid;
     grid-template-rows: auto 1fr;
     box-sizing: border-box;
