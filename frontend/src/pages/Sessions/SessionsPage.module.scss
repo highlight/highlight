@@ -13,12 +13,14 @@
 
 .leftPanel {
     grid-area: Left-Panel;
+    overflow-y: auto;
 }
 .centerPanel {
     grid-area: Center-Panel;
 }
 .rightPanel {
     grid-area: Right-Panel;
+    overflow-y: auto;
 }
 
 .userInputWrapper {
