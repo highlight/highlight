@@ -48,7 +48,7 @@
 .eventStreamContainer {
     color: white;
     width: 100%;
-    overflow-y: scroll;
+    overflow-y: auto;
     position: relative;
     padding: 30px;
     padding-top: 10px;
@@ -163,8 +163,9 @@
 }
 
 .playerBody {
-    height: calc(100vh - 80px);
+    height: 100%;
     width: 100%;
+    padding-top: 80px;
     overflow: auto;
     display: grid;
     grid-template-columns: 1fr 350px;
