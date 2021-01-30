@@ -6,6 +6,7 @@ on:
             - '!master'
         paths:
             - 'backend/**'
+            - '.github/workflows/backend.yml'
 jobs:
     backend:
         runs-on: ubuntu-latest
@@ -14,5 +15,10 @@ jobs:
               uses: actions/checkout@v2
             - name: Setup Go
               uses: actions/setup-go@v2
+            - name: Format
+              uses: Jerome1337/gofmt-action@v1.0.4
+              with:
+                  gofmt-path: './backend'
+                  gofmt-flags: '-l -d'
             - name: Build binary
               run: cd backend && go build .
