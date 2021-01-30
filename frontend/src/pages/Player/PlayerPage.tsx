@@ -24,8 +24,7 @@ import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
 import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
-import RePlayerContext, { ReplayerState } from './ReplayerContext';
-import ReplayerContext from './ReplayerContext';
+import ReplayerContext, { ReplayerState } from './ReplayerContext';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
@@ -149,7 +148,7 @@ export const Player = () => {
     const isReplayerReady = replayerState === ReplayerState.Loaded;
 
     return (
-        <RePlayerContext.Provider value={{ replayer, state: replayerState }}>
+        <ReplayerContext.Provider value={{ replayer, state: replayerState }}>
             <div className={styles.playerBody}>
                 <div className={styles.playerLeftSection}>
                     <div className={styles.rrwebPlayerSection}>
@@ -191,7 +190,7 @@ export const Player = () => {
                     <EventStream events={events} time={time} />{' '}
                 </div>
             </div>
-        </RePlayerContext.Provider>
+        </ReplayerContext.Provider>
     );
 };
 
