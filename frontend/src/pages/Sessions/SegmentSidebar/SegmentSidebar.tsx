@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import styles from './SegmentSidebar.module.scss';
 import classNames from 'classnames/bind';
 import { SegmentButtons } from '../SearchSidebar/SegmentButtons/SegmentButtons';
@@ -11,14 +11,7 @@ export const SegmentSidebar = ({
     feedPosition: { top: number; x: number };
 }) => {
     const [open, setOpen] = useState(true);
-    const [width, setWidth] = useState(window.innerWidth);
-    const updateDimensions = () => {
-        setWidth(window.innerWidth);
-    };
-    useEffect(() => {
-        window.addEventListener('resize', updateDimensions);
-        return () => window.removeEventListener('resize', updateDimensions);
-    }, []);
+
     return (
         <>
             <div className={classNames([styles.searchBar])}>
