@@ -16,6 +16,9 @@ jobs:
             - name: Setup Go
               uses: actions/setup-go@v2
             - name: Format
-              run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then exit 1; fi
+              uses: Jerome1337/gofmt-action@v1.0.4
+              with:
+                  gofmt-path: './src'
+                  gofmt-flags: '-l -d'
             - name: Build binary
               run: cd backend && go build .
