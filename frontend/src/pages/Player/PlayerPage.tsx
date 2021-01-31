@@ -25,6 +25,7 @@ import 'rc-slider/assets/index.css';
 import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
+import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();

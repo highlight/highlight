@@ -1,0 +1,7 @@
+mutation MarkSessionAsViewed($id: ID!) {
+    markSessionAsViewed(id: $id)
+}
+
+query GetEvents($session_id: ID!) {
+    events(session_id: $session_id)
+}
