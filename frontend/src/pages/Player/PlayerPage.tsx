@@ -105,8 +105,6 @@ export const Player = () => {
         return true;
     };
 
-    console.log(replayerScale);
-
     // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
     useEffect(() => {
         const i = window.setInterval(() => {
