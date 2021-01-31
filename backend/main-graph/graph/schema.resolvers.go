@@ -336,7 +336,6 @@ func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]*mode
 	if res := r.DB.Order("created_at desc").Where(&model.ErrorObject{OrganizationID: organizationID}).Find(&errorObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
-	pp.Println(errorObjs)
 	return errorObjs, nil
 }
 
