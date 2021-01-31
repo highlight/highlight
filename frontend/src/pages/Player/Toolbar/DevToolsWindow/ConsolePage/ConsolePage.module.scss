@@ -1,3 +1,5 @@
+@import 'src/components/Button/GoToButton/index.module.scss';
+
 .consoleButton {
     height: 30px;
     width: max-content;
@@ -19,6 +21,8 @@
 }
 
 .messageText {
+    display: flex;
+    align-items: center;
     padding-right: 25px;
 }
 
@@ -34,13 +38,14 @@
 
 .consoleMessage {
     display: grid;
-    grid-template-columns: 25px 1fr;
+    grid-template-columns: 25px 1fr $go-to-button-width;
     word-break: break-all;
     border-bottom: 1px solid #eaeaea;
     font-weight: 400;
     font-size: 12px;
     padding-bottom: 8px;
     padding-top: 8px;
+    padding-right: 12px;
 }
 
 .directionIcon {
