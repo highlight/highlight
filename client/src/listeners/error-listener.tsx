@@ -8,7 +8,7 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) =>{
             source: source,
             lineno: BigInt(String(lineno)),
             colno: BigInt(String(colno)),
-            trace: trace
+            trace: String(trace)
           });
     }
 }

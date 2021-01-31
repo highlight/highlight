@@ -188,13 +188,13 @@ func (r *mutationResolver) PushPayload(ctx context.Context, organizationID int, 
 		for _, v := range errorsParsed["errors"] {
 			obj := &model.ErrorObject{
 				OrganizationID: organizationID,
-				SessionID: sessionID,
-				Event: v.Event,
-				Type: v.Type, 
-				Source: v.Source,
-				LineNo: v.LineNo,
-				ColumnNo: v.ColumnNo,
-				Trace: v.Trace,
+				SessionID:      sessionID,
+				Event:          v.Event,
+				Type:           v.Type,
+				Source:         v.Source,
+				LineNo:         v.LineNo,
+				ColumnNo:       v.ColumnNo,
+				Trace:          v.Trace,
 			}
 			if err := r.DB.Create(obj).Error; err != nil {
 				return nil, e.Wrap(err, "error creating error object")

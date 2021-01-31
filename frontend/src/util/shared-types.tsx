@@ -10,8 +10,16 @@ export type ErrorMessage = {
     source?: string | undefined;
     lineno?: bigint | undefined;
     colno?: bigint | undefined;
-    trace?: Error | undefined;
+    trace?: string | undefined;
 };
+
+export const myErrorStringify = (object: any) => {
+    return JSON.stringify(object, (key, value) =>
+        typeof value === 'bigint'
+            ? value.toString()
+            : value // return everything else unchanged
+    );
+}
 
 export type NetworkResourceContent = {
     endTime?: number;

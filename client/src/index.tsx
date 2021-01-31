@@ -1,7 +1,8 @@
-import { addCustomEvent, record } from 'rrweb';
-import { eventWithTime } from 'rrweb/typings/types';
+import { addCustomEvent, record } from '@highlight-run/rrweb';
+import { eventWithTime } from '@highlight-run/rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener } from './listeners/error-listener';
+import { myErrorStringify } from '../../frontend/src/util/shared-types';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient, gql } from 'graphql-request'
 
@@ -274,7 +275,7 @@ export class Highlight {
       }
       const resourcesString = JSON.stringify({ resources: resources });
       const messagesString = JSON.stringify({ messages: this.messages });
-      const errorsString = JSON.stringify({ errors: this.errors });
+      const errorsString = myErrorStringify({ errors: this.errors });
       const eventsString = JSON.stringify({ events: this.events });
       this.logger.log(
         `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`

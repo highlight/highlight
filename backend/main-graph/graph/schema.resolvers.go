@@ -22,14 +22,6 @@ import (
 	stripe "github.com/stripe/stripe-go"
 )
 
-func (r *errorObjectResolver) LineNo(ctx context.Context, obj *model.ErrorObject) (*int, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *errorObjectResolver) ColumnNo(ctx context.Context, obj *model.ErrorObject) (*int, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
 	admin, err := r.Query().Admin(ctx)
 	if err != nil {
@@ -802,9 +794,6 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
-// ErrorObject returns generated.ErrorObjectResolver implementation.
-func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorObjectResolver{r} }
-
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -817,7 +806,6 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
-type errorObjectResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
