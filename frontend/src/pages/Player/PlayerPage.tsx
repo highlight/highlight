@@ -146,7 +146,9 @@ export const Player = () => {
     }
 
     const isReplayerReady =
-        replayerState === ReplayerState.Loaded && replayerScale < 1;
+        replayerState === ReplayerState.Loaded &&
+        replayerScale < 1 &&
+        !sessionLoading;
 
     return (
         <ReplayerContext.Provider
