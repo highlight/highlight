@@ -13,11 +13,16 @@ interface ReplayerContextInterface {
     /** The current time the player is at. */
     time: number;
     setTime: (newTime: number) => void;
+    /** The current size of the replayer (in percent). */
+    scale: number;
+    setScale: (newScale: number) => void;
 }
 
 export const defaultValue: ReplayerContextInterface = {
     state: ReplayerState.Loaded,
     replayer: undefined,
+    scale: 1,
+    setScale: (_) => {},
     time: 0,
     setTime: (_) => {},
 };
