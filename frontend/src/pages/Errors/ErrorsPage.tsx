@@ -40,7 +40,10 @@ export const ErrorsPage = () => {
                 <Button type="primary" onClick={consoleError}>Console Error</Button>
             </div>
             <div className={styles.errorText}> 
-                {JSON.stringify(data)}
+                {data?.errors.map((u) => {
+                        return <p>{JSON.stringify(u)}</p>
+                    })
+                }
             </div>
         </div>
     )

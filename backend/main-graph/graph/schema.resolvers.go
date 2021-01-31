@@ -15,6 +15,7 @@ import (
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
+	"github.com/k0kubun/pp"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
@@ -335,6 +336,7 @@ func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]*mode
 	if res := r.DB.Order("created_at desc").Where(&model.ErrorObject{OrganizationID: organizationID}).Find(&errorObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
+	pp.Println(errorObjs)
 	return errorObjs, nil
 }
 
