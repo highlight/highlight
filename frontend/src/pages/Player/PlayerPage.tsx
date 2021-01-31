@@ -105,6 +105,8 @@ export const Player = () => {
         return true;
     };
 
+    console.log(replayerScale);
+
     // This adjusts the dimensions (i.e. scale()) of the iframe when the page loads.
     useEffect(() => {
         const i = window.setInterval(() => {
@@ -145,11 +147,19 @@ export const Player = () => {
         return <p>{sessionError.toString()}</p>;
     }
 
-    const isReplayerReady = replayerState === ReplayerState.Loaded;
+    const isReplayerReady =
+        replayerState === ReplayerState.Loaded && replayerScale < 1;
 
     return (
         <ReplayerContext.Provider
-            value={{ replayer, state: replayerState, time, setTime }}
+            value={{
+                replayer,
+                state: replayerState,
+                time,
+                setTime,
+                scale: replayerScale,
+                setScale: setReplayerScale,
+            }}
         >
             <div className={styles.playerBody}>
                 <div className={styles.playerLeftSection}>
@@ -168,7 +178,7 @@ export const Player = () => {
                                 className={styles.rrwebPlayerDiv}
                                 id="player"
                             />
-                            {!isReplayerReady || sessionLoading ? (
+                            {!isReplayerReady ? (
                                 <PlayerSkeleton
                                     height={
                                         playerWrapperRef.current?.clientHeight
@@ -266,7 +276,7 @@ const PlayerSkeleton = ({ height }: { height: number | undefined }) => {
     const adjusted = (height ?? 80) - 80;
     return (
         <SkeletonTheme color={'white'} highlightColor={'#f5f5f5'}>
-            <Skeleton height={adjusted} width={adjusted} />
+            <Skeleton height={adjusted} width={adjusted} duration={1} />
         </SkeletonTheme>
     );
 };
