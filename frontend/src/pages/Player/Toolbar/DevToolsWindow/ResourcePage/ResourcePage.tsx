@@ -9,6 +9,8 @@ import { Skeleton } from 'antd';
 import devStyles from '../DevToolsWindow.module.scss';
 import styles from './ResourcePage.module.scss';
 import { DemoContext } from '../../../../../DemoContext';
+import GoToButton from '../../../../../components/Button/GoToButton';
+import ReplayerContext from '../../../ReplayerContext';
 
 export const ResourcePage = ({
     time,
@@ -19,6 +21,7 @@ export const ResourcePage = ({
 }) => {
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
+    const { setTime } = useContext(ReplayerContext);
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [currentResource, setCurrentResource] = useState(0);
@@ -316,6 +319,11 @@ export const ResourcePage = ({
                                                         }
                                                     />
                                                 </div>
+                                                <GoToButton
+                                                    onClick={() => {
+                                                        setTime(p.startTime);
+                                                    }}
+                                                />
                                             </div>
                                         </Element>
                                     );

@@ -1,10 +1,15 @@
+@import 'src/components/Button/GoToButton/index.module.scss';
+
+$columns: 130px 200px 90px 1fr $go-to-button-width;
+$right-padding: 12px;
+
 .networkRow {
     color: #808080;
     width: 100%;
     display: grid;
-    grid-template-columns: 130px 200px 90px 1fr;
+    grid-template-columns: $columns;
     padding-left: 25px;
-    padding-right: 25px;
+    padding-right: $right-padding;
     padding-bottom: 8px;
     font-size: 13px;
 }
@@ -13,10 +18,10 @@
     color: #808080;
     width: 100%;
     padding-left: 25px;
-    padding-right: 25px;
+    padding-right: $right-padding;
     height: 40px;
     display: grid;
-    grid-template-columns: 130px 200px 90px 1fr;
+    grid-template-columns: $columns;
     font-size: 13px;
 }
 
@@ -24,12 +29,17 @@
     height: calc(100% - 45px);
     position: relative;
 }
+
+// calc(total width - padding left - padding right - TYPE - NAME - TIMING - GoToButton)
+$canvas-width: calc(
+    100% - 25px - 25px - 130px - 200px - 90px - #{$go-to-button-width}
+);
+
 .canvasNetworkWrapper {
     position: absolute;
     background-attachment: fixed;
     height: 100%;
-    // calc(total width - padding left - padding right - TYPE - NAME - TIMING)
-    width: calc(100% - 25px - 25px - 130px - 200px - 90px);
+    width: $canvas-width;
     margin-left: calc(25px + 130px + 200px + 90px);
 }
 
