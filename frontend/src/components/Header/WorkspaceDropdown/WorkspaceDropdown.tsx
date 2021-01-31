@@ -54,8 +54,8 @@ export const WorkspaceDropdown = () => {
                             {o.id.toString() === organization_id ? (
                                 <CheckIcon className={styles.plusIcon} />
                             ) : (
-                                    <></>
-                                )}
+                                <></>
+                            )}
                         </div>
                     </Link>
                 ))}
@@ -77,9 +77,7 @@ export const WorkspaceDropdown = () => {
                 onClick={(e) => e.preventDefault()}
             >
                 <div className={styles.orgNameText}>
-                    {demo
-                        ? 'Highlight'
-                        : currentOrg?.organization.name}
+                    {demo ? 'Highlight' : currentOrg?.organization.name}
                 </div>
                 <DownIcon
                     className={styles.icon}

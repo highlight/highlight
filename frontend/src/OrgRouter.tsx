@@ -22,7 +22,9 @@ import { Duration, MillisToDaysHoursMinSeconds } from './util/time';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const [trialTimeRemaining, setTrialTimeRemaining] = useState<Duration | undefined>(undefined)
+    const [trialTimeRemaining, setTrialTimeRemaining] = useState<
+        Duration | undefined
+    >(undefined);
     const { loading, error, data } = useQuery<
         { organization: { name: string; trial_end_date: number } },
         { id: number }
@@ -48,9 +50,10 @@ export const OrgRouter = () => {
         const diff =
             new Date(data?.organization.trial_end_date ?? 0).valueOf() -
             Date.now().valueOf();
-        const trialTimeRemaining = diff > 0 ? MillisToDaysHoursMinSeconds(diff) : undefined;
+        const trialTimeRemaining =
+            diff > 0 ? MillisToDaysHoursMinSeconds(diff) : undefined;
         setTrialTimeRemaining(trialTimeRemaining);
-    }, [data])
+    }, [data]);
 
     if (error) {
         return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
@@ -96,12 +99,14 @@ export const OrgRouter = () => {
                         <ErrorsPage />
                     </Route>
                     <Route path="/:organization_id">
-                        {integrated ? <Redirect to={`/${organization_id}/sessions`} /> :
+                        {integrated ? (
+                            <Redirect to={`/${organization_id}/sessions`} />
+                        ) : (
                             <Redirect to={`/${organization_id}/setup`} />
-                        }
+                        )}
                     </Route>
                 </Switch>
             </div>
-        </SidebarContext.Provider >
+        </SidebarContext.Provider>
     );
 };

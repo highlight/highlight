@@ -10,16 +10,20 @@ import styles from './SettingsMenu.module.scss';
 export const SettingsMenu = ({
     skipInactive,
     openDevTools,
+    autoPlayVideo,
     speed,
     onSkipInactiveChange,
     onOpenDevToolsChange,
+    onAutoPlayVideoChange,
     onSpeedChange,
 }: {
     skipInactive: boolean;
     openDevTools: boolean;
+    autoPlayVideo: boolean;
     speed: number;
     onSkipInactiveChange: () => void;
     onOpenDevToolsChange: () => void;
+    onAutoPlayVideoChange: () => void;
     onSpeedChange: (s: number) => void;
 }) => {
     const [openSpeedMenu, setOpenSpeedMenu] = useState(false);
@@ -75,60 +79,68 @@ export const SettingsMenu = ({
                                                     className={styles.checkIcon}
                                                 />
                                             ) : (
-                                                    <></>
-                                                )}
+                                                <></>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
                             </>
                         ) : (
-                                <>
-                                    <div className={toolbarStyles.dropdownSection}>
-                                        <span>Dev Tools</span>
-                                        <Switch
-                                            checked={openDevTools}
-                                            className={styles.switchStyle}
-                                            onChange={onOpenDevToolsChange}
-                                        />
-                                    </div>
-                                    <div className={toolbarStyles.dropdownSection}>
-                                        <span>Skip Inactive</span>
-                                        <Switch
-                                            checked={skipInactive}
-                                            className={styles.switchStyle}
-                                            onChange={onSkipInactiveChange}
-                                        />
-                                    </div>
+                            <>
+                                <div className={toolbarStyles.dropdownSection}>
+                                    <span>Dev Tools</span>
+                                    <Switch
+                                        checked={openDevTools}
+                                        className={styles.switchStyle}
+                                        onChange={onOpenDevToolsChange}
+                                    />
+                                </div>
+                                <div className={toolbarStyles.dropdownSection}>
+                                    <span>Skip Inactive</span>
+                                    <Switch
+                                        checked={skipInactive}
+                                        className={styles.switchStyle}
+                                        onChange={onSkipInactiveChange}
+                                    />
+                                </div>
+                                <div className={toolbarStyles.dropdownSection}>
+                                    <span>Autoplay Video</span>
+                                    <Switch
+                                        checked={autoPlayVideo}
+                                        className={styles.switchStyle}
+                                        onChange={onAutoPlayVideoChange}
+                                    />
+                                </div>
+                                <div
+                                    className={toolbarStyles.dropdownSection}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => setOpenSpeedMenu(true)}
+                                >
+                                    <span>Playback</span>
                                     <div
-                                        className={toolbarStyles.dropdownSection}
-                                        style={{ cursor: 'pointer' }}
-                                        onClick={() => setOpenSpeedMenu(true)}
+                                        style={{
+                                            float: 'right',
+                                            marginLeft: 'auto',
+                                            height: '100%',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                        }}
                                     >
-                                        <span>Playback</span>
-                                        <div
+                                        <span>{speed}x</span>
+                                        <DownIcon
                                             style={{
+                                                height: 15,
+                                                width: 15,
+                                                transform: 'rotate(270deg)',
                                                 float: 'right',
                                                 marginLeft: 'auto',
-                                                height: '100%',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
                                             }}
-                                        >
-                                            <span>{speed}x</span>
-                                            <DownIcon
-                                                style={{
-                                                    height: 15,
-                                                    width: 15,
-                                                    transform: 'rotate(270deg)',
-                                                    float: 'right',
-                                                    marginLeft: 'auto',
-                                                }}
-                                            />
-                                        </div>
+                                        />
                                     </div>
-                                </>
-                            )}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             }

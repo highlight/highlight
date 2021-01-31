@@ -2,8 +2,12 @@ import React, { useEffect, useContext, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useMutation, gql, useQuery } from '@apollo/client';
 import { loadStripe } from '@stripe/stripe-js';
-import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard'
-import { basicPlan, startupPlan, enterprisePlan } from './BillingPlanCard/BillingConfig'
+import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard';
+import {
+    basicPlan,
+    startupPlan,
+    enterprisePlan,
+} from './BillingPlanCard/BillingConfig';
 
 import styles from './Billing.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
@@ -12,20 +16,23 @@ import Skeleton from 'react-loading-skeleton';
 import { message } from 'antd';
 
 const getStripePromiseOrNull = () => {
-    const stripe_publishable_key = process.env.REACT_APP_STRIPE_API_PK
+    const stripe_publishable_key = process.env.REACT_APP_STRIPE_API_PK;
     if (stripe_publishable_key) {
         return loadStripe(stripe_publishable_key);
     }
-    return null
-}
+    return null;
+};
 
-const stripePromiseOrNull = getStripePromiseOrNull()
+const stripePromiseOrNull = getStripePromiseOrNull();
 
 export const Billing = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { pathname } = useLocation();
-    const [checkoutRedirectFailedMessage, setCheckoutRedirectFailedMessage] = useState<string>("")
-    const [loading, setLoading] = useState<boolean>(false)
+    const [
+        checkoutRedirectFailedMessage,
+        setCheckoutRedirectFailedMessage,
+    ] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(false);
 
     const { setOpenSidebar } = useContext(SidebarContext);
 
@@ -42,7 +49,7 @@ export const Billing = () => {
         `,
         {
             variables: {
-                organization_id: parseInt(organization_id)
+                organization_id: parseInt(organization_id),
             },
         }
     );
@@ -52,11 +59,14 @@ export const Billing = () => {
         { organization_id: number; plan: string }
     >(
         gql`
-            mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {
+            mutation CreateOrUpdateSubscription(
+                $organization_id: ID!
+                $plan: Plan!
+            ) {
                 createOrUpdateSubscription(
-                    organization_id: $organization_id 
+                    organization_id: $organization_id
                     plan: $plan
-                ) 
+                )
             }
         `
     );
@@ -66,49 +76,55 @@ export const Billing = () => {
     }, [setOpenSidebar]);
 
     useEffect(() => {
-        const response = pathname.split('/')[3] ?? ''
-        if (response === "success") {
-            message.success("Billing change applied!", 5)
+        const response = pathname.split('/')[3] ?? '';
+        if (response === 'success') {
+            message.success('Billing change applied!', 5);
         }
         if (checkoutRedirectFailedMessage) {
-            message.error(checkoutRedirectFailedMessage, 5)
+            message.error(checkoutRedirectFailedMessage, 5);
         }
         if (billingError) {
-            message.error(checkoutRedirectFailedMessage, 5)
+            message.error(checkoutRedirectFailedMessage, 5);
         }
-    }, [pathname, checkoutRedirectFailedMessage, billingError])
+    }, [pathname, checkoutRedirectFailedMessage, billingError]);
 
     const createOnSelect = (plan: string) => {
         return async () => {
             setLoading(true);
             createOrUpdateSubscription({
-                variables: { organization_id: parseInt(organization_id), plan }
-            }).then(r => {
+                variables: { organization_id: parseInt(organization_id), plan },
+            }).then((r) => {
                 if (!r.data?.createOrUpdateSubscription) {
-                    message.success("Billing change applied!", 5);
+                    message.success('Billing change applied!', 5);
                 }
                 refetch().then(() => {
                     setLoading(false);
                 });
             });
-        }
-    }
+        };
+    };
 
     if (data?.createOrUpdateSubscription && stripePromiseOrNull) {
         (async function () {
             const stripe = await stripePromiseOrNull;
-            const result = stripe ? await stripe.redirectToCheckout({
-                sessionId: data.createOrUpdateSubscription,
-            }) : { error: "Error: could not load stripe client." };
+            const result = stripe
+                ? await stripe.redirectToCheckout({
+                      sessionId: data.createOrUpdateSubscription,
+                  })
+                : { error: 'Error: could not load stripe client.' };
 
             if (result.error) {
                 // result.error is either a string message or a StripeError, which contains a message localized for the user.
-                setCheckoutRedirectFailedMessage(typeof result.error === "string" ? result.error : typeof result.error.message ===
-                    "string" ? result.error.message : "Redirect to checkout failed. This is most likely a network or browser error.")
+                setCheckoutRedirectFailedMessage(
+                    typeof result.error === 'string'
+                        ? result.error
+                        : typeof result.error.message === 'string'
+                        ? result.error.message
+                        : 'Redirect to checkout failed. This is most likely a network or browser error.'
+                );
             }
-        })()
+        })();
     }
-
 
     return (
         <div className={styles.billingPageWrapper}>
@@ -119,17 +135,45 @@ export const Billing = () => {
                     Manage your billing information.
                 </div>
                 <div className={styles.billingPlanCardWrapper}>
-                    {
-                        billingLoading || loading ?
-                            <Skeleton style={{ borderRadius: 8, marginRight: 20 }} count={3} height={300} width={275} /> :
-                            <>
-                                <BillingPlanCard current={billingData?.billingDetails === basicPlan.planName} billingPlan={basicPlan} onSelect={createOnSelect(basicPlan.planName)}></BillingPlanCard>
-                                <BillingPlanCard current={billingData?.billingDetails === startupPlan.planName} billingPlan={startupPlan} onSelect={createOnSelect(startupPlan.planName)}></BillingPlanCard>
-                                <BillingPlanCard current={billingData?.billingDetails === enterprisePlan.planName} billingPlan={enterprisePlan} onSelect={createOnSelect(enterprisePlan.planName)}></BillingPlanCard>
-                            </>
-                    }
+                    {billingLoading || loading ? (
+                        <Skeleton
+                            style={{ borderRadius: 8, marginRight: 20 }}
+                            count={3}
+                            height={300}
+                            width={275}
+                        />
+                    ) : (
+                        <>
+                            <BillingPlanCard
+                                current={
+                                    billingData?.billingDetails ===
+                                    basicPlan.planName
+                                }
+                                billingPlan={basicPlan}
+                                onSelect={createOnSelect(basicPlan.planName)}
+                            ></BillingPlanCard>
+                            <BillingPlanCard
+                                current={
+                                    billingData?.billingDetails ===
+                                    startupPlan.planName
+                                }
+                                billingPlan={startupPlan}
+                                onSelect={createOnSelect(startupPlan.planName)}
+                            ></BillingPlanCard>
+                            <BillingPlanCard
+                                current={
+                                    billingData?.billingDetails ===
+                                    enterprisePlan.planName
+                                }
+                                billingPlan={enterprisePlan}
+                                onSelect={createOnSelect(
+                                    enterprisePlan.planName
+                                )}
+                            ></BillingPlanCard>
+                        </>
+                    )}
                 </div>
             </div>
-        </div >
+        </div>
     );
 };

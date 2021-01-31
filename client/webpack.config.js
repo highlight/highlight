@@ -31,6 +31,11 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
+    // NOTE: Only enable for experimenting with a dev version of rrweb.
+    // The second argument to path.resolve() should be the path to the dist folder in rrweb.
+    // alias: {
+    //   "@highlight-run/rrweb": path.resolve(__dirname, "../../rrweb/dist"),
+    // }
   },
   mode: 'development',
   devtool: 'source-map',

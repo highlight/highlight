@@ -239,21 +239,21 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                 }}
                             />
                         ) : (
-                                    <DateOptions
-                                        defaultText={
-                                            'Enter a time duration (e.g. 24 days, 2 minutes)'
-                                        }
-                                        input={params[activeParam].current ?? ''}
-                                        onSelect={(option: Value) => {
-                                            if (!option) return;
-                                            var pcopy = [...paramsRef.current];
-                                            pcopy[activeParam].value = option;
-                                            mainInput.current?.focus();
-                                            setActiveParam(-1);
-                                            setParams(pcopy);
-                                        }}
-                                    />
-                                )}
+                            <DateOptions
+                                defaultText={
+                                    'Enter a time duration (e.g. 24 days, 2 minutes)'
+                                }
+                                input={params[activeParam].current ?? ''}
+                                onSelect={(option: Value) => {
+                                    if (!option) return;
+                                    var pcopy = [...paramsRef.current];
+                                    pcopy[activeParam].value = option;
+                                    mainInput.current?.focus();
+                                    setActiveParam(-1);
+                                    setParams(pcopy);
+                                }}
+                            />
+                        )}
                     </div>
                 )}
                 <div ref={resultsRef}>
@@ -277,7 +277,12 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                             <div
                                                 className={styles.blueTitle}
                                             >{`User#${u?.user_id}`}</div>
-                                            <div className={classNames(styles.regSubTitle, "rr-block")}>
+                                            <div
+                                                className={classNames(
+                                                    styles.regSubTitle,
+                                                    'rr-block'
+                                                )}
+                                            >
                                                 {u?.identifier}
                                             </div>
                                         </div>
@@ -309,16 +314,18 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                                             }
                                         >
                                             <div className={styles.regTitle}>
-                                                {u?.os_name &&
-                                                    u?.browser_name
+                                                {u?.os_name && u?.browser_name
                                                     ? u?.os_name +
-                                                    ' • ' +
-                                                    u?.browser_name
+                                                      ' • ' +
+                                                      u?.browser_name
                                                     : 'Desktop • Chrome'}
                                             </div>
                                             <div className={styles.regSubTitle}>
-                                                {u?.city}{u?.city && u?.state && ','} {u?.state}{' '}
-                                                {u?.postal}
+                                                {u?.city}
+                                                {u?.city &&
+                                                    u?.state &&
+                                                    ','}{' '}
+                                                {u?.state} {u?.postal}
                                             </div>
                                         </div>
                                     </div>
@@ -331,8 +338,8 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                             <Spinner />
                         </div>
                     ) : (
-                            <></>
-                        )}
+                        <></>
+                    )}
                     <div style={{ height: 50 }}></div>
                 </div>
             </div>

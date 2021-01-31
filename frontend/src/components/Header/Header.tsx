@@ -15,9 +15,12 @@ import { Duration } from '../../util/time';
 
 type HeaderProps = {
     trialTimeRemaining?: Duration;
-}
+};
 
-const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({ history, ...props }) => {
+const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({
+    history,
+    ...props
+}) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { demo } = useContext(DemoContext);
     const { setOpenSidebar, openSidebar } = useContext(SidebarContext);
@@ -41,13 +44,15 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({ hist
     return (
         <>
             <div className={styles.header}>
-                {trialTimeRemaining && <TrialBanner timeRemaining={trialTimeRemaining} />}
+                {trialTimeRemaining && (
+                    <TrialBanner timeRemaining={trialTimeRemaining} />
+                )}
                 <div className={styles.headerContent}>
                     <div className={styles.logoWrapper}>
                         <Hamburger
                             className={styles.hamburger}
                             onClick={() => {
-                                setOpenSidebar(!openSidebar)
+                                setOpenSidebar(!openSidebar);
                             }}
                             style={{
                                 transform: openSidebar
@@ -64,8 +69,18 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({ hist
                         </Link>
                     </div>
                     <div className={styles.rightHeader}>
-                        <div className={styles.searchPrompt} onClick={() => history.push(`/${organization_id}/sessions`)}>
-                            <div className={classNames(styles.commandWrapper, styles.dontSelect)}>
+                        <div
+                            className={styles.searchPrompt}
+                            onClick={() =>
+                                history.push(`/${organization_id}/sessions`)
+                            }
+                        >
+                            <div
+                                className={classNames(
+                                    styles.commandWrapper,
+                                    styles.dontSelect
+                                )}
+                            >
                                 <div className={styles.searchText}>
                                     Start a search with
                                 </div>
@@ -82,18 +97,22 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({ hist
     );
 };
 
-
-
 const TrialBanner = ({ timeRemaining }: { timeRemaining: Duration }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     return (
-        <div className={styles.trialWrapper} >
+        <div className={styles.trialWrapper}>
             <Banner className={styles.bannerSvg} />
             <div className={classNames(styles.trialTimeText)}>
-                {timeRemaining.days}&nbsp;day(s) left in your trial. Pick a plan <Link className={styles.trialLink} to={`/${organization_id}/billing`}>here!</Link>
+                {timeRemaining.days}&nbsp;day(s) left in your trial. Pick a plan{' '}
+                <Link
+                    className={styles.trialLink}
+                    to={`/${organization_id}/billing`}
+                >
+                    here!
+                </Link>
             </div>
-        </div >
-    )
-}
+        </div>
+    );
+};
 
 export const Header = withRouter(Head);
