@@ -237,14 +237,14 @@ type EventsObject struct {
 
 type ErrorObject struct {
 	Model
-	OrganizationID 	int
-	SessionID 		int
-	Event 			string
+	OrganizationID	int
+	SessionID		int
+	Event			string
 	Type			string
-	Source 			string
-	LineNo		 	int `json:"line_no"`
-	ColumnNo	 	int `json:"column_no"`
-	Trace 			string
+	Source			string
+	LineNo			int `json:"line_no"`
+	ColumnNo		int `json:"column_no"`
+	Trace			string
 }
 
 func SetupDB() *gorm.DB {
