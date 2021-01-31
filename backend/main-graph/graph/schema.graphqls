@@ -51,13 +51,13 @@ type Segment {
 type ErrorObject {
   id: ID!
   organization_id: Int!
-	session_id: Int!
-	event: String!
+  session_id: Int!
+  event: String!
   type:	String!
   source: String
   line_no: Int
   column_no: Int
-	trace: String
+  trace: String
 }
 
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI, 

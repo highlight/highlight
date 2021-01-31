@@ -8,8 +8,8 @@ export type ErrorMessage = {
     event: string | Event;
     type: "console" | "exception"
     source?: string | undefined;
-    lineno?: number | undefined;
-    colno?: number | undefined;
+    lineno?: bigint | undefined;
+    colno?: bigint | undefined;
     trace?: Error | undefined;
 };
 

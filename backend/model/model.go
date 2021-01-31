@@ -242,8 +242,8 @@ type ErrorObject struct {
 	Event 			string
     Type			string
     Source 			string
-    LineNo		 	float64 `json:"line_no"`
-    ColumnNo	 	float64 `json:"column_no"`
+    LineNo		 	int `json:"line_no"`
+    ColumnNo	 	int `json:"column_no"`
 	Trace 			string
 }
 

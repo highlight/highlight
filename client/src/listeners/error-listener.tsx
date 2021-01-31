@@ -6,8 +6,8 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) =>{
             event: event,
             type: "exception",
             source: source,
-            lineno: lineno,
-            colno: colno,
+            lineno: BigInt(String(lineno)),
+            colno: BigInt(String(colno)),
             trace: trace
           });
     }

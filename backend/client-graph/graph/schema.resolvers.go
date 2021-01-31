@@ -180,44 +180,24 @@ func (r *mutationResolver) PushPayload(ctx context.Context, organizationID int, 
 		}
 	}
 	// unmarshal error
-	errorsParsed := make(map[string][]interface{})
+	errorsParsed := make(map[string][]model.ErrorObject)
 	if err := json.Unmarshal([]byte(errors), &errorsParsed); err != nil {
-		return nil, fmt.Errorf("error decoding resource data: %v", err)
+		return nil, fmt.Errorf("error decoding error data: %v", err)
 	}
 	if len(errorsParsed["errors"]) > 0 {
 		for _, v := range errorsParsed["errors"] {
-			var source string = ""
-			var line_no float64 = -1
-			var column_no float64 = -1
-			var trace string = ""
-			if v.(map[string]interface{})["source"] != nil {
-				source = v.(map[string]interface{})["source"].(string)
-			}
-			if v.(map[string]interface{})["lineno"] != nil {
-				line_no = v.(map[string]interface{})["lineno"].(float64)
-			}
-			if v.(map[string]interface{})["colno"] != nil {
-				column_no = v.(map[string]interface{})["colno"].(float64)
-			}
-			if v.(map[string]interface{})["trace"] != nil {
-				traceBytes, err := json.Marshal(v.(map[string]interface{})["trace"])
-				if err != nil {
-					return nil, fmt.Errorf("error decoding trace data: %v", err)
-				}
-				trace = string(traceBytes)
-			}
 			obj := &model.ErrorObject{
 				OrganizationID: organizationID,
-				SessionID:      sessionID,
-				Event:          v.(map[string]interface{})["event"].(string),
-				Type:           v.(map[string]interface{})["type"].(string),
-				Source:         source,
-				LineNo:         line_no,
-				ColumnNo:       column_no,
-				Trace:          trace,
+				SessionID: sessionID,
+				Event: v.Event,
+				Type: v.Type, 
+				Source: v.Source,
+				LineNo: v.LineNo,
+				ColumnNo: v.ColumnNo,
+				Trace: v.Trace,
 			}
 			if err := r.DB.Create(obj).Error; err != nil {
-				return nil, e.Wrap(err, "error creating resources object")
+				return nil, e.Wrap(err, "error creating error object")
 			}
 		}
 	}
