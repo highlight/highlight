@@ -137,7 +137,6 @@ export const Player = () => {
             setEvents(newEvents);
             setReplayer(r);
             setReplayerState(ReplayerState.Loaded);
-            r.getTimeOffset();
         }
     }, [sessionData]);
 
