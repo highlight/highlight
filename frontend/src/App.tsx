@@ -128,14 +128,9 @@ type Inputs = {
 };
 
 export const AuthAppRouter = () => {
-    const {
-        watch,
-        register,
-        handleSubmit,
-        errors,
-        reset,
-        setError,
-    } = useForm<Inputs>();
+    const { watch, register, handleSubmit, errors, reset, setError } = useForm<
+        Inputs
+    >();
     const [signIn, setSignIn] = useState<boolean>(true);
     const [firebaseError, setFirebaseError] = useState('');
     const [user, loading, error] = useAuthState(auth);

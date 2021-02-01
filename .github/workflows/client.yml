@@ -4,6 +4,7 @@ on:
         paths:
             - 'firstload/**'
             - 'client/**'
+            - '.github/workflows/client.yml'
 jobs:
     client:
         runs-on: ubuntu-latest
@@ -17,5 +18,7 @@ jobs:
                   registry-url: https://registry.npmjs.org
             - name: Install main dependencies
               run: cd client && yarn install
+            - name: Runs linting
+              run: cd client && yarn lint
             - name: Build Bundle
               run: cd client && yarn build
