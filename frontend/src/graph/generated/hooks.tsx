@@ -101,3 +101,72 @@ export type GetEventsQueryResult = Apollo.QueryResult<
     Types.GetEventsQuery,
     Types.GetEventsQueryVariables
 >;
+export const GetSessionDocument = gql`
+    query GetSession($id: ID!) {
+        session(id: $id) {
+            os_name
+            os_version
+            browser_name
+            browser_version
+            city
+            state
+            postal
+            user_id
+            created_at
+            user_object
+            identifier
+            fields {
+                name
+                value
+                type
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetSessionQuery__
+ *
+ * To run a query within a React component, call `useGetSessionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetSessionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionQuery,
+        Types.GetSessionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionQuery,
+        Types.GetSessionQueryVariables
+    >(GetSessionDocument, baseOptions);
+}
+export function useGetSessionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionQuery,
+        Types.GetSessionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionQuery,
+        Types.GetSessionQueryVariables
+    >(GetSessionDocument, baseOptions);
+}
+export type GetSessionQueryHookResult = ReturnType<typeof useGetSessionQuery>;
+export type GetSessionLazyQueryHookResult = ReturnType<
+    typeof useGetSessionLazyQuery
+>;
+export type GetSessionQueryResult = Apollo.QueryResult<
+    Types.GetSessionQuery,
+    Types.GetSessionQueryVariables
+>;
