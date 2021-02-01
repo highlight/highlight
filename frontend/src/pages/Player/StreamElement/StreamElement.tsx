@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { MouseInteractions, EventType } from '@highlight-run/rrweb';
 import { Element } from 'react-scroll';
 import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
@@ -14,6 +14,8 @@ import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { mouseInteractionData } from '@highlight-run/rrweb/typings/types';
 import { StaticMap } from '../StaticMap/StaticMap';
 import styles from './StreamElement.module.scss';
+import GoToButton from '../../../components/Button/GoToButton';
+import ReplayerContext from '../ReplayerContext';
 
 export const StreamElement = ({
     e,
@@ -29,6 +31,7 @@ export const StreamElement = ({
     const [hover, setHover] = useState(false);
     const [selected, setSelected] = useState(false);
     const details = getEventRenderDetails(e, nodeMap);
+    const { setTime } = useContext(ReplayerContext);
     let timeSinceStart = e?.timestamp - start;
     return (
         <Element
@@ -42,10 +45,9 @@ export const StreamElement = ({
             <div
                 className={styles.streamElement}
                 style={{
-                    backgroundColor:
-                        isCurrent || selected ? '#5629c6' : 'inherit',
-                    color: isCurrent || selected ? 'white' : 'grey',
-                    fill: isCurrent || selected ? 'white' : 'grey',
+                    backgroundColor: isCurrent ? '#5629c6' : 'inherit',
+                    color: isCurrent ? 'white' : 'grey',
+                    fill: isCurrent ? 'white' : 'grey',
                 }}
                 key={e.identifier}
                 id={e.identifier}
@@ -87,9 +89,19 @@ export const StreamElement = ({
                         {details.payload}
                     </div>
                 </div>
-                <div className={styles.eventTime}>
-                    {MillisToMinutesAndSeconds(timeSinceStart)}
-                </div>
+                {selected ? (
+                    <GoToButton
+                        onClick={(e) => {
+                            // Stopping the event from propagating up to the parent button. This is to allow the element to stay opened when the user clicks on the GoToButton. Without this the element would close.
+                            e.stopPropagation();
+                            setTime(timeSinceStart);
+                        }}
+                    />
+                ) : (
+                    <div className={styles.eventTime}>
+                        {MillisToMinutesAndSeconds(timeSinceStart)}
+                    </div>
+                )}
             </div>
         </Element>
     );

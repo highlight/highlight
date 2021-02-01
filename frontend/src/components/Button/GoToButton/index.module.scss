@@ -3,10 +3,10 @@
 $go-to-button-width: 63px;
 
 .goToButton {
+    align-self: flex-start;
     background: none;
     border: none;
     font-size: 12px;
-    color: $primary-font-color;
     outline: none;
     display: flex;
     align-items: center;

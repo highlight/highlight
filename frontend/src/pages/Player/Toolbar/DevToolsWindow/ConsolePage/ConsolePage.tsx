@@ -158,6 +158,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                                 m.value}
                                         </div>
                                         <GoToButton
+                                            className={styles.goToButton}
                                             onClick={() => {
                                                 setTime(
                                                     m.time -

@@ -1,4 +1,5 @@
 @import 'src/components/Button/GoToButton/index.module.scss';
+@import 'src/static/shared.scss';
 
 $columns: 130px 200px 90px 1fr $go-to-button-width;
 $right-padding: 12px;
@@ -113,4 +114,8 @@ $canvas-width: calc(
     .networkTimestampGrid {
         display: none;
     }
+}
+
+.goToButton {
+    color: $primary-font-color;
 }

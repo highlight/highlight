@@ -320,6 +320,9 @@ export const ResourcePage = ({
                                                     />
                                                 </div>
                                                 <GoToButton
+                                                    className={
+                                                        styles.goToButton
+                                                    }
                                                     onClick={() => {
                                                         setTime(p.startTime);
                                                     }}

@@ -1,4 +1,5 @@
 @import 'src/components/Button/GoToButton/index.module.scss';
+@import 'src/static/shared.scss';
 
 .consoleButton {
     height: 30px;
@@ -91,4 +92,8 @@
     margin: 14px;
     margin-left: auto;
     cursor: pointer;
+}
+
+.goToButton {
+    color: $primary-font-color;
 }
