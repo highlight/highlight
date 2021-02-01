@@ -65,6 +65,10 @@ export const VisitedUrlInput = () => {
         }));
     };
 
+    const ContainsLabel = (inputValue: string) => {
+        return 'Contains: ' + inputValue;
+    };
+
     return (
         <div className={inputStyles.commonInputWrapper}>
             <AsyncCreatableSelect
@@ -91,6 +95,7 @@ export const VisitedUrlInput = () => {
                 defaultOptions
                 isClearable
                 onChange={onChange}
+                formatCreateLabel={ContainsLabel}
             />
         </div>
     );
