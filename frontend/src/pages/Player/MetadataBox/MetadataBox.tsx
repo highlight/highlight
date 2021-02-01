@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery, gql } from '@apollo/client';
 import { Skeleton, Tag } from 'antd';
 import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { Avatar } from '../../../components/Avatar/Avatar';

@@ -11,7 +11,6 @@ import {
     incrementalData,
 } from '@highlight-run/rrweb/typings/types';
 import { scroller } from 'react-scroll';
-import { useQuery, gql, useMutation } from '@apollo/client';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
