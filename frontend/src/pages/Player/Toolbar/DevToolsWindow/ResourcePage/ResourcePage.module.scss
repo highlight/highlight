@@ -13,6 +13,10 @@ $right-padding: 12px;
     padding-right: $right-padding;
     padding-bottom: 8px;
     font-size: 13px;
+
+    &:hover .goToButton {
+        visibility: visible;
+    }
 }
 
 .networkTopBar {
@@ -117,5 +121,6 @@ $canvas-width: calc(
 }
 
 .goToButton {
+    visibility: hidden;
     color: $primary-font-color;
 }
