@@ -8,7 +8,7 @@ import { Avatar } from '../../../components/Avatar/Avatar';
 import styles from './MetadataBox.module.scss';
 import { DemoContext } from '../../../DemoContext';
 
-type Field = {
+export type Field = {
     type: string;
     name: string;
     value: string;

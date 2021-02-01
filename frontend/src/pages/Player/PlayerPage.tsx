@@ -15,7 +15,7 @@ import { useQuery, gql, useMutation } from '@apollo/client';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
-import { MetadataBox } from './MetadataBox/MetadataBox';
+import { Field, MetadataBox } from './MetadataBox/MetadataBox';
 import { HighlightEvent } from './HighlightEvent';
 import { StaticMap, buildStaticMap } from './StaticMap/StaticMap';
 // @ts-ignore
@@ -33,6 +33,54 @@ export const Player = () => {
     const [replayerState, setReplayerState] = useState<ReplayerState>(
         ReplayerState.NotLoaded
     );
+
+    const { loading, error, data } = useQuery<{
+        session: {
+            os_name: string;
+            os_version: string;
+            browser_name: string;
+            browser_version: string;
+            city: string;
+            state: string;
+            postal: string;
+            user_id: number;
+            created_at: number;
+            user_object: any;
+            identifier: string;
+            fields: Array<Field>;
+        };
+    }>(
+        gql`
+            query GetSession($id: ID!) {
+                session(id: $id) {
+                    processed
+                    os_name
+                    os_version
+                    browser_name
+                    browser_version
+                    city
+                    state
+                    postal
+                    user_id
+                    created_at
+                    user_object
+                    identifier
+                    fields {
+                        name
+                        value
+                        type
+                    }
+                }
+            }
+        `,
+        {
+            variables: {
+                id: demo ? process.env.REACT_APP_DEMO_SESSION : session_id,
+            },
+            context: { headers: { 'Highlight-Demo': demo } },
+        }
+    );
+
     const [time, setTime] = useState(0);
     const [resizeListener, sizes] = useResizeAware();
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
