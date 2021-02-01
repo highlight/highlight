@@ -78,25 +78,28 @@ export const StreamElement = ({
                     }
                 >
                     <div className={styles.eventText}>{details.title}</div>
-                    <div
-                        className={
-                            selected
-                                ? styles.codeBlockWrapperVerbose
-                                : styles.codeBlockWrapper
-                        }
-                    >
-                        {selected ? (
-                            <StreamElementPayload payload={details.payload} />
-                        ) : (
+                    {!selected && (
+                        <div
+                            className={
+                                selected
+                                    ? styles.codeBlockWrapperVerbose
+                                    : styles.codeBlockWrapper
+                            }
+                        >
                             <span className={styles.codeBlock}>
                                 details.payload
                             </span>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
                 <div className={styles.eventTime}>
                     {MillisToMinutesAndSeconds(timeSinceStart)}
                 </div>
+                {selected && (
+                    <div className={styles.codeBlockWrapperVerbose}>
+                        <StreamElementPayload payload={details.payload} />
+                    </div>
+                )}
             </div>
         </Element>
     );
