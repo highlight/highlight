@@ -14,6 +14,7 @@ import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { mouseInteractionData } from '@highlight-run/rrweb/typings/types';
 import { StaticMap } from '../StaticMap/StaticMap';
 import styles from './StreamElement.module.scss';
+import StreamElementPayload from './StreamElementPayload';
 
 export const StreamElement = ({
     e,
@@ -84,7 +85,11 @@ export const StreamElement = ({
                                 : styles.codeBlockWrapper
                         }
                     >
-                        {details.payload}
+                        {selected ? (
+                            <StreamElementPayload payload={details.payload} />
+                        ) : (
+                            details.payload
+                        )}
                     </div>
                 </div>
                 <div className={styles.eventTime}>
