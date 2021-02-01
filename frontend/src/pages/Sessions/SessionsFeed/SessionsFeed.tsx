@@ -127,16 +127,6 @@ export const SessionFeed = () => {
         },
     });
 
-    if (loadingState) {
-        return (
-            <Skeleton
-                height={110}
-                count={3}
-                style={{ borderRadius: 8, marginTop: 14, marginBottom: 14 }}
-            />
-        );
-    }
-
     return (
         <>
             <div className={styles.fixedContent}>
@@ -153,12 +143,10 @@ export const SessionFeed = () => {
                 className={styles.feedContent}
                 ref={infiniteRef as RefObject<HTMLDivElement>}
             >
-                {data.sessions.map((u) => {
-                    return <SessionCard session={u} />;
-                })}
-                {data.sessions.length < data.totalCount ? (
+                {loadingState ? (
                     <Skeleton
                         height={110}
+                        count={3}
                         style={{
                             borderRadius: 8,
                             marginTop: 14,
@@ -166,7 +154,21 @@ export const SessionFeed = () => {
                         }}
                     />
                 ) : (
-                    <></>
+                    <>
+                        {data.sessions.map((u) => {
+                            return <SessionCard session={u} />;
+                        })}
+                        {data.sessions.length < data.totalCount && (
+                            <Skeleton
+                                height={110}
+                                style={{
+                                    borderRadius: 8,
+                                    marginTop: 14,
+                                    marginBottom: 14,
+                                }}
+                            />
+                        )}
+                    </>
                 )}
             </div>
         </>
