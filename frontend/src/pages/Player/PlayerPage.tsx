@@ -43,16 +43,6 @@ export const Player = () => {
     const [replayerScale, setReplayerScale] = useState(1);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
-    // const [markSessionAsViewed] = useMutation<
-    //     { markSessionAsViewed: Boolean },
-    //     { id: number }
-    // >(
-    //     gql`
-    //         mutation MarkSessionAsViewed($id: ID!) {
-    //             markSessionAsViewed(id: $id)
-    //         }
-    //     `
-    // );
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const {
         loading: sessionLoading,
@@ -66,26 +56,6 @@ export const Player = () => {
         },
         context: { headers: { 'Highlight-Demo': demo } },
     });
-
-    // const {
-    //     loading: sessionLoading,
-    //     error: sessionError,
-    //     data: sessionData,
-    // } = useQuery<{ events: any[] }, { session_id: string }>(
-    //     gql`
-    //         query GetEvents($session_id: ID!) {
-    //             events(session_id: $session_id)
-    //         }
-    //     `,
-    //     {
-    //         variables: {
-    //             session_id: demo
-    //                 ? process.env.REACT_APP_DEMO_SESSION ?? ''
-    //                 : session_id ?? '',
-    //         },
-    //         context: { headers: { 'Highlight-Demo': demo } },
-    //     }
-    // );
 
     useEffect(() => {
         if (session_id) {
