@@ -14,8 +14,7 @@ $go-to-button-width: 63px;
     border-radius: $button-border-radius;
     cursor: pointer;
 
-    &:hover,
-    &:focus {
+    &:hover {
         background: $highlight-purple-light;
     }
 }

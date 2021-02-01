@@ -22,11 +22,13 @@ export const StreamElement = ({
     start,
     isCurrent,
     nodeMap,
+    onGoToHandler,
 }: {
     e: HighlightEvent;
     start: number;
     isCurrent: boolean;
     nodeMap: StaticMap;
+    onGoToHandler: (event: string) => void;
 }) => {
     const [hover, setHover] = useState(false);
     const [selected, setSelected] = useState(false);
@@ -94,6 +96,8 @@ export const StreamElement = ({
                         onClick={(e) => {
                             // Stopping the event from propagating up to the parent button. This is to allow the element to stay opened when the user clicks on the GoToButton. Without this the element would close.
                             e.stopPropagation();
+                            // Sets the current event as null. It will be reset as the player continues.
+                            onGoToHandler('');
                             setTime(timeSinceStart);
                         }}
                     />
