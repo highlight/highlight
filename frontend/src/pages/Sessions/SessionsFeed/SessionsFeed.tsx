@@ -120,6 +120,7 @@ export const SessionFeed = () => {
         checkInterval: 1200, // frequency to check (1.2s)
         loading: loadData,
         hasNextPage: true,
+        scrollContainer: 'parent',
         onLoadMore: () => {
             if (data.sessions.length < data.totalCount) {
                 setLoadData(true);
