@@ -4,6 +4,7 @@ on:
         paths:
             - 'firstload/**'
             - 'client/**'
+            - '.github/workflows/firstload.yml'
 jobs:
     firstload:
         runs-on: ubuntu-latest
@@ -19,6 +20,8 @@ jobs:
               run: cd firstload && yarn install
             - name: Install other dependencies
               run: cd client && yarn install
+            - name: Runs linting
+              run: cd firstload && yarn lint
             - name: Build Bundle
               run: cd firstload && yarn build
             - name: Publish
