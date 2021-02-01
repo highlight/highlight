@@ -11,7 +11,6 @@
     height: 100%;
     color: black;
     display: grid;
-    grid-auto-flow: column;
     grid-template-columns: min-content 1fr min-content;
     padding: 5px 10px 5px 10px;
     align-items: center;
@@ -105,13 +104,10 @@
 }
 
 .codeBlockWrapperVerbose {
-    font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
-        'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
     border: 1px solid #e4e8eb;
     background-color: #f9f9f9;
     border-radius: 8px;
     min-height: 30px;
-    margin-left: 10px;
     padding: 3px 8px 3px 8px;
     line-height: 20px;
     color: grey;
@@ -121,4 +117,10 @@
     word-wrap: break-word;
     width: 100%;
     align-items: center;
+    grid-column: 1 / 4;
+}
+
+.codeBlock {
+    font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
+        'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
 }
