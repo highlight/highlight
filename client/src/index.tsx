@@ -298,11 +298,11 @@ export class Highlight {
         );
       });
       ConsoleListener((c: ConsoleMessage) => {
-        if (c.type == 'Error' && this.organizationID == '2')
+        if (c.type == 'Error' && this.organizationID == '1')
           highlightThis.errors.push({ event: c.value, type: 'console' });
         highlightThis.messages.push(c);
       });
-      if (this.organizationID == '2')
+      if (this.organizationID == '1')
         ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
       this.ready = true;
     } catch (e) {
