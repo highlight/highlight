@@ -51,7 +51,6 @@ export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
             }}
         >
             <div className={styles.sessionsBody}>
-                {/* <div className={styles.fixedPlaceholder} /> */}
                 <div className={styles.leftPanel}>
                     <SegmentSidebar feedPosition={{ top, x }} />
                 </div>

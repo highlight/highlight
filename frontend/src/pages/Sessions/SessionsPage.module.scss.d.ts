@@ -7,7 +7,6 @@ export const dropdown: string;
 export const dropdownDivider: string;
 export const dropdownSection: string;
 export const dropdownTitle: string;
-export const fixedPlaceholder: string;
 export const leftPanel: string;
 export const loadingDiv: string;
 export const mainInputDiv: string;
