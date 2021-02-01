@@ -105,8 +105,6 @@
 }
 
 .codeBlockWrapperVerbose {
-    font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
-        'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
     border: 1px solid #e4e8eb;
     background-color: #f9f9f9;
     border-radius: 8px;
@@ -121,4 +119,9 @@
     word-wrap: break-word;
     width: 100%;
     align-items: center;
+}
+
+.codeBlock {
+    font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
+        'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
 }

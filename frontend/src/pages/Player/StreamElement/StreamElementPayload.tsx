@@ -2,7 +2,6 @@ import React from 'react';
 import validator from 'validator';
 import { isJson } from './utils';
 import styles from './StreamElementPayload.module.scss';
-import { Tooltip } from 'antd';
 
 interface StreamElementProps {
     payload?: string;
@@ -22,7 +21,7 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
 
     if (validator.isURL(payload, validatorUrlOptions)) {
         return (
-            <a href={payload} target="_blank">
+            <a href={payload} target="_blank" rel="noopener noreferrer">
                 {payload}
             </a>
         );
@@ -35,22 +34,20 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
         return (
             <ul className={styles.objectList}>
                 {keys.map((key) => (
-                    <li key={key}>
-                        <Tooltip title={`${key}: ${object[key]}`}>
-                            <p className={styles.payload}>
-                                <span className={styles.objectKey}>{key}</span>{' '}
-                                <span>
-                                    {validator.isURL(
-                                        object[key],
-                                        validatorUrlOptions
-                                    ) ? (
-                                        <a href={object[key]}>{object[key]}</a>
-                                    ) : (
-                                        object[key]
-                                    )}
-                                </span>
-                            </p>
-                        </Tooltip>
+                    <li key={key} className={styles.objectRecord}>
+                        <p className={styles.payload}>
+                            <div className={styles.objectKey}>{key}</div>{' '}
+                            <div className={styles.objectValue}>
+                                {validator.isURL(
+                                    object[key],
+                                    validatorUrlOptions
+                                ) ? (
+                                    <a href={object[key]}>{object[key]}</a>
+                                ) : (
+                                    object[key]
+                                )}
+                            </div>
+                        </p>
                     </li>
                 ))}
             </ul>

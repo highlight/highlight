@@ -88,7 +88,9 @@ export const StreamElement = ({
                         {selected ? (
                             <StreamElementPayload payload={details.payload} />
                         ) : (
-                            details.payload
+                            <span className={styles.codeBlock}>
+                                details.payload
+                            </span>
                         )}
                     </div>
                 </div>
