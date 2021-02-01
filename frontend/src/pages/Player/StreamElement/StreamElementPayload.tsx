@@ -36,8 +36,8 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
                 {keys.map((key) => (
                     <li key={key} className={styles.objectRecord}>
                         <p className={styles.payload}>
-                            <div className={styles.objectKey}>{key}</div>{' '}
-                            <div className={styles.objectValue}>
+                            <span className={styles.objectKey}>{key}</span>{' '}
+                            <span className={styles.objectValue}>
                                 {validator.isURL(
                                     object[key],
                                     validatorUrlOptions
@@ -46,7 +46,7 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
                                 ) : (
                                     object[key]
                                 )}
-                            </div>
+                            </span>
                         </p>
                     </li>
                 ))}

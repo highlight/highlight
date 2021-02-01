@@ -5,11 +5,13 @@
     font-style: normal;
     color: $text-label;
     line-height: initial;
+    display: block;
 }
 
 .objectList {
     list-style: none;
     padding: 0;
+    margin: 6px 0px;
 }
 
 .objectValue {
