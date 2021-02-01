@@ -140,37 +140,36 @@ export const SessionFeed = () => {
                     className={styles.resultCount}
                 >{`${data.totalCount} sessions`}</div>
             </div>
-            <div
-                className={styles.feedContent}
-                ref={infiniteRef as RefObject<HTMLDivElement>}
-            >
-                {loadingState ? (
-                    <Skeleton
-                        height={110}
-                        count={3}
-                        style={{
-                            borderRadius: 8,
-                            marginTop: 14,
-                            marginBottom: 14,
-                        }}
-                    />
-                ) : (
-                    <>
-                        {data.sessions.map((u) => {
-                            return <SessionCard session={u} />;
-                        })}
-                        {data.sessions.length < data.totalCount && (
-                            <Skeleton
-                                height={110}
-                                style={{
-                                    borderRadius: 8,
-                                    marginTop: 14,
-                                    marginBottom: 14,
-                                }}
-                            />
-                        )}
-                    </>
-                )}
+            <div className={styles.feedContent}>
+                <div ref={infiniteRef as RefObject<HTMLDivElement>}>
+                    {loadingState ? (
+                        <Skeleton
+                            height={110}
+                            count={3}
+                            style={{
+                                borderRadius: 8,
+                                marginTop: 14,
+                                marginBottom: 14,
+                            }}
+                        />
+                    ) : (
+                        <>
+                            {data.sessions.map((u) => {
+                                return <SessionCard session={u} />;
+                            })}
+                            {data.sessions.length < data.totalCount && (
+                                <Skeleton
+                                    height={110}
+                                    style={{
+                                        borderRadius: 8,
+                                        marginTop: 14,
+                                        marginBottom: 14,
+                                    }}
+                                />
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
         </>
     );
