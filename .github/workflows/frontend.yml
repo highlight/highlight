@@ -22,6 +22,6 @@ jobs:
             - name: Runs linting
               run: cd frontend && yarn lint
             - name: Runs tests
-              run: cd frontend && CI=true yarn test --all
+              run: cd frontend && CI=true yarn test
             - name: Build Bundle
               run: cd frontend && CI=true yarn build
