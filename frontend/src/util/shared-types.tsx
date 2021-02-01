@@ -6,20 +6,19 @@ export type ConsoleMessage = {
 
 export type ErrorMessage = {
     event: string | Event;
-    type: "console" | "exception"
+    type: 'console' | 'exception';
     source?: string | undefined;
     lineno?: bigint | undefined;
     colno?: bigint | undefined;
     trace?: string | undefined;
 };
 
-export const myErrorStringify = (object: any) => {
-    return JSON.stringify(object, (key, value) =>
-        typeof value === 'bigint'
-            ? value.toString()
-            : value // return everything else unchanged
+export const ErrorStringify = (object: any) => {
+    return JSON.stringify(
+        object,
+        (key, value) => (typeof value === 'bigint' ? value.toString() : value) // return everything else unchanged
     );
-}
+};
 
 export type NetworkResourceContent = {
     endTime?: number;
