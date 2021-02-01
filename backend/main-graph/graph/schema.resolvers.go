@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
@@ -572,7 +573,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		visitedSessions := []model.Session{}
 		for _, session := range sessions {
 			for _, field := range session.Fields {
-				if field.Name == "visited-url" && field.Value == *params.VisitedURL {
+				if field.Name == "visited-url" && strings.Contains(field.Value, *params.VisitedURL) {
 					visitedSessions = append(visitedSessions, session)
 				}
 			}
