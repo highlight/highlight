@@ -34,6 +34,23 @@ describe('StreamElementPayload', () => {
         });
     });
 
+    it('should handle an object that has an empty value', () => {
+        const object = {
+            name: 'Foo',
+            referrer: '',
+        };
+        render(<StreamElementPayload payload={JSON.stringify(object)} />);
+
+        Object.keys(object).map((key) => {
+            if (key === 'name') {
+                screen.getByText(key);
+                screen.getByText(object[key]);
+            } else {
+                expect(screen.queryByText(key)).toBeNull();
+            }
+        });
+    });
+
     it('should handle an object that has URL values', () => {
         const object = {
             name: 'Foo',

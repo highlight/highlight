@@ -30,10 +30,12 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
     if (isJson(payload)) {
         const object = JSON.parse(payload);
         const keys = Object.keys(object);
+        // Do not show keys that have empty values.
+        const emptyValuesRemovedKeys = keys.filter((key) => object[key] !== '');
 
         return (
             <ul className={styles.objectList}>
-                {keys.map((key) => (
+                {emptyValuesRemovedKeys.map((key) => (
                     <li key={key} className={styles.objectRecord}>
                         <p className={styles.payload}>
                             <span className={styles.objectKey}>{key}</span>{' '}
