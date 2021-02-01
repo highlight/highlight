@@ -34,6 +34,13 @@ export type HighlightClassOptions = {
   disableNetworkRecording?: boolean;
 };
 
+type PropertyType = {
+  type?: 'track' | 'session';
+  source?: Source;
+};
+
+type Source = 'segment' | undefined;
+
 export class Highlight {
   organizationID: string;
   client: GraphQLClient;
@@ -69,7 +76,18 @@ export class Highlight {
     this.messages = [];
   }
 
-  async identify(user_identifier: string, user_object = {}) {
+  async identify(user_identifier: string, user_object = {}, source?: Source) {
+    if (source === 'segment') {
+      addCustomEvent(
+        'Segment Identify',
+        JSON.stringify({ user_identifier, ...user_object })
+      );
+    } else {
+      addCustomEvent(
+        'Identify',
+        JSON.stringify({ user_identifier, ...user_object })
+      );
+    }
     await this.client.request(
       gql`
         mutation identifySession(
@@ -90,15 +108,17 @@ export class Highlight {
         user_object: user_object,
       }
     );
+    const sourceString = source === 'segment' ? source : 'default';
     this.logger.log(
-      `Identify (${user_identifier}) w/ obj: ${JSON.stringify(user_object)} @ ${
-        process.env.BACKEND_URI
-      }`
+      `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${JSON.stringify(
+        user_object
+      )} @ ${process.env.BACKEND_URI}`
     );
   }
 
-  async addProperties(properties_obj = {}, typeArg?: string) {
-    if (typeArg == 'session') {
+  async addProperties(properties_obj = {}, typeArg?: PropertyType) {
+    // Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
+    if (typeArg?.type === 'session') {
       await this.client.request(
         gql`
           mutation addSessionProperties(
@@ -123,7 +143,14 @@ export class Highlight {
           process.env.BACKEND_URI
         }`
       );
-    } else {
+    }
+    // Track properties are properties that users define; rn, either through segment or manually.
+    else {
+      if (typeArg?.source === 'segment') {
+        addCustomEvent<string>('Segment Track', JSON.stringify(properties_obj));
+      } else {
+        addCustomEvent<string>('Track', JSON.stringify(properties_obj));
+      }
       await this.client.request(
         gql`
           mutation addTrackProperties(
@@ -141,12 +168,14 @@ export class Highlight {
           properties_object: properties_obj,
         }
       );
+      const sourceString =
+        typeArg?.source === 'segment' ? typeArg.source : 'default';
       this.logger.log(
         `AddTrackProperties to session (${
           this.sessionID
-        }) w/ obj: ${JSON.stringify(properties_obj)} @ ${
-          process.env.BACKEND_URI
-        }`
+        }, source: ${sourceString}) w/ obj: ${JSON.stringify(
+          properties_obj
+        )} @ ${process.env.BACKEND_URI}`
       );
     }
   }
@@ -203,6 +232,7 @@ export class Highlight {
   Remote: ${process.env.BACKEND_URI}
   Org ID: ${gr.initializeSession.organization_id}
   Verbose Org ID: ${this.organizationID}
+  SessionID: ${this.sessionID}
   Session Data: 
   `,
           gr.initializeSession
@@ -237,36 +267,35 @@ export class Highlight {
           if (obj.type === 'track') {
             const properties: { [key: string]: string } = {};
             properties['segment-event'] = obj.event;
-            highlightThis.logger.log(
-              `Adding (${JSON.stringify(properties)}) @ ${
-                process.env.BACKEND_URI
-              }, org: ${highlightThis.organizationID}`
-            );
-            addCustomEvent<string>(
-              'Segment',
-              JSON.stringify({
-                event: obj.event,
-                properties: obj.properties,
-              })
-            );
-            highlightThis.addProperties(properties);
+            highlightThis.addProperties(properties, {
+              type: 'track',
+              source: 'segment',
+            });
+          } else if (obj.type === 'identify') {
+            highlightThis.identify(obj.userId, obj.traits, 'segment');
           }
         }, 100);
         send.call(this, data);
       };
       if (document.referrer) {
         addCustomEvent<string>('Referrer', document.referrer);
-        highlightThis.addProperties({ referrer: document.referrer }, 'session');
+        highlightThis.addProperties(
+          { referrer: document.referrer },
+          { type: 'session' }
+        );
       }
       PathListener((url: string) => {
         if (reloaded) {
           addCustomEvent<string>('Reload', url);
           reloaded = false;
-          highlightThis.addProperties({ reload: true }, 'session');
+          highlightThis.addProperties({ reload: true }, { type: 'session' });
         } else {
           addCustomEvent<string>('Navigate', url);
         }
-        highlightThis.addProperties({ 'visited-url': url }, 'session');
+        highlightThis.addProperties(
+          { 'visited-url': url },
+          { type: 'session' }
+        );
       });
       ConsoleListener((c: ConsoleMessage) => {
         if (c.type == 'Error' && this.organizationID == '2')
@@ -303,7 +332,7 @@ export class Highlight {
       const errorsString = ErrorStringify({ errors: this.errors });
       const eventsString = JSON.stringify({ events: this.events });
       this.logger.log(
-        `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}`
+        `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionID}`
       );
       this.events = [];
       this.errors = [];
