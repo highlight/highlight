@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
+import { FaUndoAlt, FaPlay, FaPause, FaRedoAlt } from 'react-icons/fa';
 import { useLocalStorage } from '@rehooks/local-storage';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
@@ -124,6 +124,11 @@ export const Toolbar = ({
         }
     };
 
+    /**
+     * The time to skip along the timeline. Used to skip X time back or forwards.
+     */
+    const SKIP_DURATION = 7000;
+
     return (
         <>
             <OpenDevToolsContext.Provider
@@ -202,7 +207,7 @@ export const Toolbar = ({
                         )}
                         disabled={state !== ReplayerState.Loaded}
                         onClick={() => {
-                            const newTime = time - 7000 < 0 ? 0 : time - 7000;
+                            const newTime = Math.max(time - SKIP_DURATION, 0);
                             if (paused) {
                                 setTime(newTime);
                                 replayer?.pause(newTime);
@@ -214,7 +219,34 @@ export const Toolbar = ({
                     >
                         <FaUndoAlt
                             fill="inherit"
-                            className={styles.undoButtonStyle}
+                            className={styles.skipButtonStyle}
+                        />
+                    </button>
+                    <button
+                        className={classNames(
+                            styles.redoSection,
+                            styles.button
+                        )}
+                        disabled={state !== ReplayerState.Loaded}
+                        onClick={() => {
+                            const totalTime =
+                                replayer?.getMetaData().totalTime ?? 0;
+                            const newTime = Math.min(
+                                time + SKIP_DURATION,
+                                totalTime
+                            );
+                            if (paused) {
+                                setTime(newTime);
+                                replayer?.pause(newTime);
+                            } else {
+                                setTime(newTime);
+                                replayer?.play(newTime);
+                            }
+                        }}
+                    >
+                        <FaRedoAlt
+                            fill="inherit"
+                            className={styles.skipButtonStyle}
                         />
                     </button>
                     <div className={styles.timeSection}>
