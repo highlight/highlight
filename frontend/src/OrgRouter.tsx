@@ -5,7 +5,6 @@ import { Header } from './components/Header/Header';
 import { Switch, Route } from 'react-router-dom';
 import { useQuery, gql } from '@apollo/client';
 import { Player } from './pages/Player/PlayerPage';
-import { SessionsPage } from './pages/Sessions/SessionsPage';
 import { WorkspaceTeam } from './pages/WorkspaceTeam/WorkspaceTeam';
 import { Billing } from './pages/Billing/Billing';
 import { SetupPage } from './pages/Setup/SetupPage';
@@ -79,9 +78,6 @@ export const OrgRouter = () => {
                     </Route>
                     <Route path="/:organization_id/sessions">
                         <SessionsPageBeta integrated={integrated} />
-                    </Route>
-                    <Route path="/:organization_id/sessions-old">
-                        <SessionsPage integrated={integrated} />
                     </Route>
                     <Route path="/:organization_id/settings">
                         <WorkspaceSettings />
