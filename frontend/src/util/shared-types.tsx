@@ -4,22 +4,6 @@ export type ConsoleMessage = {
     type: string;
 };
 
-export type ErrorMessage = {
-    event: string | Event;
-    type: 'console' | 'exception';
-    source?: string | undefined;
-    lineno?: bigint | undefined;
-    colno?: bigint | undefined;
-    trace?: string | undefined;
-};
-
-export const ErrorStringify = (object: any) => {
-    return JSON.stringify(
-        object,
-        (key, value) => (typeof value === 'bigint' ? value.toString() : value) // return everything else unchanged
-    );
-};
-
 export type NetworkResourceContent = {
     endTime?: number;
     request?: HookRequest;

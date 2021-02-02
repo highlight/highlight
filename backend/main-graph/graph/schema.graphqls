@@ -48,18 +48,6 @@ type Segment {
   organization_id: ID!
 }
 
-type ErrorObject {
-  id: ID!
-  organization_id: Int!
-  session_id: Int!
-  event: String!
-  type:	String!
-  source: String
-  line_no: Int
-  column_no: Int
-  trace: String
-}
-
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI, 
 # edit both Foo and FooInput
 input SearchParamsInput {
@@ -126,7 +114,6 @@ type SessionResults {
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
-  errors(organization_id: ID!): [ErrorObject]
   messages(session_id: ID!): [Any]
   resources(session_id: ID!): [Any]
   admins(organization_id: ID!): [Admin]
