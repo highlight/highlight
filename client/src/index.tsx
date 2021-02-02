@@ -310,17 +310,14 @@ export class Highlight {
                 );
             });
             ConsoleListener((c: ConsoleMessage) => {
-                if (c.type == 'Error' && this.organizationID == '1')
+                if (c.type == 'Error')
                     highlightThis.errors.push({
                         event: c.value,
                         type: 'console',
                     });
                 highlightThis.messages.push(c);
             });
-            if (this.organizationID == '1')
-                ErrorListener((e: ErrorMessage) =>
-                    highlightThis.errors.push(e)
-                );
+            ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
             this.ready = true;
         } catch (e) {
             HighlightWarning('initializeSession', e);
@@ -361,7 +358,6 @@ export class Highlight {
             await this.client.request(
                 gql`
                     mutation PushPayload(
-                        $organization_id: ID!
                         $session_id: ID!
                         $events: String!
                         $messages: String!
@@ -369,7 +365,6 @@ export class Highlight {
                         $errors: String!
                     ) {
                         pushPayload(
-                            organization_id: $organization_id
                             session_id: $session_id
                             events: $events
                             messages: $messages
@@ -379,7 +374,6 @@ export class Highlight {
                     }
                 `,
                 {
-                    organization_id: this.organizationID,
                     session_id: this.sessionID,
                     events: eventsString,
                     messages: messagesString,

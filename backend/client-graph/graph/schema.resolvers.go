@@ -145,8 +145,14 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, organizationID int, sessionID int, events string, messages string, resources string, errors string) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors string) (*int, error) {
 	eventsParsed := make(map[string][]interface{})
+	sessionObj := &model.Session{}
+	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
+	if res.Error != nil {
+		return nil, fmt.Errorf("error reading from session: %v", res.Error)
+	}
+	organizationID := sessionObj.OrganizationID
 	// unmarshal events
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
 		return nil, fmt.Errorf("error decoding event data: %v", err)
@@ -184,7 +190,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, organizationID int, 
 	if err := json.Unmarshal([]byte(errors), &errorsParsed); err != nil {
 		return nil, fmt.Errorf("error decoding error data: %v", err)
 	}
-	if len(errorsParsed["errors"]) > 0 {
+	if len(errorsParsed["errors"]) > 0 && organizationID == 1 {
 		for _, v := range errorsParsed["errors"] {
 			obj := &model.ErrorObject{
 				OrganizationID: organizationID,
@@ -202,7 +208,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, organizationID int, 
 		}
 	}
 	now := time.Now()
-	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
+	res = r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error updating session payload time")
 	}
