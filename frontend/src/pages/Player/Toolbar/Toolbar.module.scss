@@ -80,7 +80,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    margin-left: 25px;
+    margin-left: 29px;
     cursor: pointer;
 }
 
@@ -89,7 +89,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    margin-left: 25px;
+    margin-left: 23px;
     cursor: pointer;
 }
 
@@ -98,7 +98,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    margin-left: 7px;
+    margin-left: 17px;
     cursor: pointer;
 }
 
@@ -183,6 +183,7 @@
 
 .button {
     background: none;
+    padding: 0;
     border: none;
     outline: none;
     cursor: pointer;
@@ -194,4 +195,9 @@
         fill: $disabled-button;
         cursor: not-allowed;
     }
+}
+
+.icon {
+    height: 18px;
+    width: 18px;
 }

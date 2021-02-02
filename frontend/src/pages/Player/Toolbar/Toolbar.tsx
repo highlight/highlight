@@ -193,12 +193,18 @@ export const Toolbar = ({
                         {paused ? (
                             <FaPlay
                                 fill="inherit"
-                                className={styles.playButtonStyle}
+                                className={classNames(
+                                    styles.playButtonStyle,
+                                    styles.icon
+                                )}
                             />
                         ) : (
                             <FaPause
                                 fill="inherit"
-                                className={styles.playButtonStyle}
+                                className={classNames(
+                                    styles.playButtonStyle,
+                                    styles.icon
+                                )}
                             />
                         )}
                     </button>
@@ -221,7 +227,10 @@ export const Toolbar = ({
                     >
                         <FaUndoAlt
                             fill="inherit"
-                            className={styles.skipButtonStyle}
+                            className={classNames(
+                                styles.skipButtonStyle,
+                                styles.icon
+                            )}
                         />
                     </button>
                     <button
@@ -248,7 +257,10 @@ export const Toolbar = ({
                     >
                         <FaRedoAlt
                             fill="inherit"
-                            className={styles.skipButtonStyle}
+                            className={classNames(
+                                styles.skipButtonStyle,
+                                styles.icon
+                            )}
                         />
                     </button>
                     <div className={styles.timeSection}>
