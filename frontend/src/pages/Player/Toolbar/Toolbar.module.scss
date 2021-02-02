@@ -5,6 +5,14 @@
     z-index: 20;
     height: 4px;
     cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    outline: none;
+
+    &:disabled {
+        cursor: not-allowed;
+    }
 }
 
 .sliderRail {

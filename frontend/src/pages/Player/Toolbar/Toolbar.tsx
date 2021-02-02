@@ -20,7 +20,7 @@ export const Toolbar = ({
 }) => {
     const { replayer, setTime, time, state } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
-    const sliderWrapperRef = useRef<HTMLDivElement>(null);
+    const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [speed, setSpeed] = useLocalStorage('highlightMenuSpeed', 2);
@@ -142,10 +142,11 @@ export const Toolbar = ({
                     startTime={replayer?.getMetaData().startTime ?? 0}
                 />
             </OpenDevToolsContext.Provider>
-            <div
+            <button
+                disabled={state !== ReplayerState.Loaded}
                 className={styles.sliderWrapper}
                 ref={sliderWrapperRef}
-                onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                     const ratio = e.clientX / wrapperWidth;
                     setTime(ratio * max);
                     setPaused(true);
@@ -160,6 +161,7 @@ export const Toolbar = ({
                     onStop={endLogger}
                     onDrag={onDraggable}
                     onStart={startDraggable}
+                    disabled={state !== ReplayerState.Loaded}
                     position={{
                         x: Math.max((time / max) * wrapperWidth - 15, 0),
                         y: 0,
@@ -167,7 +169,7 @@ export const Toolbar = ({
                 >
                     <div className={styles.indicator} />
                 </Draggable>
-            </div>
+            </button>
             <div className={styles.toolbarSection}>
                 <div className={styles.toolbarLeftSection}>
                     <button
