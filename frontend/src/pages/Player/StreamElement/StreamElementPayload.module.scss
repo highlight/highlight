@@ -1,0 +1,35 @@
+@import 'src/static/shared.scss';
+
+.objectKey {
+    font-size: 10px;
+    font-style: normal;
+    color: $text-label;
+    line-height: initial;
+    display: block;
+}
+
+.objectList {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0px;
+}
+
+.objectValue {
+    font-size: 12px;
+    font-style: normal;
+    color: $text-primary;
+    line-height: initial;
+}
+
+.payload {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.objectRecord {
+    &:not(:last-of-type) {
+        margin-bottom: 6px;
+    }
+}

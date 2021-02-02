@@ -9,7 +9,6 @@ import { SessionFeed } from './SessionsFeed/SessionsFeed';
 
 // @ts-ignore
 import useDimensions from 'react-use-dimensions';
-import { UserPropertyInput } from './SearchInputs/UserPropertyInputs';
 import { IntegrationCard } from './IntegrationCard/IntegrationCard';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
@@ -52,17 +51,17 @@ export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
             }}
         >
             <div className={styles.sessionsBody}>
-                <div className={styles.fixedPlaceholder} />
-                <SegmentSidebar feedPosition={{ top, x }} />
-                <div className={styles.mainUserInput}>
-                    <div className={styles.userInputWrapper}>
-                        <UserPropertyInput include />
+                <div className={styles.leftPanel}>
+                    <SegmentSidebar feedPosition={{ top, x }} />
+                </div>
+                <div className={styles.centerPanel}>
+                    <div className={styles.sessionsSection} ref={feedRef}>
+                        <SessionFeed />
                     </div>
                 </div>
-                <div className={styles.sessionsSection} ref={feedRef}>
-                    <SessionFeed />
+                <div className={styles.rightPanel}>
+                    <SearchSidebar feedPosition={{ top, right }} />
                 </div>
-                <SearchSidebar feedPosition={{ top, right }} />
             </div>
         </SearchContext.Provider>
     );

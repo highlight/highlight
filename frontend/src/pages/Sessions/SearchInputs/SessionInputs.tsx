@@ -2,6 +2,7 @@ import React, { useContext, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import { SearchContext } from '../SearchContext/SearchContext';
+import AsyncCreatableSelect from 'react-select/async-creatable';
 import AsyncSelect from 'react-select/async';
 import { gql, useQuery } from '@apollo/client';
 import inputStyles from './InputStyles.module.scss';
@@ -64,9 +65,13 @@ export const VisitedUrlInput = () => {
         }));
     };
 
+    const ContainsLabel = (inputValue: string) => {
+        return 'Contains: ' + inputValue;
+    };
+
     return (
         <div className={inputStyles.commonInputWrapper}>
-            <AsyncSelect
+            <AsyncCreatableSelect
                 placeholder={'Visited URL'}
                 styles={SharedSelectStyleProps}
                 cacheOptions
@@ -90,6 +95,7 @@ export const VisitedUrlInput = () => {
                 defaultOptions
                 isClearable
                 onChange={onChange}
+                formatCreateLabel={ContainsLabel}
             />
         </div>
     );

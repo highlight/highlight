@@ -16,6 +16,7 @@ import { StaticMap } from '../StaticMap/StaticMap';
 import styles from './StreamElement.module.scss';
 import GoToButton from '../../../components/Button/GoToButton';
 import ReplayerContext from '../ReplayerContext';
+import StreamElementPayload from './StreamElementPayload';
 
 export const StreamElement = ({
     e,
@@ -81,26 +82,40 @@ export const StreamElement = ({
                     }
                 >
                     <div className={styles.eventText}>{details.title}</div>
-                    <div
-                        className={
-                            selected
-                                ? styles.codeBlockWrapperVerbose
-                                : styles.codeBlockWrapper
-                        }
-                    >
-                        {details.payload}
-                    </div>
+                    {!selected && (
+                        <div
+                            className={
+                                selected
+                                    ? styles.codeBlockWrapperVerbose
+                                    : styles.codeBlockWrapper
+                            }
+                        >
+                            <span className={styles.codeBlock}>
+                                details.payload
+                            </span>
+                        </div>
+                    )}
                 </div>
                 {selected ? (
-                    <GoToButton
-                        onClick={(e) => {
-                            // Stopping the event from propagating up to the parent button. This is to allow the element to stay opened when the user clicks on the GoToButton. Without this the element would close.
-                            e.stopPropagation();
-                            // Sets the current event as null. It will be reset as the player continues.
-                            onGoToHandler('');
-                            setTime(timeSinceStart);
-                        }}
-                    />
+                    <>
+                        <div className={styles.codeBlockWrapperVerbose}>
+                            <StreamElementPayload payload={details.payload} />
+                        </div>
+                        <div>
+                            <GoToButton
+                                onClick={(e) => {
+                                    // Stopping the event from propagating up to the parent button. This is to allow the element to stay opened when the user clicks on the GoToButton. Without this the element would close.
+                                    e.stopPropagation();
+                                    // Sets the current event as null. It will be reset as the player continues.
+                                    onGoToHandler('');
+                                    setTime(timeSinceStart);
+                                }}
+                            />
+                            <div className={styles.eventTime}>
+                                {MillisToMinutesAndSeconds(timeSinceStart)}
+                            </div>
+                        </div>
+                    </>
                 ) : (
                     <div className={styles.eventTime}>
                         {MillisToMinutesAndSeconds(timeSinceStart)}

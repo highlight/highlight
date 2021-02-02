@@ -5,7 +5,6 @@ export const dontSelect: string;
 export const hamburger: string;
 export const header: string;
 export const headerContent: string;
-export const headerPlaceholder: string;
 export const homeLink: string;
 export const logo: string;
 export const logoText: string;

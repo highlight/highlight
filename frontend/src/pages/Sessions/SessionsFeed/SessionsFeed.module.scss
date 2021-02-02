@@ -2,16 +2,23 @@
 
 .avatarWrapper {
     width: 100px;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.readMarkerContainer {
+    display: flex;
+    align-items: center;
+    width: auto;
+    margin-left: 6px;
 }
 
 .readMarker {
     border-radius: 10px;
     width: 8px;
     height: 8px;
-    margin-left: 6px;
     background-color: #5629c6;
 }
 
@@ -124,7 +131,31 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    padding-top: 30px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-grow: 1;
+    height: 200px;
+    margin-top: -24px;
+    padding-top: 16px;
+}
+
+.fixedContent {
+    position: relative;
+    z-index: 999;
+}
+
+.userInputWrapper {
+    width: 100%;
+}
+
+.mainUserInput {
+    position: relative;
+    width: 100%;
+    background-color: white;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .resultCount {
@@ -136,24 +167,42 @@
         rgba(255, 255, 255, 0),
         rgba(255, 255, 255, 1) 30%
     );
-    position: fixed;
-    width: 706px;
+    width: 100%;
     z-index: 10;
 }
 
 .sessionCard {
     position: relative;
     font-weight: 400;
-    height: 110px;
     @include rounded-border;
-    display: grid;
-    grid-template-columns: auto 1fr 1fr 1fr 14px;
-    margin-top: 14px;
+    display: flex;
     margin-bottom: 14px;
     align-items: center;
     justify-content: space-between;
     padding: 18px;
     cursor: pointer;
+
+    &:not(:first-of-type) {
+        margin-top: 14px;
+    }
+}
+
+.sessionCardContentWrapper {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.sessionTextSectionWrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    flex-grow: 1;
+
+    @media screen and (max-width: 1200px) {
+        flex-direction: column;
+    }
 }
 
 .regSubTitle {

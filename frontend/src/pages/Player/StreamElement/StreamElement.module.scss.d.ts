@@ -1,3 +1,4 @@
+export const codeBlock: string;
 export const codeBlockWrapper: string;
 export const codeBlockWrapperVerbose: string;
 export const defaultIcon: string;
