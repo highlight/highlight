@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { Element, scroller } from 'react-scroll';
 import { Skeleton } from 'antd';
@@ -9,6 +8,7 @@ import { ConsoleMessage } from '../../../../../util/shared-types';
 import styles from './ConsolePage.module.scss';
 import devStyles from '../DevToolsWindow.module.scss';
 import { DemoContext } from '../../../../../DemoContext';
+import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 
 export const ConsolePage = ({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
@@ -19,24 +19,14 @@ export const ConsolePage = ({ time }: { time: number }) => {
     >([]);
     const [consoleType, setConsoleType] = useState<string>('All');
     const { session_id } = useParams<{ session_id: string }>();
-    const { data, loading } = useQuery<
-        { messages: ConsoleMessage[] },
-        { session_id: string }
-    >(
-        gql`
-            query GetMessages($session_id: ID!) {
-                messages(session_id: $session_id)
-            }
-        `,
-        {
-            variables: {
-                session_id: demo
-                    ? process.env.REACT_APP_DEMO_SESSION ?? ''
-                    : session_id,
-            },
-            context: { headers: { 'Highlight-Demo': demo } },
-        }
-    );
+    const { data, loading } = useGetMessagesQuery({
+        variables: {
+            session_id: demo
+                ? process.env.REACT_APP_DEMO_SESSION ?? ''
+                : session_id,
+        },
+        context: { headers: { 'Highlight-Demo': demo } },
+    });
 
     const rawMessages = data?.messages;
 

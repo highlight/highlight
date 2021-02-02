@@ -2,13 +2,16 @@ import React, { useContext, useState, useEffect } from 'react';
 import _ from 'lodash';
 
 import commonStyles from '../../../../Common.module.scss';
-import { gql, useMutation } from '@apollo/client';
-import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
+import { SearchContext } from '../../SearchContext/SearchContext';
 import { useParams } from 'react-router-dom';
 import { CircularSpinner } from '../../../../components/Spinner/Spinner';
 import { message, Modal } from 'antd';
 import styles from './SegmentButtons.module.scss';
 import { useForm } from 'react-hook-form';
+import {
+    useCreateSegmentMutation,
+    useEditSegmentMutation,
+} from '../../../../graph/generated/hooks';
 
 type Inputs = {
     name: string;
@@ -28,71 +31,17 @@ export const SegmentButtons = () => {
         setExistingParams,
     } = useContext(SearchContext);
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
-    const [editSegment, editSegmentOptions] = useMutation<
-        boolean,
-        { organization_id: number; id: number; params: SearchParams }
-    >(
-        gql`
-            mutation EditSegment(
-                $organization_id: ID!
-                $id: ID!
-                $params: SearchParamsInput!
-            ) {
-                editSegment(
-                    organization_id: $organization_id
-                    id: $id
-                    params: $params
-                )
-            }
-        `,
-        { refetchQueries: ['GetSegments'] }
-    );
-    const [createSegment, { loading }] = useMutation<
-        { id: number },
-        { organization_id: number; name: string; params: SearchParams }
-    >(
-        gql`
-            mutation CreateSegment(
-                $organization_id: ID!
-                $name: String!
-                $params: SearchParamsInput!
-            ) {
-                createSegment(
-                    organization_id: $organization_id
-                    name: $name
-                    params: $params
-                ) {
-                    name
-                    id
-                    params {
-                        user_properties {
-                            name
-                            value
-                        }
-                        excluded_properties {
-                            name
-                            value
-                        }
-                        date_range {
-                            start_date
-                            end_date
-                        }
-                        os
-                        browser
-                        visited_url
-                        referrer
-                        identified
-                        hide_viewed
-                    }
-                }
-            }
-        `,
-        { refetchQueries: ['GetSegments'] }
-    );
+    const [editSegment, editSegmentOptions] = useEditSegmentMutation({
+        refetchQueries: ['GetSegments'],
+    });
+
+    const [createSegment, { loading }] = useCreateSegmentMutation({
+        refetchQueries: ['GetSegments'],
+    });
     const onSubmit = (inputs: Inputs) => {
         createSegment({
             variables: {
-                organization_id: parseInt(organization_id),
+                organization_id,
                 name: inputs.name,
                 params: searchParams,
             },
@@ -166,10 +115,8 @@ export const SegmentButtons = () => {
                             onClick={() => {
                                 editSegment({
                                     variables: {
-                                        organization_id: parseInt(
-                                            organization_id
-                                        ),
-                                        id: parseInt(segment_id),
+                                        organization_id,
+                                        id: segment_id,
                                         params: searchParams,
                                     },
                                 })

@@ -1,4 +1,3 @@
-import { gql, useQuery } from '@apollo/client';
 import React, { useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
@@ -10,6 +9,7 @@ import Skeleton from 'react-loading-skeleton';
 
 import styles from './SegmentPicker.module.scss';
 import { SearchSection } from '../SearchSection/SearchSection';
+import { useGetSegmentsQuery } from '../../../../graph/generated/hooks';
 
 export const SegmentPicker = () => {
     const {
@@ -23,56 +23,22 @@ export const SegmentPicker = () => {
         segment_id: string;
         organization_id: string;
     }>();
-    const { loading, data } = useQuery<
-        { segments: Array<{ name: string; id: string; params: SearchParams }> },
-        { organization_id: number }
-    >(
-        gql`
-            query GetSegments($organization_id: ID!) {
-                segments(organization_id: $organization_id) {
-                    id
-                    name
-                    params {
-                        user_properties {
-                            name
-                            value
-                        }
-                        excluded_properties {
-                            name
-                            value
-                        }
-                        track_properties {
-                            name
-                            value
-                        }
-                        date_range {
-                            start_date
-                            end_date
-                        }
-                        os
-                        browser
-                        visited_url
-                        referrer
-                        identified
-                        hide_viewed
-                    }
-                }
-            }
-        `,
-        { variables: { organization_id: parseInt(organization_id) } }
-    );
-    const currentSegment = data?.segments.find((s) => s.id === segment_id);
+
+    const { loading, data } = useGetSegmentsQuery({
+        variables: { organization_id },
+    });
+    const currentSegment = data?.segments?.find((s) => s?.id === segment_id);
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>
-                {data?.segments.map((s) => (
+                {data?.segments?.map((s) => (
                     <Link
-                        to={`/${organization_id}/sessions/segment/${s.id}`}
-                        key={s.id}
+                        to={`/${organization_id}/sessions/segment/${s?.id}`}
+                        key={s?.id}
                     >
                         <div className={styles.segmentItem}>
-                            <div className={styles.segmentText}>{s.name}</div>
-                            {s.id === currentSegment?.id ? (
+                            <div className={styles.segmentText}>{s?.name}</div>
+                            {s?.id === currentSegment?.id ? (
                                 <CheckIcon className={styles.checkIcon} />
                             ) : (
                                 <></>
@@ -117,7 +83,7 @@ export const SegmentPicker = () => {
                 </Tag>
             }
         >
-            {!data?.segments.length ? (
+            {!data?.segments?.length ? (
                 <div className={styles.noSegmentsText}>
                     No segments here :(. Feel free to create one by clicking{' '}
                     <span style={{ color: '#5629c6' }}>Save as Segment</span>!

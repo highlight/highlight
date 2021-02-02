@@ -5,10 +5,13 @@ import { useForm } from 'react-hook-form';
 import styles from './FieldsForm.module.scss';
 import commonStyles from '../../../Common.module.scss';
 import classNames from 'classnames/bind';
-import { useMutation, gql, useQuery } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { CircularSpinner } from '../../../components/Spinner/Spinner';
 import { message } from 'antd';
+import {
+    useEditOrganizationMutation,
+    useGetOrganizationQuery,
+} from '../../../graph/generated/hooks';
 
 type Inputs = {
     name: string;
@@ -18,51 +21,20 @@ type Inputs = {
 export const FieldsForm = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { register, handleSubmit, errors } = useForm<Inputs>();
-    const { data } = useQuery<
-        { organization: { name: string; billing_email: string } },
-        { id: number }
-    >(
-        gql`
-            query GetOrganization($id: ID!) {
-                organization(id: $id) {
-                    id
-                    name
-                    billing_email
-                }
-            }
-        `,
-        { variables: { id: parseInt(organization_id) } }
-    );
+    const { data } = useGetOrganizationQuery({
+        variables: { id: organization_id },
+    });
     const [
         editOrganization,
         { data: editData, loading: editLoading },
-    ] = useMutation<
-        { editOrganization: { billing_email: string; name: string } },
-        { id: number; name?: string; billing_email?: string }
-    >(
-        gql`
-            mutation EditOrganization(
-                $id: ID!
-                $name: String
-                $billing_email: String
-            ) {
-                editOrganization(
-                    id: $id
-                    name: $name
-                    billing_email: $billing_email
-                ) {
-                    name
-                    billing_email
-                }
-            }
-        `,
-        { refetchQueries: ['GetOrganizations', 'GetOrganization'] }
-    );
+    ] = useEditOrganizationMutation({
+        refetchQueries: ['GetOrganizations', 'GetOrganization'],
+    });
 
     const onSubmit = (inputs: Inputs) => {
         editOrganization({
             variables: {
-                id: parseInt(organization_id),
+                id: organization_id,
                 name: inputs.name,
                 billing_email: inputs.email,
             },
@@ -76,8 +48,8 @@ export const FieldsForm = () => {
                 <div className={styles.fieldKey}>Name</div>
                 <input
                     defaultValue={
-                        editData?.editOrganization.name ||
-                        data?.organization.name
+                        editData?.editOrganization?.name ||
+                        data?.organization?.name
                     }
                     className={commonStyles.input}
                     name="name"
@@ -88,8 +60,9 @@ export const FieldsForm = () => {
                 <div className={styles.fieldKey}>Billing Email</div>
                 <input
                     defaultValue={
-                        editData?.editOrganization.billing_email ||
-                        data?.organization.billing_email
+                        (editData?.editOrganization?.billing_email ||
+                            data?.organization?.billing_email) ??
+                        ''
                     }
                     className={commonStyles.input}
                     placeholder={'Billing Email'}
