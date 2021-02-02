@@ -147,7 +147,7 @@ export const Player = () => {
 
     const isReplayerReady =
         replayerState === ReplayerState.Loaded &&
-        replayerScale < 1 &&
+        replayerScale != 1 &&
         !sessionLoading;
 
     return (
