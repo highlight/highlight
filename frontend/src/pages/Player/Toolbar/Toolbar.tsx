@@ -8,7 +8,8 @@ import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
 import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
-import ReplayerContext from '../ReplayerContext';
+import ReplayerContext, { ReplayerState } from '../ReplayerContext';
+import classNames from 'classnames';
 
 export const Toolbar = ({
     onSelect,
@@ -17,7 +18,7 @@ export const Toolbar = ({
     onSelect: (newTime: number) => void;
     onResize: () => void;
 }) => {
-    const { replayer, setTime, time } = useContext(ReplayerContext);
+    const { replayer, setTime, time, state } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLDivElement>(null);
     const wrapperWidth =
@@ -164,9 +165,12 @@ export const Toolbar = ({
             </div>
             <div className={styles.toolbarSection}>
                 <div className={styles.toolbarLeftSection}>
-                    <div
-                        className={styles.playSection}
-                        // TODO: Add waiting toggle, so a user does not pause while the player is loading.
+                    <button
+                        className={classNames(
+                            styles.playSection,
+                            styles.button
+                        )}
+                        disabled={state !== ReplayerState.Loaded}
                         onClick={() => {
                             if (paused) {
                                 replayer?.play(time);
@@ -181,18 +185,22 @@ export const Toolbar = ({
                     >
                         {paused ? (
                             <FaPlay
-                                fill="black"
+                                fill="inherit"
                                 className={styles.playButtonStyle}
                             />
                         ) : (
                             <FaPause
-                                fill="black"
+                                fill="inherit"
                                 className={styles.playButtonStyle}
                             />
                         )}
-                    </div>
-                    <div
-                        className={styles.undoSection}
+                    </button>
+                    <button
+                        className={classNames(
+                            styles.undoSection,
+                            styles.button
+                        )}
+                        disabled={state !== ReplayerState.Loaded}
                         onClick={() => {
                             const newTime = time - 7000 < 0 ? 0 : time - 7000;
                             if (paused) {
@@ -205,10 +213,10 @@ export const Toolbar = ({
                         }}
                     >
                         <FaUndoAlt
-                            fill="black"
+                            fill="inherit"
                             className={styles.undoButtonStyle}
                         />
-                    </div>
+                    </button>
                     <div className={styles.timeSection}>
                         {MillisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
                         {MillisToMinutesAndSeconds(max)}

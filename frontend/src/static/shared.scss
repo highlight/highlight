@@ -4,6 +4,9 @@ $border-light-gray: #eaeaea;
 $text-primary: #000000;
 $text-label: #959595;
 
+// buttons
+$disabled-button: #bfbfbf;
+
 // mixins
 @mixin rounded-border {
     border: 1px solid $border-light-gray;

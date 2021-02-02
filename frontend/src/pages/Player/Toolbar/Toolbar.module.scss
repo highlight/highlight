@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .sliderWrapper {
     width: 100%;
     z-index: 20;
@@ -160,4 +162,19 @@
 .undoButtonStyle {
     height: 25px;
     width: 30px;
+}
+
+.button {
+    background: none;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    color: $text-primary;
+    fill: $text-primary;
+
+    &:disabled {
+        color: $disabled-button;
+        fill: $disabled-button;
+        cursor: not-allowed;
+    }
 }
