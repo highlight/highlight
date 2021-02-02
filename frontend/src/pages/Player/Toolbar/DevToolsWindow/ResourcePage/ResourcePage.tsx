@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { Tooltip } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
@@ -9,6 +8,7 @@ import { Skeleton } from 'antd';
 import devStyles from '../DevToolsWindow.module.scss';
 import styles from './ResourcePage.module.scss';
 import { DemoContext } from '../../../../../DemoContext';
+import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
 
 export const ResourcePage = ({
     time,
@@ -29,24 +29,14 @@ export const ResourcePage = ({
     const [parsedResources, setParsedResources] = useState<
         Array<PerformanceResourceTiming & { id: number }>
     >([]);
-    const { data, loading } = useQuery<
-        { resources: PerformanceResourceTiming[] },
-        { session_id: string }
-    >(
-        gql`
-            query GetResources($session_id: ID!) {
-                resources(session_id: $session_id)
-            }
-        `,
-        {
-            variables: {
-                session_id: demo
-                    ? process.env.REACT_APP_DEMO_SESSION ?? ''
-                    : session_id,
-            },
-            context: { headers: { 'Highlight-Demo': demo } },
-        }
-    );
+    const { data, loading } = useGetResourcesQuery({
+        variables: {
+            session_id: demo
+                ? process.env.REACT_APP_DEMO_SESSION ?? ''
+                : session_id,
+        },
+        context: { headers: { 'Highlight-Demo': demo } },
+    });
     const rawResources = data?.resources;
 
     useEffect(() => {

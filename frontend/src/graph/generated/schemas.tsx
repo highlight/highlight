@@ -156,7 +156,6 @@ export type Query = {
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
-    sessions?: Maybe<Array<Maybe<Session>>>;
     sessionsBETA?: Maybe<SessionResults>;
     billingDetails: Plan;
     field_suggestionBETA?: Maybe<Array<Maybe<Field>>>;
@@ -166,8 +165,6 @@ export type Query = {
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     recording_settings?: Maybe<RecordingSettings>;
-    fields?: Maybe<Array<Maybe<Scalars['String']>>>;
-    field_suggestion?: Maybe<Array<Maybe<Scalars['String']>>>;
 };
 
 export type QuerySessionArgs = {
@@ -196,12 +193,6 @@ export type QueryAdminsArgs = {
 
 export type QueryIsIntegratedArgs = {
     organization_id: Scalars['ID'];
-};
-
-export type QuerySessionsArgs = {
-    organization_id: Scalars['ID'];
-    count: Scalars['Int'];
-    params?: Maybe<Array<Maybe<Scalars['Any']>>>;
 };
 
 export type QuerySessionsBetaArgs = {
@@ -236,16 +227,6 @@ export type QuerySegmentsArgs = {
 
 export type QueryRecording_SettingsArgs = {
     organization_id: Scalars['ID'];
-};
-
-export type QueryFieldsArgs = {
-    organization_id: Scalars['ID'];
-};
-
-export type QueryField_SuggestionArgs = {
-    organization_id: Scalars['ID'];
-    field: Scalars['String'];
-    query: Scalars['String'];
 };
 
 export enum Plan {

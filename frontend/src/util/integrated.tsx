@@ -1,23 +1,13 @@
 import { useEffect, useState } from 'react';
-import { useLazyQuery, gql } from '@apollo/client';
+import { useIsIntegratedLazyQuery } from '../graph/generated/hooks';
 
 export const useIntegrated = (
-    initialValue: number
+    organization_id: number
 ): { integrated: boolean; loading: boolean } => {
-    const [query, { data }] = useLazyQuery<
-        { isIntegrated: boolean },
-        { organization_id: number }
-    >(
-        gql`
-            query IsIntegrated($organization_id: ID!) {
-                isIntegrated(organization_id: $organization_id)
-            }
-        `,
-        {
-            variables: { organization_id: initialValue },
-            fetchPolicy: 'cache-and-network',
-        }
-    );
+    const [query, { data }] = useIsIntegratedLazyQuery({
+        variables: { organization_id: organization_id.toString() },
+        fetchPolicy: 'cache-and-network',
+    });
     const [integrated, setIntegrated] = useState<boolean | undefined>(
         undefined
     );
@@ -38,7 +28,7 @@ export const useIntegrated = (
 
     useEffect(() => {
         if (integratedRaw !== undefined) {
-            setIntegrated(integratedRaw);
+            setIntegrated(integratedRaw?.valueOf());
         }
     }, [integratedRaw]);
 

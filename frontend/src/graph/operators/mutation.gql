@@ -19,3 +19,100 @@ mutation CreateOrganization($name: String!) {
         name
     }
 }
+
+mutation EditSegment(
+    $organization_id: ID!
+    $id: ID!
+    $params: SearchParamsInput!
+) {
+    editSegment(organization_id: $organization_id, id: $id, params: $params)
+}
+
+mutation CreateSegment(
+    $organization_id: ID!
+    $name: String!
+    $params: SearchParamsInput!
+) {
+    createSegment(
+        organization_id: $organization_id
+        name: $name
+        params: $params
+    ) {
+        name
+        id
+        params {
+            user_properties {
+                name
+                value
+            }
+            excluded_properties {
+                name
+                value
+            }
+            date_range {
+                start_date
+                end_date
+            }
+            os
+            browser
+            visited_url
+            referrer
+            identified
+            hide_viewed
+        }
+    }
+}
+
+mutation DeleteOrganization($id: ID!) {
+    deleteOrganization(id: $id)
+}
+
+mutation EditSegment(
+    $organization_id: ID!
+    $id: ID!
+    $params: SearchParamsInput!
+) {
+    editSegment(organization_id: $organization_id, id: $id, params: $params)
+}
+
+mutation CreateSegment(
+    $organization_id: ID!
+    $name: String!
+    $params: SearchParamsInput!
+) {
+    createSegment(
+        organization_id: $organization_id
+        name: $name
+        params: $params
+    ) {
+        name
+        id
+        params {
+            user_properties {
+                name
+                value
+            }
+            excluded_properties {
+                name
+                value
+            }
+            date_range {
+                start_date
+                end_date
+            }
+            os
+            browser
+            visited_url
+            referrer
+            identified
+            hide_viewed
+        }
+    }
+}
+
+mutation EditOrganization($id: ID!, $name: String, $billing_email: String) {
+    editOrganization(id: $id, name: $name, billing_email: $billing_email) {
+        name
+        billing_email
+    }
+}

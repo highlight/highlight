@@ -23,6 +23,52 @@ query GetSession($id: ID!) {
     }
 }
 
+query GetAdmins($organization_id: ID!) {
+    admins(organization_id: $organization_id) {
+        id
+        name
+        email
+    }
+}
+
+mutation SendAdminInvite($organization_id: ID!, $email: String!) {
+    sendAdminInvite(organization_id: $organization_id, email: $email)
+}
+
+query GetSessionsBETA(
+    $organization_id: ID!
+    $count: Int!
+    $params: SearchParamsInput
+) {
+    sessionsBETA(
+        organization_id: $organization_id
+        count: $count
+        params: $params
+    ) {
+        sessions {
+            id
+            user_id
+            identifier
+            os_name
+            os_version
+            browser_name
+            browser_version
+            city
+            state
+            postal
+            created_at
+            length
+            viewed
+            fields {
+                name
+                value
+                type
+            }
+        }
+        totalCount
+    }
+}
+
 query GetOrganizations {
     organizations {
         id
@@ -43,6 +89,8 @@ query GetOrganization($id: ID!) {
         id
         name
         trial_end_date
+        verbose_id
+        billing_email
     }
 }
 
@@ -67,4 +115,65 @@ query GetMessages($session_id: ID!) {
 
 query GetResources($session_id: ID!) {
     resources(session_id: $session_id)
+}
+
+query GetFieldSuggestion(
+    $organization_id: ID!
+    $name: String!
+    $query: String!
+) {
+    field_suggestionBETA(
+        organization_id: $organization_id
+        name: $name
+        query: $query
+    ) {
+        name
+        value
+    }
+}
+
+query GetPropertySuggestion($organization_id: ID!, $query: String!) {
+    property_suggestion(
+        organization_id: $organization_id
+        query: $query
+        type: "track"
+    ) {
+        name
+        value
+    }
+}
+
+query GetSegments($organization_id: ID!) {
+    segments(organization_id: $organization_id) {
+        id
+        name
+        params {
+            user_properties {
+                name
+                value
+            }
+            excluded_properties {
+                name
+                value
+            }
+            track_properties {
+                name
+                value
+            }
+            date_range {
+                start_date
+                end_date
+            }
+            os
+            browser
+            visited_url
+            referrer
+            identified
+            hide_viewed
+        }
+    }
+}
+
+query IsIntegrated($organization_id: ID!) {
+    isIntegrated(organization_id: $organization_id)
 }
