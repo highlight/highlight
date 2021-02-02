@@ -56,7 +56,12 @@ export const StreamElement = ({
             >
                 <div className={styles.iconWrapper}>
                     {selected ? (
-                        <UpIcon className={styles.directionIcon} />
+                        <UpIcon
+                            className={classNames(styles.directionIcon, {
+                                [styles.selectedIcon]: selected,
+                                [styles.currentIcon]: isCurrent,
+                            })}
+                        />
                     ) : hover ? (
                         <DownIcon className={styles.directionIcon} />
                     ) : details.title === 'Click' ? (
@@ -83,6 +88,7 @@ export const StreamElement = ({
                     <div
                         className={classNames(styles.eventText, {
                             [styles.selectedEventText]: selected,
+                            [styles.currentEventText]: isCurrent,
                         })}
                     >
                         {details.title}

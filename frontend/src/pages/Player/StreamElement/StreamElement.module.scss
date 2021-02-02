@@ -61,6 +61,7 @@
 .directionIcon {
     width: 20px;
     height: 20px;
+    fill: inherit;
 }
 
 .defaultIcon {
@@ -101,6 +102,10 @@
 
 .selectedEventText {
     color: $text-primary;
+}
+
+.currentEventText {
+    color: white;
 }
 
 .codeBlockWrapper {
@@ -150,4 +155,12 @@
 
 .relativeTimeExpanded {
     grid-column-start: -1;
+}
+
+.selectedIcon {
+    fill: $text-primary;
+}
+
+.currentIcon {
+    fill: white;
 }
