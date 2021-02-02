@@ -58,6 +58,18 @@ type ComplexityRoot struct {
 		StartDate func(childComplexity int) int
 	}
 
+	ErrorObject struct {
+		ColumnNo       func(childComplexity int) int
+		Event          func(childComplexity int) int
+		ID             func(childComplexity int) int
+		LineNo         func(childComplexity int) int
+		OrganizationID func(childComplexity int) int
+		SessionID      func(childComplexity int) int
+		Source         func(childComplexity int) int
+		Trace          func(childComplexity int) int
+		Type           func(childComplexity int) int
+	}
+
 	Field struct {
 		Name  func(childComplexity int) int
 		Type  func(childComplexity int) int
@@ -90,6 +102,7 @@ type ComplexityRoot struct {
 		Admin               func(childComplexity int) int
 		Admins              func(childComplexity int, organizationID int) int
 		BillingDetails      func(childComplexity int, organizationID int) int
+		Errors              func(childComplexity int, organizationID int) int
 		Events              func(childComplexity int, sessionID int) int
 		FieldSuggestion     func(childComplexity int, organizationID int, field string, query string) int
 		FieldSuggestionBeta func(childComplexity int, organizationID int, name string, query string) int
@@ -182,6 +195,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
 	Events(ctx context.Context, sessionID int) ([]interface{}, error)
+	Errors(ctx context.Context, organizationID int) ([]*model1.ErrorObject, error)
 	Messages(ctx context.Context, sessionID int) ([]interface{}, error)
 	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
@@ -255,6 +269,69 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.DateRange.StartDate(childComplexity), true
+
+	case "ErrorObject.column_no":
+		if e.complexity.ErrorObject.ColumnNo == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.ColumnNo(childComplexity), true
+
+	case "ErrorObject.event":
+		if e.complexity.ErrorObject.Event == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.Event(childComplexity), true
+
+	case "ErrorObject.id":
+		if e.complexity.ErrorObject.ID == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.ID(childComplexity), true
+
+	case "ErrorObject.line_no":
+		if e.complexity.ErrorObject.LineNo == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.LineNo(childComplexity), true
+
+	case "ErrorObject.organization_id":
+		if e.complexity.ErrorObject.OrganizationID == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.OrganizationID(childComplexity), true
+
+	case "ErrorObject.session_id":
+		if e.complexity.ErrorObject.SessionID == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.SessionID(childComplexity), true
+
+	case "ErrorObject.source":
+		if e.complexity.ErrorObject.Source == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.Source(childComplexity), true
+
+	case "ErrorObject.trace":
+		if e.complexity.ErrorObject.Trace == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.Trace(childComplexity), true
+
+	case "ErrorObject.type":
+		if e.complexity.ErrorObject.Type == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.Type(childComplexity), true
 
 	case "Field.name":
 		if e.complexity.Field.Name == nil {
@@ -474,6 +551,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.BillingDetails(childComplexity, args["organization_id"].(int)), true
+
+	case "Query.errors":
+		if e.complexity.Query.Errors == nil {
+			break
+		}
+
+		args, err := ec.field_Query_errors_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Errors(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.events":
 		if e.complexity.Query.Events == nil {
@@ -1023,6 +1112,18 @@ type Segment {
   organization_id: ID!
 }
 
+type ErrorObject {
+  id: ID!
+  organization_id: Int!
+  session_id: Int!
+  event: String!
+  type:	String!
+  source: String
+  line_no: Int
+  column_no: Int
+  trace: String
+}
+
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI, 
 # edit both Foo and FooInput
 input SearchParamsInput {
@@ -1089,6 +1190,7 @@ type SessionResults {
 type Query {
   session(id: ID!): Session
   events(session_id: ID!): [Any]
+  errors(organization_id: ID!): [ErrorObject]
   messages(session_id: ID!): [Any]
   resources(session_id: ID!): [Any]
   admins(organization_id: ID!): [Admin]
@@ -1437,6 +1539,21 @@ func (ec *executionContext) field_Query_admins_args(ctx context.Context, rawArgs
 }
 
 func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_errors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -1951,6 +2068,300 @@ func (ec *executionContext) _DateRange_end_date(ctx context.Context, field graph
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorObject",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorObject",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_session_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorObject",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_event(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorObject",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Event, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_type(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorObject",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_source(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorObject",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Source, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_line_no(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorObject",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LineNo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_column_no(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorObject",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ColumnNo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorObject",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Trace, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Field_name(ctx context.Context, field graphql.CollectedField, obj *model1.Field) (ret graphql.Marshaler) {
@@ -2708,6 +3119,44 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 	res := resTmp.([]interface{})
 	fc.Result = res
 	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_errors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_errors_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Errors(rctx, args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.ErrorObject)
+	fc.Result = res
+	return ec.marshalOErrorObject2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5863,6 +6312,61 @@ func (ec *executionContext) _DateRange(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
+var errorObjectImplementors = []string{"ErrorObject"}
+
+func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionSet, obj *model1.ErrorObject) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, errorObjectImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ErrorObject")
+		case "id":
+			out.Values[i] = ec._ErrorObject_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "organization_id":
+			out.Values[i] = ec._ErrorObject_organization_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "session_id":
+			out.Values[i] = ec._ErrorObject_session_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "event":
+			out.Values[i] = ec._ErrorObject_event(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "type":
+			out.Values[i] = ec._ErrorObject_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "source":
+			out.Values[i] = ec._ErrorObject_source(ctx, field, obj)
+		case "line_no":
+			out.Values[i] = ec._ErrorObject_line_no(ctx, field, obj)
+		case "column_no":
+			out.Values[i] = ec._ErrorObject_column_no(ctx, field, obj)
+		case "trace":
+			out.Values[i] = ec._ErrorObject_trace(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var fieldImplementors = []string{"Field"}
 
 func (ec *executionContext) _Field(ctx context.Context, sel ast.SelectionSet, obj *model1.Field) graphql.Marshaler {
@@ -6021,6 +6525,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_events(ctx, field)
+				return res
+			})
+		case "errors":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_errors(ctx, field)
 				return res
 			})
 		case "messages":
@@ -7287,6 +7802,53 @@ func (ec *executionContext) unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkha
 	return &res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOErrorObject2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorObject) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOErrorObject2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOErrorObject2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorObject) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ErrorObject(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v []*model1.Field) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -7347,6 +7909,15 @@ func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.Selec
 		return graphql.Null
 	}
 	return graphql.MarshalIntID(*v)
+}
+
+func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	return graphql.MarshalInt(v)
 }
 
 func (ec *executionContext) unmarshalOInt2int64(ctx context.Context, v interface{}) (int64, error) {

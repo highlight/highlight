@@ -1,6 +1,5 @@
 import React, { useContext, useState } from 'react';
 import { Dropdown } from 'antd';
-import { useQuery, gql } from '@apollo/client';
 import { useParams, Link } from 'react-router-dom';
 import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { ReactComponent as PlusIcon } from '../../../static/plus.svg';
@@ -8,50 +7,31 @@ import { ReactComponent as CheckIcon } from '../../../static/check.svg';
 
 import styles from './WorkspaceDropdown.module.scss';
 import { DemoContext } from '../../../DemoContext';
+import {
+    useGetOrganizationQuery,
+    useGetOrganizationsQuery,
+} from '../../../graph/generated/hooks';
 
 export const WorkspaceDropdown = () => {
     const [visible, setVisible] = useState(false);
     const { demo } = useContext(DemoContext);
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { data } = useQuery<{
-        organizations: Array<{ id: number; name: string }>;
-    }>(
-        gql`
-            query GetOrganizations {
-                organizations {
-                    id
-                    name
-                }
-            }
-        `,
-        { skip: demo }
-    );
-    const { data: currentOrg } = useQuery<
-        { organization: { name: string } },
-        { id: number }
-    >(
-        gql`
-            query GetOrganization($id: ID!) {
-                organization(id: $id) {
-                    id
-                    name
-                }
-            }
-        `,
-        { variables: { id: parseInt(organization_id) || 0 } }
-    );
+    const { data } = useGetOrganizationsQuery({ skip: demo });
+    const { data: currentOrg } = useGetOrganizationQuery({
+        variables: { id: organization_id },
+    });
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>
-                {data?.organizations.map((o) => (
+                {data?.organizations?.map((o) => (
                     <Link
-                        to={`/${o.id}/setup`}
+                        to={`/${o?.id}/setup`}
                         onClick={() => setVisible(false)}
-                        key={o.id}
+                        key={o?.id}
                     >
                         <div className={styles.orgItem}>
-                            <div className={styles.orgText}>{o.name}</div>
-                            {o.id.toString() === organization_id ? (
+                            <div className={styles.orgText}>{o?.name}</div>
+                            {o?.id.toString() === organization_id ? (
                                 <CheckIcon className={styles.plusIcon} />
                             ) : (
                                 <></>
@@ -77,7 +57,7 @@ export const WorkspaceDropdown = () => {
                 onClick={(e) => e.preventDefault()}
             >
                 <div className={styles.orgNameText}>
-                    {demo ? 'Highlight' : currentOrg?.organization.name}
+                    {demo ? 'Highlight' : currentOrg?.organization?.name}
                 </div>
                 <DownIcon
                     className={styles.icon}

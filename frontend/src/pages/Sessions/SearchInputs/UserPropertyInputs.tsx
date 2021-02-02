@@ -58,7 +58,9 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
     };
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div
+            className={`${inputStyles.commonInputWrapper} ${inputStyles.searchInput}`}
+        >
             <AsyncSelect
                 isMulti
                 styles={{

@@ -2,7 +2,7 @@
     position: fixed;
     height: 100%;
     background-color: white;
-    z-index: 800;
+    z-index: 1;
     width: 280px;
     border-right: 1px solid #eaeaea;
     transition: margin-left 0.3s;
@@ -10,6 +10,7 @@
     display: flex;
     align-items: center;
     flex-direction: column;
+    padding-top: 80px;
 }
 
 .open {
@@ -37,10 +38,10 @@
 }
 
 .bottomSection {
-    position: absolute;
-    bottom: 100px;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
 }
 
 .bottomLink {

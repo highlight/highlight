@@ -1,0 +1,21 @@
+mutation MarkSessionAsViewed($id: ID!) {
+    markSessionAsViewed(id: $id)
+}
+
+mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {
+    createOrUpdateSubscription(organization_id: $organization_id, plan: $plan)
+}
+
+mutation AddAdminToOrganization($organization_id: ID!, $invite_id: String!) {
+    addAdminToOrganization(
+        organization_id: $organization_id
+        invite_id: $invite_id
+    )
+}
+
+mutation CreateOrganization($name: String!) {
+    createOrganization(name: $name) {
+        id
+        name
+    }
+}

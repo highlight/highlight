@@ -1,0 +1,70 @@
+query GetEvents($session_id: ID!) {
+    events(session_id: $session_id)
+}
+
+query GetSession($id: ID!) {
+    session(id: $id) {
+        os_name
+        os_version
+        browser_name
+        browser_version
+        city
+        state
+        postal
+        user_id
+        created_at
+        user_object
+        identifier
+        fields {
+            name
+            value
+            type
+        }
+    }
+}
+
+query GetOrganizations {
+    organizations {
+        id
+        name
+    }
+}
+
+query GetAdmin {
+    admin {
+        id
+        name
+        email
+    }
+}
+
+query GetOrganization($id: ID!) {
+    organization(id: $id) {
+        id
+        name
+        trial_end_date
+    }
+}
+
+query GetBillingDetails($organization_id: ID!) {
+    billingDetails(organization_id: $organization_id)
+}
+
+query Errors($organization_id: ID!) {
+    errors(organization_id: $organization_id) {
+        event
+        type
+        source
+        line_no
+        column_no
+        trace
+    }
+}
+
+query GetMessages($session_id: ID!) {
+    messages(session_id: $session_id)
+}
+
+query GetResources($session_id: ID!) {
+    resources(session_id: $session_id)
+}

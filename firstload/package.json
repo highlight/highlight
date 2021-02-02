@@ -1,13 +1,15 @@
 {
     "name": "highlight.run",
-    "version": "1.0.56",
+    "version": "1.0.57",
     "scripts": {
         "build": "webpack --mode=production --config=./webpack.config.js",
-        "dev": "doppler run -- webpack-dev-server --progress --colors --watch"
+        "dev": "doppler run -- webpack-dev-server --progress --colors --watch",
+        "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'"
     },
     "main": "dist/firstload/src/index.js",
     "types": "dist/firstload/src/index.d.ts",
     "devDependencies": {
+        "prettier": "^2.2.1",
         "ts-loader": "^8.0.4",
         "typescript": "^4.0.3",
         "webpack": "^4.44.1",

@@ -1,6 +1,5 @@
 import React, { useEffect, useContext, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { useMutation, gql, useQuery } from '@apollo/client';
 import { loadStripe } from '@stripe/stripe-js';
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard';
 import {
@@ -14,6 +13,11 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 import Skeleton from 'react-loading-skeleton';
 import { message } from 'antd';
+import {
+    useCreateOrUpdateSubscriptionMutation,
+    useGetBillingDetailsQuery,
+} from '../../graph/generated/hooks';
+import { Plan } from '../../graph/generated/schemas';
 
 const getStripePromiseOrNull = () => {
     const stripe_publishable_key = process.env.REACT_APP_STRIPE_API_PK;
@@ -41,35 +45,16 @@ export const Billing = () => {
         error: billingError,
         data: billingData,
         refetch,
-    } = useQuery<{ billingDetails: string }, { organization_id: number }>(
-        gql`
-            query GetBillingDetails($organization_id: ID!) {
-                billingDetails(organization_id: $organization_id)
-            }
-        `,
-        {
-            variables: {
-                organization_id: parseInt(organization_id),
-            },
-        }
-    );
+    } = useGetBillingDetailsQuery({
+        variables: {
+            organization_id: organization_id,
+        },
+    });
 
-    const [createOrUpdateSubscription, { data }] = useMutation<
-        { createOrUpdateSubscription: string },
-        { organization_id: number; plan: string }
-    >(
-        gql`
-            mutation CreateOrUpdateSubscription(
-                $organization_id: ID!
-                $plan: Plan!
-            ) {
-                createOrUpdateSubscription(
-                    organization_id: $organization_id
-                    plan: $plan
-                )
-            }
-        `
-    );
+    const [
+        createOrUpdateSubscription,
+        { data },
+    ] = useCreateOrUpdateSubscriptionMutation();
 
     useEffect(() => {
         setOpenSidebar(true);
@@ -88,11 +73,11 @@ export const Billing = () => {
         }
     }, [pathname, checkoutRedirectFailedMessage, billingError]);
 
-    const createOnSelect = (plan: string) => {
+    const createOnSelect = (plan: Plan) => {
         return async () => {
             setLoading(true);
             createOrUpdateSubscription({
-                variables: { organization_id: parseInt(organization_id), plan },
+                variables: { organization_id: organization_id, plan },
             }).then((r) => {
                 if (!r.data?.createOrUpdateSubscription) {
                     message.success('Billing change applied!', 5);
@@ -109,7 +94,7 @@ export const Billing = () => {
             const stripe = await stripePromiseOrNull;
             const result = stripe
                 ? await stripe.redirectToCheckout({
-                      sessionId: data.createOrUpdateSubscription,
+                      sessionId: data.createOrUpdateSubscription ?? '',
                   })
                 : { error: 'Error: could not load stripe client.' };
 
@@ -150,7 +135,7 @@ export const Billing = () => {
                                     basicPlan.planName
                                 }
                                 billingPlan={basicPlan}
-                                onSelect={createOnSelect(basicPlan.planName)}
+                                onSelect={createOnSelect(Plan.Basic)}
                             ></BillingPlanCard>
                             <BillingPlanCard
                                 current={
@@ -158,7 +143,7 @@ export const Billing = () => {
                                     startupPlan.planName
                                 }
                                 billingPlan={startupPlan}
-                                onSelect={createOnSelect(startupPlan.planName)}
+                                onSelect={createOnSelect(Plan.Startup)}
                             ></BillingPlanCard>
                             <BillingPlanCard
                                 current={
@@ -166,9 +151,7 @@ export const Billing = () => {
                                     enterprisePlan.planName
                                 }
                                 billingPlan={enterprisePlan}
-                                onSelect={createOnSelect(
-                                    enterprisePlan.planName
-                                )}
+                                onSelect={createOnSelect(Plan.Enterprise)}
                             ></BillingPlanCard>
                         </>
                     )}

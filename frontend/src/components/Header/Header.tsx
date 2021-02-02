@@ -92,7 +92,6 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({
                     </div>
                 </div>
             </div>
-            <div className={styles.headerPlaceholder} />
         </>
     );
 };

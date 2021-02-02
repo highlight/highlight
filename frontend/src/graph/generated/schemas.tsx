@@ -67,6 +67,19 @@ export type Segment = {
     organization_id: Scalars['ID'];
 };
 
+export type ErrorObject = {
+    __typename?: 'ErrorObject';
+    id: Scalars['ID'];
+    organization_id: Scalars['Int'];
+    session_id: Scalars['Int'];
+    event: Scalars['String'];
+    type: Scalars['String'];
+    source?: Maybe<Scalars['String']>;
+    line_no?: Maybe<Scalars['Int']>;
+    column_no?: Maybe<Scalars['Int']>;
+    trace?: Maybe<Scalars['String']>;
+};
+
 export type SearchParamsInput = {
     user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
@@ -138,6 +151,7 @@ export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    errors?: Maybe<Array<Maybe<ErrorObject>>>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
@@ -162,6 +176,10 @@ export type QuerySessionArgs = {
 
 export type QueryEventsArgs = {
     session_id: Scalars['ID'];
+};
+
+export type QueryErrorsArgs = {
+    organization_id: Scalars['ID'];
 };
 
 export type QueryMessagesArgs = {
