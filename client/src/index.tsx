@@ -2,7 +2,7 @@ import { addCustomEvent, record } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener } from './listeners/error-listener';
-import { ErrorStringify } from '../../frontend/src/util/shared-types';
+import { ErrorStringify } from '../../frontend/src/util/shared-functions';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient, gql } from 'graphql-request';
 

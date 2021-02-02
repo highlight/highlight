@@ -597,7 +597,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		referredSessions := []model.Session{}
 		for _, session := range sessions {
 			for _, field := range session.Fields {
-				if field.Name == "referrer" && field.Value == *params.Referrer {
+				if field.Name == "referrer" && strings.Contains(field.Value, *params.Referrer) {
 					referredSessions = append(referredSessions, session)
 				}
 			}
