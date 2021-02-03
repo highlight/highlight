@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQuery, gql } from '@apollo/client';
 import { Skeleton, Tag } from 'antd';
 import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import { Avatar } from '../../../components/Avatar/Avatar';
 
 import styles from './MetadataBox.module.scss';
 import { DemoContext } from '../../../DemoContext';
+import { useGetSessionQuery } from '../../../graph/generated/hooks';
 
 type Field = {
     type: string;
@@ -19,63 +19,28 @@ export const MetadataBox = () => {
     const [expanded, setExpanded] = useState(false);
     const { demo } = useContext(DemoContext);
 
-    const { loading, error, data } = useQuery<{
-        session: {
-            os_name: string;
-            os_version: string;
-            browser_name: string;
-            browser_version: string;
-            city: string;
-            state: string;
-            postal: string;
-            user_id: number;
-            created_at: number;
-            user_object: any;
-            identifier: string;
-            fields: Array<Field>;
-        };
-    }>(
-        gql`
-            query GetSession($id: ID!) {
-                session(id: $id) {
-                    os_name
-                    os_version
-                    browser_name
-                    browser_version
-                    city
-                    state
-                    postal
-                    user_id
-                    created_at
-                    user_object
-                    identifier
-                    fields {
-                        name
-                        value
-                        type
-                    }
-                }
-            }
-        `,
-        {
-            variables: {
-                id: demo ? process.env.REACT_APP_DEMO_SESSION : session_id,
-            },
-            context: { headers: { 'Highlight-Demo': demo } },
-        }
-    );
-    const created = new Date(data?.session.created_at ?? 0);
+    const { loading, error, data } = useGetSessionQuery({
+        variables: {
+            id: demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id,
+        },
+        context: { headers: { 'Highlight-Demo': demo } },
+    });
+    const created = new Date(data?.session?.created_at ?? 0);
     const [parsedFields, setParsedFields] = useState<Array<Field>>([]);
 
     useEffect(() => {
-        setParsedFields(
-            data?.session?.fields.filter(
-                (f) =>
-                    f.type === 'user' &&
-                    f.name !== 'identifier' &&
-                    f.value.length
-            ) || []
-        );
+        const fields = data?.session?.fields?.filter((f) => {
+            if (
+                f &&
+                f.type === 'user' &&
+                f.name !== 'identifier' &&
+                f.value.length
+            ) {
+                return true;
+            }
+            return false;
+        }) as Field[];
+        setParsedFields(fields);
     }, [data]);
     return (
         <div className={styles.locationBox}>
@@ -90,19 +55,19 @@ export const MetadataBox = () => {
                     <div className={styles.userAvatarWrapper}>
                         <Avatar
                             style={{ width: 75 }}
-                            seed={data?.session.identifier ?? ''}
+                            seed={data?.session?.identifier ?? ''}
                         />
                     </div>
                     <div className={styles.userContentWrapper}>
                         <div className={styles.headerWrapper}>
-                            <div>User#{data?.session.user_id}</div>
-                            {data?.session.identifier && (
+                            <div>User#{data?.session?.user_id}</div>
+                            {data?.session?.identifier && (
                                 <div className={styles.userIdSubHeader}>
-                                    {data?.session.identifier}
+                                    {data?.session?.identifier}
                                 </div>
                             )}
                         </div>
-                        {parsedFields.length > 0 ? (
+                        {parsedFields?.length > 0 ? (
                             <div className={styles.tagDiv}>
                                 <div
                                     className={
@@ -111,7 +76,7 @@ export const MetadataBox = () => {
                                             : styles.tagWrapper
                                     }
                                 >
-                                    {parsedFields.map((f) => (
+                                    {parsedFields?.map((f) => (
                                         <Tag
                                             color="#F2EEFB"
                                             style={{
@@ -145,20 +110,20 @@ export const MetadataBox = () => {
                         )}
                         <div className={styles.userInfoWrapper}>
                             <div className={styles.userText}>
-                                {data?.session.city
+                                {data?.session?.city
                                     ? data.session.city + ', '
                                     : ''}
-                                {data?.session.state
+                                {data?.session?.state
                                     ? data.session.state + ' '
                                     : ''}
-                                {data?.session.postal
+                                {data?.session?.postal
                                     ? data.session.postal
                                     : ''}
                             </div>
                             <div className={styles.userText}>
                                 {created.toUTCString()}
                             </div>
-                            {data?.session.browser_name && (
+                            {data?.session?.browser_name && (
                                 <div className={styles.userText}>
                                     {data?.session.os_name},&nbsp;
                                     {data?.session.browser_name}&nbsp;-&nbsp;

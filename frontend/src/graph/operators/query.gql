@@ -1,0 +1,190 @@
+query GetEvents($session_id: ID!) {
+    events(session_id: $session_id)
+}
+
+query GetSession($id: ID!) {
+    session(id: $id) {
+        os_name
+        os_version
+        browser_name
+        browser_version
+        city
+        state
+        postal
+        user_id
+        created_at
+        user_object
+        identifier
+        fields {
+            name
+            value
+            type
+        }
+    }
+}
+
+query GetAdmins($organization_id: ID!) {
+    admins(organization_id: $organization_id) {
+        id
+        name
+        email
+    }
+}
+
+mutation SendAdminInvite($organization_id: ID!, $email: String!) {
+    sendAdminInvite(organization_id: $organization_id, email: $email)
+}
+
+query GetSessionsBETA(
+    $organization_id: ID!
+    $count: Int!
+    $params: SearchParamsInput
+) {
+    sessionsBETA(
+        organization_id: $organization_id
+        count: $count
+        params: $params
+    ) {
+        sessions {
+            id
+            user_id
+            identifier
+            os_name
+            os_version
+            browser_name
+            browser_version
+            city
+            state
+            postal
+            created_at
+            length
+            viewed
+            fields {
+                name
+                value
+                type
+            }
+        }
+        totalCount
+    }
+}
+
+query GetOrganizations {
+    organizations {
+        id
+        name
+    }
+}
+
+query GetAdmin {
+    admin {
+        id
+        name
+        email
+    }
+}
+
+query GetOrganization($id: ID!) {
+    organization(id: $id) {
+        id
+        name
+        trial_end_date
+        verbose_id
+        billing_email
+    }
+}
+
+query GetBillingDetails($organization_id: ID!) {
+    billingDetails(organization_id: $organization_id)
+}
+
+query Errors($organization_id: ID!) {
+    errors(organization_id: $organization_id) {
+        event
+        type
+        source
+        line_no
+        column_no
+        trace
+    }
+}
+
+query GetMessages($session_id: ID!) {
+    messages(session_id: $session_id)
+}
+
+query GetResources($session_id: ID!) {
+    resources(session_id: $session_id)
+}
+
+query GetFieldSuggestion(
+    $organization_id: ID!
+    $name: String!
+    $query: String!
+) {
+    field_suggestionBETA(
+        organization_id: $organization_id
+        name: $name
+        query: $query
+    ) {
+        name
+        value
+    }
+}
+
+query GetTrackSuggestion($organization_id: ID!, $query: String!) {
+    property_suggestion(
+        organization_id: $organization_id
+        query: $query
+        type: "track"
+    ) {
+        name
+        value
+    }
+}
+
+query GetUserSuggestion($organization_id: ID!, $query: String!) {
+    property_suggestion(
+        organization_id: $organization_id
+        query: $query
+        type: "user"
+    ) {
+        name
+        value
+    }
+}
+
+query GetSegments($organization_id: ID!) {
+    segments(organization_id: $organization_id) {
+        id
+        name
+        params {
+            user_properties {
+                name
+                value
+            }
+            excluded_properties {
+                name
+                value
+            }
+            track_properties {
+                name
+                value
+            }
+            date_range {
+                start_date
+                end_date
+            }
+            os
+            browser
+            visited_url
+            referrer
+            identified
+            hide_viewed
+        }
+    }
+}
+
+query IsIntegrated($organization_id: ID!) {
+    isIntegrated(organization_id: $organization_id)
+}

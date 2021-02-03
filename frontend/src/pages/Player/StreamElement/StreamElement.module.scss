@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .eventWrapper {
     display: flex;
     align-items: center;
@@ -11,13 +13,32 @@
     height: 100%;
     color: black;
     display: grid;
-    grid-template-columns: min-content 1fr min-content;
+    grid-template-columns: 1fr 1fr min-content;
     padding: 5px 10px 5px 10px;
     align-items: center;
-    color: #767676;
-    margin-top: 3px;
-    margin-bottom: 3px;
+    color: #959595;
+    background-color: inherit;
+    fill: #959595;
+    margin-top: 6px;
+    margin-bottom: 6px;
     cursor: pointer;
+}
+
+.selectedStreamElement {
+    border: 1px solid #d4d4d4;
+    padding: 15px 18px 5px 18px;
+}
+
+.currentStreamElement {
+    border: 1px solid #5629c6;
+    background-color: #5629c6;
+    color: white;
+    fill: white;
+
+    .goToButton {
+        color: white;
+        fill: white;
+    }
 }
 
 .eventTime {
@@ -46,6 +67,7 @@
 .directionIcon {
     width: 20px;
     height: 20px;
+    fill: inherit;
 }
 
 .defaultIcon {
@@ -84,6 +106,14 @@
     margin-left: 10px;
 }
 
+.selectedEventText {
+    color: $text-primary;
+}
+
+.currentEventText {
+    color: white;
+}
+
 .codeBlockWrapper {
     font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
         'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
@@ -113,14 +143,40 @@
     color: grey;
     font-size: 12px;
     margin-top: 10px;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     word-wrap: break-word;
     width: 100%;
     align-items: center;
-    grid-column: 1 / 4;
+    grid-column: 1 / 5;
 }
 
 .codeBlock {
     font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
         'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
+}
+
+.goToButton {
+    grid-column-start: 1;
+
+    &:hover {
+        color: $text-primary;
+        fill: $text-primary;
+    }
+}
+
+.relativeTimeExpanded {
+    grid-column-start: -1;
+}
+
+.selectedIcon {
+    fill: $text-primary;
+}
+
+.currentIcon {
+    fill: white;
+}
+
+.headerRow {
+    display: flex;
+    align-items: center;
 }

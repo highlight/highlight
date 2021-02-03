@@ -104,9 +104,7 @@ type ComplexityRoot struct {
 		BillingDetails      func(childComplexity int, organizationID int) int
 		Errors              func(childComplexity int, organizationID int) int
 		Events              func(childComplexity int, sessionID int) int
-		FieldSuggestion     func(childComplexity int, organizationID int, field string, query string) int
 		FieldSuggestionBeta func(childComplexity int, organizationID int, name string, query string) int
-		Fields              func(childComplexity int, organizationID int) int
 		IsIntegrated        func(childComplexity int, organizationID int) int
 		Messages            func(childComplexity int, sessionID int) int
 		Organization        func(childComplexity int, id int) int
@@ -116,7 +114,6 @@ type ComplexityRoot struct {
 		Resources           func(childComplexity int, sessionID int) int
 		Segments            func(childComplexity int, organizationID int) int
 		Session             func(childComplexity int, id int) int
-		Sessions            func(childComplexity int, organizationID int, count int, params []interface{}) int
 		SessionsBeta        func(childComplexity int, organizationID int, count int, params *model.SearchParamsInput) int
 	}
 
@@ -200,7 +197,6 @@ type QueryResolver interface {
 	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
-	Sessions(ctx context.Context, organizationID int, count int, params []interface{}) ([]*model1.Session, error)
 	SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
@@ -210,8 +206,6 @@ type QueryResolver interface {
 	Admin(ctx context.Context) (*model1.Admin, error)
 	Segments(ctx context.Context, organizationID int) ([]*model1.Segment, error)
 	RecordingSettings(ctx context.Context, organizationID int) (*model1.RecordingSettings, error)
-	Fields(ctx context.Context, organizationID int) ([]*string, error)
-	FieldSuggestion(ctx context.Context, organizationID int, field string, query string) ([]*string, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -576,18 +570,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Events(childComplexity, args["session_id"].(int)), true
 
-	case "Query.field_suggestion":
-		if e.complexity.Query.FieldSuggestion == nil {
-			break
-		}
-
-		args, err := ec.field_Query_field_suggestion_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.FieldSuggestion(childComplexity, args["organization_id"].(int), args["field"].(string), args["query"].(string)), true
-
 	case "Query.field_suggestionBETA":
 		if e.complexity.Query.FieldSuggestionBeta == nil {
 			break
@@ -599,18 +581,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FieldSuggestionBeta(childComplexity, args["organization_id"].(int), args["name"].(string), args["query"].(string)), true
-
-	case "Query.fields":
-		if e.complexity.Query.Fields == nil {
-			break
-		}
-
-		args, err := ec.field_Query_fields_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Fields(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.isIntegrated":
 		if e.complexity.Query.IsIntegrated == nil {
@@ -714,18 +684,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Session(childComplexity, args["id"].(int)), true
-
-	case "Query.sessions":
-		if e.complexity.Query.Sessions == nil {
-			break
-		}
-
-		args, err := ec.field_Query_sessions_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["params"].([]interface{})), true
 
 	case "Query.sessionsBETA":
 		if e.complexity.Query.SessionsBeta == nil {
@@ -1068,182 +1026,189 @@ scalar Any
 scalar Time
 
 type Field {
-  name: String!
-  value: String!
-  type: String
+    name: String!
+    value: String!
+    type: String
 }
 
 type Session {
-  id: ID!
-  user_id: ID!
-  os_name: String!
-  os_version: String!
-  browser_name: String!
-  browser_version: String!
-  city: String!
-  state: String!
-  postal: String!
-  identifier: String!
-  created_at: Time
-  length: Int
-  user_object: Any
-  fields: [Field]
-  viewed: Boolean
+    id: ID!
+    user_id: ID!
+    os_name: String!
+    os_version: String!
+    browser_name: String!
+    browser_version: String!
+    city: String!
+    state: String!
+    postal: String!
+    identifier: String!
+    created_at: Time
+    length: Int
+    user_object: Any
+    fields: [Field]
+    viewed: Boolean
 }
 
 type RecordingSettings {
-  id: ID!
-  organization_id: ID!
-  details: String!
+    id: ID!
+    organization_id: ID!
+    details: String!
 }
 
 type Organization {
-  id: ID!
-  verbose_id: String!
-  name: String!
-  billing_email: String
-  trial_end_date: Time
+    id: ID!
+    verbose_id: String!
+    name: String!
+    billing_email: String
+    trial_end_date: Time
 }
 
 type Segment {
-  id: ID!
-  name: String!
-  params: SearchParams!
-  organization_id: ID!
+    id: ID!
+    name: String!
+    params: SearchParams!
+    organization_id: ID!
 }
 
 type ErrorObject {
-  id: ID!
-  organization_id: Int!
-  session_id: Int!
-  event: String!
-  type:	String!
-  source: String
-  line_no: Int
-  column_no: Int
-  trace: String
+    id: ID!
+    organization_id: Int!
+    session_id: Int!
+    event: String!
+    type: String!
+    source: String
+    line_no: Int
+    column_no: Int
+    trace: String
 }
 
-# NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI, 
+# NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
-  user_properties: [UserPropertyInput]
-  excluded_properties: [UserPropertyInput]
-  track_properties: [UserPropertyInput]
-  date_range: DateRangeInput
-  os: String
-  browser: String
-  visited_url: String
-  referrer: String
-  identified: Boolean
-  hide_viewed: Boolean
+    user_properties: [UserPropertyInput]
+    excluded_properties: [UserPropertyInput]
+    track_properties: [UserPropertyInput]
+    date_range: DateRangeInput
+    os: String
+    browser: String
+    visited_url: String
+    referrer: String
+    identified: Boolean
+    hide_viewed: Boolean
 }
 
 type SearchParams {
-  user_properties: [UserProperty]
-  excluded_properties: [UserProperty]
-  track_properties: [UserProperty]
-  date_range: DateRange
-  os: String
-  browser: String
-  visited_url: String
-  referrer: String
-  identified: Boolean
-  hide_viewed: Boolean
+    user_properties: [UserProperty]
+    excluded_properties: [UserProperty]
+    track_properties: [UserProperty]
+    date_range: DateRange
+    os: String
+    browser: String
+    visited_url: String
+    referrer: String
+    identified: Boolean
+    hide_viewed: Boolean
 }
 
 type DateRange {
-  start_date: Time
-  end_date: Time
+    start_date: Time
+    end_date: Time
 }
 
 input DateRangeInput {
-  start_date: Time
-  end_date: Time
+    start_date: Time
+    end_date: Time
 }
 
 type UserProperty {
-  name: String!
-  value: String!
+    name: String!
+    value: String!
 }
 
 input UserPropertyInput {
-  name: String!
-  value: String!
+    name: String!
+    value: String!
 }
 
 type User {
-  id: ID!
+    id: ID!
 }
 
 type Admin {
-  id: ID!
-  name: String!
-  email: String!
+    id: ID!
+    name: String!
+    email: String!
 }
 
 type SessionResults {
-  sessions: [Session]!
-  totalCount: Int!
+    sessions: [Session]!
+    totalCount: Int!
 }
 
 type Query {
-  session(id: ID!): Session
-  events(session_id: ID!): [Any]
-  errors(organization_id: ID!): [ErrorObject]
-  messages(session_id: ID!): [Any]
-  resources(session_id: ID!): [Any]
-  admins(organization_id: ID!): [Admin]
-  isIntegrated(organization_id: ID!): Boolean
-  sessions(organization_id: ID!, count: Int!, params: [Any]): [Session]
-  sessionsBETA(organization_id: ID!, count: Int!, params: SearchParamsInput): SessionResults
-  billingDetails(organization_id: ID!): Plan!
-  # gets all the organizations of a user
-  field_suggestionBETA(
-    organization_id: ID!
-    name: String!
-    query: String!
-  ): [Field]
-  property_suggestion(
-    organization_id: ID!
-    query: String!
-    type: String!
-  ): [Field]
-  organizations: [Organization]
-  organization(id: ID!): Organization
-  admin: Admin
-  segments(organization_id: ID!): [Segment]
-  recording_settings(organization_id: ID!): RecordingSettings
-  # TO DELETE
-  fields(organization_id: ID!): [String]
-  field_suggestion(
-    organization_id: ID!
-    field: String!
-    query: String!
-  ): [String]
+    session(id: ID!): Session
+    events(session_id: ID!): [Any]
+    errors(organization_id: ID!): [ErrorObject]
+    messages(session_id: ID!): [Any]
+    resources(session_id: ID!): [Any]
+    admins(organization_id: ID!): [Admin]
+    isIntegrated(organization_id: ID!): Boolean
+    sessionsBETA(
+        organization_id: ID!
+        count: Int!
+        params: SearchParamsInput
+    ): SessionResults
+    billingDetails(organization_id: ID!): Plan!
+    # gets all the organizations of a user
+    field_suggestionBETA(
+        organization_id: ID!
+        name: String!
+        query: String!
+    ): [Field]
+    property_suggestion(
+        organization_id: ID!
+        query: String!
+        type: String!
+    ): [Field]
+    organizations: [Organization]
+    organization(id: ID!): Organization
+    admin: Admin
+    segments(organization_id: ID!): [Segment]
+    recording_settings(organization_id: ID!): RecordingSettings
 }
 
 enum Plan {
-  None
-  Basic
-  Startup
-  Enterprise
+    None
+    Basic
+    Startup
+    Enterprise
 }
 
 type Mutation {
-  createOrganization(name: String!): Organization
-  editOrganization(id: ID!, name: String, billing_email: String): Organization
-  markSessionAsViewed(id: ID!): Boolean
-  deleteOrganization(id: ID!): Boolean
-  sendAdminInvite(organization_id: ID!, email: String!): String
-  addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-  createSegment(organization_id: ID!, name: String!, params: SearchParamsInput!): Segment
-  editSegment(id: ID!, organization_id: ID!, params: SearchParamsInput!): Boolean
-  deleteSegment(segment_id: ID!): Boolean
-  editRecordingSettings(organization_id: ID!, details: String): RecordingSettings
-  # If this endpoint returns a checkout_id, we initiate a stripe checkout. 
-  # Otherwise, we simply update the subscription.
-  createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
+    createOrganization(name: String!): Organization
+    editOrganization(id: ID!, name: String, billing_email: String): Organization
+    markSessionAsViewed(id: ID!): Boolean
+    deleteOrganization(id: ID!): Boolean
+    sendAdminInvite(organization_id: ID!, email: String!): String
+    addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
+    createSegment(
+        organization_id: ID!
+        name: String!
+        params: SearchParamsInput!
+    ): Segment
+    editSegment(
+        id: ID!
+        organization_id: ID!
+        params: SearchParamsInput!
+    ): Boolean
+    deleteSegment(segment_id: ID!): Boolean
+    editRecordingSettings(
+        organization_id: ID!
+        details: String
+    ): RecordingSettings
+    # If this endpoint returns a checkout_id, we initiate a stripe checkout.
+    # Otherwise, we simply update the subscription.
+    createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
 }
 `, BuiltIn: false},
 }
@@ -1616,54 +1581,6 @@ func (ec *executionContext) field_Query_field_suggestionBETA_args(ctx context.Co
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_field_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["organization_id"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["field"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("field"))
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["field"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("query"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["query"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_fields_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["organization_id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_isIntegrated_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1827,39 +1744,6 @@ func (ec *executionContext) field_Query_sessionsBETA_args(ctx context.Context, r
 	if tmp, ok := rawArgs["params"]; ok {
 		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
 		arg2, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["params"] = arg2
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
-		arg0, err = ec.unmarshalNID2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["organization_id"] = arg0
-	var arg1 int
-	if tmp, ok := rawArgs["count"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("count"))
-		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["count"] = arg1
-	var arg2 []interface{}
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
-		arg2, err = ec.unmarshalOAny2ᚕinterface(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3311,44 +3195,6 @@ func (ec *executionContext) _Query_isIntegrated(ctx context.Context, field graph
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_sessions_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["count"].(int), args["params"].([]interface{}))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.Session)
-	fc.Result = res
-	return ec.marshalOSession2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3678,82 +3524,6 @@ func (ec *executionContext) _Query_recording_settings(ctx context.Context, field
 	res := resTmp.(*model1.RecordingSettings)
 	fc.Result = res
 	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_fields(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_fields_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Fields(rctx, args["organization_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*string)
-	fc.Result = res
-	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_field_suggestion_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FieldSuggestion(rctx, args["organization_id"].(int), args["field"].(string), args["query"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*string)
-	fc.Result = res
-	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6582,17 +6352,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_isIntegrated(ctx, field)
 				return res
 			})
-		case "sessions":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_sessions(ctx, field)
-				return res
-			})
 		case "sessionsBETA":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -6693,28 +6452,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_recording_settings(ctx, field)
-				return res
-			})
-		case "fields":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_fields(ctx, field)
-				return res
-			})
-		case "field_suggestion":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_field_suggestion(ctx, field)
 				return res
 			})
 		case "__type":
@@ -8042,46 +7779,6 @@ func (ec *executionContext) marshalOSession2githubᚗcomᚋjayᚑkhatriᚋfullst
 	return ec._Session(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalOSession2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v []*model1.Session) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
 func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model1.Session) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -8103,42 +7800,6 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalString(v)
-}
-
-func (ec *executionContext) unmarshalOString2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
-		res[i], err = ec.unmarshalOString2ᚖstring(ctx, vSlice[i])
-		if err != nil {
-			return nil, graphql.WrapErrorWithInputPath(ctx, err)
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOString2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalOString2ᚖstring(ctx, sel, v[i])
-	}
-
-	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import { SearchContext } from '../SearchContext/SearchContext';
 import AsyncCreatableSelect from 'react-select/async-creatable';
-import { gql, useQuery } from '@apollo/client';
 import inputStyles from './InputStyles.module.scss';
 import { Switch } from 'antd';
 import { ReactComponent as URLIcon } from '../../../static/link.svg';
@@ -11,44 +10,24 @@ import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
 import classNames from 'classnames/bind';
 import { SharedSelectStyleProps } from './SearchInputUtil';
 import { ContainsLabel } from '../../../util/shared-functions';
+import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const VisitedUrlInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
-    const { refetch } = useQuery<
-        { field_suggestionBETA: Array<{ name: string; value: string }> },
-        { organization_id: number; query: string; name: string }
-    >(
-        gql`
-            query GetFieldSuggestionBETA(
-                $organization_id: ID!
-                $name: String!
-                $query: String!
-            ) {
-                field_suggestionBETA(
-                    organization_id: $organization_id
-                    name: $name
-                    query: $query
-                ) {
-                    name
-                    value
-                }
-            }
-        `,
-        { skip: true }
-    );
+    const { refetch } = useGetFieldSuggestionQuery({ skip: true });
 
     const generateOptions = async (
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
         var fetched = await refetch({
-            organization_id: parseInt(organization_id),
+            organization_id: organization_id,
             query: input,
             name: 'visited-url',
         });
-        var suggestions = fetched.data.field_suggestionBETA
-            .map((e) => e.value)
+        var suggestions = (fetched?.data?.field_suggestionBETA ?? [])
+            .map((e) => e?.value)
             .filter((v, i, a) => a.indexOf(v) === i)
             .map((f) => {
                 return { label: f, value: f };
@@ -102,39 +81,18 @@ export const ReferrerInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
-    const { refetch } = useQuery<
-        { field_suggestionBETA: Array<{ name: string; value: string }> },
-        { organization_id: number; query: string; name: string }
-    >(
-        gql`
-            query GetFieldSuggestionBETA(
-                $organization_id: ID!
-                $name: String!
-                $query: String!
-            ) {
-                field_suggestionBETA(
-                    organization_id: $organization_id
-                    name: $name
-                    query: $query
-                ) {
-                    name
-                    value
-                }
-            }
-        `,
-        { skip: true }
-    );
+    const { refetch } = useGetFieldSuggestionQuery({ skip: true });
 
     const generateOptions = async (
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
         var fetched = await refetch({
-            organization_id: parseInt(organization_id),
+            organization_id: organization_id,
             query: input,
             name: 'referrer',
         });
-        var suggestions = fetched.data.field_suggestionBETA
-            .map((e) => e.value)
+        var suggestions = (fetched?.data?.field_suggestionBETA ?? [])
+            ?.map((e) => e?.value)
             .filter((v, i, a) => a.indexOf(v) === i)
             .map((f) => {
                 return { label: f, value: f };

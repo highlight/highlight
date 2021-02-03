@@ -10,7 +10,6 @@ import { auth, googleProvider } from './util/auth';
 import { ReactComponent as GoogleLogo } from './static/google.svg';
 import { useForm } from 'react-hook-form';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { useQuery, gql } from '@apollo/client';
 import {
     Switch,
     Route,
@@ -21,6 +20,10 @@ import { H } from 'highlight.run';
 import * as Sentry from '@sentry/react';
 import { Integrations } from '@sentry/tracing';
 import { OrgRouter } from './OrgRouter';
+import {
+    useGetAdminQuery,
+    useGetOrganizationsQuery,
+} from './graph/generated/hooks';
 
 Sentry.init({
     dsn:
@@ -33,15 +36,11 @@ H.getSessionURL().then((url) => {
 });
 
 const App = () => {
-    const { loading: o_loading, error: o_error, data: o_data } = useQuery<{
-        organizations: Array<{ id: number }>;
-    }>(gql`
-        query GetOrganizations {
-            organizations {
-                id
-            }
-        }
-    `);
+    const {
+        loading: o_loading,
+        error: o_error,
+        data: o_data,
+    } = useGetOrganizationsQuery();
 
     if (o_error) {
         return <p>{'App error: ' + JSON.stringify(o_error)}</p>;
@@ -71,8 +70,8 @@ const App = () => {
                     <Route path="/">
                         <Redirect
                             to={
-                                o_data?.organizations.length
-                                    ? `/${o_data?.organizations[0].id}`
+                                o_data?.organizations?.length
+                                    ? `/${o_data?.organizations[0]?.id}`
                                     : `/new`
                             }
                         />
@@ -84,17 +83,8 @@ const App = () => {
 };
 
 export const AuthAdminRouter = () => {
-    const { loading, error, data } = useQuery<{
-        admin: { id: string; name: string; email: string };
-    }>(gql`
-        query GetAdmin {
-            admin {
-                id
-                name
-                email
-            }
-        }
-    `);
+    const { loading, error, data } = useGetAdminQuery();
+
     const admin = data?.admin;
     useEffect(() => {
         if (admin) {
@@ -128,9 +118,14 @@ type Inputs = {
 };
 
 export const AuthAppRouter = () => {
-    const { watch, register, handleSubmit, errors, reset, setError } = useForm<
-        Inputs
-    >();
+    const {
+        watch,
+        register,
+        handleSubmit,
+        errors,
+        reset,
+        setError,
+    } = useForm<Inputs>();
     const [signIn, setSignIn] = useState<boolean>(true);
     const [firebaseError, setFirebaseError] = useState('');
     const [user, loading, error] = useAuthState(auth);
