@@ -19,13 +19,14 @@
     color: #959595;
     background-color: inherit;
     fill: #959595;
-    margin-top: 3px;
-    margin-bottom: 3px;
+    margin-top: 6px;
+    margin-bottom: 6px;
     cursor: pointer;
 }
 
 .selectedStreamElement {
     border: 1px solid #d4d4d4;
+    padding: 15px 18px 5px 18px;
 }
 
 .currentStreamElement {
@@ -33,6 +34,11 @@
     background-color: #5629c6;
     color: white;
     fill: white;
+
+    .goToButton {
+        color: white;
+        fill: white;
+    }
 }
 
 .eventTime {
@@ -151,6 +157,11 @@
 
 .goToButton {
     grid-column-start: 1;
+
+    &:hover {
+        color: $text-primary;
+        fill: $text-primary;
+    }
 }
 
 .relativeTimeExpanded {
