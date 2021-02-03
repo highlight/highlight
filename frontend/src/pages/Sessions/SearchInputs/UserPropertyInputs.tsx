@@ -12,13 +12,13 @@ import inputStyles from './InputStyles.module.scss';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import { useState } from 'react';
 import classNames from 'classnames/bind';
-import { useGetPropertySuggestionQuery } from '../../../graph/generated/hooks';
+import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
-    const { refetch } = useGetPropertySuggestionQuery({ skip: true });
+    const { refetch } = useGetUserSuggestionQuery({ skip: true });
 
     const generateOptions = async (
         input: string

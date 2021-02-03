@@ -1194,8 +1194,8 @@ export type GetFieldSuggestionQueryResult = Apollo.QueryResult<
     Types.GetFieldSuggestionQuery,
     Types.GetFieldSuggestionQueryVariables
 >;
-export const GetPropertySuggestionDocument = gql`
-    query GetPropertySuggestion($organization_id: ID!, $query: String!) {
+export const GetTrackSuggestionDocument = gql`
+    query GetTrackSuggestion($organization_id: ID!, $query: String!) {
         property_suggestion(
             organization_id: $organization_id
             query: $query
@@ -1208,53 +1208,115 @@ export const GetPropertySuggestionDocument = gql`
 `;
 
 /**
- * __useGetPropertySuggestionQuery__
+ * __useGetTrackSuggestionQuery__
  *
- * To run a query within a React component, call `useGetPropertySuggestionQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetPropertySuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetTrackSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTrackSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetPropertySuggestionQuery({
+ * const { data, loading, error } = useGetTrackSuggestionQuery({
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      query: // value for 'query'
  *   },
  * });
  */
-export function useGetPropertySuggestionQuery(
+export function useGetTrackSuggestionQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetPropertySuggestionQuery,
-        Types.GetPropertySuggestionQueryVariables
+        Types.GetTrackSuggestionQuery,
+        Types.GetTrackSuggestionQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetPropertySuggestionQuery,
-        Types.GetPropertySuggestionQueryVariables
-    >(GetPropertySuggestionDocument, baseOptions);
+        Types.GetTrackSuggestionQuery,
+        Types.GetTrackSuggestionQueryVariables
+    >(GetTrackSuggestionDocument, baseOptions);
 }
-export function useGetPropertySuggestionLazyQuery(
+export function useGetTrackSuggestionLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetPropertySuggestionQuery,
-        Types.GetPropertySuggestionQueryVariables
+        Types.GetTrackSuggestionQuery,
+        Types.GetTrackSuggestionQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetPropertySuggestionQuery,
-        Types.GetPropertySuggestionQueryVariables
-    >(GetPropertySuggestionDocument, baseOptions);
+        Types.GetTrackSuggestionQuery,
+        Types.GetTrackSuggestionQueryVariables
+    >(GetTrackSuggestionDocument, baseOptions);
 }
-export type GetPropertySuggestionQueryHookResult = ReturnType<
-    typeof useGetPropertySuggestionQuery
+export type GetTrackSuggestionQueryHookResult = ReturnType<
+    typeof useGetTrackSuggestionQuery
 >;
-export type GetPropertySuggestionLazyQueryHookResult = ReturnType<
-    typeof useGetPropertySuggestionLazyQuery
+export type GetTrackSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetTrackSuggestionLazyQuery
 >;
-export type GetPropertySuggestionQueryResult = Apollo.QueryResult<
-    Types.GetPropertySuggestionQuery,
-    Types.GetPropertySuggestionQueryVariables
+export type GetTrackSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetTrackSuggestionQuery,
+    Types.GetTrackSuggestionQueryVariables
+>;
+export const GetUserSuggestionDocument = gql`
+    query GetUserSuggestion($organization_id: ID!, $query: String!) {
+        property_suggestion(
+            organization_id: $organization_id
+            query: $query
+            type: "user"
+        ) {
+            name
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetUserSuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetUserSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserSuggestionQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetUserSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetUserSuggestionQuery,
+        Types.GetUserSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetUserSuggestionQuery,
+        Types.GetUserSuggestionQueryVariables
+    >(GetUserSuggestionDocument, baseOptions);
+}
+export function useGetUserSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetUserSuggestionQuery,
+        Types.GetUserSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetUserSuggestionQuery,
+        Types.GetUserSuggestionQueryVariables
+    >(GetUserSuggestionDocument, baseOptions);
+}
+export type GetUserSuggestionQueryHookResult = ReturnType<
+    typeof useGetUserSuggestionQuery
+>;
+export type GetUserSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetUserSuggestionLazyQuery
+>;
+export type GetUserSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetUserSuggestionQuery,
+    Types.GetUserSuggestionQueryVariables
 >;
 export const GetSegmentsDocument = gql`
     query GetSegments($organization_id: ID!) {

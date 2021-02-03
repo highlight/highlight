@@ -345,12 +345,27 @@ export type GetFieldSuggestionQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetPropertySuggestionQueryVariables = Types.Exact<{
+export type GetTrackSuggestionQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     query: Types.Scalars['String'];
 }>;
 
-export type GetPropertySuggestionQuery = { __typename?: 'Query' } & {
+export type GetTrackSuggestionQuery = { __typename?: 'Query' } & {
+    property_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+            >
+        >
+    >;
+};
+
+export type GetUserSuggestionQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetUserSuggestionQuery = { __typename?: 'Query' } & {
     property_suggestion?: Types.Maybe<
         Array<
             Types.Maybe<
