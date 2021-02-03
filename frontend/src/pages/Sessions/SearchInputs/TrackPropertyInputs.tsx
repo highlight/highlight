@@ -6,10 +6,11 @@ import {
     SearchParams,
     UserProperty,
 } from '../SearchContext/SearchContext';
-import AsyncSelect from 'react-select/async';
+import AsyncCreatableSelect from 'react-select/async-creatable';
 import { gql, useQuery } from '@apollo/client';
 import inputStyles from './InputStyles.module.scss';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
+import { ContainsLabel } from '../../../util/shared-functions';
 
 export const TrackPropertyInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -56,7 +57,7 @@ export const TrackPropertyInput = () => {
 
     return (
         <div className={inputStyles.commonInputWrapper}>
-            <AsyncSelect
+            <AsyncCreatableSelect
                 isMulti
                 styles={{
                     control: (provided, state) => ({
@@ -77,6 +78,7 @@ export const TrackPropertyInput = () => {
                 onChange={(options) => {
                     var newOptions: Array<UserProperty> =
                         options?.map((o) => {
+                            if (!o.name) o.name = 'contains';
                             return { name: o.name, value: o.value };
                         }) ?? [];
                     setSearchParams((params: SearchParams) => {
@@ -99,6 +101,8 @@ export const TrackPropertyInput = () => {
                     ),
                     IndicatorSeparator: () => null,
                 }}
+                formatCreateLabel={ContainsLabel}
+                createOptionPosition={'first'}
             />
         </div>
     );

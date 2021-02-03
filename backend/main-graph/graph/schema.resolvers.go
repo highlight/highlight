@@ -581,7 +581,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		}
 		for _, prop := range params.TrackProperties {
 			for _, field := range session.Fields {
-				if prop.Name == field.Name && prop.Value != field.Value {
+				if (prop.Name == field.Name || prop.Name == "contains") && strings.Contains(field.Value, prop.Value) {
 					tracked++
 				}
 			}
