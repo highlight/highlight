@@ -9,13 +9,13 @@ import {
 import AsyncSelect from 'react-select/async';
 import inputStyles from './InputStyles.module.scss';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
-import { useGetPropertySuggestionQuery } from '../../../graph/generated/hooks';
+import { useGetTrackSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const TrackPropertyInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
-    const { refetch } = useGetPropertySuggestionQuery({ skip: true });
+    const { refetch } = useGetTrackSuggestionQuery({ skip: true });
 
     const generateOptions = async (
         input: string
