@@ -26,6 +26,7 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import {
     useGetEventsQuery,
+    useGetSessionQuery,
     useMarkSessionAsViewedMutation,
 } from '../../graph/generated/hooks';
 
@@ -44,9 +45,9 @@ export const Player = () => {
     const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const {
-        loading: sessionLoading,
-        error: sessionError,
-        data: sessionData,
+        loading: eventsLoading,
+        error: eventsError,
+        data: eventsData,
     } = useGetEventsQuery({
         variables: {
             session_id: demo
@@ -55,6 +56,11 @@ export const Player = () => {
         },
         context: { headers: { 'Highlight-Demo': demo } },
     });
+    const {
+        loading: sessionLoading,
+        error: sessionError,
+        data: sessionData,
+    } = useGetSessionQuery({ variables: { id: session_id } });
 
     useEffect(() => {
         if (session_id) {
@@ -110,11 +116,12 @@ export const Player = () => {
     }, [sizes, replayer]);
 
     useEffect(() => {
-        if (sessionData?.events?.length ?? 0 > 1) {
+        if ((sessionData && eventsData?.events?.length) ?? 0 > 1) {
+            console.log(sessionData);
             setReplayerState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] =
-                sessionData?.events?.map((e: HighlightEvent, i: number) => {
+                eventsData?.events?.map((e: HighlightEvent, i: number) => {
                     return { ...e, identifier: i.toString() };
                 }) ?? [];
             let r = new Replayer(newEvents, {
@@ -123,18 +130,17 @@ export const Player = () => {
             setEvents(newEvents);
             setReplayer(r);
             setReplayerState(ReplayerState.Loaded);
-            r.getTimeOffset();
         }
-    }, [sessionData]);
+    }, [eventsData, sessionData]);
 
-    if (sessionError) {
-        return <p>{sessionError.toString()}</p>;
+    if (eventsError) {
+        return <p>{eventsError.toString()}</p>;
     }
 
     const isReplayerReady =
         replayerState === ReplayerState.Loaded &&
         replayerScale !== 1 &&
-        !sessionLoading;
+        !eventsLoading;
 
     return (
         <ReplayerContext.Provider

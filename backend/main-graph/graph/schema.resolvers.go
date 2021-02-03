@@ -317,15 +317,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
-	allEvents := make(map[string][]interface{})
-	for _, eventObj := range eventObjs {
-		subEvents := make(map[string][]interface{})
-		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
-			return nil, fmt.Errorf("error decoding event data: %v", err)
-		}
-		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
-	}
-	return allEvents["events"], nil
+	return UnmarshalEventObjects(eventObjs)
 }
 
 func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]*model.ErrorObject, error) {
@@ -653,6 +645,28 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+func (r *subscriptionResolver) LiveEvents(ctx context.Context, sessionID int) (<-chan []interface{}, error) {
+	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	latest := time.Time{}
+	ticker := time.NewTicker(time.Minute)
+	defer ticker.Stop()
+	for ; true; <-ticker.C {
+		eventObjs := []*model.EventsObject{}
+		res := r.DBkkk.Order("created_at desc").
+			Where(&model.EventsObject{SessionID: sessionID}).
+			Where("created_at > ?", latest).Find(&eventObjs)
+		if res.Error != nil {
+			return nil, fmt.Errorf("error reading from events: %v", res.Error)
+		}
+		latest = eventObjs[len(eventObjs)-1].CreatedAt
+		events, err := UnmarshalEventObjects(eventObjs)
+		if 
+
+	}
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -665,7 +679,11 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
+// Subscription returns generated.SubscriptionResolver implementation.
+func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
+
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }

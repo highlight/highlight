@@ -14,6 +14,7 @@ query GetSession($id: ID!) {
         user_id
         created_at
         user_object
+        processed
         identifier
         fields {
             name

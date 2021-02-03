@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -41,6 +42,7 @@ type ResolverRoot interface {
 	Query() QueryResolver
 	Segment() SegmentResolver
 	Session() SessionResolver
+	Subscription() SubscriptionResolver
 }
 
 type DirectiveRoot struct {
@@ -155,6 +157,7 @@ type ComplexityRoot struct {
 		OSName         func(childComplexity int) int
 		OSVersion      func(childComplexity int) int
 		Postal         func(childComplexity int) int
+		Processed      func(childComplexity int) int
 		State          func(childComplexity int) int
 		UserID         func(childComplexity int) int
 		UserObject     func(childComplexity int) int
@@ -164,6 +167,10 @@ type ComplexityRoot struct {
 	SessionResults struct {
 		Sessions   func(childComplexity int) int
 		TotalCount func(childComplexity int) int
+	}
+
+	Subscription struct {
+		LiveEvents func(childComplexity int, sessionID int) int
 	}
 
 	User struct {
@@ -212,6 +219,9 @@ type SegmentResolver interface {
 }
 type SessionResolver interface {
 	UserObject(ctx context.Context, obj *model1.Session) (interface{}, error)
+}
+type SubscriptionResolver interface {
+	LiveEvents(ctx context.Context, sessionID int) (<-chan []interface{}, error)
 }
 
 type executableSchema struct {
@@ -893,6 +903,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Postal(childComplexity), true
 
+	case "Session.processed":
+		if e.complexity.Session.Processed == nil {
+			break
+		}
+
+		return e.complexity.Session.Processed(childComplexity), true
+
 	case "Session.state":
 		if e.complexity.Session.State == nil {
 			break
@@ -934,6 +951,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SessionResults.TotalCount(childComplexity), true
+
+	case "Subscription.liveEvents":
+		if e.complexity.Subscription.LiveEvents == nil {
+			break
+		}
+
+		args, err := ec.field_Subscription_liveEvents_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Subscription.LiveEvents(childComplexity, args["session_id"].(int)), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -994,6 +1023,23 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 				Data: buf.Bytes(),
 			}
 		}
+	case ast.Subscription:
+		next := ec._Subscription(ctx, rc.Operation.SelectionSet)
+
+		var buf bytes.Buffer
+		return func(ctx context.Context) *graphql.Response {
+			buf.Reset()
+			data := next()
+
+			if data == nil {
+				return nil
+			}
+			data.MarshalGQL(&buf)
+
+			return &graphql.Response{
+				Data: buf.Bytes(),
+			}
+		}
 
 	default:
 		return graphql.OneShot(graphql.ErrorResponse(ctx, "unsupported GraphQL operation"))
@@ -1047,6 +1093,7 @@ type Session {
     user_object: Any
     fields: [Field]
     viewed: Boolean
+    processed: Boolean
 }
 
 type RecordingSettings {
@@ -1209,6 +1256,10 @@ type Mutation {
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
     createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
+}
+
+type Subscription {
+    liveEvents(session_id: ID!): [Any]
 }
 `, BuiltIn: false},
 }
@@ -1749,6 +1800,21 @@ func (ec *executionContext) field_Query_sessionsBETA_args(ctx context.Context, r
 		}
 	}
 	args["params"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Subscription_liveEvents_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
 	return args, nil
 }
 
@@ -4638,6 +4704,37 @@ func (ec *executionContext) _Session_viewed(ctx context.Context, field graphql.C
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_processed(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Session",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Processed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionResults_sessions(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4704,6 +4801,54 @@ func (ec *executionContext) _SessionResults_totalCount(ctx context.Context, fiel
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Subscription_liveEvents(ctx context.Context, field graphql.CollectedField) (ret func() graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = nil
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Subscription",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Subscription_liveEvents_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Subscription().LiveEvents(rctx, args["session_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return nil
+	}
+	if resTmp == nil {
+		return nil
+	}
+	return func() graphql.Marshaler {
+		res, ok := <-resTmp.(<-chan []interface{})
+		if !ok {
+			return nil
+		}
+		return graphql.WriterFunc(func(w io.Writer) {
+			w.Write([]byte{'{'})
+			graphql.MarshalString(field.Alias).MarshalGQL(w)
+			w.Write([]byte{':'})
+			ec.marshalOAny2ᚕinterface(ctx, field.Selections, res).MarshalGQL(w)
+			w.Write([]byte{'}'})
+		})
+	}
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model1.User) (ret graphql.Marshaler) {
@@ -6679,6 +6824,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_fields(ctx, field, obj)
 		case "viewed":
 			out.Values[i] = ec._Session_viewed(ctx, field, obj)
+		case "processed":
+			out.Values[i] = ec._Session_processed(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6720,6 +6867,26 @@ func (ec *executionContext) _SessionResults(ctx context.Context, sel ast.Selecti
 		return graphql.Null
 	}
 	return out
+}
+
+var subscriptionImplementors = []string{"Subscription"}
+
+func (ec *executionContext) _Subscription(ctx context.Context, sel ast.SelectionSet) func() graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, subscriptionImplementors)
+	ctx = graphql.WithFieldContext(ctx, &graphql.FieldContext{
+		Object: "Subscription",
+	})
+	if len(fields) != 1 {
+		ec.Errorf(ctx, "must subscribe to exactly one stream")
+		return nil
+	}
+
+	switch fields[0].Name {
+	case "liveEvents":
+		return ec._Subscription_liveEvents(ctx, fields[0])
+	default:
+		panic("unknown field " + strconv.Quote(fields[0].Name))
+	}
 }
 
 var userImplementors = []string{"User"}

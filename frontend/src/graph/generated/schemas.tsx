@@ -41,6 +41,7 @@ export type Session = {
     user_object?: Maybe<Scalars['Any']>;
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
+    processed?: Maybe<Scalars['Boolean']>;
 };
 
 export type RecordingSettings = {
@@ -303,4 +304,13 @@ export type MutationEditRecordingSettingsArgs = {
 export type MutationCreateOrUpdateSubscriptionArgs = {
     organization_id: Scalars['ID'];
     plan: Plan;
+};
+
+export type Subscription = {
+    __typename?: 'Subscription';
+    liveEvents?: Maybe<Array<Maybe<Scalars['Any']>>>;
+};
+
+export type SubscriptionLiveEventsArgs = {
+    session_id: Scalars['ID'];
 };

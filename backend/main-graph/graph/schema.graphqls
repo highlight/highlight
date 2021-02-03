@@ -25,6 +25,7 @@ type Session {
     user_object: Any
     fields: [Field]
     viewed: Boolean
+    processed: Boolean
 }
 
 type RecordingSettings {
@@ -187,4 +188,8 @@ type Mutation {
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
     createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
+}
+
+type Subscription {
+    liveEvents(session_id: ID!): [Any]
 }

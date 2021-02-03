@@ -2,6 +2,7 @@ package graph
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -86,6 +87,18 @@ func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*mode
 		}
 	}
 	return nil, e.New("admin doesn't exist in organization")
+}
+
+func UnmarshalEventObjects(eventsObjects []*model.EventsObject) ([]interface{}, error) {
+	allEvents := make(map[string][]interface{})
+	for _, eventObj := range eventsObjects {
+		subEvents := make(map[string][]interface{})
+		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
+			return nil, fmt.Errorf("error decoding event data: %v", err)
+		}
+		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
+	}
+	return allEvents["events"], nil
 }
 
 func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {

@@ -152,6 +152,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'user_id'
             | 'created_at'
             | 'user_object'
+            | 'processed'
             | 'identifier'
         > & {
                 fields?: Types.Maybe<

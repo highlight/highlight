@@ -494,6 +494,7 @@ export const GetSessionDocument = gql`
             user_id
             created_at
             user_object
+            processed
             identifier
             fields {
                 name
