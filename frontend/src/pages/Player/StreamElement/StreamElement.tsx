@@ -54,37 +54,31 @@ export const StreamElement = ({
                 key={e.identifier}
                 id={e.identifier}
             >
-                <div className={styles.iconWrapper}>
-                    {selected ? (
-                        <UpIcon
-                            className={classNames(styles.directionIcon, {
-                                [styles.selectedIcon]: selected,
-                                [styles.currentIcon]: isCurrent,
-                            })}
-                        />
-                    ) : hover ? (
-                        <DownIcon className={styles.directionIcon} />
-                    ) : details.title === 'Click' ? (
-                        <PointerIcon className={styles.tiltedIcon} />
-                    ) : details.title === 'Segment' ? (
-                        <SegmentIcon className={styles.defaultIcon} />
-                    ) : details.title === 'Navigate' ? (
-                        <NavigateIcon className={styles.defaultIcon} />
-                    ) : details.title === 'Reload' ? (
-                        <ReloadIcon className={styles.defaultIcon} />
-                    ) : details.title === 'Referrer' ? (
-                        <ReferrerIcon className={styles.defaultIcon} />
-                    ) : (
-                        <HoverIcon className={styles.tiltedIcon} />
-                    )}
-                </div>
-                <div
-                    className={
-                        selected
-                            ? styles.eventContentVerbose
-                            : styles.eventContent
-                    }
-                >
+                <div className={styles.headerRow}>
+                    <div className={styles.iconWrapper}>
+                        {selected ? (
+                            <UpIcon
+                                className={classNames(styles.directionIcon, {
+                                    [styles.selectedIcon]: selected,
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
+                        ) : hover ? (
+                            <DownIcon className={styles.directionIcon} />
+                        ) : details.title === 'Click' ? (
+                            <PointerIcon className={styles.tiltedIcon} />
+                        ) : details.title === 'Segment' ? (
+                            <SegmentIcon className={styles.defaultIcon} />
+                        ) : details.title === 'Navigate' ? (
+                            <NavigateIcon className={styles.defaultIcon} />
+                        ) : details.title === 'Reload' ? (
+                            <ReloadIcon className={styles.defaultIcon} />
+                        ) : details.title === 'Referrer' ? (
+                            <ReferrerIcon className={styles.defaultIcon} />
+                        ) : (
+                            <HoverIcon className={styles.tiltedIcon} />
+                        )}
+                    </div>
                     <div
                         className={classNames(styles.eventText, {
                             [styles.selectedEventText]: selected,
@@ -93,6 +87,14 @@ export const StreamElement = ({
                     >
                         {details.title}
                     </div>
+                </div>
+                <div
+                    className={
+                        selected
+                            ? styles.eventContentVerbose
+                            : styles.eventContent
+                    }
+                >
                     {!selected && (
                         <div
                             className={

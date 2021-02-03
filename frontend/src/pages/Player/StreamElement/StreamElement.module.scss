@@ -13,7 +13,7 @@
     height: 100%;
     color: black;
     display: grid;
-    grid-template-columns: min-content 1fr min-content;
+    grid-template-columns: 1fr 1fr min-content;
     padding: 5px 10px 5px 10px;
     align-items: center;
     color: #959595;
@@ -174,4 +174,9 @@
 
 .currentIcon {
     fill: white;
+}
+
+.headerRow {
+    display: flex;
+    align-items: center;
 }

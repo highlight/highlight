@@ -12,6 +12,7 @@ export const eventText: string;
 export const eventTime: string;
 export const eventWrapper: string;
 export const goToButton: string;
+export const headerRow: string;
 export const iconWrapper: string;
 export const playIcon: string;
 export const relativeTimeExpanded: string;

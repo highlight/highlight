@@ -13,6 +13,7 @@ $go-to-button-width: 63px;
     padding: 5px 6px;
     border-radius: $button-border-radius;
     cursor: pointer;
+    width: fit-content;
 
     &:hover {
         background: $highlight-purple-light;
