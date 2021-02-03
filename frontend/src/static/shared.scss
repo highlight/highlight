@@ -8,6 +8,9 @@ $text-label: #959595;
 // borders
 $button-border-radius: 5px;
 
+// buttons
+$disabled-button: #bfbfbf;
+
 // mixins
 @mixin rounded-border {
     border: 1px solid $border-light-gray;

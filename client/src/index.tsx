@@ -1,11 +1,14 @@
 import { addCustomEvent, record } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/typings/types';
 import { ConsoleListener } from './listeners/console-listener';
+import { ErrorListener } from './listeners/error-listener';
+import { ErrorStringify } from '../../frontend/src/util/shared-types';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient, gql } from 'graphql-request';
 
 import {
     ConsoleMessage,
+    ErrorMessage,
     NetworkResourceContent,
 } from '../../frontend/src/util/shared-types';
 
@@ -42,6 +45,7 @@ export class Highlight {
     organizationID: string;
     client: GraphQLClient;
     events: eventWithTime[];
+    errors: ErrorMessage[];
     messages: ConsoleMessage[];
     networkContents: NetworkResourceContent[];
     sessionID: number;
@@ -67,6 +71,7 @@ export class Highlight {
         }
         this.sessionID = 0;
         this.events = [];
+        this.errors = [];
         this.networkContents = [];
         this.messages = [];
     }
@@ -177,7 +182,6 @@ export class Highlight {
             );
         }
     }
-
     // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
     async initialize(organization_id?: number | string) {
         var org_id = '';
@@ -305,15 +309,20 @@ export class Highlight {
                     { type: 'session' }
                 );
             });
-            ConsoleListener((c: ConsoleMessage) =>
-                highlightThis.messages.push(c)
-            );
+            ConsoleListener((c: ConsoleMessage) => {
+                if (c.type == 'Error')
+                    highlightThis.errors.push({
+                        event: c.value,
+                        type: 'console',
+                    });
+                highlightThis.messages.push(c);
+            });
+            ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
             this.ready = true;
         } catch (e) {
             HighlightWarning('initializeSession', e);
         }
     }
-
     // Reset the events array and push to a backend.
     async _save() {
         try {
@@ -334,11 +343,13 @@ export class Highlight {
             }
             const resourcesString = JSON.stringify({ resources: resources });
             const messagesString = JSON.stringify({ messages: this.messages });
+            const errorsString = ErrorStringify({ errors: this.errors });
             const eventsString = JSON.stringify({ events: this.events });
             this.logger.log(
-                `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionID}`
+                `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionID}`
             );
             this.events = [];
+            this.errors = [];
             this.messages = [];
             this.networkContents = [];
             if (!this.disableNetworkRecording) {
@@ -351,12 +362,14 @@ export class Highlight {
                         $events: String!
                         $messages: String!
                         $resources: String!
+                        $errors: String!
                     ) {
                         pushPayload(
                             session_id: $session_id
                             events: $events
                             messages: $messages
                             resources: $resources
+                            errors: $errors
                         )
                     }
                 `,
@@ -365,6 +378,7 @@ export class Highlight {
                     events: eventsString,
                     messages: messagesString,
                     resources: resourcesString,
+                    errors: errorsString,
                 }
             );
         } catch (e) {

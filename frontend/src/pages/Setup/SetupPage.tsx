@@ -13,10 +13,10 @@ import useFetch from 'use-http';
 import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
-import { gql, useQuery } from '@apollo/client';
 import Collapsible from 'react-collapsible';
 import Skeleton from 'react-loading-skeleton';
 import { H } from 'highlight.run';
+import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 
 enum PlatformType {
     Html = 'HTML',
@@ -29,20 +29,9 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const [platform, setPlatform] = useState(PlatformType.React);
     const { setOpenSidebar } = useContext(SidebarContext);
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { data, loading } = useQuery<
-        { organization: { verbose_id: string } },
-        { id: number }
-    >(
-        gql`
-            query GetOrganization($id: ID!) {
-                organization(id: $id) {
-                    id
-                    verbose_id
-                }
-            }
-        `,
-        { variables: { id: Number(organization_id) } }
-    );
+    const { data, loading } = useGetOrganizationQuery({
+        variables: { id: organization_id },
+    });
 
     useEffect(() => {
         setOpenSidebar(true);
@@ -80,11 +69,11 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                     <>
                         {platform === PlatformType.Html ? (
                             <HtmlInstructions
-                                orgVerboseId={data?.organization.verbose_id}
+                                orgVerboseId={data?.organization?.verbose_id}
                             />
                         ) : (
                             <JsAppInstructions
-                                orgVerboseId={data?.organization.verbose_id}
+                                orgVerboseId={data?.organization?.verbose_id}
                                 platform={platform}
                             />
                         )}

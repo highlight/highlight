@@ -102,7 +102,7 @@ export const StreamElement = ({
                             }
                         >
                             <span className={styles.codeBlock}>
-                                details.payload
+                                {details.payload}
                             </span>
                         </div>
                     )}

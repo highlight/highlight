@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 
 import { Dropdown, Skeleton } from 'antd';
-import { useQuery, gql } from '@apollo/client';
 import { FaUserCircle } from 'react-icons/fa';
 import { auth } from '../../../util/auth';
 import { client } from '../../../util/graph';
@@ -9,23 +8,15 @@ import { FiLogOut } from 'react-icons/fi';
 
 import styles from './UserDropdown.module.scss';
 import { DemoContext } from '../../../DemoContext';
+import { useGetAdminQuery } from '../../../graph/generated/hooks';
 
 export const UserDropdown = () => {
     const { demo } = useContext(DemoContext);
-    const { loading: a_loading, error: a_error, data: a_data } = useQuery<{
-        admin: { id: string; name: string; email: string };
-    }>(
-        gql`
-            query GetAdmin {
-                admin {
-                    id
-                    name
-                    email
-                }
-            }
-        `,
-        { skip: demo }
-    );
+    const {
+        loading: a_loading,
+        error: a_error,
+        data: a_data,
+    } = useGetAdminQuery({ skip: demo });
 
     const menu = (
         <div className={styles.dropdownMenu}>
@@ -36,10 +27,10 @@ export const UserDropdown = () => {
                     <>
                         <div className={styles.userCopy}>
                             <div className={styles.dropdownName}>
-                                {a_data?.admin.name}
+                                {a_data?.admin?.name}
                             </div>
                             <div className={styles.dropdownEmail}>
-                                {a_data?.admin.email}
+                                {a_data?.admin?.email}
                             </div>
                         </div>
                         <div

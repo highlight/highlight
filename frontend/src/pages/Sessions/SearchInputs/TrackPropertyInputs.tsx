@@ -7,50 +7,32 @@ import {
     UserProperty,
 } from '../SearchContext/SearchContext';
 import AsyncSelect from 'react-select/async';
-import { gql, useQuery } from '@apollo/client';
 import inputStyles from './InputStyles.module.scss';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
+import { useGetTrackSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const TrackPropertyInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
-    const { refetch } = useQuery<
-        { property_suggestion: Array<{ name: string; value: string }> },
-        { organization_id: number; query: string }
-    >(
-        gql`
-            query GetPropertySuggestion(
-                $organization_id: ID!
-                $query: String!
-            ) {
-                property_suggestion(
-                    organization_id: $organization_id
-                    query: $query
-                    type: "track"
-                ) {
-                    name
-                    value
-                }
-            }
-        `,
-        { skip: true }
-    );
+    const { refetch } = useGetTrackSuggestionQuery({ skip: true });
 
     const generateOptions = async (
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
         var fetched = await refetch({
-            organization_id: parseInt(organization_id),
+            organization_id,
             query: input,
         });
-        var suggestions = fetched.data.property_suggestion.map((f) => {
-            return {
-                label: f.name + ': ' + f.value,
-                value: f.value,
-                name: f.name,
-            };
-        });
+        var suggestions = (fetched?.data?.property_suggestion ?? []).map(
+            (f) => {
+                return {
+                    label: f?.name + ': ' + f?.value,
+                    value: f?.value,
+                    name: f?.name,
+                };
+            }
+        );
         return suggestions;
     };
 

@@ -11,7 +11,6 @@ import {
     incrementalData,
 } from '@highlight-run/rrweb/typings/types';
 import { scroller } from 'react-scroll';
-import { useQuery, gql, useMutation } from '@apollo/client';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
@@ -25,6 +24,10 @@ import 'rc-slider/assets/index.css';
 import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
+import {
+    useGetEventsQuery,
+    useMarkSessionAsViewedMutation,
+} from '../../graph/generated/hooks';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
@@ -39,40 +42,23 @@ export const Player = () => {
     const [replayerScale, setReplayerScale] = useState(1);
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
-    const [markSessionAsViewed] = useMutation<
-        { markSessionAsViewed: Boolean },
-        { id: number }
-    >(
-        gql`
-            mutation MarkSessionAsViewed($id: ID!) {
-                markSessionAsViewed(id: $id)
-            }
-        `
-    );
-
+    const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const {
         loading: sessionLoading,
         error: sessionError,
         data: sessionData,
-    } = useQuery<{ events: any[] }, { session_id: string }>(
-        gql`
-            query GetEvents($session_id: ID!) {
-                events(session_id: $session_id)
-            }
-        `,
-        {
-            variables: {
-                session_id: demo
-                    ? process.env.REACT_APP_DEMO_SESSION ?? ''
-                    : session_id ?? '',
-            },
-            context: { headers: { 'Highlight-Demo': demo } },
-        }
-    );
+    } = useGetEventsQuery({
+        variables: {
+            session_id: demo
+                ? process.env.REACT_APP_DEMO_SESSION ?? ''
+                : session_id ?? '',
+        },
+        context: { headers: { 'Highlight-Demo': demo } },
+    });
 
     useEffect(() => {
         if (session_id) {
-            markSessionAsViewed({ variables: { id: parseInt(session_id) } });
+            markSessionAsViewed({ variables: { id: session_id } });
         }
     }, [session_id, markSessionAsViewed]);
 
@@ -128,7 +114,7 @@ export const Player = () => {
             setReplayerState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] =
-                sessionData?.events.map((e: HighlightEvent, i: number) => {
+                sessionData?.events?.map((e: HighlightEvent, i: number) => {
                     return { ...e, identifier: i.toString() };
                 }) ?? [];
             let r = new Replayer(newEvents, {
@@ -147,7 +133,7 @@ export const Player = () => {
 
     const isReplayerReady =
         replayerState === ReplayerState.Loaded &&
-        replayerScale < 1 &&
+        replayerScale !== 1 &&
         !sessionLoading;
 
     return (
