@@ -6,13 +6,14 @@ import {
     SearchParams,
     UserProperty,
 } from '../SearchContext/SearchContext';
-import AsyncSelect from 'react-select/async';
+import AsyncCreatableSelect from 'react-select/async-creatable';
 import { gql, useQuery } from '@apollo/client';
 import { Switch } from 'antd';
 import inputStyles from './InputStyles.module.scss';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import { useState } from 'react';
 import classNames from 'classnames/bind';
+import { ContainsLabel } from '../../../util/shared-functions';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -61,7 +62,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
         <div
             className={`${inputStyles.commonInputWrapper} ${inputStyles.searchInput}`}
         >
-            <AsyncSelect
+            <AsyncCreatableSelect
                 isMulti
                 styles={{
                     control: (provided, state) => ({
@@ -82,6 +83,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                 onChange={(options) => {
                     var newOptions: Array<UserProperty> =
                         options?.map((o) => {
+                            if (!o.name) o.name = 'contains';
                             return { name: o.name, value: o.value };
                         }) ?? [];
                     if (include) {
@@ -123,6 +125,8 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                     ),
                     IndicatorSeparator: () => null,
                 }}
+                formatCreateLabel={ContainsLabel}
+                createOptionPosition={'first'}
             />
         </div>
     );

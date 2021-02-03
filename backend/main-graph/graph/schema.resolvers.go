@@ -555,15 +555,27 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		tracked := 0
 		for _, prop := range params.UserProperties {
 			for _, field := range session.Fields {
-				if prop.Name == field.Name && prop.Value == field.Value {
+				if (prop.Name == field.Name || prop.Name == "contains") && strings.Contains(field.Value, prop.Value) {
 					passed++
 				}
 			}
 		}
 		for _, prop := range params.ExcludedProperties {
-			for _, field := range session.Fields {
-				if prop.Name == field.Name && prop.Value != field.Value {
+			if prop.Name == "contains" {
+				all := true
+				for _, field := range session.Fields {
+					if strings.Contains(field.Value, prop.Value) {
+						all = false
+					}
+				}
+				if all {
 					excluded++
+				}
+			} else {
+				for _, field := range session.Fields {
+					if prop.Name == field.Name && field.Value != prop.Value {
+						excluded++
+					}
 				}
 			}
 		}
