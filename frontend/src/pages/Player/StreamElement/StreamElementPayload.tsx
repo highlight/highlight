@@ -21,7 +21,12 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
 
     if (validator.isURL(payload, validatorUrlOptions)) {
         return (
-            <a href={payload} target="_blank" rel="noopener noreferrer">
+            <a
+                href={payload}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.anchor}
+            >
                 {payload}
             </a>
         );

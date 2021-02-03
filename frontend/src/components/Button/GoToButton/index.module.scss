@@ -1,0 +1,28 @@
+@import 'src/static/shared.scss';
+
+$go-to-button-width: 63px;
+
+.goToButton {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    font-size: 12px;
+    outline: none;
+    display: flex;
+    align-items: center;
+    padding: 5px 6px;
+    border-radius: $button-border-radius;
+    cursor: pointer;
+    width: fit-content;
+
+    &:hover {
+        background: $highlight-purple-light;
+    }
+}
+
+.icon {
+    margin-left: 6px;
+    width: 16px;
+    height: 16px;
+    color: $text-primary;
+}

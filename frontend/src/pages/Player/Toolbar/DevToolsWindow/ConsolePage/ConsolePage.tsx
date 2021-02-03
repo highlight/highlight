@@ -8,12 +8,15 @@ import { ConsoleMessage } from '../../../../../util/shared-types';
 import styles from './ConsolePage.module.scss';
 import devStyles from '../DevToolsWindow.module.scss';
 import { DemoContext } from '../../../../../DemoContext';
+import GoToButton from '../../../../../components/Button/GoToButton';
+import ReplayerContext from '../../../ReplayerContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 
 export const ConsolePage = ({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [options, setOptions] = useState<Array<string>>([]);
     const { demo } = useContext(DemoContext);
+    const { setTime, replayer } = useContext(ReplayerContext);
     const [parsedMessages, setParsedMessages] = useState<
         undefined | Array<ConsoleMessage & { selected?: boolean; id: number }>
     >([]);
@@ -144,6 +147,16 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                             {typeof m.value === 'string' &&
                                                 m.value}
                                         </div>
+                                        <GoToButton
+                                            className={styles.goToButton}
+                                            onClick={() => {
+                                                setTime(
+                                                    m.time -
+                                                        (replayer?.getMetaData()
+                                                            .startTime ?? 0)
+                                                );
+                                            }}
+                                        />
                                     </div>
                                 </Element>
                             );
