@@ -91,12 +91,13 @@ func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*mode
 
 func UnmarshalEventObjects(eventsObjects []*model.EventsObject) ([]interface{}, error) {
 	allEvents := make(map[string][]interface{})
+	// For each event object (database entry), get entry["events"] and append it to the global allEvents.
 	for _, eventObj := range eventsObjects {
 		subEvents := make(map[string][]interface{})
 		if err := json.Unmarshal([]byte(eventObj.Events), &subEvents); err != nil {
 			return nil, fmt.Errorf("error decoding event data: %v", err)
 		}
-		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
+		allEvents["events"] = append(allEvents["events"], subEvents["events"]...)
 	}
 	return allEvents["events"], nil
 }

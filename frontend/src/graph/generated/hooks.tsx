@@ -1390,3 +1390,40 @@ export type IsIntegratedQueryResult = Apollo.QueryResult<
     Types.IsIntegratedQuery,
     Types.IsIntegratedQueryVariables
 >;
+export const GetLiveEventsDocument = gql`
+    subscription GetLiveEvents($session_id: ID!) {
+        liveEvents(session_id: $session_id)
+    }
+`;
+
+/**
+ * __useGetLiveEventsSubscription__
+ *
+ * To run a query within a React component, call `useGetLiveEventsSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useGetLiveEventsSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLiveEventsSubscription({
+ *   variables: {
+ *      session_id: // value for 'session_id'
+ *   },
+ * });
+ */
+export function useGetLiveEventsSubscription(
+    baseOptions: Apollo.SubscriptionHookOptions<
+        Types.GetLiveEventsSubscription,
+        Types.GetLiveEventsSubscriptionVariables
+    >
+) {
+    return Apollo.useSubscription<
+        Types.GetLiveEventsSubscription,
+        Types.GetLiveEventsSubscriptionVariables
+    >(GetLiveEventsDocument, baseOptions);
+}
+export type GetLiveEventsSubscriptionHookResult = ReturnType<
+    typeof useGetLiveEventsSubscription
+>;
+export type GetLiveEventsSubscriptionResult = Apollo.SubscriptionResult<Types.GetLiveEventsSubscription>;

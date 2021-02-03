@@ -23,9 +23,12 @@ import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
 import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
-import ReplayerContext, { ReplayerState } from './ReplayerContext';
+import ReplayerContext, {
+    ReplayerState,
+} from './ReplayerContext/ReplayerContext';
 import {
     useGetEventsQuery,
+    useGetLiveEventsSubscription,
     useGetSessionQuery,
     useMarkSessionAsViewedMutation,
 } from '../../graph/generated/hooks';
@@ -61,6 +64,19 @@ export const Player = () => {
         error: sessionError,
         data: sessionData,
     } = useGetSessionQuery({ variables: { id: session_id } });
+
+    const { data, loading, error } = useGetLiveEventsSubscription({
+        variables: { session_id },
+        onSubscriptionData: (options) => {
+            const newEvents = options.subscriptionData.data?.liveEvents;
+            if (newEvents?.length) {
+                console.log('adding events:', newEvents?.length);
+                for (var e of newEvents) {
+                    replayer?.addEvent(e);
+                }
+            }
+        },
+    });
 
     useEffect(() => {
         if (session_id) {
@@ -117,16 +133,17 @@ export const Player = () => {
 
     useEffect(() => {
         if ((sessionData && eventsData?.events?.length) ?? 0 > 1) {
-            console.log(sessionData);
             setReplayerState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] =
                 eventsData?.events?.map((e: HighlightEvent, i: number) => {
                     return { ...e, identifier: i.toString() };
                 }) ?? [];
-            let r = new Replayer(newEvents, {
+            let r = new Replayer([], {
+                liveMode: true,
                 root: document.getElementById('player') as HTMLElement,
             });
+            r.startLive();
             setEvents(newEvents);
             setReplayer(r);
             setReplayerState(ReplayerState.Loaded);
@@ -145,6 +162,7 @@ export const Player = () => {
     return (
         <ReplayerContext.Provider
             value={{
+                liveMode: true,
                 replayer,
                 state: replayerState,
                 time,
@@ -162,15 +180,15 @@ export const Player = () => {
                         >
                             {resizeListener}
                             <div
-                                style={{
-                                    visibility: isReplayerReady
-                                        ? 'visible'
-                                        : 'hidden',
-                                }}
+                                // style={{
+                                //     visibility: isReplayerReady
+                                //         ? 'visible'
+                                //         : 'hidden',
+                                // }}
                                 className={styles.rrwebPlayerDiv}
                                 id="player"
                             />
-                            {!isReplayerReady ? (
+                            {/* {!isReplayerReady ? (
                                 <PlayerSkeleton
                                     height={
                                         playerWrapperRef.current?.clientHeight
@@ -178,7 +196,7 @@ export const Player = () => {
                                 />
                             ) : (
                                 <></>
-                            )}
+                            )} */}
                         </div>
                     </div>
                     <Toolbar
@@ -191,7 +209,7 @@ export const Player = () => {
                 </div>
                 <div className={styles.playerRightSection}>
                     <MetadataBox />
-                    <EventStream events={events} />{' '}
+                    {/* <EventStream events={events} />{' '} */}
                 </div>
             </div>
         </ReplayerContext.Provider>

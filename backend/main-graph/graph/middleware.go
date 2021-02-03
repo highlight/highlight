@@ -10,7 +10,6 @@ import (
 
 	firebase "firebase.google.com/go"
 	beeline "github.com/honeycombio/beeline-go"
-	e "github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 )
@@ -46,14 +45,16 @@ func AdminMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		var uid string
 		if r.Header.Get(DemoHeader) != "true" {
 			token := r.Header.Get("token")
-			t, err := AuthClient.VerifyIDToken(context.Background(), token)
-			if err != nil {
-				http.Error(w, e.Wrap(err, "invalid id token").Error(), http.StatusInternalServerError)
-				return
+			t, _ := AuthClient.VerifyIDToken(context.Background(), token)
+			// if err != nil {
+			// 	http.Error(w, e.Wrap(err, "indalid id token").Error(), http.StatusInternalServerError)
+			// 	return
+			// }
+			if t != nil {
+				uid = t.UID
 			}
-			uid = t.UID
 		}
-		ctx := context.WithValue(r.Context(), "uid", uid)
-		next(w, r.WithContext(ctx))
+		ctx := context.WithValue(context.Background(), "uid", uid)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }

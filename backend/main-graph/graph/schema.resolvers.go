@@ -15,6 +15,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -314,7 +315,8 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	eventObjs := []*model.EventsObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
+	// Return all the events objects, with the oldest event being first.
+	if res := r.DB.Order("created_at asc").Where(&model.EventsObject{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
 	return UnmarshalEventObjects(eventObjs)
@@ -646,25 +648,67 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 }
 
 func (r *subscriptionResolver) LiveEvents(ctx context.Context, sessionID int) (<-chan []interface{}, error) {
-	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
-		return nil, e.Wrap(err, "admin not session owner")
-	}
-	latest := time.Time{}
-	ticker := time.NewTicker(time.Minute)
-	defer ticker.Stop()
-	for ; true; <-ticker.C {
-		eventObjs := []*model.EventsObject{}
-		res := r.DBkkk.Order("created_at desc").
-			Where(&model.EventsObject{SessionID: sessionID}).
-			Where("created_at > ?", latest).Find(&eventObjs)
-		if res.Error != nil {
-			return nil, fmt.Errorf("error reading from events: %v", res.Error)
-		}
-		latest = eventObjs[len(eventObjs)-1].CreatedAt
-		events, err := UnmarshalEventObjects(eventObjs)
-		if 
+	pp.Println("here")
+	// if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+	// 	return nil, e.Wrap(err, "admin not session owner")
+	// }
+	eventLists := make(chan []interface{}, 1)
+	pp.Println("check")
 
-	}
+	go func() {
+		pp.Println("other")
+	}()
+
+	go func() {
+		pp.Println("go func")
+		latest := time.Time{}
+		ticker := time.NewTicker(time.Second * 5)
+		defer ticker.Stop()
+		for ; true; <-ticker.C {
+			select {
+			case <-ctx.Done():
+				pp.Println("closing")
+				close(eventLists)
+				return
+			case <-ticker.C:
+				eventObjs := []*model.EventsObject{}
+				res := r.DB.Order("created_at asc").
+					Where(&model.EventsObject{SessionID: sessionID}).
+					Where("created_at > ?", latest).Find(&eventObjs)
+				if res.Error != nil {
+					log.Errorf("error reading from events: %v", res.Error)
+					continue
+				}
+				if l := len(eventObjs); l > 0 {
+					latest = eventObjs[l-1].CreatedAt
+				}
+				//////////////
+				totalEventObjs := []*model.EventsObject{}
+				res = r.DB.Order("created_at asc").
+					Where(&model.EventsObject{SessionID: sessionID}).
+					Find(&totalEventObjs)
+				if res.Error != nil {
+					log.Errorf("error reading from events: %v", res.Error)
+					continue
+				}
+				totalEvents, err := UnmarshalEventObjects(totalEventObjs)
+				if err != nil {
+					log.Errorf("error unmarshalling events objects: %v", res.Error)
+					continue
+				}
+				pp.Println("total: ", len(totalEvents))
+				//////////////
+				events, err := UnmarshalEventObjects(eventObjs)
+				if err != nil {
+					log.Errorf("error unmarshalling events objects: %v", res.Error)
+					continue
+				}
+				pp.Println("current", len(events))
+				eventLists <- events
+			}
+		}
+	}()
+	return eventLists, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

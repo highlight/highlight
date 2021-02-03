@@ -1,0 +1,3 @@
+subscription GetLiveEvents($session_id: ID!) {
+    liveEvents(session_id: $session_id)
+}

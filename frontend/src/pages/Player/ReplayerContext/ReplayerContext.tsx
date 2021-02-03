@@ -16,9 +16,12 @@ interface ReplayerContextInterface {
     /** The current size of the replayer (in percent). */
     scale: number;
     setScale: (newScale: number) => void;
+    /** Whether the replayer is in "live mode" */
+    liveMode: boolean;
 }
 
 export const defaultValue: ReplayerContextInterface = {
+    liveMode: false,
     state: ReplayerState.Loaded,
     replayer: undefined,
     scale: 1,

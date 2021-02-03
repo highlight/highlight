@@ -439,3 +439,12 @@ export type IsIntegratedQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'isIntegrated'
 >;
+
+export type GetLiveEventsSubscriptionVariables = Types.Exact<{
+    session_id: Types.Scalars['ID'];
+}>;
+
+export type GetLiveEventsSubscription = { __typename?: 'Subscription' } & Pick<
+    Types.Subscription,
+    'liveEvents'
+>;

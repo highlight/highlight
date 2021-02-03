@@ -25,7 +25,11 @@ H.start();
 LogRocket.init('vcbmdo/highlight');
 
 ReactDOM.render(
-    <React.StrictMode>
+    <>
+        {/* 
+        Disabled because of this issue w/ the useSubscription hook: https://github.com/apollographql/apollo-client/issues/6037
+        <React.StrictMode> 
+        */}
         <ApolloProvider client={client}>
             <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
                 <Router>
@@ -44,7 +48,8 @@ ReactDOM.render(
                 </Router>
             </SkeletonTheme>
         </ApolloProvider>
-    </React.StrictMode>,
+        {/* </React.StrictMode> */}
+    </>,
     document.getElementById('root')
 );
 

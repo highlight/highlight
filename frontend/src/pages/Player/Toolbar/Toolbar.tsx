@@ -8,9 +8,32 @@ import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
 import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
-import ReplayerContext from '../ReplayerContext';
+import ReplayerContext from '../ReplayerContext/ReplayerContext';
 
 export const Toolbar = ({
+    onSelect,
+    onResize,
+}: {
+    onSelect: (newTime: number) => void;
+    onResize: () => void;
+}) => {
+    const { liveMode } = useContext(ReplayerContext);
+    return (
+        <>
+            {liveMode ? (
+                <LiveToolBar />
+            ) : (
+                <PlaybackToolbar onSelect={onSelect} onResize={onResize} />
+            )}
+        </>
+    );
+};
+
+const LiveToolBar = () => {
+    return <div className={styles.toolbarSection}>hello</div>;
+};
+
+const PlaybackToolbar = ({
     onSelect,
     onResize,
 }: {

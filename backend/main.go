@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/99designs/gqlgen/handler"
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/websocket"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/worker"
@@ -15,7 +18,6 @@ import (
 	"github.com/slack-go/slack"
 	"github.com/stripe/stripe-go/client"
 
-	ha "github.com/99designs/gqlgen/handler"
 	beeline "github.com/honeycombio/beeline-go"
 	cgraph "github.com/jay-khatri/fullstory/backend/client-graph/graph"
 	cgenerated "github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
@@ -105,16 +107,29 @@ func main() {
 		StripeClient: stripeClient,
 	}
 
-	mux.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
-		mgenerated.Config{
-			Resolvers: main,
-		}))))
-	mux.Handle("/client", cgraph.ClientMiddleWare(ha.GraphQL(cgenerated.NewExecutableSchema(
+	mux.Handle("/main", mgraph.AdminMiddleWare(
+		handler.GraphQL(
+			mgenerated.NewExecutableSchema(
+				mgenerated.Config{
+					Resolvers: main,
+				},
+			),
+			handler.WebsocketUpgrader(websocket.Upgrader{
+				CheckOrigin: func(r *http.Request) bool {
+					return true
+				},
+			}),
+			handler.WebsocketKeepAliveDuration(time.Second*0),
+		),
+	))
+
+	mux.Handle("/client", cgraph.ClientMiddleWare(handler.GraphQL(cgenerated.NewExecutableSchema(
 		cgenerated.Config{
 			Resolvers: &cgraph.Resolver{
 				DB: db,
 			},
 		}))))
+
 	mux.HandleFunc("/email", emailHandler)
 
 	handler := cors.New(cors.Options{
