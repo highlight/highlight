@@ -11,14 +11,10 @@ import styles from './Toolbar.module.scss';
 import ReplayerContext, { ReplayerState } from '../ReplayerContext';
 import classNames from 'classnames';
 
-export const Toolbar = ({
-    onSelect,
-    onResize,
-}: {
-    onSelect: (newTime: number) => void;
-    onResize: () => void;
-}) => {
-    const { replayer, setTime, time, state } = useContext(ReplayerContext);
+export const Toolbar = ({ onResize }: { onResize: () => void }) => {
+    const { replayer, setTime, time, state, play, pause } = useContext(
+        ReplayerContext
+    );
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const wrapperWidth =
@@ -36,24 +32,24 @@ export const Toolbar = ({
         'highlightMenuAutoPlayVideo',
         false
     );
-    const [paused, setPaused] = useState(true);
     // Represents whether the user has directly or indirectly interacted with the player.
     const [touched, setTouched] = useState(false);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const [isDragged, setIsDragged] = useState(false);
+    const isPaused = state === ReplayerState.Paused;
 
     // When not paused and not dragged, update the current time.
     // When the current time is updated, the function calls itself again.
     useEffect(() => {
         if (replayer) {
-            if (!paused && !isDragged) {
+            if (!isPaused && !isDragged) {
                 setTimeout(() => {
                     setTime(replayer.getCurrentTime());
                 }, 50);
             }
         }
-    }, [replayer, paused, isDragged, time, setTime]);
+    }, [replayer, isPaused, isDragged, time, setTime]);
 
     useEffect(() => {
         onResize();
@@ -65,7 +61,7 @@ export const Toolbar = ({
 
     useEffect(() => {
         setTimeout(() => {
-            replayer?.pause((lastCanvasPreview / wrapperWidth) * max);
+            pause((lastCanvasPreview / wrapperWidth) * max);
         }, 1);
     }, [replayer, lastCanvasPreview, wrapperWidth, max]);
 
@@ -73,8 +69,7 @@ export const Toolbar = ({
     useEffect(() => {
         if (autoPlayVideo && replayer && !touched) {
             setTimeout(() => {
-                replayer.play(0);
-                setPaused(false);
+                play(0);
             }, 100);
         }
     }, [autoPlayVideo, replayer, time, touched]);
@@ -90,25 +85,21 @@ export const Toolbar = ({
         newTime = Math.max(0, newTime);
         newTime = Math.min(max, newTime);
 
-        setTime(newTime);
         setLastCanvasPreview(e.x);
         setIsDragged(false);
 
-        if (paused) {
-            setTime(newTime);
-            replayer?.pause(newTime);
+        if (isPaused) {
+            pause(newTime);
         } else {
-            setTime(newTime);
-            replayer?.play(newTime);
+            play(newTime);
         }
     };
 
     let startDraggable = (e: any, data: any) => {
         setLastCanvasPreview(data.x);
         setIsDragged(true);
-        if (!paused) {
-            replayer?.pause();
-            setPaused(true);
+        if (!isPaused) {
+            pause();
         }
     };
 
@@ -143,14 +134,12 @@ export const Toolbar = ({
                 />
             </OpenDevToolsContext.Provider>
             <button
-                disabled={state !== ReplayerState.Loaded}
+                disabled={state === ReplayerState.Loading}
                 className={styles.sliderWrapper}
                 ref={sliderWrapperRef}
                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                     const ratio = e.clientX / wrapperWidth;
                     setTime(ratio * max);
-                    setPaused(true);
-                    onSelect(ratio * max);
                 }}
             >
                 <div className={styles.sliderRail}></div>
@@ -161,7 +150,7 @@ export const Toolbar = ({
                     onStop={endLogger}
                     onDrag={onDraggable}
                     onStart={startDraggable}
-                    disabled={state !== ReplayerState.Loaded}
+                    disabled={state === ReplayerState.Loading}
                     position={{
                         x: Math.max((time / max) * wrapperWidth - 15, 0),
                         y: 0,
@@ -177,20 +166,18 @@ export const Toolbar = ({
                             styles.playSection,
                             styles.button
                         )}
-                        disabled={state !== ReplayerState.Loaded}
+                        disabled={state === ReplayerState.Loading}
                         onClick={() => {
-                            if (paused) {
-                                replayer?.play(time);
-                                setPaused(false);
+                            if (isPaused) {
+                                play(time);
                                 setIsDragged(false);
                             } else {
-                                replayer?.pause();
-                                setPaused(true);
+                                pause(time);
                                 setIsDragged(false);
                             }
                         }}
                     >
-                        {paused ? (
+                        {isPaused ? (
                             <FaPlay
                                 fill="inherit"
                                 className={classNames(
@@ -213,15 +200,13 @@ export const Toolbar = ({
                             styles.undoSection,
                             styles.button
                         )}
-                        disabled={state !== ReplayerState.Loaded}
+                        disabled={state === ReplayerState.Loading}
                         onClick={() => {
                             const newTime = Math.max(time - SKIP_DURATION, 0);
-                            if (paused) {
-                                setTime(newTime);
-                                replayer?.pause(newTime);
+                            if (isPaused) {
+                                pause(newTime);
                             } else {
-                                setTime(newTime);
-                                replayer?.play(newTime);
+                                play(newTime);
                             }
                         }}
                     >
@@ -238,7 +223,7 @@ export const Toolbar = ({
                             styles.redoSection,
                             styles.button
                         )}
-                        disabled={state !== ReplayerState.Loaded}
+                        disabled={state === ReplayerState.Loading}
                         onClick={() => {
                             const totalTime =
                                 replayer?.getMetaData().totalTime ?? 0;
@@ -246,12 +231,10 @@ export const Toolbar = ({
                                 time + SKIP_DURATION,
                                 totalTime
                             );
-                            if (paused) {
-                                setTime(newTime);
-                                replayer?.pause(newTime);
+                            if (isPaused) {
+                                pause(newTime);
                             } else {
-                                setTime(newTime);
-                                replayer?.play(newTime);
+                                play(newTime);
                             }
                         }}
                     >

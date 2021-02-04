@@ -34,7 +34,7 @@ export const Player = () => {
     const { demo } = useContext(DemoContext);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [replayerState, setReplayerState] = useState<ReplayerState>(
-        ReplayerState.NotLoaded
+        ReplayerState.Loading
     );
     const [time, setTime] = useState(0);
     const [resizeListener, sizes] = useResizeAware();
@@ -122,19 +122,35 @@ export const Player = () => {
             });
             setEvents(newEvents);
             setReplayer(r);
-            setReplayerState(ReplayerState.Loaded);
+            setReplayerState(ReplayerState.Paused);
             r.getTimeOffset();
         }
     }, [sessionData]);
+
+    useEffect(() => {
+        console.log(replayerState);
+    }, [replayerState]);
 
     if (sessionError) {
         return <p>{sessionError.toString()}</p>;
     }
 
     const isReplayerReady =
-        replayerState === ReplayerState.Loaded &&
+        replayerState !== ReplayerState.Loading &&
         replayerScale !== 1 &&
         !sessionLoading;
+
+    const playHandler = (newTime?: number) => {
+        setReplayerState(ReplayerState.Playing);
+        setTime(newTime ?? time);
+        replayer?.play(newTime);
+    };
+
+    const pauseHandler = (newTime?: number) => {
+        setReplayerState(ReplayerState.Paused);
+        setTime(newTime ?? time);
+        replayer?.pause(newTime);
+    };
 
     return (
         <ReplayerContext.Provider
@@ -142,9 +158,22 @@ export const Player = () => {
                 replayer,
                 state: replayerState,
                 time,
-                setTime,
+                setTime: (newTime) => {
+                    setTime(newTime);
+
+                    switch (replayerState) {
+                        case ReplayerState.Playing:
+                            replayer?.play(newTime);
+                            return;
+                        case ReplayerState.Paused:
+                            replayer?.pause(newTime);
+                            return;
+                    }
+                },
                 scale: replayerScale,
                 setScale: setReplayerScale,
+                play: playHandler,
+                pause: pauseHandler,
             }}
         >
             <div className={styles.playerBody}>
@@ -176,10 +205,6 @@ export const Player = () => {
                         </div>
                     </div>
                     <Toolbar
-                        onSelect={(newTime: number) => {
-                            replayer?.pause(newTime);
-                            setTime(newTime);
-                        }}
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
                 </div>

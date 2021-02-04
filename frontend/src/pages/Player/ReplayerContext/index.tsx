@@ -2,9 +2,9 @@ import { createContext } from 'react';
 import { Replayer } from '@highlight-run/rrweb';
 
 export enum ReplayerState {
-    NotLoaded,
     Loading,
-    Loaded,
+    Playing,
+    Paused,
 }
 
 interface ReplayerContextInterface {
@@ -16,15 +16,19 @@ interface ReplayerContextInterface {
     /** The current size of the replayer (in percent). */
     scale: number;
     setScale: (newScale: number) => void;
+    play: (time?: number) => void;
+    pause: (time?: number) => void;
 }
 
 export const defaultValue: ReplayerContextInterface = {
-    state: ReplayerState.Loaded,
+    state: ReplayerState.Loading,
     replayer: undefined,
     scale: 1,
     setScale: (_) => {},
     time: 0,
     setTime: (_) => {},
+    play: (_) => {},
+    pause: (_) => {},
 };
 
 const ReplayerContext = createContext<ReplayerContextInterface>(defaultValue);
