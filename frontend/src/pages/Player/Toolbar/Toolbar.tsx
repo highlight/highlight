@@ -8,7 +8,7 @@ import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
 import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
-import ReplayerContext, { ReplayerState } from '../ReplayerContext/ReplayerContext';
+import ReplayerContext, { ReplayerState } from '../ReplayerContext';
 import classNames from 'classnames';
 
 export const Toolbar = ({

@@ -23,9 +23,7 @@ import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
 import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
-import ReplayerContext, {
-    ReplayerState,
-} from './ReplayerContext/ReplayerContext';
+import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import {
     useGetEventsQuery,
     useGetLiveEventsSubscription,
@@ -41,7 +39,6 @@ export const Player = () => {
     if (loading || data?.session?.processed === undefined) {
         return <p>loading</p>;
     }
-    console.log(data?.session?.processed);
     return <PlayerInternal live={data?.session?.processed ? false : true} />;
 };
 
@@ -72,7 +69,7 @@ const PlayerInternal = ({ live }: { live: boolean }) => {
         context: { headers: { 'Highlight-Demo': demo } },
     });
 
-    const { data, loading, error } = useGetLiveEventsSubscription({
+    useGetLiveEventsSubscription({
         variables: { session_id },
         skip: !live,
         onSubscriptionData: (options) => {

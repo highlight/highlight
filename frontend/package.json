@@ -3,11 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
-<<<<<<< HEAD
         "@apollo/client": "^3.3.7",
-=======
-        "@apollo/client": "^3.1.4",
->>>>>>> master
         "@apollo/react-hooks": "^4.0.0",
         "@dicebear/avatars": "^4.2.5",
         "@dicebear/avatars-avataaars-sprites": "^4.2.5",
