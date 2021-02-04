@@ -10,7 +10,7 @@ import {
 import AsyncCreatableSelect from 'react-select/async-creatable';
 import inputStyles from './InputStyles.module.scss';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
-import { ContainsLabel } from '../../../util/shared-functions';
+import { ContainsLabel } from './SearchInputUtil';
 import { useGetTrackSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const TrackPropertyInput = () => {

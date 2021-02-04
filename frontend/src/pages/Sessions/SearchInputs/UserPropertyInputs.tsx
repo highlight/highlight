@@ -12,7 +12,7 @@ import inputStyles from './InputStyles.module.scss';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import { useState } from 'react';
 import classNames from 'classnames/bind';
-import { ContainsLabel } from '../../../util/shared-functions';
+import { ContainsLabel } from './SearchInputUtil';
 import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {

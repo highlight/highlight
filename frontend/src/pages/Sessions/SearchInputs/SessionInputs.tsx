@@ -8,8 +8,7 @@ import { Switch } from 'antd';
 import { ReactComponent as URLIcon } from '../../../static/link.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
 import classNames from 'classnames/bind';
-import { SharedSelectStyleProps } from './SearchInputUtil';
-import { ContainsLabel } from '../../../util/shared-functions';
+import { SharedSelectStyleProps, ContainsLabel } from './SearchInputUtil';
 import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const VisitedUrlInput = () => {
