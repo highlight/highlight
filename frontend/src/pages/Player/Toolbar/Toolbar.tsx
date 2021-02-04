@@ -59,12 +59,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         replayer?.setConfig({ skipInactive, speed });
     }, [replayer, skipInactive, speed]);
 
-    useEffect(() => {
-        setTimeout(() => {
-            pause((lastCanvasPreview / wrapperWidth) * max);
-        }, 1);
-    }, [replayer, lastCanvasPreview, wrapperWidth, max]);
-
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
         if (autoPlayVideo && replayer && !touched) {
@@ -72,7 +66,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 play(0);
             }, 100);
         }
-    }, [autoPlayVideo, replayer, time, touched]);
+    }, [autoPlayVideo, replayer, time, touched, play]);
 
     useEffect(() => {
         if (time > 0) {
