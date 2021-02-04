@@ -133,11 +133,7 @@ query GetFieldSuggestion(
     }
 }
 
-<<<<<<< HEAD
-query GetPropertySuggestion($organization_id: ID!, $query: String!) {
-=======
 query GetTrackSuggestion($organization_id: ID!, $query: String!) {
->>>>>>> master
     property_suggestion(
         organization_id: $organization_id
         query: $query
@@ -148,8 +144,6 @@ query GetTrackSuggestion($organization_id: ID!, $query: String!) {
     }
 }
 
-<<<<<<< HEAD
-=======
 query GetUserSuggestion($organization_id: ID!, $query: String!) {
     property_suggestion(
         organization_id: $organization_id
@@ -161,7 +155,6 @@ query GetUserSuggestion($organization_id: ID!, $query: String!) {
     }
 }
 
->>>>>>> master
 query GetSegments($organization_id: ID!) {
     segments(organization_id: $organization_id) {
         id
