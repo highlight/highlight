@@ -162,6 +162,7 @@ export const Player = () => {
                             replayer?.play(newTime);
                             return;
                         case ReplayerState.Paused:
+                        case ReplayerState.LoadedAndUntouched:
                             replayer?.pause(newTime);
                             return;
                     }
