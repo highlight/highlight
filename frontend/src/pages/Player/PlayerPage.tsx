@@ -127,10 +127,6 @@ export const Player = () => {
         }
     }, [sessionData]);
 
-    useEffect(() => {
-        console.log(replayerState);
-    }, [replayerState]);
-
     if (sessionError) {
         return <p>{sessionError.toString()}</p>;
     }
