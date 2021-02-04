@@ -32,12 +32,12 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         'highlightMenuAutoPlayVideo',
         false
     );
-    // Represents whether the user has directly or indirectly interacted with the player.
-    const [touched, setTouched] = useState(false);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const [isDragged, setIsDragged] = useState(false);
-    const isPaused = state === ReplayerState.Paused;
+    const isPaused =
+        state === ReplayerState.Paused ||
+        state === ReplayerState.LoadedAndUntouched;
 
     // When not paused and not dragged, update the current time.
     // When the current time is updated, the function calls itself again.
@@ -61,18 +61,16 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
-        if (autoPlayVideo && replayer && !touched) {
+        if (
+            autoPlayVideo &&
+            replayer &&
+            state === ReplayerState.LoadedAndUntouched
+        ) {
             setTimeout(() => {
                 play(0);
             }, 100);
         }
-    }, [autoPlayVideo, replayer, time, touched, play]);
-
-    useEffect(() => {
-        if (time > 0) {
-            setTouched(true);
-        }
-    }, [time]);
+    }, [autoPlayVideo, replayer, time, play, state]);
 
     let endLogger = (e: any, data: any) => {
         let newTime = (e.x / wrapperWidth) * max;
@@ -114,6 +112,8 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
      */
     const SKIP_DURATION = 7000;
 
+    const disableControls = state === ReplayerState.Loading;
+
     return (
         <>
             <OpenDevToolsContext.Provider
@@ -128,7 +128,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 />
             </OpenDevToolsContext.Provider>
             <button
-                disabled={state === ReplayerState.Loading}
+                disabled={disableControls}
                 className={styles.sliderWrapper}
                 ref={sliderWrapperRef}
                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
@@ -144,7 +144,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     onStop={endLogger}
                     onDrag={onDraggable}
                     onStart={startDraggable}
-                    disabled={state === ReplayerState.Loading}
+                    disabled={disableControls}
                     position={{
                         x: Math.max((time / max) * wrapperWidth - 15, 0),
                         y: 0,
@@ -160,7 +160,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             styles.playSection,
                             styles.button
                         )}
-                        disabled={state === ReplayerState.Loading}
+                        disabled={disableControls}
                         onClick={() => {
                             if (isPaused) {
                                 play(time);
@@ -194,7 +194,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             styles.undoSection,
                             styles.button
                         )}
-                        disabled={state === ReplayerState.Loading}
+                        disabled={disableControls}
                         onClick={() => {
                             const newTime = Math.max(time - SKIP_DURATION, 0);
                             if (isPaused) {
@@ -217,7 +217,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             styles.redoSection,
                             styles.button
                         )}
-                        disabled={state === ReplayerState.Loading}
+                        disabled={disableControls}
                         onClick={() => {
                             const totalTime =
                                 replayer?.getMetaData().totalTime ?? 0;

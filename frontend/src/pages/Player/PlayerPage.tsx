@@ -122,7 +122,7 @@ export const Player = () => {
             });
             setEvents(newEvents);
             setReplayer(r);
-            setReplayerState(ReplayerState.Paused);
+            setReplayerState(ReplayerState.LoadedAndUntouched);
             r.getTimeOffset();
         }
     }, [sessionData]);

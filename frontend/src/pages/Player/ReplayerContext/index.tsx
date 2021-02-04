@@ -3,6 +3,8 @@ import { Replayer } from '@highlight-run/rrweb';
 
 export enum ReplayerState {
     Loading,
+    /** Replayer is loaded but the user hasn't interacted with the player yet. */
+    LoadedAndUntouched,
     Playing,
     Paused,
 }
