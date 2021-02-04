@@ -494,7 +494,10 @@ export const GetSessionDocument = gql`
             user_id
             created_at
             user_object
+<<<<<<< HEAD
             processed
+=======
+>>>>>>> master
             identifier
             fields {
                 name

@@ -35,12 +35,18 @@
 
 .settingsStyleWrapper {
     cursor: pointer;
+    background: none;
+    border: none;
+    display: flex;
+    outline: none;
+    padding: 0;
 }
 
 .settingsStyle {
-    height: 25px;
-    width: 30px;
+    height: 23px;
+    width: 23px;
     margin: 18px;
+    margin-right: 21px;
 }
 
 .checkIcon {

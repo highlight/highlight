@@ -147,12 +147,12 @@ export const SettingsMenu = ({
             placement={'bottomRight'}
             visible={visible}
         >
-            <span
+            <button
                 onClick={() => setVisible(true)}
                 className={styles.settingsStyleWrapper}
             >
                 <FaCog fill="black" className={styles.settingsStyle} />
-            </span>
+            </button>
         </Dropdown>
     );
 };

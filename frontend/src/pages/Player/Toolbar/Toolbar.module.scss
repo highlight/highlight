@@ -1,8 +1,18 @@
+@import 'src/static/shared.scss';
+
 .sliderWrapper {
     width: 100%;
     z-index: 20;
     height: 4px;
     cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+    outline: none;
+
+    &:disabled {
+        cursor: not-allowed;
+    }
 }
 
 .sliderRail {
@@ -70,7 +80,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    margin-left: 25px;
+    margin-left: 29px;
     cursor: pointer;
 }
 
@@ -79,7 +89,16 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    margin-left: 25px;
+    margin-left: 23px;
+    cursor: pointer;
+}
+
+.redoSection {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    margin-left: 17px;
     cursor: pointer;
 }
 
@@ -154,10 +173,31 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    margin-left: 25px;
+    margin-left: 22px;
 }
 
-.undoButtonStyle {
+.skipButtonStyle {
     height: 25px;
     width: 30px;
+}
+
+.button {
+    background: none;
+    padding: 0;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    color: $text-primary;
+    fill: $text-primary;
+
+    &:disabled {
+        color: $disabled-button;
+        fill: $disabled-button;
+        cursor: not-allowed;
+    }
+}
+
+.icon {
+    height: 18px;
+    width: 18px;
 }

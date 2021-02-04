@@ -293,7 +293,12 @@ const EventStream = ({ events }: { events: HighlightEvent[] }) => {
                                 e={e}
                                 key={i}
                                 start={replayer.getMetaData().startTime}
-                                isCurrent={e.identifier === currEvent}
+                                isCurrent={
+                                    e.timestamp -
+                                        replayer.getMetaData().startTime ===
+                                        time || e.identifier === currEvent
+                                }
+                                onGoToHandler={setCurrEvent}
                                 nodeMap={staticMap}
                             />
                         ))

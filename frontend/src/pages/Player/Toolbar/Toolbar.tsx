@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { FaUndoAlt, FaPlay, FaPause } from 'react-icons/fa';
+import { FaUndoAlt, FaPlay, FaPause, FaRedoAlt } from 'react-icons/fa';
 import { useLocalStorage } from '@rehooks/local-storage';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
@@ -8,7 +8,8 @@ import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
 import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
-import ReplayerContext from '../ReplayerContext/ReplayerContext';
+import ReplayerContext, { ReplayerState } from '../ReplayerContext/ReplayerContext';
+import classNames from 'classnames';
 
 export const Toolbar = ({
     onSelect,
@@ -17,9 +18,9 @@ export const Toolbar = ({
     onSelect: (newTime: number) => void;
     onResize: () => void;
 }) => {
-    const { replayer, setTime, time } = useContext(ReplayerContext);
+    const { replayer, setTime, time, state } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
-    const sliderWrapperRef = useRef<HTMLDivElement>(null);
+    const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [speed, setSpeed] = useLocalStorage('highlightMenuSpeed', 2);
@@ -123,6 +124,11 @@ export const Toolbar = ({
         }
     };
 
+    /**
+     * The time to skip along the timeline. Used to skip X time back or forwards.
+     */
+    const SKIP_DURATION = 7000;
+
     return (
         <>
             <OpenDevToolsContext.Provider
@@ -136,10 +142,11 @@ export const Toolbar = ({
                     startTime={replayer?.getMetaData().startTime ?? 0}
                 />
             </OpenDevToolsContext.Provider>
-            <div
+            <button
+                disabled={state !== ReplayerState.Loaded}
                 className={styles.sliderWrapper}
                 ref={sliderWrapperRef}
-                onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                     const ratio = e.clientX / wrapperWidth;
                     setTime(ratio * max);
                     setPaused(true);
@@ -154,6 +161,7 @@ export const Toolbar = ({
                     onStop={endLogger}
                     onDrag={onDraggable}
                     onStart={startDraggable}
+                    disabled={state !== ReplayerState.Loaded}
                     position={{
                         x: Math.max((time / max) * wrapperWidth - 15, 0),
                         y: 0,
@@ -161,12 +169,15 @@ export const Toolbar = ({
                 >
                     <div className={styles.indicator} />
                 </Draggable>
-            </div>
+            </button>
             <div className={styles.toolbarSection}>
                 <div className={styles.toolbarLeftSection}>
-                    <div
-                        className={styles.playSection}
-                        // TODO: Add waiting toggle, so a user does not pause while the player is loading.
+                    <button
+                        className={classNames(
+                            styles.playSection,
+                            styles.button
+                        )}
+                        disabled={state !== ReplayerState.Loaded}
                         onClick={() => {
                             if (paused) {
                                 replayer?.play(time);
@@ -181,20 +192,30 @@ export const Toolbar = ({
                     >
                         {paused ? (
                             <FaPlay
-                                fill="black"
-                                className={styles.playButtonStyle}
+                                fill="inherit"
+                                className={classNames(
+                                    styles.playButtonStyle,
+                                    styles.icon
+                                )}
                             />
                         ) : (
                             <FaPause
-                                fill="black"
-                                className={styles.playButtonStyle}
+                                fill="inherit"
+                                className={classNames(
+                                    styles.playButtonStyle,
+                                    styles.icon
+                                )}
                             />
                         )}
-                    </div>
-                    <div
-                        className={styles.undoSection}
+                    </button>
+                    <button
+                        className={classNames(
+                            styles.undoSection,
+                            styles.button
+                        )}
+                        disabled={state !== ReplayerState.Loaded}
                         onClick={() => {
-                            const newTime = time - 7000 < 0 ? 0 : time - 7000;
+                            const newTime = Math.max(time - SKIP_DURATION, 0);
                             if (paused) {
                                 setTime(newTime);
                                 replayer?.pause(newTime);
@@ -205,10 +226,43 @@ export const Toolbar = ({
                         }}
                     >
                         <FaUndoAlt
-                            fill="black"
-                            className={styles.undoButtonStyle}
+                            fill="inherit"
+                            className={classNames(
+                                styles.skipButtonStyle,
+                                styles.icon
+                            )}
                         />
-                    </div>
+                    </button>
+                    <button
+                        className={classNames(
+                            styles.redoSection,
+                            styles.button
+                        )}
+                        disabled={state !== ReplayerState.Loaded}
+                        onClick={() => {
+                            const totalTime =
+                                replayer?.getMetaData().totalTime ?? 0;
+                            const newTime = Math.min(
+                                time + SKIP_DURATION,
+                                totalTime
+                            );
+                            if (paused) {
+                                setTime(newTime);
+                                replayer?.pause(newTime);
+                            } else {
+                                setTime(newTime);
+                                replayer?.play(newTime);
+                            }
+                        }}
+                    >
+                        <FaRedoAlt
+                            fill="inherit"
+                            className={classNames(
+                                styles.skipButtonStyle,
+                                styles.icon
+                            )}
+                        />
+                    </button>
                     <div className={styles.timeSection}>
                         {MillisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
                         {MillisToMinutesAndSeconds(max)}

@@ -1,4 +1,6 @@
 export const canvasNetworkWrapper: string;
+export const goToButton: string;
+export const icon: string;
 export const nameSection: string;
 export const networkColumn: string;
 export const networkRow: string;
