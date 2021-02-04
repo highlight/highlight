@@ -35,6 +35,18 @@ import {
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
+    const { loading, data } = useGetSessionQuery({
+        variables: { id: session_id },
+    });
+    if (loading || data?.session?.processed === undefined) {
+        return <p>loading</p>;
+    }
+    console.log(data?.session?.processed);
+    return <PlayerInternal live={data?.session?.processed ? false : true} />;
+};
+
+const PlayerInternal = ({ live }: { live: boolean }) => {
+    var { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [replayerState, setReplayerState] = useState<ReplayerState>(
@@ -59,20 +71,28 @@ export const Player = () => {
         },
         context: { headers: { 'Highlight-Demo': demo } },
     });
-    const {
-        loading: sessionLoading,
-        error: sessionError,
-        data: sessionData,
-    } = useGetSessionQuery({ variables: { id: session_id } });
 
     const { data, loading, error } = useGetLiveEventsSubscription({
         variables: { session_id },
+        skip: !live,
         onSubscriptionData: (options) => {
-            const newEvents = options.subscriptionData.data?.liveEvents;
+            const newEvents = options.subscriptionData.data
+                ?.liveEvents as Array<HighlightEvent>;
             if (newEvents?.length) {
-                console.log('adding events:', newEvents?.length);
-                for (var e of newEvents) {
-                    replayer?.addEvent(e);
+                // Initialize the replayer if it doesn't already exist
+                if (!replayer) {
+                    setReplayerState(ReplayerState.Loading);
+                    let r = new Replayer(newEvents, {
+                        liveMode: true,
+                        root: document.getElementById('player') as HTMLElement,
+                    });
+                    setReplayer(r);
+                    setReplayerState(ReplayerState.Loaded);
+                    r.startLive();
+                } else {
+                    for (var e of newEvents) {
+                        replayer.addEvent(e);
+                    }
                 }
             }
         },
@@ -132,15 +152,14 @@ export const Player = () => {
     }, [sizes, replayer]);
 
     useEffect(() => {
-        if ((sessionData && eventsData?.events?.length) ?? 0 > 1) {
+        if (eventsData?.events?.length ?? 0 > 1) {
             setReplayerState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] =
                 eventsData?.events?.map((e: HighlightEvent, i: number) => {
                     return { ...e, identifier: i.toString() };
                 }) ?? [];
-            let r = new Replayer([], {
-                liveMode: true,
+            let r = new Replayer(newEvents, {
                 root: document.getElementById('player') as HTMLElement,
             });
             r.startLive();
@@ -148,7 +167,7 @@ export const Player = () => {
             setReplayer(r);
             setReplayerState(ReplayerState.Loaded);
         }
-    }, [eventsData, sessionData]);
+    }, [eventsData]);
 
     if (eventsError) {
         return <p>{eventsError.toString()}</p>;
@@ -180,15 +199,15 @@ export const Player = () => {
                         >
                             {resizeListener}
                             <div
-                                // style={{
-                                //     visibility: isReplayerReady
-                                //         ? 'visible'
-                                //         : 'hidden',
-                                // }}
+                                style={{
+                                    visibility: isReplayerReady
+                                        ? 'visible'
+                                        : 'hidden',
+                                }}
                                 className={styles.rrwebPlayerDiv}
                                 id="player"
                             />
-                            {/* {!isReplayerReady ? (
+                            {!isReplayerReady ? (
                                 <PlayerSkeleton
                                     height={
                                         playerWrapperRef.current?.clientHeight
@@ -196,20 +215,22 @@ export const Player = () => {
                                 />
                             ) : (
                                 <></>
-                            )} */}
+                            )}
                         </div>
                     </div>
-                    <Toolbar
-                        onSelect={(newTime: number) => {
-                            replayer?.pause(newTime);
-                            setTime(newTime);
-                        }}
-                        onResize={() => replayer && resizePlayer(replayer)}
-                    />
+                    {!live && (
+                        <Toolbar
+                            onSelect={(newTime: number) => {
+                                replayer?.pause(newTime);
+                                setTime(newTime);
+                            }}
+                            onResize={() => replayer && resizePlayer(replayer)}
+                        />
+                    )}
                 </div>
                 <div className={styles.playerRightSection}>
                     <MetadataBox />
-                    {/* <EventStream events={events} />{' '} */}
+                    {!live && <EventStream events={events} />}
                 </div>
             </div>
         </ReplayerContext.Provider>

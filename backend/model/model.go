@@ -229,6 +229,13 @@ type MessagesObject struct {
 	Messages  string
 }
 
+type ReplayerEventsObject struct {
+	Events []*struct {
+		Timestamp float64 `json:"timestamp"`
+		Type      int     `json:"type"`
+	} `json:"events"`
+}
+
 type EventsObject struct {
 	Model
 	SessionID int

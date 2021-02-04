@@ -17,29 +17,6 @@ export const Toolbar = ({
     onSelect: (newTime: number) => void;
     onResize: () => void;
 }) => {
-    const { liveMode } = useContext(ReplayerContext);
-    return (
-        <>
-            {liveMode ? (
-                <LiveToolBar />
-            ) : (
-                <PlaybackToolbar onSelect={onSelect} onResize={onResize} />
-            )}
-        </>
-    );
-};
-
-const LiveToolBar = () => {
-    return <div className={styles.toolbarSection}>hello</div>;
-};
-
-const PlaybackToolbar = ({
-    onSelect,
-    onResize,
-}: {
-    onSelect: (newTime: number) => void;
-    onResize: () => void;
-}) => {
     const { replayer, setTime, time } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLDivElement>(null);

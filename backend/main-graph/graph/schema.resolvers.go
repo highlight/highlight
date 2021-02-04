@@ -660,11 +660,11 @@ func (r *subscriptionResolver) LiveEvents(ctx context.Context, sessionID int) (<
 	}()
 
 	go func() {
-		pp.Println("go func")
 		latest := time.Time{}
-		ticker := time.NewTicker(time.Second * 5)
+		first := true
+		ticker := time.NewTicker(time.Second * 1)
 		defer ticker.Stop()
-		for ; true; <-ticker.C {
+		for {
 			select {
 			case <-ctx.Done():
 				pp.Println("closing")
@@ -682,33 +682,52 @@ func (r *subscriptionResolver) LiveEvents(ctx context.Context, sessionID int) (<
 				if l := len(eventObjs); l > 0 {
 					latest = eventObjs[l-1].CreatedAt
 				}
-				//////////////
-				totalEventObjs := []*model.EventsObject{}
-				res = r.DB.Order("created_at asc").
-					Where(&model.EventsObject{SessionID: sessionID}).
-					Find(&totalEventObjs)
-				if res.Error != nil {
-					log.Errorf("error reading from events: %v", res.Error)
-					continue
-				}
-				totalEvents, err := UnmarshalEventObjects(totalEventObjs)
-				if err != nil {
-					log.Errorf("error unmarshalling events objects: %v", res.Error)
-					continue
-				}
-				pp.Println("total: ", len(totalEvents))
-				//////////////
 				events, err := UnmarshalEventObjects(eventObjs)
-				if err != nil {
-					log.Errorf("error unmarshalling events objects: %v", res.Error)
-					continue
+				if first {
+					if err != nil {
+						log.Errorf("error unmarshalling events objects: %v", res.Error)
+						continue
+					}
+					eventLists <- events
+					first = false
+				} else {
+					for i, e := range events {
+						if i == 0 {
+							eventLists <- []interface{}{e}
+							continue
+						}
+						currentTimestamp, err := getTimestampFromEvent(events[i])
+						if err != nil {
+							log.Errorf("problem converting timestamp for current event: %v", err)
+							continue
+						}
+						previousTimestamp, err := getTimestampFromEvent(events[i-1])
+						if err != nil {
+							log.Errorf("problem converting timestamp for past event: %v", err)
+							continue
+						}
+						timeToWait := currentTimestamp.Sub(*previousTimestamp)
+						time.Sleep(timeToWait)
+						eventLists <- []interface{}{e}
+					}
 				}
-				pp.Println("current", len(events))
-				eventLists <- events
 			}
 		}
 	}()
 	return eventLists, nil
+}
+
+func getTimestampFromEvent(e interface{}) (*time.Time, error) {
+	v, ok := e.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error parsing event interface")
+	}
+	t, ok := v["timestamp"].(float64)
+	if !ok {
+		return nil, fmt.Errorf("error parsing timestamp float")
+	}
+	timeConvert := time.Unix(0, int64(t)*int64(1000000))
+	return &timeConvert, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

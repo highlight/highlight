@@ -88,15 +88,8 @@ func (w *Worker) Start() {
 	}
 }
 
-type EventsObject struct {
-	Events []*struct {
-		Timestamp float64 `json:"timestamp"`
-		Type      int     `json:"type"`
-	} `json:"events"`
-}
-
-func ParseEventsObject(event string) (*EventsObject, error) {
-	eventsObj := &EventsObject{}
+func ParseEventsObject(event string) (*model.ReplayerEventsObject, error) {
+	eventsObj := &model.ReplayerEventsObject{}
 	err := json.Unmarshal([]byte(event), &eventsObj)
 	if err != nil {
 		return nil, fmt.Errorf("error parsing event '%v' into map", event)
