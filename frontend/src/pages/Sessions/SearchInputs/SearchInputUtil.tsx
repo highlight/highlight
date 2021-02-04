@@ -24,3 +24,7 @@ export const SharedSelectStyleProps: Styles<
         textAlign: 'left',
     }),
 };
+
+export const ContainsLabel = (inputValue: string) => {
+    return 'Contains: ' + inputValue;
+};

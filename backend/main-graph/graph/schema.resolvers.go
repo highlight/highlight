@@ -446,21 +446,33 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		tracked := 0
 		for _, prop := range params.UserProperties {
 			for _, field := range session.Fields {
-				if prop.Name == field.Name && prop.Value == field.Value {
+				if (prop.Name == field.Name || prop.Name == "contains") && strings.Contains(field.Value, prop.Value) {
 					passed++
 				}
 			}
 		}
 		for _, prop := range params.ExcludedProperties {
-			for _, field := range session.Fields {
-				if prop.Name == field.Name && prop.Value != field.Value {
+			if prop.Name == "contains" {
+				all := true
+				for _, field := range session.Fields {
+					if strings.Contains(field.Value, prop.Value) {
+						all = false
+					}
+				}
+				if all {
 					excluded++
+				}
+			} else {
+				for _, field := range session.Fields {
+					if prop.Name == field.Name && field.Value != prop.Value {
+						excluded++
+					}
 				}
 			}
 		}
 		for _, prop := range params.TrackProperties {
 			for _, field := range session.Fields {
-				if prop.Name == field.Name && prop.Value != field.Value {
+				if (prop.Name == field.Name || prop.Name == "contains") && strings.Contains(field.Value, prop.Value) {
 					tracked++
 				}
 			}
@@ -488,7 +500,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		referredSessions := []model.Session{}
 		for _, session := range sessions {
 			for _, field := range session.Fields {
-				if field.Name == "referrer" && field.Value == *params.Referrer {
+				if field.Name == "referrer" && strings.Contains(field.Value, *params.Referrer) {
 					referredSessions = append(referredSessions, session)
 				}
 			}

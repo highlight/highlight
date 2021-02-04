@@ -13,13 +13,6 @@ export type ErrorMessage = {
     trace?: string | undefined;
 };
 
-export const ErrorStringify = (object: any) => {
-    return JSON.stringify(
-        object,
-        (key, value) => (typeof value === 'bigint' ? value.toString() : value) // return everything else unchanged
-    );
-};
-
 export type NetworkResourceContent = {
     endTime?: number;
     request?: HookRequest;
