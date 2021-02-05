@@ -35,7 +35,7 @@ export const StreamElement = ({
     const [hover, setHover] = useState(false);
     const [selected, setSelected] = useState(false);
     const details = getEventRenderDetails(e, nodeMap);
-    const { setTime } = useContext(ReplayerContext);
+    const { pause } = useContext(ReplayerContext);
     let timeSinceStart = e?.timestamp - start;
     return (
         <Element
@@ -121,7 +121,7 @@ export const StreamElement = ({
                                 e.stopPropagation();
                                 // Sets the current event as null. It will be reset as the player continues.
                                 onGoToHandler('');
-                                setTime(timeSinceStart);
+                                pause(timeSinceStart);
                             }}
                         />
                         <div

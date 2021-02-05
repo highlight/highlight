@@ -16,7 +16,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [options, setOptions] = useState<Array<string>>([]);
     const { demo } = useContext(DemoContext);
-    const { setTime, replayer } = useContext(ReplayerContext);
+    const { pause, replayer } = useContext(ReplayerContext);
     const [parsedMessages, setParsedMessages] = useState<
         undefined | Array<ConsoleMessage & { selected?: boolean; id: number }>
     >([]);
@@ -150,7 +150,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                         <GoToButton
                                             className={styles.goToButton}
                                             onClick={() => {
-                                                setTime(
+                                                pause(
                                                     m.time -
                                                         (replayer?.getMetaData()
                                                             .startTime ?? 0)

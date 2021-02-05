@@ -154,19 +154,7 @@ export const Player = () => {
                 replayer,
                 state: replayerState,
                 time,
-                setTime: (newTime) => {
-                    setTime(newTime);
-
-                    switch (replayerState) {
-                        case ReplayerState.Playing:
-                            replayer?.play(newTime);
-                            return;
-                        case ReplayerState.Paused:
-                        case ReplayerState.LoadedAndUntouched:
-                            replayer?.pause(newTime);
-                            return;
-                    }
-                },
+                setTime,
                 scale: replayerScale,
                 setScale: setReplayerScale,
                 play: playHandler,
