@@ -94,7 +94,10 @@ class VirtualTree {
         const tree = this.map.get(id);
         if (tree) {
             for (const attributeName in attributes) {
-                if (attributes[attributeName] === null) {
+                if (
+                    attributes[attributeName] === null &&
+                    attributeName !== 'disabled'
+                ) {
                     delete tree.attributes[attributeName];
                 } else {
                     tree.attributes = {
