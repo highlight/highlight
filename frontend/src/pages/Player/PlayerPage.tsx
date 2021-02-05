@@ -139,7 +139,7 @@ export const Player = () => {
                 </div>
                 <div className={styles.playerRightSection}>
                     <MetadataBox />
-                    <EventStream />{' '}
+                    <EventStream />
                 </div>
             </div>
         </ReplayerContext.Provider>
