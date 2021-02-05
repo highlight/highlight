@@ -26,7 +26,7 @@
 
 .selectedStreamElement {
     border: 1px solid #d4d4d4;
-    padding: 15px 18px 5px 18px;
+    padding-top: 10px;
 }
 
 .currentStreamElement {
@@ -65,9 +65,10 @@
 }
 
 .directionIcon {
-    width: 20px;
-    height: 20px;
+    width: 14px;
+    height: 14px;
     fill: inherit;
+    transition: 0.3s;
 }
 
 .defaultIcon {
@@ -170,6 +171,7 @@
 
 .selectedIcon {
     fill: $text-primary;
+    transform: rotate(180deg);
 }
 
 .currentIcon {

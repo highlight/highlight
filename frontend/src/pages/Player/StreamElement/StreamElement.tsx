@@ -57,7 +57,7 @@ export const StreamElement = ({
                 <div className={styles.headerRow}>
                     <div className={styles.iconWrapper}>
                         {selected ? (
-                            <UpIcon
+                            <DownIcon
                                 className={classNames(styles.directionIcon, {
                                     [styles.selectedIcon]: selected,
                                     [styles.currentIcon]: isCurrent,
