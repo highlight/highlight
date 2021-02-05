@@ -4,7 +4,6 @@ import { Element } from 'react-scroll';
 import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
 import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
-import { ReactComponent as UpIcon } from '../../../static/chevron-up.svg';
 import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
 import { ReactComponent as NavigateIcon } from '../../../static/navigate.svg';
 import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
