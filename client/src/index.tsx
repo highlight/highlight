@@ -319,8 +319,8 @@ export class Highlight {
                 highlightThis.messages.push(c);
             });
             ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
-            TabStateListener((tabIsActive: boolean) => {
-                addCustomEvent<boolean>('TabIsActive', tabIsActive);
+            TabStateListener((tabIsActive: string) => {
+                addCustomEvent<string>('Tab', tabIsActive);
             });
             this.ready = true;
         } catch (e) {

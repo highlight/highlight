@@ -75,7 +75,7 @@ export const StreamElement = ({
                             <ReloadIcon className={styles.defaultIcon} />
                         ) : details.title === 'Referrer' ? (
                             <ReferrerIcon className={styles.defaultIcon} />
-                        ) : details.title === 'TabIsActive' ? (
+                        ) : details.title === 'Tab' ? (
                             <ReferrerIcon className={styles.defaultIcon} />
                         ) : (
                             <HoverIcon className={styles.tiltedIcon} />
