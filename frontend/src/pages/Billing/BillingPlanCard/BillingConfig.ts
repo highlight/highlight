@@ -2,7 +2,7 @@ export type BillingPlan = {
     planName: string;
     monthlyPrice: string;
     advertisedFeatures: string[];
-}
+};
 
 export const basicPlan: BillingPlan = {
     planName: 'Basic',
@@ -13,7 +13,7 @@ export const basicPlan: BillingPlan = {
         'Up to 5 saved searches',
         'Unlimited retention',
     ],
-}
+};
 
 export const startupPlan: BillingPlan = {
     planName: 'Startup',
@@ -24,7 +24,7 @@ export const startupPlan: BillingPlan = {
         'Unlimited saved searches',
         'Unlimited retention',
     ],
-}
+};
 
 export const enterprisePlan: BillingPlan = {
     planName: 'Enterprise',
@@ -33,6 +33,6 @@ export const enterprisePlan: BillingPlan = {
         'Everything in Basic/Startup',
         'User ACLS/Permissioning',
         'On premise deployments',
-        'SSO/SAML'
+        'SSO/SAML',
     ],
-}
+};

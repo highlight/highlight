@@ -38,18 +38,17 @@ export const Sidebar = () => {
                 <span className={styles.rowText}>Sessions</span>
             </Link>
             <Link
-                className={classNames([styles.row,
-                (!page || page.includes('setup')) && styles.selected])
-                }
+                className={classNames([
+                    styles.row,
+                    (!page || page.includes('setup')) && styles.selected,
+                ])}
                 to={demo ? '/' : `/${organization_id}/setup`}
             >
                 <SetupIcon />
                 <span className={styles.rowText}>Setup</span>
             </Link>
             <div className={styles.settingsDivider} />
-            <div className={styles.settingsTitle}>
-                Settings
-            </div>
+            <div className={styles.settingsTitle}>Settings</div>
             <Link
                 className={classNames([
                     styles.row,

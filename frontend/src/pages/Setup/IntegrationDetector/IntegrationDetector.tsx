@@ -26,8 +26,8 @@ export const IntegrationDetector = ({
                         {integrated ? (
                             <CheckIcon className={styles.checkIcon} />
                         ) : (
-                                <div className="blob" />
-                            )}
+                            <div className="blob" />
+                        )}
                     </div>
                 </div>
             </Tooltip>
@@ -38,8 +38,8 @@ export const IntegrationDetector = ({
                         : 'Waiting for Verification.'}
                 </div>
             ) : (
-                    <></>
-                )}
+                <></>
+            )}
         </div>
     );
 };

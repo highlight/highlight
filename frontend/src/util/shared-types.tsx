@@ -4,6 +4,15 @@ export type ConsoleMessage = {
     type: string;
 };
 
+export type ErrorMessage = {
+    event: string | Event;
+    type: 'console' | 'exception';
+    source?: string | undefined;
+    lineno?: bigint | undefined;
+    colno?: bigint | undefined;
+    trace?: string | undefined;
+};
+
 export type NetworkResourceContent = {
     endTime?: number;
     request?: HookRequest;

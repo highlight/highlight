@@ -9,8 +9,8 @@ export type HighlightOptions = {
 };
 
 const HighlightWarning = (context: string, msg: any) => {
-    console.warn(`Highlight Warning: (${context}): `, msg)
-}
+    console.warn(`Highlight Warning: (${context}): `, msg);
+};
 
 type HighlightPublicInterface = {
     init: (orgID: number | string, debug?: HighlightOptions) => void;
@@ -39,18 +39,13 @@ export const H: HighlightPublicInterface = {
     init: (orgID: number | string, options?: HighlightOptions) => {
         try {
             H.options = options;
-            var scriptSeed = window.sessionStorage.getItem("scriptSeed")|| "";
-            if (scriptSeed === "") {
-                scriptSeed = (new Date().getMilliseconds()).toString();
-                window.sessionStorage.setItem("scriptSeed", scriptSeed);
-            }
             script = document.createElement('script');
             var scriptSrc = options?.scriptUrl
                 ? options.scriptUrl
                 : 'https://static.highlight.run/index.js';
             script.setAttribute(
                 'src',
-                scriptSrc + '?' + scriptSeed
+                scriptSrc + '?' + new Date().getMilliseconds()
             );
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
@@ -66,14 +61,16 @@ export const H: HighlightPublicInterface = {
                 }
             });
         } catch (e) {
-            HighlightWarning("init", e)
+            HighlightWarning('init', e);
         }
     },
     track: (event: string, obj: any) => {
         try {
-            H.onHighlightReady(() => highlight_obj.addProperties({ ...obj, event: event }));
+            H.onHighlightReady(() =>
+                highlight_obj.addProperties({ ...obj, event: event })
+            );
         } catch (e) {
-            HighlightWarning("track", e)
+            HighlightWarning('track', e);
         }
     },
     start: () => {
@@ -91,14 +88,14 @@ export const H: HighlightPublicInterface = {
                 );
             }
         } catch (e) {
-            HighlightWarning("start", e)
+            HighlightWarning('start', e);
         }
     },
     identify: (identifier: string, obj: any) => {
         try {
             H.onHighlightReady(() => highlight_obj.identify(identifier, obj));
         } catch (e) {
-            HighlightWarning("identify", e)
+            HighlightWarning('identify', e);
         }
     },
     getSessionURL: () => {
@@ -127,7 +124,7 @@ export const H: HighlightPublicInterface = {
                 }
             }, 200);
         } catch (e) {
-            HighlightWarning("onHighlightReady", e)
+            HighlightWarning('onHighlightReady', e);
         }
     },
 };

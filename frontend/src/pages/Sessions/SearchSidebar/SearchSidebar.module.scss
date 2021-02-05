@@ -1,14 +1,10 @@
 .searchBar {
-    position: fixed;
     background-color: white;
-    z-index: 800;
-    width: 320px;
+    width: 100%;
     transition: right 0.3s;
     display: flex;
     align-items: center;
     flex-direction: column;
-    padding-top: 40px;
-    height: calc(100vh - 80px);
     transition: 0.3s;
 }
 
@@ -61,9 +57,8 @@
 .sideContentWrapper {
     position: relative;
     width: 100%;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
-
 
 .title {
     color: black;
@@ -72,7 +67,7 @@
 }
 
 .subTitle {
-    color:black;
+    color: black;
     font-size: 11px;
     margin-top: 10px;
 }

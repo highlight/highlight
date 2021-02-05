@@ -2,7 +2,6 @@ import React from 'react';
 
 import styles from './RadioGroup.module.scss';
 
-
 export const RadioGroup = <T extends any>({
     onSelect,
     labels,
@@ -11,34 +10,35 @@ export const RadioGroup = <T extends any>({
     onSelect: (p: T) => void;
     labels: T[];
     selectedLabel: T;
-}
-) => {
-    const labelDivs = labels.map(label => {
-        return label === selectedLabel ?
-            <div style={{
-                borderColor: '#5629c6',
-                backgroundColor: '#5629c6',
-                color: 'white',
-            }}
+}) => {
+    const labelDivs = labels.map((label) => {
+        return label === selectedLabel ? (
+            <div
+                style={{
+                    borderColor: '#5629c6',
+                    backgroundColor: '#5629c6',
+                    color: 'white',
+                }}
                 className={styles.platformOption}
                 onClick={() => onSelect(label)}
-            > {label} </div>
-            : <div
+            >
+                {' '}
+                {label}{' '}
+            </div>
+        ) : (
+            <div
                 style={{
-                    borderColor:
-                        '#eaeaea',
-                    backgroundColor:
-                        'white',
+                    borderColor: '#eaeaea',
+                    backgroundColor: 'white',
                     color: 'black',
                 }}
                 className={styles.platformOption}
                 onClick={() => onSelect(label)}
-            > {label} </div>
-
-    })
-    return (
-        <div className={styles.radioGroupWrapper}>
-            {labelDivs}
-        </div>
-    )
-}
+            >
+                {' '}
+                {label}{' '}
+            </div>
+        );
+    });
+    return <div className={styles.radioGroupWrapper}>{labelDivs}</div>;
+};

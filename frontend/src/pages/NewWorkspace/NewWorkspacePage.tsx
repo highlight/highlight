@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { Redirect } from 'react-router-dom';
-import { useMutation, gql } from '@apollo/client';
 import { useForm } from 'react-hook-form';
 import { CircularSpinner } from '../../components/Spinner/Spinner';
 import { client } from '../../util/graph';
 
 import styles from './NewWorkspace.module.scss';
 import commonStyles from '../../Common.module.scss';
+import { useCreateOrganizationMutation } from '../../graph/generated/hooks';
 
 type Inputs = {
     name: string;
@@ -14,19 +14,10 @@ type Inputs = {
 
 export const NewWorkspacePage = () => {
     const { register, handleSubmit, errors, setError } = useForm<Inputs>();
-    const [createOrganization, { loading, data, error }] = useMutation<
-        { createOrganization: { id: number; name: string } },
-        { name: string }
-    >(
-        gql`
-            mutation CreateOrganization($name: String!) {
-                createOrganization(name: $name) {
-                    id
-                    name
-                }
-            }
-        `
-    );
+    const [
+        createOrganization,
+        { loading, data, error },
+    ] = useCreateOrganizationMutation();
 
     useEffect(() => {
         if (error) {
@@ -43,7 +34,7 @@ export const NewWorkspacePage = () => {
         );
     };
 
-    if (data?.createOrganization.id) {
+    if (data?.createOrganization?.id) {
         return <Redirect to={`/${data.createOrganization.id}/setup`} />;
     }
 
@@ -72,8 +63,8 @@ export const NewWorkspacePage = () => {
                                 style={{ fontSize: 18, color: 'white' }}
                             />
                         ) : (
-                                'Create Workspace'
-                            )}
+                            'Create Workspace'
+                        )}
                     </button>
                 </form>
             </div>

@@ -1,6 +1,15 @@
 // colors
 $highlight-purple: #5629c6;
+$highlight-purple-light: #eee7ff;
 $border-light-gray: #eaeaea;
+$text-primary: #000000;
+$text-label: #959595;
+
+// borders
+$button-border-radius: 5px;
+
+// buttons
+$disabled-button: #bfbfbf;
 
 // mixins
 @mixin rounded-border {

@@ -1,0 +1,35 @@
+# Endpoint API, the following URL is a example
+schema: '../backend/main-graph/graph/schema.graphqls'
+overwrite: true
+# Format files
+hooks:
+    afterAllFileWrite:
+        - prettier --write
+generates:
+    # Get schemas from server
+    src/graph/generated/schemas.tsx:
+        documents: 'src/**/**.gql'
+        plugins:
+            - typescript
+
+    # Create operations based on queries
+    src/graph/generated/operations.tsx:
+        documents: 'src/**/**.gql'
+        preset: import-types
+        presetConfig:
+            typesPath: ./schemas
+        plugins:
+            - typescript-operations
+
+    src/graph/generated/hooks.tsx:
+        documents: 'src/**/**.gql'
+        preset: import-types
+        presetConfig:
+            typesPath: ./operations
+        plugins:
+            - typescript-react-apollo
+        config:
+            # Optionals
+            withHOC: false
+            withComponent: false
+            withHooks: true

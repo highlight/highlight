@@ -1,0 +1,118 @@
+mutation MarkSessionAsViewed($id: ID!) {
+    markSessionAsViewed(id: $id)
+}
+
+mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {
+    createOrUpdateSubscription(organization_id: $organization_id, plan: $plan)
+}
+
+mutation AddAdminToOrganization($organization_id: ID!, $invite_id: String!) {
+    addAdminToOrganization(
+        organization_id: $organization_id
+        invite_id: $invite_id
+    )
+}
+
+mutation CreateOrganization($name: String!) {
+    createOrganization(name: $name) {
+        id
+        name
+    }
+}
+
+mutation EditSegment(
+    $organization_id: ID!
+    $id: ID!
+    $params: SearchParamsInput!
+) {
+    editSegment(organization_id: $organization_id, id: $id, params: $params)
+}
+
+mutation CreateSegment(
+    $organization_id: ID!
+    $name: String!
+    $params: SearchParamsInput!
+) {
+    createSegment(
+        organization_id: $organization_id
+        name: $name
+        params: $params
+    ) {
+        name
+        id
+        params {
+            user_properties {
+                name
+                value
+            }
+            excluded_properties {
+                name
+                value
+            }
+            date_range {
+                start_date
+                end_date
+            }
+            os
+            browser
+            visited_url
+            referrer
+            identified
+            hide_viewed
+        }
+    }
+}
+
+mutation DeleteOrganization($id: ID!) {
+    deleteOrganization(id: $id)
+}
+
+mutation EditSegment(
+    $organization_id: ID!
+    $id: ID!
+    $params: SearchParamsInput!
+) {
+    editSegment(organization_id: $organization_id, id: $id, params: $params)
+}
+
+mutation CreateSegment(
+    $organization_id: ID!
+    $name: String!
+    $params: SearchParamsInput!
+) {
+    createSegment(
+        organization_id: $organization_id
+        name: $name
+        params: $params
+    ) {
+        name
+        id
+        params {
+            user_properties {
+                name
+                value
+            }
+            excluded_properties {
+                name
+                value
+            }
+            date_range {
+                start_date
+                end_date
+            }
+            os
+            browser
+            visited_url
+            referrer
+            identified
+            hide_viewed
+        }
+    }
+}
+
+mutation EditOrganization($id: ID!, $name: String, $billing_email: String) {
+    editOrganization(id: $id, name: $name, billing_email: $billing_email) {
+        name
+        billing_email
+    }
+}

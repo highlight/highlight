@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useContext } from 'react';
 import { message, Skeleton } from 'antd';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
-import { useMutation, useQuery, gql } from '@apollo/client';
 import { Avatar } from '../../components/Avatar/Avatar';
 import { CircularSpinner } from '../../components/Spinner/Spinner';
 import classNames from 'classnames/bind';
@@ -10,6 +9,11 @@ import classNames from 'classnames/bind';
 import commonStyles from '../../Common.module.scss';
 import styles from './WorkspaceTeam.module.scss';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
+import {
+    useGetAdminsQuery,
+    useGetOrganizationQuery,
+    useSendAdminInviteMutation,
+} from '../../graph/generated/hooks';
 
 type Inputs = {
     email: string;
@@ -19,35 +23,17 @@ export const WorkspaceTeam = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
-    const { data: orgData } = useQuery<
-        { organization: { name: string } },
-        { id: number }
-    >(
-        gql`
-            query GetOrganization($id: ID!) {
-                organization(id: $id) {
-                    id
-                    name
-                }
-            }
-        `,
-        { variables: { id: parseInt(organization_id) } }
-    );
-    const { data, error, loading } = useQuery<
-        { admins: { id: number; name: string; email: string }[] },
-        { organization_id: number }
-    >(
-        gql`
-            query GetAdmins($organization_id: ID!) {
-                admins(organization_id: $organization_id) {
-                    id
-                    name
-                    email
-                }
-            }
-        `,
-        { variables: { organization_id: parseInt(organization_id) } }
-    );
+    const { data: orgData } = useGetOrganizationQuery({
+        variables: { id: organization_id },
+    });
+    const { data, error, loading } = useGetAdminsQuery({
+        variables: { organization_id },
+    });
+
+    const [
+        sendInviteEmail,
+        { loading: sendLoading },
+    ] = useSendAdminInviteMutation();
 
     const { setOpenSidebar } = useContext(SidebarContext);
 
@@ -59,23 +45,12 @@ export const WorkspaceTeam = () => {
         reset();
     }, [reset]);
 
-    const [sendInviteEmail, { loading: sendLoading }] = useMutation<
-        { email: string },
-        { organization_id: number; email: string }
-    >(
-        gql`
-            mutation SendAdminInvite($organization_id: ID!, $email: String!) {
-                sendAdminInvite(
-                    organization_id: $organization_id
-                    email: $email
-                )
-            }
-        `
-    );
-
     const onSubmit = (data: Inputs) => {
         sendInviteEmail({
-            variables: { organization_id: parseInt(organization_id), email: data.email },
+            variables: {
+                organization_id,
+                email: data.email,
+            },
         }).then(() => {
             message.success(`Invite email sent to ${data.email}!`, 5);
             reset();
@@ -100,7 +75,7 @@ export const WorkspaceTeam = () => {
                         <div className={styles.boxTitle}>Invite Your Team</div>
                         <div className={styles.boxSubTitle}>
                             Invite a team member to '
-                            {`${orgData?.organization.name}`}' by entering an
+                            {`${orgData?.organization?.name}`}' by entering an
                             email below.
                         </div>
                         <div className={styles.buttonRow}>
@@ -125,14 +100,14 @@ export const WorkspaceTeam = () => {
                                         style={{ fontSize: 18, color: 'white' }}
                                     />
                                 ) : (
-                                        'Invite'
-                                    )}
+                                    'Invite'
+                                )}
                             </button>
                         </div>
                         <div className={commonStyles.errorMessage}>
                             {errors.email &&
                                 'Error validating email ' +
-                                errors.email.message}
+                                    errors.email.message}
                         </div>
                     </form>
                 </div>
@@ -141,30 +116,30 @@ export const WorkspaceTeam = () => {
                     {loading ? (
                         <Skeleton />
                     ) : (
-                            data?.admins.map((a) => {
-                                return (
-                                    <div key={a.id} className={styles.memberCard}>
-                                        <Avatar
-                                            seed={a.id.toString()}
-                                            style={{
-                                                height: 45,
-                                                width: 45,
-                                                marginLeft: 5,
-                                                marginRight: 5,
-                                            }}
-                                        />
-                                        <div className={styles.userDetails}>
-                                            <div className={styles.name}>
-                                                {a.name}
-                                            </div>
-                                            <div className={styles.email}>
-                                                {a.email}
-                                            </div>
+                        data?.admins?.map((a) => {
+                            return (
+                                <div key={a?.id} className={styles.memberCard}>
+                                    <Avatar
+                                        seed={a?.id.toString() ?? ''}
+                                        style={{
+                                            height: 45,
+                                            width: 45,
+                                            marginLeft: 5,
+                                            marginRight: 5,
+                                        }}
+                                    />
+                                    <div className={styles.userDetails}>
+                                        <div className={styles.name}>
+                                            {a?.name}
+                                        </div>
+                                        <div className={styles.email}>
+                                            {a?.email}
                                         </div>
                                     </div>
-                                );
-                            })
-                        )}
+                                </div>
+                            );
+                        })
+                    )}
                 </div>
             </div>
         </div>

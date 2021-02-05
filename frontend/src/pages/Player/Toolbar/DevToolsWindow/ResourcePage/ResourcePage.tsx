@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useQuery, gql } from '@apollo/client';
 import { useParams } from 'react-router-dom';
 import { Tooltip } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
@@ -9,6 +8,9 @@ import { Skeleton } from 'antd';
 import devStyles from '../DevToolsWindow.module.scss';
 import styles from './ResourcePage.module.scss';
 import { DemoContext } from '../../../../../DemoContext';
+import GoToButton from '../../../../../components/Button/GoToButton';
+import ReplayerContext from '../../../ReplayerContext';
+import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
 
 export const ResourcePage = ({
     time,
@@ -19,6 +21,7 @@ export const ResourcePage = ({
 }) => {
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
+    const { setTime } = useContext(ReplayerContext);
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [currentResource, setCurrentResource] = useState(0);
@@ -29,24 +32,14 @@ export const ResourcePage = ({
     const [parsedResources, setParsedResources] = useState<
         Array<PerformanceResourceTiming & { id: number }>
     >([]);
-    const { data, loading } = useQuery<
-        { resources: PerformanceResourceTiming[] },
-        { session_id: string }
-    >(
-        gql`
-            query GetResources($session_id: ID!) {
-                resources(session_id: $session_id)
-            }
-        `,
-        {
-            variables: {
-                session_id: demo
-                    ? process.env.REACT_APP_DEMO_SESSION ?? ''
-                    : session_id,
-            },
-            context: { headers: { 'Highlight-Demo': demo } },
-        }
-    );
+    const { data, loading } = useGetResourcesQuery({
+        variables: {
+            session_id: demo
+                ? process.env.REACT_APP_DEMO_SESSION ?? ''
+                : session_id,
+        },
+        context: { headers: { 'Highlight-Demo': demo } },
+    });
     const rawResources = data?.resources;
 
     useEffect(() => {
@@ -118,46 +111,55 @@ export const ResourcePage = ({
     }, [currentResources, startTime, time, currentResource]);
 
     const updateCanvas = (posX: number) => {
-        var canvas = document.getElementById("canvasNetworkWrapper") as HTMLCanvasElement;
+        var canvas = document.getElementById(
+            'canvasNetworkWrapper'
+        ) as HTMLCanvasElement;
 
         // Important for text-scaling
         canvas.width = canvas.clientWidth;
         canvas.height = canvas.clientHeight;
-    
-        var context = canvas.getContext("2d");
 
-        if(context) {
+        var context = canvas.getContext('2d');
+
+        if (context) {
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             // The actual div width, and the width of the canvas are different. This balances it.
-            const realX = (posX / canvas.offsetWidth) * canvas.width
+            const realX = (posX / canvas.offsetWidth) * canvas.width;
 
-            if(context) {
+            if (context) {
+                context.fillStyle = 'red';
+                context.fillRect(realX, 0, 1, canvas.height);
 
-                context.fillStyle = "red";
-                context.fillRect (realX, 0, 1, canvas.height);
+                context.font = '12px Arial';
+                context.fillStyle = '#777';
 
-                context.font = "12px Arial";
-                context.fillStyle = "#777";
-
-                const msValue = Math.max(0, Math.floor((realX / canvas.width) * networkRange))
-                context.fillText(msValue.toString() + "ms", realX + 4, 45, 100);
+                const msValue = Math.max(
+                    0,
+                    Math.floor((realX / canvas.width) * networkRange)
+                );
+                context.fillText(msValue.toString() + 'ms', realX + 4, 45, 100);
             }
         }
-    }
+    };
 
     const drawMouseHover = (event: any) => {
-        var canvas = document.getElementById("canvasNetworkWrapper") as HTMLCanvasElement;
+        var canvas = document.getElementById(
+            'canvasNetworkWrapper'
+        ) as HTMLCanvasElement;
 
-        let x = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft
-        x -= canvas.offsetLeft
+        let x =
+            event.clientX +
+            document.body.scrollLeft +
+            document.documentElement.scrollLeft;
+        x -= canvas.offsetLeft;
 
-        updateCanvas(x)
-    }
+        updateCanvas(x);
+    };
 
     window.onresize = () => {
-        updateCanvas(0)
-    }
+        updateCanvas(0);
+    };
 
     return (
         <>
@@ -182,25 +184,34 @@ export const ResourcePage = ({
                     </div>
                 ) : currentResources.length ? (
                     <>
-                        <canvas 
-                            id="canvasNetworkWrapper" 
+                        <canvas
+                            id="canvasNetworkWrapper"
                             className={styles.canvasNetworkWrapper}
                             width="800px"
                             height="400px"
                             onMouseMove={(e) => drawMouseHover(e)}
-                        >
-                        </canvas>
+                        ></canvas>
                         <div className={styles.networkTopBar}>
                             <div className={styles.networkColumn}>TYPE</div>
                             <div className={styles.networkColumn}>NAME</div>
                             <div className={styles.networkColumn}>Timing</div>
                             <div className={styles.networkColumn}>
                                 <div className={styles.networkTimestampGrid}>
-                                    <div>{Math.floor((0 / 5) * networkRange)}ms </div>
-                                    <div>{Math.floor((1 / 5) * networkRange)}ms </div>
-                                    <div>{Math.floor((2 / 5) * networkRange)}ms </div>
-                                    <div>{Math.floor((3 / 5) * networkRange)}ms </div>
-                                    <div>{Math.floor((4 / 5) * networkRange)}ms </div>
+                                    <div>
+                                        {Math.floor((0 / 5) * networkRange)}ms{' '}
+                                    </div>
+                                    <div>
+                                        {Math.floor((1 / 5) * networkRange)}ms{' '}
+                                    </div>
+                                    <div>
+                                        {Math.floor((2 / 5) * networkRange)}ms{' '}
+                                    </div>
+                                    <div>
+                                        {Math.floor((3 / 5) * networkRange)}ms{' '}
+                                    </div>
+                                    <div>
+                                        {Math.floor((4 / 5) * networkRange)}ms{' '}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -219,7 +230,7 @@ export const ResourcePage = ({
                                     const actualPercent = Math.max(
                                         ((p.responseEnd - p.startTime) /
                                             networkRange) *
-                                        100,
+                                            100,
                                         0.1
                                     );
                                     const rightPaddingPercent =
@@ -264,7 +275,8 @@ export const ResourcePage = ({
                                                     {(
                                                         p.responseEnd -
                                                         p.startTime
-                                                    ).toFixed(2)} ms
+                                                    ).toFixed(2)}{' '}
+                                                    ms
                                                 </div>
                                                 <div
                                                     className={
@@ -285,7 +297,7 @@ export const ResourcePage = ({
                                                         }
                                                         style={{
                                                             width: `${actualPercent}%`,
-                                                            zIndex: 100
+                                                            zIndex: 100,
                                                         }}
                                                     />
                                                     <div
@@ -297,6 +309,14 @@ export const ResourcePage = ({
                                                         }
                                                     />
                                                 </div>
+                                                <GoToButton
+                                                    className={
+                                                        styles.goToButton
+                                                    }
+                                                    onClick={() => {
+                                                        setTime(p.startTime);
+                                                    }}
+                                                />
                                             </div>
                                         </Element>
                                     );
@@ -305,10 +325,10 @@ export const ResourcePage = ({
                         </div>
                     </>
                 ) : (
-                            <div className={devStyles.emptySection}>
-                                No network resources.
-                            </div>
-                        )}
+                    <div className={devStyles.emptySection}>
+                        No network resources.
+                    </div>
+                )}
             </div>
         </>
     );

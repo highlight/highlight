@@ -3,12 +3,11 @@ import { Redirect, useParams } from 'react-router-dom';
 import { Spinner } from './components/Spinner/Spinner';
 import { Header } from './components/Header/Header';
 import { Switch, Route } from 'react-router-dom';
-import { useQuery, gql } from '@apollo/client';
 import { Player } from './pages/Player/PlayerPage';
-import { SessionsPage } from './pages/Sessions/SessionsPage';
 import { WorkspaceTeam } from './pages/WorkspaceTeam/WorkspaceTeam';
 import { Billing } from './pages/Billing/Billing';
 import { SetupPage } from './pages/Setup/SetupPage';
+import { ErrorsPage } from './pages/Errors/ErrorsPage';
 import { useIntegrated } from './util/integrated';
 import styles from './App.module.scss';
 import { WorkspaceSettings } from './pages/WorkspaceSettings/WorkspaceSettings';
@@ -18,25 +17,16 @@ import { SidebarContext } from './components/Sidebar/SidebarContext';
 import commonStyles from './Common.module.scss';
 import { SessionsPageBeta } from './pages/Sessions/SessionsPageBeta';
 import { Duration, MillisToDaysHoursMinSeconds } from './util/time';
+import { useGetOrganizationQuery } from './graph/generated/hooks';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const [trialTimeRemaining, setTrialTimeRemaining] = useState<Duration | undefined>(undefined)
-    const { loading, error, data } = useQuery<
-        { organization: { name: string; trial_end_date: number } },
-        { id: number }
-    >(
-        gql`
-            query GetOrganization($id: ID!) {
-                organization(id: $id) {
-                    id
-                    name
-                    trial_end_date
-                }
-            }
-        `,
-        { variables: { id: parseInt(organization_id) } }
-    );
+    const [trialTimeRemaining, setTrialTimeRemaining] = useState<
+        Duration | undefined
+    >(undefined);
+    const { loading, error, data } = useGetOrganizationQuery({
+        variables: { id: organization_id },
+    });
 
     const { integrated, loading: integratedLoading } = useIntegrated(
         parseInt(organization_id)
@@ -45,11 +35,12 @@ export const OrgRouter = () => {
 
     useEffect(() => {
         const diff =
-            new Date(data?.organization.trial_end_date ?? 0).valueOf() -
+            new Date(data?.organization?.trial_end_date ?? 0).valueOf() -
             Date.now().valueOf();
-        const trialTimeRemaining = diff > 0 ? MillisToDaysHoursMinSeconds(diff) : undefined;
+        const trialTimeRemaining =
+            diff > 0 ? MillisToDaysHoursMinSeconds(diff) : undefined;
         setTrialTimeRemaining(trialTimeRemaining);
-    }, [data])
+    }, [data]);
 
     if (error) {
         return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
@@ -76,9 +67,6 @@ export const OrgRouter = () => {
                     <Route path="/:organization_id/sessions">
                         <SessionsPageBeta integrated={integrated} />
                     </Route>
-                    <Route path="/:organization_id/sessions-old">
-                        <SessionsPage integrated={integrated} />
-                    </Route>
                     <Route path="/:organization_id/settings">
                         <WorkspaceSettings />
                     </Route>
@@ -91,13 +79,18 @@ export const OrgRouter = () => {
                     <Route path="/:organization_id/setup">
                         <SetupPage integrated={integrated} />
                     </Route>
+                    <Route path="/:organization_id/errors">
+                        <ErrorsPage />
+                    </Route>
                     <Route path="/:organization_id">
-                        {integrated ? <Redirect to={`/${organization_id}/sessions`} /> :
+                        {integrated ? (
+                            <Redirect to={`/${organization_id}/sessions`} />
+                        ) : (
                             <Redirect to={`/${organization_id}/setup`} />
-                        }
+                        )}
                     </Route>
                 </Switch>
             </div>
-        </SidebarContext.Provider >
+        </SidebarContext.Provider>
     );
 };

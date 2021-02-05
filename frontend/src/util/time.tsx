@@ -19,8 +19,7 @@ export type Duration = {
     days: number;
     hours: number;
     minutes: number;
-}
-
+};
 
 export function MillisToDaysHoursMinSeconds(t: number): Duration {
     var cd = 24 * 60 * 60 * 1000,
@@ -28,7 +27,9 @@ export function MillisToDaysHoursMinSeconds(t: number): Duration {
         d = Math.floor(t / cd),
         h = Math.floor((t - d * cd) / ch),
         m = Math.round((t - d * cd - h * ch) / 60000),
-        pad = function (n: number) { return n < 10 ? 0 + n : n; };
+        pad = function (n: number) {
+            return n < 10 ? 0 + n : n;
+        };
     if (m === 60) {
         h++;
         m = 0;
@@ -41,5 +42,5 @@ export function MillisToDaysHoursMinSeconds(t: number): Duration {
         days: d,
         hours: pad(h),
         minutes: pad(m),
-    }
+    };
 }
