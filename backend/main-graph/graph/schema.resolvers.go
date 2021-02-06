@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
@@ -434,12 +433,23 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		query = query.Where("browser_name = ?", browser)
 	}
 
-	if err := query.Preload("Fields").Find(&queriedSessions).Error; err != nil {
-		return nil, e.Wrap(err, "error querying initial set of sessions")
-	}
+	/*
+		var companies []Company
+		var addresses []Address
+		countries := []string{"Bulgaria"}
+		db.Model(&Address).Where("country IN (?)", countries).Find(&addresses)
+
+		// The key is using the previously fetched variable as the model for the association query
+		db.Model(&addresses).Association("CompanyID").Find(&companies)
+	*/
+	query = query.Preload("Fields")
+
+	/*for _, prop := range params.UserProperties {
+		query = query.Where("field.name = ? AND field.value LIKE ?", prop.Name, prop.Value)
+	}*/
 
 	// Find sessions that have all the specified user properties.
-	sessions := []model.Session{}
+	/*sessions := []model.Session{}
 	for _, session := range queriedSessions {
 		passed := 0
 		excluded := 0
@@ -510,10 +520,14 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 
 	if len(sessions) < count {
 		count = len(sessions)
+	}*/
+
+	if err := query.Find(&queriedSessions).Where("value = ?", "nathanjbrockway@gmail.com").Error; err != nil {
+		return nil, e.Wrap(err, "error querying initial set of sessions")
 	}
 	sessionList := &model.SessionResults{
-		Sessions:   sessions[:count],
-		TotalCount: len(sessions),
+		Sessions:   queriedSessions,
+		TotalCount: len(queriedSessions),
 	}
 	return sessionList, nil
 }
