@@ -92,7 +92,7 @@ export const SessionFeed = () => {
                     ) : (
                         <>
                             {data.sessions.map((u) => {
-                                return <SessionCard session={u} />;
+                                return <SessionCard session={u} key={u?.id} />;
                             })}
                             {data.sessions.length < data.totalCount && (
                                 <Skeleton
@@ -163,7 +163,7 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                             f?.value.length
                                     )
                                     .map((f) => (
-                                        <Tag color="#F2EEFB">
+                                        <Tag color="#F2EEFB" key={f?.value}>
                                             <span
                                                 style={{
                                                     color: 'black',
