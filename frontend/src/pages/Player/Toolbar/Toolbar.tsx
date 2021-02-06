@@ -181,6 +181,10 @@ export const Toolbar = ({
                         onClick={() => {
                             if (paused) {
                                 replayer?.play(time);
+                                console.log(
+                                    replayer?.getActivity(),
+                                    'Activity Array'
+                                );
                                 setPaused(false);
                                 setIsDragged(false);
                             } else {
