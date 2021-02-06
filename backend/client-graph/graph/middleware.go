@@ -49,10 +49,13 @@ func ClientMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 
 		// get user-agent string
 		UserAgent := r.Header.Get("user-agent")
-		// Pass the user's id, ip address, and user agent through context.
+		// get the accept-language string
+		AcceptLanguage := r.Header.Get("accept-language")
+		// Pass the user's id, ip address, user agent, and accept-language through context.
 		ctx := context.WithValue(r.Context(), "uid", session.Values["uid"])
 		ctx = context.WithValue(ctx, "ip", IPAddress)
 		ctx = context.WithValue(ctx, "userAgent", UserAgent)
+		ctx = context.WithValue(ctx, "acceptLanguage", AcceptLanguage)
 		next(w, r.WithContext(ctx))
 	}
 }
