@@ -53,13 +53,14 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		}
 	}
 
-	log.Infof("user: %v in org: %v has ip address: %v \n", user.ID, user.OrganizationID, ip)
-
 	// Parse the user-agent string
 	var deviceDetails DeviceDetails
 	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
 		deviceDetails = GetDeviceDetails(userAgentString)
 	}
+
+	// Get the language from the request header
+	acceptLanguageString := ctx.Value("acceptLanguage").(string)
 
 	session := &model.Session{
 		UserID:         user.ID,
@@ -73,6 +74,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		OSVersion:      deviceDetails.OSVersion,
 		BrowserName:    deviceDetails.BrowserName,
 		BrowserVersion: deviceDetails.BrowserVersion,
+		Language:       acceptLanguageString,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {

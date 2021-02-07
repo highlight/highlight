@@ -3,13 +3,12 @@ import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import { SearchContext } from '../SearchContext/SearchContext';
 import AsyncCreatableSelect from 'react-select/async-creatable';
-import AsyncSelect from 'react-select/async';
 import inputStyles from './InputStyles.module.scss';
 import { Switch } from 'antd';
 import { ReactComponent as URLIcon } from '../../../static/link.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
 import classNames from 'classnames/bind';
-import { SharedSelectStyleProps } from './SearchInputUtil';
+import { SharedSelectStyleProps, ContainsLabel } from './SearchInputUtil';
 import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const VisitedUrlInput = () => {
@@ -44,10 +43,6 @@ export const VisitedUrlInput = () => {
         }));
     };
 
-    const ContainsLabel = (inputValue: string) => {
-        return 'Contains: ' + inputValue;
-    };
-
     return (
         <div className={inputStyles.commonInputWrapper}>
             <AsyncCreatableSelect
@@ -75,6 +70,7 @@ export const VisitedUrlInput = () => {
                 isClearable
                 onChange={onChange}
                 formatCreateLabel={ContainsLabel}
+                createOptionPosition={'first'}
             />
         </div>
     );
@@ -111,7 +107,7 @@ export const ReferrerInput = () => {
 
     return (
         <div className={inputStyles.commonInputWrapper}>
-            <AsyncSelect
+            <AsyncCreatableSelect
                 placeholder={'Referrer'}
                 cacheOptions
                 isClearable
@@ -135,6 +131,8 @@ export const ReferrerInput = () => {
                 }}
                 defaultOptions
                 onChange={onChange}
+                formatCreateLabel={ContainsLabel}
+                createOptionPosition={'first'}
             />
         </div>
     );

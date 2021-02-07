@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import { Replayer } from '@highlight-run/rrweb';
+import { HighlightEvent } from '../HighlightEvent';
 
 export enum ReplayerState {
     Loading,
@@ -9,7 +10,7 @@ export enum ReplayerState {
     Paused,
 }
 
-interface ReplayerContextInterface {
+export interface ReplayerContextInterface {
     state: ReplayerState;
     replayer: Replayer | undefined;
     /** The current time the player is at. */
@@ -17,9 +18,10 @@ interface ReplayerContextInterface {
     setTime: (newTime: number) => void;
     /** The current size of the replayer (in percent). */
     scale: number;
-    setScale: (newScale: number) => void;
     play: (time?: number) => void;
     pause: (time?: number) => void;
+    setScale: React.Dispatch<React.SetStateAction<number>>;
+    events: Array<HighlightEvent>;
 }
 
 export const defaultValue: ReplayerContextInterface = {
@@ -31,6 +33,7 @@ export const defaultValue: ReplayerContextInterface = {
     setTime: (_) => {},
     play: (_) => {},
     pause: (_) => {},
+    events: [],
 };
 
 const ReplayerContext = createContext<ReplayerContextInterface>(defaultValue);
