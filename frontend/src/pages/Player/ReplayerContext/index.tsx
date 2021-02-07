@@ -3,9 +3,11 @@ import { Replayer } from '@highlight-run/rrweb';
 import { HighlightEvent } from '../HighlightEvent';
 
 export enum ReplayerState {
-    NotLoaded,
     Loading,
-    Loaded,
+    /** Replayer is loaded but the user hasn't interacted with the player yet. */
+    LoadedAndUntouched,
+    Playing,
+    Paused,
 }
 
 export interface ReplayerContextInterface {
@@ -16,17 +18,21 @@ export interface ReplayerContextInterface {
     setTime: (newTime: number) => void;
     /** The current size of the replayer (in percent). */
     scale: number;
+    play: (time?: number) => void;
+    pause: (time?: number) => void;
     setScale: React.Dispatch<React.SetStateAction<number>>;
     events: Array<HighlightEvent>;
 }
 
 export const defaultValue: ReplayerContextInterface = {
-    state: ReplayerState.Loaded,
+    state: ReplayerState.Loading,
     replayer: undefined,
     scale: 1,
     setScale: (_) => {},
     time: 0,
     setTime: (_) => {},
+    play: (_) => {},
+    pause: (_) => {},
     events: [],
 };
 

@@ -37,7 +37,6 @@ export const Player = () => {
         scale: replayerScale,
         setScale,
         replayer,
-        setTime,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
@@ -97,7 +96,7 @@ export const Player = () => {
     }, [sizes, replayer]);
 
     const isReplayerReady =
-        replayerState === ReplayerState.Loaded && replayerScale !== 1;
+        replayerState !== ReplayerState.Loading && replayerScale !== 1;
 
     return (
         <ReplayerContext.Provider value={player}>
@@ -130,10 +129,6 @@ export const Player = () => {
                         </div>
                     </div>
                     <Toolbar
-                        onSelect={(newTime: number) => {
-                            replayer?.pause(newTime);
-                            setTime(newTime);
-                        }}
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
                 </div>
