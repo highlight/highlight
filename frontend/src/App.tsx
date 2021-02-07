@@ -25,12 +25,12 @@ import {
     useGetOrganizationsQuery,
 } from './graph/generated/hooks';
 
-Sentry.init({
-    dsn:
-        'https://47f7bc7301cc470799f71a21f1623a34@o473684.ingest.sentry.io/5508861',
-    integrations: [new Integrations.BrowserTracing()],
-    tracesSampleRate: 1.0,
-});
+// Sentry.init({
+//     dsn:
+//         'https://47f7bc7301cc470799f71a21f1623a34@o473684.ingest.sentry.io/5508861',
+//     integrations: [new Integrations.BrowserTracing()],
+//     tracesSampleRate: 1.0,
+// });
 H.getSessionURL().then((url) => {
     Sentry.setContext('highlight', { highlightURL: url });
 });

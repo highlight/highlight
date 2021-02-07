@@ -22,7 +22,7 @@ if (dev) {
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
-LogRocket.init('vcbmdo/highlight');
+// LogRocket.init('vcbmdo/highlight');
 
 ReactDOM.render(
     <React.StrictMode>

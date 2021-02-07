@@ -36,6 +36,7 @@ export const StreamElement = ({
     const details = getEventRenderDetails(e, nodeMap);
     const { setTime } = useContext(ReplayerContext);
     let timeSinceStart = e?.timestamp - start;
+    console.log('hi');
     return (
         <Element
             name={e.identifier.toString()}
