@@ -37,7 +37,6 @@ export const Player = () => {
         scale: replayerScale,
         setScale,
         replayer,
-        setTime,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
