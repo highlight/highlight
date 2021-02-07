@@ -1,4 +1,30 @@
+@import 'src/static/shared.scss';
+
 .wrapper {
-    background: gray;
     margin-top: 32px;
+    column-gap: 7px;
+    display: flex;
+}
+
+.token {
+    border-radius: 8px;
+    padding: 7px 15px;
+    background: $primary-background;
+    font-size: 10px;
+    color: $accent-label;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+}
+
+.urlToken {
+    flex-grow: 1;
+    color: $accent-label;
+}
+
+.icon {
+    fill: $accent-label;
+    height: 13px;
+    width: 13px;
+    margin-right: 8px;
 }

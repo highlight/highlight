@@ -110,7 +110,15 @@ export const Player = () => {
                             ref={playerWrapperRef}
                         >
                             {isReplayerReady && (
-                                <SessionDetails replayerWidth={300} />
+                                <SessionDetails
+                                    replayerWidth={
+                                        // SessionDetails needs to be the same width as the player.
+                                        replayerScale *
+                                        (document.querySelector(
+                                            '.replayer-wrapper'
+                                        )?.clientWidth ?? 0)
+                                    }
+                                />
                             )}
                             {resizeListener}
                             <div

@@ -1,11 +1,13 @@
 import { EventType } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/typings/types';
+import classNames from 'classnames';
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { DemoContext } from '../../../DemoContext';
 import { useGetSessionQuery } from '../../../graph/generated/hooks';
 import ReplayerContext from '../ReplayerContext';
 import styles from './index.module.scss';
+import { ReactComponent as LaptopIcon } from '../../../static/laptop.svg';
 
 interface Props {
     replayerWidth?: number;
@@ -59,9 +61,14 @@ export const SessionDetails = ({ replayerWidth }: Props) => {
 
     return (
         <div className={styles.wrapper} style={{ width: replayerWidth }}>
-            <span>{currentUrl}</span>
+            <span className={classNames(styles.token, styles.urlToken)}>
+                <a href={currentUrl} className={styles.urlToken}>
+                    {currentUrl}
+                </a>
+            </span>
             {data?.session && (
-                <span>
+                <span className={styles.token}>
+                    <LaptopIcon className={styles.icon} />
                     {data.session.os_name} - {data.session.browser_name}
                 </span>
             )}
