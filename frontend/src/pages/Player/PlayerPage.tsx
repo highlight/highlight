@@ -25,6 +25,7 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import { usePlayer } from './PlayerHook/PlayerHook';
+import { SessionDetails } from './SessionDetails';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
@@ -108,6 +109,9 @@ export const Player = () => {
                             className={styles.rrwebPlayerWrapper}
                             ref={playerWrapperRef}
                         >
+                            {isReplayerReady && (
+                                <SessionDetails replayerWidth={300} />
+                            )}
                             {resizeListener}
                             <div
                                 style={{
