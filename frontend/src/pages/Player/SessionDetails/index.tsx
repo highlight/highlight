@@ -9,11 +9,7 @@ import ReplayerContext from '../ReplayerContext';
 import styles from './index.module.scss';
 import { ReactComponent as LaptopIcon } from '../../../static/laptop.svg';
 
-interface Props {
-    replayerWidth?: number;
-}
-
-export const SessionDetails = ({ replayerWidth }: Props) => {
+export const SessionDetails = () => {
     const { demo } = useContext(DemoContext);
     const { session_id } = useParams<{ session_id: string }>();
 
@@ -23,7 +19,7 @@ export const SessionDetails = ({ replayerWidth }: Props) => {
         },
         context: { headers: { 'Highlight-Demo': demo } },
     });
-    const { events, replayer } = useContext(ReplayerContext);
+    const { events, replayer, scale } = useContext(ReplayerContext);
     const [currentUrl, setCurrentUrl] = useState<string>('');
 
     // Finds the first Navigate event to set the initial URL.
@@ -59,8 +55,32 @@ export const SessionDetails = ({ replayerWidth }: Props) => {
         }
     }, [replayer]);
 
+    /**
+     * Calculates the X position for the component.
+     */
+    const calculateTopOffset = () => {
+        const replayerTop = replayer?.wrapper.offsetTop || 0;
+        const replayerHeight = replayer?.wrapper.clientHeight || 0;
+
+        // The Replayer is scaled up/down on the DOM. Because of this, the height we get from the DOM node is not height that is rendered. To get the actual height, we scale the reported height.
+        return replayerTop - (replayerHeight * scale) / 2;
+    };
+
+    /**
+     * Calculates the width of the component. This width is the same as the Replayer.
+     */
+    const calculateWidth = () => {
+        return scale * (replayer?.wrapper?.clientWidth ?? 0);
+    };
+
     return (
-        <div className={styles.wrapper} style={{ width: replayerWidth }}>
+        <div
+            className={styles.wrapper}
+            style={{
+                width: calculateWidth(),
+                top: calculateTopOffset(),
+            }}
+        >
             <span className={classNames(styles.token, styles.urlToken)}>
                 <a href={currentUrl} className={styles.urlToken}>
                     {currentUrl}

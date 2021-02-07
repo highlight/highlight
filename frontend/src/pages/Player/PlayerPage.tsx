@@ -109,17 +109,7 @@ export const Player = () => {
                             className={styles.rrwebPlayerWrapper}
                             ref={playerWrapperRef}
                         >
-                            {isReplayerReady && (
-                                <SessionDetails
-                                    replayerWidth={
-                                        // SessionDetails needs to be the same width as the player.
-                                        replayerScale *
-                                        (document.querySelector(
-                                            '.replayer-wrapper'
-                                        )?.clientWidth ?? 0)
-                                    }
-                                />
-                            )}
+                            {isReplayerReady && <SessionDetails />}
                             {resizeListener}
                             <div
                                 style={{

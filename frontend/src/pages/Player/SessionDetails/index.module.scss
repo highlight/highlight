@@ -1,9 +1,11 @@
 @import 'src/static/shared.scss';
 
 .wrapper {
-    margin-top: 32px;
+    margin-top: -32px;
     column-gap: 7px;
     display: flex;
+    position: absolute;
+    top: 0;
 }
 
 .token {
