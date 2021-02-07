@@ -195,6 +195,7 @@ export const ResourcePage = ({
                             <div className={styles.networkColumn}>TYPE</div>
                             <div className={styles.networkColumn}>NAME</div>
                             <div className={styles.networkColumn}>Timing</div>
+                            <div className={styles.networkColumn}>Size</div>
                             <div className={styles.networkColumn}>
                                 <div className={styles.networkTimestampGrid}>
                                     <div>
@@ -277,6 +278,16 @@ export const ResourcePage = ({
                                                         p.startTime
                                                     ).toFixed(2)}{' '}
                                                     ms
+                                                </div>
+                                                <div>
+                                                    {p.transferSize === 0 ? (
+                                                        'Cached'
+                                                    ) : (
+                                                        <>
+                                                            {p.transferSize}{' '}
+                                                            bytes
+                                                        </>
+                                                    )}
                                                 </div>
                                                 <div
                                                     className={
