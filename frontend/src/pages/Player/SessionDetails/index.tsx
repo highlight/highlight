@@ -1,6 +1,9 @@
 import { EventType } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/typings/types';
 import React, { useContext, useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { DemoContext } from '../../../DemoContext';
+import { useGetSessionQuery } from '../../../graph/generated/hooks';
 import ReplayerContext from '../ReplayerContext';
 import styles from './index.module.scss';
 
@@ -9,6 +12,15 @@ interface Props {
 }
 
 export const SessionDetails = ({ replayerWidth }: Props) => {
+    const { demo } = useContext(DemoContext);
+    const { session_id } = useParams<{ session_id: string }>();
+
+    const { data } = useGetSessionQuery({
+        variables: {
+            id: demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id,
+        },
+        context: { headers: { 'Highlight-Demo': demo } },
+    });
     const { events, replayer } = useContext(ReplayerContext);
     const [currentUrl, setCurrentUrl] = useState<string>('');
 
@@ -48,6 +60,11 @@ export const SessionDetails = ({ replayerWidth }: Props) => {
     return (
         <div className={styles.wrapper} style={{ width: replayerWidth }}>
             <span>{currentUrl}</span>
+            {data?.session && (
+                <span>
+                    {data.session.os_name} - {data.session.browser_name}
+                </span>
+            )}
         </div>
     );
 };

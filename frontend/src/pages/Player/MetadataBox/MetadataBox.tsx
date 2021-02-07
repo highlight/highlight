@@ -123,13 +123,6 @@ export const MetadataBox = () => {
                             <div className={styles.userText}>
                                 {created.toUTCString()}
                             </div>
-                            {data?.session?.browser_name && (
-                                <div className={styles.userText}>
-                                    {data?.session.os_name},&nbsp;
-                                    {data?.session.browser_name}&nbsp;-&nbsp;
-                                    {data?.session.browser_version}
-                                </div>
-                            )}
                         </div>
                     </div>
                 </>
