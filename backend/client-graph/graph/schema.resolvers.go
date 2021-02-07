@@ -53,8 +53,6 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		}
 	}
 
-	log.Infof("user: %v in org: %v has ip address: %v \n", user.ID, user.OrganizationID, ip)
-
 	// Parse the user-agent string
 	var deviceDetails DeviceDetails
 	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
