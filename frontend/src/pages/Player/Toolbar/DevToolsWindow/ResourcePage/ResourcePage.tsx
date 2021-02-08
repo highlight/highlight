@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tooltip } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
-import { Element } from 'react-scroll';
 import { Skeleton } from 'antd';
 
 import devStyles from '../DevToolsWindow.module.scss';
@@ -159,9 +158,10 @@ export const ResourcePage = ({
         <>
             <div className={devStyles.topBar}>
                 <div className={devStyles.optionsWrapper}>
-                    {options.map((o: string) => {
+                    {options.map((o: string, i: number) => {
                         return (
                             <Option
+                                key={i.toString()}
                                 onSelect={() => setCurrentOption(o)}
                                 selected={o === currentOption}
                                 optionValue={o}
@@ -233,10 +233,7 @@ export const ResourcePage = ({
                                         actualPercent -
                                         leftPaddingPercent;
                                     return (
-                                        <Element
-                                            name={p.id.toString()}
-                                            key={p.id.toString()}
-                                        >
+                                        <div key={p.id.toString()}>
                                             <div
                                                 style={{
                                                     color:
@@ -323,7 +320,7 @@ export const ResourcePage = ({
                                                     }}
                                                 />
                                             </div>
-                                        </Element>
+                                        </div>
                                     );
                                 }
                             )}
