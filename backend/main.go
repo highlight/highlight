@@ -130,11 +130,11 @@ func main() {
 		go func() {
 			w.Start()
 		}()
-		log.Fatal(http.ListenAndServe(":"+port, loggedRouter))
+		log.Fatal(http.ListenAndServe(":"+port, handlers.CompressHandler(loggedRouter)))
 	} else if rt == "worker" {
 		w.Start()
 	} else if rt == "server" {
-		log.Fatal(http.ListenAndServe(":"+port, loggedRouter))
+		log.Fatal(http.ListenAndServe(":"+port, handlers.CompressHandler(loggedRouter)))
 	}
 	log.Errorf("invalid runtime")
 }
