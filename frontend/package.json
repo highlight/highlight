@@ -38,6 +38,7 @@
         "mousetrap": "^1.6.5",
         "node-sass": "4.14.1",
         "parse-duration": "^0.4.4",
+        "query-string": "^6.13.8",
         "react": "^16.13.1",
         "react-collapsible": "^2.8.1",
         "react-copy-to-clipboard": "^5.0.2",
@@ -65,6 +66,7 @@
         "typescript": "^3.9.7",
         "use-debounce": "^5.0.1",
         "use-http": "^1.0.13",
+        "use-query-params": "^1.1.9",
         "validator": "^13.5.2",
         "written-number": "^0.9.1"
     },

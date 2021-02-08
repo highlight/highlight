@@ -11,8 +11,10 @@ import { DemoContext } from '../../../../../DemoContext';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import ReplayerContext from '../../../ReplayerContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
+import { BooleanParam, useQueryParam } from 'use-query-params';
 
 export const ConsolePage = ({ time }: { time: number }) => {
+    var [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [options, setOptions] = useState<Array<string>>([]);
     const { demo } = useContext(DemoContext);
@@ -63,11 +65,13 @@ export const ConsolePage = ({ time }: { time: number }) => {
             }
             if (currentMessage !== msgIndex) {
                 setCurrentMessage(msgIndex);
-                scroller.scrollTo(msgIndex.toString(), {
-                    smooth: true,
-                    containerId: 'logStreamWrapper',
-                    spy: true,
-                });
+                if (!disableScroll) {
+                    scroller.scrollTo(msgIndex.toString(), {
+                        smooth: true,
+                        containerId: 'logStreamWrapper',
+                        spy: true,
+                    });
+                }
             }
         }
     }, [currentMessage, time, parsedMessages]);

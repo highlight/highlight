@@ -13,6 +13,7 @@ import { H, HighlightOptions } from 'highlight.run';
 import { DemoRouter } from './DemoRouter';
 import LogRocket from 'logrocket';
 import { SkeletonTheme } from 'react-loading-skeleton';
+import { QueryParamProvider } from 'use-query-params';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = { debug: true, manualStart: true };
@@ -29,18 +30,20 @@ ReactDOM.render(
         <ApolloProvider client={client}>
             <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
                 <Router>
-                    <Switch>
-                        <Route path="/demo" exact>
-                            <DemoContext.Provider value={{ demo: true }}>
-                                <DemoRouter />
-                            </DemoContext.Provider>
-                        </Route>
-                        <Route path="/">
-                            <DemoContext.Provider value={{ demo: false }}>
-                                <AuthAppRouter />
-                            </DemoContext.Provider>
-                        </Route>
-                    </Switch>
+                    <QueryParamProvider ReactRouterRoute={Route}>
+                        <Switch>
+                            <Route path="/demo" exact>
+                                <DemoContext.Provider value={{ demo: true }}>
+                                    <DemoRouter />
+                                </DemoContext.Provider>
+                            </Route>
+                            <Route path="/">
+                                <DemoContext.Provider value={{ demo: false }}>
+                                    <AuthAppRouter />
+                                </DemoContext.Provider>
+                            </Route>
+                        </Switch>
+                    </QueryParamProvider>
                 </Router>
             </SkeletonTheme>
         </ApolloProvider>
