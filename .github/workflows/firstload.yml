@@ -24,6 +24,8 @@ jobs:
               run: cd firstload && yarn lint
             - name: Build Bundle
               run: cd firstload && yarn build
+            - name: Confirm new version
+              run: cd firstload && python3 compare.py
             - name: Publish
               if: github.ref == 'refs/heads/master'
               run: cd firstload && yarn publish --access public

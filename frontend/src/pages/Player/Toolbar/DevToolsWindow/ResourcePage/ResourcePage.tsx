@@ -21,7 +21,7 @@ export const ResourcePage = ({
 }) => {
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
-    const { setTime } = useContext(ReplayerContext);
+    const { pause } = useContext(ReplayerContext);
     const [options, setOptions] = useState<Array<string>>([]);
     const [currentOption, setCurrentOption] = useState('All');
     const [currentResource, setCurrentResource] = useState(0);
@@ -195,6 +195,7 @@ export const ResourcePage = ({
                             <div className={styles.networkColumn}>TYPE</div>
                             <div className={styles.networkColumn}>NAME</div>
                             <div className={styles.networkColumn}>Timing</div>
+                            <div className={styles.networkColumn}>Size</div>
                             <div className={styles.networkColumn}>
                                 <div className={styles.networkTimestampGrid}>
                                     <div>
@@ -278,6 +279,16 @@ export const ResourcePage = ({
                                                     ).toFixed(2)}{' '}
                                                     ms
                                                 </div>
+                                                <div>
+                                                    {p.transferSize === 0 ? (
+                                                        'Cached'
+                                                    ) : (
+                                                        <>
+                                                            {p.transferSize}{' '}
+                                                            bytes
+                                                        </>
+                                                    )}
+                                                </div>
                                                 <div
                                                     className={
                                                         styles.timingBarWrapper
@@ -314,7 +325,7 @@ export const ResourcePage = ({
                                                         styles.goToButton
                                                     }
                                                     onClick={() => {
-                                                        setTime(p.startTime);
+                                                        pause(p.startTime);
                                                     }}
                                                 />
                                             </div>

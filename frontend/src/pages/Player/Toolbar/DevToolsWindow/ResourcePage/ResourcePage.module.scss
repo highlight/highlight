@@ -1,7 +1,7 @@
 @import 'src/components/Button/GoToButton/index.module.scss';
 @import 'src/static/shared.scss';
 
-$columns: 130px 200px 90px 1fr $go-to-button-width;
+$columns: 130px 200px 90px 90px 1fr $go-to-button-width;
 $right-padding: 12px;
 
 .networkRow {
@@ -35,9 +35,9 @@ $right-padding: 12px;
     position: relative;
 }
 
-// calc(total width - padding left - padding right - TYPE - NAME - TIMING - GoToButton)
+// calc(total width - padding left - padding right - TYPE - NAME - TIMING - SIZE - GoToButton)
 $canvas-width: calc(
-    100% - 25px - 25px - 130px - 200px - 90px - #{$go-to-button-width}
+    100% - 25px - 25px - 130px - 200px - 90px - 90px - #{$go-to-button-width}
 );
 
 .canvasNetworkWrapper {
@@ -45,7 +45,7 @@ $canvas-width: calc(
     background-attachment: fixed;
     height: 100%;
     width: $canvas-width;
-    margin-left: calc(25px + 130px + 200px + 90px);
+    margin-left: calc(25px + 130px + 200px + 90px + 90px);
 }
 
 .networkStreamWrapper {

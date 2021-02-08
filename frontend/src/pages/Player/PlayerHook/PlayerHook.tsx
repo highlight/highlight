@@ -17,7 +17,7 @@ export const usePlayer = ({
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
-    const [state, setState] = useState<ReplayerState>(ReplayerState.NotLoaded);
+    const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
     const [time, setTime] = useState<number>(0);
 
     const { demo } = useContext(DemoContext);
@@ -44,9 +44,21 @@ export const usePlayer = ({
             });
             setEvents(newEvents);
             setReplayer(r);
-            setState(ReplayerState.Loaded);
+            setState(ReplayerState.LoadedAndUntouched);
         }
     }, [eventsData]);
+
+    const play = (newTime?: number) => {
+        setState(ReplayerState.Playing);
+        setTime(newTime ?? time);
+        replayer?.play(newTime);
+    };
+
+    const pause = (newTime?: number) => {
+        setState(ReplayerState.Paused);
+        setTime(newTime ?? time);
+        replayer?.pause(newTime);
+    };
 
     return {
         scale,
@@ -56,6 +68,8 @@ export const usePlayer = ({
         replayer,
         state,
         events,
+        play,
+        pause,
     };
 };
 

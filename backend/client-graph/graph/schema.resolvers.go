@@ -59,6 +59,9 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		deviceDetails = GetDeviceDetails(userAgentString)
 	}
 
+	// Get the language from the request header
+	acceptLanguageString := ctx.Value("acceptLanguage").(string)
+
 	session := &model.Session{
 		UserID:         user.ID,
 		OrganizationID: organizationID,
@@ -71,6 +74,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		OSVersion:      deviceDetails.OSVersion,
 		BrowserName:    deviceDetails.BrowserName,
 		BrowserVersion: deviceDetails.BrowserVersion,
+		Language:       acceptLanguageString,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
