@@ -233,8 +233,7 @@ export const ResourcePage = ({
                                         actualPercent -
                                         leftPaddingPercent;
                                     return (
-                                        <Element
-                                            name={p.id.toString()}
+                                        <div
                                             key={p.id.toString()}
                                         >
                                             <div

@@ -104,8 +104,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         .filter((m) => m.value && m.value.length)
                         .map((m) => {
                             return (
-                                <Element
-                                    name={m.id.toString()}
+                                <div
                                     key={m.id.toString()}
                                 >
                                     <div
