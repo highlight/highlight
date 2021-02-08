@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { Element } from 'react-scroll';
 import { Skeleton } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
 import { ConsoleMessage } from '../../../../../util/shared-types';

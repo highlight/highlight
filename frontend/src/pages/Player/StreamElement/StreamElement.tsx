@@ -37,11 +37,12 @@ export const StreamElement = ({
     let timeSinceStart = e?.timestamp - start;
     return (
         <div
-            key={e.identifier.toString()}
             className={styles.eventWrapper}
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
             onClick={() => setSelected(!selected)}
+            id={e.identifier}
+            key={e.identifier}
         >
             <div
                 className={classNames(styles.streamElement, {
@@ -103,7 +104,7 @@ export const StreamElement = ({
                             }
                         >
                             <span className={styles.codeBlock}>
-                                {details.payload}
+                                {JSON.stringify(details.payload)}
                             </span>
                         </div>
                     )}
