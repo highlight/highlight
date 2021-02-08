@@ -20,7 +20,7 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    var [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
+    const [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
     const { pause } = useContext(ReplayerContext);
