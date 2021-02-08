@@ -143,7 +143,7 @@ export const Player = () => {
 };
 
 const EventStream = () => {
-    var [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
+    const [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
     const { replayer, time, events } = useContext(ReplayerContext);
     const [currEvent, setCurrEvent] = useState('');
     const [loadingMap, setLoadingMap] = useState(true);
