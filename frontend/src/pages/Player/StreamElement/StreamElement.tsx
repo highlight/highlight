@@ -1,6 +1,5 @@
 import React, { useContext, useState } from 'react';
 import { MouseInteractions, EventType } from '@highlight-run/rrweb';
-import { Element } from 'react-scroll';
 import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
 import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
@@ -37,13 +36,13 @@ export const StreamElement = ({
     const { pause } = useContext(ReplayerContext);
     let timeSinceStart = e?.timestamp - start;
     return (
-        <Element
-            name={e.identifier.toString()}
-            key={e.identifier.toString()}
+        <div
             className={styles.eventWrapper}
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
             onClick={() => setSelected(!selected)}
+            id={e.identifier}
+            key={e.identifier}
         >
             <div
                 className={classNames(styles.streamElement, {
@@ -105,7 +104,7 @@ export const StreamElement = ({
                             }
                         >
                             <span className={styles.codeBlock}>
-                                {details.payload}
+                                {JSON.stringify(details.payload)}
                             </span>
                         </div>
                     )}
@@ -140,7 +139,7 @@ export const StreamElement = ({
                     </div>
                 )}
             </div>
-        </Element>
+        </div>
     );
 };
 
