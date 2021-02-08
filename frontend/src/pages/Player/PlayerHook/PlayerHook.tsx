@@ -48,6 +48,24 @@ export const usePlayer = ({
         }
     }, [eventsData]);
 
+    // "Subscribes" the time with the Replayer when the Player is playing.
+    useEffect(() => {
+        if (state === ReplayerState.Playing) {
+            let timerId: number;
+
+            const frameAction = () => {
+                if (replayer) {
+                    setTime(replayer.getCurrentTime());
+                }
+                timerId = requestAnimationFrame(frameAction);
+            };
+
+            timerId = requestAnimationFrame(frameAction);
+
+            return () => cancelAnimationFrame(timerId);
+        }
+    }, [state, replayer]);
+
     const play = (newTime?: number) => {
         setState(ReplayerState.Playing);
         setTime(newTime ?? time);
@@ -60,11 +78,29 @@ export const usePlayer = ({
         replayer?.pause(newTime);
     };
 
+    /**
+     * Wraps the setTime call so we can also forward the setTime request to the Replayer. Without forwarding time and Replayer.getCurrentTime() would be out of sync.
+     */
+    const setTimeHandler = (newTime?: number) => {
+        switch (state) {
+            case ReplayerState.Playing:
+                play(newTime);
+                return;
+            case ReplayerState.Paused:
+            case ReplayerState.LoadedAndUntouched:
+                pause(newTime);
+                return;
+
+            default:
+                return;
+        }
+    };
+
     return {
         scale,
         setScale,
         time,
-        setTime,
+        setTime: setTimeHandler,
         replayer,
         state,
         events,
