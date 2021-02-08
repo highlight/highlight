@@ -95,7 +95,11 @@ class VirtualTree {
         if (tree) {
             for (const attributeName in attributes) {
                 if (attributes[attributeName] === null) {
-                    delete tree.attributes[attributeName];
+                    try {
+                        delete tree.attributes[attributeName];
+                    } catch (e) {
+                        console.warn(e);
+                    }
                 } else {
                     tree.attributes = {
                         ...tree.attributes,
