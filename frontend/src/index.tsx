@@ -29,20 +29,18 @@ ReactDOM.render(
         <ApolloProvider client={client}>
             <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
                 <Router>
-                    <QueryParamProvider ReactRouterRoute={Route}>
-                        <Switch>
-                            <Route path="/demo" exact>
-                                <DemoContext.Provider value={{ demo: true }}>
-                                    <DemoRouter />
-                                </DemoContext.Provider>
-                            </Route>
-                            <Route path="/">
-                                <DemoContext.Provider value={{ demo: false }}>
-                                    <AuthAppRouter />
-                                </DemoContext.Provider>
-                            </Route>
-                        </Switch>
-                    </QueryParamProvider>
+                    <Switch>
+                        <Route path="/demo" exact>
+                            <DemoContext.Provider value={{ demo: true }}>
+                                <DemoRouter />
+                            </DemoContext.Provider>
+                        </Route>
+                        <Route path="/">
+                            <DemoContext.Provider value={{ demo: false }}>
+                                <AuthAppRouter />
+                            </DemoContext.Provider>
+                        </Route>
+                    </Switch>
                 </Router>
             </SkeletonTheme>
         </ApolloProvider>
