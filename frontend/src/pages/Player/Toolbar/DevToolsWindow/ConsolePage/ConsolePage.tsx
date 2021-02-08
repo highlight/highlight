@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { Element, scroller } from 'react-scroll';
+import { Element } from 'react-scroll';
 import { Skeleton } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
 import { ConsoleMessage } from '../../../../../util/shared-types';
@@ -14,7 +14,7 @@ import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 export const ConsolePage = ({ time }: { time: number }) => {
-    var [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
+    const [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [options, setOptions] = useState<Array<string>>([]);
     const { demo } = useContext(DemoContext);
@@ -48,33 +48,6 @@ export const ConsolePage = ({ time }: { time: number }) => {
             })
         );
     }, [rawMessages]);
-
-    // Logic for scrolling to current entry.
-    useEffect(() => {
-        if (parsedMessages?.length) {
-            var msgIndex: number = 0;
-            var msgDiff: number = Math.abs(time - parsedMessages[0].time);
-            for (var i = 0; i < parsedMessages.length; i++) {
-                const currentDiff: number = Math.abs(
-                    time - parsedMessages[i].time
-                );
-                if (currentDiff < msgDiff) {
-                    msgIndex = i;
-                    msgDiff = currentDiff;
-                }
-            }
-            if (currentMessage !== msgIndex) {
-                setCurrentMessage(msgIndex);
-                if (!disableScroll) {
-                    scroller.scrollTo(msgIndex.toString(), {
-                        smooth: true,
-                        containerId: 'logStreamWrapper',
-                        spy: true,
-                    });
-                }
-            }
-        }
-    }, [currentMessage, time, parsedMessages, disableScroll]);
 
     const currentMessages = parsedMessages?.filter((m) => {
         // if the console type is 'all', let all messages through. otherwise, filter.

@@ -10,7 +10,6 @@ import {
     eventWithTime,
     incrementalData,
 } from '@highlight-run/rrweb/typings/types';
-import { scroller } from 'react-scroll';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
@@ -143,7 +142,6 @@ export const Player = () => {
 };
 
 const EventStream = () => {
-    const [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
     const { replayer, time, events } = useContext(ReplayerContext);
     const [currEvent, setCurrEvent] = useState('');
     const [loadingMap, setLoadingMap] = useState(true);
@@ -163,26 +161,6 @@ const EventStream = () => {
         }
     }, [staticMap]);
 
-    useEffect(() => {
-        if (!replayer) return;
-        replayer.on('event-cast', (e: any) => {
-            const event = e as HighlightEvent;
-            if (usefulEvent(event)) {
-                setCurrEvent(event.identifier);
-                if (!disableScroll) {
-                    scroller.scrollTo(
-                        (event as HighlightEvent).identifier.toString(),
-                        {
-                            smooth: true,
-                            containerId: 'wrapper',
-                            spy: true,
-                            offset: -150,
-                        }
-                    );
-                }
-            }
-        });
-    }, [replayer, time, disableScroll]);
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>

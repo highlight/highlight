@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tooltip } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
-import { scroller, Element } from 'react-scroll';
+import { Element } from 'react-scroll';
 import { Skeleton } from 'antd';
 
 import devStyles from '../DevToolsWindow.module.scss';
@@ -83,36 +83,6 @@ export const ResourcePage = ({
             setNetworkRange(end - start);
         }
     }, [rawResources]);
-
-    // Logic for scrolling to current entry.
-    useEffect(() => {
-        if (currentResources?.length) {
-            var msgIndex: number = 0;
-            const relativeTime = time - startTime;
-            var msgDiff: number = Math.abs(
-                relativeTime - currentResources[0].startTime
-            );
-            for (var i = 0; i < currentResources.length; i++) {
-                const currentDiff: number = Math.abs(
-                    relativeTime - currentResources[i].startTime
-                );
-                if (currentDiff < msgDiff) {
-                    msgIndex = i;
-                    msgDiff = currentDiff;
-                }
-            }
-            if (currentResource !== msgIndex) {
-                setCurrentResource(msgIndex);
-                if (!disableScroll) {
-                    scroller.scrollTo(msgIndex.toString(), {
-                        smooth: true,
-                        containerId: 'networkStreamWrapper',
-                        spy: true,
-                    });
-                }
-            }
-        }
-    }, [currentResources, startTime, time, currentResource, disableScroll]);
 
     const updateCanvas = (posX: number) => {
         var canvas = document.getElementById(
