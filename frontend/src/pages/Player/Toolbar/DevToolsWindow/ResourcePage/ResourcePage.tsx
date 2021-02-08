@@ -158,9 +158,10 @@ export const ResourcePage = ({
         <>
             <div className={devStyles.topBar}>
                 <div className={devStyles.optionsWrapper}>
-                    {options.map((o: string) => {
+                    {options.map((o: string, i: number) => {
                         return (
                             <Option
+                                key={i.toString()}
                                 onSelect={() => setCurrentOption(o)}
                                 selected={o === currentOption}
                                 optionValue={o}
