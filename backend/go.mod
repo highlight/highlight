@@ -25,10 +25,12 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/slack-go/slack v0.6.6
 	github.com/speps/go-hashids v2.0.0+incompatible
+	github.com/stretchr/testify v1.6.1
 	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/vektah/gqlparser/v2 v2.0.1
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	google.golang.org/api v0.31.0
+	google.golang.org/grpc v1.31.1
 	gopkg.in/boj/redistore.v1 v1.0.0-20160128113310-fc113767cd6b
 	gorm.io/gorm v1.20.10
 )
