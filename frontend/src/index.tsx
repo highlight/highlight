@@ -13,7 +13,6 @@ import { H, HighlightOptions } from 'highlight.run';
 import { DemoRouter } from './DemoRouter';
 import LogRocket from 'logrocket';
 import { SkeletonTheme } from 'react-loading-skeleton';
-import { QueryParamProvider } from 'use-query-params';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = { debug: true, manualStart: true };

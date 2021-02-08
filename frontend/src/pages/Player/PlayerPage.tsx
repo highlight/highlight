@@ -24,7 +24,6 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import { usePlayer } from './PlayerHook/PlayerHook';
-import { BooleanParam, useQueryParam } from 'use-query-params';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
