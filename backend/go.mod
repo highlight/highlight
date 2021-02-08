@@ -9,8 +9,6 @@ require (
 	github.com/99designs/gqlgen v0.12.2
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-redis/redis/v7 v7.4.0
-	github.com/go-redis/redis/v8 v8.0.0-beta.8
-	github.com/google/martian/v3 v3.0.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/honeycombio/beeline-go v0.11.0
@@ -28,13 +26,9 @@ require (
 	github.com/slack-go/slack v0.6.6
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stripe/stripe-go v70.15.0+incompatible
-	github.com/stripe/stripe-go/v71 v71.48.0
-	github.com/stripe/stripe-go/v72 v72.28.0
-	github.com/teris-io/shortid v0.0.0-20201117134242-e59966efd125
 	github.com/vektah/gqlparser/v2 v2.0.1
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	google.golang.org/api v0.31.0
-	google.golang.org/appengine v1.6.6
 	gopkg.in/boj/redistore.v1 v1.0.0-20160128113310-fc113767cd6b
 	gorm.io/gorm v1.20.10
 )
