@@ -160,6 +160,16 @@ const EventStream = () => {
         }
     }, [staticMap]);
 
+    useEffect(() => {
+        if (!replayer) return;
+        replayer.on('event-cast', (e: any) => {
+            const event = e as HighlightEvent;
+            if (usefulEvent(event)) {
+                setCurrEvent(event.identifier);
+            }
+        });
+    }, [replayer, time]);
+
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
