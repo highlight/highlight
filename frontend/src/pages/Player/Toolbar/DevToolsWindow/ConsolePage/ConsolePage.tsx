@@ -74,7 +74,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                 }
             }
         }
-    }, [currentMessage, time, parsedMessages]);
+    }, [currentMessage, time, parsedMessages, disableScroll]);
 
     const currentMessages = parsedMessages?.filter((m) => {
         // if the console type is 'all', let all messages through. otherwise, filter.

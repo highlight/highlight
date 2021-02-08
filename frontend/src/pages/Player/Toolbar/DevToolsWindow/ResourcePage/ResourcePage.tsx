@@ -112,7 +112,7 @@ export const ResourcePage = ({
                 }
             }
         }
-    }, [currentResources, startTime, time, currentResource]);
+    }, [currentResources, startTime, time, currentResource, disableScroll]);
 
     const updateCanvas = (posX: number) => {
         var canvas = document.getElementById(
