@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tooltip } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
-import { scroller, Element } from 'react-scroll';
+import { Element } from 'react-scroll';
 import { Skeleton } from 'antd';
 
 import devStyles from '../DevToolsWindow.module.scss';
@@ -11,7 +11,6 @@ import { DemoContext } from '../../../../../DemoContext';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import ReplayerContext from '../../../ReplayerContext';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
-import { BooleanParam, useQueryParam } from 'use-query-params';
 
 export const ResourcePage = ({
     time,
@@ -20,7 +19,6 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
     const { pause } = useContext(ReplayerContext);
@@ -84,7 +82,6 @@ export const ResourcePage = ({
         }
     }, [rawResources]);
 
-    // Logic for scrolling to current entry.
     useEffect(() => {
         if (currentResources?.length) {
             var msgIndex: number = 0;
@@ -103,16 +100,9 @@ export const ResourcePage = ({
             }
             if (currentResource !== msgIndex) {
                 setCurrentResource(msgIndex);
-                if (!disableScroll) {
-                    scroller.scrollTo(msgIndex.toString(), {
-                        smooth: true,
-                        containerId: 'networkStreamWrapper',
-                        spy: true,
-                    });
-                }
             }
         }
-    }, [currentResources, startTime, time, currentResource, disableScroll]);
+    }, [currentResources, startTime, time, currentResource]);
 
     const updateCanvas = (posX: number) => {
         var canvas = document.getElementById(

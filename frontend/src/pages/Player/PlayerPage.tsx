@@ -10,7 +10,6 @@ import {
     eventWithTime,
     incrementalData,
 } from '@highlight-run/rrweb/typings/types';
-import { scroller } from 'react-scroll';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
@@ -25,7 +24,6 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import { usePlayer } from './PlayerHook/PlayerHook';
-import { BooleanParam, useQueryParam } from 'use-query-params';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
@@ -143,7 +141,6 @@ export const Player = () => {
 };
 
 const EventStream = () => {
-    const [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
     const { replayer, time, events } = useContext(ReplayerContext);
     const [currEvent, setCurrEvent] = useState('');
     const [loadingMap, setLoadingMap] = useState(true);
@@ -169,20 +166,10 @@ const EventStream = () => {
             const event = e as HighlightEvent;
             if (usefulEvent(event)) {
                 setCurrEvent(event.identifier);
-                if (!disableScroll) {
-                    scroller.scrollTo(
-                        (event as HighlightEvent).identifier.toString(),
-                        {
-                            smooth: true,
-                            containerId: 'wrapper',
-                            spy: true,
-                            offset: -150,
-                        }
-                    );
-                }
             }
         });
-    }, [replayer, time, disableScroll]);
+    }, [replayer, time]);
+
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
