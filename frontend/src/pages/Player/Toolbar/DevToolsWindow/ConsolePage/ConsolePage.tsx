@@ -104,9 +104,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         .filter((m) => m.value && m.value.length)
                         .map((m) => {
                             return (
-                                <div
-                                    key={m.id.toString()}
-                                >
+                                <div key={m.id.toString()}>
                                     <div
                                         className={styles.consoleMessage}
                                         style={{
@@ -152,7 +150,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                             }}
                                         />
                                     </div>
-                                </Element>
+                                </div>
                             );
                         })
                 ) : (

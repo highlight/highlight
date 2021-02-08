@@ -138,7 +138,7 @@ export const StreamElement = ({
                     </div>
                 )}
             </div>
-        </Element>
+        </div>
     );
 };
 
