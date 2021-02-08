@@ -82,6 +82,28 @@ export const ResourcePage = ({
         }
     }, [rawResources]);
 
+    useEffect(() => {
+        if (currentResources?.length) {
+            var msgIndex: number = 0;
+            const relativeTime = time - startTime;
+            var msgDiff: number = Math.abs(
+                relativeTime - currentResources[0].startTime
+            );
+            for (var i = 0; i < currentResources.length; i++) {
+                const currentDiff: number = Math.abs(
+                    relativeTime - currentResources[i].startTime
+                );
+                if (currentDiff < msgDiff) {
+                    msgIndex = i;
+                    msgDiff = currentDiff;
+                }
+            }
+            if (currentResource !== msgIndex) {
+                setCurrentResource(msgIndex);
+            }
+        }
+    }, [currentResources, startTime, time, currentResource]);
+
     const updateCanvas = (posX: number) => {
         var canvas = document.getElementById(
             'canvasNetworkWrapper'
