@@ -407,47 +407,6 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 }
 
 func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
-	queriedSessions := []model.Session{}
-	query := r.DB.Where("organization_id = ?", organizationID).
-		Where("processed = ?", true).
-		Where("length > ?", 1000).
-		Order("created_at desc")
-
-	if d := params.DateRange; d != nil {
-		query = query.Where("created_at > ? and created_at < ?", d.StartDate, d.EndDate)
-	}
-
-	if os := params.Os; os != nil {
-		query = query.Where("os_name = ?", os)
-	}
-
-	if identified := params.Identified; identified != nil && *identified {
-		query = query.Where("length(identifier) > ?", 0)
-	}
-
-	if viewed := params.HideViewed; viewed != nil && *viewed {
-		query = query.Where("viewed = ?", false)
-	}
-
-	if browser := params.Browser; browser != nil {
-		query = query.Where("browser_name = ?", browser)
-	}
-
-	/*
-		var companies []Company
-		var addresses []Address
-		countries := []string{"Bulgaria"}
-		db.Model(&Address).Where("country IN (?)", countries).Find(&addresses)
-
-		// The key is using the previously fetched variable as the model for the association query
-		db.Model(&addresses).Association("CompanyID").Find(&companies)
-	*/
-	query = query.Preload("Fields")
-
-	/*for _, prop := range params.UserProperties {
-		query = query.Where("field.name = ? AND field.value LIKE ?", prop.Name, prop.Value)
-	}*/
-
 	// Find sessions that have all the specified user properties.
 	/*sessions := []model.Session{}
 	for _, session := range queriedSessions {
@@ -518,17 +477,76 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		sessions = referredSessions
 	}
 
-	if len(sessions) < count {
-		count = len(sessions)
-	}*/
+	*/
+	start := time.Now()
+	fieldIds := []int{}
+	fieldQuery := r.DB.Model(&model.Field{})
 
-	if err := query.Find(&queriedSessions).Where("value = ?", "nathanjbrockway@gmail.com").Error; err != nil {
+	for _, prop := range params.UserProperties {
+		if prop.Name == "constains" {
+			fieldQuery = fieldQuery.Where("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+		} else {
+			fieldQuery = fieldQuery.Where("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+		}
+	}
+
+	if len(params.UserProperties)+len(params.ExcludedProperties)+len(params.TrackProperties) > 0 || params.Referrer != nil || params.VisitedURL != nil {
+		if err := fieldQuery.Pluck("id", &fieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of sessions")
+		}
+	}
+
+	//fmt.Println(fieldIds)
+
+	queriedSessions := []model.Session{}
+
+	query := r.DB.Select("distinct(id), organization_id, processed, length, created_at," +
+		"os_name, identifier, viewed, browser_name")
+
+	if len(fieldIds) > 0 {
+		query = query.Joins("INNER JOIN session_fields ON sessions.id=session_fields.session_id "+
+			" AND session_fields.field_id IN (?)", fieldIds)
+	}
+
+	query = query.Where("organization_id = ?", organizationID).
+		Where("processed = ?", true).
+		Where("length > ?", 1000).
+		Order("created_at desc")
+
+	if d := params.DateRange; d != nil {
+		query = query.Where("created_at > ? and created_at < ?", d.StartDate, d.EndDate)
+	}
+
+	if os := params.Os; os != nil {
+		query = query.Where("os_name = ?", os)
+	}
+
+	if identified := params.Identified; identified != nil && *identified {
+		query = query.Where("length(identifier) > ?", 0)
+	}
+
+	if viewed := params.HideViewed; viewed != nil && *viewed {
+		query = query.Where("viewed = ?", false)
+	}
+
+	if browser := params.Browser; browser != nil {
+		query = query.Where("browser_name = ?", browser)
+	}
+
+	if err := query.Find(&queriedSessions).Error; err != nil {
 		return nil, e.Wrap(err, "error querying initial set of sessions")
 	}
+
+	/*if len(queriedSessions) < count {
+		count = len(queriedSessions)
+	}*/
+
 	sessionList := &model.SessionResults{
-		Sessions:   queriedSessions,
-		TotalCount: len(queriedSessions),
+		Sessions:   queriedSessions,      //[:count],
+		TotalCount: len(queriedSessions), //count,
 	}
+	elapsed := time.Since(start)
+	fmt.Printf("Query took %s\n", elapsed)
 	return sessionList, nil
 }
 
