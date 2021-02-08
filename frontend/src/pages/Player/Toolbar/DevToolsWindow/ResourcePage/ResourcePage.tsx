@@ -11,7 +11,6 @@ import { DemoContext } from '../../../../../DemoContext';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import ReplayerContext from '../../../ReplayerContext';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
-import { BooleanParam, useQueryParam } from 'use-query-params';
 
 export const ResourcePage = ({
     time,
@@ -20,7 +19,6 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
-    const [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
     const { pause } = useContext(ReplayerContext);

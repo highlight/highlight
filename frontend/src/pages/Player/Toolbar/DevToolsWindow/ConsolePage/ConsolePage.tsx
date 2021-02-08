@@ -11,10 +11,8 @@ import { DemoContext } from '../../../../../DemoContext';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import ReplayerContext from '../../../ReplayerContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
-import { BooleanParam, useQueryParam } from 'use-query-params';
 
 export const ConsolePage = ({ time }: { time: number }) => {
-    const [disableScroll] = useQueryParam('disable-scroll', BooleanParam);
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [options, setOptions] = useState<Array<string>>([]);
     const { demo } = useContext(DemoContext);
@@ -48,6 +46,26 @@ export const ConsolePage = ({ time }: { time: number }) => {
             })
         );
     }, [rawMessages]);
+
+    // Logic for scrolling to current entry.
+    useEffect(() => {
+        if (parsedMessages?.length) {
+            var msgIndex: number = 0;
+            var msgDiff: number = Math.abs(time - parsedMessages[0].time);
+            for (var i = 0; i < parsedMessages.length; i++) {
+                const currentDiff: number = Math.abs(
+                    time - parsedMessages[i].time
+                );
+                if (currentDiff < msgDiff) {
+                    msgIndex = i;
+                    msgDiff = currentDiff;
+                }
+            }
+            if (currentMessage !== msgIndex) {
+                setCurrentMessage(msgIndex);
+            }
+        }
+    }, [currentMessage, time, parsedMessages]);
 
     const currentMessages = parsedMessages?.filter((m) => {
         // if the console type is 'all', let all messages through. otherwise, filter.
