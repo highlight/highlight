@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 import { Option, DevToolsSelect } from '../Option/Option';
@@ -10,6 +10,7 @@ import { DemoContext } from '../../../../../DemoContext';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import ReplayerContext from '../../../ReplayerContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
+import { Virtuoso } from 'react-virtuoso';
 
 export const ConsolePage = ({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
@@ -76,6 +77,11 @@ export const ConsolePage = ({ time }: { time: number }) => {
         return false;
     });
 
+    const messagesToRender = useMemo(
+        () => currentMessages?.filter((message) => message?.value.length) || [],
+        [currentMessages]
+    );
+
     return (
         <div className={styles.consolePageWrapper}>
             <div className={devStyles.topBar}>
@@ -102,59 +108,56 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         />
                     </div>
                 ) : currentMessages?.length ? (
-                    currentMessages
-                        .filter((m) => m.value && m.value.length)
-                        .map((m) => {
-                            return (
-                                <div key={m.id.toString()}>
+                    <Virtuoso
+                        data={messagesToRender}
+                        itemContent={(_index, message) => (
+                            <div key={message.id.toString()}>
+                                <div
+                                    className={styles.consoleMessage}
+                                    style={{
+                                        color:
+                                            message.id === currentMessage
+                                                ? 'black'
+                                                : 'grey',
+                                        fontWeight:
+                                            message.id === currentMessage
+                                                ? 400
+                                                : 300,
+                                    }}
+                                >
                                     <div
-                                        className={styles.consoleMessage}
+                                        className={
+                                            styles.currentIndicatorWrapper
+                                        }
                                         style={{
-                                            color:
-                                                m.id === currentMessage
-                                                    ? 'black'
-                                                    : 'grey',
-                                            fontWeight:
-                                                m.id === currentMessage
-                                                    ? 400
-                                                    : 300,
+                                            visibility:
+                                                message.id === currentMessage
+                                                    ? 'visible'
+                                                    : 'hidden',
                                         }}
                                     >
                                         <div
-                                            className={
-                                                styles.currentIndicatorWrapper
-                                            }
-                                            style={{
-                                                visibility:
-                                                    m.id === currentMessage
-                                                        ? 'visible'
-                                                        : 'hidden',
-                                            }}
-                                        >
-                                            <div
-                                                className={
-                                                    styles.currentIndicator
-                                                }
-                                            />
-                                        </div>
-                                        <div className={styles.messageText}>
-                                            {typeof m.value === 'string' &&
-                                                m.value}
-                                        </div>
-                                        <GoToButton
-                                            className={styles.goToButton}
-                                            onClick={() => {
-                                                pause(
-                                                    m.time -
-                                                        (replayer?.getMetaData()
-                                                            .startTime ?? 0)
-                                                );
-                                            }}
+                                            className={styles.currentIndicator}
                                         />
                                     </div>
+                                    <div className={styles.messageText}>
+                                        {typeof message.value === 'string' &&
+                                            message.value}
+                                    </div>
+                                    <GoToButton
+                                        className={styles.goToButton}
+                                        onClick={() => {
+                                            pause(
+                                                message.time -
+                                                    (replayer?.getMetaData()
+                                                        .startTime ?? 0)
+                                            );
+                                        }}
+                                    />
                                 </div>
-                            );
-                        })
+                            </div>
+                        )}
+                    />
                 ) : (
                     <div className={devStyles.emptySection}>
                         No logs for this section.
