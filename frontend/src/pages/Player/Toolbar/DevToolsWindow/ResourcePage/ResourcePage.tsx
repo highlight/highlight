@@ -231,7 +231,7 @@ const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
 
     useEffect(() => {
         updateCanvas(0);
-    }, []);
+    }, [updateCanvas]);
 
     return (
         <canvas
