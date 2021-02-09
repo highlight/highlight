@@ -3,7 +3,6 @@ on:
     push:
         paths:
             - 'firstload/**'
-            - 'client/**'
             - '.github/workflows/firstload.yml'
 jobs:
     firstload:
