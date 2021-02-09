@@ -8,7 +8,7 @@ import { HighlightEvent } from '../HighlightEvent';
 import {
     ReplayerContextInterface,
     ReplayerState,
-    SessionIntervals,
+    SessionInterval,
 } from '../ReplayerContext';
 
 export const usePlayer = ({
@@ -24,7 +24,7 @@ export const usePlayer = ({
     const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
     const [time, setTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
-        Array<SessionIntervals>
+        Array<SessionInterval>
     >([]);
 
     const { demo } = useContext(DemoContext);
