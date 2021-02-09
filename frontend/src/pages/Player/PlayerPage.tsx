@@ -168,7 +168,7 @@ const EventStream = () => {
                 setCurrEvent(event.identifier);
             }
         });
-    }, [replayer, time]);
+    }, [replayer]);
 
     return (
         <>
