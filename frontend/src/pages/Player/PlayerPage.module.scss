@@ -50,7 +50,6 @@
     width: 100%;
     overflow-y: auto;
     position: relative;
-    padding: 30px;
     padding-top: 19px;
     box-sizing: border-box;
 }
@@ -170,4 +169,9 @@
     overflow: auto;
     display: grid;
     grid-template-columns: 1fr 350px;
+}
+
+.skeletonContainer {
+    padding-left: 30px;
+    padding-right: 30px;
 }

@@ -24,6 +24,7 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import { usePlayer } from './PlayerHook/PlayerHook';
+import { Virtuoso } from 'react-virtuoso';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
@@ -176,27 +177,37 @@ const EventStream = () => {
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
                 {loadingMap || !events.length || !staticMap ? (
-                    <Skeleton
-                        count={4}
-                        height={35}
-                        style={{ marginTop: 8, marginBottom: 8 }}
-                    />
-                ) : (
-                    replayer &&
-                    usefulEvents.map((e: HighlightEvent, i: number) => (
-                        <StreamElement
-                            e={e}
-                            key={i}
-                            start={replayer.getMetaData().startTime}
-                            isCurrent={
-                                e.timestamp -
-                                    replayer.getMetaData().startTime ===
-                                    time || e.identifier === currEvent
-                            }
-                            onGoToHandler={setCurrEvent}
-                            nodeMap={staticMap}
+                    <div className={styles.skeletonContainer}>
+                        <Skeleton
+                            count={4}
+                            height={35}
+                            style={{
+                                marginTop: 8,
+                                marginBottom: 8,
+                            }}
                         />
-                    ))
+                    </div>
+                ) : (
+                    replayer && (
+                        <Virtuoso
+                            data={usefulEvents}
+                            itemContent={(index, event) => (
+                                <StreamElement
+                                    e={event}
+                                    key={index}
+                                    start={replayer.getMetaData().startTime}
+                                    isCurrent={
+                                        event.timestamp -
+                                            replayer.getMetaData().startTime ===
+                                            time ||
+                                        event.identifier === currEvent
+                                    }
+                                    onGoToHandler={setCurrEvent}
+                                    nodeMap={staticMap}
+                                />
+                            )}
+                        />
+                    )
                 )}
             </div>
         </>
