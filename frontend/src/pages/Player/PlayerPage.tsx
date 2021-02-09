@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useState, useRef, useEffect, useContext, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import {
     Replayer,
@@ -170,6 +170,8 @@ const EventStream = () => {
         });
     }, [replayer]);
 
+    const usefulEvents = useMemo(() => events.filter(usefulEvent), [events]);
+
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
@@ -181,22 +183,20 @@ const EventStream = () => {
                     />
                 ) : (
                     replayer &&
-                    events
-                        .filter(usefulEvent)
-                        .map((e: HighlightEvent, i: number) => (
-                            <StreamElement
-                                e={e}
-                                key={i}
-                                start={replayer.getMetaData().startTime}
-                                isCurrent={
-                                    e.timestamp -
-                                        replayer.getMetaData().startTime ===
-                                        time || e.identifier === currEvent
-                                }
-                                onGoToHandler={setCurrEvent}
-                                nodeMap={staticMap}
-                            />
-                        ))
+                    usefulEvents.map((e: HighlightEvent, i: number) => (
+                        <StreamElement
+                            e={e}
+                            key={i}
+                            start={replayer.getMetaData().startTime}
+                            isCurrent={
+                                e.timestamp -
+                                    replayer.getMetaData().startTime ===
+                                    time || e.identifier === currEvent
+                            }
+                            onGoToHandler={setCurrEvent}
+                            nodeMap={staticMap}
+                        />
+                    ))
                 )}
             </div>
         </>
