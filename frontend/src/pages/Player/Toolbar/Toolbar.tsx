@@ -40,22 +40,9 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     );
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
-    const [isDragged, setIsDragged] = useState(false);
     const isPaused =
         state === ReplayerState.Paused ||
         state === ReplayerState.LoadedAndUntouched;
-
-    // When not paused and not dragged, update the current time.
-    // When the current time is updated, the function calls itself again.
-    useEffect(() => {
-        if (replayer) {
-            if (!isPaused && !isDragged) {
-                setTimeout(() => {
-                    setTime(replayer.getCurrentTime());
-                }, 50);
-            }
-        }
-    }, [replayer, isPaused, isDragged, time, setTime]);
 
     useEffect(() => {
         onResize();
@@ -84,7 +71,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         newTime = Math.min(max, newTime);
 
         setLastCanvasPreview(e.x);
-        setIsDragged(false);
 
         if (isPaused) {
             pause(newTime);
@@ -95,7 +81,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
 
     let startDraggable = (e: any, data: any) => {
         setLastCanvasPreview(data.x);
-        setIsDragged(true);
         if (!isPaused) {
             pause();
         }
@@ -189,10 +174,8 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         onClick={() => {
                             if (isPaused) {
                                 play(time);
-                                setIsDragged(false);
                             } else {
                                 pause(time);
-                                setIsDragged(false);
                             }
                         }}
                     >

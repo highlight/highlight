@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { Element, scroller } from 'react-scroll';
 import { Skeleton } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
 import { ConsoleMessage } from '../../../../../util/shared-types';
@@ -63,11 +62,6 @@ export const ConsolePage = ({ time }: { time: number }) => {
             }
             if (currentMessage !== msgIndex) {
                 setCurrentMessage(msgIndex);
-                scroller.scrollTo(msgIndex.toString(), {
-                    smooth: true,
-                    containerId: 'logStreamWrapper',
-                    spy: true,
-                });
             }
         }
     }, [currentMessage, time, parsedMessages]);
@@ -109,10 +103,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         .filter((m) => m.value && m.value.length)
                         .map((m) => {
                             return (
-                                <Element
-                                    name={m.id.toString()}
-                                    key={m.id.toString()}
-                                >
+                                <div key={m.id.toString()}>
                                     <div
                                         className={styles.consoleMessage}
                                         style={{
@@ -158,7 +149,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                             }}
                                         />
                                     </div>
-                                </Element>
+                                </div>
                             );
                         })
                 ) : (

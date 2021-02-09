@@ -10,7 +10,6 @@ import {
     eventWithTime,
     incrementalData,
 } from '@highlight-run/rrweb/typings/types';
-import { scroller } from 'react-scroll';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
@@ -167,18 +166,10 @@ const EventStream = () => {
             const event = e as HighlightEvent;
             if (usefulEvent(event)) {
                 setCurrEvent(event.identifier);
-                scroller.scrollTo(
-                    (event as HighlightEvent).identifier.toString(),
-                    {
-                        smooth: true,
-                        containerId: 'wrapper',
-                        spy: true,
-                        offset: -150,
-                    }
-                );
             }
         });
     }, [replayer, time]);
+
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
