@@ -48,13 +48,11 @@ export const ResourcePage = ({
             }
         });
         setOptions(['All', ...Array.from(optionSet)]);
-        console.log('setting parsed resources');
         setParsedResources(
             rawResources?.map((r, i) => {
                 return { ...r, id: i };
             }) ?? []
         );
-        console.log('done setting parsed resources');
     }, [rawResources]);
 
     useEffect(() => {
