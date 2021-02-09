@@ -170,6 +170,8 @@ const EventStream = () => {
         });
     }, [replayer, time]);
 
+    console.log('hello');
+
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>

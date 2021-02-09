@@ -33,6 +33,7 @@ export type HighlightClassOptions = {
     debug?: boolean;
     backendUrl?: string;
     disableNetworkRecording?: boolean;
+    disableConsoleRecording?: boolean;
 };
 
 type PropertyType = {
@@ -52,12 +53,14 @@ export class Highlight {
     sessionID: number;
     ready: boolean;
     logger: Logger;
-    disableNetworkRecording?: boolean;
+    disableNetworkRecording: boolean | undefined;
+    disableConsoleRecording: boolean | undefined;
 
     constructor(options: HighlightClassOptions) {
         // If debug is set to false, disable all console logs.
         this.ready = false;
         this.disableNetworkRecording = options.disableNetworkRecording;
+        this.disableConsoleRecording = options.disableConsoleRecording;
         this.logger = new Logger(options.debug ?? false);
         const backend = options?.backendUrl
             ? options.backendUrl
@@ -310,14 +313,16 @@ export class Highlight {
                     { type: 'session' }
                 );
             });
-            ConsoleListener((c: ConsoleMessage) => {
-                if (c.type == 'Error')
-                    highlightThis.errors.push({
-                        event: c.value,
-                        type: 'console',
-                    });
-                highlightThis.messages.push(c);
-            });
+            if (!this.disableConsoleRecording) {
+                ConsoleListener((c: ConsoleMessage) => {
+                    if (c.type == 'Error')
+                        highlightThis.errors.push({
+                            event: c.value,
+                            type: 'console',
+                        });
+                    highlightThis.messages.push(c);
+                });
+            }
             ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
             TabStateListener((tabIsActive: string) => {
                 addCustomEvent<string>('Tab', tabIsActive);

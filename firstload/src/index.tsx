@@ -6,6 +6,7 @@ export type HighlightOptions = {
     backendUrl?: string;
     manualStart?: boolean;
     disableNetworkRecording?: boolean;
+    disableConsoleRecording?: boolean;
 };
 
 const HighlightWarning = (context: string, msg: any) => {
