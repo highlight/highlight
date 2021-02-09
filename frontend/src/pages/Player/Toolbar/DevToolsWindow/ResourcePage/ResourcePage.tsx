@@ -25,11 +25,11 @@ export const ResourcePage = ({
     const [currentResource, setCurrentResource] = useState(0);
     const [networkRange, setNetworkRange] = useState(0);
     const [currentResources, setCurrentResources] = useState<
-        Array<PerformanceResourceTiming & { id: number }>
+        Array<PerformanceResourceTiming & { id: number }> | undefined
     >([]);
     const [parsedResources, setParsedResources] = useState<
-        Array<PerformanceResourceTiming & { id: number }>
-    >([]);
+        Array<PerformanceResourceTiming & { id: number }> | undefined
+    >(undefined);
     const { data, loading } = useGetResourcesQuery({
         variables: {
             session_id: demo
@@ -48,26 +48,26 @@ export const ResourcePage = ({
             }
         });
         setOptions(['All', ...Array.from(optionSet)]);
-        if (rawResources) {
-            setParsedResources(
-                rawResources.map((r, i) => {
-                    return { ...r, id: i };
-                })
-            );
-        }
+        console.log('setting parsed resources');
+        setParsedResources(
+            rawResources?.map((r, i) => {
+                return { ...r, id: i };
+            }) ?? []
+        );
+        console.log('done setting parsed resources');
     }, [rawResources]);
 
     useEffect(() => {
         if (rawResources) {
             setCurrentResources(
-                parsedResources.filter((r) => {
+                parsedResources?.filter((r) => {
                     if (currentOption === 'All') {
                         return true;
                     } else if (currentOption === r.initiatorType) {
                         return true;
                     }
                     return false;
-                })
+                }) ?? []
             );
         }
     }, [parsedResources, rawResources, currentOption, options]);
@@ -124,7 +124,7 @@ export const ResourcePage = ({
                     <div className={devStyles.skeletonWrapper}>
                         <Skeleton active />
                     </div>
-                ) : currentResources.length ? (
+                ) : (
                     <>
                         <TimingCanvas networkRange={networkRange} />
                         <div className={styles.networkTopBar}>
@@ -156,13 +156,15 @@ export const ResourcePage = ({
                             id="networkStreamWrapper"
                             className={styles.networkStreamWrapper}
                         >
-                            {currentResources.map(
+                            {currentResources?.map(
                                 (
                                     p: PerformanceResourceTiming & {
                                         id: number;
-                                    }
+                                    },
+                                    i: number
                                 ) => (
                                     <ResourceRow
+                                        key={i.toString()}
                                         p={p}
                                         networkRange={networkRange}
                                         currentResource={currentResource}
@@ -171,10 +173,6 @@ export const ResourcePage = ({
                             )}
                         </div>
                     </>
-                ) : (
-                    <div className={devStyles.emptySection}>
-                        No network resources.
-                    </div>
                 )}
             </div>
         </>
@@ -193,47 +191,46 @@ const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
 
         var context = canvas?.getContext('2d');
 
+        if (!context) return;
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // The actual div width, and the width of the canvas are different. This balances it.
+        const realX = (posX / canvas.offsetWidth) * canvas.width;
+
         if (context) {
-            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.fillStyle = 'red';
+            context.fillRect(realX, 0, 1, canvas.height);
 
-            // The actual div width, and the width of the canvas are different. This balances it.
-            const realX = (posX / canvas.offsetWidth) * canvas.width;
+            context.font = '12px Arial';
+            context.fillStyle = '#777';
 
-            if (context) {
-                context.fillStyle = 'red';
-                context.fillRect(realX, 0, 1, canvas.height);
-
-                context.font = '12px Arial';
-                context.fillStyle = '#777';
-
-                const msValue = Math.max(
-                    0,
-                    Math.floor((realX / canvas.width) * networkRange)
-                );
-                context.fillText(msValue.toString() + 'ms', realX + 4, 45, 100);
-            }
+            const msValue = Math.max(
+                0,
+                Math.floor((realX / canvas.width) * networkRange)
+            );
+            context.fillText(msValue.toString() + 'ms', realX + 4, 45, 100);
         }
     };
 
-    const drawMouseHover = (event: any) => {
-        var canvas = document.getElementById(
-            'canvasNetworkWrapper'
-        ) as HTMLCanvasElement;
+    const drawMouseHover = (
+        event: React.MouseEvent<HTMLCanvasElement, MouseEvent>
+    ) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-        // let x =
-        //     event.clientX +
-        //     document.body.scrollLeft +
-        //     document.documentElement.scrollLeft;
-        // x -= canvas.offsetLeft;
+        let x =
+            event.clientX +
+            document.body.scrollLeft +
+            document.documentElement.scrollLeft;
 
-        updateCanvas(0);
+        x -= canvas.offsetLeft;
+
+        updateCanvas(x);
     };
 
-    window.onresize = () => {
+    useEffect(() => {
         updateCanvas(0);
-    };
-
-    useEffect(() => {}, []);
+    }, []);
 
     return (
         <canvas
