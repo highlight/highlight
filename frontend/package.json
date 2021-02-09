@@ -7,7 +7,7 @@
         "@apollo/react-hooks": "^4.0.0",
         "@dicebear/avatars": "^4.2.5",
         "@dicebear/avatars-avataaars-sprites": "^4.2.5",
-        "@highlight-run/rrweb": "^0.9.16",
+        "@highlight-run/rrweb": "^0.9.17",
         "@rehooks/local-storage": "^2.4.0",
         "@sentry/react": "^5.27.3",
         "@sentry/tracing": "^5.27.3",
