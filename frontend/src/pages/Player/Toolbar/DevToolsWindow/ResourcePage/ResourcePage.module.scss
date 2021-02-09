@@ -46,6 +46,7 @@ $canvas-width: calc(
     height: 100%;
     width: $canvas-width;
     margin-left: calc(25px + 130px + 200px + 90px + 90px);
+    z-index: 99;
 }
 
 .networkStreamWrapper {

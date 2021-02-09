@@ -16,6 +16,7 @@ import { DemoContext } from '../../../../../DemoContext';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import ReplayerContext from '../../../ReplayerContext';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
+import { Virtuoso } from 'react-virtuoso';
 
 export const ResourcePage = ({
     time,
@@ -163,7 +164,18 @@ export const ResourcePage = ({
                             id="networkStreamWrapper"
                             className={styles.networkStreamWrapper}
                         >
-                            {currentResources?.map(
+                            <Virtuoso
+                                data={currentResources}
+                                itemContent={(index, resource) => (
+                                    <ResourceRow
+                                        key={index.toString()}
+                                        p={resource}
+                                        networkRange={networkRange}
+                                        currentResource={currentResource}
+                                    />
+                                )}
+                            />
+                            {/* {currentResources?.map(
                                 (
                                     p: PerformanceResourceTiming & {
                                         id: number;
@@ -177,7 +189,7 @@ export const ResourcePage = ({
                                         currentResource={currentResource}
                                     />
                                 )
-                            )}
+                            )} */}
                         </div>
                     </>
                 )}
