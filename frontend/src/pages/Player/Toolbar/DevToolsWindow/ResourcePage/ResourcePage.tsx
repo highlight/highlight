@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, {
+    useState,
+    useEffect,
+    useContext,
+    useRef,
+    useCallback,
+} from 'react';
 import { useParams } from 'react-router-dom';
 import { Tooltip } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
@@ -181,37 +187,39 @@ export const ResourcePage = ({
 };
 
 const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
+    const safeUpdateCanvas = useCallback(
+        (position: number) => {
+            const canvas = canvasRef.current;
+
+            if (!canvas) return;
+            canvas.height = canvas.clientHeight;
+            canvas.width = canvas.clientWidth;
+
+            var context = canvas?.getContext('2d');
+
+            if (!context) return;
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // The actual div width, and the width of the canvas are different. This balances it.
+            const realX = (position / canvas.offsetWidth) * canvas.width;
+
+            if (context) {
+                context.fillStyle = 'red';
+                context.fillRect(realX, 0, 1, canvas.height);
+
+                context.font = '12px Arial';
+                context.fillStyle = '#777';
+
+                const msValue = Math.max(
+                    0,
+                    Math.floor((realX / canvas.width) * networkRange)
+                );
+                context.fillText(msValue.toString() + 'ms', realX + 4, 45, 100);
+            }
+        },
+        [networkRange]
+    );
     const canvasRef = useRef<HTMLCanvasElement>(null);
-
-    const updateCanvas = (posX: number) => {
-        const canvas = canvasRef.current;
-
-        if (!canvas) return;
-        canvas.height = canvas.clientHeight;
-        canvas.width = canvas.clientWidth;
-
-        var context = canvas?.getContext('2d');
-
-        if (!context) return;
-        context.clearRect(0, 0, canvas.width, canvas.height);
-
-        // The actual div width, and the width of the canvas are different. This balances it.
-        const realX = (posX / canvas.offsetWidth) * canvas.width;
-
-        if (context) {
-            context.fillStyle = 'red';
-            context.fillRect(realX, 0, 1, canvas.height);
-
-            context.font = '12px Arial';
-            context.fillStyle = '#777';
-
-            const msValue = Math.max(
-                0,
-                Math.floor((realX / canvas.width) * networkRange)
-            );
-            context.fillText(msValue.toString() + 'ms', realX + 4, 45, 100);
-        }
-    };
 
     const drawMouseHover = (
         event: React.MouseEvent<HTMLCanvasElement, MouseEvent>
@@ -226,12 +234,12 @@ const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
 
         x -= canvas.offsetLeft;
 
-        updateCanvas(x);
+        safeUpdateCanvas(x);
     };
 
     useEffect(() => {
-        updateCanvas(0);
-    }, [updateCanvas]);
+        safeUpdateCanvas(0);
+    }, [safeUpdateCanvas]);
 
     return (
         <canvas
