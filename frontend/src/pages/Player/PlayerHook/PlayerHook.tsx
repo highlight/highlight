@@ -49,9 +49,6 @@ export const usePlayer = ({
             let r = new Replayer(newEvents, {
                 root: document.getElementById('player') as HTMLElement,
             });
-            setEvents(newEvents);
-            setReplayer(r);
-            setState(ReplayerState.LoadedAndUntouched);
             // Preprocess and logic for player length with inactive sessions
             let metadata = r.getMetaData();
             let intervals = r.getActivityIntervals().map((e) => ({
@@ -61,6 +58,9 @@ export const usePlayer = ({
                 duration: e.endTime - e.startTime,
             }));
             setSessionIntervals(intervals);
+            setEvents(newEvents);
+            setReplayer(r);
+            setState(ReplayerState.LoadedAndUntouched);
         }
     }, [eventsData]);
 
