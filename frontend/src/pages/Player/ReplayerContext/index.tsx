@@ -10,6 +10,14 @@ export enum ReplayerState {
     Paused,
 }
 
+// TODO: Calculate duration in rrweb, and export this type from rrweb
+export interface SessionInterval {
+    startTime: number;
+    endTime: number;
+    duration: number;
+    active: boolean;
+}
+
 export interface ReplayerContextInterface {
     state: ReplayerState;
     replayer: Replayer | undefined;
@@ -22,6 +30,7 @@ export interface ReplayerContextInterface {
     pause: (time?: number) => void;
     setScale: React.Dispatch<React.SetStateAction<number>>;
     events: Array<HighlightEvent>;
+    sessionIntervals: Array<SessionInterval>;
 }
 
 export const defaultValue: ReplayerContextInterface = {
@@ -34,6 +43,7 @@ export const defaultValue: ReplayerContextInterface = {
     play: (_) => {},
     pause: (_) => {},
     events: [],
+    sessionIntervals: [],
 };
 
 const ReplayerContext = createContext<ReplayerContextInterface>(defaultValue);
