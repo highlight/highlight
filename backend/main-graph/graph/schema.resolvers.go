@@ -408,58 +408,83 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 
 func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
-	start := time.Now()
 	fieldIds := []int{}
+	notFieldIds := []int{}
+	notSessionIds := []int{}
 	fieldQuery := r.DB.Model(&model.Field{})
+	notFieldQuery := r.DB.Model(&model.Field{})
 
 	for _, prop := range params.UserProperties {
 		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Where("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
 		} else {
-			fieldQuery = fieldQuery.Where("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
 		}
 	}
 
 	for _, prop := range params.ExcludedProperties {
 		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Not("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+			notFieldQuery = notFieldQuery.Where("name = 'identifier' AND value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+			notFieldQuery = notFieldQuery.Or("name = 'name' AND value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
 		} else {
-			fieldQuery = fieldQuery.Not("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+			notFieldQuery = notFieldQuery.Where("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
 		}
 	}
 
 	for _, prop := range params.TrackProperties {
 		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Where("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
 		} else {
-			fieldQuery = fieldQuery.Where("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
 		}
 	}
 
 	if params.VisitedURL != nil {
-		fieldQuery = fieldQuery.Where("name = ? and value ILIKE ?", "visited-url", "%"+*params.VisitedURL+"%")
+		fieldQuery = fieldQuery.Or("name = ? and value ILIKE ?", "visited-url", "%"+*params.VisitedURL+"%")
 	}
 
 	if params.Referrer != nil {
-		fieldQuery = fieldQuery.Where("name = ? and value ILIKE ?", "visited-url", "%"+*params.Referrer+"%")
+		fieldQuery = fieldQuery.Or("name = ? and value ILIKE ?", "visited-url", "%"+*params.Referrer+"%")
 	}
 
-	if len(params.UserProperties)+len(params.ExcludedProperties)+len(params.TrackProperties) > 0 || params.Referrer != nil || params.VisitedURL != nil {
+	if len(params.UserProperties)+len(params.TrackProperties) > 0 || params.Referrer != nil || params.VisitedURL != nil {
 		if err := fieldQuery.Pluck("id", &fieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying initial set of sessions")
+			return nil, e.Wrap(err, "error querying initial set of session fields")
 		}
 	}
 
-	//fmt.Println(fieldIds)
+	//pluck not field ids
+	if len(params.ExcludedProperties) > 0 {
+		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of excluded sessions fields")
+		}
+		//inner join to find excluded sessions
+		if len(notFieldIds) > 0 {
+			notSessionQuery := r.DB.Model(&model.Session{}).Joins("INNER JOIN session_fields ON sessions.id=session_fields.session_id "+
+				" AND session_fields.field_id IN (?)", notFieldIds)
+
+			if err := notSessionQuery.Pluck("id", &notSessionIds).Error; err != nil {
+				return nil, e.Wrap(err, "error querying initial set of excluded sessions")
+			}
+		}
+	}
+
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
 	query := r.DB.Select("distinct(id), organization_id, processed, length, created_at," +
 		"os_name, identifier, viewed, browser_name")
 
-	if len(fieldIds) > 0 {
-		query = query.Joins("INNER JOIN session_fields ON sessions.id=session_fields.session_id "+
-			" AND session_fields.field_id IN (?)", fieldIds)
+	if len(fieldIds) > 0 || len(notSessionIds) > 0 {
+		if len(notSessionIds) > 0 && len(fieldIds) > 0 {
+			query = query.Joins("INNER JOIN session_fields ON sessions.id=session_fields.session_id "+
+				" AND session_fields.field_id IN (?) AND sessions.id NOT IN (?)", fieldIds, notSessionIds)
+		} else if len(notSessionIds) > 0 {
+			query = query.Where("id NOT IN (?)", notSessionIds)
+		} else {
+			query = query.Joins("INNER JOIN session_fields ON sessions.id=session_fields.session_id "+
+				" AND session_fields.field_id IN (?)", fieldIds)
+		}
 	}
 
 	query = query.Where("organization_id = ?", organizationID).
@@ -488,7 +513,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	}
 
 	if err := query.Find(&queriedSessions).Error; err != nil {
-		return nil, e.Wrap(err, "error querying initial set of sessions")
+		return nil, e.Wrap(err, "error querying filtered sessions")
 	}
 
 	if len(queriedSessions) < count {
@@ -499,8 +524,6 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		Sessions:   queriedSessions[:count],
 		TotalCount: len(queriedSessions),
 	}
-	elapsed := time.Since(start)
-	fmt.Printf("Query took %s\n", elapsed)
 	return sessionList, nil
 }
 
