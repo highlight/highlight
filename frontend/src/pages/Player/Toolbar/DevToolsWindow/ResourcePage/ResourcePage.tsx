@@ -175,21 +175,6 @@ export const ResourcePage = ({
                                     />
                                 )}
                             />
-                            {/* {currentResources?.map(
-                                (
-                                    p: PerformanceResourceTiming & {
-                                        id: number;
-                                    },
-                                    i: number
-                                ) => (
-                                    <ResourceRow
-                                        key={i.toString()}
-                                        p={p}
-                                        networkRange={networkRange}
-                                        currentResource={currentResource}
-                                    />
-                                )
-                            )} */}
                         </div>
                     </>
                 )}
