@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { Tooltip } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
-import { Skeleton } from 'antd';
+import Skeleton from 'react-loading-skeleton';
 
 import devStyles from '../DevToolsWindow.module.scss';
 import styles from './ResourcePage.module.scss';
@@ -120,7 +120,10 @@ export const ResourcePage = ({
             <div className={styles.networkTableWrapper}>
                 {loading ? (
                     <div className={devStyles.skeletonWrapper}>
-                        <Skeleton active />
+                        <Skeleton
+                            count={2}
+                            style={{ height: 25, marginBottom: 11 }}
+                        />
                     </div>
                 ) : (
                     <>
