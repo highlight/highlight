@@ -12,9 +12,15 @@ import ReplayerContext, { ReplayerState } from '../ReplayerContext';
 import classNames from 'classnames';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
-    const { replayer, setTime, time, state, play, pause } = useContext(
-        ReplayerContext
-    );
+    const {
+        replayer,
+        setTime,
+        time,
+        state,
+        play,
+        pause,
+        sessionIntervals,
+    } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const wrapperWidth =
@@ -136,7 +142,26 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     setTime(ratio * max);
                 }}
             >
-                <div className={styles.sliderRail}></div>
+                <div
+                    className={styles.sliderRail}
+                    style={{
+                        background: `linear-gradient(
+        to right,
+    ${sessionIntervals
+        .map(
+            (interval) =>
+                (interval.active ? '#5629c6' : '#b5a4e2') +
+                ' ' +
+                (interval.startTime * 100) / max +
+                '%, ' +
+                (interval.active ? '#5629c6' : '#b5a4e2') +
+                ' ' +
+                (interval.endTime * 100) / max +
+                '%'
+        )
+        .join()})`,
+                    }}
+                ></div>
 
                 <Draggable
                     axis="x"
