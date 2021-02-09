@@ -1,10 +1,8 @@
 import React, { useContext, useState } from 'react';
 import { MouseInteractions, EventType } from '@highlight-run/rrweb';
-import { Element } from 'react-scroll';
 import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
 import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
-import { ReactComponent as UpIcon } from '../../../static/chevron-up.svg';
 import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
 import { ReactComponent as NavigateIcon } from '../../../static/navigate.svg';
 import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
@@ -35,16 +33,16 @@ export const StreamElement = ({
     const [hover, setHover] = useState(false);
     const [selected, setSelected] = useState(false);
     const details = getEventRenderDetails(e, nodeMap);
-    const { setTime } = useContext(ReplayerContext);
+    const { pause } = useContext(ReplayerContext);
     let timeSinceStart = e?.timestamp - start;
     return (
-        <Element
-            name={e.identifier.toString()}
-            key={e.identifier.toString()}
+        <div
             className={styles.eventWrapper}
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
             onClick={() => setSelected(!selected)}
+            id={e.identifier}
+            key={e.identifier}
         >
             <div
                 className={classNames(styles.streamElement, {
@@ -57,7 +55,7 @@ export const StreamElement = ({
                 <div className={styles.headerRow}>
                     <div className={styles.iconWrapper}>
                         {selected ? (
-                            <UpIcon
+                            <DownIcon
                                 className={classNames(styles.directionIcon, {
                                     [styles.selectedIcon]: selected,
                                     [styles.currentIcon]: isCurrent,
@@ -74,6 +72,8 @@ export const StreamElement = ({
                         ) : details.title === 'Reload' ? (
                             <ReloadIcon className={styles.defaultIcon} />
                         ) : details.title === 'Referrer' ? (
+                            <ReferrerIcon className={styles.defaultIcon} />
+                        ) : details.title === 'Tab' ? (
                             <ReferrerIcon className={styles.defaultIcon} />
                         ) : (
                             <HoverIcon className={styles.tiltedIcon} />
@@ -104,7 +104,7 @@ export const StreamElement = ({
                             }
                         >
                             <span className={styles.codeBlock}>
-                                {details.payload}
+                                {JSON.stringify(details.payload)}
                             </span>
                         </div>
                     )}
@@ -121,7 +121,7 @@ export const StreamElement = ({
                                 e.stopPropagation();
                                 // Sets the current event as null. It will be reset as the player continues.
                                 onGoToHandler('');
-                                setTime(timeSinceStart);
+                                pause(timeSinceStart);
                             }}
                         />
                         <div
@@ -139,7 +139,7 @@ export const StreamElement = ({
                     </div>
                 )}
             </div>
-        </Element>
+        </div>
     );
 };
 

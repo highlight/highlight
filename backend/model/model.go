@@ -147,6 +147,7 @@ type Session struct {
 	BrowserName    string `json:"browser_name"`
 	BrowserVersion string `json:"browser_version"`
 	Status         string `json:"status"`
+	Language       string `json:"language"`
 	EventsObjects  []EventsObject
 	// Tells us if the session has been parsed by a worker.
 	Processed bool `json:"processed"`

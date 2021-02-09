@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { Element, scroller } from 'react-scroll';
-import { Skeleton } from 'antd';
+import Skeleton from 'react-loading-skeleton';
 import { Option, DevToolsSelect } from '../Option/Option';
 import { ConsoleMessage } from '../../../../../util/shared-types';
 
@@ -16,7 +15,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [options, setOptions] = useState<Array<string>>([]);
     const { demo } = useContext(DemoContext);
-    const { setTime, replayer } = useContext(ReplayerContext);
+    const { pause, replayer } = useContext(ReplayerContext);
     const [parsedMessages, setParsedMessages] = useState<
         undefined | Array<ConsoleMessage & { selected?: boolean; id: number }>
     >([]);
@@ -63,11 +62,6 @@ export const ConsolePage = ({ time }: { time: number }) => {
             }
             if (currentMessage !== msgIndex) {
                 setCurrentMessage(msgIndex);
-                scroller.scrollTo(msgIndex.toString(), {
-                    smooth: true,
-                    containerId: 'logStreamWrapper',
-                    spy: true,
-                });
             }
         }
     }, [currentMessage, time, parsedMessages]);
@@ -102,17 +96,17 @@ export const ConsolePage = ({ time }: { time: number }) => {
             <div className={styles.consoleStreamWrapper} id="logStreamWrapper">
                 {loading ? (
                     <div className={devStyles.skeletonWrapper}>
-                        <Skeleton active />
+                        <Skeleton
+                            count={2}
+                            style={{ height: 25, marginBottom: 11 }}
+                        />
                     </div>
                 ) : currentMessages?.length ? (
                     currentMessages
                         .filter((m) => m.value && m.value.length)
                         .map((m) => {
                             return (
-                                <Element
-                                    name={m.id.toString()}
-                                    key={m.id.toString()}
-                                >
+                                <div key={m.id.toString()}>
                                     <div
                                         className={styles.consoleMessage}
                                         style={{
@@ -150,7 +144,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                         <GoToButton
                                             className={styles.goToButton}
                                             onClick={() => {
-                                                setTime(
+                                                pause(
                                                     m.time -
                                                         (replayer?.getMetaData()
                                                             .startTime ?? 0)
@@ -158,7 +152,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                             }}
                                         />
                                     </div>
-                                </Element>
+                                </div>
                             );
                         })
                 ) : (

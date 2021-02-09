@@ -10,6 +10,8 @@ import {
     ErrorMessage,
     NetworkResourceContent,
 } from '../../frontend/src/util/shared-types';
+import { TabStateListener } from './listeners/tab-state-listener';
+import { ViewportResizeListener } from './listeners/viewport-resize-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
@@ -237,7 +239,7 @@ export class Highlight {
   Org ID: ${gr.initializeSession.organization_id}
   Verbose Org ID: ${this.organizationID}
   SessionID: ${this.sessionID}
-  Session Data: 
+  Session Data:
   `,
                     gr.initializeSession
                 );
@@ -317,6 +319,12 @@ export class Highlight {
                 highlightThis.messages.push(c);
             });
             ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
+            TabStateListener((tabIsActive: string) => {
+                addCustomEvent<string>('Tab', tabIsActive);
+            });
+            ViewportResizeListener((viewport) => {
+                addCustomEvent('Viewport', viewport);
+            });
             this.ready = true;
         } catch (e) {
             HighlightWarning('initializeSession', e);

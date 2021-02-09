@@ -10,7 +10,6 @@ import {
     eventWithTime,
     incrementalData,
 } from '@highlight-run/rrweb/typings/types';
-import { scroller } from 'react-scroll';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
@@ -21,40 +20,26 @@ import { StaticMap, buildStaticMap } from './StaticMap/StaticMap';
 import useResizeAware from 'react-resize-aware';
 import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
-import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
-import {
-    useGetEventsQuery,
-    useMarkSessionAsViewedMutation,
-} from '../../graph/generated/hooks';
+import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
+import { usePlayer } from './PlayerHook/PlayerHook';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
-    const { demo } = useContext(DemoContext);
-    const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
-    const [replayerState, setReplayerState] = useState<ReplayerState>(
-        ReplayerState.NotLoaded
-    );
-    const [time, setTime] = useState(0);
     const [resizeListener, sizes] = useResizeAware();
-    const [events, setEvents] = useState<Array<HighlightEvent>>([]);
-    const [replayerScale, setReplayerScale] = useState(1);
+    const player = usePlayer({
+        refId: 'player',
+    });
+    const {
+        state: replayerState,
+        scale: replayerScale,
+        setScale,
+        replayer,
+    } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
-    const {
-        loading: sessionLoading,
-        error: sessionError,
-        data: sessionData,
-    } = useGetEventsQuery({
-        variables: {
-            session_id: demo
-                ? process.env.REACT_APP_DEMO_SESSION ?? ''
-                : session_id ?? '',
-        },
-        context: { headers: { 'Highlight-Demo': demo } },
-    });
 
     useEffect(() => {
         if (session_id) {
@@ -85,7 +70,7 @@ export const Player = () => {
             `transform: scale(${replayerScale * scale}) translate(-50%, -50%)`
         );
 
-        setReplayerScale((s) => {
+        setScale((s) => {
             return s * scale;
         });
         return true;
@@ -109,44 +94,11 @@ export const Player = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sizes, replayer]);
 
-    useEffect(() => {
-        if (sessionData?.events?.length ?? 0 > 1) {
-            setReplayerState(ReplayerState.Loading);
-            // Add an id field to each event so it can be referenced.
-            const newEvents: HighlightEvent[] =
-                sessionData?.events?.map((e: HighlightEvent, i: number) => {
-                    return { ...e, identifier: i.toString() };
-                }) ?? [];
-            let r = new Replayer(newEvents, {
-                root: document.getElementById('player') as HTMLElement,
-            });
-            setEvents(newEvents);
-            setReplayer(r);
-            setReplayerState(ReplayerState.Loaded);
-            r.getTimeOffset();
-        }
-    }, [sessionData]);
-
-    if (sessionError) {
-        return <p>{sessionError.toString()}</p>;
-    }
-
     const isReplayerReady =
-        replayerState === ReplayerState.Loaded &&
-        replayerScale !== 1 &&
-        !sessionLoading;
+        replayerState !== ReplayerState.Loading && replayerScale !== 1;
 
     return (
-        <ReplayerContext.Provider
-            value={{
-                replayer,
-                state: replayerState,
-                time,
-                setTime,
-                scale: replayerScale,
-                setScale: setReplayerScale,
-            }}
-        >
+        <ReplayerContext.Provider value={player}>
             <div className={styles.playerBody}>
                 <div className={styles.playerLeftSection}>
                     <div className={styles.rrwebPlayerSection}>
@@ -176,24 +128,20 @@ export const Player = () => {
                         </div>
                     </div>
                     <Toolbar
-                        onSelect={(newTime: number) => {
-                            replayer?.pause(newTime);
-                            setTime(newTime);
-                        }}
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
                 </div>
                 <div className={styles.playerRightSection}>
                     <MetadataBox />
-                    <EventStream events={events} />{' '}
+                    <EventStream />
                 </div>
             </div>
         </ReplayerContext.Provider>
     );
 };
 
-const EventStream = ({ events }: { events: HighlightEvent[] }) => {
-    const { replayer, time } = useContext(ReplayerContext);
+const EventStream = () => {
+    const { replayer, time, events } = useContext(ReplayerContext);
     const [currEvent, setCurrEvent] = useState('');
     const [loadingMap, setLoadingMap] = useState(true);
     const [staticMap, setStaticMap] = useState<StaticMap | undefined>(
@@ -218,18 +166,10 @@ const EventStream = ({ events }: { events: HighlightEvent[] }) => {
             const event = e as HighlightEvent;
             if (usefulEvent(event)) {
                 setCurrEvent(event.identifier);
-                scroller.scrollTo(
-                    (event as HighlightEvent).identifier.toString(),
-                    {
-                        smooth: true,
-                        containerId: 'wrapper',
-                        spy: true,
-                        offset: -150,
-                    }
-                );
             }
         });
     }, [replayer, time]);
+
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>

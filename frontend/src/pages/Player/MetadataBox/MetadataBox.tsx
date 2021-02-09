@@ -76,8 +76,9 @@ export const MetadataBox = () => {
                                             : styles.tagWrapper
                                     }
                                 >
-                                    {parsedFields?.map((f) => (
+                                    {parsedFields?.map((f, i) => (
                                         <Tag
+                                            key={i.toString()}
                                             color="#F2EEFB"
                                             style={{
                                                 marginTop: '3px',
