@@ -206,7 +206,7 @@ const EventStream = () => {
 
     useEffect(() => {
         scrollFunction(currEvent, usefulEvents);
-    }, [currEvent]);
+    }, [currEvent, scrollFunction, usefulEvents]);
 
     return (
         <>
