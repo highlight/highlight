@@ -24,7 +24,7 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import { usePlayer } from './PlayerHook/PlayerHook';
-import { Virtuoso } from 'react-virtuoso';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
@@ -148,6 +148,7 @@ const EventStream = () => {
     const [staticMap, setStaticMap] = useState<StaticMap | undefined>(
         undefined
     );
+    const virtuoso = useRef<VirtuosoHandle>(null);
 
     useEffect(() => {
         if (events.length) {
@@ -173,6 +174,22 @@ const EventStream = () => {
 
     const usefulEvents = useMemo(() => events.filter(usefulEvent), [events]);
 
+    useEffect(() => {
+        if (virtuoso.current) {
+            const matchingEventIndex = usefulEvents.findIndex(
+                (event) => event.identifier === currEvent
+            );
+
+            if (matchingEventIndex > -1) {
+                virtuoso.current.scrollToIndex({
+                    index: matchingEventIndex,
+                    align: 'center',
+                    behavior: 'smooth',
+                });
+            }
+        }
+    }, [currEvent]);
+
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
@@ -190,6 +207,7 @@ const EventStream = () => {
                 ) : (
                     replayer && (
                         <Virtuoso
+                            ref={virtuoso}
                             data={usefulEvents}
                             itemContent={(index, event) => (
                                 <StreamElement
