@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useContext, useMemo } from 'react';
+import React, {
+    useState,
+    useEffect,
+    useContext,
+    useMemo,
+    useRef,
+    useCallback,
+} from 'react';
 import { useParams } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 import { Option, DevToolsSelect } from '../Option/Option';
@@ -10,7 +17,13 @@ import { DemoContext } from '../../../../../DemoContext';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import ReplayerContext from '../../../ReplayerContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
-import { Virtuoso } from 'react-virtuoso';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import _ from 'lodash';
+
+interface ParsedMessage extends ConsoleMessage {
+    selected?: boolean;
+    id: number;
+}
 
 export const ConsolePage = ({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
@@ -18,7 +31,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
     const { demo } = useContext(DemoContext);
     const { pause, replayer } = useContext(ReplayerContext);
     const [parsedMessages, setParsedMessages] = useState<
-        undefined | Array<ConsoleMessage & { selected?: boolean; id: number }>
+        undefined | Array<ParsedMessage>
     >([]);
     const [consoleType, setConsoleType] = useState<string>('All');
     const { session_id } = useParams<{ session_id: string }>();
@@ -30,6 +43,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
         },
         context: { headers: { 'Highlight-Demo': demo } },
     });
+    const virtuoso = useRef<VirtuosoHandle>(null);
 
     const rawMessages = data?.messages;
 
@@ -82,6 +96,23 @@ export const ConsolePage = ({ time }: { time: number }) => {
         [currentMessages]
     );
 
+    const scrollFunction = useCallback(
+        _.debounce((index: number) => {
+            if (virtuoso.current) {
+                virtuoso.current.scrollToIndex({
+                    index,
+                    align: 'center',
+                    behavior: 'smooth',
+                });
+            }
+        }, 1000 / 60),
+        []
+    );
+
+    useEffect(() => {
+        scrollFunction(currentMessage);
+    }, [scrollFunction, currentMessage]);
+
     return (
         <div className={styles.consolePageWrapper}>
             <div className={devStyles.topBar}>
@@ -109,6 +140,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                     </div>
                 ) : currentMessages?.length ? (
                     <Virtuoso
+                        ref={virtuoso}
                         overscan={500}
                         data={messagesToRender}
                         itemContent={(_index, message) => (
