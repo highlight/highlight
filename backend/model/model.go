@@ -263,7 +263,6 @@ func SetupDB() *gorm.DB {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	//DB.LogMode(true)
 	DB.AutoMigrate(
 		&RecordingSettings{},
 		&MessagesObject{},
