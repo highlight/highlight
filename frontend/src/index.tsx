@@ -22,8 +22,6 @@ if (dev) {
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
 
-console.log('hey');
-
 ReactDOM.render(
     <React.StrictMode>
         <ApolloProvider client={client}>
