@@ -11,7 +11,6 @@ import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
 import { DemoContext } from './DemoContext';
 import { H, HighlightOptions } from 'highlight.run';
 import { DemoRouter } from './DemoRouter';
-import LogRocket from 'logrocket';
 import { SkeletonTheme } from 'react-loading-skeleton';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
@@ -22,7 +21,6 @@ if (dev) {
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
-LogRocket.init('vcbmdo/highlight');
 
 ReactDOM.render(
     <React.StrictMode>
