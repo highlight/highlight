@@ -343,6 +343,7 @@ export class Highlight {
             }
             var resources: Array<any> = [];
             if (!this.disableNetworkRecording) {
+                // get all resources that don't include 'api.highlight.run'
                 resources = performance
                     .getEntriesByType('resource')
                     .filter(
@@ -353,6 +354,7 @@ export class Highlight {
                             )
                     );
             }
+
             const resourcesString = JSON.stringify({ resources: resources });
             const messagesString = JSON.stringify({ messages: this.messages });
             const errorsString = ErrorStringify({ errors: this.errors });
