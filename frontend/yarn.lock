@@ -7345,10 +7345,10 @@ hex-color-regex@^1.1.0:
   resolved "https://registry.yarnpkg.com/hex-color-regex/-/hex-color-regex-1.1.0.tgz#4c06fccb4602fe2602b3c93df82d7e7dbf1a8a8e"
   integrity sha512-l9sfDFsuqtOqKDsQdqrMRk0U85RZc0RtOR9yPI7mRVOa4FsR/BVnZ0shmQRM96Ji99kYZP/7hn1cedc1+ApsTQ==
 
-highlight.run@^1.0.60:
-  version "1.0.60"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.60.tgz#b8d1a7a32f072e55eb12b9ca6190665c6fafa98f"
-  integrity sha512-rV9g4IYySnW0y685HT2ZyTquc4Xu9k2MpXtw/+Oa/vPY8RqJwr+KR3tCGfa3ra/0hDF2rTUeU4GgO3MRvPvMpw==
+highlight.run@^1.0.61:
+  version "1.0.61"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.61.tgz#3f78b41749c5c3b33a5794002078059c2ac3176c"
+  integrity sha512-WJxJIEZJNu8nAKWixZpFlP9c+BvGUuZxOWZfaNGcFxysWTCv1MV3rhl790xZNj1EDp9Kdt1JQgcKP+ohlnYalA==
 
 history@^4.9.0:
   version "4.10.1"
