@@ -109,6 +109,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                     </div>
                 ) : currentMessages?.length ? (
                     <Virtuoso
+                        overscan={500}
                         data={messagesToRender}
                         itemContent={(_index, message) => (
                             <div key={message.id.toString()}>

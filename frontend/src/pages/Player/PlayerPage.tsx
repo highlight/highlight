@@ -227,6 +227,7 @@ const EventStream = () => {
                         <Virtuoso
                             ref={virtuoso}
                             data={usefulEvents}
+                            overscan={500}
                             itemContent={(index, event) => (
                                 <StreamElement
                                     e={event}

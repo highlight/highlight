@@ -165,6 +165,7 @@ export const ResourcePage = ({
                             className={styles.networkStreamWrapper}
                         >
                             <Virtuoso
+                                overscan={500}
                                 data={currentResources}
                                 itemContent={(index, resource) => (
                                     <ResourceRow
