@@ -1,4 +1,11 @@
-import React, { useState, useRef, useEffect, useContext, useMemo } from 'react';
+import React, {
+    useState,
+    useRef,
+    useEffect,
+    useContext,
+    useMemo,
+    useCallback,
+} from 'react';
 import { useParams } from 'react-router-dom';
 import {
     Replayer,
@@ -25,6 +32,7 @@ import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import { usePlayer } from './PlayerHook/PlayerHook';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import _ from 'lodash';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
@@ -174,20 +182,30 @@ const EventStream = () => {
 
     const usefulEvents = useMemo(() => events.filter(usefulEvent), [events]);
 
-    useEffect(() => {
-        if (virtuoso.current) {
-            const matchingEventIndex = usefulEvents.findIndex(
-                (event) => event.identifier === currEvent
-            );
+    const scrollFunction = useCallback(
+        _.debounce(
+            (currentEventId: string, usefulEventsList: HighlightEvent[]) => {
+                if (virtuoso.current) {
+                    const matchingEventIndex = usefulEventsList.findIndex(
+                        (event) => event.identifier === currentEventId
+                    );
 
-            if (matchingEventIndex > -1) {
-                virtuoso.current.scrollToIndex({
-                    index: matchingEventIndex,
-                    align: 'center',
-                    behavior: 'smooth',
-                });
-            }
-        }
+                    if (matchingEventIndex > -1) {
+                        virtuoso.current.scrollToIndex({
+                            index: matchingEventIndex,
+                            align: 'center',
+                            behavior: 'smooth',
+                        });
+                    }
+                }
+            },
+            1000 / 60
+        ),
+        []
+    );
+
+    useEffect(() => {
+        scrollFunction(currEvent, usefulEvents);
     }, [currEvent]);
 
     return (
