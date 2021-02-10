@@ -58,6 +58,7 @@
         "react-spinners": "^0.9.0",
         "react-spinners-kit": "^1.9.1",
         "react-use-dimensions": "^1.2.1",
+        "react-virtuoso": "^1.5.4",
         "rrweb-snapshot": "^0.8.2",
         "stripe": "^8.128.0",
         "typescript": "^3.9.7",

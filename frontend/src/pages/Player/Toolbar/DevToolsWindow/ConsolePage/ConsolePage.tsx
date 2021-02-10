@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, {
+    useState,
+    useEffect,
+    useContext,
+    useMemo,
+    useRef,
+    useCallback,
+} from 'react';
 import { useParams } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
 import { Option, DevToolsSelect } from '../Option/Option';
@@ -10,6 +17,13 @@ import { DemoContext } from '../../../../../DemoContext';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import ReplayerContext from '../../../ReplayerContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import _ from 'lodash';
+
+interface ParsedMessage extends ConsoleMessage {
+    selected?: boolean;
+    id: number;
+}
 
 export const ConsolePage = ({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
@@ -17,7 +31,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
     const { demo } = useContext(DemoContext);
     const { pause, replayer } = useContext(ReplayerContext);
     const [parsedMessages, setParsedMessages] = useState<
-        undefined | Array<ConsoleMessage & { selected?: boolean; id: number }>
+        undefined | Array<ParsedMessage>
     >([]);
     const [consoleType, setConsoleType] = useState<string>('All');
     const { session_id } = useParams<{ session_id: string }>();
@@ -29,6 +43,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
         },
         context: { headers: { 'Highlight-Demo': demo } },
     });
+    const virtuoso = useRef<VirtuosoHandle>(null);
 
     const rawMessages = data?.messages;
 
@@ -76,6 +91,28 @@ export const ConsolePage = ({ time }: { time: number }) => {
         return false;
     });
 
+    const messagesToRender = useMemo(
+        () => currentMessages?.filter((message) => message?.value.length) || [],
+        [currentMessages]
+    );
+
+    const scrollFunction = useCallback(
+        _.debounce((index: number) => {
+            if (virtuoso.current) {
+                virtuoso.current.scrollToIndex({
+                    index,
+                    align: 'center',
+                    behavior: 'smooth',
+                });
+            }
+        }, 1000 / 60),
+        []
+    );
+
+    useEffect(() => {
+        scrollFunction(currentMessage);
+    }, [scrollFunction, currentMessage]);
+
     return (
         <div className={styles.consolePageWrapper}>
             <div className={devStyles.topBar}>
@@ -102,59 +139,58 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         />
                     </div>
                 ) : currentMessages?.length ? (
-                    currentMessages
-                        .filter((m) => m.value && m.value.length)
-                        .map((m) => {
-                            return (
-                                <div key={m.id.toString()}>
+                    <Virtuoso
+                        ref={virtuoso}
+                        overscan={500}
+                        data={messagesToRender}
+                        itemContent={(_index, message) => (
+                            <div key={message.id.toString()}>
+                                <div
+                                    className={styles.consoleMessage}
+                                    style={{
+                                        color:
+                                            message.id === currentMessage
+                                                ? 'black'
+                                                : 'grey',
+                                        fontWeight:
+                                            message.id === currentMessage
+                                                ? 400
+                                                : 300,
+                                    }}
+                                >
                                     <div
-                                        className={styles.consoleMessage}
+                                        className={
+                                            styles.currentIndicatorWrapper
+                                        }
                                         style={{
-                                            color:
-                                                m.id === currentMessage
-                                                    ? 'black'
-                                                    : 'grey',
-                                            fontWeight:
-                                                m.id === currentMessage
-                                                    ? 400
-                                                    : 300,
+                                            visibility:
+                                                message.id === currentMessage
+                                                    ? 'visible'
+                                                    : 'hidden',
                                         }}
                                     >
                                         <div
-                                            className={
-                                                styles.currentIndicatorWrapper
-                                            }
-                                            style={{
-                                                visibility:
-                                                    m.id === currentMessage
-                                                        ? 'visible'
-                                                        : 'hidden',
-                                            }}
-                                        >
-                                            <div
-                                                className={
-                                                    styles.currentIndicator
-                                                }
-                                            />
-                                        </div>
-                                        <div className={styles.messageText}>
-                                            {typeof m.value === 'string' &&
-                                                m.value}
-                                        </div>
-                                        <GoToButton
-                                            className={styles.goToButton}
-                                            onClick={() => {
-                                                pause(
-                                                    m.time -
-                                                        (replayer?.getMetaData()
-                                                            .startTime ?? 0)
-                                                );
-                                            }}
+                                            className={styles.currentIndicator}
                                         />
                                     </div>
+                                    <div className={styles.messageText}>
+                                        {typeof message.value === 'string' &&
+                                            message.value}
+                                    </div>
+                                    <GoToButton
+                                        className={styles.goToButton}
+                                        onClick={() => {
+                                            pause(
+                                                message.time -
+                                                    (replayer?.getMetaData()
+                                                        .startTime ?? 0)
+                                            );
+                                        }}
+                                    />
                                 </div>
-                            );
-                        })
+                            </div>
+                        )}
+                    />
                 ) : (
                     <div className={devStyles.emptySection}>
                         No logs for this section.

@@ -1,4 +1,11 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, {
+    useState,
+    useRef,
+    useEffect,
+    useContext,
+    useMemo,
+    useCallback,
+} from 'react';
 import { useParams } from 'react-router-dom';
 import {
     Replayer,
@@ -24,6 +31,8 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import { usePlayer } from './PlayerHook/PlayerHook';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import _ from 'lodash';
 
 export const Player = () => {
     var { session_id } = useParams<{ session_id: string }>();
@@ -147,6 +156,7 @@ const EventStream = () => {
     const [staticMap, setStaticMap] = useState<StaticMap | undefined>(
         undefined
     );
+    const virtuoso = useRef<VirtuosoHandle>(null);
 
     useEffect(() => {
         if (events.length) {
@@ -168,35 +178,73 @@ const EventStream = () => {
                 setCurrEvent(event.identifier);
             }
         });
-    }, [replayer, time]);
+    }, [replayer]);
+
+    const usefulEvents = useMemo(() => events.filter(usefulEvent), [events]);
+
+    const scrollFunction = useCallback(
+        _.debounce(
+            (currentEventId: string, usefulEventsList: HighlightEvent[]) => {
+                if (virtuoso.current) {
+                    const matchingEventIndex = usefulEventsList.findIndex(
+                        (event) => event.identifier === currentEventId
+                    );
+
+                    if (matchingEventIndex > -1) {
+                        virtuoso.current.scrollToIndex({
+                            index: matchingEventIndex,
+                            align: 'center',
+                            behavior: 'smooth',
+                        });
+                    }
+                }
+            },
+            1000 / 60
+        ),
+        []
+    );
+
+    useEffect(() => {
+        scrollFunction(currEvent, usefulEvents);
+    }, [currEvent, scrollFunction, usefulEvents]);
 
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
                 {loadingMap || !events.length || !staticMap ? (
-                    <Skeleton
-                        count={4}
-                        height={35}
-                        style={{ marginTop: 8, marginBottom: 8 }}
-                    />
+                    <div className={styles.skeletonContainer}>
+                        <Skeleton
+                            count={4}
+                            height={35}
+                            style={{
+                                marginTop: 8,
+                                marginBottom: 8,
+                            }}
+                        />
+                    </div>
                 ) : (
-                    replayer &&
-                    events
-                        .filter(usefulEvent)
-                        .map((e: HighlightEvent, i: number) => (
-                            <StreamElement
-                                e={e}
-                                key={i}
-                                start={replayer.getMetaData().startTime}
-                                isCurrent={
-                                    e.timestamp -
-                                        replayer.getMetaData().startTime ===
-                                        time || e.identifier === currEvent
-                                }
-                                onGoToHandler={setCurrEvent}
-                                nodeMap={staticMap}
-                            />
-                        ))
+                    replayer && (
+                        <Virtuoso
+                            ref={virtuoso}
+                            data={usefulEvents}
+                            overscan={500}
+                            itemContent={(index, event) => (
+                                <StreamElement
+                                    e={event}
+                                    key={index}
+                                    start={replayer.getMetaData().startTime}
+                                    isCurrent={
+                                        event.timestamp -
+                                            replayer.getMetaData().startTime ===
+                                            time ||
+                                        event.identifier === currEvent
+                                    }
+                                    onGoToHandler={setCurrEvent}
+                                    nodeMap={staticMap}
+                                />
+                            )}
+                        />
+                    )
                 )}
             </div>
         </>
