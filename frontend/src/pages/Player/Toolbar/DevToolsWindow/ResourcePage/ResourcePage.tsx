@@ -16,7 +16,8 @@ import { DemoContext } from '../../../../../DemoContext';
 import GoToButton from '../../../../../components/Button/GoToButton';
 import ReplayerContext from '../../../ReplayerContext';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
-import { Virtuoso } from 'react-virtuoso';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import _ from 'lodash';
 
 export const ResourcePage = ({
     time,
@@ -45,6 +46,7 @@ export const ResourcePage = ({
         },
         context: { headers: { 'Highlight-Demo': demo } },
     });
+    const virtuoso = useRef<VirtuosoHandle>(null);
     const rawResources = data?.resources;
 
     useEffect(() => {
@@ -107,6 +109,23 @@ export const ResourcePage = ({
         }
     }, [currentResources, startTime, time, currentResource]);
 
+    const scrollFunction = useCallback(
+        _.debounce((index: number) => {
+            if (virtuoso.current) {
+                virtuoso.current.scrollToIndex({
+                    index,
+                    align: 'center',
+                    behavior: 'smooth',
+                });
+            }
+        }, 1000 / 60),
+        []
+    );
+
+    useEffect(() => {
+        scrollFunction(currentResource);
+    }, [currentResource, scrollFunction]);
+
     return (
         <>
             <div className={devStyles.topBar}>
@@ -165,6 +184,7 @@ export const ResourcePage = ({
                             className={styles.networkStreamWrapper}
                         >
                             <Virtuoso
+                                ref={virtuoso}
                                 overscan={500}
                                 data={currentResources}
                                 itemContent={(index, resource) => (
