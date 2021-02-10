@@ -5,7 +5,11 @@ import { DemoContext } from '../../../DemoContext';
 import { useGetEventsQuery } from '../../../graph/generated/hooks';
 import { HighlightEvent } from '../HighlightEvent';
 
-import { ReplayerContextInterface, ReplayerState } from '../ReplayerContext';
+import {
+    ReplayerContextInterface,
+    ReplayerState,
+    SessionInterval,
+} from '../ReplayerContext';
 
 export const usePlayer = ({
     refId,
@@ -19,6 +23,9 @@ export const usePlayer = ({
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
     const [time, setTime] = useState<number>(0);
+    const [sessionIntervals, setSessionIntervals] = useState<
+        Array<SessionInterval>
+    >([]);
 
     const { demo } = useContext(DemoContext);
 
@@ -42,6 +49,15 @@ export const usePlayer = ({
             let r = new Replayer(newEvents, {
                 root: document.getElementById('player') as HTMLElement,
             });
+            // Preprocess and logic for player length with inactive sessions
+            let metadata = r.getMetaData();
+            let intervals = r.getActivityIntervals().map((e) => ({
+                ...e,
+                startTime: e.startTime - metadata.startTime,
+                endTime: e.endTime - metadata.startTime,
+                duration: e.endTime - e.startTime,
+            }));
+            setSessionIntervals(intervals);
             setEvents(newEvents);
             setReplayer(r);
             setState(ReplayerState.LoadedAndUntouched);
@@ -101,6 +117,7 @@ export const usePlayer = ({
         setScale,
         time,
         setTime: setTimeHandler,
+        sessionIntervals,
         replayer,
         state,
         events,
