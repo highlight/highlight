@@ -466,7 +466,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	queriedSessions := []model.Session{}
 
 	queryString := `SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,  
-	browser_version, city, state, postal, identifier, created_at, deleted_at length, user_object, viewed 
+	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed 
 	FROM (SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,  
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds 
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
