@@ -448,10 +448,10 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 
 	for _, prop := range params.ExcludedProperties {
 		if prop.Name == "contains" {
-			notFieldQuery = notFieldQuery.Where("name = 'identifier' AND value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+			notFieldQuery = notFieldQuery.Or("name = 'identifier' AND value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
 			notFieldQuery = notFieldQuery.Or("name = 'name' AND value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
 		} else {
-			notFieldQuery = notFieldQuery.Where("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
 		}
 	}
 
