@@ -495,7 +495,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	}
 
 	if os := params.Os; os != nil {
-		queryString += fmt.Sprintf("AND (os_name = %s) ", *os)
+		queryString += fmt.Sprintf("AND (os_name = '%s') ", *os)
 	}
 
 	if identified := params.Identified; identified != nil && *identified {
@@ -507,7 +507,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	}
 
 	if browser := params.Browser; browser != nil {
-		queryString += fmt.Sprintf("AND (browser_name = %s) ", *browser)
+		queryString += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
 	}
 
 	queryString += "ORDER BY created_at DESC"
