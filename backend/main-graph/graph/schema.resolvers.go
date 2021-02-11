@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
@@ -407,89 +408,10 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 }
 
 func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
-	// Find fields based on the search params
-	//included fields
-	fieldIds := []int{}
-	fieldQuery := r.DB.Model(&model.Field{})
-
-	for _, prop := range params.UserProperties {
-		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
-		}
-	}
-
-	for _, prop := range params.TrackProperties {
-		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
-		} else {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
-		}
-	}
-
-	if params.VisitedURL != nil {
-		fieldQuery = fieldQuery.Or("name = ? and value ILIKE ?", "visited-url", "%"+*params.VisitedURL+"%")
-	}
-
-	if params.Referrer != nil {
-		fieldQuery = fieldQuery.Or("name = ? and value ILIKE ?", "visited-url", "%"+*params.Referrer+"%")
-	}
-
-	if len(params.UserProperties)+len(params.TrackProperties) > 0 || params.Referrer != nil || params.VisitedURL != nil {
-		if err := fieldQuery.Pluck("id", &fieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying initial set of session fields")
-		}
-	}
-
-	//excluded fields
-	notFieldIds := []int{}
-	notFieldQuery := r.DB.Model(&model.Field{})
-
-	for _, prop := range params.ExcludedProperties {
-		if prop.Name == "contains" {
-			notFieldQuery = notFieldQuery.Or("name = 'identifier' AND value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-			notFieldQuery = notFieldQuery.Or("name = 'name' AND value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else {
-			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
-		}
-	}
-
-	//pluck not field ids
-	if len(params.ExcludedProperties) > 0 {
-		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying initial set of excluded sessions fields")
-		}
-	}
-
-	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
-
-	query := r.DB.Raw("SELECT id, created_at, updated_at, deleted_at, user_id, identifier, "+
-		"organization_id, details, status, processed, length, user_object, payload_updated_at, "+
-		"city, state, postal, latitude, longitude, os_name, os_version, browser_name, browser_version, "+
-		"viewed, language "+
-		"FROM (SELECT id, created_at, updated_at, deleted_at, user_id, identifier, "+
-		"organization_id, details, status, processed, length, user_object, payload_updated_at, "+
-		"city, state, postal, latitude, longitude, os_name, os_version, browser_name, browser_version, "+
-		"viewed, language, array_agg(t.field_id) fields "+
-		"FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows "+
-		"WHERE (organization_id = ?", organizationID)
-
-	if len(fieldIds) > 0 {
-		for _, id := range fieldIds {
-			query = query.Where("fields @> ARRAY[?]::int[]", id)
-		}
-	}
-
-	if len(notFieldIds) > 0 {
-		for _, id := range notFieldIds {
-			query = query.Where("NOT fields @> ARRAY[?]::int[]", id)
-		}
-	}
-
-	query = query.Where("processed = ?", true).
-		Where("length > ?)", 1000).
+	query := r.DB.Where("organization_id = ?", organizationID).
+		Where("processed = ?", true).
+		Where("length > ?", 1000).
 		Order("created_at desc")
 
 	if d := params.DateRange; d != nil {
@@ -512,17 +434,86 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		query = query.Where("browser_name = ?", browser)
 	}
 
-	if err := query.Scan(&queriedSessions).Error; err != nil {
-		return nil, e.Wrap(err, "error querying filtered sessions")
+	if err := query.Preload("Fields").Find(&queriedSessions).Error; err != nil {
+		return nil, e.Wrap(err, "error querying initial set of sessions")
 	}
 
-	if len(queriedSessions) < count {
-		count = len(queriedSessions)
+	// Find sessions that have all the specified user properties.
+	sessions := []model.Session{}
+	for _, session := range queriedSessions {
+		passed := 0
+		excluded := 0
+		tracked := 0
+		for _, prop := range params.UserProperties {
+			for _, field := range session.Fields {
+				if (prop.Name == field.Name || prop.Name == "contains") && strings.Contains(field.Value, prop.Value) {
+					passed++
+				}
+			}
+		}
+		for _, prop := range params.ExcludedProperties {
+			if prop.Name == "contains" {
+				all := true
+				for _, field := range session.Fields {
+					if strings.Contains(field.Value, prop.Value) {
+						all = false
+					}
+				}
+				if all {
+					excluded++
+				}
+			} else {
+				for _, field := range session.Fields {
+					if prop.Name == field.Name && field.Value != prop.Value {
+						excluded++
+					}
+				}
+			}
+		}
+		for _, prop := range params.TrackProperties {
+			for _, field := range session.Fields {
+				if (prop.Name == field.Name || prop.Name == "contains") && strings.Contains(field.Value, prop.Value) {
+					tracked++
+				}
+			}
+		}
+		if passed == len(params.UserProperties) && excluded == len(params.ExcludedProperties) && tracked == len(params.TrackProperties) {
+			sessions = append(sessions, session)
+		}
 	}
 
+	// Find session that have the visited url.
+	if params.VisitedURL != nil {
+		visitedSessions := []model.Session{}
+		for _, session := range sessions {
+			for _, field := range session.Fields {
+				if field.Name == "visited-url" && strings.Contains(field.Value, *params.VisitedURL) {
+					visitedSessions = append(visitedSessions, session)
+				}
+			}
+		}
+		sessions = visitedSessions
+	}
+
+	// Find session that have the referrer.
+	if params.Referrer != nil {
+		referredSessions := []model.Session{}
+		for _, session := range sessions {
+			for _, field := range session.Fields {
+				if field.Name == "referrer" && strings.Contains(field.Value, *params.Referrer) {
+					referredSessions = append(referredSessions, session)
+				}
+			}
+		}
+		sessions = referredSessions
+	}
+
+	if len(sessions) < count {
+		count = len(sessions)
+	}
 	sessionList := &model.SessionResults{
-		Sessions:   queriedSessions[:count],
-		TotalCount: len(queriedSessions),
+		Sessions:   sessions[:count],
+		TotalCount: len(sessions),
 	}
 	return sessionList, nil
 }
