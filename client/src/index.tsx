@@ -55,6 +55,7 @@ export class Highlight {
     sessionID: number;
     ready: boolean;
     logger: Logger;
+    debug: boolean | undefined;
     disableNetworkRecording: boolean | undefined;
     disableConsoleRecording: boolean | undefined;
     enableSegmentIntegration: boolean | undefined;
@@ -62,6 +63,7 @@ export class Highlight {
     constructor(options: HighlightClassOptions) {
         // If debug is set to false, disable all console logs.
         this.ready = false;
+        this.debug = options.debug;
         this.disableNetworkRecording = options.disableNetworkRecording;
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;

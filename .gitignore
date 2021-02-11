@@ -4,4 +4,6 @@ tmp
 dist
 out
 
+.yalc
+yalc.lock
 

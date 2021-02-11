@@ -33,8 +33,8 @@ module.exports = {
         // NOTE: Only enable for experimenting with a dev version of rrweb.
         // The second argument to path.resolve() should be the path to the dist folder in rrweb.
         // alias: {
-        //   "@highlight-run/rrweb": path.resolve(__dirname, "../../rrweb/dist"),
-        // }
+        //     '@highlight-run/rrweb': path.resolve(__dirname, '../../rrweb/dist'),
+        // },
     },
     mode: 'development',
     devtool: 'source-map',
