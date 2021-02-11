@@ -14,7 +14,6 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -517,14 +516,9 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		return nil, e.Wrap(err, "error querying filtered sessions")
 	}
 
-	if len(queriedSessions) > 0 {
-		pp.Println(queriedSessions[0])
-	}
-
 	if len(queriedSessions) < count {
 		count = len(queriedSessions)
 	}
-
 	sessionList := &model.SessionResults{
 		Sessions:   queriedSessions[:count],
 		TotalCount: len(queriedSessions),
