@@ -465,16 +465,13 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
-	query := r.DB.Raw("SELECT id, created_at, updated_at, deleted_at, user_id, identifier, "+
-		"organization_id, details, status, processed, length, user_object, payload_updated_at, "+
-		"city, state, postal, latitude, longitude, os_name, os_version, browser_name, browser_version, "+
-		"viewed, language "+
-		"FROM (SELECT id, created_at, updated_at, deleted_at, user_id, identifier, "+
-		"organization_id, details, status, processed, length, user_object, payload_updated_at, "+
-		"city, state, postal, latitude, longitude, os_name, os_version, browser_name, browser_version, "+
-		"viewed, language, array_agg(t.field_id) fields "+
-		"FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows "+
-		"WHERE (organization_id = ?", organizationID)
+	queryString := `SELECT id, user_id, os_name, os_version, broswer_name, browser_version, city, 
+	state, postal, identifier, created_at, length, user_object, fields, viewed 
+	FROM (SELECT id, user_id, os_name, os_version, broswer_name, browser_version, city, 
+	state, postal, identifier, created_at, length, user_object, fields, viewed, array_agg(t.field_id) fieldIds 
+	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows`
+
+	//WHERE (organization_id = ?) AND (length > ?", organizationID, 1000)
 
 	if len(fieldIds) > 0 {
 		for _, id := range fieldIds {
@@ -489,7 +486,6 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	}
 
 	query = query.Where("processed = ?", true).
-		Where("length > ?)", 1000).
 		Order("created_at desc")
 
 	if d := params.DateRange; d != nil {
@@ -512,7 +508,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		query = query.Where("browser_name = ?", browser)
 	}
 
-	if err := query.Scan(&queriedSessions).Error; err != nil {
+	if err := r.DB.Raw(queryString).Scan(&queriedSessions).Error; err != nil {
 		return nil, e.Wrap(err, "error querying filtered sessions")
 	}
 
