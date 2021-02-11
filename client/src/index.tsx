@@ -12,7 +12,7 @@ import {
 } from '../../frontend/src/util/shared-types';
 import { TabStateListener } from './listeners/tab-state-listener';
 import { ViewportResizeListener } from './listeners/viewport-resize-listener';
-import { SegmentIntegrationListener } from 'listeners/segment-integration-listener';
+import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
