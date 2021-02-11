@@ -14,6 +14,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -465,51 +466,59 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
-	queryString := `SELECT id, user_id, os_name, os_version, broswer_name, browser_version, city, 
-	state, postal, identifier, created_at, length, user_object, fields, viewed 
-	FROM (SELECT id, user_id, os_name, os_version, broswer_name, browser_version, city, 
-	state, postal, identifier, created_at, length, user_object, fields, viewed, array_agg(t.field_id) fieldIds 
-	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows`
+	queryString := `SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,  
+	browser_version, city, state, postal, identifier, created_at, deleted_at length, user_object, viewed 
+	FROM (SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,  
+	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds 
+	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
 	//WHERE (organization_id = ?) AND (length > ?", organizationID, 1000)
+	//query = query.Where("processed = ?", true).Order("created_at desc")
+	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
+	queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+	queryString += "AND (processed = true) "
+	queryString += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
 		for _, id := range fieldIds {
-			query = query.Where("fields @> ARRAY[?]::int[]", id)
+			queryString += fmt.Sprintf("AND (fieldIds @> ARRAY[%d]::int[]) ", id)
 		}
 	}
 
 	if len(notFieldIds) > 0 {
 		for _, id := range notFieldIds {
-			query = query.Where("NOT fields @> ARRAY[?]::int[]", id)
+			queryString += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
 		}
 	}
 
-	query = query.Where("processed = ?", true).
-		Order("created_at desc")
-
 	if d := params.DateRange; d != nil {
-		query = query.Where("created_at > ? and created_at < ?", d.StartDate, d.EndDate)
+		queryString += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
 	}
 
 	if os := params.Os; os != nil {
-		query = query.Where("os_name = ?", os)
+		queryString += fmt.Sprintf("AND (os_name = %s) ", os)
 	}
 
 	if identified := params.Identified; identified != nil && *identified {
-		query = query.Where("length(identifier) > ?", 0)
+		queryString += "AND (length(identifier) > 0) "
 	}
 
 	if viewed := params.HideViewed; viewed != nil && *viewed {
-		query = query.Where("viewed = ?", false)
+		queryString += "AND (viewed = false) "
 	}
 
 	if browser := params.Browser; browser != nil {
-		query = query.Where("browser_name = ?", browser)
+		queryString += fmt.Sprintf("AND (browser_name = %s) ", *browser)
 	}
+
+	queryString += "ORDER BY created_at DESC"
 
 	if err := r.DB.Raw(queryString).Scan(&queriedSessions).Error; err != nil {
 		return nil, e.Wrap(err, "error querying filtered sessions")
+	}
+
+	if len(queriedSessions) > 0 {
+		pp.Println(queriedSessions[0])
 	}
 
 	if len(queriedSessions) < count {
