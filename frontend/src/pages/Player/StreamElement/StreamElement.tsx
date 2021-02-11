@@ -7,6 +7,9 @@ import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
 import { ReactComponent as NavigateIcon } from '../../../static/navigate.svg';
 import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
+import { ReactComponent as IdentifyIcon } from '../../../static/identify.svg';
+import { ReactComponent as TrackIcon } from '../../../static/track.svg';
+import { ReactComponent as TabIcon } from '../../../static/tab.svg';
 import { HighlightEvent } from '../HighlightEvent';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { mouseInteractionData } from '@highlight-run/rrweb/typings/types';
@@ -65,16 +68,20 @@ export const StreamElement = ({
                             <DownIcon className={styles.directionIcon} />
                         ) : details.title === 'Click' ? (
                             <PointerIcon className={styles.tiltedIcon} />
-                        ) : details.title === 'Segment' ? (
+                        ) : details.title?.includes('Segment') ? (
                             <SegmentIcon className={styles.defaultIcon} />
                         ) : details.title === 'Navigate' ? (
                             <NavigateIcon className={styles.defaultIcon} />
+                        ) : details.title === 'Track' ? (
+                            <TrackIcon className={styles.defaultIcon} />
+                        ) : details.title === 'Identify' ? (
+                            <IdentifyIcon className={styles.defaultIcon} />
                         ) : details.title === 'Reload' ? (
                             <ReloadIcon className={styles.defaultIcon} />
                         ) : details.title === 'Referrer' ? (
                             <ReferrerIcon className={styles.defaultIcon} />
                         ) : details.title === 'Tab' ? (
-                            <ReferrerIcon className={styles.defaultIcon} />
+                            <TabIcon className={styles.defaultIcon} />
                         ) : (
                             <HoverIcon className={styles.tiltedIcon} />
                         )}

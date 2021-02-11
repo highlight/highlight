@@ -12,6 +12,7 @@ import {
 } from '../../frontend/src/util/shared-types';
 import { TabStateListener } from './listeners/tab-state-listener';
 import { ViewportResizeListener } from './listeners/viewport-resize-listener';
+import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
@@ -34,6 +35,7 @@ export type HighlightClassOptions = {
     backendUrl?: string;
     disableNetworkRecording?: boolean;
     disableConsoleRecording?: boolean;
+    enableSegmentIntegration?: boolean;
 };
 
 type PropertyType = {
@@ -55,12 +57,14 @@ export class Highlight {
     logger: Logger;
     disableNetworkRecording: boolean | undefined;
     disableConsoleRecording: boolean | undefined;
+    enableSegmentIntegration: boolean | undefined;
 
     constructor(options: HighlightClassOptions) {
         // If debug is set to false, disable all console logs.
         this.ready = false;
         this.disableNetworkRecording = options.disableNetworkRecording;
         this.disableConsoleRecording = options.disableConsoleRecording;
+        this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.logger = new Logger(options.debug ?? false);
         const backend = options?.backendUrl
             ? options.backendUrl
@@ -262,17 +266,9 @@ export class Highlight {
                 emit,
             });
 
-            // TODO: probably get rid of this.
             const highlightThis = this;
-            var send = XMLHttpRequest.prototype.send;
-            XMLHttpRequest.prototype.send = function (data) {
-                setTimeout(() => {
-                    var obj: any;
-                    try {
-                        obj = JSON.parse(data?.toString() ?? '');
-                    } catch (e) {
-                        return;
-                    }
+            if (this.enableSegmentIntegration) {
+                SegmentIntegrationListener((obj: any) => {
                     if (obj.type === 'track') {
                         const properties: { [key: string]: string } = {};
                         properties['segment-event'] = obj.event;
@@ -287,9 +283,9 @@ export class Highlight {
                             'segment'
                         );
                     }
-                }, 100);
-                send.call(this, data);
-            };
+                });
+            }
+
             if (document.referrer) {
                 addCustomEvent<string>('Referrer', document.referrer);
                 highlightThis.addProperties(
