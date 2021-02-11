@@ -465,10 +465,14 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
-	query := r.DB.Raw("SELECT id, organization_id, processed, length, created_at, "+
-		"os_name, identifier, viewed, browser_name "+
-		"FROM (SELECT id, organization_id, processed, length, created_at, "+
-		"os_name, identifier, viewed, browser_name, array_agg(t.field_id) fields "+
+	query := r.DB.Raw("SELECT id, created_at, updated_at, deleted_at, user_id, identifier, "+
+		"organization_id, details, status, processed, length, user_object, payload_updated_at, "+
+		"city, state, postal, lattitude, longitude, os_name, os_version, browser_name, browser_version, "+
+		"viewed, language, "+
+		"FROM (SELECT id, created_at, updated_at, deleted_at, user_id, identifier, "+
+		"organization_id, details, status, processed, length, user_object, payload_updated_at, "+
+		"city, state, postal, lattitude, longitude, os_name, os_version, browser_name, browser_version, "+
+		"viewed, language, "+
 		"FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows "+
 		"WHERE (organization_id = ?", organizationID)
 
