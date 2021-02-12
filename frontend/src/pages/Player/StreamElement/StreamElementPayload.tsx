@@ -15,7 +15,7 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
     const validatorUrlOptions: validator.IsURLOptions = {
         require_host: false,
         allow_trailing_dot: true,
-        require_protocol: false,
+        require_protocol: true,
         require_tld: false,
     };
 
