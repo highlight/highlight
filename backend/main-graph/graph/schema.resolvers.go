@@ -462,6 +462,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		}
 	}
 
+	fmt.Println(fieldIds, notFieldIds)
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
@@ -479,9 +480,15 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
-		for _, id := range fieldIds {
-			queryString += fmt.Sprintf("AND (fieldIds @> ARRAY[%d]::int[]) ", id)
+		queryString += "AND ("
+		for idx, id := range fieldIds {
+			if idx == 0 {
+				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
+			} else {
+				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
+			}
 		}
+		queryString += ") "
 	}
 
 	if len(notFieldIds) > 0 {
