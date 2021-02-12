@@ -840,16 +840,15 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@highlight-run/rrweb@^0.9.16":
-  version "0.9.16"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.9.16.tgz#d921c9c72dfb66828055df15e2830fb15a975bc3"
-  integrity sha512-9gatLcd5tBXji2oFRfBDfwuEB93DhY4uSz1B1BBMJT0kHg/npBY9iY75izSD21kx1+sak6qU1iVXsNp/XpW/pA==
+"@highlight-run/rrweb@^0.9.20":
+  version "0.9.20"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.9.20.tgz#c696af345f12390fb0f0a26ac83de12152bc676a"
+  integrity sha512-mE/QSXly+CNHE2xZDuCNf4Z5UawI4NsODMpuDaksgQBKvzUKWTWsu8aQzBUHCRqkt3rzGmBL8xOASj5glfrIzQ==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
     fflate "^0.4.4"
     mitt "^1.1.3"
-    rrweb-snapshot "^1.0.3"
 
 "@types/color-name@^1.1.1":
   version "1.1.1"
@@ -4138,11 +4137,6 @@ rimraf@^2.6.3:
   integrity sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==
   dependencies:
     glob "^7.1.3"
-
-rrweb-snapshot@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/rrweb-snapshot/-/rrweb-snapshot-1.0.3.tgz#5904782fcc04cb092e32fc529b916137336a910d"
-  integrity sha512-trlsCGkqBaxwe7ty6QAgK0qtcueW7P3ruWyzauEW7imUQGL8WeKQTJMn8cPQOL3u4JGFl1YgvDJyNBzMoDEa8w==
 
 run-async@^2.4.0:
   version "2.4.1"
