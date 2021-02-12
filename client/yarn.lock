@@ -840,15 +840,16 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@highlight-run/rrweb@^0.9.20":
-  version "0.9.20"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.9.20.tgz#c696af345f12390fb0f0a26ac83de12152bc676a"
-  integrity sha512-mE/QSXly+CNHE2xZDuCNf4Z5UawI4NsODMpuDaksgQBKvzUKWTWsu8aQzBUHCRqkt3rzGmBL8xOASj5glfrIzQ==
+"@highlight-run/rrweb@0.9.16":
+  version "0.9.16"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.9.16.tgz#d921c9c72dfb66828055df15e2830fb15a975bc3"
+  integrity sha512-9gatLcd5tBXji2oFRfBDfwuEB93DhY4uSz1B1BBMJT0kHg/npBY9iY75izSD21kx1+sak6qU1iVXsNp/XpW/pA==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
     fflate "^0.4.4"
     mitt "^1.1.3"
+    rrweb-snapshot "^1.0.3"
 
 "@types/color-name@^1.1.1":
   version "1.1.1"
@@ -1067,9 +1068,9 @@
   integrity sha512-7RfnMXCpJ/NThrhq4gYQYILB18xWyoQcBey81oIyVbmgbc6m5ZHHyFK+DyH7pLHJf0p14MxL4mTsoPAgBSTpIg==
 
 "@xstate/fsm@^1.4.0":
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/@xstate/fsm/-/fsm-1.5.2.tgz#54c9cda644f3e8edefbd00b777e1fef5eb67955f"
-  integrity sha512-l2l7ztpLw/0EomJcvl86F8M6cLeMXhSEOtmI89fg34DbDMaatUKfiiAQpZpdcRqWHMjZYPAfC8EqmnHbmIlyEg==
+  version "1.6.0"
+  resolved "https://registry.yarnpkg.com/@xstate/fsm/-/fsm-1.6.0.tgz#589cefcef426d5bf3d654edbca89e84e3b637c5f"
+  integrity sha512-YJpzKLPxMBUUQCTkjIbicsax6svTbPz5ykTkotIaa3kOoTnBJ4CWfC0cSQuMg7FAsfV2XWOuEsFq0dbmY7NtXg==
 
 "@xtuc/ieee754@^1.2.0":
   version "1.2.0"
@@ -4137,6 +4138,11 @@ rimraf@^2.6.3:
   integrity sha512-uWjbaKIK3T1OSVptzX7Nl6PvQ3qAGtKEtVRjRuazjfL3Bx5eI409VZSqgND+4UNnmzLVdPj9FqFJNPqBZFve4w==
   dependencies:
     glob "^7.1.3"
+
+rrweb-snapshot@^1.0.3:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/rrweb-snapshot/-/rrweb-snapshot-1.0.6.tgz#2b1143d2e8b5bba54c54bd63e485cfc253763b8e"
+  integrity sha512-ctwaNjFnomNFe446gOcMusSzIxLUnF0kq6ev0iuKa1W1lhiVcBoRdfpE8zDDRKee2MxHxt0rq2T5DMKSIAD6fQ==
 
 run-async@^2.4.0:
   version "2.4.1"
