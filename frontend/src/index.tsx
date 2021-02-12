@@ -14,7 +14,10 @@ import { DemoRouter } from './DemoRouter';
 import { SkeletonTheme } from 'react-loading-skeleton';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
-const options: HighlightOptions = { debug: true, manualStart: true };
+const options: HighlightOptions = {
+    debug: { clientInteractions: true, domRecording: true },
+    manualStart: true,
+};
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
     options.backendUrl = 'http://localhost:8082';
