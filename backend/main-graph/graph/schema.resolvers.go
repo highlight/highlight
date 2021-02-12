@@ -447,7 +447,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		if err := fieldQuery.Pluck("id", &fieldIds).Error; err != nil {
 			return nil, e.Wrap(err, "error querying initial set of session fields")
 		}
-		if len(fieldIds) == 0{
+		if len(fieldIds) == 0 {
 			fieldCheck = false
 		}
 	}
