@@ -46,7 +46,7 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
                             <span className={styles.objectKey}>{key}</span>{' '}
                             <span className={styles.objectValue}>
                                 {validator.isURL(
-                                    object[key],
+                                    object[key].toString(),
                                     validatorUrlOptions
                                 ) ? (
                                     <a href={object[key]}>{object[key]}</a>

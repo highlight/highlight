@@ -119,7 +119,13 @@ export const StreamElement = ({
                 {selected ? (
                     <>
                         <div className={styles.codeBlockWrapperVerbose}>
-                            <StreamElementPayload payload={details.payload} />
+                            <StreamElementPayload
+                                payload={
+                                    typeof details.payload === 'object'
+                                        ? JSON.stringify(details.payload)
+                                        : details.payload
+                                }
+                            />
                         </div>
                         <GoToButton
                             className={styles.goToButton}
