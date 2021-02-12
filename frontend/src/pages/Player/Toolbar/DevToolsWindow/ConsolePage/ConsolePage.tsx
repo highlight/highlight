@@ -116,7 +116,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
         if (!isInteractingWithMessages) {
             scrollFunction(currentMessage);
         }
-    }, [scrollFunction, currentMessage]);
+    }, [scrollFunction, currentMessage, isInteractingWithMessages]);
 
     return (
         <div className={styles.consolePageWrapper}>

@@ -212,7 +212,12 @@ const EventStream = () => {
         if (!isInteractingWithStreamEvents) {
             scrollFunction(currEvent, usefulEvents);
         }
-    }, [currEvent, scrollFunction, usefulEvents]);
+    }, [
+        currEvent,
+        scrollFunction,
+        usefulEvents,
+        isInteractingWithStreamEvents,
+    ]);
 
     return (
         <>

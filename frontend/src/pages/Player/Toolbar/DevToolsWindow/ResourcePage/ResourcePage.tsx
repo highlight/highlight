@@ -130,7 +130,7 @@ export const ResourcePage = ({
         if (!isInteractingWithResources) {
             scrollFunction(currentResource);
         }
-    }, [currentResource, scrollFunction]);
+    }, [currentResource, scrollFunction, isInteractingWithResources]);
 
     return (
         <>
