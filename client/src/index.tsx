@@ -18,8 +18,8 @@ export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, msg);
 };
 class Logger {
-    debug: boolean;
-    constructor(debug: boolean) {
+    debug: boolean | undefined;
+    constructor(debug?: boolean) {
         this.debug = debug;
     }
     log(...data: any[]) {
@@ -29,9 +29,14 @@ class Logger {
     }
 }
 
+export type DebugOptions = {
+    clientInteractions?: true;
+    domRecording?: true;
+};
+
 export type HighlightClassOptions = {
     organizationID: number | string;
-    debug?: boolean;
+    debug?: boolean | DebugOptions;
     backendUrl?: string;
     disableNetworkRecording?: boolean;
     disableConsoleRecording?: boolean;
@@ -58,14 +63,21 @@ export class Highlight {
     disableNetworkRecording: boolean | undefined;
     disableConsoleRecording: boolean | undefined;
     enableSegmentIntegration: boolean | undefined;
+    debugOptions: DebugOptions;
 
     constructor(options: HighlightClassOptions) {
-        // If debug is set to false, disable all console logs.
+        if (typeof options?.debug === 'boolean') {
+            this.debugOptions = options.debug
+                ? { clientInteractions: true }
+                : {};
+        } else {
+            this.debugOptions = options?.debug ?? {};
+        }
         this.ready = false;
         this.disableNetworkRecording = options.disableNetworkRecording;
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
-        this.logger = new Logger(options.debug ?? false);
+        this.logger = new Logger(this.debugOptions.clientInteractions);
         const backend = options?.backendUrl
             ? options.backendUrl
             : process.env.BACKEND_URI;
@@ -263,6 +275,7 @@ export class Highlight {
             };
             emit.bind(this);
             record({
+                debug: this.debugOptions.domRecording,
                 emit,
             });
 
