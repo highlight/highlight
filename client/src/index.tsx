@@ -275,7 +275,6 @@ export class Highlight {
             };
             emit.bind(this);
             record({
-                debug: this.debugOptions.domRecording,
                 emit,
             });
 
