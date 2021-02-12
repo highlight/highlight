@@ -156,6 +156,10 @@ const EventStream = () => {
     const [staticMap, setStaticMap] = useState<StaticMap | undefined>(
         undefined
     );
+    const [
+        isInteractingWithStreamEvents,
+        setIsInteractingWithStreamEvents,
+    ] = useState(false);
     const virtuoso = useRef<VirtuosoHandle>(null);
 
     useEffect(() => {
@@ -205,8 +209,15 @@ const EventStream = () => {
     );
 
     useEffect(() => {
-        scrollFunction(currEvent, usefulEvents);
-    }, [currEvent, scrollFunction, usefulEvents]);
+        if (!isInteractingWithStreamEvents) {
+            scrollFunction(currEvent, usefulEvents);
+        }
+    }, [
+        currEvent,
+        scrollFunction,
+        usefulEvents,
+        isInteractingWithStreamEvents,
+    ]);
 
     return (
         <>
@@ -225,6 +236,12 @@ const EventStream = () => {
                 ) : (
                     replayer && (
                         <Virtuoso
+                            onMouseEnter={() => {
+                                setIsInteractingWithStreamEvents(true);
+                            }}
+                            onMouseLeave={() => {
+                                setIsInteractingWithStreamEvents(false);
+                            }}
                             ref={virtuoso}
                             data={usefulEvents}
                             overscan={500}

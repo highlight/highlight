@@ -32,6 +32,10 @@ export const ResourcePage = ({
     const [currentOption, setCurrentOption] = useState('All');
     const [currentResource, setCurrentResource] = useState(0);
     const [networkRange, setNetworkRange] = useState(0);
+    const [
+        isInteractingWithResources,
+        setIsInteractingWithResources,
+    ] = useState(false);
     const [currentResources, setCurrentResources] = useState<
         Array<PerformanceResourceTiming & { id: number }> | undefined
     >([]);
@@ -123,8 +127,10 @@ export const ResourcePage = ({
     );
 
     useEffect(() => {
-        scrollFunction(currentResource);
-    }, [currentResource, scrollFunction]);
+        if (!isInteractingWithResources) {
+            scrollFunction(currentResource);
+        }
+    }, [currentResource, scrollFunction, isInteractingWithResources]);
 
     return (
         <>
@@ -184,6 +190,12 @@ export const ResourcePage = ({
                             className={styles.networkStreamWrapper}
                         >
                             <Virtuoso
+                                onMouseEnter={() => {
+                                    setIsInteractingWithResources(true);
+                                }}
+                                onMouseLeave={() => {
+                                    setIsInteractingWithResources(false);
+                                }}
                                 ref={virtuoso}
                                 overscan={500}
                                 data={currentResources}
