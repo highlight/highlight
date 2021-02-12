@@ -30,8 +30,8 @@ class Logger {
 }
 
 export type DebugOptions = {
-    clientInteractions?: true;
-    domRecording?: true;
+    clientInteractions?: boolean;
+    domRecording?: boolean;
 };
 
 export type HighlightClassOptions = {
