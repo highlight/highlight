@@ -409,8 +409,15 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
+	fieldCheck := true
+	visitedCheck := true
+	referrerCheck := true
 	fieldIds := []int{}
+	visitedIds := []int{}
+	referrerIds := []int{}
 	fieldQuery := r.DB.Model(&model.Field{})
+	visitedQuery := r.DB.Model(&model.Field{})
+	referrerQuery := r.DB.Model(&model.Field{})
 
 	for _, prop := range params.UserProperties {
 		if prop.Name == "contains" {
@@ -429,16 +436,41 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	}
 
 	if params.VisitedURL != nil {
-		fieldQuery = fieldQuery.Or("name = ? and value ILIKE ?", "visited-url", "%"+*params.VisitedURL+"%")
+		visitedQuery = visitedQuery.Or("name = ? and value ILIKE ?", "visited-url", "%"+*params.VisitedURL+"%")
 	}
 
 	if params.Referrer != nil {
-		fieldQuery = fieldQuery.Or("name = ? and value ILIKE ?", "visited-url", "%"+*params.Referrer+"%")
+		referrerQuery = referrerQuery.Or("name = ? and value ILIKE ?", "referrer", "%"+*params.Referrer+"%")
 	}
 
-	if len(params.UserProperties)+len(params.TrackProperties) > 0 || params.Referrer != nil || params.VisitedURL != nil {
+	if len(params.UserProperties)+len(params.TrackProperties) > 0 {
 		if err := fieldQuery.Pluck("id", &fieldIds).Error; err != nil {
 			return nil, e.Wrap(err, "error querying initial set of session fields")
+		}
+		if len(fieldIds) == 0{
+			fieldCheck = false
+		}
+	}
+
+	if params.VisitedURL != nil {
+		if err := visitedQuery.Pluck("id", &visitedIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying visited-url fields")
+		}
+		if len(visitedIds) > 0 {
+			fieldIds = append(fieldIds, visitedIds...)
+		} else {
+			visitedCheck = false
+		}
+	}
+
+	if params.Referrer != nil {
+		if err := referrerQuery.Pluck("id", &referrerIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying referrer fields")
+		}
+		if len(referrerIds) > 0 {
+			fieldIds = append(fieldIds, referrerIds...)
+		} else {
+			referrerCheck = false
 		}
 	}
 
@@ -462,7 +494,6 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		}
 	}
 
-	fmt.Println(fieldIds, notFieldIds)
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
@@ -515,6 +546,11 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 
 	if browser := params.Browser; browser != nil {
 		queryString += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
+	}
+
+	//if there should be fields but aren't no sessions are returned
+	if !fieldCheck || !visitedCheck || !referrerCheck {
+		queryString += "AND (id != id) "
 	}
 
 	queryString += "ORDER BY created_at DESC"
