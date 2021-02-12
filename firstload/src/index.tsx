@@ -1,12 +1,7 @@
-import {
-    DebugOptions,
-    Highlight,
-    HighlightClassOptions,
-} from '../../client/src/index';
+import { Highlight, HighlightClassOptions } from '../../client/src/index';
 
 export type HighlightOptions = {
-    // a 'true' value defaults to only loggin api interactions.
-    debug?: boolean | DebugOptions;
+    debug?: boolean;
     scriptUrl?: string;
     backendUrl?: string;
     manualStart?: boolean;
