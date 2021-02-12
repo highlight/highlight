@@ -34,6 +34,9 @@ export const ConsolePage = ({ time }: { time: number }) => {
         undefined | Array<ParsedMessage>
     >([]);
     const [consoleType, setConsoleType] = useState<string>('All');
+    const [isInteractingWithMessages, setIsInteractingWithMessages] = useState(
+        false
+    );
     const { session_id } = useParams<{ session_id: string }>();
     const { data, loading } = useGetMessagesQuery({
         variables: {
@@ -110,7 +113,9 @@ export const ConsolePage = ({ time }: { time: number }) => {
     );
 
     useEffect(() => {
-        scrollFunction(currentMessage);
+        if (!isInteractingWithMessages) {
+            scrollFunction(currentMessage);
+        }
     }, [scrollFunction, currentMessage]);
 
     return (
@@ -140,6 +145,12 @@ export const ConsolePage = ({ time }: { time: number }) => {
                     </div>
                 ) : currentMessages?.length ? (
                     <Virtuoso
+                        onMouseEnter={() => {
+                            setIsInteractingWithMessages(true);
+                        }}
+                        onMouseLeave={() => {
+                            setIsInteractingWithMessages(false);
+                        }}
                         ref={virtuoso}
                         overscan={500}
                         data={messagesToRender}
