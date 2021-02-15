@@ -1,4 +1,4 @@
-import React, { RefObject, useContext, useEffect, useState } from 'react';
+import React, { RefObject, useContext, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { SearchContext } from '../SearchContext/SearchContext';
 import styles from './SessionsFeed.module.scss';
