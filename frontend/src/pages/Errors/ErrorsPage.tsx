@@ -19,6 +19,10 @@ export const ErrorsPage = () => {
         console.error('This error was from the console');
     };
 
+    const traceError = (): void => {
+        console.trace('Tracing error...');
+    };
+
     return (
         <div>
             <div className={styles.advancedText}>
@@ -27,6 +31,9 @@ export const ErrorsPage = () => {
                 </Button>
                 <Button type="primary" onClick={consoleError}>
                     Console Error
+                </Button>
+                <Button type="primary" onClick={traceError}>
+                    Trace Error
                 </Button>
             </div>
             <div className={styles.errorText}>
