@@ -74,18 +74,20 @@ func (r *mutationResolver) EditOrganization(ctx context.Context, id int, name *s
 	return org, nil
 }
 
-func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int) (*bool, error) {
+func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int) (*model.Session, error) {
 	_, err := r.isAdminSessionOwner(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	if err := r.DB.Model(&model.Session{Model: model.Model{ID: id}}).Updates(&model.Session{
+	session := &model.Session{}
+	res := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session)
+	if err := res.Update(&model.Session{
 		Viewed: true,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
-	t := true
-	return &t, nil
+
+	return session, nil
 }
 
 func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*bool, error) {
