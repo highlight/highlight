@@ -1986,16 +1986,15 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@highlight-run/rrweb@^0.9.17":
-  version "0.9.17"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.9.17.tgz#e1f8b20396c951e47017dd575cedf9a596ec27cf"
-  integrity sha512-Ppxl6QkLDw9Udo2GlpV5obUJefnanqgv0wfyFZJPOUv0uOrHaU7/HTOp4E2TVOvzLXixSh8Qe3cvWRuRJo4dQA==
+"@highlight-run/rrweb@^0.9.24":
+  version "0.9.24"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.9.24.tgz#aa5d9793a0b9a17ef56a870e5c39bfb9ace76c8d"
+  integrity sha512-B8M48FDiEJ2kpF99zR4qrosSL8sG/tInkFwTS+/RihisPG9reKwZO9qDav12atCTQBp+mRO3zUI13T0YlPLhHw==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
     fflate "^0.4.4"
     mitt "^1.1.3"
-    rrweb-snapshot "^1.0.3"
 
 "@iarna/toml@^2.2.5":
   version "2.2.5"
@@ -7357,10 +7356,10 @@ hex-color-regex@^1.1.0:
   resolved "https://registry.yarnpkg.com/hex-color-regex/-/hex-color-regex-1.1.0.tgz#4c06fccb4602fe2602b3c93df82d7e7dbf1a8a8e"
   integrity sha512-l9sfDFsuqtOqKDsQdqrMRk0U85RZc0RtOR9yPI7mRVOa4FsR/BVnZ0shmQRM96Ji99kYZP/7hn1cedc1+ApsTQ==
 
-highlight.run@^1.0.63:
-  version "1.0.64"
-  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.64.tgz#75f303de6af92072489d859ac606de733ea53970"
-  integrity sha512-Q4owWbErrbHgEVI8zwI26hIgX9jcG84kdW4DQR7a9t3aDPLp86wEYgwqT1E34JjZW5KCkH3Qb7U9UPbSOkjkwQ==
+highlight.run@^1.0.64:
+  version "1.0.65"
+  resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.65.tgz#5e894ed2d9ec24063c47d69ce0f81a08479a7fc5"
+  integrity sha512-OCgMAHQCqLvG+WcxBYcy9u6//ohCzFqf0YvqRLhqXrvVPEKd6kHsQMByaArl+rZ71Bpq28m81xP0bJBmYlBzAQ==
 
 history@^4.9.0:
   version "4.10.1"
@@ -13008,11 +13007,6 @@ rrweb-snapshot@^0.8.2:
   version "0.8.4"
   resolved "https://registry.yarnpkg.com/rrweb-snapshot/-/rrweb-snapshot-0.8.4.tgz#3f8bf1270975f9dfad60321a29067d2ea39e3c39"
   integrity sha512-6zY4lEUpA6qEd/ArAo1crWefxsmiXMuK/fTToGmsW+ehR8/pglxTsqpMPEkgQO9uBUIWIUE9I3CyIQkigmt4ug==
-
-rrweb-snapshot@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/rrweb-snapshot/-/rrweb-snapshot-1.0.3.tgz#5904782fcc04cb092e32fc529b916137336a910d"
-  integrity sha512-trlsCGkqBaxwe7ty6QAgK0qtcueW7P3ruWyzauEW7imUQGL8WeKQTJMn8cPQOL3u4JGFl1YgvDJyNBzMoDEa8w==
 
 rsvp@^4.8.4:
   version "4.8.5"
