@@ -87,8 +87,8 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     };
 
     let onDraggable = (e: any, data: any) => {
-        let newTime = (data.x / wrapperWidth) * max;
-
+        let sliderPercent = data.x / wrapperWidth;
+        let newTime = getSliderTime(sliderPercent);
         setTime(newTime);
 
         // TODO: Add Math.abs to enable both forward and backward scrolling
@@ -96,6 +96,39 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         if (data.x - lastCanvasPreview > 10) {
             setLastCanvasPreview(data.x);
         }
+    };
+
+    let getSliderPercent = (time: number) => {
+        let sliderPercent = 0;
+        for (const interval of sessionIntervals) {
+            if (time < interval.endTime && time >= interval.startTime) {
+                const segmentPercent =
+                    (time - interval.startTime) /
+                    (interval.endTime - interval.startTime);
+                sliderPercent =
+                    segmentPercent *
+                        (interval.endPercent - interval.startPercent) +
+                    interval.startPercent;
+            }
+        }
+        return sliderPercent;
+    };
+
+    let getSliderTime = (sliderPercent: number) => {
+        let newTime = 0;
+        for (const interval of sessionIntervals) {
+            if (
+                sliderPercent < interval.endPercent &&
+                sliderPercent >= interval.startPercent
+            ) {
+                const segmentPercent =
+                    (sliderPercent - interval.startPercent) /
+                    (interval.endPercent - interval.startPercent);
+                newTime =
+                    segmentPercent * interval.duration + interval.startTime;
+            }
+        }
+        return newTime;
     };
 
     /**
@@ -126,7 +159,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 ref={sliderWrapperRef}
                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                     const ratio = e.clientX / wrapperWidth;
-                    setTime(ratio * max);
+                    setTime(getSliderTime(ratio));
                 }}
             >
                 <div
@@ -139,11 +172,11 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
             (interval) =>
                 (interval.active ? '#5629c6' : '#b5a4e2') +
                 ' ' +
-                (interval.startTime * 100) / max +
+                interval.startPercent * 100 +
                 '%, ' +
                 (interval.active ? '#5629c6' : '#b5a4e2') +
                 ' ' +
-                (interval.endTime * 100) / max +
+                interval.endPercent * 100 +
                 '%'
         )
         .join()})`,
@@ -158,7 +191,10 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     onStart={startDraggable}
                     disabled={disableControls}
                     position={{
-                        x: Math.max((time / max) * wrapperWidth - 15, 0),
+                        x: Math.max(
+                            getSliderPercent(time) * wrapperWidth - 15,
+                            0
+                        ),
                         y: 0,
                     }}
                 >
