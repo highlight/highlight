@@ -19,24 +19,28 @@ export const ErrorsPage = () => {
         console.error('This error was from the console');
     };
 
-    const traceError = (): void => {
-        console.trace('Tracing error...');
-    };
-
     return (
-        <div>
-            <div className={styles.advancedText}>
-                <Button type="primary" onClick={throwError}>
-                    Throw Error
-                </Button>
-                <Button type="primary" onClick={consoleError}>
-                    Console Error
-                </Button>
-                <Button type="primary" onClick={traceError}>
-                    Trace Error
-                </Button>
+        <div className={styles.errorsBody}>
+            <div className={styles.leftPanel}>
+                <div className={styles.advancedText}>
+                    <Button
+                        type="primary"
+                        style={{ background: 'red' }}
+                        onClick={throwError}
+                    >
+                        Throw Error
+                    </Button>{' '}
+                    <br></br>
+                    <Button
+                        type="primary"
+                        style={{ background: 'green' }}
+                        onClick={consoleError}
+                    >
+                        Console Error
+                    </Button>{' '}
+                </div>
             </div>
-            <div className={styles.errorText}>
+            <div className={styles.centerPanel}>
                 {data?.errors?.map((u) => {
                     return <p>{JSON.stringify(u)}</p>;
                 })}
