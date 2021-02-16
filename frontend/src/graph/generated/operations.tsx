@@ -4,10 +4,11 @@ export type MarkSessionAsViewedMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
 }>;
 
-export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & Pick<
-    Types.Mutation,
-    'markSessionAsViewed'
->;
+export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
+    markSessionAsViewed?: Types.Maybe<
+        { __typename?: 'Session' } & Pick<Types.Session, 'id' | 'viewed'>
+    >;
+};
 
 export type CreateOrUpdateSubscriptionMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];

@@ -1,5 +1,8 @@
 mutation MarkSessionAsViewed($id: ID!) {
-    markSessionAsViewed(id: $id)
+    markSessionAsViewed(id: $id) {
+        id
+        viewed
+    }
 }
 
 mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {

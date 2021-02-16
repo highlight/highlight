@@ -1,4 +1,4 @@
-import { Replayer } from '@highlight-run/rrweb';
+import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { DemoContext } from '../../../DemoContext';
@@ -23,6 +23,7 @@ export const usePlayer = ({
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
     const [time, setTime] = useState<number>(0);
+    const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
         Array<SessionInterval>
     >([]);
@@ -49,6 +50,9 @@ export const usePlayer = ({
             let r = new Replayer(newEvents, {
                 root: document.getElementById('player') as HTMLElement,
             });
+            r.on(ReplayerEvents.Finish, () => {
+                setState(ReplayerState.Paused);
+            });
             // Preprocess and logic for player length with inactive sessions
             let metadata = r.getMetaData();
             let intervals = r.getActivityIntervals().map((e) => ({
@@ -60,6 +64,7 @@ export const usePlayer = ({
             setSessionIntervals(intervals);
             setEvents(newEvents);
             setReplayer(r);
+            setSessionEndTime(r.getMetaData().totalTime);
             setState(ReplayerState.LoadedAndUntouched);
         }
     }, [eventsData]);
@@ -83,6 +88,10 @@ export const usePlayer = ({
     }, [state, replayer]);
 
     const play = (newTime?: number) => {
+        // Don't play the session if the player is already at the end of the session.
+        if ((newTime ?? time) >= sessionEndTime) {
+            return;
+        }
         setState(ReplayerState.Playing);
         setTime(newTime ?? time);
         replayer?.play(newTime);

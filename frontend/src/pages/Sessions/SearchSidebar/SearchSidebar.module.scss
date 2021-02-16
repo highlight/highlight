@@ -6,6 +6,7 @@
     align-items: center;
     flex-direction: column;
     transition: 0.3s;
+    height: 100%;
 }
 
 .sideTab {
@@ -58,6 +59,7 @@
     position: relative;
     width: 100%;
     overflow-y: auto;
+    height: 100%;
 }
 
 .title {

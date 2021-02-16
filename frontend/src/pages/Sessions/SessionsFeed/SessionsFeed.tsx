@@ -19,49 +19,46 @@ import {
 export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [count, setCount] = useState(10);
-    const [loadData, setLoadData] = useState(false);
-    const [loadingState, setLoadingState] = useState(false);
+    // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
+    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const [data, setData] = useState<SessionResults>({
         sessions: [],
         totalCount: -1,
     });
     const { searchParams } = useContext(SearchContext);
-    const { refetch } = useGetSessionsBetaQuery({ skip: true });
 
-    // On the component mount, shoot out a request.
-    useEffect(() => {
-        setLoadData(true);
-    }, []);
-
-    // When the search params change, shoot out another request.
-    useEffect(() => {
-        setLoadData(true);
-        setLoadingState(true);
-    }, [searchParams]);
-
-    useEffect(() => {
-        if (!loadData) return;
-        refetch({
+    const { loading, fetchMore } = useGetSessionsBetaQuery({
+        variables: {
             params: searchParams,
             count: count + 10,
             organization_id,
-        }).then((res) => {
-            setLoadData(false);
-            setLoadingState(false);
-            res?.data?.sessionsBETA && setData(res.data.sessionsBETA);
-            setCount((c) => c + 10);
-        });
-    }, [loadData, count, organization_id, refetch, searchParams]);
+        },
+        onCompleted: (response) => {
+            if (response.sessionsBETA) {
+                setData(response.sessionsBETA);
+            }
+            setShowLoadingSkeleton(false);
+        },
+    });
+
+    useEffect(() => {
+        setShowLoadingSkeleton(true);
+    }, [searchParams]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
-        loading: loadData,
-        hasNextPage: true,
+        loading,
+        hasNextPage: data.sessions.length < data.totalCount,
         scrollContainer: 'parent',
         onLoadMore: () => {
-            if (data.sessions.length < data.totalCount) {
-                setLoadData(true);
-            }
+            setCount((previousCount) => previousCount + 10);
+            fetchMore({
+                variables: {
+                    params: searchParams,
+                    count,
+                    organization_id,
+                },
+            });
         },
     });
 
@@ -79,7 +76,7 @@ export const SessionFeed = () => {
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
-                    {loadingState ? (
+                    {loading && showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
                             count={3}

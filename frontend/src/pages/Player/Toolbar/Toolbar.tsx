@@ -104,6 +104,8 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const SKIP_DURATION = 7000;
 
     const disableControls = state === ReplayerState.Loading;
+    // The play button should be disabled if the player has reached the end.
+    const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
 
     return (
         <>
@@ -170,7 +172,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             styles.playSection,
                             styles.button
                         )}
-                        disabled={disableControls}
+                        disabled={disableControls || disablePlayButton}
                         onClick={() => {
                             if (isPaused) {
                                 play(time);
