@@ -240,7 +240,7 @@ export type Mutation = {
     __typename?: 'Mutation';
     createOrganization?: Maybe<Organization>;
     editOrganization?: Maybe<Organization>;
-    markSessionAsViewed?: Maybe<Scalars['Boolean']>;
+    markSessionAsViewed?: Maybe<Session>;
     deleteOrganization?: Maybe<Scalars['Boolean']>;
     sendAdminInvite?: Maybe<Scalars['String']>;
     addAdminToOrganization?: Maybe<Scalars['ID']>;

@@ -5,7 +5,10 @@ import * as Apollo from '@apollo/client';
 
 export const MarkSessionAsViewedDocument = gql`
     mutation MarkSessionAsViewed($id: ID!) {
-        markSessionAsViewed(id: $id)
+        markSessionAsViewed(id: $id) {
+            id
+            viewed
+        }
     }
 `;
 export type MarkSessionAsViewedMutationFn = Apollo.MutationFunction<
