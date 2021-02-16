@@ -1,4 +1,4 @@
-import React, { RefObject, useContext, useState } from 'react';
+import React, { RefObject, useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { SearchContext } from '../SearchContext/SearchContext';
 import styles from './SessionsFeed.module.scss';
@@ -19,8 +19,8 @@ import {
 export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [count, setCount] = useState(10);
-    // Used to determine if we need to show the initial loading skeleton. This should only be shown for the first load and not the infinite scroll loads.
-    const [hasHadFirstLoad, setHasHadFirstLoad] = useState(false);
+    // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
+    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const [data, setData] = useState<SessionResults>({
         sessions: [],
         totalCount: -1,
@@ -37,9 +37,13 @@ export const SessionFeed = () => {
             if (response.sessionsBETA) {
                 setData(response.sessionsBETA);
             }
-            setHasHadFirstLoad(true);
+            setShowLoadingSkeleton(false);
         },
     });
+
+    useEffect(() => {
+        setShowLoadingSkeleton(true);
+    }, [searchParams]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
@@ -72,7 +76,7 @@ export const SessionFeed = () => {
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
-                    {loading && !hasHadFirstLoad ? (
+                    {loading && showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
                             count={3}
