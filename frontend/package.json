@@ -60,6 +60,7 @@
         "react-use-dimensions": "^1.2.1",
         "react-virtuoso": "^1.5.4",
         "rrweb-snapshot": "^0.8.2",
+        "stacktrace-js": "^2.0.2",
         "stripe": "^8.128.0",
         "typescript": "^3.9.7",
         "use-debounce": "^5.0.1",

@@ -192,7 +192,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if err := json.Unmarshal([]byte(errors), &errorsParsed); err != nil {
 		return nil, fmt.Errorf("error decoding error data: %v", err)
 	}
-	if len(errorsParsed["errors"]) > 0 && organizationID == 1 {
+	if len(errorsParsed["errors"]) > 0 { //&& organizationID == 1
 		for _, v := range errorsParsed["errors"] {
 			obj := &model.ErrorObject{
 				OrganizationID: organizationID,

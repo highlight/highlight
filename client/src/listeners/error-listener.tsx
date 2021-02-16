@@ -1,4 +1,5 @@
 import { ErrorMessage } from '../../../frontend/src/util/shared-types';
+import StackTrace from 'stacktrace-js';
 
 export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
     window.onerror = (
@@ -6,16 +7,21 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
         source: string | undefined,
         lineno: number | undefined,
         colno: number | undefined,
-        trace: Error | undefined
+        error: Error | undefined
     ): void => {
-        callback({
-            event: event,
-            type: 'exception',
-            source: source,
-            lineno: BigInt(String(lineno)),
-            colno: BigInt(String(colno)),
-            trace: trace?.stack,
-        });
+        if (error) {
+            StackTrace.fromError(error).then((result) => {
+                console.log(result);
+                callback({
+                    event: event,
+                    type: 'exception',
+                    source: source,
+                    lineno: result[0].lineNumber,
+                    colno: result[0].columnNumber,
+                    trace: result,
+                });
+            });
+        }
     };
 };
 
