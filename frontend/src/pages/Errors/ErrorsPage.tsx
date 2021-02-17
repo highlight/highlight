@@ -30,8 +30,8 @@ export const ErrorsPage = () => {
                 </Button>
             </div>
             <div className={styles.errorText}>
-                {data?.errors?.map((u) => {
-                    return <p>{JSON.stringify(u)}</p>;
+                {data?.errors?.map((u, index) => {
+                    return <p key={index}>{JSON.stringify(u)}</p>;
                 })}
             </div>
         </div>

@@ -1,4 +1,4 @@
-export const isJson = (string: string) => {
+export const isJson = (string: string): boolean => {
     try {
         JSON.parse(string);
     } catch (e) {

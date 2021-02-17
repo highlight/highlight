@@ -1,7 +1,7 @@
 import * as firebase from 'firebase/app';
 import 'firebase/auth';
 
-var firebaseConfig = {
+const firebaseConfig = {
     apiKey: 'AIzaSyD7g86A3EzEKmoE7aZ04Re3HZ0B4bWlL68',
     authDomain: 'auth.highlight.run',
     databaseURL: 'https://highlight-f5c5b.firebaseio.com',
