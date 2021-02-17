@@ -62,14 +62,16 @@ export const usePlayer = ({
                 startTime: e.startTime - metadata.startTime,
                 endTime: e.endTime - metadata.startTime,
             }));
-            const activeDuration = allIntervals.reduce(
-                (acc, interval) =>
-                    interval.active ? acc + interval.duration : acc,
-                0
-            );
-            const numInactive = allIntervals.reduce(
-                (acc, interval) => (interval.active ? acc : ++acc),
-                0
+            const { activeDuration, numInactive } = allIntervals.reduce(
+                (acc, interval) => ({
+                    activeDuration: interval.active
+                        ? acc.activeDuration + interval.duration
+                        : acc.activeDuration,
+                    numInactive: interval.active
+                        ? acc.numInactive
+                        : acc.numInactive++,
+                }),
+                { activeDuration: 0, numInactive: 0 }
             );
             const inactiveSliceDuration = inactiveThreshold * activeDuration;
             const totalDuration =
