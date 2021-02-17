@@ -8,7 +8,10 @@ import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
 import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
-import ReplayerContext, { ReplayerState } from '../ReplayerContext';
+import ReplayerContext, {
+    ParsedSessionInterval,
+    ReplayerState,
+} from '../ReplayerContext';
 import classNames from 'classnames';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
@@ -25,6 +28,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
+    const [sliderClientX, setSliderClientX] = useState<number>(-1);
     const [speed, setSpeed] = useLocalStorage('highlightMenuSpeed', 2);
     const [skipInactive, setSkipInactive] = useLocalStorage(
         'highlightMenuSkipInactive',
@@ -114,6 +118,13 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         return sliderPercent;
     };
 
+    const isPercentInInterval = (
+        sliderPercent: number,
+        interval: ParsedSessionInterval
+    ) =>
+        sliderPercent >= interval.startPercent &&
+        sliderPercent < interval.endPercent;
+
     const getSliderTime = (sliderPercent: number) => {
         let newTime = 0;
         for (const interval of sessionIntervals) {
@@ -153,54 +164,116 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     startTime={replayer?.getMetaData().startTime ?? 0}
                 />
             </OpenDevToolsContext.Provider>
-            <button
-                disabled={disableControls}
-                className={styles.sliderWrapper}
-                ref={sliderWrapperRef}
-                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                    const ratio = e.clientX / wrapperWidth;
-                    setTime(getSliderTime(ratio));
-                }}
-            >
+            <div className={styles.playerRail}>
                 <div
                     className={styles.sliderRail}
                     style={{
-                        background: `linear-gradient(
-        to right,
-    ${sessionIntervals
-        .map(
-            (interval) =>
-                (interval.active ? '#5629c6' : '#b5a4e2') +
-                ' ' +
-                interval.startPercent * 100 +
-                '%, ' +
-                (interval.active ? '#5629c6' : '#b5a4e2') +
-                ' ' +
-                interval.endPercent * 100 +
-                '%'
-        )
-        .join()})`,
-                    }}
-                ></div>
-
-                <Draggable
-                    axis="x"
-                    bounds="parent"
-                    onStop={endLogger}
-                    onDrag={onDraggable}
-                    onStart={startDraggable}
-                    disabled={disableControls}
-                    position={{
-                        x: Math.max(
-                            getSliderPercent(time) * wrapperWidth - 15,
-                            0
-                        ),
-                        y: 0,
+                        position: 'absolute',
+                        display: 'flex',
                     }}
                 >
-                    <div className={styles.indicator} />
-                </Draggable>
-            </button>
+                    {sessionIntervals.map((e, ind) => (
+                        <div
+                            key={ind}
+                            className={styles.sliderSegment}
+                            style={{
+                                width: `${
+                                    (e.endPercent - e.startPercent) * 100
+                                }%`,
+                            }}
+                        >
+                            <div
+                                className={styles.sliderPopover}
+                                style={{
+                                    left: `${Math.max(
+                                        sliderClientX - 40,
+                                        0
+                                    )}px`,
+                                    display: isPercentInInterval(
+                                        sliderClientX / wrapperWidth,
+                                        e
+                                    )
+                                        ? 'block'
+                                        : 'none',
+                                }}
+                            >
+                                <div>{e.active ? 'Active' : 'Inactive'}</div>
+                                <div className={styles.sliderPopoverTime}>
+                                    {MillisToMinutesAndSeconds(
+                                        getSliderTime(
+                                            sliderClientX / wrapperWidth
+                                        )
+                                    )}
+                                </div>
+                            </div>
+                            <div
+                                className={classNames(
+                                    styles.sliderRail,
+                                    isPercentInInterval(
+                                        sliderClientX / wrapperWidth,
+                                        e
+                                    )
+                                        ? styles.segmentHover
+                                        : ''
+                                )}
+                                style={{
+                                    background:
+                                        time < e.startTime
+                                            ? '#EEE7FF'
+                                            : time >= e.endTime
+                                            ? '#5629c6'
+                                            : `linear-gradient(to right,#5629c6 0%, #5629c6 ${
+                                                  ((time - e.startTime) /
+                                                      (e.endTime -
+                                                          e.startTime)) *
+                                                  100
+                                              }%, #EEE7FF ${
+                                                  ((time - e.startTime) /
+                                                      (e.endTime -
+                                                          e.startTime)) *
+                                                  100
+                                              }%)`,
+                                }}
+                            ></div>
+                        </div>
+                    ))}
+                </div>
+                <button
+                    disabled={disableControls}
+                    className={styles.sliderWrapper}
+                    ref={sliderWrapperRef}
+                    onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
+                        setSliderClientX(e.clientX)
+                    }
+                    onMouseLeave={() => setSliderClientX(-1)}
+                    onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                        const ratio = e.clientX / wrapperWidth;
+                        setTime(getSliderTime(ratio));
+                    }}
+                >
+                    <div className={styles.sliderRail}></div>
+
+                    <Draggable
+                        axis="x"
+                        bounds="parent"
+                        onStop={endLogger}
+                        onDrag={onDraggable}
+                        onStart={startDraggable}
+                        disabled={disableControls}
+                        position={{
+                            x: Math.max(
+                                getSliderPercent(time) * wrapperWidth - 10,
+                                0
+                            ),
+                            y: 0,
+                        }}
+                    >
+                        <div>
+                            <div className={styles.indicator} />
+                        </div>
+                    </Draggable>
+                </button>
+            </div>
             <div className={styles.toolbarSection}>
                 <div className={styles.toolbarLeftSection}>
                     <button
