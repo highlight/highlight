@@ -67,6 +67,14 @@ export type Segment = {
     organization_id: Scalars['ID'];
 };
 
+export type StackFrame = {
+    __typename?: 'StackFrame';
+    column_no: Scalars['Int'];
+    line_no: Scalars['Int'];
+    fileName: Scalars['String'];
+    functionName: Scalars['String'];
+};
+
 export type ErrorObject = {
     __typename?: 'ErrorObject';
     id: Scalars['ID'];

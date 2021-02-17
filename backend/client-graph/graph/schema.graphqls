@@ -3,19 +3,44 @@
 scalar Any
 
 type Session {
-  id: ID!
-  user_id: ID!
-  organization_id: ID!
+    id: ID!
+    user_id: ID!
+    organization_id: ID!
+}
+
+type StackFrameInput {
+    column_no: Int!
+    line_no: Int!
+    fileName: String!
+    functionName: String!
+}
+
+type ErrorObjectInput {
+    id: ID!
+    organization_id: Int!
+    session_id: Int!
+    event: String!
+    type: String!
+    source: String!
+    line_no: Int!
+    column_no: Int!
+    trace: [StackFrameInput]!
 }
 
 type Mutation {
-  initializeSession(organization_verbose_id: String!): Session
-  identifySession(
-    session_id: ID!
-    user_identifier: String!
-    user_object: Any
-  ): ID
-  addTrackProperties(session_id: ID!, properties_object: Any): ID
-  addSessionProperties(session_id: ID!, properties_object: Any): ID
-  pushPayload(session_id: ID!, events: String!, messages: String!, resources: String!, errors: String!): ID
+    initializeSession(organization_verbose_id: String!): Session
+    identifySession(
+        session_id: ID!
+        user_identifier: String!
+        user_object: Any
+    ): ID
+    addTrackProperties(session_id: ID!, properties_object: Any): ID
+    addSessionProperties(session_id: ID!, properties_object: Any): ID
+    pushPayload(
+        session_id: ID!
+        events: String!
+        messages: String!
+        resources: String!
+        errors: [ErrorObjectInput]!
+    ): ID
 }
