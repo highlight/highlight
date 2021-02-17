@@ -43,7 +43,14 @@ export const SearchSidebar = ({
                         <IdentifiedUsersSwitch />
                         <ViewedSessionsSwitch />
                     </div>
-                    <SearchSection title="User Properties" open>
+                    <SearchSection
+                        title="User Properties"
+                        open
+                        searchParamsKey={[
+                            'user_properties',
+                            'excluded_properties',
+                        ]}
+                    >
                         <div className={classNames(styles.subTitle)}>
                             Included Properties
                         </div>
@@ -53,17 +60,33 @@ export const SearchSidebar = ({
                         </div>
                         <UserPropertyInput include={false} />
                     </SearchSection>
-                    <SearchSection title="Track Properties" open={false}>
+                    <SearchSection
+                        title="Track Properties"
+                        open={false}
+                        searchParamsKey={['track_properties']}
+                    >
                         <TrackPropertyInput />
                     </SearchSection>
-                    <SearchSection title="Date Range" open={false}>
+                    <SearchSection
+                        title="Date Range"
+                        open={false}
+                        searchParamsKey={['date_range']}
+                    >
                         <DateInput />
                     </SearchSection>
-                    <SearchSection title="Device Details" open={false}>
+                    <SearchSection
+                        title="Device Details"
+                        open={false}
+                        searchParamsKey={['os', 'browser']}
+                    >
                         <OperatingSystemInput />
                         <BrowserInput />
                     </SearchSection>
-                    <SearchSection title="Session Details" open={false}>
+                    <SearchSection
+                        title="Session Details"
+                        open={false}
+                        searchParamsKey={['visited_url', 'referrer']}
+                    >
                         <VisitedUrlInput />
                         <ReferrerInput />
                     </SearchSection>
