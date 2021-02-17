@@ -28,7 +28,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const [speed, setSpeed] = useLocalStorage('highlightMenuSpeed', 2);
     const [skipInactive, setSkipInactive] = useLocalStorage(
         'highlightMenuSkipInactive',
-        false
+        true
     );
     const [openDevTools, setOpenDevTools] = useLocalStorage(
         'highlightMenuOpenDevTools',
@@ -98,7 +98,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         }
     };
 
-    let getSliderPercent = (time: number) => {
+    const getSliderPercent = (time: number) => {
         let sliderPercent = 0;
         for (const interval of sessionIntervals) {
             if (time < interval.endTime && time >= interval.startTime) {
@@ -114,7 +114,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         return sliderPercent;
     };
 
-    let getSliderTime = (sliderPercent: number) => {
+    const getSliderTime = (sliderPercent: number) => {
         let newTime = 0;
         for (const interval of sessionIntervals) {
             if (
