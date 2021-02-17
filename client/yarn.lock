@@ -840,10 +840,10 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@highlight-run/rrweb@^0.9.24":
-  version "0.9.24"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.9.24.tgz#aa5d9793a0b9a17ef56a870e5c39bfb9ace76c8d"
-  integrity sha512-B8M48FDiEJ2kpF99zR4qrosSL8sG/tInkFwTS+/RihisPG9reKwZO9qDav12atCTQBp+mRO3zUI13T0YlPLhHw==
+"@highlight-run/rrweb@^0.9.26":
+  version "0.9.26"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.9.26.tgz#ac0896703021eafd77b48c99d64157fd519d80d0"
+  integrity sha512-O9nukb7MTiv3BeDzDXDr+DzHhO5O7OFQwbzJaShCw6UUt8LTaBpjiDodGKf6FmLzndUfQ7OP8pIjVEk7Q+Nemw==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
