@@ -1,0 +1,1 @@
+export const bubble: string;
