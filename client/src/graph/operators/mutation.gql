@@ -41,6 +41,7 @@ mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
 }
 
 # The gql codegen library requires a query in the schema, so this is just a placeholder.
+# Tangentially related: https://github.com/dotansimha/graphql-code-generator/issues/3268
 query Ignore($id: ID!) {
     ignore(id: $id)
 }
