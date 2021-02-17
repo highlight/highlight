@@ -4,11 +4,13 @@
     background: $highlight-purple;
     color: $text-primary-inverted;
     padding: 0 5px;
-    font-size: 8px;
-    height: 13px;
-    line-height: normal;
+    font-size: 10px;
+    height: 20px;
+    min-width: 20px;
     border-radius: 13px;
     margin-left: 9px;
     display: flex;
+    justify-content: center;
     align-items: center;
+    line-height: normal;
 }
