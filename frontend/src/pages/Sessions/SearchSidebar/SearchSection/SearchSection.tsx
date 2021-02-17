@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import Collapsible from 'react-collapsible';
 import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg';
+import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
+import SearchCountBubble from '../SearchCountBubble/SearchCountBubble';
 import styles from './SearchSection.module.scss';
 
 type SearchSectionProps = {
     title: string;
     open: boolean;
     titleSideComponent?: React.ReactNode;
+    /** The SearchParams keys that the count is based off of. */
+    searchParamsKey?: (keyof SearchParams)[];
 };
 
 export const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
@@ -14,14 +18,34 @@ export const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
     title,
     open,
     titleSideComponent,
+    searchParamsKey = [],
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(open);
+    const { searchParams } = useContext(SearchContext);
+
     const header = (
         <div className={styles.headerWrapper}>
             <div className={styles.header}>
                 {title}
                 {titleSideComponent}
             </div>
+            {searchParamsKey.length > 0 && (
+                <SearchCountBubble>
+                    {searchParamsKey.reduce((count, key) => {
+                        const searchParam = searchParams[key];
+
+                        if (Array.isArray(searchParam)) {
+                            return count + searchParam.length;
+                        }
+
+                        if (searchParam) {
+                            return count + 1;
+                        }
+
+                        return count;
+                    }, 0)}
+                </SearchCountBubble>
+            )}
             <DownIcon
                 className={styles.icon}
                 style={{

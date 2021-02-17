@@ -1,0 +1,14 @@
+@import 'src/static/shared.scss';
+
+.bubble {
+    background: $highlight-purple;
+    color: $text-primary-inverted;
+    padding: 0 5px;
+    font-size: 8px;
+    height: 13px;
+    line-height: normal;
+    border-radius: 13px;
+    margin-left: 9px;
+    display: flex;
+    align-items: center;
+}
