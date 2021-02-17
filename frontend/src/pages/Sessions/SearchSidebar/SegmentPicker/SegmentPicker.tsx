@@ -14,9 +14,9 @@ import { useGetSegmentsQuery } from '../../../../graph/generated/hooks';
 export const SegmentPicker = () => {
     const {
         setSearchParams,
-        setIsSegment,
+        setSegmentName,
         setExistingParams,
-        isSegment,
+        segmentName,
     } = useContext(SearchContext);
     const [visible, setVisible] = useState(false);
     const { segment_id, organization_id } = useParams<{
@@ -61,17 +61,17 @@ export const SegmentPicker = () => {
         if (currentSegment) {
             var newParams: any = { ...currentSegment.params };
             var parsed: SearchParams = sanitize(newParams);
-            setIsSegment(true);
+            setSegmentName(currentSegment.name);
             setSearchParams(parsed);
             setExistingParams(parsed);
         } else {
-            setIsSegment(false);
+            setSegmentName(null);
             setExistingParams({
                 user_properties: [],
                 identified: false,
             });
         }
-    }, [currentSegment, setIsSegment, setSearchParams, setExistingParams]);
+    }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
 
     return (
         <SearchSection
@@ -101,7 +101,7 @@ export const SegmentPicker = () => {
                         onClick={(e) => e.preventDefault()}
                     >
                         <div className={styles.segmentNameText}>
-                            {!isSegment ? (
+                            {!segmentName ? (
                                 <span style={{ color: '#808080' }}>
                                     Select a Segment
                                 </span>
@@ -112,7 +112,7 @@ export const SegmentPicker = () => {
                         <DownIcon
                             className={styles.downIcon}
                             style={{
-                                fill: !isSegment ? '#808080' : 'black',
+                                fill: !segmentName ? '#808080' : 'black',
                                 transform: visible
                                     ? 'rotate(180deg)'
                                     : 'rotate(0deg)',
