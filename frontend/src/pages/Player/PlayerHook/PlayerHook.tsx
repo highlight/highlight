@@ -6,9 +6,9 @@ import { useGetEventsQuery } from '../../../graph/generated/hooks';
 import { HighlightEvent } from '../HighlightEvent';
 
 import {
+    ParsedSessionInterval,
     ReplayerContextInterface,
     ReplayerState,
-    SessionInterval,
 } from '../ReplayerContext';
 
 export const usePlayer = ({
@@ -25,7 +25,7 @@ export const usePlayer = ({
     const [time, setTime] = useState<number>(0);
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
-        Array<SessionInterval>
+        Array<ParsedSessionInterval>
     >([]);
 
     const { demo } = useContext(DemoContext);
@@ -47,6 +47,7 @@ export const usePlayer = ({
             const newEvents: HighlightEvent[] = toHighlightEvents(
                 eventsData?.events ?? []
             );
+            const inactiveThreshold = 0.02;
             let r = new Replayer(newEvents, {
                 root: document.getElementById('player') as HTMLElement,
             });
@@ -55,13 +56,38 @@ export const usePlayer = ({
             });
             // Preprocess and logic for player length with inactive sessions
             let metadata = r.getMetaData();
-            let intervals = r.getActivityIntervals().map((e) => ({
+            const allIntervals = r.getActivityIntervals();
+            let intervals = allIntervals.map((e) => ({
                 ...e,
                 startTime: e.startTime - metadata.startTime,
                 endTime: e.endTime - metadata.startTime,
-                duration: e.endTime - e.startTime,
             }));
-            setSessionIntervals(intervals);
+            const { activeDuration, numInactive } = allIntervals.reduce(
+                (acc, interval) => ({
+                    activeDuration: interval.active
+                        ? acc.activeDuration + interval.duration
+                        : acc.activeDuration,
+                    numInactive: interval.active
+                        ? acc.numInactive
+                        : acc.numInactive++,
+                }),
+                { activeDuration: 0, numInactive: 0 }
+            );
+            const inactiveSliceDuration = inactiveThreshold * activeDuration;
+            const totalDuration =
+                activeDuration * (1 + inactiveThreshold * numInactive);
+            let currTime = 0;
+            const sliderIntervalMap = intervals.map((e) => {
+                const prevTime = currTime;
+                currTime =
+                    currTime + (e.active ? e.duration : inactiveSliceDuration);
+                return {
+                    ...e,
+                    startPercent: prevTime / totalDuration,
+                    endPercent: currTime / totalDuration,
+                };
+            });
+            setSessionIntervals(sliderIntervalMap);
             setEvents(newEvents);
             setReplayer(r);
             setSessionEndTime(r.getMetaData().totalTime);

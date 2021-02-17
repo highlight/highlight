@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import { Replayer } from '@highlight-run/rrweb';
+import { SessionInterval } from '@highlight-run/rrweb/typings/types';
 import { HighlightEvent } from '../HighlightEvent';
 
 export enum ReplayerState {
@@ -10,12 +11,9 @@ export enum ReplayerState {
     Paused,
 }
 
-// TODO: Calculate duration in rrweb, and export this type from rrweb
-export interface SessionInterval {
-    startTime: number;
-    endTime: number;
-    duration: number;
-    active: boolean;
+export interface ParsedSessionInterval extends SessionInterval {
+    startPercent: number;
+    endPercent: number;
 }
 
 export interface ReplayerContextInterface {
@@ -30,7 +28,7 @@ export interface ReplayerContextInterface {
     pause: (time?: number) => void;
     setScale: React.Dispatch<React.SetStateAction<number>>;
     events: Array<HighlightEvent>;
-    sessionIntervals: Array<SessionInterval>;
+    sessionIntervals: Array<ParsedSessionInterval>;
 }
 
 export const defaultValue: ReplayerContextInterface = {
