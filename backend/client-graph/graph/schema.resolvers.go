@@ -218,7 +218,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 }
 
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {
-	panic(fmt.Errorf("not implemented"))
+	return nil, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
