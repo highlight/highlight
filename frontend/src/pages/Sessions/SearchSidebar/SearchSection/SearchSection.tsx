@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import Collapsible from 'react-collapsible';
 import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg';
 import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
@@ -23,28 +23,32 @@ export const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
     const [isOpen, setIsOpen] = useState<boolean>(open);
     const { searchParams } = useContext(SearchContext);
 
+    const searchCount = useMemo(
+        () =>
+            searchParamsKey.reduce((count, key) => {
+                const searchParam = searchParams[key];
+
+                if (Array.isArray(searchParam)) {
+                    return count + searchParam.length;
+                }
+
+                if (searchParam) {
+                    return count + 1;
+                }
+
+                return count;
+            }, 0),
+        [searchParams, searchParamsKey]
+    );
+
     const header = (
         <div className={styles.headerWrapper}>
             <div className={styles.header}>
                 {title}
                 {titleSideComponent}
             </div>
-            {searchParamsKey.length > 0 && (
-                <SearchCountBubble>
-                    {searchParamsKey.reduce((count, key) => {
-                        const searchParam = searchParams[key];
-
-                        if (Array.isArray(searchParam)) {
-                            return count + searchParam.length;
-                        }
-
-                        if (searchParam) {
-                            return count + 1;
-                        }
-
-                        return count;
-                    }, 0)}
-                </SearchCountBubble>
+            {searchCount > 0 && (
+                <SearchCountBubble>{searchCount}</SearchCountBubble>
             )}
             <DownIcon
                 className={styles.icon}
