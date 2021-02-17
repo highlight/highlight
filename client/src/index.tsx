@@ -325,7 +325,7 @@ export class Highlight {
                 ConsoleListener((c: ConsoleMessage) => {
                     if (c.type == 'Error')
                         highlightThis.errors.push({
-                            event: c.value,
+                            event: c.value || '',
                             type: 'console',
                         });
                     highlightThis.messages.push(c);
