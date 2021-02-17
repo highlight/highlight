@@ -185,38 +185,15 @@ export class Highlight {
                 this.sessionID = storedID;
                 reloaded = true;
             } else {
-                let gr = await this.client.request<
-                    {
-                        initializeSession: {
-                            id: number;
-                            user_id: number;
-                            organization_id: number;
-                        };
-                    },
-                    { organization_verbose_id: string }
-                >(
-                    gql`
-                        mutation initializeSession(
-                            $organization_verbose_id: String!
-                        ) {
-                            initializeSession(
-                                organization_verbose_id: $organization_verbose_id
-                            ) {
-                                id
-                                user_id
-                                organization_id
-                            }
-                        }
-                    `,
-                    {
-                        organization_verbose_id: this.organizationID,
-                    }
-                );
-                this.sessionID = gr.initializeSession.id;
+                const gr = await this.graphqlSDK.initializeSession({
+                    organization_verbose_id: this.organizationID,
+                });
+                this.sessionID = parseInt(gr?.initializeSession?.id || '0');
+                const organization_id = gr?.initializeSession?.organization_id;
                 this.logger.log(
                     `Loaded Highlight
   Remote: ${process.env.BACKEND_URI}
-  Org ID: ${gr.initializeSession.organization_id}
+  Org ID: ${organization_id}
   Verbose Org ID: ${this.organizationID}
   SessionID: ${this.sessionID}
   Session Data:

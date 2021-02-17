@@ -126,6 +126,19 @@ export type AddTrackPropertiesMutation = (
   & Pick<Types.Mutation, 'addTrackProperties'>
 );
 
+export type InitializeSessionMutationVariables = Types.Exact<{
+  organization_verbose_id: Types.Scalars['String'];
+}>;
+
+
+export type InitializeSessionMutation = (
+  { __typename?: 'Mutation' }
+  & { initializeSession?: Types.Maybe<(
+    { __typename?: 'Session' }
+    & Pick<Types.Session, 'id' | 'user_id' | 'organization_id'>
+  )> }
+);
+
 export type IgnoreQueryVariables = Types.Exact<{
   id: Types.Scalars['ID'];
 }>;
@@ -173,6 +186,15 @@ export const AddTrackPropertiesDocument = gql`
   )
 }
     `;
+export const InitializeSessionDocument = gql`
+    mutation initializeSession($organization_verbose_id: String!) {
+  initializeSession(organization_verbose_id: $organization_verbose_id) {
+    id
+    user_id
+    organization_id
+  }
+}
+    `;
 export const IgnoreDocument = gql`
     query Ignore($id: ID!) {
   ignore(id: $id)
@@ -196,6 +218,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     addTrackProperties(variables: AddTrackPropertiesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddTrackPropertiesMutation> {
       return withWrapper(() => client.request<AddTrackPropertiesMutation>(print(AddTrackPropertiesDocument), variables, requestHeaders));
+    },
+    initializeSession(variables: InitializeSessionMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InitializeSessionMutation> {
+      return withWrapper(() => client.request<InitializeSessionMutation>(print(InitializeSessionDocument), variables, requestHeaders));
     },
     Ignore(variables: IgnoreQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<IgnoreQuery> {
       return withWrapper(() => client.request<IgnoreQuery>(print(IgnoreDocument), variables, requestHeaders));
