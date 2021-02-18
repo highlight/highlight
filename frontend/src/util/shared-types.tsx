@@ -37,6 +37,8 @@ export type HookResponse = {
     statusText: string;
     text: string;
     headers: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     xml: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any;
 };

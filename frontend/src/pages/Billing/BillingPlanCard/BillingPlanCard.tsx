@@ -15,7 +15,9 @@ export const BillingPlanCard = ({
 }) => {
     const advertisedFeatureDivs = billingPlan.advertisedFeatures.map(
         (featureString) => (
-            <div className={styles.advertisedFeature}>{featureString}</div>
+            <div className={styles.advertisedFeature} key={featureString}>
+                {featureString}
+            </div>
         )
     );
     return (

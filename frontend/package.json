@@ -1,6 +1,9 @@
 {
     "name": "frontend-ts",
     "version": "0.1.0",
+    "engines": {
+        "node": "14.15.4"
+    },
     "private": true,
     "dependencies": {
         "@apollo/client": "^3.1.4",
@@ -30,9 +33,11 @@
         "antd": "^4.6.3",
         "classnames": "^2.2.6",
         "firebase": "^7.19.1",
+        "fs.realpath": "^1.0.0",
         "fuzzy": "^0.1.3",
         "graphql": "^15.5.0",
         "highlight.run": "^1.0.64",
+        "inflight": "^1.0.6",
         "logrocket": "^1.0.14",
         "moment": "^2.29.1",
         "mousetrap": "^1.6.5",
@@ -53,7 +58,7 @@
         "react-resize-aware": "^3.0.1",
         "react-resize-detector": "^5.2.0",
         "react-router-dom": "^5.2.0",
-        "react-scripts": "3.4.3",
+        "react-scripts": "4.0.0",
         "react-select": "^3.1.1",
         "react-spinners": "^0.9.0",
         "react-spinners-kit": "^1.9.1",
@@ -75,7 +80,8 @@
         "build": "react-scripts build",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
-        "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'"
+        "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}' && yarn lint:es",
+        "lint:es": "eslint --fix src/**/*.{ts,tsx}"
     },
     "eslintConfig": {
         "extends": "react-app"
@@ -99,8 +105,12 @@
         "@graphql-codegen/typescript-operations": "^1.17.14",
         "@graphql-codegen/typescript-react-apollo": "^2.2.1",
         "@types/validator": "^13.1.3",
-        "@typescript-eslint/eslint-plugin": "^4.12.0",
-        "@typescript-eslint/parser": "^4.12.0",
+        "@typescript-eslint/eslint-plugin": "^4.15.1",
+        "@typescript-eslint/parser": "^4.15.1",
+        "eslint-config-prettier": "^7.2.0",
+        "eslint-plugin-prettier": "^3.3.1",
+        "eslint-plugin-react": "^7.22.0",
+        "eslint-plugin-react-hooks": "^4.2.0",
         "prettier": "^2.2.1",
         "typed-scss-modules": "^3.4.0"
     },

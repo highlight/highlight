@@ -35,7 +35,7 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
 
 export const Player = () => {
-    var { session_id } = useParams<{ session_id: string }>();
+    const { session_id } = useParams<{ session_id: string }>();
     const [resizeListener, sizes] = useResizeAware();
     const player = usePlayer({
         refId: 'player',
@@ -186,6 +186,7 @@ const EventStream = () => {
 
     const usefulEvents = useMemo(() => events.filter(usefulEvent), [events]);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
         _.debounce(
             (currentEventId: string, usefulEventsList: HighlightEvent[]) => {
