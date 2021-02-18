@@ -93,12 +93,12 @@ export const ResourcePage = ({
 
     useEffect(() => {
         if (currentResources?.length) {
-            var msgIndex: number = 0;
+            let msgIndex = 0;
             const relativeTime = time - startTime;
-            var msgDiff: number = Math.abs(
+            let msgDiff: number = Math.abs(
                 relativeTime - currentResources[0].startTime
             );
-            for (var i = 0; i < currentResources.length; i++) {
+            for (let i = 0; i < currentResources.length; i++) {
                 const currentDiff: number = Math.abs(
                     relativeTime - currentResources[i].startTime
                 );
@@ -113,6 +113,7 @@ export const ResourcePage = ({
         }
     }, [currentResources, startTime, time, currentResource]);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
         _.debounce((index: number) => {
             if (virtuoso.current) {
@@ -225,7 +226,7 @@ const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
             canvas.height = canvas.clientHeight;
             canvas.width = canvas.clientWidth;
 
-            var context = canvas?.getContext('2d');
+            const context = canvas?.getContext('2d');
 
             if (!context) return;
             context.clearRect(0, 0, canvas.width, canvas.height);

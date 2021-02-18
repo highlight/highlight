@@ -1,14 +1,14 @@
-export function MillisToMinutesAndSeconds(millis: any) {
-    var minutes = Math.floor(millis / 60000);
-    var seconds = ((millis % 60000) / 1000).toFixed(0);
+export function MillisToMinutesAndSeconds(millis: number) {
+    const minutes = Math.floor(millis / 60000);
+    let seconds = ((millis % 60000) / 1000).toFixed(0);
     seconds = (seconds.length === 1 ? '0' : '') + seconds;
     return minutes + ':' + seconds;
 }
 
-export function MillisToMinutesAndSecondsVerbose(millis: any) {
-    var minutes = Math.floor(millis / 60000);
-    var seconds = ((millis % 60000) / 1000).toFixed(0);
-    var str = '';
+export function MillisToMinutesAndSecondsVerbose(millis: number) {
+    const minutes = Math.floor(millis / 60000);
+    const seconds = ((millis % 60000) / 1000).toFixed(0);
+    let str = '';
     if (minutes) {
         str += minutes + ' min ';
     }
@@ -22,14 +22,16 @@ export type Duration = {
 };
 
 export function MillisToDaysHoursMinSeconds(t: number): Duration {
-    var cd = 24 * 60 * 60 * 1000,
-        ch = 60 * 60 * 1000,
-        d = Math.floor(t / cd),
-        h = Math.floor((t - d * cd) / ch),
-        m = Math.round((t - d * cd - h * ch) / 60000),
-        pad = function (n: number) {
-            return n < 10 ? 0 + n : n;
-        };
+    const cd = 24 * 60 * 60 * 1000;
+    const ch = 60 * 60 * 1000;
+    const pad = function (n: number) {
+        return n < 10 ? 0 + n : n;
+    };
+
+    let d = Math.floor(t / cd);
+    let h = Math.floor((t - d * cd) / ch);
+    let m = Math.round((t - d * cd - h * ch) / 60000);
+
     if (m === 60) {
         h++;
         m = 0;
