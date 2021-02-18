@@ -65,7 +65,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                         : acc.activeDuration,
                     numInactive: interval.active
                         ? acc.numInactive
-                        : acc.numInactive++,
+                        : ++acc.numInactive,
                 }),
                 { activeDuration: 0, numInactive: 0 }
             );

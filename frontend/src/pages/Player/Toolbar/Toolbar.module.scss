@@ -9,9 +9,15 @@
     border: none;
     padding: 0;
     outline: none;
+    position: absolute;
 
     &:disabled {
         cursor: not-allowed;
+    }
+
+    &:hover .indicator {
+        transform: scale(1);
+        transition: all 0.3s ease-in-out;
     }
 }
 
@@ -23,23 +29,56 @@
     display: inline-block;
     height: 4px;
     background: none;
-    border: none;
-    padding: 0;
+    padding: 0 0 0 1px;
     outline: none;
+}
+
+.segmentHover {
+    transform: scale(1, 2);
+    transition: all 0.2s ease-in-out;
 }
 
 .sliderRail {
     width: 100%;
     height: 4px;
-    background-color: #5629c6;
+    transition: all 0.2s ease-in-out;
+}
+
+.sliderPopover {
+    position: absolute;
+    z-index: 1000;
+    bottom: 16px;
+    text-align: center;
+    width: 80px;
+    color: white;
+    // text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
+    background: black;
+    padding: 6px 10px;
+    border-radius: 8px;
+}
+
+.sliderPopoverTime {
+    font-size: 10px;
 }
 
 .indicator {
     height: 15px;
     width: 15px;
     margin-top: -9px;
+    transform: scale(0);
     border-radius: 20px;
     background-color: #5629c6;
+    transition: all 0.3s ease-in-out;
+}
+
+.indicatorParent {
+    height: 15px;
+    width: 15px;
+    background-color: none;
+}
+
+.playerRail {
+    position: relative;
 }
 
 .dropdownMenu {
