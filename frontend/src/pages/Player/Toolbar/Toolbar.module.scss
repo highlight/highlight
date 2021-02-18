@@ -48,9 +48,13 @@
     position: absolute;
     z-index: 1000;
     bottom: 16px;
-    font-weight: 400;
     text-align: center;
     width: 80px;
+    color: white;
+    // text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
+    background: black;
+    padding: 6px 10px;
+    border-radius: 8px;
 }
 
 .sliderPopoverTime {
@@ -65,6 +69,12 @@
     border-radius: 20px;
     background-color: #5629c6;
     transition: all 0.3s ease-in-out;
+}
+
+.indicatorParent {
+    height: 15px;
+    width: 15px;
+    background-color: none;
 }
 
 .playerRail {

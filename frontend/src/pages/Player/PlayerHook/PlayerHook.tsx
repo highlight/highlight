@@ -69,7 +69,7 @@ export const usePlayer = ({
                         : acc.activeDuration,
                     numInactive: interval.active
                         ? acc.numInactive
-                        : acc.numInactive++,
+                        : ++acc.numInactive,
                 }),
                 { activeDuration: 0, numInactive: 0 }
             );
@@ -87,6 +87,12 @@ export const usePlayer = ({
                     endPercent: currTime / totalDuration,
                 };
             });
+            console.log(
+                activeDuration,
+                numInactive,
+                totalDuration,
+                inactiveSliceDuration
+            );
             setSessionIntervals(sliderIntervalMap);
             setEvents(newEvents);
             setReplayer(r);

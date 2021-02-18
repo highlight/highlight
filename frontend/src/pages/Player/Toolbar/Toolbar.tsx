@@ -113,17 +113,11 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     segmentPercent *
                         (interval.endPercent - interval.startPercent) +
                     interval.startPercent;
+                return sliderPercent;
             }
         }
         return sliderPercent;
     };
-
-    const isPercentInInterval = (
-        sliderPercent: number,
-        interval: ParsedSessionInterval
-    ) =>
-        sliderPercent >= interval.startPercent &&
-        sliderPercent < interval.endPercent;
 
     const getSliderTime = (sliderPercent: number) => {
         let newTime = 0;
@@ -137,6 +131,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     (interval.endPercent - interval.startPercent);
                 newTime =
                     segmentPercent * interval.duration + interval.startTime;
+                return newTime;
             }
         }
         return newTime;
@@ -170,72 +165,19 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     style={{
                         position: 'absolute',
                         display: 'flex',
+                        background:
+                            sessionIntervals.length > 0 ? 'none' : '#e4e8eb',
                     }}
                 >
                     {sessionIntervals.map((e, ind) => (
-                        <div
+                        <SessionSegment
                             key={ind}
-                            className={styles.sliderSegment}
-                            style={{
-                                width: `${
-                                    (e.endPercent - e.startPercent) * 100
-                                }%`,
-                            }}
-                        >
-                            <div
-                                className={styles.sliderPopover}
-                                style={{
-                                    left: `${Math.max(
-                                        sliderClientX - 40,
-                                        0
-                                    )}px`,
-                                    display: isPercentInInterval(
-                                        sliderClientX / wrapperWidth,
-                                        e
-                                    )
-                                        ? 'block'
-                                        : 'none',
-                                }}
-                            >
-                                <div>{e.active ? 'Active' : 'Inactive'}</div>
-                                <div className={styles.sliderPopoverTime}>
-                                    {MillisToMinutesAndSeconds(
-                                        getSliderTime(
-                                            sliderClientX / wrapperWidth
-                                        )
-                                    )}
-                                </div>
-                            </div>
-                            <div
-                                className={classNames(
-                                    styles.sliderRail,
-                                    isPercentInInterval(
-                                        sliderClientX / wrapperWidth,
-                                        e
-                                    )
-                                        ? styles.segmentHover
-                                        : ''
-                                )}
-                                style={{
-                                    background:
-                                        time < e.startTime
-                                            ? '#EEE7FF'
-                                            : time >= e.endTime
-                                            ? '#5629c6'
-                                            : `linear-gradient(to right,#5629c6 0%, #5629c6 ${
-                                                  ((time - e.startTime) /
-                                                      (e.endTime -
-                                                          e.startTime)) *
-                                                  100
-                                              }%, #EEE7FF ${
-                                                  ((time - e.startTime) /
-                                                      (e.endTime -
-                                                          e.startTime)) *
-                                                  100
-                                              }%)`,
-                                }}
-                            ></div>
-                        </div>
+                            interval={e}
+                            sliderClientX={sliderClientX}
+                            wrapperWidth={wrapperWidth}
+                            time={time}
+                            getSliderTime={getSliderTime}
+                        />
                     ))}
                 </div>
                 <button
@@ -268,7 +210,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             y: 0,
                         }}
                     >
-                        <div>
+                        <div className={styles.indicatorParent}>
                             <div className={styles.indicator} />
                         </div>
                     </Draggable>
@@ -387,5 +329,86 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 </div>
             </div>
         </>
+    );
+};
+
+const SessionSegment = ({
+    interval,
+    sliderClientX,
+    wrapperWidth,
+    time,
+    getSliderTime,
+}: {
+    interval: ParsedSessionInterval;
+    sliderClientX: number;
+    wrapperWidth: number;
+    time: number;
+    getSliderTime: (sliderTime: number) => number;
+}) => {
+    const playedColor = interval.active ? '#5629c6' : '#808080';
+    const unplayedColor = interval.active ? '#EEE7FF' : '#d2d2d2';
+    const isPercentInInterval = (
+        sliderPercent: number,
+        interval: ParsedSessionInterval
+    ) =>
+        sliderPercent >= interval.startPercent &&
+        sliderPercent < interval.endPercent;
+
+    return (
+        <div
+            className={styles.sliderSegment}
+            style={{
+                width: `${
+                    (interval.endPercent - interval.startPercent) * 100
+                }%`,
+            }}
+        >
+            <div
+                className={styles.sliderPopover}
+                style={{
+                    left: `${Math.min(
+                        Math.max(sliderClientX - 40, 0),
+                        wrapperWidth - 80
+                    )}px`,
+                    display: isPercentInInterval(
+                        sliderClientX / wrapperWidth,
+                        interval
+                    )
+                        ? 'block'
+                        : 'none',
+                }}
+            >
+                <div>{interval.active ? 'Active' : 'Inactive'}</div>
+                <div className={styles.sliderPopoverTime}>
+                    {MillisToMinutesAndSeconds(
+                        getSliderTime(sliderClientX / wrapperWidth)
+                    )}
+                </div>
+            </div>
+            <div
+                className={classNames(
+                    styles.sliderRail,
+                    isPercentInInterval(sliderClientX / wrapperWidth, interval)
+                        ? styles.segmentHover
+                        : ''
+                )}
+                style={{
+                    background:
+                        time < interval.startTime
+                            ? unplayedColor
+                            : time >= interval.endTime
+                            ? playedColor
+                            : `linear-gradient(to right,${playedColor} 0%, ${playedColor} ${
+                                  ((time - interval.startTime) /
+                                      (interval.endTime - interval.startTime)) *
+                                  100
+                              }%, ${unplayedColor} ${
+                                  ((time - interval.startTime) /
+                                      (interval.endTime - interval.startTime)) *
+                                  100
+                              }%)`,
+                }}
+            ></div>
+        </div>
     );
 };
