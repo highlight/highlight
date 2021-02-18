@@ -1,5 +1,5 @@
 export type ConsoleMessage = {
-    value: string;
+    value?: string;
     time: number;
     type: string;
 };
