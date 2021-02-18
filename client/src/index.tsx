@@ -323,9 +323,9 @@ export class Highlight {
             });
             if (!this.disableConsoleRecording) {
                 ConsoleListener((c: ConsoleMessage) => {
-                    if (c.type == 'Error')
+                    if (c.type == 'Error' && c.value)
                         highlightThis.errors.push({
-                            event: c.value || '',
+                            event: c.value,
                             type: 'console',
                         });
                     highlightThis.messages.push(c);
