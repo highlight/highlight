@@ -113,6 +113,7 @@ export const ResourcePage = ({
         }
     }, [currentResources, startTime, time, currentResource]);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
         _.debounce((index: number) => {
             if (virtuoso.current) {

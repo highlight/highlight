@@ -186,6 +186,7 @@ const EventStream = () => {
 
     const usefulEvents = useMemo(() => events.filter(usefulEvent), [events]);
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
         _.debounce(
             (currentEventId: string, usefulEventsList: HighlightEvent[]) => {

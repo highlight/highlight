@@ -11,11 +11,7 @@ import {
     ReplayerState,
 } from '../ReplayerContext';
 
-export const usePlayer = ({
-    refId,
-}: {
-    refId: string;
-}): ReplayerContextInterface => {
+export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     const { session_id } = useParams<{ session_id: string }>();
 
     const [scale, setScale] = useState(1);
