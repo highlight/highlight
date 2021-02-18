@@ -271,7 +271,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DateRange.StartDate(childComplexity), true
 
-	case "ErrorObject.columnNumber":
+	case "ErrorObject.column_number":
 		if e.complexity.ErrorObject.ColumnNumber == nil {
 			break
 		}
@@ -292,7 +292,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.ID(childComplexity), true
 
-	case "ErrorObject.lineNumber":
+	case "ErrorObject.line_number":
 		if e.complexity.ErrorObject.LineNumber == nil {
 			break
 		}
@@ -942,28 +942,28 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionResults.TotalCount(childComplexity), true
 
-	case "StackFrame.columnNumber":
+	case "StackFrame.column_number":
 		if e.complexity.StackFrame.ColumnNumber == nil {
 			break
 		}
 
 		return e.complexity.StackFrame.ColumnNumber(childComplexity), true
 
-	case "StackFrame.fileName":
+	case "StackFrame.file_name":
 		if e.complexity.StackFrame.FileName == nil {
 			break
 		}
 
 		return e.complexity.StackFrame.FileName(childComplexity), true
 
-	case "StackFrame.functionName":
+	case "StackFrame.function_name":
 		if e.complexity.StackFrame.FunctionName == nil {
 			break
 		}
 
 		return e.complexity.StackFrame.FunctionName(childComplexity), true
 
-	case "StackFrame.lineNumber":
+	case "StackFrame.line_number":
 		if e.complexity.StackFrame.LineNumber == nil {
 			break
 		}
@@ -1106,10 +1106,10 @@ type Segment {
 }
 
 type StackFrame {
-    columnNumber: Int!
-    lineNumber: Int!
-    fileName: String!
-    functionName: String!
+    column_number: Int!
+    line_number: Int!
+    file_name: String!
+    function_name: String!
 }
 
 type ErrorObject {
@@ -1119,8 +1119,8 @@ type ErrorObject {
     event: String!
     type: String!
     source: String
-    lineNumber: Int
-    columnNumber: Int
+    line_number: Int
+    column_number: Int
     trace: [StackFrame]
 }
 
@@ -2197,7 +2197,7 @@ func (ec *executionContext) _ErrorObject_source(ctx context.Context, field graph
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_lineNumber(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_line_number(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2228,7 +2228,7 @@ func (ec *executionContext) _ErrorObject_lineNumber(ctx context.Context, field g
 	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_columnNumber(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_column_number(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4748,7 +4748,7 @@ func (ec *executionContext) _SessionResults_totalCount(ctx context.Context, fiel
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _StackFrame_columnNumber(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
+func (ec *executionContext) _StackFrame_column_number(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4782,7 +4782,7 @@ func (ec *executionContext) _StackFrame_columnNumber(ctx context.Context, field 
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _StackFrame_lineNumber(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
+func (ec *executionContext) _StackFrame_line_number(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4816,7 +4816,7 @@ func (ec *executionContext) _StackFrame_lineNumber(ctx context.Context, field gr
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _StackFrame_fileName(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
+func (ec *executionContext) _StackFrame_file_name(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4850,7 +4850,7 @@ func (ec *executionContext) _StackFrame_fileName(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _StackFrame_functionName(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
+func (ec *executionContext) _StackFrame_function_name(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6298,10 +6298,10 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			}
 		case "source":
 			out.Values[i] = ec._ErrorObject_source(ctx, field, obj)
-		case "lineNumber":
-			out.Values[i] = ec._ErrorObject_lineNumber(ctx, field, obj)
-		case "columnNumber":
-			out.Values[i] = ec._ErrorObject_columnNumber(ctx, field, obj)
+		case "line_number":
+			out.Values[i] = ec._ErrorObject_line_number(ctx, field, obj)
+		case "column_number":
+			out.Values[i] = ec._ErrorObject_column_number(ctx, field, obj)
 		case "trace":
 			out.Values[i] = ec._ErrorObject_trace(ctx, field, obj)
 		default:
@@ -6911,23 +6911,23 @@ func (ec *executionContext) _StackFrame(ctx context.Context, sel ast.SelectionSe
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("StackFrame")
-		case "columnNumber":
-			out.Values[i] = ec._StackFrame_columnNumber(ctx, field, obj)
+		case "column_number":
+			out.Values[i] = ec._StackFrame_column_number(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "lineNumber":
-			out.Values[i] = ec._StackFrame_lineNumber(ctx, field, obj)
+		case "line_number":
+			out.Values[i] = ec._StackFrame_line_number(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "fileName":
-			out.Values[i] = ec._StackFrame_fileName(ctx, field, obj)
+		case "file_name":
+			out.Values[i] = ec._StackFrame_file_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "functionName":
-			out.Values[i] = ec._StackFrame_functionName(ctx, field, obj)
+		case "function_name":
+			out.Values[i] = ec._StackFrame_function_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

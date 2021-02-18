@@ -69,10 +69,10 @@ export type Segment = {
 
 export type StackFrame = {
     __typename?: 'StackFrame';
-    columnNumber: Scalars['Int'];
-    lineNumber: Scalars['Int'];
-    fileName: Scalars['String'];
-    functionName: Scalars['String'];
+    column_number: Scalars['Int'];
+    line_number: Scalars['Int'];
+    file_name: Scalars['String'];
+    function_name: Scalars['String'];
 };
 
 export type ErrorObject = {
@@ -83,8 +83,8 @@ export type ErrorObject = {
     event: Scalars['String'];
     type: Scalars['String'];
     source?: Maybe<Scalars['String']>;
-    lineNumber?: Maybe<Scalars['Int']>;
-    columnNumber?: Maybe<Scalars['Int']>;
+    line_number?: Maybe<Scalars['Int']>;
+    column_number?: Maybe<Scalars['Int']>;
     trace?: Maybe<Array<Maybe<StackFrame>>>;
 };
 
