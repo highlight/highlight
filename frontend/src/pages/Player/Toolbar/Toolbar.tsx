@@ -393,20 +393,25 @@ const SessionSegment = ({
                         : ''
                 )}
                 style={{
-                    background:
-                        time < interval.startTime
-                            ? unplayedColor
-                            : time >= interval.endTime
-                            ? playedColor
-                            : `linear-gradient(to right,${playedColor} 0%, ${playedColor} ${
-                                  ((time - interval.startTime) /
-                                      (interval.endTime - interval.startTime)) *
-                                  100
-                              }%, ${unplayedColor} ${
-                                  ((time - interval.startTime) /
-                                      (interval.endTime - interval.startTime)) *
-                                  100
-                              }%)`,
+                    background: `linear-gradient(to right,${playedColor} 0%, ${playedColor} ${
+                        Math.min(
+                            Math.max(
+                                (time - interval.startTime) /
+                                    (interval.endTime - interval.startTime),
+                                0
+                            ),
+                            1
+                        ) * 100
+                    }%, ${unplayedColor} ${
+                        Math.min(
+                            Math.max(
+                                (time - interval.startTime) /
+                                    (interval.endTime - interval.startTime),
+                                0
+                            ),
+                            1
+                        ) * 100
+                    }%)`,
                 }}
             ></div>
         </div>
