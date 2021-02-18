@@ -95,7 +95,6 @@ export const StreamElement = ({
                         {details.title}
                     </div>
                 </div>
-                <h2>Hello World</h2>
                 <div
                     className={
                         selected
