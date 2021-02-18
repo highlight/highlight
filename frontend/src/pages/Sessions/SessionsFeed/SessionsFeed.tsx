@@ -176,7 +176,7 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                         <div className={styles.sessionTextSection}>
                             <div className={styles.topText}>
                                 {MillisToMinutesAndSecondsVerbose(
-                                    session?.length
+                                    session?.length || 0
                                 ) || '30 min 20 sec'}
                             </div>
                             <div className={styles.middleText}>

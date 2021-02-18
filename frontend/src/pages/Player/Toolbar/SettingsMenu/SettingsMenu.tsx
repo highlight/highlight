@@ -65,6 +65,7 @@ export const SettingsMenu = ({
                                 <div className={styles.playbackWrapper}>
                                     {[0.5, 1, 1.5, 2, 4, 6, 8].map((v) => (
                                         <div
+                                            key={v}
                                             className={
                                                 styles.playbackSpeedElement
                                             }
