@@ -252,7 +252,7 @@ type ErrorObject struct {
 	Source         string
 	LineNumber     int
 	ColumnNumber   int
-	Trace          []*StackFrame
+	Trace          *string `json:"trace"`
 }
 
 func SetupDB() *gorm.DB {

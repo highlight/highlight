@@ -317,10 +317,6 @@ export class Highlight {
             this.logger.log(
                 `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionID}`
             );
-            this.events = [];
-            this.errors = [];
-            this.messages = [];
-            this.networkContents = [];
             if (!this.disableNetworkRecording) {
                 performance.clearResourceTimings();
             }
@@ -331,6 +327,10 @@ export class Highlight {
                 resources: resourcesString,
                 errors: this.errors,
             });
+            this.events = [];
+            this.errors = [];
+            this.messages = [];
+            this.networkContents = [];
         } catch (e) {
             HighlightWarning('_save', e);
         }

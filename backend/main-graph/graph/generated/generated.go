@@ -37,6 +37,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	ErrorObject() ErrorObjectResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Segment() SegmentResolver
@@ -183,6 +184,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type ErrorObjectResolver interface {
+	Trace(ctx context.Context, obj *model1.ErrorObject) ([]*model1.StackFrame, error)
+}
 type MutationResolver interface {
 	CreateOrganization(ctx context.Context, name string) (*model1.Organization, error)
 	EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Organization, error)
@@ -2270,13 +2274,13 @@ func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphq
 		Object:   "ErrorObject",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Trace, nil
+		return ec.resolvers.ErrorObject().Trace(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6274,27 +6278,27 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 		case "id":
 			out.Values[i] = ec._ErrorObject_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "organization_id":
 			out.Values[i] = ec._ErrorObject_organization_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "session_id":
 			out.Values[i] = ec._ErrorObject_session_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "event":
 			out.Values[i] = ec._ErrorObject_event(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "type":
 			out.Values[i] = ec._ErrorObject_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "source":
 			out.Values[i] = ec._ErrorObject_source(ctx, field, obj)
@@ -6303,7 +6307,16 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 		case "column_number":
 			out.Values[i] = ec._ErrorObject_column_number(ctx, field, obj)
 		case "trace":
-			out.Values[i] = ec._ErrorObject_trace(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorObject_trace(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

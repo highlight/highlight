@@ -189,9 +189,24 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 	}
 	// put errors in db
-	fmt.Println("Pushing payload", organizationID)
-	if len(errors) > 0 && organizationID == 2 {
+	if len(errors) > 0 && organizationID == 1 {
 		for _, v := range errors {
+			errorTrace := []*model.StackFrame{}
+			for _, f := range v.Trace {
+				frame := &model.StackFrame{
+					ColumnNumber: *f.ColumnNumber,
+					LineNumber:   *f.LineNumber,
+					FileName:     *f.FileName,
+					FunctionName: *f.FunctionName,
+				}
+				errorTrace = append(errorTrace, frame)
+			}
+			traceBytes, err := json.Marshal(errorTrace)
+			if err != nil {
+				return nil, e.Wrap(err, "error unmarshaling search params")
+			}
+			traceString := string(traceBytes)
+
 			obj := &model.ErrorObject{
 				OrganizationID: organizationID,
 				SessionID:      sessionID,
@@ -200,16 +215,9 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				Source:         v.Source,
 				LineNumber:     v.LineNumber,
 				ColumnNumber:   v.ColumnNumber,
+				Trace:          &traceString,
 			}
-			for _, f := range v.Trace {
-				frame := &model.StackFrame{
-					ColumnNumber: *f.ColumnNumber,
-					LineNumber:   *f.LineNumber,
-					FileName:     *f.FileName,
-					FunctionName: *f.FunctionName,
-				}
-				obj.Trace = append(obj.Trace, frame)
-			}
+
 			if err := r.DB.Create(obj).Error; err != nil {
 				return nil, e.Wrap(err, "error creating error object")
 			}
