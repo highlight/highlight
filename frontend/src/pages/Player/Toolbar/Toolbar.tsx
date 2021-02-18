@@ -65,7 +65,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         }
     }, [autoPlayVideo, replayer, time, play, state]);
 
-    let endLogger = (e: any, data: any) => {
+    const endLogger = (e: any, data: any) => {
         let newTime = (e.x / wrapperWidth) * max;
         newTime = Math.max(0, newTime);
         newTime = Math.min(max, newTime);
@@ -79,16 +79,16 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         }
     };
 
-    let startDraggable = (e: any, data: any) => {
+    const startDraggable = (e: any, data: any) => {
         setLastCanvasPreview(data.x);
         if (!isPaused) {
             pause();
         }
     };
 
-    let onDraggable = (e: any, data: any) => {
-        let sliderPercent = data.x / wrapperWidth;
-        let newTime = getSliderTime(sliderPercent);
+    const onDraggable = (e: any, data: any) => {
+        const sliderPercent = data.x / wrapperWidth;
+        const newTime = getSliderTime(sliderPercent);
         setTime(newTime);
 
         // TODO: Add Math.abs to enable both forward and backward scrolling

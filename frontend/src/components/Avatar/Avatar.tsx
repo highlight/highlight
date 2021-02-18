@@ -12,7 +12,7 @@ export const Avatar = ({
     const imageRef = React.useRef<HTMLImageElement>(null);
     useEffect(() => {
         if (imageRef.current) {
-            let avatars = new Avatars(sprites, {
+            const avatars = new Avatars(sprites, {
                 style: 'circle',
                 background: '#5629c6',
                 eyes: ['default'],
@@ -21,7 +21,7 @@ export const Avatar = ({
                 mouth: ['smile'],
                 top: ['hat', 'longHair', 'shortHair'],
             });
-            let svg = avatars.create(seed);
+            const svg = avatars.create(seed);
             imageRef.current.src = `data:image/svg+xml;utf8,${encodeURIComponent(
                 svg
             )}`;

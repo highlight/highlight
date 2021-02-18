@@ -24,11 +24,11 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const generateOptions = async (
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
-        var fetched = await refetch({
+        const fetched = await refetch({
             organization_id,
             query: input,
         });
-        var suggestions = (fetched?.data?.property_suggestion ?? []).map(
+        const suggestions = (fetched?.data?.property_suggestion ?? []).map(
             (f) => {
                 return {
                     label: f?.name + ': ' + f?.value,
@@ -63,7 +63,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                 isClearable={false}
                 defaultOptions
                 onChange={(options) => {
-                    var newOptions: Array<UserProperty> =
+                    const newOptions: Array<UserProperty> =
                         options?.map((o) => {
                             if (!o.name) o.name = 'contains';
                             return { name: o.name, value: o.value };
