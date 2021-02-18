@@ -35,6 +35,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Mutation() MutationResolver
+	Query() QueryResolver
 }
 
 type DirectiveRoot struct {
@@ -50,6 +51,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		Ignore func(childComplexity int, id int) int
 	}
 
 	Session struct {
@@ -65,6 +67,9 @@ type MutationResolver interface {
 	AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors string) (*int, error)
+}
+type QueryResolver interface {
+	Ignore(ctx context.Context, id int) (interface{}, error)
 }
 
 type executableSchema struct {
@@ -141,6 +146,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.PushPayload(childComplexity, args["session_id"].(int), args["events"].(string), args["messages"].(string), args["resources"].(string), args["errors"].(string)), true
+
+	case "Query.ignore":
+		if e.complexity.Query.Ignore == nil {
+			break
+		}
+
+		args, err := ec.field_Query_ignore_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Ignore(childComplexity, args["id"].(int)), true
 
 	case "Session.id":
 		if e.complexity.Session.ID == nil {
@@ -232,21 +249,31 @@ var sources = []*ast.Source{
 scalar Any
 
 type Session {
-  id: ID!
-  user_id: ID!
-  organization_id: ID!
+    id: ID!
+    user_id: ID!
+    organization_id: ID!
 }
 
 type Mutation {
-  initializeSession(organization_verbose_id: String!): Session
-  identifySession(
-    session_id: ID!
-    user_identifier: String!
-    user_object: Any
-  ): ID
-  addTrackProperties(session_id: ID!, properties_object: Any): ID
-  addSessionProperties(session_id: ID!, properties_object: Any): ID
-  pushPayload(session_id: ID!, events: String!, messages: String!, resources: String!, errors: String!): ID
+    initializeSession(organization_verbose_id: String!): Session
+    identifySession(
+        session_id: ID!
+        user_identifier: String!
+        user_object: Any
+    ): ID
+    addTrackProperties(session_id: ID!, properties_object: Any): ID
+    addSessionProperties(session_id: ID!, properties_object: Any): ID
+    pushPayload(
+        session_id: ID!
+        events: String!
+        messages: String!
+        resources: String!
+        errors: String!
+    ): ID
+}
+
+type Query {
+    ignore(id: ID!): Any
 }
 `, BuiltIn: false},
 }
@@ -415,6 +442,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_ignore_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -644,6 +686,44 @@ func (ec *executionContext) _Mutation_pushPayload(ctx context.Context, field gra
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_ignore(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_ignore_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Ignore(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(interface{})
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1931,6 +2011,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "ignore":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_ignore(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
