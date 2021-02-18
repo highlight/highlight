@@ -6,7 +6,8 @@
     "scripts": {
         "build": "webpack",
         "dev": "doppler run -- webpack serve --progress --watch",
-        "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'"
+        "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}'",
+        "gql": "graphql-codegen --config --watch codegen.yml"
     },
     "repository": {
         "type": "git",
@@ -22,6 +23,12 @@
     "devDependencies": {
         "@babel/core": "^7.11.1",
         "@babel/preset-env": "^7.11.0",
+        "@graphql-codegen/cli": "^1.20.1",
+        "@graphql-codegen/import-types-preset": "^1.18.1",
+        "@graphql-codegen/typescript": "^1.21.0",
+        "@graphql-codegen/typescript-graphql-request": "^3.0.2",
+        "@graphql-codegen/typescript-operations": "^1.17.14",
+        "@graphql-codegen/typescript-react-apollo": "^2.2.1",
         "babel-eslint": "^10.1.0",
         "babel-loader": "^8.0.6",
         "eslint": "^6.8.0",
@@ -35,9 +42,9 @@
     },
     "dependencies": {
         "@babel/plugin-transform-runtime": "^7.11.0",
-        "@highlight-run/rrweb": "^0.9.24",
+        "@highlight-run/rrweb": "^0.9.26",
         "graphql": "^15.4.0",
-        "graphql-request": "^3.3.0",
+        "graphql-request": "^3.4.0",
         "stacktrace-js": "^2.0.2"
     }
 }

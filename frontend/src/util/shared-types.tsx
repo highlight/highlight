@@ -1,7 +1,7 @@
 import StackTrace from 'stacktrace-js';
 
 export type ConsoleMessage = {
-    value: string;
+    value?: string;
     time: number;
     type: string;
     trace?: StackTrace.StackFrame[];

@@ -26,7 +26,7 @@ export const SegmentButtons = () => {
     const [createClicked, setCreateClicked] = useState(false);
     const {
         searchParams,
-        isSegment,
+        segmentName,
         existingParams,
         setExistingParams,
     } = useContext(SearchContext);
@@ -109,7 +109,7 @@ export const SegmentButtons = () => {
                 </div>
             </Modal>
             {paramsIsDifferent ? (
-                isSegment ? (
+                segmentName ? (
                     <>
                         <div
                             onClick={() => {

@@ -23,13 +23,13 @@ export const SearchContext = React.createContext<{
     setSearchParams: React.Dispatch<React.SetStateAction<SearchParams>>;
     existingParams: SearchParams;
     setExistingParams: React.Dispatch<React.SetStateAction<SearchParams>>;
-    isSegment: boolean;
-    setIsSegment: React.Dispatch<React.SetStateAction<boolean>>;
+    segmentName: string | null;
+    setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
 }>({
     searchParams: { user_properties: [], identified: false },
     setSearchParams: (params) => console.warn('noop'),
     existingParams: { user_properties: [], identified: false },
     setExistingParams: (params) => console.warn('goop'),
-    isSegment: false,
-    setIsSegment: (val) => console.warn('poop'),
+    segmentName: null,
+    setSegmentName: (val) => console.warn('poop'),
 });

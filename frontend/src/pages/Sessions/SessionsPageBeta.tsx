@@ -14,8 +14,9 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
     const [feedRef, { top, right, x }] = useDimensions();
+    const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<SearchParams>(
-        'cachedParams',
+        `cachedParams-${segmentName || 'no-selected-segment'}`,
         { user_properties: [], identified: false }
     );
     const [searchParams, setSearchParams] = useState<SearchParams>(
@@ -25,7 +26,6 @@ export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
         user_properties: [],
         identified: false,
     });
-    const [isSegment, setIsSegment] = useState<boolean>(false);
     const { setOpenSidebar } = useContext(SidebarContext);
 
     useEffect(() => setOpenSidebar(false), [setOpenSidebar]);
@@ -46,8 +46,8 @@ export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
                 setSearchParams,
                 existingParams,
                 setExistingParams,
-                isSegment,
-                setIsSegment,
+                segmentName,
+                setSegmentName,
             }}
         >
             <div className={styles.sessionsBody}>
