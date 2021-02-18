@@ -2,7 +2,6 @@ name: Client
 on:
     push:
         paths:
-            - 'firstload/**'
             - 'client/**'
             - '.github/workflows/client.yml'
 jobs:

@@ -4,6 +4,7 @@ import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener, ErrorStringify } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient, gql } from 'graphql-request';
+import { Sdk, getSdk } from './graph/generated/operations';
 
 import {
     ConsoleMessage,
@@ -52,7 +53,7 @@ type Source = 'segment' | undefined;
 
 export class Highlight {
     organizationID: string;
-    client: GraphQLClient;
+    graphqlSDK: Sdk;
     events: eventWithTime[];
     errors: ErrorMessage[];
     messages: ConsoleMessage[];
@@ -81,7 +82,8 @@ export class Highlight {
         const backend = options?.backendUrl
             ? options.backendUrl
             : process.env.BACKEND_URI;
-        this.client = new GraphQLClient(`${backend}/client`, { headers: {} });
+        const client = new GraphQLClient(`${backend}/client`, { headers: {} });
+        this.graphqlSDK = getSdk(client);
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
         } else if (typeof options.organizationID === 'number') {
@@ -108,26 +110,11 @@ export class Highlight {
                 JSON.stringify({ user_identifier, ...user_object })
             );
         }
-        await this.client.request(
-            gql`
-                mutation identifySession(
-                    $session_id: ID!
-                    $user_identifier: String!
-                    $user_object: Any
-                ) {
-                    identifySession(
-                        session_id: $session_id
-                        user_identifier: $user_identifier
-                        user_object: $user_object
-                    )
-                }
-            `,
-            {
-                session_id: this.sessionID,
-                user_identifier: user_identifier,
-                user_object: user_object,
-            }
-        );
+        await this.graphqlSDK.identifySession({
+            session_id: this.sessionID.toString(),
+            user_identifier: user_identifier,
+            user_object: user_object,
+        });
         const sourceString = source === 'segment' ? source : 'default';
         this.logger.log(
             `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${JSON.stringify(
@@ -139,23 +126,10 @@ export class Highlight {
     async addProperties(properties_obj = {}, typeArg?: PropertyType) {
         // Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
         if (typeArg?.type === 'session') {
-            await this.client.request(
-                gql`
-                    mutation addSessionProperties(
-                        $session_id: ID!
-                        $properties_object: Any
-                    ) {
-                        addSessionProperties(
-                            session_id: $session_id
-                            properties_object: $properties_object
-                        )
-                    }
-                `,
-                {
-                    session_id: this.sessionID,
-                    properties_object: properties_obj,
-                }
-            );
+            await this.graphqlSDK.addSessionProperties({
+                session_id: this.sessionID.toString(),
+                properties_object: properties_obj,
+            });
             this.logger.log(
                 `AddSessionProperties to session (${
                     this.sessionID
@@ -174,23 +148,10 @@ export class Highlight {
             } else {
                 addCustomEvent<string>('Track', JSON.stringify(properties_obj));
             }
-            await this.client.request(
-                gql`
-                    mutation addTrackProperties(
-                        $session_id: ID!
-                        $properties_object: Any
-                    ) {
-                        addTrackProperties(
-                            session_id: $session_id
-                            properties_object: $properties_object
-                        )
-                    }
-                `,
-                {
-                    session_id: this.sessionID,
-                    properties_object: properties_obj,
-                }
-            );
+            await this.graphqlSDK.addTrackProperties({
+                session_id: this.sessionID.toString(),
+                properties_object: properties_obj,
+            });
             const sourceString =
                 typeArg?.source === 'segment' ? typeArg.source : 'default';
             this.logger.log(
@@ -224,38 +185,15 @@ export class Highlight {
                 this.sessionID = storedID;
                 reloaded = true;
             } else {
-                let gr = await this.client.request<
-                    {
-                        initializeSession: {
-                            id: number;
-                            user_id: number;
-                            organization_id: number;
-                        };
-                    },
-                    { organization_verbose_id: string }
-                >(
-                    gql`
-                        mutation initializeSession(
-                            $organization_verbose_id: String!
-                        ) {
-                            initializeSession(
-                                organization_verbose_id: $organization_verbose_id
-                            ) {
-                                id
-                                user_id
-                                organization_id
-                            }
-                        }
-                    `,
-                    {
-                        organization_verbose_id: this.organizationID,
-                    }
-                );
-                this.sessionID = gr.initializeSession.id;
+                const gr = await this.graphqlSDK.initializeSession({
+                    organization_verbose_id: this.organizationID,
+                });
+                this.sessionID = parseInt(gr?.initializeSession?.id || '0');
+                const organization_id = gr?.initializeSession?.organization_id;
                 this.logger.log(
                     `Loaded Highlight
   Remote: ${process.env.BACKEND_URI}
-  Org ID: ${gr.initializeSession.organization_id}
+  Org ID: ${organization_id}
   Verbose Org ID: ${this.organizationID}
   SessionID: ${this.sessionID}
   Session Data:
@@ -323,7 +261,7 @@ export class Highlight {
             });
             if (!this.disableConsoleRecording) {
                 ConsoleListener((c: ConsoleMessage) => {
-                    if (c.type == 'Error')
+                    if (c.type == 'Error' && c.value)
                         highlightThis.errors.push({
                             event: c.value,
                             type: 'console',
@@ -377,32 +315,13 @@ export class Highlight {
             if (!this.disableNetworkRecording) {
                 performance.clearResourceTimings();
             }
-            await this.client.request(
-                gql`
-                    mutation PushPayload(
-                        $session_id: ID!
-                        $events: String!
-                        $messages: String!
-                        $resources: String!
-                        $errors: String!
-                    ) {
-                        pushPayload(
-                            session_id: $session_id
-                            events: $events
-                            messages: $messages
-                            resources: $resources
-                            errors: $errors
-                        )
-                    }
-                `,
-                {
-                    session_id: this.sessionID,
-                    events: eventsString,
-                    messages: messagesString,
-                    resources: resourcesString,
-                    errors: errorsString,
-                }
-            );
+            await this.graphqlSDK.PushPayload({
+                session_id: this.sessionID.toString(),
+                events: eventsString,
+                messages: messagesString,
+                resources: resourcesString,
+                errors: errorsString,
+            });
         } catch (e) {
             HighlightWarning('_save', e);
         }

@@ -95,7 +95,8 @@ export const ConsolePage = ({ time }: { time: number }) => {
     });
 
     const messagesToRender = useMemo(
-        () => currentMessages?.filter((message) => message?.value.length) || [],
+        () =>
+            currentMessages?.filter((message) => message?.value?.length) || [],
         [currentMessages]
     );
 
