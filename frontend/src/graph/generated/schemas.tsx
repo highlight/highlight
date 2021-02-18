@@ -69,8 +69,8 @@ export type Segment = {
 
 export type StackFrame = {
     __typename?: 'StackFrame';
-    column_no: Scalars['Int'];
-    line_no: Scalars['Int'];
+    columnNumber: Scalars['Int'];
+    lineNumber: Scalars['Int'];
     fileName: Scalars['String'];
     functionName: Scalars['String'];
 };
@@ -83,9 +83,9 @@ export type ErrorObject = {
     event: Scalars['String'];
     type: Scalars['String'];
     source?: Maybe<Scalars['String']>;
-    line_no?: Maybe<Scalars['Int']>;
-    column_no?: Maybe<Scalars['Int']>;
-    trace?: Maybe<Scalars['String']>;
+    lineNumber?: Maybe<Scalars['Int']>;
+    columnNumber?: Maybe<Scalars['Int']>;
+    trace?: Maybe<Array<Maybe<StackFrame>>>;
 };
 
 export type SearchParamsInput = {

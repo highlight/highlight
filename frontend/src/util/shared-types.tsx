@@ -8,12 +8,12 @@ export type ConsoleMessage = {
 };
 
 export type ErrorMessage = {
-    event: string | Event;
+    event: string;
     type: 'console' | 'exception';
-    source?: string;
-    lineno?: number;
-    colno?: number;
-    trace?: StackTrace.StackFrame[];
+    source: string;
+    lineNumber: number;
+    columnNumber: number;
+    trace: StackTrace.StackFrame[];
 };
 
 export type NetworkResourceContent = {

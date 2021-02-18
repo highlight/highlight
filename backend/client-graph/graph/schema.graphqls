@@ -8,22 +8,19 @@ type Session {
     organization_id: ID!
 }
 
-type StackFrameInput {
-    column_no: Int!
-    line_no: Int!
-    fileName: String!
-    functionName: String!
+input StackFrameInput {
+    columnNumber: Int
+    lineNumber: Int
+    fileName: String
+    functionName: String
 }
 
-type ErrorObjectInput {
-    id: ID!
-    organization_id: Int!
-    session_id: Int!
+input ErrorObjectInput {
     event: String!
     type: String!
     source: String!
-    line_no: Int!
-    column_no: Int!
+    lineNumber: Int!
+    columnNumber: Int!
     trace: [StackFrameInput]!
 }
 

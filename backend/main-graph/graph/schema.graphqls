@@ -49,8 +49,8 @@ type Segment {
 }
 
 type StackFrame {
-    column_no: Int!
-    line_no: Int!
+    columnNumber: Int!
+    lineNumber: Int!
     fileName: String!
     functionName: String!
 }
@@ -62,8 +62,8 @@ type ErrorObject {
     event: String!
     type: String!
     source: String
-    line_no: Int
-    column_no: Int
+    lineNumber: Int
+    columnNumber: Int
     trace: [StackFrame]
 }
 

@@ -15,18 +15,14 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
                 callback({
                     event: event,
                     type: 'exception',
-                    source: source,
-                    lineno: result[0].lineNumber,
-                    colno: result[0].columnNumber,
+                    source: source ? source : '',
+                    lineNumber: result[0].lineNumber ? result[0].lineNumber : 0,
+                    columnNumber: result[0].columnNumber
+                        ? result[0].columnNumber
+                        : 0,
                     trace: result,
                 });
             });
         }
     };
-};
-
-export const ErrorStringify = (object: any) => {
-    return JSON.stringify(object, (key, value) =>
-        typeof value === 'bigint' ? value.toString() : value
-    );
 };

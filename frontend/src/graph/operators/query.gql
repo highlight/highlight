@@ -103,9 +103,14 @@ query Errors($organization_id: ID!) {
         event
         type
         source
-        line_no
-        column_no
-        trace
+        lineNumber
+        columnNumber
+        trace {
+            columnNumber
+            lineNumber
+            fileName
+            functionName
+        }
     }
 }
 

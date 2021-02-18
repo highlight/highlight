@@ -300,13 +300,22 @@ export type ErrorsQuery = { __typename?: 'Query' } & {
             Types.Maybe<
                 { __typename?: 'ErrorObject' } & Pick<
                     Types.ErrorObject,
-                    | 'event'
-                    | 'type'
-                    | 'source'
-                    | 'line_no'
-                    | 'column_no'
-                    | 'trace'
-                >
+                    'event' | 'type' | 'source' | 'lineNumber' | 'columnNumber'
+                > & {
+                        trace?: Types.Maybe<
+                            Array<
+                                Types.Maybe<
+                                    { __typename?: 'StackFrame' } & Pick<
+                                        Types.StackFrame,
+                                        | 'columnNumber'
+                                        | 'lineNumber'
+                                        | 'fileName'
+                                        | 'functionName'
+                                    >
+                                >
+                            >
+                        >;
+                    }
             >
         >
     >;

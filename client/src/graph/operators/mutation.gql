@@ -3,7 +3,7 @@ mutation PushPayload(
     $events: String!
     $messages: String!
     $resources: String!
-    $errors: String!
+    $errors: [ErrorObjectInput]!
 ) {
     pushPayload(
         session_id: $session_id
