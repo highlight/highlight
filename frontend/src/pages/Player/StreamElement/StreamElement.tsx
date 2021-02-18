@@ -37,7 +37,7 @@ export const StreamElement = ({
     const [selected, setSelected] = useState(false);
     const details = getEventRenderDetails(e, nodeMap);
     const { pause } = useContext(ReplayerContext);
-    let timeSinceStart = e?.timestamp - start;
+    const timeSinceStart = e?.timestamp - start;
     return (
         <div
             className={styles.eventWrapper}
@@ -95,6 +95,7 @@ export const StreamElement = ({
                         {details.title}
                     </div>
                 </div>
+                <h2>Hello World</h2>
                 <div
                     className={
                         selected
@@ -165,7 +166,7 @@ const getEventRenderDetails = (
     e: HighlightEvent,
     nodeMap: StaticMap
 ): EventRenderDetails => {
-    var details: EventRenderDetails = {};
+    const details: EventRenderDetails = {};
     if (e.type === EventType.Custom) {
         details.title = e.data.tag;
         const payload: any = e.data.payload;
@@ -183,7 +184,7 @@ const getEventRenderDetails = (
         }
         if (nodeMap[mouseInteraction.id] && nodeMap[mouseInteraction.id][0]) {
             const node = nodeMap[mouseInteraction.id][0].node;
-            var idString = nodeMap[mouseInteraction.id][0].node.tagName;
+            let idString = nodeMap[mouseInteraction.id][0].node.tagName;
             if (node?.attributes) {
                 const attrs = node?.attributes;
                 if ('class' in attrs && attrs?.class?.toString()) {

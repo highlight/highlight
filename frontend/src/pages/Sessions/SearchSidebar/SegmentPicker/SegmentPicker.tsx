@@ -59,8 +59,8 @@ export const SegmentPicker = () => {
 
     useEffect(() => {
         if (currentSegment) {
-            var newParams: any = { ...currentSegment.params };
-            var parsed: SearchParams = sanitize(newParams);
+            const newParams: any = { ...currentSegment.params };
+            const parsed: SearchParams = sanitize(newParams);
             setSegmentName(currentSegment.name);
             setSearchParams(parsed);
             setExistingParams(parsed);

@@ -67,9 +67,9 @@ export const ConsolePage = ({ time }: { time: number }) => {
     // Logic for scrolling to current entry.
     useEffect(() => {
         if (parsedMessages?.length) {
-            var msgIndex: number = 0;
-            var msgDiff: number = Math.abs(time - parsedMessages[0].time);
-            for (var i = 0; i < parsedMessages.length; i++) {
+            let msgIndex = 0;
+            let msgDiff: number = Math.abs(time - parsedMessages[0].time);
+            for (let i = 0; i < parsedMessages.length; i++) {
                 const currentDiff: number = Math.abs(
                     time - parsedMessages[i].time
                 );

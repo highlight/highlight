@@ -35,7 +35,7 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
 
 export const Player = () => {
-    var { session_id } = useParams<{ session_id: string }>();
+    const { session_id } = useParams<{ session_id: string }>();
     const [resizeListener, sizes] = useResizeAware();
     const player = usePlayer({
         refId: 'player',

@@ -25,6 +25,11 @@
         }
     },
     "rules": {
-      "@typescript-eslint/explicit-module-boundary-types": "off"
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "react/no-unescaped-entities": "off",
+      "react/prop-types": "off",
+      "@typescript-eslint/ban-ts-comment": "warn",
+      "@typescript-eslint/no-empty-function": "off",
+      "react/display-name": "off"
     }
 }

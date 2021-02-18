@@ -19,12 +19,12 @@ export const OperatingSystemInput = () => {
     const generateOptions = async (
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
-        var fetched = await refetch({
+        const fetched = await refetch({
             organization_id: organization_id,
             query: input,
             name: 'os_name',
         });
-        var suggestions = (fetched?.data?.field_suggestionBETA ?? [])
+        const suggestions = (fetched?.data?.field_suggestionBETA ?? [])
             ?.map((e) => e?.value)
             .filter((v, i, a) => a.indexOf(v) === i)
             .map((f) => {
@@ -76,12 +76,12 @@ export const BrowserInput = () => {
     const generateOptions = async (
         input: string
     ): Promise<OptionsType<OptionTypeBase> | void[]> => {
-        var fetched = await refetch({
+        const fetched = await refetch({
             organization_id: organization_id,
             query: input,
             name: 'browser_name',
         });
-        var suggestions =
+        const suggestions =
             fetched?.data.field_suggestionBETA
                 ?.map((e) => e?.value)
                 .filter((v, i, a) => a.indexOf(v) === i)

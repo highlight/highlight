@@ -48,16 +48,16 @@ export const usePlayer = ({
                 eventsData?.events ?? []
             );
             const inactiveThreshold = 0.02;
-            let r = new Replayer(newEvents, {
+            const r = new Replayer(newEvents, {
                 root: document.getElementById('player') as HTMLElement,
             });
             r.on(ReplayerEvents.Finish, () => {
                 setState(ReplayerState.Paused);
             });
             // Preprocess and logic for player length with inactive sessions
-            let metadata = r.getMetaData();
+            const metadata = r.getMetaData();
             const allIntervals = r.getActivityIntervals();
-            let intervals = allIntervals.map((e) => ({
+            const intervals = allIntervals.map((e) => ({
                 ...e,
                 startTime: e.startTime - metadata.startTime,
                 endTime: e.endTime - metadata.startTime,
