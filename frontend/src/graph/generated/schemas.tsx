@@ -73,6 +73,7 @@ export type StackFrame = {
     line_number: Scalars['Int'];
     file_name: Scalars['String'];
     function_name: Scalars['String'];
+    source?: Maybe<Scalars['String']>;
 };
 
 export type ErrorObject = {

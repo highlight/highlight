@@ -11,6 +11,8 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
     ): void => {
         if (error) {
             StackTrace.fromError(error).then((result) => {
+                console.log(result)
+            if (result.length > 0){
                 callback({
                     event: event,
                     type: 'exception',
@@ -21,6 +23,16 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
                         : 0,
                     trace: result,
                 });
+            } else{
+                callback({
+                    event: event,
+                    type: 'exception',
+                    source: source ? source : "",
+                    lineNumber: lineno ? lineno : 0,
+                    columnNumber: colno ? colno : 0,
+                    trace: result,
+                })
+            }
             });
         }
     };

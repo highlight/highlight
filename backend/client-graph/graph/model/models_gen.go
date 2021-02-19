@@ -16,4 +16,5 @@ type StackFrameInput struct {
 	LineNumber   *int    `json:"lineNumber"`
 	FileName     *string `json:"fileName"`
 	FunctionName *string `json:"functionName"`
+	Source       *string `json:"source"`
 }

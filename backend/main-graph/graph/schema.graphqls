@@ -53,6 +53,10 @@ type StackFrame {
     line_number: Int!
     file_name: String!
     function_name: String!
+    args: [String]
+    source: String
+    isEval: Boolean
+    isNative: Boolean
 }
 
 type ErrorObject {

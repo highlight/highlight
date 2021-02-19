@@ -172,6 +172,7 @@ type ComplexityRoot struct {
 		FileName     func(childComplexity int) int
 		FunctionName func(childComplexity int) int
 		LineNumber   func(childComplexity int) int
+		Source       func(childComplexity int) int
 	}
 
 	User struct {
@@ -974,6 +975,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.StackFrame.LineNumber(childComplexity), true
 
+	case "StackFrame.source":
+		if e.complexity.StackFrame.Source == nil {
+			break
+		}
+
+		return e.complexity.StackFrame.Source(childComplexity), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
@@ -1114,6 +1122,7 @@ type StackFrame {
     line_number: Int!
     file_name: String!
     function_name: String!
+    source: String
 }
 
 type ErrorObject {
@@ -4888,6 +4897,37 @@ func (ec *executionContext) _StackFrame_function_name(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _StackFrame_source(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "StackFrame",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Source, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model1.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6944,6 +6984,8 @@ func (ec *executionContext) _StackFrame(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "source":
+			out.Values[i] = ec._StackFrame_source(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -13,6 +13,10 @@ input StackFrameInput {
     lineNumber: Int
     fileName: String
     functionName: String
+    args: [String]
+    source: String
+    isEval: Boolean
+    isNative: Boolean
 }
 
 input ErrorObjectInput {

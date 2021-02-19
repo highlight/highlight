@@ -25,6 +25,7 @@ export type StackFrameInput = {
   lineNumber?: Maybe<Scalars['Int']>;
   fileName?: Maybe<Scalars['String']>;
   functionName?: Maybe<Scalars['String']>;
+  source?: Maybe<Scalars['String']>;
 };
 
 export type ErrorObjectInput = {

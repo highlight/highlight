@@ -241,6 +241,10 @@ type StackFrame struct {
 	LineNumber   int
 	FileName     string
 	FunctionName string
+	Args         *string
+	source       string
+	isEval       bool
+	isNative     bool
 }
 
 type ErrorObject struct {

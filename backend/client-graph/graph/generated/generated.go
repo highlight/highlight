@@ -260,6 +260,7 @@ input StackFrameInput {
     lineNumber: Int
     fileName: String
     functionName: String
+    source: String
 }
 
 input ErrorObjectInput {
@@ -2064,6 +2065,14 @@ func (ec *executionContext) unmarshalInputStackFrameInput(ctx context.Context, o
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("functionName"))
 			it.FunctionName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "source":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("source"))
+			it.Source, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
