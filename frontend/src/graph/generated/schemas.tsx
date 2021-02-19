@@ -67,6 +67,14 @@ export type Segment = {
     organization_id: Scalars['ID'];
 };
 
+export type StackFrame = {
+    __typename?: 'StackFrame';
+    column_number: Scalars['Int'];
+    line_number: Scalars['Int'];
+    file_name: Scalars['String'];
+    function_name: Scalars['String'];
+};
+
 export type ErrorObject = {
     __typename?: 'ErrorObject';
     id: Scalars['ID'];
@@ -75,9 +83,9 @@ export type ErrorObject = {
     event: Scalars['String'];
     type: Scalars['String'];
     source?: Maybe<Scalars['String']>;
-    line_no?: Maybe<Scalars['Int']>;
-    column_no?: Maybe<Scalars['Int']>;
-    trace?: Maybe<Scalars['String']>;
+    line_number?: Maybe<Scalars['Int']>;
+    column_number?: Maybe<Scalars['Int']>;
+    trace?: Maybe<Array<Maybe<StackFrame>>>;
 };
 
 export type SearchParamsInput = {

@@ -8,6 +8,22 @@ type Session {
     organization_id: ID!
 }
 
+input StackFrameInput {
+    columnNumber: Int
+    lineNumber: Int
+    fileName: String
+    functionName: String
+}
+
+input ErrorObjectInput {
+    event: String!
+    type: String!
+    source: String!
+    lineNumber: Int!
+    columnNumber: Int!
+    trace: [StackFrameInput]!
+}
+
 type Mutation {
     initializeSession(organization_verbose_id: String!): Session
     identifySession(
@@ -22,7 +38,7 @@ type Mutation {
         events: String!
         messages: String!
         resources: String!
-        errors: String!
+        errors: [ErrorObjectInput]!
     ): ID
 }
 

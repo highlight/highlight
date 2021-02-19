@@ -20,16 +20,27 @@ export const ErrorsPage = () => {
     };
 
     return (
-        <div>
-            <div className={styles.advancedText}>
-                <Button type="primary" onClick={throwError}>
-                    Throw Error
-                </Button>
-                <Button type="primary" onClick={consoleError}>
-                    Console Error
-                </Button>
+        <div className={styles.errorsBody}>
+            <div className={styles.leftPanel}>
+                <div className={styles.advancedText}>
+                    <Button
+                        type="primary"
+                        style={{ background: 'red' }}
+                        onClick={throwError}
+                    >
+                        Throw Error
+                    </Button>{' '}
+                    <br></br>
+                    <Button
+                        type="primary"
+                        style={{ background: 'green' }}
+                        onClick={consoleError}
+                    >
+                        Console Error
+                    </Button>{' '}
+                </div>
             </div>
-            <div className={styles.errorText}>
+            <div className={styles.centerPanel}>
                 {data?.errors?.map((u, index) => {
                     return <p key={index}>{JSON.stringify(u)}</p>;
                 })}

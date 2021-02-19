@@ -973,9 +973,14 @@ export const ErrorsDocument = gql`
             event
             type
             source
-            line_no
-            column_no
-            trace
+            line_number
+            column_number
+            trace {
+                column_number
+                line_number
+                file_name
+                function_name
+            }
         }
     }
 `;
