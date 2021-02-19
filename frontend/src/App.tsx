@@ -15,6 +15,7 @@ import {
     Route,
     BrowserRouter as Router,
     Redirect,
+    useHistory,
 } from 'react-router-dom';
 import { H } from 'highlight.run';
 import { OrgRouter } from './OrgRouter';
@@ -117,6 +118,7 @@ export const AuthAppRouter = () => {
     const [signIn, setSignIn] = useState<boolean>(true);
     const [firebaseError, setFirebaseError] = useState('');
     const [user, loading, error] = useAuthState(auth);
+    const history = useHistory();
 
     const onSubmit = (data: Inputs) => {
         if (signIn) {
@@ -156,6 +158,8 @@ export const AuthAppRouter = () => {
 
     if (user) {
         return <AuthAdminRouter />;
+    } else {
+        history.push('/');
     }
 
     return (
