@@ -15,11 +15,10 @@ export const ConsoleListener = (callback: (c: ConsoleMessage) => void) => {
     console.defaultError = console.error.bind(console);
     console.error = function (text: string) {
         StackTrace.get().then((result) => {
-            console.log(result)
             callback({
                 type: 'Error',
-                time: Date.now(),
-                value: text,
+                time: Date.now(),               
+                value: text, 
                 trace: result.slice(1),
             });
         });

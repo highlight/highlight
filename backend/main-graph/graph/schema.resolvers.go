@@ -728,6 +728,22 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+func (r *stackFrameResolver) Args(ctx context.Context, obj *model.StackFrame) ([]*string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *stackFrameResolver) Source(ctx context.Context, obj *model.StackFrame) (*string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *stackFrameResolver) IsEval(ctx context.Context, obj *model.StackFrame) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *stackFrameResolver) IsNative(ctx context.Context, obj *model.StackFrame) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 // ErrorObject returns generated.ErrorObjectResolver implementation.
 func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorObjectResolver{r} }
 
@@ -743,8 +759,12 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
+// StackFrame returns generated.StackFrameResolver implementation.
+func (r *Resolver) StackFrame() generated.StackFrameResolver { return &stackFrameResolver{r} }
+
 type errorObjectResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+type stackFrameResolver struct{ *Resolver }

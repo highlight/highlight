@@ -42,6 +42,7 @@ type ResolverRoot interface {
 	Query() QueryResolver
 	Segment() SegmentResolver
 	Session() SessionResolver
+	StackFrame() StackFrameResolver
 }
 
 type DirectiveRoot struct {
@@ -168,9 +169,12 @@ type ComplexityRoot struct {
 	}
 
 	StackFrame struct {
+		Args         func(childComplexity int) int
 		ColumnNumber func(childComplexity int) int
 		FileName     func(childComplexity int) int
 		FunctionName func(childComplexity int) int
+		IsEval       func(childComplexity int) int
+		IsNative     func(childComplexity int) int
 		LineNumber   func(childComplexity int) int
 		Source       func(childComplexity int) int
 	}
@@ -224,6 +228,12 @@ type SegmentResolver interface {
 }
 type SessionResolver interface {
 	UserObject(ctx context.Context, obj *model1.Session) (interface{}, error)
+}
+type StackFrameResolver interface {
+	Args(ctx context.Context, obj *model1.StackFrame) ([]*string, error)
+	Source(ctx context.Context, obj *model1.StackFrame) (*string, error)
+	IsEval(ctx context.Context, obj *model1.StackFrame) (*bool, error)
+	IsNative(ctx context.Context, obj *model1.StackFrame) (*bool, error)
 }
 
 type executableSchema struct {
@@ -947,6 +957,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionResults.TotalCount(childComplexity), true
 
+	case "StackFrame.args":
+		if e.complexity.StackFrame.Args == nil {
+			break
+		}
+
+		return e.complexity.StackFrame.Args(childComplexity), true
+
 	case "StackFrame.column_number":
 		if e.complexity.StackFrame.ColumnNumber == nil {
 			break
@@ -967,6 +984,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.StackFrame.FunctionName(childComplexity), true
+
+	case "StackFrame.isEval":
+		if e.complexity.StackFrame.IsEval == nil {
+			break
+		}
+
+		return e.complexity.StackFrame.IsEval(childComplexity), true
+
+	case "StackFrame.isNative":
+		if e.complexity.StackFrame.IsNative == nil {
+			break
+		}
+
+		return e.complexity.StackFrame.IsNative(childComplexity), true
 
 	case "StackFrame.line_number":
 		if e.complexity.StackFrame.LineNumber == nil {
@@ -1122,7 +1153,10 @@ type StackFrame {
     line_number: Int!
     file_name: String!
     function_name: String!
+    args: [String]
     source: String
+    isEval: Boolean
+    isNative: Boolean
 }
 
 type ErrorObject {
@@ -4897,6 +4931,37 @@ func (ec *executionContext) _StackFrame_function_name(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _StackFrame_args(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "StackFrame",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.StackFrame().Args(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalOString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _StackFrame_source(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4908,13 +4973,13 @@ func (ec *executionContext) _StackFrame_source(ctx context.Context, field graphq
 		Object:   "StackFrame",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Source, nil
+		return ec.resolvers.StackFrame().Source(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4923,9 +4988,71 @@ func (ec *executionContext) _StackFrame_source(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StackFrame_isEval(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "StackFrame",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.StackFrame().IsEval(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _StackFrame_isNative(ctx context.Context, field graphql.CollectedField, obj *model1.StackFrame) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "StackFrame",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.StackFrame().IsNative(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model1.User) (ret graphql.Marshaler) {
@@ -6967,25 +7094,67 @@ func (ec *executionContext) _StackFrame(ctx context.Context, sel ast.SelectionSe
 		case "column_number":
 			out.Values[i] = ec._StackFrame_column_number(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "line_number":
 			out.Values[i] = ec._StackFrame_line_number(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "file_name":
 			out.Values[i] = ec._StackFrame_file_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "function_name":
 			out.Values[i] = ec._StackFrame_function_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "args":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._StackFrame_args(ctx, field, obj)
+				return res
+			})
 		case "source":
-			out.Values[i] = ec._StackFrame_source(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._StackFrame_source(ctx, field, obj)
+				return res
+			})
+		case "isEval":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._StackFrame_isEval(ctx, field, obj)
+				return res
+			})
+		case "isNative":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._StackFrame_isNative(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8122,6 +8291,42 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalString(v)
+}
+
+func (ec *executionContext) unmarshalOString2ᚕᚖstring(ctx context.Context, v interface{}) ([]*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
+		res[i], err = ec.unmarshalOString2ᚖstring(ctx, vSlice[i])
+		if err != nil {
+			return nil, graphql.WrapErrorWithInputPath(ctx, err)
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOString2ᚕᚖstring(ctx context.Context, sel ast.SelectionSet, v []*string) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalOString2ᚖstring(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

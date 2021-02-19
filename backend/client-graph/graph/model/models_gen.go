@@ -12,9 +12,12 @@ type ErrorObjectInput struct {
 }
 
 type StackFrameInput struct {
-	ColumnNumber *int    `json:"columnNumber"`
-	LineNumber   *int    `json:"lineNumber"`
-	FileName     *string `json:"fileName"`
-	FunctionName *string `json:"functionName"`
-	Source       *string `json:"source"`
+	ColumnNumber *int      `json:"columnNumber"`
+	LineNumber   *int      `json:"lineNumber"`
+	FileName     *string   `json:"fileName"`
+	FunctionName *string   `json:"functionName"`
+	Args         []*string `json:"args"`
+	Source       *string   `json:"source"`
+	IsEval       *bool     `json:"isEval"`
+	IsNative     *bool     `json:"isNative"`
 }

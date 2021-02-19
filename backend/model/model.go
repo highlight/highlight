@@ -242,7 +242,7 @@ type StackFrame struct {
 	FileName     string
 	FunctionName string
 	Args         *string
-	source       string
+	Source       string
 	isEval       bool
 	isNative     bool
 }
