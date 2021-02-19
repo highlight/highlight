@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
-	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -148,7 +147,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors string) (*int, error) {
 	eventsParsed := make(map[string][]interface{})
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
@@ -188,36 +187,23 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
-	// put errors in db
-	if len(errors) > 0 && organizationID == 1 {
-		for _, v := range errors {
-			errorTrace := []*model.StackFrame{}
-			for _, f := range v.Trace {
-				frame := &model.StackFrame{
-					ColumnNumber: *f.ColumnNumber,
-					LineNumber:   *f.LineNumber,
-					FileName:     *f.FileName,
-					FunctionName: *f.FunctionName,
-				}
-				errorTrace = append(errorTrace, frame)
-			}
-			traceBytes, err := json.Marshal(errorTrace)
-			if err != nil {
-				return nil, e.Wrap(err, "error unmarshaling search params")
-			}
-			traceString := string(traceBytes)
-
+	// unmarshal error
+	errorsParsed := make(map[string][]model.ErrorObject)
+	if err := json.Unmarshal([]byte(errors), &errorsParsed); err != nil {
+		return nil, fmt.Errorf("error decoding error data: %v", err)
+	}
+	if len(errorsParsed["errors"]) > 0 && organizationID == 1 {
+		for _, v := range errorsParsed["errors"] {
 			obj := &model.ErrorObject{
 				OrganizationID: organizationID,
 				SessionID:      sessionID,
 				Event:          v.Event,
 				Type:           v.Type,
 				Source:         v.Source,
-				LineNumber:     v.LineNumber,
-				ColumnNumber:   v.ColumnNumber,
-				Trace:          &traceString,
+				LineNo:         v.LineNo,
+				ColumnNo:       v.ColumnNo,
+				Trace:          v.Trace,
 			}
-
 			if err := r.DB.Create(obj).Error; err != nil {
 				return nil, e.Wrap(err, "error creating error object")
 			}

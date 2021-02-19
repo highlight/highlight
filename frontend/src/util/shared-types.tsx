@@ -1,19 +1,16 @@
-import StackTrace from 'stacktrace-js';
-
 export type ConsoleMessage = {
     value?: string;
     time: number;
     type: string;
-    trace?: StackTrace.StackFrame[];
 };
 
 export type ErrorMessage = {
-    event: string;
+    event: string | Event;
     type: 'console' | 'exception';
-    source: string;
-    lineNumber: number;
-    columnNumber: number;
-    trace: StackTrace.StackFrame[];
+    source?: string | undefined;
+    lineno?: bigint | undefined;
+    colno?: bigint | undefined;
+    trace?: string | undefined;
 };
 
 export type NetworkResourceContent = {

@@ -303,23 +303,10 @@ export type ErrorsQuery = { __typename?: 'Query' } & {
                     | 'event'
                     | 'type'
                     | 'source'
-                    | 'line_number'
-                    | 'column_number'
-                > & {
-                        trace?: Types.Maybe<
-                            Array<
-                                Types.Maybe<
-                                    { __typename?: 'StackFrame' } & Pick<
-                                        Types.StackFrame,
-                                        | 'column_number'
-                                        | 'line_number'
-                                        | 'file_name'
-                                        | 'function_name'
-                                    >
-                                >
-                            >
-                        >;
-                    }
+                    | 'line_no'
+                    | 'column_no'
+                    | 'trace'
+                >
             >
         >
     >;

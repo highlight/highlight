@@ -1,5 +1,4 @@
 import { ConsoleMessage } from '../../../frontend/src/util/shared-types';
-import StackTrace from 'stacktrace-js';
 
 // taken from: https://stackoverflow.com/questions/19846078/how-to-read-from-chromes-console-in-javascript
 export const ConsoleListener = (callback: (c: ConsoleMessage) => void) => {
@@ -14,13 +13,10 @@ export const ConsoleListener = (callback: (c: ConsoleMessage) => void) => {
     };
     console.defaultError = console.error.bind(console);
     console.error = function (text: string) {
-        StackTrace.get().then((result) => {
-            callback({
-                type: 'Error',
-                time: Date.now(),
-                value: text,
-                trace: result.slice(1),
-            });
+        callback({
+            type: 'Error',
+            time: Date.now(),
+            value: text,
         });
         console.defaultError.apply(console, arguments);
     };

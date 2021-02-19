@@ -236,13 +236,6 @@ type EventsObject struct {
 	Events    string
 }
 
-type StackFrame struct {
-	ColumnNumber int
-	LineNumber   int
-	FileName     string
-	FunctionName string
-}
-
 type ErrorObject struct {
 	Model
 	OrganizationID int
@@ -250,9 +243,9 @@ type ErrorObject struct {
 	Event          string
 	Type           string
 	Source         string
-	LineNumber     int
-	ColumnNumber   int
-	Trace          *string `json:"trace"`
+	LineNo         int `json:"line_no"`
+	ColumnNo       int `json:"column_no"`
+	Trace          string
 }
 
 func SetupDB() *gorm.DB {
