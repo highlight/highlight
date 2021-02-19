@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
-	model1 "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
+	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -148,7 +148,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors []*model1.ErrorObjectInput) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
 	eventsParsed := make(map[string][]interface{})
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
