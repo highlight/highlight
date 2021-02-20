@@ -116,28 +116,27 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
 
 export const IdentifiedUsersSwitch = () => {
     const { searchParams, setSearchParams } = useContext(SearchContext);
-    const [on, setOn] = useState(false);
+
     return (
-        <div className={inputStyles.commonInputWrapper}>
-            <div className={inputStyles.switchRow}>
-                <Switch
-                    checked={searchParams.identified}
-                    onChange={(val: boolean) => {
-                        setOn(val);
-                        setSearchParams((params) => ({
-                            ...params,
-                            identified: val,
-                        }));
-                    }}
-                />
-                <div
-                    className={classNames(
-                        inputStyles.switchText,
-                        on && inputStyles.switchTextSelected
-                    )}
-                >
+        <div className={inputStyles.switchRow}>
+            <Switch
+                checked={searchParams.identified}
+                onChange={(val: boolean) => {
+                    setSearchParams((params) => ({
+                        ...params,
+                        identified: val,
+                    }));
+                }}
+            />
+            <div
+                className={classNames(
+                    inputStyles.switchText,
+                    searchParams.identified && inputStyles.switchTextSelected
+                )}
+            >
+                <span className={inputStyles.switchSpan}>
                     Only show identified users
-                </div>
+                </span>
             </div>
         </div>
     );

@@ -140,28 +140,27 @@ export const ReferrerInput = () => {
 
 export const ViewedSessionsSwitch = () => {
     const { searchParams, setSearchParams } = useContext(SearchContext);
-    const [on, setOn] = useState(false);
+
     return (
-        <div className={inputStyles.commonInputWrapper}>
-            <div className={inputStyles.switchRow}>
-                <Switch
-                    checked={searchParams.hide_viewed || false}
-                    onChange={(val: boolean) => {
-                        setOn(val);
-                        setSearchParams((params) => ({
-                            ...params,
-                            hide_viewed: val,
-                        }));
-                    }}
-                />
-                <div
-                    className={classNames(
-                        inputStyles.switchText,
-                        on && inputStyles.switchTextSelected
-                    )}
-                >
+        <div className={inputStyles.switchRow}>
+            <Switch
+                checked={searchParams.hide_viewed || false}
+                onChange={(val: boolean) => {
+                    setSearchParams((params) => ({
+                        ...params,
+                        hide_viewed: val,
+                    }));
+                }}
+            />
+            <div
+                className={classNames(
+                    inputStyles.switchText,
+                    searchParams.hide_viewed && inputStyles.switchTextSelected
+                )}
+            >
+                <span className={inputStyles.switchSpan}>
                     Hide viewed sessions
-                </div>
+                </span>
             </div>
         </div>
     );

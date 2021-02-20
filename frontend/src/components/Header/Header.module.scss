@@ -81,46 +81,6 @@
     padding-bottom: 4px;
 }
 
-.searchText {
-    height: 100%;
-    align-self: flex-end;
-    height: max-content;
-}
-
-.searchPrompt {
-    border: 1px solid #eaeaea;
-    padding: 6px;
-    cursor: pointer;
-    border-radius: 8px;
-    margin-right: 14px;
-}
-
-.commandWrapper {
-    display: flex;
-    flex-direction: row;
-    margin-left: auto;
-    margin-right: 6px;
-    margin-left: 6px;
-}
-
-.dontSelect {
-    -webkit-user-select: none;
-    /* Safari */
-    -moz-user-select: none;
-    /* Firefox */
-    -ms-user-select: none;
-    /* IE10+/Edge */
-    user-select: none;
-    /* Standard */
-}
-
-.commandContainer {
-    margin-left: 5px;
-    padding: 0px 5px 0px 5px;
-    border: 1px solid #eaeaea;
-    border-radius: 4px;
-}
-
 .searchBar {
     width: 50px;
     height: 40px;

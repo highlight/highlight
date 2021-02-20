@@ -15,18 +15,7 @@ export const SegmentSidebar = ({
     return (
         <>
             <div className={classNames([styles.searchBar])}>
-                <div
-                    className={classNames(
-                        styles.sideTab,
-                        open ? styles.sideTabHidden : styles.sideTabVisible
-                    )}
-                    onClick={() => setOpen((o) => !o)}
-                >
-                    <Hamburger className={styles.hamburgerSide} />
-                </div>
-                <div className={styles.sideContentWrapper}>
-                    <SegmentPicker />
-                </div>
+                <SegmentPicker />
                 <SegmentButtons />
             </div>
         </>

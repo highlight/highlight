@@ -141,12 +141,6 @@ export const SegmentButtons = () => {
                                 'Update Current Segment'
                             )}
                         </div>
-                        <div
-                            onClick={() => setCreateClicked(true)}
-                            className={commonStyles.secondaryButton}
-                        >
-                            Save New Segment
-                        </div>
                     </>
                 ) : (
                     <div
@@ -159,6 +153,16 @@ export const SegmentButtons = () => {
             ) : (
                 <></>
             )}
+            <div
+                onClick={() => setCreateClicked(true)}
+                className={
+                    !paramsIsDifferent && segmentName
+                        ? commonStyles.submitButton
+                        : commonStyles.secondaryButton
+                }
+            >
+                Create New Segment
+            </div>
         </>
     );
 };

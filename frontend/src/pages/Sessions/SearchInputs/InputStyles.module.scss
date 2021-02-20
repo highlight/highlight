@@ -7,12 +7,19 @@
 }
 
 .switchRow {
+    margin-bottom: 15px;
     display: flex;
 }
 
 .switchText {
     margin-left: 8px;
     color: #808080;
+}
+
+.switchSpan {
+display: inline-block;
+vertical-align: middle;
+line-height: normal;
 }
 
 .switchTextSelected {
