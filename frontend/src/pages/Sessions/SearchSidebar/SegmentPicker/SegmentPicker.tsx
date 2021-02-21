@@ -35,10 +35,12 @@ export const SegmentPicker = () => {
             setExistingParams(parsed);
         } else {
             setSegmentName(null);
-            setExistingParams({
+            const empty = {
                 user_properties: [],
                 identified: false,
-            });
+            };
+            setExistingParams({ ...empty });
+            setSearchParams({ ...empty });
         }
     }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
 
