@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 import { Replayer } from '@highlight-run/rrweb';
-import { SessionInterval } from '@highlight-run/rrweb/typings/types';
+import { SessionInterval } from '@highlight-run/rrweb/dist/types';
 import { HighlightEvent } from '../HighlightEvent';
 
 export enum ReplayerState {
