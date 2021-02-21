@@ -1,15 +1,15 @@
-.dropdownMenu {
+.segmentPickerMenu {
     box-shadow: none;
     min-width: 200px;
+    margin-bottom: 12px;
+    width: 100%;
 }
 
-.dropdownInner {
+.segmentPickerInner {
     background-color: white;
     border-radius: 5px;
     border: 1px solid #eaeaea;
     min-width: 220px;
-    margin-top: 9px;
-    box-shadow: 2px 2px 8px #e4e4e4;
     color: black;
 }
 
@@ -94,6 +94,10 @@
 }
 
 .segmentText {
+    text-overflow: ellipsis;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
     color: black;
     margin-right: 20px;
     font-size: 14px;

@@ -3,7 +3,7 @@ import _ from 'lodash';
 
 import commonStyles from '../../../../Common.module.scss';
 import { SearchContext } from '../../SearchContext/SearchContext';
-import { useParams } from 'react-router-dom';
+import { RouteComponentProps, useParams, withRouter } from 'react-router-dom';
 import { CircularSpinner } from '../../../../components/Spinner/Spinner';
 import { message, Modal } from 'antd';
 import styles from './SegmentButtons.module.scss';
@@ -17,7 +17,7 @@ type Inputs = {
     name: string;
 };
 
-export const SegmentButtons = () => {
+const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
     const { organization_id, segment_id } = useParams<{
         organization_id: string;
@@ -46,6 +46,9 @@ export const SegmentButtons = () => {
                 params: searchParams,
             },
         }).then((r) => {
+            history.push(
+                `/${organization_id}/sessions/segment/${r.data?.createSegment?.id}`
+            );
             setCreateClicked(false);
             reset();
             message.success('Segment Saved!', 5);
@@ -108,57 +111,53 @@ export const SegmentButtons = () => {
                     </form>
                 </div>
             </Modal>
-            {paramsIsDifferent ? (
-                segmentName ? (
-                    <>
-                        <div
-                            onClick={() => {
-                                editSegment({
-                                    variables: {
-                                        organization_id,
-                                        id: segment_id,
-                                        params: searchParams,
-                                    },
+            {/* If the params have changed for the current segment, offer to update it. */}
+            {paramsIsDifferent && segmentName ? (
+                <>
+                    <button
+                        onClick={() => {
+                            editSegment({
+                                variables: {
+                                    organization_id,
+                                    id: segment_id,
+                                    params: searchParams,
+                                },
+                            })
+                                .then(() => {
+                                    message.success('Updated Segment!', 5);
+                                    setExistingParams(searchParams);
                                 })
-                                    .then(() => {
-                                        message.success('Updated Segment!', 5);
-                                        setExistingParams(searchParams);
-                                    })
-                                    .catch(() => {
-                                        message.error(
-                                            'Error updating segment!',
-                                            5
-                                        );
-                                    });
-                            }}
-                            className={commonStyles.submitButton}
-                        >
-                            {editSegmentOptions.loading ? (
-                                <CircularSpinner
-                                    style={{ fontSize: 18, color: 'white' }}
-                                />
-                            ) : (
-                                'Update Current Segment'
-                            )}
-                        </div>
-                        <div
-                            onClick={() => setCreateClicked(true)}
-                            className={commonStyles.secondaryButton}
-                        >
-                            Save New Segment
-                        </div>
-                    </>
-                ) : (
-                    <div
-                        onClick={() => setCreateClicked(true)}
+                                .catch(() => {
+                                    message.error('Error updating segment!', 5);
+                                });
+                        }}
                         className={commonStyles.submitButton}
                     >
-                        Save As Segment
-                    </div>
-                )
+                        {editSegmentOptions.loading ? (
+                            <CircularSpinner
+                                style={{ fontSize: 18, color: 'white' }}
+                            />
+                        ) : (
+                            'Update Current Segment'
+                        )}
+                    </button>
+                </>
             ) : (
                 <></>
             )}
+            {/* In every case, let someone create a new segment w/ the current search params. */}
+            <button
+                onClick={() => setCreateClicked(true)}
+                className={
+                    paramsIsDifferent && segmentName
+                        ? commonStyles.secondaryButton
+                        : commonStyles.submitButton
+                }
+            >
+                Create New Segment
+            </button>
         </>
     );
 };
+
+export const SegmentButtons = withRouter(Buttons);

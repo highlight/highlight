@@ -2,9 +2,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
-import { ReactComponent as PlusIcon } from '../../../../static/plus.svg';
-import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg';
-import { Dropdown, Tag } from 'antd';
 import Skeleton from 'react-loading-skeleton';
 
 import styles from './SegmentPicker.module.scss';
@@ -28,34 +25,6 @@ export const SegmentPicker = () => {
         variables: { organization_id },
     });
     const currentSegment = data?.segments?.find((s) => s?.id === segment_id);
-    const menu = (
-        <div className={styles.dropdownMenu}>
-            <div className={styles.dropdownInner}>
-                {data?.segments?.map((s) => (
-                    <Link
-                        to={`/${organization_id}/sessions/segment/${s?.id}`}
-                        key={s?.id}
-                    >
-                        <div className={styles.segmentItem}>
-                            <div className={styles.segmentText}>{s?.name}</div>
-                            {s?.id === currentSegment?.id ? (
-                                <CheckIcon className={styles.checkIcon} />
-                            ) : (
-                                <></>
-                            )}
-                        </div>
-                    </Link>
-                ))}
-                <Link
-                    className={styles.newSearchDiv}
-                    to={`/${organization_id}/sessions/`}
-                >
-                    New Search
-                    <PlusIcon className={styles.plusIcon} />
-                </Link>
-            </div>
-        </div>
-    );
 
     useEffect(() => {
         if (currentSegment) {
@@ -74,54 +43,41 @@ export const SegmentPicker = () => {
     }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
 
     return (
-        <SearchSection
-            title="Segment"
-            open={false}
-            titleSideComponent={
-                <Tag color="#F2EEFB" style={{ marginLeft: 10, color: 'black' }}>
-                    {currentSegment ? currentSegment?.name : 'None'}
-                </Tag>
-            }
-        >
-            {!data?.segments?.length ? (
-                <div className={styles.noSegmentsText}>
-                    No segments here :(. Feel free to create one by clicking{' '}
-                    <span style={{ color: '#5629c6' }}>Save as Segment</span>!
+        <div className={styles.segmentPickerMenu}>
+            {loading ? (
+                <div>
+                    <Skeleton height={70} style={{ marginBottom: 8 }} />
                 </div>
-            ) : loading ? (
-                <Skeleton />
             ) : (
-                <Dropdown
-                    placement={'bottomLeft'}
-                    overlay={menu}
-                    onVisibleChange={(v) => setVisible(v)}
-                >
-                    <div
-                        className={styles.dropdownHandler}
-                        onClick={(e) => e.preventDefault()}
-                    >
-                        <div className={styles.segmentNameText}>
-                            {!segmentName ? (
-                                <span style={{ color: '#808080' }}>
-                                    Select a Segment
-                                </span>
-                            ) : (
-                                currentSegment?.name
+                <div className={styles.segmentPickerInner}>
+                    <Link to={`/${organization_id}/sessions`} key={'sessions'}>
+                        <div className={styles.segmentItem}>
+                            <div className={styles.segmentText}>
+                                All Sessions
+                            </div>
+                            {!currentSegment && (
+                                <CheckIcon className={styles.checkIcon} />
                             )}
                         </div>
-                        <DownIcon
-                            className={styles.downIcon}
-                            style={{
-                                fill: !segmentName ? '#808080' : 'black',
-                                transform: visible
-                                    ? 'rotate(180deg)'
-                                    : 'rotate(0deg)',
-                            }}
-                        />
-                    </div>
-                </Dropdown>
+                    </Link>
+                    {data?.segments?.map((s) => (
+                        <Link
+                            to={`/${organization_id}/sessions/segment/${s?.id}`}
+                            key={s?.id}
+                        >
+                            <div className={styles.segmentItem}>
+                                <div className={styles.segmentText}>
+                                    {s?.name}
+                                </div>
+                                {s?.id === currentSegment?.id && (
+                                    <CheckIcon className={styles.checkIcon} />
+                                )}
+                            </div>
+                        </Link>
+                    ))}
+                </div>
             )}
-        </SearchSection>
+        </div>
     );
 };
 

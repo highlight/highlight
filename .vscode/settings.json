@@ -8,6 +8,9 @@
     "[go]": {
         "editor.defaultFormatter": "golang.go"
     },
+    "[scss]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
     "editor.hover.enabled": true,
     "editor.colorDecorators": true
 }

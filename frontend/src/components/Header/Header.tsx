@@ -69,25 +69,6 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({
                         </Link>
                     </div>
                     <div className={styles.rightHeader}>
-                        <div
-                            className={styles.searchPrompt}
-                            onClick={() =>
-                                history.push(`/${organization_id}/sessions`)
-                            }
-                        >
-                            <div
-                                className={classNames(
-                                    styles.commandWrapper,
-                                    styles.dontSelect
-                                )}
-                            >
-                                <div className={styles.searchText}>
-                                    Start a search with
-                                </div>
-                                <div className={styles.commandContainer}>⌘</div>
-                                <div className={styles.commandContainer}>K</div>
-                            </div>
-                        </div>
                         <UserDropdown />
                     </div>
                 </div>
