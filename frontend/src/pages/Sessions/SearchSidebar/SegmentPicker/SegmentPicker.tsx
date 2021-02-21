@@ -2,9 +2,6 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
-import { ReactComponent as PlusIcon } from '../../../../static/plus.svg';
-import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg';
-import { Dropdown, Tag } from 'antd';
 import Skeleton from 'react-loading-skeleton';
 
 import styles from './SegmentPicker.module.scss';
@@ -46,37 +43,45 @@ export const SegmentPicker = () => {
     }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
 
     return (
-        <>
+        <div className={styles.segmentPickerMenu}>
             {loading ? (
-                <Skeleton />
-            ) : data?.segments?.length ? (
-                <div className={styles.segmentPickerMenu}>
-                    <div className={styles.segmentPickerInner}>
-                        {data?.segments?.map((s) => (
-                            <Link
-                                to={`/${organization_id}/sessions/segment/${s?.id}`}
-                                key={s?.id}
-                            >
-                                <div className={styles.segmentItem}>
-                                    <div className={styles.segmentText}>
-                                        {s?.name}
-                                    </div>
-                                    {s?.id === currentSegment?.id ? (
-                                        <CheckIcon
-                                            className={styles.checkIcon}
-                                        />
-                                    ) : (
-                                        <></>
-                                    )}
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
+                <div>
+                    <Skeleton height={70} style={{ marginBottom: 8 }} />
                 </div>
             ) : (
-                <></>
+                <div className={styles.segmentPickerInner}>
+                    <Link to={`/${organization_id}/sessions`} key={'sessions'}>
+                        <div className={styles.segmentItem}>
+                            <div className={styles.segmentText}>
+                                All Sessions
+                            </div>
+                            {!currentSegment ? (
+                                <CheckIcon className={styles.checkIcon} />
+                            ) : (
+                                <></>
+                            )}
+                        </div>
+                    </Link>
+                    {data?.segments?.map((s) => (
+                        <Link
+                            to={`/${organization_id}/sessions/segment/${s?.id}`}
+                            key={s?.id}
+                        >
+                            <div className={styles.segmentItem}>
+                                <div className={styles.segmentText}>
+                                    {s?.name}
+                                </div>
+                                {s?.id === currentSegment?.id ? (
+                                    <CheckIcon className={styles.checkIcon} />
+                                ) : (
+                                    <></>
+                                )}
+                            </div>
+                        </Link>
+                    ))}
+                </div>
             )}
-        </>
+        </div>
     );
 };
 
