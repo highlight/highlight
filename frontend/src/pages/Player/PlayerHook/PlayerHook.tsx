@@ -69,9 +69,11 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                 }),
                 { activeDuration: 0, numInactive: 0 }
             );
-            const inactiveSliceDuration = inactiveThreshold * activeDuration;
+            const inactiveSliceDuration = activeDuration
+                ? inactiveThreshold * activeDuration
+                : 1;
             const totalDuration =
-                activeDuration * (1 + inactiveThreshold * numInactive);
+                activeDuration + inactiveSliceDuration * numInactive;
             let currTime = 0;
             const sliderIntervalMap = intervals.map((e) => {
                 const prevTime = currTime;
