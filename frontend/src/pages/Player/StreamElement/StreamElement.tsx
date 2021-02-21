@@ -12,7 +12,7 @@ import { ReactComponent as TrackIcon } from '../../../static/track.svg';
 import { ReactComponent as TabIcon } from '../../../static/tab.svg';
 import { HighlightEvent } from '../HighlightEvent';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
-import { mouseInteractionData } from '@highlight-run/rrweb/typings/types';
+import { mouseInteractionData } from '@highlight-run/rrweb/dist/types';
 import { StaticMap } from '../StaticMap/StaticMap';
 import styles from './StreamElement.module.scss';
 import GoToButton from '../../../components/Button/GoToButton';

@@ -1,5 +1,5 @@
 import { addCustomEvent, record } from '@highlight-run/rrweb';
-import { eventWithTime } from '@highlight-run/rrweb/typings/types';
+import { eventWithTime } from '@highlight-run/rrweb/dist/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener, ErrorStringify } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';

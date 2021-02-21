@@ -16,7 +16,7 @@ import {
 import {
     eventWithTime,
     incrementalData,
-} from '@highlight-run/rrweb/typings/types';
+} from '@highlight-run/rrweb/dist/types';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
