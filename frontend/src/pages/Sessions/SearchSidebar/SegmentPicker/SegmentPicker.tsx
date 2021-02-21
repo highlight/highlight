@@ -26,8 +26,6 @@ export const SegmentPicker = () => {
     });
     const currentSegment = data?.segments?.find((s) => s?.id === segment_id);
 
-    console.log(currentSegment);
-
     useEffect(() => {
         if (currentSegment) {
             const newParams: any = { ...currentSegment.params };
