@@ -65,25 +65,65 @@ export const StreamElement = ({
                                 })}
                             />
                         ) : hover ? (
-                            <DownIcon className={styles.directionIcon} />
+                            <DownIcon
+                                className={classNames(styles.directionIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
                         ) : details.title === 'Click' ? (
-                            <PointerIcon className={styles.tiltedIcon} />
+                            <PointerIcon
+                                className={classNames(styles.tiltedIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
                         ) : details.title?.includes('Segment') ? (
-                            <SegmentIcon className={styles.defaultIcon} />
+                            <SegmentIcon
+                                className={classNames(styles.defaultIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
                         ) : details.title === 'Navigate' ? (
-                            <NavigateIcon className={styles.defaultIcon} />
+                            <NavigateIcon
+                                className={classNames(styles.defaultIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
                         ) : details.title === 'Track' ? (
-                            <TrackIcon className={styles.defaultIcon} />
+                            <TrackIcon
+                                className={classNames(styles.defaultIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
                         ) : details.title === 'Identify' ? (
-                            <IdentifyIcon className={styles.defaultIcon} />
+                            <IdentifyIcon
+                                className={classNames(styles.defaultIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
                         ) : details.title === 'Reload' ? (
-                            <ReloadIcon className={styles.defaultIcon} />
+                            <ReloadIcon
+                                className={classNames(styles.defaultIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
                         ) : details.title === 'Referrer' ? (
-                            <ReferrerIcon className={styles.defaultIcon} />
+                            <ReferrerIcon
+                                className={classNames(styles.defaultIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
                         ) : details.title === 'Tab' ? (
-                            <TabIcon className={styles.defaultIcon} />
+                            <TabIcon
+                                className={classNames(styles.defaultIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
                         ) : (
-                            <HoverIcon className={styles.tiltedIcon} />
+                            <HoverIcon
+                                className={classNames(styles.tiltedIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
                         )}
                     </div>
                     <div
