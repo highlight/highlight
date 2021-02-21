@@ -26,6 +26,8 @@ export const SegmentPicker = () => {
     });
     const currentSegment = data?.segments?.find((s) => s?.id === segment_id);
 
+    console.log(currentSegment);
+
     useEffect(() => {
         if (currentSegment) {
             const newParams: any = { ...currentSegment.params };
@@ -35,10 +37,12 @@ export const SegmentPicker = () => {
             setExistingParams(parsed);
         } else {
             setSegmentName(null);
-            setExistingParams({
+            const empty = {
                 user_properties: [],
                 identified: false,
-            });
+            };
+            setExistingParams({ ...empty });
+            setSearchParams({ ...empty });
         }
     }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
 

@@ -18,7 +18,7 @@ import styles from './StreamElement.module.scss';
 import GoToButton from '../../../components/Button/GoToButton';
 import ReplayerContext from '../ReplayerContext';
 import StreamElementPayload from './StreamElementPayload';
-import classNames from 'classnames';
+import classNames from 'classnames/bind';
 
 export const StreamElement = ({
     e,
