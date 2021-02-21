@@ -114,7 +114,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
             {/* If the params have changed for the current segment, offer to update it. */}
             {paramsIsDifferent && segmentName ? (
                 <>
-                    <div
+                    <button
                         onClick={() => {
                             editSegment({
                                 variables: {
@@ -140,13 +140,13 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                         ) : (
                             'Update Current Segment'
                         )}
-                    </div>
+                    </button>
                 </>
             ) : (
                 <></>
             )}
             {/* In every case, let someone create a new segment w/ the current search params. */}
-            <div
+            <button
                 onClick={() => setCreateClicked(true)}
                 className={
                     paramsIsDifferent && segmentName
@@ -155,7 +155,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                 }
             >
                 Create New Segment
-            </div>
+            </button>
         </>
     );
 };

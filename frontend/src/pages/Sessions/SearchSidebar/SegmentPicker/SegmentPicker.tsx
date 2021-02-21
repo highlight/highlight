@@ -55,10 +55,8 @@ export const SegmentPicker = () => {
                             <div className={styles.segmentText}>
                                 All Sessions
                             </div>
-                            {!currentSegment ? (
+                            {!currentSegment && (
                                 <CheckIcon className={styles.checkIcon} />
-                            ) : (
-                                <></>
                             )}
                         </div>
                     </Link>
@@ -71,10 +69,8 @@ export const SegmentPicker = () => {
                                 <div className={styles.segmentText}>
                                     {s?.name}
                                 </div>
-                                {s?.id === currentSegment?.id ? (
+                                {s?.id === currentSegment?.id && (
                                     <CheckIcon className={styles.checkIcon} />
-                                ) : (
-                                    <></>
                                 )}
                             </div>
                         </Link>

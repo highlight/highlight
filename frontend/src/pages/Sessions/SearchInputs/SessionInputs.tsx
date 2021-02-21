@@ -144,7 +144,7 @@ export const ViewedSessionsSwitch = () => {
     return (
         <div className={inputStyles.switchRow}>
             <Switch
-                checked={searchParams.hide_viewed || false}
+                checked={searchParams.hide_viewed}
                 onChange={(val: boolean) => {
                     setSearchParams((params) => ({
                         ...params,
@@ -153,10 +153,9 @@ export const ViewedSessionsSwitch = () => {
                 }}
             />
             <div
-                className={classNames(
-                    inputStyles.switchText,
-                    searchParams.hide_viewed && inputStyles.switchTextSelected
-                )}
+                className={classNames(inputStyles.switchText, {
+                    [inputStyles.switchTextSelected]: searchParams.hide_viewed,
+                })}
             >
                 <span className={inputStyles.switchSpan}>
                     Hide viewed sessions

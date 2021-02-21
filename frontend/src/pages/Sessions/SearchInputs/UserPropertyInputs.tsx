@@ -128,16 +128,15 @@ export const IdentifiedUsersSwitch = () => {
                     }));
                 }}
             />
-            <div
-                className={classNames(
-                    inputStyles.switchText,
-                    searchParams.identified && inputStyles.switchTextSelected
-                )}
+            <label
+                className={classNames(inputStyles.switchText, {
+                    [inputStyles.switchTextSelected]: searchParams.identified,
+                })}
             >
                 <span className={inputStyles.switchSpan}>
                     Only show identified users
                 </span>
-            </div>
+            </label>
         </div>
     );
 };

@@ -94,6 +94,10 @@
 }
 
 .segmentText {
+    text-overflow: ellipsis;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
     color: black;
     margin-right: 20px;
     font-size: 14px;
