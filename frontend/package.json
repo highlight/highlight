@@ -4,6 +4,7 @@
     "engines": {
         "node": "14.15.4"
     },
+    "homepage": "https://app.highlight.run",
     "private": true,
     "dependencies": {
         "@apollo/client": "^3.1.4",
