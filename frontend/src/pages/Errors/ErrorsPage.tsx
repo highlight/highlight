@@ -44,11 +44,6 @@ export const ErrorsPage = () => {
                     <div key={index}>
                         <p>{u?.event}</p>
                         <p>{u?.column_number}</p>
-                        <p>
-                            {u?.trace?.map((t, i) => (
-                                <p key={i}>JSON.stringify(t)</p>
-                            ))}
-                        </p>
                     </div>
                 ))}
             </div>
