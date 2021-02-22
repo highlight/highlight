@@ -12,6 +12,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -193,13 +194,14 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		for _, v := range errors {
 			errorTrace := []*model.StackFrame{}
 			for _, f := range v.Trace {
-				frame := &model.StackFrame{
-					ColumnNumber: *f.ColumnNumber,
-					LineNumber:   *f.LineNumber,
-					FileName:     *f.FileName,
-					FunctionName: *f.FunctionName,
-				}
-				errorTrace = append(errorTrace, frame)
+				pp.Println(f)
+				// frame := &model.StackFrame{
+				// 	ColumnNumber: *f.ColumnNumber,
+				// 	LineNumber:   *f.LineNumber,
+				// 	FileName:     *f.FileName,
+				// 	FunctionName: *f.FunctionName,
+				// }
+				// errorTrace = append(errorTrace, frame)
 			}
 			traceBytes, err := json.Marshal(errorTrace)
 			if err != nil {

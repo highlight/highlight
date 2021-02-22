@@ -3,21 +3,10 @@
 package model
 
 type ErrorObjectInput struct {
-	Event        string             `json:"event"`
-	Type         string             `json:"type"`
-	Source       string             `json:"source"`
-	LineNumber   int                `json:"lineNumber"`
-	ColumnNumber int                `json:"columnNumber"`
-	Trace        []*StackFrameInput `json:"trace"`
-}
-
-type StackFrameInput struct {
-	ColumnNumber *int      `json:"columnNumber"`
-	LineNumber   *int      `json:"lineNumber"`
-	FileName     *string   `json:"fileName"`
-	FunctionName *string   `json:"functionName"`
-	Args         []*string `json:"args"`
-	Source       *string   `json:"source"`
-	IsEval       *bool     `json:"isEval"`
-	IsNative     *bool     `json:"isNative"`
+	Event        string        `json:"event"`
+	Type         string        `json:"type"`
+	Source       string        `json:"source"`
+	LineNumber   int           `json:"lineNumber"`
+	ColumnNumber int           `json:"columnNumber"`
+	Trace        []interface{} `json:"trace"`
 }

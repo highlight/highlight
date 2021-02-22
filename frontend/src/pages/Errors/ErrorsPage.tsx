@@ -8,7 +8,6 @@ export const ErrorsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data } = useErrorsQuery({
         variables: { organization_id: organization_id },
-        pollInterval: 5000,
     });
 
     const throwError = (): void => {
@@ -18,6 +17,8 @@ export const ErrorsPage = () => {
     const consoleError = (): void => {
         console.error('This error was from the console');
     };
+
+    console.log(data);
 
     return (
         <div className={styles.errorsBody}>
@@ -41,9 +42,12 @@ export const ErrorsPage = () => {
                 </div>
             </div>
             <div className={styles.centerPanel}>
-                {data?.errors?.map((u, index) => {
-                    return <p key={index}>{JSON.stringify(u)}</p>;
-                })}
+                {data?.errors?.map((u, index) => (
+                    <div key={index}>
+                        <p>{u?.event}</p>
+                        <p>{u?.column_number}</p>
+                    </div>
+                ))}
             </div>
         </div>
     );

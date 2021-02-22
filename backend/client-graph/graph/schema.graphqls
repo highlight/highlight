@@ -8,16 +8,16 @@ type Session {
     organization_id: ID!
 }
 
-input StackFrameInput {
-    columnNumber: Int
-    lineNumber: Int
-    fileName: String
-    functionName: String
-    args: [String]
-    source: String
-    isEval: Boolean
-    isNative: Boolean
-}
+# input StackFrameInput {
+#     columnNumber: Int
+#     lineNumber: Int
+#     fileName: String
+#     functionName: String
+#     args: [String]
+#     source: String
+#     isEval: Boolean
+#     isNative: Boolean
+# }
 
 input ErrorObjectInput {
     event: String!
@@ -25,7 +25,7 @@ input ErrorObjectInput {
     source: String!
     lineNumber: Int!
     columnNumber: Int!
-    trace: [StackFrameInput]!
+    trace: [Any]!
 }
 
 type Mutation {
