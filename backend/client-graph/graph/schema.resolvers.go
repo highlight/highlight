@@ -190,18 +190,23 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 	}
 	// put errors in db
-	if len(errors) > 0 && organizationID == 1 {
+	if organizationID == 1 {
+		errorsToInsert := []*model.ErrorObject{}
 		for _, v := range errors {
 			errorTrace := []*model.StackFrame{}
 			for _, f := range v.Trace {
-				pp.Println(f)
-				// frame := &model.StackFrame{
-				// 	ColumnNumber: *f.ColumnNumber,
-				// 	LineNumber:   *f.LineNumber,
-				// 	FileName:     *f.FileName,
-				// 	FunctionName: *f.FunctionName,
-				// }
-				// errorTrace = append(errorTrace, frame)
+				traceAsMap, ok := f.(map[string]interface{})
+				if !ok {
+					pp.Println("continuing")
+					continue
+				}
+				frame := &model.StackFrame{
+					ColumnNumber: fmt.Sprintf("%v", traceAsMap["columnNumber"]),
+					LineNumber:   fmt.Sprintf("%v", traceAsMap["lineNumber"]),
+					FileName:     fmt.Sprintf("%v", traceAsMap["fileName"]),
+					FunctionName: fmt.Sprintf("%v", traceAsMap["functionName"]),
+				}
+				errorTrace = append(errorTrace, frame)
 			}
 			traceBytes, err := json.Marshal(errorTrace)
 			if err != nil {
@@ -209,7 +214,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			}
 			traceString := string(traceBytes)
 
-			obj := &model.ErrorObject{
+			errorToInsert := &model.ErrorObject{
 				OrganizationID: organizationID,
 				SessionID:      sessionID,
 				Event:          v.Event,
@@ -219,10 +224,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				ColumnNumber:   v.ColumnNumber,
 				Trace:          &traceString,
 			}
-
-			if err := r.DB.Create(obj).Error; err != nil {
-				return nil, e.Wrap(err, "error creating error object")
-			}
+			errorsToInsert = append(errorsToInsert, errorToInsert)
+		}
+		if err := r.DB.Create(errorsToInsert).Error; err != nil {
+			return nil, e.Wrap(err, "error creating error object")
 		}
 	}
 	now := time.Now()

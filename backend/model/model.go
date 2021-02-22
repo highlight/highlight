@@ -237,8 +237,8 @@ type EventsObject struct {
 }
 
 type StackFrame struct {
-	ColumnNumber int
-	LineNumber   int
+	ColumnNumber string
+	LineNumber   string
 	FileName     string
 	FunctionName string
 	Args         *string
