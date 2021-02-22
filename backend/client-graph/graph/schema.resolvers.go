@@ -12,7 +12,6 @@ import (
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -191,26 +190,11 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	}
 	// put errors in db
 	if organizationID == 1 {
-		errorsToInsert := []*model.ErrorObject{}
 		for _, v := range errors {
-			errorTrace := []*model.StackFrame{}
-			for _, f := range v.Trace {
-				traceAsMap, ok := f.(map[string]interface{})
-				if !ok {
-					pp.Println("continuing")
-					continue
-				}
-				frame := &model.StackFrame{
-					ColumnNumber: fmt.Sprintf("%v", traceAsMap["columnNumber"]),
-					LineNumber:   fmt.Sprintf("%v", traceAsMap["lineNumber"]),
-					FileName:     fmt.Sprintf("%v", traceAsMap["fileName"]),
-					FunctionName: fmt.Sprintf("%v", traceAsMap["functionName"]),
-				}
-				errorTrace = append(errorTrace, frame)
-			}
-			traceBytes, err := json.Marshal(errorTrace)
+			traceBytes, err := json.Marshal(v.Trace)
 			if err != nil {
-				return nil, e.Wrap(err, "error unmarshaling search params")
+				log.Errorf("Error unmarshaling error: %v", v.Trace)
+				continue
 			}
 			traceString := string(traceBytes)
 
@@ -224,10 +208,11 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				ColumnNumber:   v.ColumnNumber,
 				Trace:          &traceString,
 			}
-			errorsToInsert = append(errorsToInsert, errorToInsert)
-		}
-		if err := r.DB.Create(errorsToInsert).Error; err != nil {
-			return nil, e.Wrap(err, "error creating error object")
+			// TODO: We need to do a batch insert which is supported by the new gorm lib.
+			if err := r.DB.Create(errorToInsert).Error; err != nil {
+				log.Errorf("Error performing error insert for error: %v", v.Event)
+				continue
+			}
 		}
 	}
 	now := time.Now()

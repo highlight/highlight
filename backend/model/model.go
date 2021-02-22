@@ -236,17 +236,6 @@ type EventsObject struct {
 	Events    string
 }
 
-type StackFrame struct {
-	ColumnNumber string
-	LineNumber   string
-	FileName     string
-	FunctionName string
-	Args         *string
-	Source       string
-	isEval       bool
-	isNative     bool
-}
-
 type ErrorObject struct {
 	Model
 	OrganizationID int
