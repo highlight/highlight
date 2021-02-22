@@ -75,9 +75,9 @@ export type ErrorObject = {
     event: Scalars['String'];
     type: Scalars['String'];
     source?: Maybe<Scalars['String']>;
-    line_no?: Maybe<Scalars['Int']>;
-    column_no?: Maybe<Scalars['Int']>;
-    trace?: Maybe<Scalars['String']>;
+    line_number?: Maybe<Scalars['Int']>;
+    column_number?: Maybe<Scalars['Int']>;
+    trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
 };
 
 export type SearchParamsInput = {

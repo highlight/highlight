@@ -98,14 +98,14 @@ query GetBillingDetails($organization_id: ID!) {
     billingDetails(organization_id: $organization_id)
 }
 
-query Errors($organization_id: ID!) {
+query GetErrors($organization_id: ID!) {
     errors(organization_id: $organization_id) {
         event
         type
         source
-        line_no
-        column_no
-        trace
+        line_number
+        column_number
+        trace     
     }
 }
 

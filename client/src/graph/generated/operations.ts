@@ -26,6 +26,23 @@ export type Session = {
   organization_id: Scalars['ID'];
 };
 
+export type StackFrameInput = {
+  columnNumber?: Maybe<Scalars['Int']>;
+  lineNumber?: Maybe<Scalars['Int']>;
+  fileName?: Maybe<Scalars['String']>;
+  functionName?: Maybe<Scalars['String']>;
+  source?: Maybe<Scalars['String']>;
+};
+
+export type ErrorObjectInput = {
+  event: Scalars['String'];
+  type: Scalars['String'];
+  source: Scalars['String'];
+  lineNumber: Scalars['Int'];
+  columnNumber: Scalars['Int'];
+  trace: Array<Maybe<StackFrameInput>>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   initializeSession?: Maybe<Session>;
@@ -65,7 +82,7 @@ export type MutationPushPayloadArgs = {
   events: Scalars['String'];
   messages: Scalars['String'];
   resources: Scalars['String'];
-  errors: Scalars['String'];
+  errors: Array<Maybe<ErrorObjectInput>>;
 };
 
 export type Query = {
@@ -83,7 +100,7 @@ export type PushPayloadMutationVariables = Types.Exact<{
   events: Types.Scalars['String'];
   messages: Types.Scalars['String'];
   resources: Types.Scalars['String'];
-  errors: Types.Scalars['String'];
+  errors: Array<Types.Maybe<Types.ErrorObjectInput>> | Types.Maybe<Types.ErrorObjectInput>;
 }>;
 
 
@@ -151,7 +168,7 @@ export type IgnoreQuery = (
 
 
 export const PushPayloadDocument = gql`
-    mutation PushPayload($session_id: ID!, $events: String!, $messages: String!, $resources: String!, $errors: String!) {
+    mutation PushPayload($session_id: ID!, $events: String!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!) {
   pushPayload(
     session_id: $session_id
     events: $events

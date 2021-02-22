@@ -55,9 +55,9 @@ type ErrorObject {
     event: String!
     type: String!
     source: String
-    line_no: Int
-    column_no: Int
-    trace: String
+    line_number: Int
+    column_number: Int
+    trace: [Any]
 }
 
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,

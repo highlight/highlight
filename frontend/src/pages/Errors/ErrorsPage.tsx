@@ -2,13 +2,12 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from 'antd';
 import styles from './ErrorsPage.module.scss';
-import { useErrorsQuery } from '../../graph/generated/hooks';
+import { useGetErrorsQuery } from '../../graph/generated/hooks';
 
 export const ErrorsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { data } = useErrorsQuery({
+    const { data } = useGetErrorsQuery({
         variables: { organization_id: organization_id },
-        pollInterval: 5000,
     });
 
     const throwError = (): void => {
@@ -20,19 +19,33 @@ export const ErrorsPage = () => {
     };
 
     return (
-        <div>
-            <div className={styles.advancedText}>
-                <Button type="primary" onClick={throwError}>
-                    Throw Error
-                </Button>
-                <Button type="primary" onClick={consoleError}>
-                    Console Error
-                </Button>
+        <div className={styles.errorsBody}>
+            <div className={styles.leftPanel}>
+                <div className={styles.advancedText}>
+                    <Button
+                        type="primary"
+                        style={{ background: 'red' }}
+                        onClick={throwError}
+                    >
+                        Throw Error
+                    </Button>{' '}
+                    <br></br>
+                    <Button
+                        type="primary"
+                        style={{ background: 'green' }}
+                        onClick={consoleError}
+                    >
+                        Console Error
+                    </Button>{' '}
+                </div>
             </div>
-            <div className={styles.errorText}>
-                {data?.errors?.map((u, index) => {
-                    return <p key={index}>{JSON.stringify(u)}</p>;
-                })}
+            <div className={styles.centerPanel}>
+                {data?.errors?.map((u, index) => (
+                    <div key={index}>
+                        <p>{u?.event}</p>
+                        <p>{u?.column_number}</p>
+                    </div>
+                ))}
             </div>
         </div>
     );

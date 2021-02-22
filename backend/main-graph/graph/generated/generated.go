@@ -37,6 +37,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	ErrorObject() ErrorObjectResolver
 	Mutation() MutationResolver
 	Query() QueryResolver
 	Segment() SegmentResolver
@@ -59,10 +60,10 @@ type ComplexityRoot struct {
 	}
 
 	ErrorObject struct {
-		ColumnNo       func(childComplexity int) int
+		ColumnNumber   func(childComplexity int) int
 		Event          func(childComplexity int) int
 		ID             func(childComplexity int) int
-		LineNo         func(childComplexity int) int
+		LineNumber     func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
 		SessionID      func(childComplexity int) int
 		Source         func(childComplexity int) int
@@ -176,6 +177,9 @@ type ComplexityRoot struct {
 	}
 }
 
+type ErrorObjectResolver interface {
+	Trace(ctx context.Context, obj *model1.ErrorObject) ([]interface{}, error)
+}
 type MutationResolver interface {
 	CreateOrganization(ctx context.Context, name string) (*model1.Organization, error)
 	EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Organization, error)
@@ -264,12 +268,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DateRange.StartDate(childComplexity), true
 
-	case "ErrorObject.column_no":
-		if e.complexity.ErrorObject.ColumnNo == nil {
+	case "ErrorObject.column_number":
+		if e.complexity.ErrorObject.ColumnNumber == nil {
 			break
 		}
 
-		return e.complexity.ErrorObject.ColumnNo(childComplexity), true
+		return e.complexity.ErrorObject.ColumnNumber(childComplexity), true
 
 	case "ErrorObject.event":
 		if e.complexity.ErrorObject.Event == nil {
@@ -285,12 +289,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.ID(childComplexity), true
 
-	case "ErrorObject.line_no":
-		if e.complexity.ErrorObject.LineNo == nil {
+	case "ErrorObject.line_number":
+		if e.complexity.ErrorObject.LineNumber == nil {
 			break
 		}
 
-		return e.complexity.ErrorObject.LineNo(childComplexity), true
+		return e.complexity.ErrorObject.LineNumber(childComplexity), true
 
 	case "ErrorObject.organization_id":
 		if e.complexity.ErrorObject.OrganizationID == nil {
@@ -1077,9 +1081,9 @@ type ErrorObject {
     event: String!
     type: String!
     source: String
-    line_no: Int
-    column_no: Int
-    trace: String
+    line_number: Int
+    column_number: Int
+    trace: [Any]
 }
 
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
@@ -2155,7 +2159,7 @@ func (ec *executionContext) _ErrorObject_source(ctx context.Context, field graph
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_line_no(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_line_number(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2172,7 +2176,7 @@ func (ec *executionContext) _ErrorObject_line_no(ctx context.Context, field grap
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.LineNo, nil
+		return obj.LineNumber, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2186,7 +2190,7 @@ func (ec *executionContext) _ErrorObject_line_no(ctx context.Context, field grap
 	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_column_no(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_column_number(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -2203,7 +2207,7 @@ func (ec *executionContext) _ErrorObject_column_no(ctx context.Context, field gr
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ColumnNo, nil
+		return obj.ColumnNumber, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2228,13 +2232,13 @@ func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphq
 		Object:   "ErrorObject",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Trace, nil
+		return ec.resolvers.ErrorObject().Trace(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2243,9 +2247,9 @@ func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]interface{})
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Field_name(ctx context.Context, field graphql.CollectedField, obj *model1.Field) (ret graphql.Marshaler) {
@@ -6096,36 +6100,45 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 		case "id":
 			out.Values[i] = ec._ErrorObject_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "organization_id":
 			out.Values[i] = ec._ErrorObject_organization_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "session_id":
 			out.Values[i] = ec._ErrorObject_session_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "event":
 			out.Values[i] = ec._ErrorObject_event(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "type":
 			out.Values[i] = ec._ErrorObject_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "source":
 			out.Values[i] = ec._ErrorObject_source(ctx, field, obj)
-		case "line_no":
-			out.Values[i] = ec._ErrorObject_line_no(ctx, field, obj)
-		case "column_no":
-			out.Values[i] = ec._ErrorObject_column_no(ctx, field, obj)
+		case "line_number":
+			out.Values[i] = ec._ErrorObject_line_number(ctx, field, obj)
+		case "column_number":
+			out.Values[i] = ec._ErrorObject_column_number(ctx, field, obj)
 		case "trace":
-			out.Values[i] = ec._ErrorObject_trace(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorObject_trace(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
+	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -147,7 +148,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors string) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
 	eventsParsed := make(map[string][]interface{})
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
@@ -187,25 +188,30 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
-	// unmarshal error
-	errorsParsed := make(map[string][]model.ErrorObject)
-	if err := json.Unmarshal([]byte(errors), &errorsParsed); err != nil {
-		return nil, fmt.Errorf("error decoding error data: %v", err)
-	}
-	if len(errorsParsed["errors"]) > 0 && organizationID == 1 {
-		for _, v := range errorsParsed["errors"] {
-			obj := &model.ErrorObject{
+	// put errors in db
+	if organizationID == 1 {
+		for _, v := range errors {
+			traceBytes, err := json.Marshal(v.Trace)
+			if err != nil {
+				log.Errorf("Error unmarshaling error: %v", v.Trace)
+				continue
+			}
+			traceString := string(traceBytes)
+
+			errorToInsert := &model.ErrorObject{
 				OrganizationID: organizationID,
 				SessionID:      sessionID,
 				Event:          v.Event,
 				Type:           v.Type,
 				Source:         v.Source,
-				LineNo:         v.LineNo,
-				ColumnNo:       v.ColumnNo,
-				Trace:          v.Trace,
+				LineNumber:     v.LineNumber,
+				ColumnNumber:   v.ColumnNumber,
+				Trace:          &traceString,
 			}
-			if err := r.DB.Create(obj).Error; err != nil {
-				return nil, e.Wrap(err, "error creating error object")
+			// TODO: We need to do a batch insert which is supported by the new gorm lib.
+			if err := r.DB.Create(errorToInsert).Error; err != nil {
+				log.Errorf("Error performing error insert for error: %v", v.Event)
+				continue
 			}
 		}
 	}

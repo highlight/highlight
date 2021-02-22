@@ -290,11 +290,11 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & Pick<
     'billingDetails'
 >;
 
-export type ErrorsQueryVariables = Types.Exact<{
+export type GetErrorsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
 
-export type ErrorsQuery = { __typename?: 'Query' } & {
+export type GetErrorsQuery = { __typename?: 'Query' } & {
     errors?: Types.Maybe<
         Array<
             Types.Maybe<
@@ -303,8 +303,8 @@ export type ErrorsQuery = { __typename?: 'Query' } & {
                     | 'event'
                     | 'type'
                     | 'source'
-                    | 'line_no'
-                    | 'column_no'
+                    | 'line_number'
+                    | 'column_number'
                     | 'trace'
                 >
             >
