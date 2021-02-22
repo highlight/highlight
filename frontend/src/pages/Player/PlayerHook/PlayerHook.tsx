@@ -33,6 +33,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                 : session_id ?? '',
         },
         context: { headers: { 'Highlight-Demo': demo } },
+        fetchPolicy: 'no-cache',
     });
 
     // Handle data in playback mode.
