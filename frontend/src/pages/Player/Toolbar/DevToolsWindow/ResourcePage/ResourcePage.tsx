@@ -49,6 +49,7 @@ export const ResourcePage = ({
                 : session_id,
         },
         context: { headers: { 'Highlight-Demo': demo } },
+        fetchPolicy: 'no-cache',
     });
     const virtuoso = useRef<VirtuosoHandle>(null);
     const rawResources = data?.resources;
