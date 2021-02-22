@@ -28,7 +28,7 @@ type Mutation {
     addSessionProperties(session_id: ID!, properties_object: Any): ID
     pushPayload(
         session_id: ID!
-        events: String!
+        events: [Any]!
         messages: String!
         resources: String!
         errors: [ErrorObjectInput]!

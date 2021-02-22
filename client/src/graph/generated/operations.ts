@@ -26,21 +26,13 @@ export type Session = {
   organization_id: Scalars['ID'];
 };
 
-export type StackFrameInput = {
-  columnNumber?: Maybe<Scalars['Int']>;
-  lineNumber?: Maybe<Scalars['Int']>;
-  fileName?: Maybe<Scalars['String']>;
-  functionName?: Maybe<Scalars['String']>;
-  source?: Maybe<Scalars['String']>;
-};
-
 export type ErrorObjectInput = {
   event: Scalars['String'];
   type: Scalars['String'];
   source: Scalars['String'];
   lineNumber: Scalars['Int'];
   columnNumber: Scalars['Int'];
-  trace: Array<Maybe<StackFrameInput>>;
+  trace: Array<Maybe<Scalars['Any']>>;
 };
 
 export type Mutation = {
@@ -79,7 +71,7 @@ export type MutationAddSessionPropertiesArgs = {
 
 export type MutationPushPayloadArgs = {
   session_id: Scalars['ID'];
-  events: Scalars['String'];
+  events: Array<Maybe<Scalars['Any']>>;
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;
@@ -97,7 +89,7 @@ export type QueryIgnoreArgs = {
 
 export type PushPayloadMutationVariables = Types.Exact<{
   session_id: Types.Scalars['ID'];
-  events: Types.Scalars['String'];
+  events: Array<Types.Maybe<Types.Scalars['Any']>> | Types.Maybe<Types.Scalars['Any']>;
   messages: Types.Scalars['String'];
   resources: Types.Scalars['String'];
   errors: Array<Types.Maybe<Types.ErrorObjectInput>> | Types.Maybe<Types.ErrorObjectInput>;
@@ -168,7 +160,7 @@ export type IgnoreQuery = (
 
 
 export const PushPayloadDocument = gql`
-    mutation PushPayload($session_id: ID!, $events: String!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!) {
+    mutation PushPayload($session_id: ID!, $events: [Any]!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!) {
   pushPayload(
     session_id: $session_id
     events: $events

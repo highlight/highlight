@@ -12,6 +12,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -148,8 +149,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
-	eventsParsed := make(map[string][]interface{})
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events []interface{}, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
 	if res.Error != nil {
@@ -157,11 +157,20 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	}
 	organizationID := sessionObj.OrganizationID
 	// unmarshal events
-	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
-		return nil, fmt.Errorf("error decoding event data: %v", err)
-	}
-	if len(eventsParsed["events"]) > 0 {
-		obj := &model.EventsObject{SessionID: sessionID, Events: events}
+	if len(events) > 0 {
+		for _, e := range events {
+			eventAsMap, ok := e.(map[string]interface{})
+			if !ok {
+				pp.Println("continuing")
+				continue
+			}
+			pp.Println(eventAsMap)
+		}
+		eventsBytes, err := json.Marshal(events)
+		if err != nil {
+			return nil, fmt.Errorf("error decoding events data: %v", err)
+		}
+		obj := &model.EventsObject{SessionID: sessionID, Events: string(eventsBytes)}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
 		}

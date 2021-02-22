@@ -1,0 +1,10 @@
+{
+  "version": "v1",
+  "packages": {
+    "@highlight-run/rrweb": {
+      "signature": "d76e1bce77d6dfe810376128a1d46581",
+      "file": true,
+      "replaced": "^0.9.27"
+    }
+  }
+}

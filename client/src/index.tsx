@@ -313,7 +313,6 @@ export class Highlight {
 
             const resourcesString = JSON.stringify({ resources: resources });
             const messagesString = JSON.stringify({ messages: this.messages });
-            const eventsString = JSON.stringify({ events: this.events });
             this.logger.log(
                 `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionID}`
             );
@@ -322,7 +321,7 @@ export class Highlight {
             }
             await this.graphqlSDK.PushPayload({
                 session_id: this.sessionID.toString(),
-                events: eventsString,
+                events: this.events,
                 messages: messagesString,
                 resources: resourcesString,
                 errors: this.errors,
