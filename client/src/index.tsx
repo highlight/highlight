@@ -263,7 +263,7 @@ export class Highlight {
                 ConsoleListener((c: ConsoleMessage) => {
                     if (c.type == 'Error' && c.value && c.trace)
                         highlightThis.errors.push({
-                            event: c.value,
+                            event: JSON.stringify(c.value),
                             type: 'console',
                             source: c.trace[0].fileName
                                 ? c.trace[0].fileName
