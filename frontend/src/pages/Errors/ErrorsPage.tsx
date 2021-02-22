@@ -2,11 +2,11 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from 'antd';
 import styles from './ErrorsPage.module.scss';
-import { useErrorsQuery } from '../../graph/generated/hooks';
+import { useGetErrorsQuery } from '../../graph/generated/hooks';
 
 export const ErrorsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { data } = useErrorsQuery({
+    const { data } = useGetErrorsQuery({
         variables: { organization_id: organization_id },
     });
 
@@ -17,8 +17,6 @@ export const ErrorsPage = () => {
     const consoleError = (): void => {
         console.error('This error was from the console');
     };
-
-    console.log(data);
 
     return (
         <div className={styles.errorsBody}>

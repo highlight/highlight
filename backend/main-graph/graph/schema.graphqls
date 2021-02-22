@@ -48,17 +48,6 @@ type Segment {
     organization_id: ID!
 }
 
-type StackFrame {
-    column_number: Int!
-    line_number: Int!
-    file_name: String!
-    function_name: String!
-    args: [String]
-    source: String
-    isEval: Boolean
-    isNative: Boolean
-}
-
 type ErrorObject {
     id: ID!
     organization_id: Int!
@@ -68,7 +57,7 @@ type ErrorObject {
     source: String
     line_number: Int
     column_number: Int
-    trace: [StackFrame]
+    trace: [Any]
 }
 
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,

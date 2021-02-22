@@ -290,11 +290,11 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & Pick<
     'billingDetails'
 >;
 
-export type ErrorsQueryVariables = Types.Exact<{
+export type GetErrorsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
 
-export type ErrorsQuery = { __typename?: 'Query' } & {
+export type GetErrorsQuery = { __typename?: 'Query' } & {
     errors?: Types.Maybe<
         Array<
             Types.Maybe<
@@ -305,21 +305,8 @@ export type ErrorsQuery = { __typename?: 'Query' } & {
                     | 'source'
                     | 'line_number'
                     | 'column_number'
-                > & {
-                        trace?: Types.Maybe<
-                            Array<
-                                Types.Maybe<
-                                    { __typename?: 'StackFrame' } & Pick<
-                                        Types.StackFrame,
-                                        | 'column_number'
-                                        | 'line_number'
-                                        | 'file_name'
-                                        | 'function_name'
-                                    >
-                                >
-                            >
-                        >;
-                    }
+                    | 'trace'
+                >
             >
         >
     >;

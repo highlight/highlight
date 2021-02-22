@@ -14,6 +14,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -22,8 +23,8 @@ import (
 	stripe "github.com/stripe/stripe-go"
 )
 
-func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]*model.StackFrame, error) {
-	frames := []*model.StackFrame{}
+func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
+	frames := []interface{}{}
 	if obj.Trace != nil {
 		if err := json.Unmarshal([]byte(*obj.Trace), &frames); err != nil {
 			return nil, fmt.Errorf("error decoding stack frame data: %v", err)
@@ -347,6 +348,8 @@ func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]*mode
 	if res := r.DB.Order("created_at desc").Where(&model.ErrorObject{OrganizationID: organizationID}).Find(&errorObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
 	}
+
+	pp.Println(errorObjs[0])
 
 	count := 10
 	if len(errorObjs) < 10 {
@@ -733,18 +736,6 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
-func (r *stackFrameResolver) Args(ctx context.Context, obj *model.StackFrame) ([]*string, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *stackFrameResolver) IsEval(ctx context.Context, obj *model.StackFrame) (*bool, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
-func (r *stackFrameResolver) IsNative(ctx context.Context, obj *model.StackFrame) (*bool, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-
 // ErrorObject returns generated.ErrorObjectResolver implementation.
 func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorObjectResolver{r} }
 
@@ -760,22 +751,8 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
-// StackFrame returns generated.StackFrameResolver implementation.
-func (r *Resolver) StackFrame() generated.StackFrameResolver { return &stackFrameResolver{r} }
-
 type errorObjectResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
-type stackFrameResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *stackFrameResolver) Source(ctx context.Context, obj *model.StackFrame) (*string, error) {
-	panic(fmt.Errorf("not implemented"))
-}

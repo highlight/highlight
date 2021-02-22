@@ -967,67 +967,64 @@ export type GetBillingDetailsQueryResult = Apollo.QueryResult<
     Types.GetBillingDetailsQuery,
     Types.GetBillingDetailsQueryVariables
 >;
-export const ErrorsDocument = gql`
-    query Errors($organization_id: ID!) {
+export const GetErrorsDocument = gql`
+    query GetErrors($organization_id: ID!) {
         errors(organization_id: $organization_id) {
             event
             type
             source
             line_number
             column_number
-            trace {
-                column_number
-                line_number
-                file_name
-                function_name
-            }
+            trace
         }
     }
 `;
 
 /**
- * __useErrorsQuery__
+ * __useGetErrorsQuery__
  *
- * To run a query within a React component, call `useErrorsQuery` and pass it any options that fit your needs.
- * When your component renders, `useErrorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetErrorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useErrorsQuery({
+ * const { data, loading, error } = useGetErrorsQuery({
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *   },
  * });
  */
-export function useErrorsQuery(
+export function useGetErrorsQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.ErrorsQuery,
-        Types.ErrorsQueryVariables
+        Types.GetErrorsQuery,
+        Types.GetErrorsQueryVariables
     >
 ) {
-    return Apollo.useQuery<Types.ErrorsQuery, Types.ErrorsQueryVariables>(
-        ErrorsDocument,
+    return Apollo.useQuery<Types.GetErrorsQuery, Types.GetErrorsQueryVariables>(
+        GetErrorsDocument,
         baseOptions
     );
 }
-export function useErrorsLazyQuery(
+export function useGetErrorsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.ErrorsQuery,
-        Types.ErrorsQueryVariables
+        Types.GetErrorsQuery,
+        Types.GetErrorsQueryVariables
     >
 ) {
-    return Apollo.useLazyQuery<Types.ErrorsQuery, Types.ErrorsQueryVariables>(
-        ErrorsDocument,
-        baseOptions
-    );
+    return Apollo.useLazyQuery<
+        Types.GetErrorsQuery,
+        Types.GetErrorsQueryVariables
+    >(GetErrorsDocument, baseOptions);
 }
-export type ErrorsQueryHookResult = ReturnType<typeof useErrorsQuery>;
-export type ErrorsLazyQueryHookResult = ReturnType<typeof useErrorsLazyQuery>;
-export type ErrorsQueryResult = Apollo.QueryResult<
-    Types.ErrorsQuery,
-    Types.ErrorsQueryVariables
+export type GetErrorsQueryHookResult = ReturnType<typeof useGetErrorsQuery>;
+export type GetErrorsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorsLazyQuery
+>;
+export type GetErrorsQueryResult = Apollo.QueryResult<
+    Types.GetErrorsQuery,
+    Types.GetErrorsQueryVariables
 >;
 export const GetMessagesDocument = gql`
     query GetMessages($session_id: ID!) {
