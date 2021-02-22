@@ -225,6 +225,9 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         )}
                         disabled={disableControls || disablePlayButton}
                         onClick={() => {
+                            console.log(
+                                `[Highlight] Player Info: \nPlayback Time: ${time}\nClient Position: ${sliderClientX}`
+                            );
                             if (isPaused) {
                                 play(time);
                             } else {

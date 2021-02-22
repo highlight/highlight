@@ -85,6 +85,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                     endPercent: currTime / totalDuration,
                 };
             });
+            console.log('[Highlight] Session Intervals:', sliderIntervalMap);
             setSessionIntervals(sliderIntervalMap);
             setEvents(newEvents);
             setReplayer(r);
