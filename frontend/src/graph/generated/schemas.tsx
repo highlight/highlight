@@ -80,6 +80,15 @@ export type ErrorObject = {
     trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
 };
 
+export type ErrorGroup = {
+    __typename?: 'ErrorGroup';
+    id: Scalars['ID'];
+    organization_id: Scalars['Int'];
+    event: Scalars['String'];
+    trace: Scalars['String'];
+    time_log?: Maybe<Scalars['String']>;
+};
+
 export type SearchParamsInput = {
     user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
@@ -152,6 +161,7 @@ export type Query = {
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
+    error_groups?: Maybe<Array<Maybe<ErrorGroup>>>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
@@ -176,6 +186,10 @@ export type QueryEventsArgs = {
 };
 
 export type QueryErrorsArgs = {
+    organization_id: Scalars['ID'];
+};
+
+export type QueryError_GroupsArgs = {
     organization_id: Scalars['ID'];
 };
 

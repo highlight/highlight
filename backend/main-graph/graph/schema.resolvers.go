@@ -356,6 +356,18 @@ func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]*mode
 	return errorObjs[:count], nil
 }
 
+func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int) ([]*model.ErrorGroup, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+	errorGroups := []*model.ErrorGroup{}
+	if res := r.DB.Order("updated_at desc").Where(&model.ErrorGroup{OrganizationID: organizationID}).Find(&errorGroups); res.Error != nil {
+		return nil, fmt.Errorf("error reading from error groups: %v", res.Error)
+	}
+
+	return errorGroups, nil
+}
+
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")

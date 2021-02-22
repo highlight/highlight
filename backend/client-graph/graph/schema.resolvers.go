@@ -189,11 +189,11 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 	}
 	// put errors in db
-	if organizationID == 1 {
+	if organizationID == 2 {
 		for _, v := range errors {
 			traceBytes, err := json.Marshal(v.Trace)
 			if err != nil {
-				log.Errorf("Error unmarshaling error: %v", v.Trace)
+				log.Errorf("Error marshaling trace: %v", v.Trace)
 				continue
 			}
 			traceString := string(traceBytes)
@@ -211,6 +211,11 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			// TODO: We need to do a batch insert which is supported by the new gorm lib.
 			if err := r.DB.Create(errorToInsert).Error; err != nil {
 				log.Errorf("Error performing error insert for error: %v", v.Event)
+				continue
+			}
+
+			if err := r.UpdateErrorGroup(*errorToInsert, v.Trace[0]); err != nil {
+				log.Errorf("Error updating error group: %v", errorToInsert)
 				continue
 			}
 		}

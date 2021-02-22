@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
@@ -66,6 +67,53 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	if err != nil {
 		return e.Wrap(err, "error appending fields")
 	}
+	return nil
+}
+
+func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame interface{}) error {
+	firstFrameBytes, err := json.Marshal(firstFrame)
+	if err != nil {
+		return e.Wrap(err, "Error marshalling first frame")
+	}
+	frameString := string(firstFrameBytes)
+
+	errorGroup := &model.ErrorGroup{}
+
+	if res := r.DB.Where(&model.ErrorGroup{
+		OrganizationID: errorObj.OrganizationID,
+		Event:          errorObj.Event,
+		Trace:          frameString,
+	}).First(&errorGroup); res.RecordNotFound() || res.Error != nil {
+		newErrorGroup := &model.ErrorGroup{
+			OrganizationID: errorObj.OrganizationID,
+			Event:          errorObj.Event,
+			Trace:          frameString,
+		}
+		if err := r.DB.Create(newErrorGroup).Error; err != nil {
+			return e.Wrap(err, "Error creating new error group")
+		}
+		errorGroup = newErrorGroup
+	}
+
+	var newTimeLog []time.Time
+	if errorGroup.TimeLog != nil {
+		if err := json.Unmarshal([]byte(*errorGroup.TimeLog), &newTimeLog); err != nil {
+			return e.Wrap(err, "error decoding time log data")
+		}
+	}
+
+	newTimeLog = append(newTimeLog, time.Now())
+
+	timeLogBytes, err := json.Marshal(newTimeLog)
+	if err != nil {
+		return e.Wrap(err, "Error marshalling time log")
+	}
+	timeLogString := string(timeLogBytes)
+
+	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{TimeLog: &timeLogString}); res.RecordNotFound() || res.Error != nil {
+		return e.Wrap(err, "Error updating error group time log")
+	}
+
 	return nil
 }
 
