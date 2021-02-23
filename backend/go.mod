@@ -9,6 +9,7 @@ require (
 	github.com/99designs/gqlgen v0.12.2
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-redis/redis/v7 v7.4.0
+	github.com/go-test/deep v1.0.4
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/honeycombio/beeline-go v0.11.0

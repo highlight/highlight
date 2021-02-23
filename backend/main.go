@@ -99,6 +99,7 @@ func main() {
 	})
 	defer beeline.Close()
 
+	mgraph.SetupAuthClient()
 	main := &mgraph.Resolver{
 		DB:           db,
 		MailClient:   sendgrid.NewSendClient(sendgridKey),

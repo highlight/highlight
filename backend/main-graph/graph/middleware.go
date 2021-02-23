@@ -20,7 +20,7 @@ var (
 	DemoHeader string = "Highlight-Demo"
 )
 
-func init() {
+func SetupAuthClient() {
 	secret := os.Getenv("FIREBASE_SECRET")
 	creds, err := google.CredentialsFromJSON(context.Background(), []byte(secret),
 		"https://www.googleapis.com/auth/firebase",
