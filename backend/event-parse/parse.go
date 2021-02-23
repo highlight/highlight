@@ -12,7 +12,6 @@ import (
 )
 
 type EventType int
-type NodeType int
 
 const (
 	DomContentLoaded EventType = iota
@@ -21,15 +20,6 @@ const (
 	IncrementalSnapshot
 	Meta
 	Custom
-)
-
-const (
-	Document NodeType = iota
-	DocumentType
-	Element
-	Text
-	CData
-	Comment
 )
 
 // ReplayEvent represents a single event that represents a change on the DOM.
