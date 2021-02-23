@@ -10,8 +10,11 @@ require (
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-redis/redis/v7 v7.4.0
 	github.com/go-test/deep v1.0.4
+<<<<<<< HEAD
 	github.com/google/go-cmp v0.5.4
 	github.com/google/martian/v3 v3.0.0
+=======
+>>>>>>> master
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/honeycombio/beeline-go v0.11.0
