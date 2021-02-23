@@ -253,8 +253,7 @@ type ErrorGroup struct {
 	OrganizationID int
 	Event          string
 	Trace          string
-	TimeLog        *string
-	Errors         []*ErrorObject
+	MetadataLog    *string
 }
 
 func SetupDB() *gorm.DB {

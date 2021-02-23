@@ -214,7 +214,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				continue
 			}
 
-			if err := r.UpdateErrorGroup(*errorToInsert, v.Trace[0]); err != nil {
+			if err := r.UpdateErrorGroup(*errorToInsert, v.Trace[0], sessionObj.BrowserName, sessionObj.OSName); err != nil {
 				log.Errorf("Error updating error group: %v", errorToInsert)
 				continue
 			}

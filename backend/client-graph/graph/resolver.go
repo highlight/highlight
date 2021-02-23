@@ -50,6 +50,14 @@ var PropertyType = struct {
 	TRACK:   "track",
 }
 
+type ErrorMetaData struct {
+	Timestamp time.Time `json:"timestamp"`
+	ErrorID   int       `json:"error_id"`
+	SessionID int       `json:"session_id"`
+	OS        string    `json:"os"`
+	Browser   string    `json:"browser"`
+}
+
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
@@ -70,7 +78,7 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	return nil
 }
 
-func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame interface{}) error {
+func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame interface{}, browser string, osName string) error {
 	firstFrameBytes, err := json.Marshal(firstFrame)
 	if err != nil {
 		return e.Wrap(err, "Error marshalling first frame")
@@ -95,23 +103,29 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame inter
 		errorGroup = newErrorGroup
 	}
 
-	var newTimeLog []time.Time
-	if errorGroup.TimeLog != nil {
-		if err := json.Unmarshal([]byte(*errorGroup.TimeLog), &newTimeLog); err != nil {
+	var newMetadataLog []ErrorMetaData
+	if errorGroup.MetadataLog != nil {
+		if err := json.Unmarshal([]byte(*errorGroup.MetadataLog), &newMetadataLog); err != nil {
 			return e.Wrap(err, "error decoding time log data")
 		}
 	}
 
-	newTimeLog = append(newTimeLog, time.Now())
+	newMetadataLog = append(newMetadataLog, ErrorMetaData{
+		Timestamp: errorObj.CreatedAt,
+		ErrorID:   errorObj.ID,
+		SessionID: errorObj.SessionID,
+		Browser:   browser,
+		OS:        osName,
+	})
 
-	timeLogBytes, err := json.Marshal(newTimeLog)
+	logBytes, err := json.Marshal(newMetadataLog)
 	if err != nil {
-		return e.Wrap(err, "Error marshalling time log")
+		return e.Wrap(err, "Error marshalling metadata log")
 	}
-	timeLogString := string(timeLogBytes)
+	logString := string(logBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{TimeLog: &timeLogString}); res.RecordNotFound() || res.Error != nil {
-		return e.Wrap(err, "Error updating error group time log")
+	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString}); res.RecordNotFound() || res.Error != nil {
+		return e.Wrap(err, "Error updating error group metadata log")
 	}
 
 	return nil

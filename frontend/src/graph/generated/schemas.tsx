@@ -86,7 +86,7 @@ export type ErrorGroup = {
     organization_id: Scalars['Int'];
     event: Scalars['String'];
     trace: Scalars['String'];
-    time_log?: Maybe<Scalars['String']>;
+    metadata_log?: Maybe<Scalars['String']>;
 };
 
 export type SearchParamsInput = {
@@ -160,7 +160,6 @@ export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
-    errors?: Maybe<Array<Maybe<ErrorObject>>>;
     error_groups?: Maybe<Array<Maybe<ErrorGroup>>>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
@@ -183,10 +182,6 @@ export type QuerySessionArgs = {
 
 export type QueryEventsArgs = {
     session_id: Scalars['ID'];
-};
-
-export type QueryErrorsArgs = {
-    organization_id: Scalars['ID'];
 };
 
 export type QueryError_GroupsArgs = {
