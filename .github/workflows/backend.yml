@@ -20,5 +20,7 @@ jobs:
               with:
                   gofmt-path: './backend'
                   gofmt-flags: '-l -d'
+            - name: Run tests
+              run: cd backend && go test ./... -v
             - name: Build binary
               run: cd backend && go build .

@@ -1,7 +1,6 @@
 package worker
 
 import (
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -9,20 +8,18 @@ import (
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 
+	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
 	log "github.com/sirupsen/logrus"
 )
 
+// Worker is a job runner that parses sessions
 type Worker struct {
 	R *mgraph.Resolver
 }
 
-func javascriptToGolangTime(t float64) time.Time {
-	tInt := int64(t)
-	return time.Unix(tInt/1000, (tInt%1000)*1000*1000)
-}
-
 func (w *Worker) processSession(s *model.Session) error {
+	// Set the session as processed; if any is error thrown after this, the session gets ignored.
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -30,25 +27,29 @@ func (w *Worker) processSession(s *model.Session) error {
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
+
+	// Get the events with the earliest 'created_at' timestamp.
 	firstEvents := &model.EventsObject{}
 	if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").First(firstEvents).Error; err != nil {
 		return errors.Wrap(err, "error retrieving first set of events")
 	}
-	firstEventsParsed, err := ParseEventsObject(firstEvents.Events)
+	firstEventsParsed, err := parse.EventsFromString(firstEvents.Events)
 	if err != nil {
 		return errors.Wrap(err, "error parsing first set of events")
 	}
+
+	// Get the events with the latest 'created_at' timestamp.
 	lastEvents := &model.EventsObject{}
 	if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at desc").First(lastEvents).Error; err != nil {
 		return errors.Wrap(err, "error retrieving last set of events")
 	}
-	lastEventsParsed, err := ParseEventsObject(lastEvents.Events)
+	lastEventsParsed, err := parse.EventsFromString(lastEvents.Events)
 	if err != nil {
 		return errors.Wrap(err, "error parsing last set of events")
 	}
-	start := javascriptToGolangTime(firstEventsParsed.Events[0].Timestamp)
-	end := javascriptToGolangTime(lastEventsParsed.Events[len(lastEventsParsed.Events)-1].Timestamp)
-	diff := end.Sub(start)
+
+	// Calcaulate total session length and write the length to the session.
+	diff := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -56,6 +57,7 @@ func (w *Worker) processSession(s *model.Session) error {
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
+
 	// Send a notification that the session was processed.
 	msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v\nuser_id: %v\nuser_object: %v\nurl: %v```",
 		s.ID,
@@ -70,6 +72,7 @@ func (w *Worker) processSession(s *model.Session) error {
 	return nil
 }
 
+// Start begins the worker's tasks.
 func (w *Worker) Start() {
 	for {
 		time.Sleep(1 * time.Second)
@@ -88,21 +91,16 @@ func (w *Worker) Start() {
 	}
 }
 
-type EventsObject struct {
-	Events []*struct {
-		Timestamp float64 `json:"timestamp"`
-		Type      int     `json:"type"`
-	} `json:"events"`
-}
-
-func ParseEventsObject(event string) (*EventsObject, error) {
-	eventsObj := &EventsObject{}
-	err := json.Unmarshal([]byte(event), &eventsObj)
-	if err != nil {
-		return nil, fmt.Errorf("error parsing event '%v' into map", event)
+// CalculateSessionLength gets the session length given two sets of ReplayEvents.
+func CalculateSessionLength(first *parse.ReplayEvents, last *parse.ReplayEvents) time.Duration {
+	d := time.Duration(0)
+	fe := first.Events
+	le := last.Events
+	if len(fe) <= 0 || len(le) <= 0 {
+		return d
 	}
-	if len(eventsObj.Events) < 1 {
-		return nil, errors.New("empty events")
-	}
-	return eventsObj, nil
+	start := first.Events[0].Timestamp
+	end := last.Events[len(last.Events)-1].Timestamp
+	d = end.Sub(start)
+	return d
 }
