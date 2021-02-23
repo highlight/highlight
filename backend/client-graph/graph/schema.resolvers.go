@@ -11,6 +11,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
+	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
@@ -149,7 +150,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events []interface{}, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, eventsObject customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
 	if res.Error != nil {
@@ -157,20 +158,22 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	}
 	organizationID := sessionObj.OrganizationID
 	// unmarshal events
-	if len(events) > 0 {
-		for _, e := range events {
-			eventAsMap, ok := e.(map[string]interface{})
-			if !ok {
-				pp.Println("continuing")
-				continue
-			}
-			pp.Println(eventAsMap)
-		}
-		eventsBytes, err := json.Marshal(events)
+	if evs := eventsObject.Events; len(evs) > 0 {
+		eventBytes, err := json.Marshal(eventsObject)
 		if err != nil {
-			return nil, fmt.Errorf("error decoding events data: %v", err)
+			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
 		}
-		obj := &model.EventsObject{SessionID: sessionID, Events: string(eventsBytes)}
+		eventString := string(eventBytes)
+		parsedEvents, err := parse.EventsFromString(eventString)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing events from schema interfaces")
+		}
+		for _, e := range parsedEvents.Events {
+			if e.Type == parse.FullSnapshot {
+				pp.Println(e.Data)
+			}
+		}
+		obj := &model.EventsObject{SessionID: sessionID, Events: eventString}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
 		}

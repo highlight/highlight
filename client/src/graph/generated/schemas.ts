@@ -29,6 +29,10 @@ export type ErrorObjectInput = {
   trace: Array<Maybe<Scalars['Any']>>;
 };
 
+export type ReplayEventsInput = {
+  events: Array<Maybe<Scalars['Any']>>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   initializeSession?: Maybe<Session>;
@@ -65,7 +69,7 @@ export type MutationAddSessionPropertiesArgs = {
 
 export type MutationPushPayloadArgs = {
   session_id: Scalars['ID'];
-  events: Array<Maybe<Scalars['Any']>>;
+  events: ReplayEventsInput;
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;

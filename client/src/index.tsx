@@ -16,7 +16,7 @@ import { ViewportResizeListener } from './listeners/viewport-resize-listener';
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
-    console.warn(`Highlight Warning: (${context}): `, msg);
+    console.warn(`Highlight Warning: (${context}): `, {output: msg});
 };
 class Logger {
     debug: boolean | undefined;
@@ -321,7 +321,7 @@ export class Highlight {
             }
             await this.graphqlSDK.PushPayload({
                 session_id: this.sessionID.toString(),
-                events: this.events,
+                events: {events: this.events},
                 messages: messagesString,
                 resources: resourcesString,
                 errors: this.errors,

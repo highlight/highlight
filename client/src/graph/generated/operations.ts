@@ -35,6 +35,10 @@ export type ErrorObjectInput = {
   trace: Array<Maybe<Scalars['Any']>>;
 };
 
+export type ReplayEventsInput = {
+  events: Array<Maybe<Scalars['Any']>>;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   initializeSession?: Maybe<Session>;
@@ -71,7 +75,7 @@ export type MutationAddSessionPropertiesArgs = {
 
 export type MutationPushPayloadArgs = {
   session_id: Scalars['ID'];
-  events: Array<Maybe<Scalars['Any']>>;
+  events: ReplayEventsInput;
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;
@@ -89,7 +93,7 @@ export type QueryIgnoreArgs = {
 
 export type PushPayloadMutationVariables = Types.Exact<{
   session_id: Types.Scalars['ID'];
-  events: Array<Types.Maybe<Types.Scalars['Any']>> | Types.Maybe<Types.Scalars['Any']>;
+  events: Types.ReplayEventsInput;
   messages: Types.Scalars['String'];
   resources: Types.Scalars['String'];
   errors: Array<Types.Maybe<Types.ErrorObjectInput>> | Types.Maybe<Types.ErrorObjectInput>;
@@ -160,7 +164,7 @@ export type IgnoreQuery = (
 
 
 export const PushPayloadDocument = gql`
-    mutation PushPayload($session_id: ID!, $events: [Any]!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!) {
+    mutation PushPayload($session_id: ID!, $events: ReplayEventsInput!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!) {
   pushPayload(
     session_id: $session_id
     events: $events

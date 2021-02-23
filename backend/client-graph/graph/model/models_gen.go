@@ -10,3 +10,7 @@ type ErrorObjectInput struct {
 	ColumnNumber int           `json:"columnNumber"`
 	Trace        []interface{} `json:"trace"`
 }
+
+type ReplayEventsInput struct {
+	Events []interface{} `json:"events"`
+}
