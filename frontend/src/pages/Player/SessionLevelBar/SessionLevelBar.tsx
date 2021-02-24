@@ -1,28 +1,91 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import styles from './SessionLevelBar.module.scss';
 import SessionToken from './SessionToken/SessionToken';
 import { ReactComponent as BrowserIcon } from '../../../static/browser.svg';
 import { ReactComponent as URLIcon } from '../../../static/link.svg';
 import ActivityIcon from './ActivityIcon/ActivityIcon';
+import ReplayerContext, { ReplayerState } from '../ReplayerContext';
+import { ReplayerEvents } from '@highlight-run/rrweb';
+import { customEvent } from '@highlight-run/rrweb/dist/types';
+import { findFirstEventOfType } from './utils/utils';
 
-interface Props {
-    isTabActive: boolean;
-    currentUrl: string;
-    currentResolution: { height: number; width: number };
+interface Viewport {
+    height: number;
+    width: number;
 }
 
-const SessionLevelBar = ({
-    currentResolution,
-    currentUrl,
-    isTabActive,
-}: Props) => {
+const SessionLevelBar = () => {
+    const { replayer, state, events } = useContext(ReplayerContext);
+    const [currentUrl, setCurrentUrl] = useState<string | null>(null);
+    const [isTabActive, setIsTabActive] = useState<boolean>(true);
+    const [viewport, setViewport] = useState<Viewport | null>(null);
+
+    // Subscribes to the Replayer for relevant events.
+    useEffect(() => {
+        if (replayer) {
+            replayer.on(ReplayerEvents.EventCast, (e) => {
+                const event = e as customEvent<string>;
+                switch (event.data.tag) {
+                    case 'Navigate':
+                    case 'Reload':
+                        setCurrentUrl(event.data.payload);
+                        return;
+                    case 'Tab':
+                        setIsTabActive(event.data.payload === 'Active');
+                        return;
+                    case 'Viewport': {
+                        const viewportObject = (event.data
+                            .payload as unknown) as Viewport;
+                        if (viewportObject?.height && viewportObject?.width) {
+                            setViewport(viewportObject);
+                        }
+                        return;
+                    }
+                    default:
+                        return;
+                }
+            });
+        }
+    }, [replayer]);
+
+    // Finds the first relevant events.
+    useEffect(() => {
+        if (events.length > 0 && !currentUrl && !viewport) {
+            const firstNavigateEvent = findFirstEventOfType(events, [
+                'Navigate',
+                'Reload',
+            ]) as customEvent<string>;
+
+            setCurrentUrl(firstNavigateEvent?.data.payload || currentUrl);
+
+            const firstViewportEvent = findFirstEventOfType(events, [
+                'Viewport',
+            ]) as customEvent<Viewport>;
+
+            setViewport(firstViewportEvent?.data.payload);
+        }
+    }, [currentUrl, events, viewport]);
+
+    const isLoading = state === ReplayerState.Loading && !events.length;
+
     return (
         <div className={styles.sessionLevelBarContainer}>
-            <SessionToken icon={<BrowserIcon />}>
-                {currentResolution.height} x {currentResolution.width}
+            {((isLoading && !viewport) || (!isLoading && viewport)) && (
+                <SessionToken icon={<BrowserIcon />} isLoading={isLoading}>
+                    {viewport && (
+                        <>
+                            {viewport.height} x {viewport.width}
+                        </>
+                    )}
+                </SessionToken>
+            )}
+            <SessionToken icon={<URLIcon />} isLoading={isLoading}>
+                {currentUrl}
             </SessionToken>
-            <SessionToken icon={<URLIcon />}>{currentUrl}</SessionToken>
-            <SessionToken icon={<ActivityIcon isActive={isTabActive} />}>
+            <SessionToken
+                icon={<ActivityIcon isActive={isTabActive} />}
+                isLoading={isLoading}
+            >
                 {isTabActive ? 'Active' : 'Inactive'}
             </SessionToken>
         </div>

@@ -111,11 +111,7 @@ export const Player = () => {
         <ReplayerContext.Provider value={player}>
             <div className={styles.playerBody}>
                 <div className={styles.playerLeftSection}>
-                    <SessionLevelBar
-                        currentResolution={{ width: 500, height: 300 }}
-                        currentUrl="https://foobar.com"
-                        isTabActive={true}
-                    />
+                    <SessionLevelBar />
                     <div className={styles.rrwebPlayerSection}>
                         <div
                             className={styles.rrwebPlayerWrapper}
