@@ -1647,8 +1647,10 @@
     is-promise "4.0.0"
     tslib "~2.0.1"
 
-"@highlight-run/rrweb@file:.yalc/@highlight-run/rrweb":
+"@highlight-run/rrweb@^0.9.27":
   version "0.9.27"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.9.27.tgz#ff4dcbd2d4b51ed20a2c824ad7e5759c38a73aa4"
+  integrity sha512-gHUkwtC7D0cxzOD+kdy4jH6Z4EK90h8JAaU0Oomn1N5CLxd5SmUdtDCpNnK8nlQ4DVOJvQcoXGGyONluhD2KwQ==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
