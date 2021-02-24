@@ -242,6 +242,7 @@ type ErrorObject struct {
 	SessionID      int
 	Event          string
 	Type           string
+	URL            string
 	Source         string
 	LineNumber     int
 	ColumnNumber   int

@@ -11,6 +11,7 @@ type Session {
 input ErrorObjectInput {
     event: String!
     type: String!
+    url: String!
     source: String!
     lineNumber: Int!
     columnNumber: Int!

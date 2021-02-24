@@ -258,6 +258,7 @@ type Session {
 input ErrorObjectInput {
     event: String!
     type: String!
+    url: String!
     source: String!
     lineNumber: Int!
     columnNumber: Int!
@@ -1981,6 +1982,14 @@ func (ec *executionContext) unmarshalInputErrorObjectInput(ctx context.Context, 
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("type"))
 			it.Type, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "url":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("url"))
+			it.URL, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

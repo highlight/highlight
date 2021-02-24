@@ -54,6 +54,7 @@ type ErrorObject {
     session_id: Int!
     event: String!
     type: String!
+    url: String!
     source: String
     line_number: Int
     column_number: Int

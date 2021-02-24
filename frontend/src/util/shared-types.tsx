@@ -10,6 +10,7 @@ export type ConsoleMessage = {
 export type ErrorMessage = {
     event: string;
     type: 'console' | 'exception';
+    url: string;
     source: string;
     lineNumber: number;
     columnNumber: number;
