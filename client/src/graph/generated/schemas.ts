@@ -27,13 +27,10 @@ export type ErrorObjectInput = {
   lineNumber: Scalars['Int'];
   columnNumber: Scalars['Int'];
   trace: Array<Maybe<Scalars['Any']>>;
-<<<<<<< HEAD
 };
 
 export type ReplayEventsInput = {
   events: Array<Maybe<Scalars['Any']>>;
-=======
->>>>>>> master
 };
 
 export type Mutation = {
