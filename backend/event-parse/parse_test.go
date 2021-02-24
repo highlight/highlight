@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-test/deep"
+	"github.com/kylelemons/godebug/pretty"
 )
 
 func TestEventsFromString(t *testing.T) {
@@ -98,7 +99,7 @@ func TestInjectStyleSheets(t *testing.T) {
 	}
 
 	// Compare.
-	if diff := deep.Equal(gotInterface, wantInterface); diff != nil {
-		t.Error(diff)
+	if diff := pretty.Compare(gotInterface, wantInterface); diff != "" {
+		t.Errorf("(-got +want)\n%s", diff)
 	}
 }
