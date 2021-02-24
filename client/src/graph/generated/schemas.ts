@@ -20,21 +20,13 @@ export type Session = {
   organization_id: Scalars['ID'];
 };
 
-export type StackFrameInput = {
-  columnNumber?: Maybe<Scalars['Int']>;
-  lineNumber?: Maybe<Scalars['Int']>;
-  fileName?: Maybe<Scalars['String']>;
-  functionName?: Maybe<Scalars['String']>;
-  source?: Maybe<Scalars['String']>;
-};
-
 export type ErrorObjectInput = {
   event: Scalars['String'];
   type: Scalars['String'];
   source: Scalars['String'];
   lineNumber: Scalars['Int'];
   columnNumber: Scalars['Int'];
-  trace: Array<Maybe<StackFrameInput>>;
+  trace: Array<Maybe<Scalars['Any']>>;
 };
 
 export type Mutation = {
