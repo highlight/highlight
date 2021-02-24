@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
@@ -49,6 +50,14 @@ var PropertyType = struct {
 	TRACK:   "track",
 }
 
+type ErrorMetaData struct {
+	Timestamp time.Time `json:"timestamp"`
+	ErrorID   int       `json:"error_id"`
+	SessionID int       `json:"session_id"`
+	OS        string    `json:"os"`
+	Browser   string    `json:"browser"`
+}
+
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
@@ -66,6 +75,59 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	if err != nil {
 		return e.Wrap(err, "error appending fields")
 	}
+	return nil
+}
+
+func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame interface{}, browser string, osName string) error {
+	firstFrameBytes, err := json.Marshal(firstFrame)
+	if err != nil {
+		return e.Wrap(err, "Error marshalling first frame")
+	}
+	frameString := string(firstFrameBytes)
+
+	errorGroup := &model.ErrorGroup{}
+
+	if res := r.DB.Where(&model.ErrorGroup{
+		OrganizationID: errorObj.OrganizationID,
+		Event:          errorObj.Event,
+		Trace:          frameString,
+	}).First(&errorGroup); res.RecordNotFound() || res.Error != nil {
+		newErrorGroup := &model.ErrorGroup{
+			OrganizationID: errorObj.OrganizationID,
+			Event:          errorObj.Event,
+			Trace:          frameString,
+		}
+		if err := r.DB.Create(newErrorGroup).Error; err != nil {
+			return e.Wrap(err, "Error creating new error group")
+		}
+		errorGroup = newErrorGroup
+	}
+
+	var newMetadataLog []ErrorMetaData
+	if errorGroup.MetadataLog != nil {
+		if err := json.Unmarshal([]byte(*errorGroup.MetadataLog), &newMetadataLog); err != nil {
+			return e.Wrap(err, "error decoding time log data")
+		}
+	}
+
+	newMetadataLog = append(newMetadataLog, ErrorMetaData{
+		Timestamp: errorObj.CreatedAt,
+		ErrorID:   errorObj.ID,
+		SessionID: errorObj.SessionID,
+		Browser:   browser,
+		OS:        osName,
+	})
+
+	logBytes, err := json.Marshal(newMetadataLog)
+	if err != nil {
+		return e.Wrap(err, "Error marshalling metadata log")
+	}
+	logString := string(logBytes)
+
+	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString}); res.RecordNotFound() || res.Error != nil {
+		return e.Wrap(err, "Error updating error group metadata log")
+	}
+
 	return nil
 }
 

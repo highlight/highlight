@@ -339,21 +339,16 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	return allEvents["events"], nil
 }
 
-func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]*model.ErrorObject, error) {
+func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int) ([]*model.ErrorGroup, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	errorObjs := []*model.ErrorObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.ErrorObject{OrganizationID: organizationID}).Find(&errorObjs); res.Error != nil {
-		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
+	errorGroups := []*model.ErrorGroup{}
+	if res := r.DB.Order("updated_at desc").Where(&model.ErrorGroup{OrganizationID: organizationID}).Find(&errorGroups); res.Error != nil {
+		return nil, fmt.Errorf("error reading from error groups: %v", res.Error)
 	}
 
-	// Just return 10 values for now.
-	count := 10
-	if len(errorObjs) < 10 {
-		count = len(errorObjs)
-	}
-	return errorObjs[:count], nil
+	return errorGroups, nil
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
