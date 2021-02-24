@@ -71,7 +71,11 @@ const SessionLevelBar = () => {
     return (
         <div className={styles.sessionLevelBarContainer}>
             {((isLoading && !viewport) || (!isLoading && viewport)) && (
-                <SessionToken icon={<BrowserIcon />} isLoading={isLoading}>
+                <SessionToken
+                    icon={<BrowserIcon />}
+                    isLoading={isLoading}
+                    tooltipTitle="The user's current viewport size in pixels."
+                >
                     {viewport && (
                         <>
                             {viewport.height} x {viewport.width}
@@ -79,12 +83,17 @@ const SessionLevelBar = () => {
                     )}
                 </SessionToken>
             )}
-            <SessionToken icon={<URLIcon />} isLoading={isLoading}>
+            <SessionToken
+                icon={<URLIcon />}
+                isLoading={isLoading}
+                tooltipTitle="The current URL the user is on."
+            >
                 {currentUrl}
             </SessionToken>
             <SessionToken
                 icon={<ActivityIcon isActive={isTabActive} />}
                 isLoading={isLoading}
+                tooltipTitle="Indicates whether the user has this page as the active tab. If the user is on a different tab or window then the session will be inactive."
             >
                 {isTabActive ? 'Active' : 'Inactive'}
             </SessionToken>
