@@ -2,11 +2,11 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from 'antd';
 import styles from './ErrorsPage.module.scss';
-import { useGetErrorsQuery } from '../../graph/generated/hooks';
+import { useGetErrorGroupsQuery } from '../../graph/generated/hooks';
 
 export const ErrorsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { data } = useGetErrorsQuery({
+    const { data } = useGetErrorGroupsQuery({
         variables: { organization_id: organization_id },
     });
 
@@ -40,10 +40,10 @@ export const ErrorsPage = () => {
                 </div>
             </div>
             <div className={styles.centerPanel}>
-                {data?.errors?.map((u, index) => (
+                {data?.error_groups?.map((u, index) => (
                     <div key={index}>
                         <p>{u?.event}</p>
-                        <p>{u?.column_number}</p>
+                        <p>{u?.trace}</p>
                     </div>
                 ))}
             </div>

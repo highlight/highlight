@@ -248,6 +248,14 @@ type ErrorObject struct {
 	Trace          *string `json:"trace"`
 }
 
+type ErrorGroup struct {
+	Model
+	OrganizationID int
+	Event          string
+	Trace          string
+	MetadataLog    *string
+}
+
 func SetupDB() *gorm.DB {
 	log.Println("setting up database")
 	psqlConf := fmt.Sprintf(
@@ -268,6 +276,7 @@ func SetupDB() *gorm.DB {
 		&MessagesObject{},
 		&EventsObject{},
 		&ErrorObject{},
+		&ErrorGroup{},
 		&Organization{},
 		&Segment{},
 		&Admin{},
