@@ -1,5 +1,5 @@
 import { addCustomEvent, record } from '@highlight-run/rrweb';
-import { eventWithTime } from '@highlight-run/rrweb/dist/types';
+import { eventWithTime, EventType } from '@highlight-run/rrweb/dist/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
@@ -209,6 +209,9 @@ export class Highlight {
                 this._save();
             }, 5 * 1000);
             const emit = (event: eventWithTime) => {
+                if (event.type === 2) {
+                    console.log((event as any)?.data?.node?.childNodes);
+                }
                 this.events.push(event);
             };
             emit.bind(this);

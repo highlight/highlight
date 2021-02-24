@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/martian/v3/log"
 	"github.com/pkg/errors"
 )
 
@@ -62,81 +63,110 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 	return events, nil
 }
 
-// InjectStylesheets injects custom stylesheets into a given event.
+//InjectStylesheets injects custom stylesheets into a given event.
 func InjectStylsheets(inputData json.RawMessage) (json.RawMessage, error) {
-	m := make(map[string]interface{})
-	err := json.Unmarshal(inputData, &m)
+	var s interface{}
+	err := json.Unmarshal(inputData, &s)
 	if err != nil {
-		return nil, errors.Wrap(err, "error unmarshaling json")
+		return nil, errors.Wrap(err, "error unmarshaling")
 	}
-	node, ok := m["node"].(map[string]interface{})
+	n, ok := s.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error converting to obj")
+	}
+	node, ok := n["node"].(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("error converting to node")
 	}
-	// recursively parse and change the node in place.
-	parseEventMap(node)
-	m["node"] = node
-	b, err := json.Marshal(m)
+	childNodes, ok := node["childNodes"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error converting to childNodes")
+	}
+	var htmlNode map[string]interface{}
+	for _, c := range childNodes {
+		subNode, ok := c.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("error converting to childNodes")
+		}
+		tagName, ok := subNode["tagName"].(string)
+		if !ok || tagName != "html" {
+			continue
+		}
+		htmlNode = subNode
+		break
+	}
+	htmlChildNodes, ok := htmlNode["childNodes"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error converting to childNodes")
+	}
+	var headNode map[string]interface{}
+	for _, c := range htmlChildNodes {
+		subNode, ok := c.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("error converting to childNodes")
+		}
+		tagName, ok := subNode["tagName"].(string)
+		if !ok || tagName != "head" {
+			continue
+		}
+		headNode = subNode
+		break
+	}
+	headChildNodes, ok := headNode["childNodes"].([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("error converting to childNodes")
+	}
+	for _, c := range headChildNodes {
+		subNode, ok := c.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		tagName, ok := subNode["tagName"].(string)
+		if !ok || tagName != "link" {
+			continue
+		}
+		attrs, ok := subNode["attributes"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		rel, ok := attrs["rel"].(string)
+		if !ok || rel != "stylesheet" {
+			continue
+		}
+		href, ok := attrs["href"].(string)
+		if !ok || !strings.Contains(href, "css") {
+			continue
+		}
+		data, err := fetchStylesheetData(href)
+		if err != nil {
+			log.Errorf("error retrieving stylesheet data: %v", data)
+			continue
+		}
+		if len(data) <= 0 {
+			log.Errorf("error retrieving stylesheet data: %v", data)
+			continue
+		}
+		delete(attrs, "rel")
+		delete(attrs, "href")
+		attrs["_cssText"] = strings.ReplaceAll(string(data), "\n", "")
+	}
+	b, err := json.Marshal(s)
 	if err != nil {
-		return nil, errors.Wrap(err, "error marshaling back json")
+		return nil, errors.Wrap(err, "error marshaling back to json")
 	}
 	return json.RawMessage(b), nil
 }
 
-func parseEventMap(aMap map[string]interface{}) {
-	// If the current map is parseable as a stylesheet obj...
-	if err := validateAndFetchStylesheetData(aMap); err == nil {
-		return
-	}
-	for _, val := range aMap {
-		switch val.(type) {
-		case map[string]interface{}:
-			parseEventMap(val.(map[string]interface{}))
-		case []interface{}:
-			parseEventArray(val.([]interface{}))
-		default:
-			return
-		}
-	}
-}
-
-func parseEventArray(anArray []interface{}) {
-	for _, val := range anArray {
-		switch val.(type) {
-		case map[string]interface{}:
-			parseEventMap(val.(map[string]interface{}))
-		case []interface{}:
-			parseEventArray(val.([]interface{}))
-		default:
-			return
-		}
-	}
-}
-
-func validateAndFetchStylesheetData(m map[string]interface{}) error {
-	href, ok := m["href"].(string)
-	if !ok || !strings.Contains(href, ".css") {
-		return errors.New("no proper href field")
-	}
-	rel, ok := m["rel"].(string)
-	if !ok || rel != "stylesheet" {
-		return errors.New("no proper rel field")
-	}
+func fetchStylesheetData(href string) ([]byte, error) {
 	resp, err := http.Get(href)
 	if err != nil {
-		return errors.Wrap(err, "error fetching styles")
+		return nil, errors.Wrap(err, "error fetching styles")
 	}
-	// pp.Printf("about to fetch [href: %v] [rel: %v]\n", href, rel)
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return errors.Wrap(err, "error reading styles")
+		return nil, errors.Wrap(err, "error reading styles")
 	}
-	if styleString := string(body); len(styleString) > 0 {
-		delete(m, "rel")
-		delete(m, "href")
-		m["_cssText"] = strings.ReplaceAll(styleString, "\n", "")
-	}
-	return nil
+	return body, nil
 }
 
 func javascriptToGolangTime(t float64) time.Time {

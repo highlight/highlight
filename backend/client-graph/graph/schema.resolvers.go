@@ -170,7 +170,12 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 		for _, e := range parsedEvents.Events {
 			if e.Type == parse.FullSnapshot {
-				pp.Println(e.Data)
+				d, err := parse.InjectStylsheets(e.Data)
+				if err != nil {
+					pp.Printf("err parsing: %v \n", err)
+					continue
+				}
+				e.Data = d
 			}
 		}
 		obj := &model.EventsObject{SessionID: sessionID, Events: eventString}

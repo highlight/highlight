@@ -2,7 +2,7 @@ package parse
 
 import (
 	"encoding/json"
-	"strings"
+	"io/ioutil"
 	"testing"
 	"time"
 
@@ -64,59 +64,41 @@ func TestEventsFromString(t *testing.T) {
 }
 
 func TestInjectStyleSheets(t *testing.T) {
-	tables := []struct {
-		input string
-		want  string
-	}{
-		{
-			`
-			{
-				"node": {
-					"childNodes": [
-						{
-							"data": {"test": 5},
-							"timestamp": 0,
-							"type": 4
-						},
-						{
-							"href": "https://app.highlight.run/public.css",
-							"rel": "stylesheet"
-						}
-					]
-				}
-			}
-			`,
-			`
-			{
-				"node": {
-					"childNodes": [
-						{
-							"data": {"test": 5},
-							"timestamp": 0,
-							"type": 4
-						},
-						{
-							"_cssText": ".highlight {
-									color: black;
-								}"
-						}
-					]
-				}
-			}
-			`,
-		},
+	// Get sample input of events and serialize.
+	inputBytes, err := ioutil.ReadFile("./sample-events/input.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
 	}
-	r := strings.NewReplacer("\n", "", "\t", "", " ", "")
-	for i, tt := range tables {
-		gotRaw, err := InjectStylsheets(json.RawMessage(tt.input))
-		if err != nil {
-			t.Errorf("[%v]: %v", i, err)
-			continue
-		}
-		got := r.Replace(string(gotRaw))
-		want := r.Replace(tt.want)
-		if got != want {
-			t.Errorf("[%v]: \n got \n%v \n want \n%v", i, got, want)
-		}
+	var inputMsg json.RawMessage
+	err = json.Unmarshal(inputBytes, &inputMsg)
+	if err != nil {
+		t.Fatalf("error unmarshaling: %v", err)
+	}
+
+	// Pass sample set to `injectStylesheets` and convert to interface.
+	gotMsg, err := InjectStylsheets(inputMsg)
+	if err != nil {
+		t.Fatalf("error unmarshaling: %v", err)
+	}
+	var gotInterface interface{}
+	err = json.Unmarshal(gotMsg, &gotInterface)
+	if err != nil {
+		t.Fatalf("error getting interface: %v", err)
+	}
+
+	// Get wanted output of events and serialize.
+	wantBytes, err := ioutil.ReadFile("./sample-events/output.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
+	var wantInterface interface{}
+	err = json.Unmarshal(wantBytes, &wantInterface)
+	if err != nil {
+		t.Fatalf("error getting interface: %v", err)
+	}
+
+	// Compare.
+	if diff := deep.Equal(gotInterface, wantInterface); diff != nil {
+		t.Error(diff)
 	}
 }
