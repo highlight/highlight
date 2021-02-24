@@ -285,6 +285,7 @@ func SetupDB() *gorm.DB {
 		&EventsObject{},
 		&ErrorObject{},
 		&ErrorGroup{},
+		&ErrorField{},
 		&Organization{},
 		&Segment{},
 		&Admin{},
