@@ -1,0 +1,9 @@
+@import 'src/static/shared.scss';
+
+.activityIcon {
+    border-radius: 50%;
+    height: 7px;
+    width: 7px;
+    background: $highlight-purple;
+    margin-right: $size-xSmall;
+}

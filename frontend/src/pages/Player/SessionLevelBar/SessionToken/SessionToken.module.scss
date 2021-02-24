@@ -1,0 +1,27 @@
+@import 'src/static/shared.scss';
+
+.sessionToken {
+    border-radius: 5px;
+    border: 1px solid $border-color;
+    padding: $size-xSmall $size-small $size-xSmall $size-xSmall;
+    font-size: 10px;
+    line-height: 14px;
+    display: flex;
+    align-items: center;
+    max-width: 378px;
+
+    > p {
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    > svg {
+        flex-shrink: 0;
+        fill: $text-primary;
+        margin-right: $size-xSmall;
+        height: 10px;
+        width: 10px;
+    }
+}
