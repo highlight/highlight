@@ -6,19 +6,24 @@ import { ReactComponent as URLIcon } from '../../../static/link.svg';
 import ActivityIcon from './ActivityIcon/ActivityIcon';
 
 interface Props {
-    foo?: string;
+    isTabActive: boolean;
+    currentUrl: string;
+    currentResolution: { height: number; width: number };
 }
 
-const SessionLevelBar = (props: Props) => {
+const SessionLevelBar = ({
+    currentResolution,
+    currentUrl,
+    isTabActive,
+}: Props) => {
     return (
         <div className={styles.sessionLevelBarContainer}>
-            <SessionToken icon={<BrowserIcon />}>300 x 300</SessionToken>
-            <SessionToken icon={<URLIcon />}>
-                https://chicken.chicken.com/chicken
-                https://chicken.chicken.com/chicken
+            <SessionToken icon={<BrowserIcon />}>
+                {currentResolution.height} x {currentResolution.width}
             </SessionToken>
-            <SessionToken icon={<ActivityIcon isActive={true} />}>
-                Active
+            <SessionToken icon={<URLIcon />}>{currentUrl}</SessionToken>
+            <SessionToken icon={<ActivityIcon isActive={isTabActive} />}>
+                {isTabActive ? 'Active' : 'Inactive'}
             </SessionToken>
         </div>
     );

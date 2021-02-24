@@ -4,6 +4,10 @@
     border-radius: 50%;
     height: 7px;
     width: 7px;
-    background: $highlight-purple;
     margin-right: $size-xSmall;
+    background: $gray; 
+}
+
+.active {
+    background: $highlight-purple;
 }
