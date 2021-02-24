@@ -209,9 +209,6 @@ export class Highlight {
                 this._save();
             }, 5 * 1000);
             const emit = (event: eventWithTime) => {
-                if (event.type === 2) {
-                    console.log((event as any)?.data?.node?.childNodes);
-                }
                 this.events.push(event);
             };
             emit.bind(this);

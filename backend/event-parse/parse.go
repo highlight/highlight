@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/martian/v3/log"
 	"github.com/pkg/errors"
 )
 
@@ -139,11 +138,9 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 		}
 		data, err := fetchStylesheetData(href)
 		if err != nil {
-			log.Errorf("error retrieving stylesheet data: %v", data)
 			continue
 		}
 		if len(data) <= 0 {
-			log.Errorf("error retrieving stylesheet data: %v", data)
 			continue
 		}
 		delete(attrs, "rel")

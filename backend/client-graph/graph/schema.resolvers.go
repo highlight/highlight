@@ -13,7 +13,6 @@ import (
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
 	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -171,7 +170,6 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			if e.Type == parse.FullSnapshot {
 				d, err := parse.InjectStylesheets(e.Data)
 				if err != nil {
-					pp.Printf("err parsing: %v \n", err)
 					continue
 				}
 				e.Data = d
