@@ -155,6 +155,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if res.Error != nil {
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)
 	}
+	//create error fields array
+	metaFields := []*model.ErrorField{}
+	metaFields = append(metaFields, &model.ErrorField{Name: "browser", Value: sessionObj.BrowserName})
+	metaFields = append(metaFields, &model.ErrorField{Name: "os_name", Value: sessionObj.OSName})
 	organizationID := sessionObj.OrganizationID
 	// unmarshal events
 	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
@@ -214,7 +218,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				continue
 			}
 
-			if err := r.UpdateErrorGroup(*errorToInsert, v.Trace[0], sessionObj.BrowserName, sessionObj.OSName); err != nil {
+			if err := r.UpdateErrorGroup(*errorToInsert, v.Trace[0], metaFields); err != nil {
 				log.Errorf("Error updating error group: %v", errorToInsert)
 				continue
 			}

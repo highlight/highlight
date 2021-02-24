@@ -255,17 +255,6 @@ type Session {
     organization_id: ID!
 }
 
-# input StackFrameInput {
-#     columnNumber: Int
-#     lineNumber: Int
-#     fileName: String
-#     functionName: String
-#     args: [String]
-#     source: String
-#     isEval: Boolean
-#     isNative: Boolean
-# }
-
 input ErrorObjectInput {
     event: String!
     type: String!

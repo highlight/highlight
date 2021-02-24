@@ -254,6 +254,14 @@ type ErrorGroup struct {
 	Event          string
 	Trace          string
 	MetadataLog    *string
+	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
+}
+
+type ErrorField struct {
+	Model
+	Name        string
+	Value       string
+	ErrorGroups []ErrorGroup `gorm:"many2many:error_group_fields;"`
 }
 
 func SetupDB() *gorm.DB {

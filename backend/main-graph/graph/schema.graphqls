@@ -68,6 +68,12 @@ type ErrorGroup {
     metadata_log: String
 }
 
+type ErrorField {
+    id: ID!
+    name: String!
+    value: String!
+}
+
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {

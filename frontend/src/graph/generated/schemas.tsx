@@ -89,6 +89,13 @@ export type ErrorGroup = {
     metadata_log?: Maybe<Scalars['String']>;
 };
 
+export type ErrorField = {
+    __typename?: 'ErrorField';
+    id: Scalars['ID'];
+    name: Scalars['String'];
+    value: Scalars['String'];
+};
+
 export type SearchParamsInput = {
     user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
