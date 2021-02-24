@@ -76,7 +76,7 @@ func TestInjectStyleSheets(t *testing.T) {
 	}
 
 	// Pass sample set to `injectStylesheets` and convert to interface.
-	gotMsg, err := InjectStylsheets(inputMsg)
+	gotMsg, err := InjectStylesheets(inputMsg)
 	if err != nil {
 		t.Fatalf("error unmarshaling: %v", err)
 	}

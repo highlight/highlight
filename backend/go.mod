@@ -7,6 +7,7 @@ require (
 	cloud.google.com/go/storage v1.11.0 // indirect
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.12.2
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-redis/redis/v7 v7.4.0
 	github.com/go-test/deep v1.0.4
@@ -24,12 +25,10 @@ require (
 	github.com/rs/xid v1.2.1
 	github.com/sendgrid/rest v2.6.2+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.7.0+incompatible
-	github.com/sergi/go-diff v1.1.0
 	github.com/sirupsen/logrus v1.6.0
 	github.com/slack-go/slack v0.6.6
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stripe/stripe-go v70.15.0+incompatible
-	github.com/tdewolff/minify/v2 v2.9.13
 	github.com/vektah/gqlparser/v2 v2.0.1
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	google.golang.org/api v0.31.0

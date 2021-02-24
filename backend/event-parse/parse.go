@@ -63,8 +63,8 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 	return events, nil
 }
 
-//InjectStylesheets injects custom stylesheets into a given event.
-func InjectStylsheets(inputData json.RawMessage) (json.RawMessage, error) {
+// InjectStylesheets injects custom stylesheets into a given event.
+func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 	var s interface{}
 	err := json.Unmarshal(inputData, &s)
 	if err != nil {
