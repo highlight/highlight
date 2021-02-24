@@ -163,14 +163,13 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		if err != nil {
 			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
 		}
-		eventString := string(eventBytes)
-		parsedEvents, err := parse.EventsFromString(eventString)
+		parsedEvents, err := parse.EventsFromString(string(eventBytes))
 		if err != nil {
 			return nil, e.Wrap(err, "error parsing events from schema interfaces")
 		}
 		for _, e := range parsedEvents.Events {
 			if e.Type == parse.FullSnapshot {
-				d, err := parse.InjectStylsheets(e.Data)
+				d, err := parse.InjectStylesheets(e.Data)
 				if err != nil {
 					pp.Printf("err parsing: %v \n", err)
 					continue
@@ -178,7 +177,12 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				e.Data = d
 			}
 		}
-		obj := &model.EventsObject{SessionID: sessionID, Events: eventString}
+
+		b, err := json.Marshal(parsedEvents)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
+		}
+		obj := &model.EventsObject{SessionID: sessionID, Events: string(b)}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
 		}
