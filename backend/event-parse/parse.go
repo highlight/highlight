@@ -148,7 +148,7 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 		}
 		delete(attrs, "rel")
 		delete(attrs, "href")
-		attrs["_cssText"] = strings.ReplaceAll(string(data), "\n", "")
+		attrs["_cssText"] = string(data)
 	}
 	b, err := json.Marshal(s)
 	if err != nil {
@@ -166,6 +166,7 @@ func fetchStylesheetData(href string) ([]byte, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading styles")
 	}
+	body = append([]byte("/*highlight-inject*/\n"), body...)
 	return body, nil
 }
 
