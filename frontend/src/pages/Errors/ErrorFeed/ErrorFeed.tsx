@@ -5,12 +5,18 @@ import Skeleton from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
 import { Tag, Tooltip } from 'antd';
 import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
-import { Maybe, ErrorObject } from '../../../graph/generated/schemas';
+import { Maybe } from '../../../graph/generated/schemas';
+
+export type ErrorMetadata = {
+    browser: string;
+    os: string;
+    error_id: number;
+    session_id: number;
+    timestamp: string;
+};
 
 export const ErrorFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    // const [count, setCount] = useState(10);
-    // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const [data, setData] = useState<any>({
         error_groups: [],
@@ -57,42 +63,58 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [hovered, setHovered] = useState(false);
     const trace = JSON.parse(error.trace);
-    const metadata: Array<any> = JSON.parse(error.metadata_log);
-    const initialDate = new Date(metadata[0]?.timestamp);
-    let maxErrors = 5;
-    const currentDate = new Date();
-    const error_dates: { [date: string]: number } = Object.fromEntries(
-        new Map(
-            Array.from({ length: 6 }, (_, idx) => {
-                currentDate.setDate(new Date().getDate() - idx);
-                return [
-                    currentDate.toLocaleDateString('fr-CA', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                    }),
-                    0,
-                ];
-            })
-        )
+    const [metadata, setMetadata] = useState<Array<ErrorMetadata>>(
+        JSON.parse(error.metadata_log)
     );
-    for (const error of metadata) {
-        const created_date = new Date(error.timestamp).toLocaleDateString(
-            'fr-CA',
-            {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-            }
+    const initialDate = new Date(metadata[0]?.timestamp);
+    const [errorDates, setErrorDates] = useState<{ [date: string]: number }>(
+        {}
+    );
+    const [maxErrors, setMaxErrors] = useState(5);
+
+    useEffect(() => {
+        const currentDate = new Date();
+        const pastSixDays = Object.fromEntries(
+            new Map(
+                Array.from({ length: 6 }, (_, idx) => {
+                    currentDate.setDate(new Date().getDate() - idx);
+                    return [
+                        currentDate.toLocaleDateString('fr-CA', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                        }),
+                        0,
+                    ];
+                })
+            )
         );
-        if (error_dates.hasOwnProperty(created_date)) {
-            error_dates[created_date] += 1;
-            maxErrors =
-                error_dates[created_date] > maxErrors
-                    ? error_dates[created_date]
-                    : maxErrors;
+        for (const error of metadata) {
+            const created_date = new Date(error.timestamp).toLocaleDateString(
+                'fr-CA',
+                {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                }
+            );
+            if (pastSixDays.hasOwnProperty(created_date)) {
+                pastSixDays[created_date] += 1;
+            }
         }
-    }
+        setErrorDates(pastSixDays);
+    }, [metadata]);
+
+    useEffect(
+        () =>
+            setMaxErrors(
+                Math.max(
+                    ...Object.keys(errorDates).map((date) => errorDates[date]),
+                    5
+                )
+            ),
+        [errorDates]
+    );
 
     return (
         <Link
@@ -110,11 +132,11 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
                 />
                 <div className={styles.errorCardContentWrapper}>
                     <div className={styles.avatarWrapper}>
-                        {Object.keys(error_dates)
+                        {Object.keys(errorDates)
                             .sort()
                             .map((date, ind) => (
                                 <Tooltip
-                                    title={`${date}\n ${error_dates[date]} occurences`}
+                                    title={`${date}\n ${errorDates[date]} occurences`}
                                     overlayStyle={{ whiteSpace: 'pre-line' }}
                                     key={ind}
                                 >
@@ -125,7 +147,7 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
                                                 style={{
                                                     height: `${
                                                         (60 *
-                                                            error_dates[date]) /
+                                                            errorDates[date]) /
                                                         maxErrors
                                                     }px`,
                                                 }}
