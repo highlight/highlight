@@ -7,15 +7,18 @@ require (
 	cloud.google.com/go/storage v1.11.0 // indirect
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.12.2
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-redis/redis/v7 v7.4.0
 	github.com/go-test/deep v1.0.4
+	github.com/google/martian/v3 v3.0.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/honeycombio/beeline-go v0.11.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible
+	github.com/kylelemons/godebug v1.1.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mssola/user_agent v0.5.2
 	github.com/pkg/errors v0.9.1

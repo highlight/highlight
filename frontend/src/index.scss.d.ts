@@ -9,4 +9,3 @@ export const antSwitchChecked: string;
 export const antTooltipInner: string;
 export const blob: string;
 export const cssFoqpf7: string;
-export const pulseBlack: string;

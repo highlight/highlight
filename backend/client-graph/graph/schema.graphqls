@@ -17,6 +17,10 @@ input ErrorObjectInput {
     trace: [Any]!
 }
 
+input ReplayEventsInput {
+    events: [Any]!
+}
+
 type Mutation {
     initializeSession(organization_verbose_id: String!): Session
     identifySession(
@@ -28,7 +32,7 @@ type Mutation {
     addSessionProperties(session_id: ID!, properties_object: Any): ID
     pushPayload(
         session_id: ID!
-        events: String!
+        events: ReplayEventsInput!
         messages: String!
         resources: String!
         errors: [ErrorObjectInput]!
