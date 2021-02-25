@@ -3,12 +3,10 @@ import { useParams } from 'react-router-dom';
 import { Button } from 'antd';
 import styles from './ErrorsPage.module.scss';
 import { useGetErrorGroupsQuery } from '../../graph/generated/hooks';
+import { ErrorFeed } from './ErrorFeed/ErrorFeed';
 
 export const ErrorsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { data } = useGetErrorGroupsQuery({
-        variables: { organization_id: organization_id },
-    });
 
     const throwError = (): void => {
         throw new Error('This error is from a throw');
@@ -40,12 +38,9 @@ export const ErrorsPage = () => {
                 </div>
             </div>
             <div className={styles.centerPanel}>
-                {data?.error_groups?.map((u, index) => (
-                    <div key={index}>
-                        <p>{u?.event}</p>
-                        <p>{u?.trace}</p>
-                    </div>
-                ))}
+                <div className={styles.errorsSection}>
+                    <ErrorFeed />
+                </div>
             </div>
         </div>
     );
