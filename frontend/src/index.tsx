@@ -38,7 +38,7 @@ const App = () => {
                             </DemoContext.Provider>
                         </Route>
                         <Route path="/">
-                            <DemoContext.Provider value={{ demo: true }}>
+                            <DemoContext.Provider value={{ demo: false }}>
                                 <LoginForm />
                             </DemoContext.Provider>
                         </Route>
