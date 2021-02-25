@@ -8,6 +8,7 @@ import ReplayerContext, { ReplayerState } from '../ReplayerContext';
 import { ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 import { findFirstEventOfType } from './utils/utils';
+import Skeleton from 'react-loading-skeleton';
 
 interface Viewport {
     height: number;
@@ -70,33 +71,34 @@ const SessionLevelBar = () => {
 
     return (
         <div className={styles.sessionLevelBarContainer}>
-            {((isLoading && !viewport) || (!isLoading && viewport)) && (
-                <SessionToken
-                    icon={<BrowserIcon />}
-                    isLoading={isLoading}
-                    tooltipTitle="The user's current viewport size in pixels."
-                >
+            {isLoading ? (
+                <div className={styles.skeletonContainer}>
+                    <Skeleton count={1} width="100%" height="100%" />
+                </div>
+            ) : (
+                <>
                     {viewport && (
-                        <>
+                        <SessionToken
+                            icon={<BrowserIcon />}
+                            tooltipTitle="The user's current viewport size in pixels."
+                        >
                             {viewport.height} x {viewport.width}
-                        </>
+                        </SessionToken>
                     )}
-                </SessionToken>
+                    <SessionToken
+                        icon={<URLIcon />}
+                        tooltipTitle="The current URL the user is on."
+                    >
+                        {currentUrl}
+                    </SessionToken>
+                    <SessionToken
+                        icon={<ActivityIcon isActive={isTabActive} />}
+                        tooltipTitle="Indicates whether the user has this page as the active tab. If the user is on a different tab or window then the session will be inactive."
+                    >
+                        {isTabActive ? 'Active' : 'Inactive'}
+                    </SessionToken>
+                </>
             )}
-            <SessionToken
-                icon={<URLIcon />}
-                isLoading={isLoading}
-                tooltipTitle="The current URL the user is on."
-            >
-                {currentUrl}
-            </SessionToken>
-            <SessionToken
-                icon={<ActivityIcon isActive={isTabActive} />}
-                isLoading={isLoading}
-                tooltipTitle="Indicates whether the user has this page as the active tab. If the user is on a different tab or window then the session will be inactive."
-            >
-                {isTabActive ? 'Active' : 'Inactive'}
-            </SessionToken>
         </div>
     );
 };

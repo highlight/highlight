@@ -9,4 +9,9 @@
     gap: $size-xSmall;
     align-items: center;
     justify-content: space-between;
+    height: 45px;
+}
+
+.skeletonContainer {
+    width: 100%;
 }
