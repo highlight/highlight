@@ -85,12 +85,20 @@ const SessionLevelBar = () => {
                             {viewport.height} x {viewport.width}
                         </SessionToken>
                     )}
-                    <SessionToken
-                        icon={<URLIcon />}
-                        tooltipTitle="The current URL the user is on."
-                    >
-                        {currentUrl}
-                    </SessionToken>
+                    {currentUrl && (
+                        <SessionToken
+                            icon={<URLIcon />}
+                            tooltipTitle="The current URL the user is on."
+                        >
+                            <a
+                                href={currentUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                {currentUrl}
+                            </a>
+                        </SessionToken>
+                    )}
                     <SessionToken
                         icon={<ActivityIcon isActive={isTabActive} />}
                         tooltipTitle="Indicates whether the user has this page as the active tab. If the user is on a different tab or window then the session will be inactive."

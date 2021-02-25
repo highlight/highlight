@@ -11,12 +11,17 @@
     max-width: 378px;
     min-width: 0;
     gap: $size-xSmall;
+    color: $text-primary;
 
     > p {
         margin: 0;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+    }
+
+    a {
+        color: $text-primary;
     }
 
     svg {
