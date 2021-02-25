@@ -1,2 +1,4 @@
 frontend/src/graph/generated/* linguist-generated=true
 client/src/graph/generated/* linguist-generated=true
+go.sum linguist-generated=true
+go.mod linguist-generated=true

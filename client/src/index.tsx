@@ -1,5 +1,5 @@
 import { addCustomEvent, record } from '@highlight-run/rrweb';
-import { eventWithTime } from '@highlight-run/rrweb/dist/types';
+import { eventWithTime, EventType } from '@highlight-run/rrweb/dist/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
@@ -16,7 +16,7 @@ import { ViewportResizeListener } from './listeners/viewport-resize-listener';
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
-    console.warn(`Highlight Warning: (${context}): `, msg);
+    console.warn(`Highlight Warning: (${context}): `, {output: msg});
 };
 class Logger {
     debug: boolean | undefined;
@@ -313,7 +313,6 @@ export class Highlight {
 
             const resourcesString = JSON.stringify({ resources: resources });
             const messagesString = JSON.stringify({ messages: this.messages });
-            const eventsString = JSON.stringify({ events: this.events });
             this.logger.log(
                 `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionID}`
             );
@@ -322,7 +321,7 @@ export class Highlight {
             }
             await this.graphqlSDK.PushPayload({
                 session_id: this.sessionID.toString(),
-                events: eventsString,
+                events: {events: this.events},
                 messages: messagesString,
                 resources: resourcesString,
                 errors: this.errors,

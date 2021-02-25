@@ -10,8 +10,10 @@ import (
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
-	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+
+	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
+	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -148,20 +150,42 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
-	eventsParsed := make(map[string][]interface{})
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, eventsObject customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)
 	}
 	organizationID := sessionObj.OrganizationID
-	// unmarshal events
-	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
-		return nil, fmt.Errorf("error decoding event data: %v", err)
-	}
-	if len(eventsParsed["events"]) > 0 {
-		obj := &model.EventsObject{SessionID: sessionID, Events: events}
+	if evs := eventsObject.Events; len(evs) > 0 {
+		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
+		// should fix at some point.
+		eventBytes, err := json.Marshal(eventsObject)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
+		}
+		parsedEvents, err := parse.EventsFromString(string(eventBytes))
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing events from schema interfaces")
+		}
+
+		// If we see a snapshot event, attempt to inject CORS stylesheets.
+		for _, e := range parsedEvents.Events {
+			if e.Type == parse.FullSnapshot {
+				d, err := parse.InjectStylesheets(e.Data)
+				if err != nil {
+					continue
+				}
+				e.Data = d
+			}
+		}
+
+		// Re-format as a string to write to the db.
+		b, err := json.Marshal(parsedEvents)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
+		}
+		obj := &model.EventsObject{SessionID: sessionID, Events: string(b)}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
 		}
