@@ -10,6 +10,7 @@
     align-items: center;
     max-width: 378px;
     min-width: 0;
+    gap: $size-xSmall;
 
     > p {
         margin: 0;
@@ -18,11 +19,14 @@
         white-space: nowrap;
     }
 
-    > svg {
+    svg {
         flex-shrink: 0;
         fill: $text-primary;
-        margin-right: $size-xSmall;
         height: 10px;
         width: 10px;
     }
+}
+
+.iconContainer {
+    display: flex;
 }

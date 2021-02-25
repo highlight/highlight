@@ -17,22 +17,22 @@ function SessionToken({
     tooltipTitle,
 }: React.PropsWithChildren<Props>): ReactElement {
     return (
-        <Tooltip
-            title={tooltipTitle}
-            arrowPointAtCenter
-            placement="bottomRight"
-        >
-            <span className={classNames(styles.sessionToken, 'icon')}>
-                {isLoading ? (
-                    <Skeleton count={1} width={100} />
-                ) : (
-                    <>
-                        {icon}
-                        <p>{children}</p>
-                    </>
-                )}
-            </span>
-        </Tooltip>
+        <span className={classNames(styles.sessionToken, 'icon')}>
+            {isLoading ? (
+                <Skeleton count={1} width={100} />
+            ) : (
+                <>
+                    <Tooltip
+                        title={tooltipTitle}
+                        arrowPointAtCenter
+                        placement="bottomRight"
+                    >
+                        <div className={styles.iconContainer}>{icon}</div>
+                    </Tooltip>
+                    <p>{children}</p>
+                </>
+            )}
+        </span>
     );
 }
 
