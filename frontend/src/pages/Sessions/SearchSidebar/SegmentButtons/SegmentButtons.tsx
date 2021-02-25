@@ -4,7 +4,7 @@ import _ from 'lodash';
 import commonStyles from '../../../../Common.module.scss';
 import { SearchContext } from '../../SearchContext/SearchContext';
 import { RouteComponentProps, useParams, withRouter } from 'react-router-dom';
-import { CircularSpinner } from '../../../../components/Spinner/Spinner';
+import { CircularSpinner } from '../../../../components/Loading/Loading';
 import { message, Modal } from 'antd';
 import styles from './SegmentButtons.module.scss';
 import { useForm } from 'react-hook-form';

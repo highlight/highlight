@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Spinner } from '../../components/Spinner/Spinner';
+import { LoadingPage } from '../../components/Loading/Loading';
 import { useGetAdminQuery } from '../../graph/generated/hooks';
 import commonStyles from '../../Common.module.scss';
 import { ReactComponent as GoogleLogo } from '../../static/google.svg';
@@ -32,11 +32,7 @@ export const AuthAdminRouter = () => {
         return <p>{'AuthAdminRouter error: ' + JSON.stringify(error)}</p>;
     }
     if (loading) {
-        return (
-            <div className={styles.loadingWrapper}>
-                <Spinner />
-            </div>
-        );
+        return <LoadingPage />;
     }
     return <AppRouter />;
 };
@@ -88,11 +84,7 @@ export const LoginForm = () => {
     };
 
     if (loading) {
-        return (
-            <div className={styles.loadingWrapper}>
-                <Spinner />
-            </div>
-        );
+        return <LoadingPage />;
     }
 
     if (user) {

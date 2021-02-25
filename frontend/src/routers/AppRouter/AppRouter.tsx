@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../../App.scss';
 
 import styles from './AppRouter.module.scss';
-import { Spinner } from '../../components/Spinner/Spinner';
+import { LoadingPage } from '../../components/Loading/Loading';
 import { NewMemberPage } from '../../pages/NewMember/NewMemberPage';
 import { NewWorkspacePage } from '../../pages/NewWorkspace/NewWorkspacePage';
 import { ReactComponent as GoogleLogo } from './static/google.svg';
@@ -32,11 +32,7 @@ export const AppRouter = () => {
     }
 
     if (o_error || o_loading) {
-        return (
-            <div className={styles.loadingWrapper}>
-                <Spinner />
-            </div>
-        );
+        return <LoadingPage />;
     }
 
     return (

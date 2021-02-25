@@ -4,7 +4,7 @@ import styles from './DangerForm.module.scss';
 import { useForm } from 'react-hook-form';
 import classNames from 'classnames/bind';
 import { useParams, Redirect } from 'react-router-dom';
-import { CircularSpinner } from '../../../components/Spinner/Spinner';
+import { CircularSpinner } from '../../../components/Loading/Loading';
 import { Skeleton } from 'antd';
 import {
     useDeleteOrganizationMutation,

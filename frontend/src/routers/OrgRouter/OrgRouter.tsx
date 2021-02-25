@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Redirect, useParams } from 'react-router-dom';
-import { Spinner } from '../../components/Spinner/Spinner';
+import { LoadingPage } from '../../components/Loading/Loading';
 import { Header } from '../../components/Header/Header';
 import { Switch, Route } from 'react-router-dom';
 import { Player } from '../../pages/Player/PlayerPage';
@@ -46,11 +46,7 @@ export const OrgRouter = () => {
         return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
     }
     if (integratedLoading || loading || !data?.organization) {
-        return (
-            <div className={styles.loadingWrapper}>
-                <Spinner />
-            </div>
-        );
+        return <LoadingPage />;
     }
     return (
         <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>

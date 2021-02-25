@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactDOM from 'react-dom';
 import 'antd/dist/antd.css';
 import './index.scss';
@@ -13,6 +13,7 @@ import { DemoContext } from './DemoContext';
 import { H, HighlightOptions } from 'highlight.run';
 import { DemoRouter } from './DemoRouter';
 import { SkeletonTheme } from 'react-loading-skeleton';
+import { LoadingPage } from './components/Loading/Loading';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
@@ -26,8 +27,9 @@ if (dev) {
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
 
-ReactDOM.render(
-    <React.StrictMode>
+const App = () => {
+    const [loading, setLoading] = useState(true);
+    return (
         <ApolloProvider client={client}>
             <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
                 <Router>
@@ -38,14 +40,18 @@ ReactDOM.render(
                             </DemoContext.Provider>
                         </Route>
                         <Route path="/">
-                            <DemoContext.Provider value={{ demo: false }}>
-                                <LoginForm />
-                            </DemoContext.Provider>
+                            <LoginForm />
                         </Route>
                     </Switch>
                 </Router>
             </SkeletonTheme>
         </ApolloProvider>
+    );
+};
+
+ReactDOM.render(
+    <React.StrictMode>
+        <App />
     </React.StrictMode>,
     document.getElementById('root')
 );

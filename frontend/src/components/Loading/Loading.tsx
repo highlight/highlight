@@ -1,7 +1,7 @@
 import React from 'react';
 import BarLoader from 'react-spinners/BarLoader';
 
-import styles from './Spinner.module.scss';
+import styles from './Loading.module.scss';
 
 import { Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
@@ -22,7 +22,7 @@ export const CircularSpinner = ({ style }: { style?: React.CSSProperties }) => {
     );
 };
 
-export const Spinner = ({ width }: { width?: string | number }) => {
+export const LoadingBar = ({ width }: { width?: string | number }) => {
     return (
         <div className={styles.spinnerWrapper}>
             <div
@@ -31,6 +31,14 @@ export const Spinner = ({ width }: { width?: string | number }) => {
             >
                 <BarLoader color={'#5629c6'} />
             </div>
+        </div>
+    );
+};
+
+export const LoadingPage = () => {
+    return (
+        <div className={styles.loadingWrapper}>
+            <LoadingBar />
         </div>
     );
 };
