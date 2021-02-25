@@ -1,21 +1,16 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import Skeleton from 'react-loading-skeleton';
 
 import styles from './SegmentPicker.module.scss';
-import { SearchSection } from '../SearchSection/SearchSection';
 import { useGetSegmentsQuery } from '../../../../graph/generated/hooks';
 
 export const SegmentPicker = () => {
-    const {
-        setSearchParams,
-        setSegmentName,
-        setExistingParams,
-        segmentName,
-    } = useContext(SearchContext);
-    const [visible, setVisible] = useState(false);
+    const { setSearchParams, setSegmentName, setExistingParams } = useContext(
+        SearchContext
+    );
     const { segment_id, organization_id } = useParams<{
         segment_id: string;
         organization_id: string;

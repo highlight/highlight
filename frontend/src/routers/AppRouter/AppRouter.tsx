@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import '../../App.scss';
 
 import styles from './AppRouter.module.scss';
 import { LoadingPage } from '../../components/Loading/Loading';
 import { NewMemberPage } from '../../pages/NewMember/NewMemberPage';
 import { NewWorkspacePage } from '../../pages/NewWorkspace/NewWorkspacePage';
-import { ReactComponent as GoogleLogo } from './static/google.svg';
-import { useForm } from 'react-hook-form';
-import { useAuthState } from 'react-firebase-hooks/auth';
 import {
     Switch,
     Route,
@@ -15,10 +12,7 @@ import {
     Redirect,
 } from 'react-router-dom';
 import { OrgRouter } from '../OrgRouter/OrgRouter';
-import {
-    useGetAdminQuery,
-    useGetOrganizationsQuery,
-} from '../../graph/generated/hooks';
+import { useGetOrganizationsQuery } from '../../graph/generated/hooks';
 
 export const AppRouter = () => {
     const {

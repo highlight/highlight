@@ -9,7 +9,6 @@ import { Billing } from '../../pages/Billing/Billing';
 import { SetupPage } from '../../pages/Setup/SetupPage';
 import { ErrorsPage } from '../../pages/Errors/ErrorsPage';
 import { useIntegrated } from '../../util/integrated';
-import styles from '../AppRouter/AppRouter.module.scss';
 import { WorkspaceSettings } from '../../pages/WorkspaceSettings/WorkspaceSettings';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';

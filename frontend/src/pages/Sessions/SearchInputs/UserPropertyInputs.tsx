@@ -10,7 +10,6 @@ import AsyncCreatableSelect from 'react-select/async-creatable';
 import { Switch } from 'antd';
 import inputStyles from './InputStyles.module.scss';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
-import { useState } from 'react';
 import classNames from 'classnames/bind';
 import { ContainsLabel } from './SearchInputUtil';
 import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
@@ -47,13 +46,13 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
             <AsyncCreatableSelect
                 isMulti
                 styles={{
-                    control: (provided, state) => ({
+                    control: (provided) => ({
                         ...provided,
                         borderColor: '#eaeaea',
                         borderRadius: 8,
                         minHeight: 45,
                     }),
-                    multiValue: (provided, state) => ({
+                    multiValue: (provided) => ({
                         ...provided,
                         backgroundColor: '#F2EEFB',
                     }),
