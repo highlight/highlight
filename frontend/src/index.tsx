@@ -38,7 +38,9 @@ const App = () => {
                             </DemoContext.Provider>
                         </Route>
                         <Route path="/">
-                            <LoginForm />
+                            <DemoContext.Provider value={{ demo: false }}>
+                                <LoginForm />
+                            </DemoContext.Provider>
                         </Route>
                     </Switch>
                 </Router>
