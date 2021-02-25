@@ -54,8 +54,6 @@ type ErrorMetaData struct {
 	Timestamp time.Time `json:"timestamp"`
 	ErrorID   int       `json:"error_id"`
 	SessionID int       `json:"session_id"`
-	OS        string    `json:"os"`
-	Browser   string    `json:"browser"`
 }
 
 //Change to AppendProperties(sessionId,properties,type)
@@ -78,7 +76,30 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	return nil
 }
 
-func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame interface{}, browser string, osName string) error {
+func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
+	fieldsToAppend := []*model.Field{}
+	for _, f := range fields {
+		field := &model.Field{}
+		res := r.DB.Where(f).First(&field)
+		// If the field doesn't exist, we create it.
+		if err := res.Error; err != nil || res.RecordNotFound() {
+			if err := r.DB.Create(f).Error; err != nil {
+				return e.Wrap(err, "error creating field")
+			}
+			fieldsToAppend = append(fieldsToAppend, f)
+		} else {
+			fieldsToAppend = append(fieldsToAppend, field)
+		}
+	}
+	// We append to this session in the join table regardless.
+	re := r.DB.Model(session).Association("Fields").Append(fieldsToAppend)
+	if err := re.Error; err != nil {
+		return e.Wrap(err, "error updating fields")
+	}
+	return nil
+}
+
+func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame interface{}, fields []*model.ErrorField) error {
 	firstFrameBytes, err := json.Marshal(firstFrame)
 	if err != nil {
 		return e.Wrap(err, "Error marshalling first frame")
@@ -114,8 +135,6 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame inter
 		Timestamp: errorObj.CreatedAt,
 		ErrorID:   errorObj.ID,
 		SessionID: errorObj.SessionID,
-		Browser:   browser,
-		OS:        osName,
 	})
 
 	logBytes, err := json.Marshal(newMetadataLog)
@@ -128,18 +147,23 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame inter
 		return e.Wrap(err, "Error updating error group metadata log")
 	}
 
+	err = r.AppendErrorFields(fields, errorGroup)
+	if err != nil {
+		return e.Wrap(err, "error appending error fields")
+	}
+
 	return nil
 }
 
-func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
-	fieldsToAppend := []*model.Field{}
+func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {
+	fieldsToAppend := []*model.ErrorField{}
 	for _, f := range fields {
-		field := &model.Field{}
+		field := &model.ErrorField{}
 		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
 		if err := res.Error; err != nil || res.RecordNotFound() {
 			if err := r.DB.Create(f).Error; err != nil {
-				return e.Wrap(err, "error creating field")
+				return e.Wrap(err, "error creating error field")
 			}
 			fieldsToAppend = append(fieldsToAppend, f)
 		} else {
@@ -147,9 +171,9 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		}
 	}
 	// We append to this session in the join table regardless.
-	re := r.DB.Model(session).Association("Fields").Append(fieldsToAppend)
+	re := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend)
 	if err := re.Error; err != nil {
-		return e.Wrap(err, "error updating fields")
+		return e.Wrap(err, "error updating error fields")
 	}
 	return nil
 }

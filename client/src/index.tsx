@@ -269,6 +269,7 @@ export class Highlight {
                         highlightThis.errors.push({
                             event: JSON.stringify(c.value),
                             type: 'console',
+                            url: window.location.href,
                             source: c.trace[0].fileName
                                 ? c.trace[0].fileName
                                 : '',

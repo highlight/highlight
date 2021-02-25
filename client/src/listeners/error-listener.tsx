@@ -14,6 +14,7 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
                 callback({
                     event: JSON.stringify(event),
                     type: 'exception',
+                    url: window.location.href,
                     source: source ? source : '',
                     lineNumber: result[0].lineNumber ? result[0].lineNumber : 0,
                     columnNumber: result[0].columnNumber
