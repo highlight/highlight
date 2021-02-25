@@ -5,8 +5,28 @@
     height: 7px;
     width: 7px;
     background: $gray; 
+    box-shadow: 0 0 0 0 $highlight-purple;
+    transform: scale(1);
+    animation: pulse-black 2s infinite;
 }
 
 .active {
     background: $highlight-purple;
+}
+
+@keyframes pulse-black {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(86, 41, 198, 0.7);
+    }
+
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(86, 41, 198, 0);
+    }
+
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(86, 41, 198, 0);
+    }
 }

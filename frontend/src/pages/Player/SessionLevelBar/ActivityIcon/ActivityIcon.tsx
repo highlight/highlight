@@ -6,14 +6,22 @@ interface Props {
     isActive: boolean;
 }
 
-function ActivityIcon({ isActive }: Props): ReactElement {
+const ActivityIcon = ({
+    isActive,
+    ...props
+}: React.HTMLAttributes<HTMLDivElement> & Props) => {
     return (
         <div
-            className={classNames(styles.activityIcon, {
-                [styles.active]: isActive,
-            })}
+            {...props}
+            className={classNames(
+                styles.activityIcon,
+                {
+                    [styles.active]: isActive,
+                },
+                props.className
+            )}
         ></div>
     );
-}
+};
 
 export default ActivityIcon;
