@@ -87,6 +87,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                 };
             });
             console.log('[Highlight] Session Intervals:', sliderIntervalMap);
+            console.log('[Highlight] Session Metadata:', r.getMetaData());
             setSessionIntervals(sliderIntervalMap);
             setEvents(newEvents);
             setReplayer(r);
