@@ -157,8 +157,9 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)
 	}
 	organizationID := sessionObj.OrganizationID
-	// unmarshal events
 	if evs := eventsObject.Events; len(evs) > 0 {
+		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
+		// should fix at some point.
 		eventBytes, err := json.Marshal(eventsObject)
 		if err != nil {
 			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
@@ -167,6 +168,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		if err != nil {
 			return nil, e.Wrap(err, "error parsing events from schema interfaces")
 		}
+
+		// If we see a snapshot event, attempt to inject CORS stylesheets.
 		for _, e := range parsedEvents.Events {
 			if e.Type == parse.FullSnapshot {
 				d, err := parse.InjectStylesheets(e.Data)
@@ -177,6 +180,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			}
 		}
 
+		// Re-format as a string to write to the db.
 		b, err := json.Marshal(parsedEvents)
 		if err != nil {
 			return nil, e.Wrap(err, "error marshaling events from schema interfaces")

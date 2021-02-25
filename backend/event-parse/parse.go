@@ -62,7 +62,7 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 	return events, nil
 }
 
-// InjectStylesheets injects custom stylesheets into a given event.
+// InjectStylesheets injects custom stylesheets into a given snapshot event.
 func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 	var s interface{}
 	err := json.Unmarshal(inputData, &s)
@@ -145,6 +145,9 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 		}
 		delete(attrs, "rel")
 		delete(attrs, "href")
+
+		// The '_cssText' attribute tells @highlight-run/rrweb to create a custom <style/> tag to populate
+		// content w/.
 		attrs["_cssText"] = string(data)
 	}
 	b, err := json.Marshal(s)
