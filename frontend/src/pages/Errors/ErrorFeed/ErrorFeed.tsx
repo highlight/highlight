@@ -15,6 +15,13 @@ export type ErrorMetadata = {
     timestamp: string;
 };
 
+export type ErrorTrace = {
+    fileName?: string;
+    lineNumber?: number;
+    functionName?: string;
+    columnNumber?: number;
+};
+
 export const ErrorFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
@@ -62,15 +69,21 @@ export const ErrorFeed = () => {
 const ErrorCard = ({ error }: { error: Maybe<any> }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [hovered, setHovered] = useState(false);
-    const trace = JSON.parse(error.trace);
-    const [metadata, setMetadata] = useState<Array<ErrorMetadata>>(
-        JSON.parse(error.metadata_log)
-    );
-    const initialDate = new Date(metadata[0]?.timestamp);
+    const [trace, setTrace] = useState<ErrorTrace>({});
+    const [metadata, setMetadata] = useState<Array<ErrorMetadata>>([]);
     const [errorDates, setErrorDates] = useState<{ [date: string]: number }>(
         {}
     );
     const [maxErrors, setMaxErrors] = useState(5);
+
+    useEffect(() => {
+        try {
+            const parsedMetadata = JSON.parse(error.metadata_log);
+            setMetadata(parsedMetadata);
+            const parsedTrace = JSON.parse(error.trace);
+            setTrace(parsedTrace);
+        } catch (e) {}
+    }, [error]);
 
     useEffect(() => {
         const currentDate = new Date();
@@ -116,7 +129,7 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
         [errorDates]
     );
 
-    return (
+    return metadata && trace ? (
         <Link
             to={`/${organization_id}/errors/${error?.id}`}
             key={error?.id}
@@ -197,9 +210,11 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
                             >{`Line ${trace.lineNumber}`}</div>
                             <div
                                 className={styles.middleText}
-                            >{`${metadata[0].os} • ${metadata[0].browser}`}</div>
+                            >{`${metadata[0]?.os} • ${metadata[0]?.browser}`}</div>
                             <div className={styles.bottomText}>
-                                {`Since ${initialDate.toLocaleString('en-us', {
+                                {`Since ${new Date(
+                                    metadata[0]?.timestamp
+                                ).toLocaleString('en-us', {
                                     day: 'numeric',
                                     month: 'long',
                                     year: 'numeric',
@@ -217,5 +232,7 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
                 />
             </div>
         </Link>
+    ) : (
+        <></>
     );
 };
