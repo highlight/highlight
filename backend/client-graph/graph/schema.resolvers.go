@@ -11,6 +11,9 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	"github.com/jay-khatri/fullstory/backend/model"
+
+	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
+	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -147,20 +150,42 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events string, messages string, resources string, errors string) (*int, error) {
-	eventsParsed := make(map[string][]interface{})
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, eventsObject customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)
 	}
 	organizationID := sessionObj.OrganizationID
-	// unmarshal events
-	if err := json.Unmarshal([]byte(events), &eventsParsed); err != nil {
-		return nil, fmt.Errorf("error decoding event data: %v", err)
-	}
-	if len(eventsParsed["events"]) > 0 {
-		obj := &model.EventsObject{SessionID: sessionID, Events: events}
+	if evs := eventsObject.Events; len(evs) > 0 {
+		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
+		// should fix at some point.
+		eventBytes, err := json.Marshal(eventsObject)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
+		}
+		parsedEvents, err := parse.EventsFromString(string(eventBytes))
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing events from schema interfaces")
+		}
+
+		// If we see a snapshot event, attempt to inject CORS stylesheets.
+		for _, e := range parsedEvents.Events {
+			if e.Type == parse.FullSnapshot {
+				d, err := parse.InjectStylesheets(e.Data)
+				if err != nil {
+					continue
+				}
+				e.Data = d
+			}
+		}
+
+		// Re-format as a string to write to the db.
+		b, err := json.Marshal(parsedEvents)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
+		}
+		obj := &model.EventsObject{SessionID: sessionID, Events: string(b)}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
 		}
@@ -187,25 +212,35 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
-	// unmarshal error
-	errorsParsed := make(map[string][]model.ErrorObject)
-	if err := json.Unmarshal([]byte(errors), &errorsParsed); err != nil {
-		return nil, fmt.Errorf("error decoding error data: %v", err)
-	}
-	if len(errorsParsed["errors"]) > 0 && organizationID == 1 {
-		for _, v := range errorsParsed["errors"] {
-			obj := &model.ErrorObject{
+	// put errors in db
+	if organizationID == 1 {
+		for _, v := range errors {
+			traceBytes, err := json.Marshal(v.Trace)
+			if err != nil {
+				log.Errorf("Error marshaling trace: %v", v.Trace)
+				continue
+			}
+			traceString := string(traceBytes)
+
+			errorToInsert := &model.ErrorObject{
 				OrganizationID: organizationID,
 				SessionID:      sessionID,
 				Event:          v.Event,
 				Type:           v.Type,
 				Source:         v.Source,
-				LineNo:         v.LineNo,
-				ColumnNo:       v.ColumnNo,
-				Trace:          v.Trace,
+				LineNumber:     v.LineNumber,
+				ColumnNumber:   v.ColumnNumber,
+				Trace:          &traceString,
 			}
-			if err := r.DB.Create(obj).Error; err != nil {
-				return nil, e.Wrap(err, "error creating error object")
+			// TODO: We need to do a batch insert which is supported by the new gorm lib.
+			if err := r.DB.Create(errorToInsert).Error; err != nil {
+				log.Errorf("Error performing error insert for error: %v", v.Event)
+				continue
+			}
+
+			if err := r.UpdateErrorGroup(*errorToInsert, v.Trace[0], sessionObj.BrowserName, sessionObj.OSName); err != nil {
+				log.Errorf("Error updating error group: %v", errorToInsert)
+				continue
 			}
 		}
 	}

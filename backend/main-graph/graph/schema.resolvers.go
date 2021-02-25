@@ -22,6 +22,16 @@ import (
 	stripe "github.com/stripe/stripe-go"
 )
 
+func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
+	frames := []interface{}{}
+	if obj.Trace != nil {
+		if err := json.Unmarshal([]byte(*obj.Trace), &frames); err != nil {
+			return nil, fmt.Errorf("error decoding stack frame data: %v", err)
+		}
+	}
+	return frames, nil
+}
+
 func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) (*model.Organization, error) {
 	admin, err := r.Query().Admin(ctx)
 	if err != nil {
@@ -329,15 +339,16 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	return allEvents["events"], nil
 }
 
-func (r *queryResolver) Errors(ctx context.Context, organizationID int) ([]*model.ErrorObject, error) {
+func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int) ([]*model.ErrorGroup, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	errorObjs := []*model.ErrorObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.ErrorObject{OrganizationID: organizationID}).Find(&errorObjs); res.Error != nil {
-		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
+	errorGroups := []*model.ErrorGroup{}
+	if res := r.DB.Order("updated_at desc").Where(&model.ErrorGroup{OrganizationID: organizationID}).Find(&errorGroups); res.Error != nil {
+		return nil, fmt.Errorf("error reading from error groups: %v", res.Error)
 	}
-	return errorObjs, nil
+
+	return errorGroups, nil
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
@@ -718,6 +729,9 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+// ErrorObject returns generated.ErrorObjectResolver implementation.
+func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorObjectResolver{r} }
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
@@ -730,6 +744,7 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
+type errorObjectResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }

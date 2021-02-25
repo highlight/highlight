@@ -75,9 +75,18 @@ export type ErrorObject = {
     event: Scalars['String'];
     type: Scalars['String'];
     source?: Maybe<Scalars['String']>;
-    line_no?: Maybe<Scalars['Int']>;
-    column_no?: Maybe<Scalars['Int']>;
-    trace?: Maybe<Scalars['String']>;
+    line_number?: Maybe<Scalars['Int']>;
+    column_number?: Maybe<Scalars['Int']>;
+    trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
+};
+
+export type ErrorGroup = {
+    __typename?: 'ErrorGroup';
+    id: Scalars['ID'];
+    organization_id: Scalars['Int'];
+    event: Scalars['String'];
+    trace: Scalars['String'];
+    metadata_log?: Maybe<Scalars['String']>;
 };
 
 export type SearchParamsInput = {
@@ -151,7 +160,7 @@ export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
-    errors?: Maybe<Array<Maybe<ErrorObject>>>;
+    error_groups?: Maybe<Array<Maybe<ErrorGroup>>>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
@@ -175,7 +184,7 @@ export type QueryEventsArgs = {
     session_id: Scalars['ID'];
 };
 
-export type QueryErrorsArgs = {
+export type QueryError_GroupsArgs = {
     organization_id: Scalars['ID'];
 };
 

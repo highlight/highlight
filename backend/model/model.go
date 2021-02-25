@@ -243,9 +243,17 @@ type ErrorObject struct {
 	Event          string
 	Type           string
 	Source         string
-	LineNo         int `json:"line_no"`
-	ColumnNo       int `json:"column_no"`
+	LineNumber     int
+	ColumnNumber   int
+	Trace          *string `json:"trace"`
+}
+
+type ErrorGroup struct {
+	Model
+	OrganizationID int
+	Event          string
 	Trace          string
+	MetadataLog    *string
 }
 
 func SetupDB() *gorm.DB {
@@ -268,6 +276,7 @@ func SetupDB() *gorm.DB {
 		&MessagesObject{},
 		&EventsObject{},
 		&ErrorObject{},
+		&ErrorGroup{},
 		&Organization{},
 		&Segment{},
 		&Admin{},

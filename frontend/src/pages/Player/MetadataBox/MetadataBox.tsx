@@ -16,7 +16,6 @@ type Field = {
 
 export const MetadataBox = () => {
     const { session_id } = useParams<{ session_id: string }>();
-    const [expanded, setExpanded] = useState(false);
     const { demo } = useContext(DemoContext);
 
     const { loading, error, data } = useGetSessionQuery({
@@ -69,13 +68,7 @@ export const MetadataBox = () => {
                         </div>
                         {parsedFields?.length > 0 ? (
                             <div className={styles.tagDiv}>
-                                <div
-                                    className={
-                                        expanded
-                                            ? styles.tagWrapperExpanded
-                                            : styles.tagWrapper
-                                    }
-                                >
+                                <div className={styles.tagWrapper}>
                                     {parsedFields?.map((f, i) => (
                                         <Tag
                                             key={i.toString()}
@@ -96,15 +89,6 @@ export const MetadataBox = () => {
                                         </Tag>
                                     ))}
                                 </div>
-                                <DownIcon
-                                    className={styles.expandArrow}
-                                    style={{
-                                        transform: expanded
-                                            ? 'rotate(180deg)'
-                                            : 'rotate(0deg)',
-                                    }}
-                                    onClick={() => setExpanded((e) => !e)}
-                                />
                             </div>
                         ) : (
                             <></>

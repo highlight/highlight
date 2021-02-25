@@ -1,7 +1,7 @@
 import { addCustomEvent, record } from '@highlight-run/rrweb';
-import { eventWithTime } from '@highlight-run/rrweb/dist/types';
+import { eventWithTime, EventType } from '@highlight-run/rrweb/dist/types';
 import { ConsoleListener } from './listeners/console-listener';
-import { ErrorListener, ErrorStringify } from './listeners/error-listener';
+import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient, gql } from 'graphql-request';
 import { Sdk, getSdk } from './graph/generated/operations';
@@ -16,7 +16,7 @@ import { ViewportResizeListener } from './listeners/viewport-resize-listener';
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
-    console.warn(`Highlight Warning: (${context}): `, msg);
+    console.warn(`Highlight Warning: (${context}): `, {output: msg});
 };
 class Logger {
     debug: boolean | undefined;
@@ -204,6 +204,10 @@ export class Highlight {
                     'currentSessionID',
                     this.sessionID.toString()
                 );
+                addCustomEvent('Viewport', {
+                    height: window.innerHeight,
+                    width: window.innerWidth,
+                });
             }
             setInterval(() => {
                 this._save();
@@ -261,10 +265,20 @@ export class Highlight {
             });
             if (!this.disableConsoleRecording) {
                 ConsoleListener((c: ConsoleMessage) => {
-                    if (c.type == 'Error' && c.value)
+                    if (c.type == 'Error' && c.value && c.trace)
                         highlightThis.errors.push({
-                            event: c.value,
+                            event: JSON.stringify(c.value),
                             type: 'console',
+                            source: c.trace[0].fileName
+                                ? c.trace[0].fileName
+                                : '',
+                            lineNumber: c.trace[0].lineNumber
+                                ? c.trace[0].lineNumber
+                                : 0,
+                            columnNumber: c.trace[0].columnNumber
+                                ? c.trace[0].columnNumber
+                                : 0,
+                            trace: c.trace,
                         });
                     highlightThis.messages.push(c);
                 });
@@ -303,25 +317,23 @@ export class Highlight {
 
             const resourcesString = JSON.stringify({ resources: resources });
             const messagesString = JSON.stringify({ messages: this.messages });
-            const errorsString = ErrorStringify({ errors: this.errors });
-            const eventsString = JSON.stringify({ events: this.events });
             this.logger.log(
                 `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionID}`
             );
-            this.events = [];
-            this.errors = [];
-            this.messages = [];
-            this.networkContents = [];
             if (!this.disableNetworkRecording) {
                 performance.clearResourceTimings();
             }
             await this.graphqlSDK.PushPayload({
                 session_id: this.sessionID.toString(),
-                events: eventsString,
+                events: {events: this.events},
                 messages: messagesString,
                 resources: resourcesString,
-                errors: errorsString,
+                errors: this.errors,
             });
+            this.events = [];
+            this.errors = [];
+            this.messages = [];
+            this.networkContents = [];
         } catch (e) {
             HighlightWarning('_save', e);
         }

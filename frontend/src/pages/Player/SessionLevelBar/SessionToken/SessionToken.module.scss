@@ -1,0 +1,37 @@
+@import 'src/static/shared.scss';
+
+.sessionToken {
+    border-radius: 5px;
+    border: 1px solid $border-light-gray;
+    padding: $size-xSmall $size-small $size-xSmall $size-xSmall;
+    font-size: 10px;
+    line-height: 14px;
+    display: flex;
+    align-items: center;
+    max-width: 378px;
+    min-width: 0;
+    gap: $size-xSmall;
+    color: $text-primary;
+
+    > p {
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    a {
+        color: $text-primary;
+    }
+
+    svg {
+        flex-shrink: 0;
+        fill: $text-primary;
+        height: 10px;
+        width: 10px;
+    }
+}
+
+.iconContainer {
+    display: flex;
+}

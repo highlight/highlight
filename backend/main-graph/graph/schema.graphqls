@@ -55,9 +55,17 @@ type ErrorObject {
     event: String!
     type: String!
     source: String
-    line_no: Int
-    column_no: Int
-    trace: String
+    line_number: Int
+    column_number: Int
+    trace: [Any]
+}
+
+type ErrorGroup {
+    id: ID!
+    organization_id: Int!
+    event: String!
+    trace: String!
+    metadata_log: String
 }
 
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
@@ -126,7 +134,7 @@ type SessionResults {
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
-    errors(organization_id: ID!): [ErrorObject]
+    error_groups(organization_id: ID!): [ErrorGroup]
     messages(session_id: ID!): [Any]
     resources(session_id: ID!): [Any]
     admins(organization_id: ID!): [Admin]

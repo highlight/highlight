@@ -45,6 +45,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                 : session_id,
         },
         context: { headers: { 'Highlight-Demo': demo } },
+        fetchPolicy: 'no-cache',
     });
     const virtuoso = useRef<VirtuosoHandle>(null);
 
