@@ -59,12 +59,6 @@ type ComplexityRoot struct {
 		StartDate func(childComplexity int) int
 	}
 
-	ErrorField struct {
-		ID    func(childComplexity int) int
-		Name  func(childComplexity int) int
-		Value func(childComplexity int) int
-	}
-
 	ErrorGroup struct {
 		Event          func(childComplexity int) int
 		ID             func(childComplexity int) int
@@ -83,6 +77,7 @@ type ComplexityRoot struct {
 		Source         func(childComplexity int) int
 		Trace          func(childComplexity int) int
 		Type           func(childComplexity int) int
+		URL            func(childComplexity int) int
 	}
 
 	Field struct {
@@ -282,27 +277,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.DateRange.StartDate(childComplexity), true
 
-	case "ErrorField.id":
-		if e.complexity.ErrorField.ID == nil {
-			break
-		}
-
-		return e.complexity.ErrorField.ID(childComplexity), true
-
-	case "ErrorField.name":
-		if e.complexity.ErrorField.Name == nil {
-			break
-		}
-
-		return e.complexity.ErrorField.Name(childComplexity), true
-
-	case "ErrorField.value":
-		if e.complexity.ErrorField.Value == nil {
-			break
-		}
-
-		return e.complexity.ErrorField.Value(childComplexity), true
-
 	case "ErrorGroup.event":
 		if e.complexity.ErrorGroup.Event == nil {
 			break
@@ -400,6 +374,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObject.Type(childComplexity), true
+
+	case "ErrorObject.url":
+		if e.complexity.ErrorObject.URL == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.URL(childComplexity), true
 
 	case "Field.name":
 		if e.complexity.Field.Name == nil {
@@ -1150,6 +1131,7 @@ type ErrorObject {
     session_id: Int!
     event: String!
     type: String!
+    url: String!
     source: String
     line_number: Int
     column_number: Int
@@ -1162,12 +1144,6 @@ type ErrorGroup {
     event: String!
     trace: String!
     metadata_log: String
-}
-
-type ErrorField {
-    id: ID!
-    name: String!
-    value: String!
 }
 
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
@@ -2042,108 +2018,6 @@ func (ec *executionContext) _DateRange_end_date(ctx context.Context, field graph
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorField_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "ErrorField",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ErrorField_name(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "ErrorField",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ErrorField_value(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "ErrorField",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Value, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _ErrorGroup_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2465,6 +2339,40 @@ func (ec *executionContext) _ErrorObject_type(ctx context.Context, field graphql
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_url(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorObject",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.URL, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6439,43 +6347,6 @@ func (ec *executionContext) _DateRange(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
-var errorFieldImplementors = []string{"ErrorField"}
-
-func (ec *executionContext) _ErrorField(ctx context.Context, sel ast.SelectionSet, obj *model1.ErrorField) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, errorFieldImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("ErrorField")
-		case "id":
-			out.Values[i] = ec._ErrorField_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "name":
-			out.Values[i] = ec._ErrorField_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "value":
-			out.Values[i] = ec._ErrorField_value(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var errorGroupImplementors = []string{"ErrorGroup"}
 
 func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSet, obj *model1.ErrorGroup) graphql.Marshaler {
@@ -6553,6 +6424,11 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			}
 		case "type":
 			out.Values[i] = ec._ErrorObject_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "url":
+			out.Values[i] = ec._ErrorObject_url(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
