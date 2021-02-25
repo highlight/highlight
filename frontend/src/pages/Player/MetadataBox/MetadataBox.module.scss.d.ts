@@ -6,7 +6,6 @@ export const skeletonWrapper: string;
 export const tagDiv: string;
 export const tagEllipsis: string;
 export const tagWrapper: string;
-export const tagWrapperExpanded: string;
 export const userAvatarWrapper: string;
 export const userContentWrapper: string;
 export const userIdSubHeader: string;

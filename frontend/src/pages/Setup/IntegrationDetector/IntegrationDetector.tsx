@@ -3,6 +3,7 @@ import React from 'react';
 import styles from './IntegrationDetector.module.scss';
 import { Tooltip } from 'antd';
 import { ReactComponent as CheckIcon } from '../../../static/verify-check.svg';
+import ActivityIcon from '../../Player/SessionLevelBar/ActivityIcon/ActivityIcon';
 
 export const IntegrationDetector = ({
     integrated,
@@ -25,7 +26,10 @@ export const IntegrationDetector = ({
                         {integrated ? (
                             <CheckIcon className={styles.checkIcon} />
                         ) : (
-                            <div className="blob" />
+                            <ActivityIcon
+                                isActive={integrated}
+                                className="blob"
+                            />
                         )}
                     </div>
                 </div>

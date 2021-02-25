@@ -33,6 +33,7 @@ import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import { usePlayer } from './PlayerHook/PlayerHook';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
+import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
 
 export const Player = () => {
     const { session_id } = useParams<{ session_id: string }>();
@@ -110,6 +111,7 @@ export const Player = () => {
         <ReplayerContext.Provider value={player}>
             <div className={styles.playerBody}>
                 <div className={styles.playerLeftSection}>
+                    <SessionLevelBar />
                     <div className={styles.rrwebPlayerSection}>
                         <div
                             className={styles.rrwebPlayerWrapper}
