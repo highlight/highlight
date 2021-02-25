@@ -4,18 +4,18 @@ export const SharedSelectStyleProps: Styles<
     { label: string; value: string },
     false
 > = {
-    control: (provided, state) => ({
+    control: (provided) => ({
         ...provided,
         borderColor: '#eaeaea',
         borderRadius: 8,
         minHeight: 45,
     }),
-    singleValue: (provided, state) => ({
+    singleValue: (provided) => ({
         ...provided,
         maxWidth: 'calc(90% - 8px)',
     }),
-    menu: (provided, state) => ({ ...provided, zIndex: 100 }),
-    option: (provided, state) => ({
+    menu: (provided) => ({ ...provided, zIndex: 100 }),
+    option: (provided) => ({
         ...provided,
         whiteSpace: 'nowrap',
         overflow: 'hidden',

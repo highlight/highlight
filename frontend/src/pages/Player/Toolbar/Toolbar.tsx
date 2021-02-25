@@ -69,7 +69,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         }
     }, [autoPlayVideo, replayer, time, play, state]);
 
-    const endLogger = (e: any, data: any) => {
+    const endLogger = (e: any) => {
         let newTime = (e.x / wrapperWidth) * max;
         newTime = Math.max(0, newTime);
         newTime = Math.min(max, newTime);

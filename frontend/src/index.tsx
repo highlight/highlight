@@ -7,7 +7,7 @@ import * as serviceWorker from './serviceWorker';
 
 import { ApolloProvider } from '@apollo/client';
 import { client } from './util/graph';
-import { AuthAppRouter } from './App';
+import { LoginForm } from './pages/Login/Login';
 import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
 import { DemoContext } from './DemoContext';
 import { H, HighlightOptions } from 'highlight.run';
@@ -26,8 +26,8 @@ if (dev) {
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
 
-ReactDOM.render(
-    <React.StrictMode>
+const App = () => {
+    return (
         <ApolloProvider client={client}>
             <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
                 <Router>
@@ -38,14 +38,18 @@ ReactDOM.render(
                             </DemoContext.Provider>
                         </Route>
                         <Route path="/">
-                            <DemoContext.Provider value={{ demo: false }}>
-                                <AuthAppRouter />
-                            </DemoContext.Provider>
+                            <LoginForm />
                         </Route>
                     </Switch>
                 </Router>
             </SkeletonTheme>
         </ApolloProvider>
+    );
+};
+
+ReactDOM.render(
+    <React.StrictMode>
+        <App />
     </React.StrictMode>,
     document.getElementById('root')
 );

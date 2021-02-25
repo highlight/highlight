@@ -43,13 +43,13 @@ export const TrackPropertyInput = () => {
             <AsyncCreatableSelect
                 isMulti
                 styles={{
-                    control: (provided, state) => ({
+                    control: (provided) => ({
                         ...provided,
                         borderColor: '#eaeaea',
                         borderRadius: 8,
                         minHeight: 45,
                     }),
-                    multiValue: (provided, state) => ({
+                    multiValue: (provided) => ({
                         ...provided,
                         backgroundColor: '#F2EEFB',
                     }),

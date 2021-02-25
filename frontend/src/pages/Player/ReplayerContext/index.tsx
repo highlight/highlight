@@ -31,6 +31,7 @@ export interface ReplayerContextInterface {
     sessionIntervals: Array<ParsedSessionInterval>;
 }
 
+/* eslint-disable */
 export const defaultValue: ReplayerContextInterface = {
     state: ReplayerState.Loading,
     replayer: undefined,
@@ -43,6 +44,7 @@ export const defaultValue: ReplayerContextInterface = {
     events: [],
     sessionIntervals: [],
 };
+/* eslint-enable */
 
 const ReplayerContext = createContext<ReplayerContextInterface>(defaultValue);
 

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Redirect } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { CircularSpinner } from '../../components/Spinner/Spinner';
+import { CircularSpinner } from '../../components/Loading/Loading';
 import { client } from '../../util/graph';
 
 import styles from './NewWorkspace.module.scss';

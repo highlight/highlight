@@ -3,7 +3,7 @@ import { message, Skeleton } from 'antd';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
 import { Avatar } from '../../components/Avatar/Avatar';
-import { CircularSpinner } from '../../components/Spinner/Spinner';
+import { CircularSpinner } from '../../components/Loading/Loading';
 import classNames from 'classnames/bind';
 
 import commonStyles from '../../Common.module.scss';

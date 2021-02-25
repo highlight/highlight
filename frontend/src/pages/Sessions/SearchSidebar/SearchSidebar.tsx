@@ -19,11 +19,7 @@ import {
 import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
 import { SearchSection } from './SearchSection/SearchSection';
 
-export const SearchSidebar = ({
-    feedPosition,
-}: {
-    feedPosition: { top: number; right: number };
-}) => {
+export const SearchSidebar = () => {
     const [open, setOpen] = useState(true);
 
     return (

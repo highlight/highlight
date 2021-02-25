@@ -26,10 +26,12 @@ export const SearchContext = React.createContext<{
     segmentName: string | null;
     setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
 }>({
+    /* eslint-disable */
     searchParams: { user_properties: [], identified: false },
     setSearchParams: (params) => console.warn('noop'),
     existingParams: { user_properties: [], identified: false },
     setExistingParams: (params) => console.warn('goop'),
     segmentName: null,
     setSegmentName: (val) => console.warn('poop'),
+    /* eslint-enable */
 });
