@@ -12,8 +12,9 @@ import (
 
 func TestEventsFromString(t *testing.T) {
 	tables := []struct {
-		input      string
-		wantEvents *ReplayEvents
+		input         string
+		wantStruct    *ReplayEvents
+		wantInterface interface{}
 	}{
 		{
 			`
@@ -32,6 +33,17 @@ func TestEventsFromString(t *testing.T) {
 					Data:      json.RawMessage(`{"test": 5}`),
 				},
 			}},
+			map[string][]map[string]interface{}{
+				"events": {
+					{
+						"data": map[string]interface{}{
+							"test": 5,
+						},
+						"timestamp": 0,
+						"type":      4,
+					},
+				},
+			},
 		},
 		{
 			`
@@ -48,18 +60,44 @@ func TestEventsFromString(t *testing.T) {
 					Type:      FullSnapshot,
 				},
 			}},
+			map[string][]map[string]interface{}{
+				"events": {
+					{
+						"timestamp": 0,
+						"type":      2,
+						"data":      nil,
+					},
+				},
+			},
 		},
 	}
-	for _, tt := range tables {
+	for i, tt := range tables {
 		gotEvents, err := EventsFromString(tt.input)
 		if err != nil {
 			t.Errorf("error converting: %v", err)
 			continue
 		}
+		// Assert that the unmarshaled struct is what we're expecting.
 		got := *gotEvents
-		want := *tt.wantEvents
+		want := *tt.wantStruct
 		if diff := deep.Equal(got, want); diff != nil {
-			t.Error(diff)
+			t.Errorf("[%v]: \n:%v", i, diff)
+		}
+		// Assert that when we marshal back, we get the same string.
+		marshaled, err := json.Marshal(gotEvents)
+		if err != nil {
+			t.Errorf("error marshaling: %v", err)
+			continue
+		}
+
+		gotInterface := make(map[string]interface{})
+		err = json.Unmarshal(marshaled, &gotInterface)
+		if err != nil {
+			t.Errorf("error unmarshaling: %v", err)
+			continue
+		}
+		if diff := pretty.Compare(gotInterface, tt.wantInterface); diff != "" {
+			t.Errorf("[%v]: \n%v", i, diff)
 		}
 	}
 }
