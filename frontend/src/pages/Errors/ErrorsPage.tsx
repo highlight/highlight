@@ -3,19 +3,22 @@ import { Button } from 'antd';
 import styles from './ErrorsPage.module.scss';
 import { ErrorFeed } from './ErrorFeed/ErrorFeed';
 import {
-    ErrorSearchContext,
-    ErrorSearchParams,
-} from './ErrorSearchContext/ErrorSearchContext';
+    SearchContext,
+    SearchParams,
+} from '../Sessions/SearchContext/SearchContext';
 import { ErrorSearchSidebar } from './ErrorSearchSidebar/ErrorSearchSidebar';
-import { ErrorSegmentSidebar } from './ErrorSegmentSidebar/ErrorSegmentSidebar';
+import { SegmentSidebar } from '../Sessions/SegmentSidebar/SegmentSidebar';
 
 export const ErrorsPage = () => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
-    const [
-        errorSearchParams,
-        setErrorSearchParams,
-    ] = useState<ErrorSearchParams>({});
-    const [existingParams, setExistingParams] = useState<ErrorSearchParams>({});
+    const [searchParams, setSearchParams] = useState<SearchParams>({
+        user_properties: [],
+        identified: false,
+    });
+    const [existingParams, setExistingParams] = useState<SearchParams>({
+        user_properties: [],
+        identified: false,
+    });
     const throwError = (): void => {
         throw new Error('This error is from a throw');
     };
@@ -25,10 +28,10 @@ export const ErrorsPage = () => {
     };
 
     return (
-        <ErrorSearchContext.Provider
+        <SearchContext.Provider
             value={{
-                errorSearchParams,
-                setErrorSearchParams,
+                searchParams,
+                setSearchParams,
                 existingParams,
                 setExistingParams,
                 segmentName,
@@ -37,7 +40,7 @@ export const ErrorsPage = () => {
         >
             <div className={styles.errorsBody}>
                 <div className={styles.leftPanel}>
-                    <ErrorSegmentSidebar />
+                    <SegmentSidebar />
                     <div className={styles.advancedText}>
                         <Button
                             type="primary"
@@ -65,6 +68,6 @@ export const ErrorsPage = () => {
                     <ErrorSearchSidebar />
                 </div>
             </div>
-        </ErrorSearchContext.Provider>
+        </SearchContext.Provider>
     );
 };

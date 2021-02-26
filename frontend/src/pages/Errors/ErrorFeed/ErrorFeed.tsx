@@ -1,4 +1,10 @@
-import React, { RefObject, useContext, useEffect, useState } from 'react';
+import React, {
+    RefObject,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styles from './ErrorFeed.module.scss';
 import Skeleton from 'react-loading-skeleton';
@@ -6,9 +12,9 @@ import classNames from 'classnames/bind';
 import { Tag, Tooltip } from 'antd';
 import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
 import { Maybe } from '../../../graph/generated/schemas';
-import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
-import { DateInput } from '../ErrorSearchInputs/ErrorDateInput';
+import { SearchContext } from '../../Sessions/SearchContext/SearchContext';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
+import { DateInput } from '../../Sessions/SearchInputs/DateInput';
 
 export type ErrorMetadata = {
     browser: string;
@@ -33,13 +39,19 @@ export const ErrorFeed = () => {
         error_groups: [],
         totalCount: -1,
     });
-    const { errorSearchParams } = useContext(ErrorSearchContext);
+    const { searchParams } = useContext(SearchContext);
+    const [parsedSearchParams, setParsedSearchParams] = useState<any>({});
+
+    useMemo(() => {
+        const { date_range, os, browser, visited_url } = searchParams;
+        setParsedSearchParams({ date_range, os, browser, visited_url });
+    }, [searchParams]);
 
     const { loading, fetchMore } = useGetErrorGroupsQuery({
         variables: {
             organization_id,
             count: count + 10,
-            params: errorSearchParams,
+            params: parsedSearchParams,
         },
         onCompleted: (response) => {
             if (response.error_groups) {
@@ -51,7 +63,7 @@ export const ErrorFeed = () => {
 
     useEffect(() => {
         setShowLoadingSkeleton(true);
-    }, [errorSearchParams]);
+    }, [parsedSearchParams]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
@@ -62,7 +74,7 @@ export const ErrorFeed = () => {
             setCount((previousCount) => previousCount + 10);
             fetchMore({
                 variables: {
-                    params: errorSearchParams,
+                    params: parsedSearchParams,
                     count,
                     organization_id,
                 },

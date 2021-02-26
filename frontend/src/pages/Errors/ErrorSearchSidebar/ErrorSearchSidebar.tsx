@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
 import styles from './ErrorSearchSidebar.module.scss';
 import classNames from 'classnames/bind';
-import { DateInput } from '../ErrorSearchInputs/ErrorDateInput';
+import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
+import {
+    ViewedSessionsSwitch,
+    VisitedUrlInput,
+} from '../../Sessions/SearchInputs/SessionInputs';
+import { SearchSection } from '../../Sessions/SearchSidebar/SearchSection/SearchSection';
+import { DateInput } from '../../Sessions/SearchInputs/DateInput';
 import {
     BrowserInput,
     OperatingSystemInput,
-} from '../ErrorSearchInputs/ErrorDeviceInputs';
-import {
-    VisitedUrlInput,
-    ViewedSessionsSwitch,
-} from '../ErrorSearchInputs/ErrorSessionInputs';
-import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
-import { SearchSection } from './SearchSection/SearchSection';
+} from '../../Sessions/SearchInputs/DeviceInputs';
 
 export const ErrorSearchSidebar = () => {
     const [open, setOpen] = useState(true);
