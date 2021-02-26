@@ -10,6 +10,7 @@ import { H } from 'highlight.run';
 import { useForm } from 'react-hook-form';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, googleProvider } from '../../util/auth';
+import { Home } from '../Home/Home';
 
 export const AuthAdminRouter = () => {
     const { loading, error, data } = useGetAdminQuery();
@@ -92,106 +93,118 @@ export const LoginForm = () => {
     }
 
     return (
-        <div className={styles.loginPage}>
-            <div className={styles.loginFormWrapper}>
-                <form
-                    onSubmit={handleSubmit(onSubmit)}
-                    className={styles.loginForm}
-                >
-                    <div className={styles.loginTitleWrapper}>
-                        <div className={styles.loginTitle}>
-                            Welcome {signIn && 'back'} to Highlight.
+        <Home>
+            <div className={styles.loginPage}>
+                <div className={styles.loginFormWrapper}>
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className={styles.loginForm}
+                    >
+                        <div className={styles.loginTitleWrapper}>
+                            <div className={styles.loginTitle}>
+                                Welcome {signIn && 'back'} to Highlight.
+                            </div>
+                            <div className={styles.loginSubTitle}>
+                                {signIn ? (
+                                    <>
+                                        New here?{' '}
+                                        <span
+                                            onClick={changeState}
+                                            className={
+                                                styles.loginStateSwitcher
+                                            }
+                                        >
+                                            Create an account.
+                                        </span>
+                                    </>
+                                ) : (
+                                    <>
+                                        Already have an account?{' '}
+                                        <span
+                                            onClick={changeState}
+                                            className={
+                                                styles.loginStateSwitcher
+                                            }
+                                        >
+                                            Sign in.
+                                        </span>
+                                    </>
+                                )}
+                            </div>
                         </div>
-                        <div className={styles.loginSubTitle}>
-                            {signIn ? (
-                                <>
-                                    New here?{' '}
-                                    <span
-                                        onClick={changeState}
-                                        className={styles.loginStateSwitcher}
-                                    >
-                                        Create an account.
-                                    </span>
-                                </>
-                            ) : (
-                                <>
-                                    Already have an account?{' '}
-                                    <span
-                                        onClick={changeState}
-                                        className={styles.loginStateSwitcher}
-                                    >
-                                        Sign in.
-                                    </span>
-                                </>
-                            )}
+                        <input
+                            placeholder={'Email'}
+                            name="email"
+                            ref={register({ required: true })}
+                            className={commonStyles.input}
+                        />
+                        <div className={commonStyles.errorMessage}>
+                            {errors.email && 'Enter an email yo!'}
                         </div>
+                        <input
+                            placeholder={'Password'}
+                            type="password"
+                            name="password"
+                            ref={register({ required: true })}
+                            className={commonStyles.input}
+                        />
+                        {!signIn && (
+                            <>
+                                <input
+                                    placeholder={'Confirm Password'}
+                                    type="password"
+                                    name="confirm-password"
+                                    ref={register({
+                                        required: true,
+                                        validate: (value) => {
+                                            if (value !== watch('password')) {
+                                                setError('password', {
+                                                    type: 'mismatch',
+                                                    message:
+                                                        'Mismatched passwords',
+                                                });
+                                                return "Passwords don't match.";
+                                            }
+                                        },
+                                    })}
+                                    className={commonStyles.input}
+                                />
+                            </>
+                        )}
+                        <div className={commonStyles.errorMessage}>
+                            {errors.password && errors.password.message}
+                        </div>
+                        <button
+                            className={commonStyles.submitButton}
+                            type="submit"
+                        >
+                            {signIn ? 'Sign In' : 'Sign Up'}
+                        </button>
+                    </form>
+                    <div className={styles.otherSigninText}>
+                        or sign {signIn ? 'in' : 'up'} with
                     </div>
-                    <input
-                        placeholder={'Email'}
-                        name="email"
-                        ref={register({ required: true })}
-                        className={commonStyles.input}
-                    />
+                    <div
+                        className={commonStyles.secondaryButton}
+                        onClick={() => {
+                            auth.signInWithRedirect(googleProvider).catch((e) =>
+                                setFirebaseError(JSON.stringify(e))
+                            );
+                        }}
+                    >
+                        <GoogleLogo className={styles.googleLogoStyle} />
+                        <span className={styles.googleText}>
+                            Google Sign {signIn ? 'In' : 'Up'}
+                        </span>
+                    </div>
                     <div className={commonStyles.errorMessage}>
-                        {errors.email && 'Enter an email yo!'}
+                        {firebaseError}
                     </div>
-                    <input
-                        placeholder={'Password'}
-                        type="password"
-                        name="password"
-                        ref={register({ required: true })}
-                        className={commonStyles.input}
-                    />
-                    {!signIn && (
-                        <>
-                            <input
-                                placeholder={'Confirm Password'}
-                                type="password"
-                                name="confirm-password"
-                                ref={register({
-                                    required: true,
-                                    validate: (value) => {
-                                        if (value !== watch('password')) {
-                                            setError('password', {
-                                                type: 'mismatch',
-                                                message: 'Mismatched passwords',
-                                            });
-                                            return "Passwords don't match.";
-                                        }
-                                    },
-                                })}
-                                className={commonStyles.input}
-                            />
-                        </>
-                    )}
                     <div className={commonStyles.errorMessage}>
-                        {errors.password && errors.password.message}
+                        {JSON.stringify(error)}
                     </div>
-                    <button className={commonStyles.submitButton} type="submit">
-                        {signIn ? 'Sign In' : 'Sign Up'}
-                    </button>
-                </form>
-                <div className={styles.otherSigninText}>
-                    or sign {signIn ? 'in' : 'up'} with
-                </div>
-                <div
-                    className={commonStyles.secondaryButton}
-                    onClick={() => {
-                        auth.signInWithRedirect(googleProvider).catch((e) =>
-                            setFirebaseError(JSON.stringify(e))
-                        );
-                    }}
-                >
-                    <GoogleLogo className={styles.googleLogoStyle} />
-                    <span className={styles.googleText}>
-                        Google Sign {signIn ? 'In' : 'Up'}
-                    </span>
-                </div>
-                <div className={commonStyles.errorMessage}>{firebaseError}</div>
-                <div className={commonStyles.errorMessage}>
-                    {JSON.stringify(error)}
                 </div>
             </div>
-        </div>
+        </Home>
     );
 };

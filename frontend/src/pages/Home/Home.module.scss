@@ -1,0 +1,65 @@
+@import 'src/static/shared.scss';
+
+.homePageWrapper {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100%;
+}
+
+.nav {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    padding: 30px;
+    width: 100%;
+}
+
+.purpleText {
+    color: $highlight-purple;
+}
+
+.header {
+    font-size: 35px;
+    font-weight: 400;
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.logoHeader {
+    margin-top: 30px;
+    font-size: 14px;
+    color: #888888;
+}
+
+.subHeader {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 300;
+    display: flex;
+    justify-content: center;
+    max-width: 300px;
+    margin-bottom: 30px;
+}
+
+.contentWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    background-color: $highlight-purple;
+}
+
+.stylingWrapper {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
