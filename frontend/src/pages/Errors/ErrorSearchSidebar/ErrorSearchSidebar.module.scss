@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .searchBar {
     background-color: white;
     width: 100%;
@@ -19,7 +21,7 @@
     width: 50px;
     border-radius: 8px 0 0 8px;
     border-width: 1px;
-    border-color: #eaeaea white #eaeaea #eaeaea;
+    border-color: $border-light-gray white $border-light-gray $border-light-gray;
     border-style: solid;
     display: flex;
     align-items: center;
@@ -32,10 +34,10 @@
 }
 
 .titleSection {
-    border: 1px solid #eaeaea;
+    border: 1px solid $border-light-gray;
     padding: 20px 20px 0px 20px;
     border-radius: 8px 8px 0 0;
-    border-color: #eaeaea #eaeaea white #eaeaea;
+    border-color: $border-light-gray $border-light-gray white $border-light-gray;
 }
 
 .sideTabVisible {

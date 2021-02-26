@@ -19,7 +19,7 @@ export const ErrorSearchSidebar = () => {
     return (
         <>
             <div className={classNames([styles.searchBar])}>
-                <div
+                <button
                     className={classNames(
                         styles.sideTab,
                         open ? styles.sideTabHidden : styles.sideTabVisible
@@ -27,7 +27,7 @@ export const ErrorSearchSidebar = () => {
                     onClick={() => setOpen((o) => !o)}
                 >
                     <Hamburger className={styles.hamburgerSide} />
-                </div>
+                </button>
                 <div className={styles.sideContentWrapper}>
                     <div className={styles.toggleSection}>
                         <ViewedSessionsSwitch />
