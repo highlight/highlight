@@ -56,6 +56,11 @@ type ErrorMetaData struct {
 	SessionID int       `json:"session_id"`
 }
 
+type FieldData struct {
+	Name  string
+	Value string
+}
+
 //Change to AppendProperties(sessionId,properties,type)
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
@@ -73,11 +78,18 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 	if err != nil {
 		return e.Wrap(err, "error appending fields")
 	}
+
 	return nil
 }
 
 func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
 	fieldsToAppend := []*model.Field{}
+	var newFieldGroup []FieldData
+	if session.FieldGroup != nil {
+		if err := json.Unmarshal([]byte(*session.FieldGroup), &newFieldGroup); err != nil {
+			return e.Wrap(err, "error decoding time log data")
+		}
+	}
 	for _, f := range fields {
 		field := &model.Field{}
 		res := r.DB.Where(f).First(&field)
@@ -87,9 +99,26 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 				return e.Wrap(err, "error creating field")
 			}
 			fieldsToAppend = append(fieldsToAppend, f)
+			newFieldGroup = append(newFieldGroup, FieldData{
+				Name:  f.Name,
+				Value: f.Value,
+			})
 		} else {
 			fieldsToAppend = append(fieldsToAppend, field)
+			newFieldGroup = append(newFieldGroup, FieldData{
+				Name:  field.Name,
+				Value: field.Value,
+			})
 		}
+	}
+	fieldBytes, err := json.Marshal(newFieldGroup)
+	if err != nil {
+		return e.Wrap(err, "Error marshalling field group")
+	}
+	fieldString := string(fieldBytes)
+
+	if res := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}); res.RecordNotFound() || res.Error != nil {
+		return e.Wrap(err, "Error updating session field group")
 	}
 	// We append to this session in the join table regardless.
 	re := r.DB.Model(session).Association("Fields").Append(fieldsToAppend)

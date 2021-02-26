@@ -158,6 +158,7 @@ type ComplexityRoot struct {
 		BrowserVersion func(childComplexity int) int
 		City           func(childComplexity int) int
 		CreatedAt      func(childComplexity int) int
+		FieldGroup     func(childComplexity int) int
 		Fields         func(childComplexity int) int
 		ID             func(childComplexity int) int
 		Identifier     func(childComplexity int) int
@@ -899,6 +900,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.CreatedAt(childComplexity), true
 
+	case "Session.field_group":
+		if e.complexity.Session.FieldGroup == nil {
+			break
+		}
+
+		return e.complexity.Session.FieldGroup(childComplexity), true
+
 	case "Session.fields":
 		if e.complexity.Session.Fields == nil {
 			break
@@ -1102,6 +1110,7 @@ type Session {
     user_object: Any
     fields: [Field]
     viewed: Boolean
+    field_group: String
 }
 
 type RecordingSettings {
@@ -4903,6 +4912,37 @@ func (ec *executionContext) _Session_viewed(ctx context.Context, field graphql.C
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_field_group(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Session",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FieldGroup, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionResults_sessions(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7002,6 +7042,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_fields(ctx, field, obj)
 		case "viewed":
 			out.Values[i] = ec._Session_viewed(ctx, field, obj)
+		case "field_group":
+			out.Values[i] = ec._Session_field_group(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

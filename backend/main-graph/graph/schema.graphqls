@@ -25,6 +25,7 @@ type Session {
     user_object: Any
     fields: [Field]
     viewed: Boolean
+    field_group: String
 }
 
 type RecordingSettings {
