@@ -74,6 +74,7 @@ export type ErrorObject = {
     session_id: Scalars['Int'];
     event: Scalars['String'];
     type: Scalars['String'];
+    url: Scalars['String'];
     source?: Maybe<Scalars['String']>;
     line_number?: Maybe<Scalars['Int']>;
     column_number?: Maybe<Scalars['Int']>;
@@ -87,13 +88,7 @@ export type ErrorGroup = {
     event: Scalars['String'];
     trace: Scalars['String'];
     metadata_log?: Maybe<Scalars['String']>;
-};
-
-export type ErrorField = {
-    __typename?: 'ErrorField';
-    id: Scalars['ID'];
-    name: Scalars['String'];
-    value: Scalars['String'];
+    viewed?: Maybe<Scalars['Boolean']>;
 };
 
 export type SearchParamsInput = {
@@ -120,6 +115,23 @@ export type SearchParams = {
     visited_url?: Maybe<Scalars['String']>;
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
+    hide_viewed?: Maybe<Scalars['Boolean']>;
+};
+
+export type ErrorSearchParamsInput = {
+    date_range?: Maybe<DateRangeInput>;
+    os?: Maybe<Scalars['String']>;
+    browser?: Maybe<Scalars['String']>;
+    visited_url?: Maybe<Scalars['String']>;
+    hide_viewed?: Maybe<Scalars['Boolean']>;
+};
+
+export type ErrorSearchParams = {
+    __typename?: 'ErrorSearchParams';
+    date_range?: Maybe<DateRange>;
+    os?: Maybe<Scalars['String']>;
+    browser?: Maybe<Scalars['String']>;
+    visited_url?: Maybe<Scalars['String']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
 };
 
@@ -163,11 +175,17 @@ export type SessionResults = {
     totalCount: Scalars['Int'];
 };
 
+export type ErrorResults = {
+    __typename?: 'ErrorResults';
+    error_groups: Array<Maybe<ErrorGroup>>;
+    totalCount: Scalars['Int'];
+};
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
-    error_groups?: Maybe<Array<Maybe<ErrorGroup>>>;
+    error_groups?: Maybe<ErrorResults>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
@@ -193,6 +211,8 @@ export type QueryEventsArgs = {
 
 export type QueryError_GroupsArgs = {
     organization_id: Scalars['ID'];
+    count: Scalars['Int'];
+    params?: Maybe<ErrorSearchParamsInput>;
 };
 
 export type QueryMessagesArgs = {

@@ -1,0 +1,41 @@
+.header {
+    font-size: 14px;
+    color: black;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.headerWrapper {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.searchSection {
+    margin-top: 4px;
+}
+
+.searchSectionWrapper {
+    border: 1px solid #eaeaea;
+    border-color: #eaeaea #eaeaea #eaeaea #eaeaea;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+}
+
+.icon {
+    transition: 0.4s;
+    height: 14px;
+    width: 14px;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+.contentOuterOpen {
+    overflow: visible !important;
+}
+
+.contentOuterClosed {
+    overflow: hidden;
+}

@@ -23,6 +23,7 @@ export type Session = {
 export type ErrorObjectInput = {
   event: Scalars['String'];
   type: Scalars['String'];
+  url: Scalars['String'];
   source: Scalars['String'];
   lineNumber: Scalars['Int'];
   columnNumber: Scalars['Int'];
@@ -69,7 +70,7 @@ export type MutationAddSessionPropertiesArgs = {
 
 export type MutationPushPayloadArgs = {
   session_id: Scalars['ID'];
-  events: ReplayEventsInput;
+  eventsObject: ReplayEventsInput;
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;

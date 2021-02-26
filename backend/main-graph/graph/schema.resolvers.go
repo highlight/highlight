@@ -339,7 +339,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	return allEvents["events"], nil
 }
 
-func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int) ([]*model.ErrorGroup, error) {
+func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, count int, params *modelInputs.ErrorSearchParamsInput) (*model.ErrorResults, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
@@ -348,7 +348,12 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int) ([]
 		return nil, fmt.Errorf("error reading from error groups: %v", res.Error)
 	}
 
-	return errorGroups, nil
+	errorResults := &model.ErrorResults{
+		ErrorGroups: errorGroups[:count],
+		TotalCount:  len(errorGroups),
+	}
+
+	return errorResults, nil
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {

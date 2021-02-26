@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { RefObject, useContext, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styles from './ErrorFeed.module.scss';
 import Skeleton from 'react-loading-skeleton';
@@ -6,6 +6,9 @@ import classNames from 'classnames/bind';
 import { Tag, Tooltip } from 'antd';
 import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
 import { Maybe } from '../../../graph/generated/schemas';
+import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
+import { DateInput } from '../ErrorSearchInputs/ErrorDateInput';
+import useInfiniteScroll from 'react-infinite-scroll-hook';
 
 export type ErrorMetadata = {
     browser: string;
@@ -24,26 +27,64 @@ export type ErrorTrace = {
 
 export const ErrorFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const [count, setCount] = useState(10);
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const [data, setData] = useState<any>({
         error_groups: [],
+        totalCount: -1,
     });
+    const { errorSearchParams } = useContext(ErrorSearchContext);
 
-    useGetErrorGroupsQuery({
-        variables: { organization_id: organization_id },
+    const { loading, fetchMore } = useGetErrorGroupsQuery({
+        variables: {
+            organization_id,
+            count: count + 10,
+            params: errorSearchParams,
+        },
         onCompleted: (response) => {
             if (response.error_groups) {
-                setData(response);
+                setData(response.error_groups);
             }
             setShowLoadingSkeleton(false);
         },
     });
 
+    useEffect(() => {
+        setShowLoadingSkeleton(true);
+    }, [errorSearchParams]);
+
+    const infiniteRef = useInfiniteScroll({
+        checkInterval: 1200, // frequency to check (1.2s)
+        loading,
+        hasNextPage: data.error_groups.length < data.totalCount,
+        scrollContainer: 'parent',
+        onLoadMore: () => {
+            setCount((previousCount) => previousCount + 10);
+            fetchMore({
+                variables: {
+                    params: errorSearchParams,
+                    count,
+                    organization_id,
+                },
+            });
+        },
+    });
+
     return (
         <>
+            <div className={styles.fixedContent}>
+                <div className={styles.mainUserInput}>
+                    <div className={styles.userInputWrapper}>
+                        <DateInput />
+                    </div>
+                </div>
+                <div
+                    className={styles.resultCount}
+                >{`${data.totalCount} errors`}</div>
+            </div>
             <div className={styles.feedContent}>
-                <div>
-                    {showLoadingSkeleton ? (
+                <div ref={infiniteRef as RefObject<HTMLDivElement>}>
+                    {loading && showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
                             count={3}
@@ -55,9 +96,19 @@ export const ErrorFeed = () => {
                         />
                     ) : (
                         <>
-                            {data?.error_groups?.map((u: any, ind: number) => {
+                            {data.error_groups?.map((u: any, ind: number) => {
                                 return <ErrorCard error={u} key={ind} />;
                             })}
+                            {data.error_groups.length < data.totalCount && (
+                                <Skeleton
+                                    height={110}
+                                    style={{
+                                        borderRadius: 8,
+                                        marginTop: 14,
+                                        marginBottom: 14,
+                                    }}
+                                />
+                            )}
                         </>
                     )}
                 </div>

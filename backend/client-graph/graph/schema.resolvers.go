@@ -10,10 +10,9 @@ import (
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
-	"github.com/jay-khatri/fullstory/backend/model"
-
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	parse "github.com/jay-khatri/fullstory/backend/event-parse"
+	"github.com/jay-khatri/fullstory/backend/event-parse"
+	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )

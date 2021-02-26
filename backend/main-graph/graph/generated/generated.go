@@ -80,6 +80,19 @@ type ComplexityRoot struct {
 		URL            func(childComplexity int) int
 	}
 
+	ErrorResults struct {
+		ErrorGroups func(childComplexity int) int
+		TotalCount  func(childComplexity int) int
+	}
+
+	ErrorSearchParams struct {
+		Browser    func(childComplexity int) int
+		DateRange  func(childComplexity int) int
+		HideViewed func(childComplexity int) int
+		OS         func(childComplexity int) int
+		VisitedURL func(childComplexity int) int
+	}
+
 	Field struct {
 		Name  func(childComplexity int) int
 		Type  func(childComplexity int) int
@@ -112,7 +125,7 @@ type ComplexityRoot struct {
 		Admin               func(childComplexity int) int
 		Admins              func(childComplexity int, organizationID int) int
 		BillingDetails      func(childComplexity int, organizationID int) int
-		ErrorGroups         func(childComplexity int, organizationID int) int
+		ErrorGroups         func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
 		Events              func(childComplexity int, sessionID int) int
 		FieldSuggestionBeta func(childComplexity int, organizationID int, name string, query string) int
 		IsIntegrated        func(childComplexity int, organizationID int) int
@@ -205,7 +218,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
 	Events(ctx context.Context, sessionID int) ([]interface{}, error)
-	ErrorGroups(ctx context.Context, organizationID int) ([]*model1.ErrorGroup, error)
+	ErrorGroups(ctx context.Context, organizationID int, count int, params *model.ErrorSearchParamsInput) (*model1.ErrorResults, error)
 	Messages(ctx context.Context, sessionID int) ([]interface{}, error)
 	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
@@ -381,6 +394,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObject.URL(childComplexity), true
+
+	case "ErrorResults.error_groups":
+		if e.complexity.ErrorResults.ErrorGroups == nil {
+			break
+		}
+
+		return e.complexity.ErrorResults.ErrorGroups(childComplexity), true
+
+	case "ErrorResults.totalCount":
+		if e.complexity.ErrorResults.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.ErrorResults.TotalCount(childComplexity), true
+
+	case "ErrorSearchParams.browser":
+		if e.complexity.ErrorSearchParams.Browser == nil {
+			break
+		}
+
+		return e.complexity.ErrorSearchParams.Browser(childComplexity), true
+
+	case "ErrorSearchParams.date_range":
+		if e.complexity.ErrorSearchParams.DateRange == nil {
+			break
+		}
+
+		return e.complexity.ErrorSearchParams.DateRange(childComplexity), true
+
+	case "ErrorSearchParams.hide_viewed":
+		if e.complexity.ErrorSearchParams.HideViewed == nil {
+			break
+		}
+
+		return e.complexity.ErrorSearchParams.HideViewed(childComplexity), true
+
+	case "ErrorSearchParams.os":
+		if e.complexity.ErrorSearchParams.OS == nil {
+			break
+		}
+
+		return e.complexity.ErrorSearchParams.OS(childComplexity), true
+
+	case "ErrorSearchParams.visited_url":
+		if e.complexity.ErrorSearchParams.VisitedURL == nil {
+			break
+		}
+
+		return e.complexity.ErrorSearchParams.VisitedURL(childComplexity), true
 
 	case "Field.name":
 		if e.complexity.Field.Name == nil {
@@ -611,7 +673,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorGroups(childComplexity, args["organization_id"].(int)), true
+		return e.complexity.Query.ErrorGroups(childComplexity, args["organization_id"].(int), args["count"].(int), args["params"].(*model.ErrorSearchParamsInput)), true
 
 	case "Query.events":
 		if e.complexity.Query.Events == nil {
@@ -1174,6 +1236,22 @@ type SearchParams {
     hide_viewed: Boolean
 }
 
+input ErrorSearchParamsInput {
+    date_range: DateRangeInput
+    os: String
+    browser: String
+    visited_url: String
+    hide_viewed: Boolean
+}
+
+type ErrorSearchParams {
+    date_range: DateRange
+    os: String
+    browser: String
+    visited_url: String
+    hide_viewed: Boolean
+}
+
 type DateRange {
     start_date: Time
     end_date: Time
@@ -1209,10 +1287,19 @@ type SessionResults {
     totalCount: Int!
 }
 
+type ErrorResults {
+    error_groups: [ErrorGroup]!
+    totalCount: Int!
+}
+
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
-    error_groups(organization_id: ID!): [ErrorGroup]
+    error_groups(
+        organization_id: ID!
+        count: Int!
+        params: ErrorSearchParamsInput
+    ): ErrorResults
     messages(session_id: ID!): [Any]
     resources(session_id: ID!): [Any]
     admins(organization_id: ID!): [Admin]
@@ -1594,6 +1681,24 @@ func (ec *executionContext) field_Query_error_groups_args(ctx context.Context, r
 		}
 	}
 	args["organization_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["count"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("count"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["count"] = arg1
+	var arg2 *model.ErrorSearchParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		arg2, err = ec.unmarshalOErrorSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg2
 	return args, nil
 }
 
@@ -2513,6 +2618,229 @@ func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphq
 	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ErrorResults_error_groups(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorResults",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorGroups, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.ErrorGroup)
+	fc.Result = res
+	return ec.marshalNErrorGroup2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorResults_totalCount(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorResults",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorSearchParams_date_range(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorSearchParams",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DateRange, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.DateRange)
+	fc.Result = res
+	return ec.marshalODateRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDateRange(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorSearchParams_os(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorSearchParams",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OS, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorSearchParams_browser(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorSearchParams",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Browser, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorSearchParams_visited_url(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorSearchParams",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VisitedURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorSearchParams_hide_viewed(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorSearchParams",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HideViewed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Field_name(ctx context.Context, field graphql.CollectedField, obj *model1.Field) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3294,7 +3622,7 @@ func (ec *executionContext) _Query_error_groups(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorGroups(rctx, args["organization_id"].(int))
+		return ec.resolvers.Query().ErrorGroups(rctx, args["organization_id"].(int), args["count"].(int), args["params"].(*model.ErrorSearchParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3303,9 +3631,9 @@ func (ec *executionContext) _Query_error_groups(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.ErrorGroup)
+	res := resTmp.(*model1.ErrorResults)
 	fc.Result = res
-	return ec.marshalOErrorGroup2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
+	return ec.marshalOErrorResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorResults(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6156,6 +6484,58 @@ func (ec *executionContext) unmarshalInputDateRangeInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Context, obj interface{}) (model.ErrorSearchParamsInput, error) {
+	var it model.ErrorSearchParamsInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "date_range":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("date_range"))
+			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "os":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("os"))
+			it.Os, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "browser":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("browser"))
+			it.Browser, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "visited_url":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("visited_url"))
+			it.VisitedURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hide_viewed":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("hide_viewed"))
+			it.HideViewed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context, obj interface{}) (model.SearchParamsInput, error) {
 	var it model.SearchParamsInput
 	var asMap = obj.(map[string]interface{})
@@ -6449,6 +6829,70 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 				res = ec._ErrorObject_trace(ctx, field, obj)
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var errorResultsImplementors = []string{"ErrorResults"}
+
+func (ec *executionContext) _ErrorResults(ctx context.Context, sel ast.SelectionSet, obj *model1.ErrorResults) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, errorResultsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ErrorResults")
+		case "error_groups":
+			out.Values[i] = ec._ErrorResults_error_groups(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "totalCount":
+			out.Values[i] = ec._ErrorResults_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var errorSearchParamsImplementors = []string{"ErrorSearchParams"}
+
+func (ec *executionContext) _ErrorSearchParams(ctx context.Context, sel ast.SelectionSet, obj *model1.ErrorSearchParams) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, errorSearchParamsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ErrorSearchParams")
+		case "date_range":
+			out.Values[i] = ec._ErrorSearchParams_date_range(ctx, field, obj)
+		case "os":
+			out.Values[i] = ec._ErrorSearchParams_os(ctx, field, obj)
+		case "browser":
+			out.Values[i] = ec._ErrorSearchParams_browser(ctx, field, obj)
+		case "visited_url":
+			out.Values[i] = ec._ErrorSearchParams_visited_url(ctx, field, obj)
+		case "hide_viewed":
+			out.Values[i] = ec._ErrorSearchParams_hide_viewed(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7364,6 +7808,43 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNErrorGroup2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorGroup) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOErrorGroup2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalIntID(v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
@@ -7862,51 +8343,26 @@ func (ec *executionContext) unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkha
 	return &res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOErrorGroup2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorGroup) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOErrorGroup2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
 func (ec *executionContext) marshalOErrorGroup2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorGroup) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ErrorGroup(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOErrorResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorResults(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorResults) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ErrorResults(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOErrorSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx context.Context, v interface{}) (*model.ErrorSearchParamsInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputErrorSearchParamsInput(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v []*model1.Field) graphql.Marshaler {

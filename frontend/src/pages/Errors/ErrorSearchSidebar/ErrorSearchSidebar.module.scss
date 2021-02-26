@@ -1,0 +1,109 @@
+.searchBar {
+    background-color: white;
+    width: 100%;
+    transition: right 0.3s;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    transition: 0.3s;
+    height: 100%;
+}
+
+.sideTab {
+    position: fixed;
+    background-color: white;
+    right: 0;
+    top: 180px;
+    height: 50px;
+    cursor: pointer;
+    width: 50px;
+    border-radius: 8px 0 0 8px;
+    border-width: 1px;
+    border-color: #eaeaea white #eaeaea #eaeaea;
+    border-style: solid;
+    display: flex;
+    align-items: center;
+    z-index: 100;
+    justify-content: center;
+}
+
+.toggleSection {
+    padding: 10px 5px 5px 5px;
+}
+
+.titleSection {
+    border: 1px solid #eaeaea;
+    padding: 20px 20px 0px 20px;
+    border-radius: 8px 8px 0 0;
+    border-color: #eaeaea #eaeaea white #eaeaea;
+}
+
+.sideTabVisible {
+    visibility: visible;
+}
+
+.sideTabHidden {
+    visibility: hidden;
+}
+
+.hideButton {
+    margin-left: auto;
+}
+
+.hamburgerSide {
+    height: 20px;
+    width: 20px;
+}
+
+.sideContentWrapper {
+    position: relative;
+    width: 100%;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.title {
+    color: black;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.subTitle {
+    color: black;
+    font-size: 11px;
+    margin-top: 10px;
+    margin-bottom: 8px;
+}
+
+.emptyDiv {
+    height: 80px;
+}
+
+.searchBarOpen {
+    right: 0;
+}
+
+.searchBarClosed {
+    right: -320px;
+}
+
+.hideIcon {
+    transform: rotate(-90deg);
+    height: 12px;
+    width: 12px;
+    margin-left: -5px;
+    float: right;
+    cursor: pointer;
+    margin-left: 5px;
+    margin-bottom: 2px;
+    color: #808080;
+    fill: #808080;
+}
+
+.icon {
+    transition: 0.4s;
+    height: 14px;
+    width: 14px;
+    cursor: pointer;
+    margin-left: auto;
+}

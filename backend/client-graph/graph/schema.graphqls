@@ -33,7 +33,7 @@ type Mutation {
     addSessionProperties(session_id: ID!, properties_object: Any): ID
     pushPayload(
         session_id: ID!
-        events: ReplayEventsInput!
+        eventsObject: ReplayEventsInput!
         messages: String!
         resources: String!
         errors: [ErrorObjectInput]!

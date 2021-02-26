@@ -98,11 +98,22 @@ query GetBillingDetails($organization_id: ID!) {
     billingDetails(organization_id: $organization_id)
 }
 
-query GetErrorGroups($organization_id: ID!) {
-    error_groups(organization_id: $organization_id) {
-        event
-        trace
-        metadata_log    
+query GetErrorGroups(
+    $organization_id: ID!
+    $count: Int!
+    $params: ErrorSearchParamsInput
+) {
+    error_groups(
+        organization_id: $organization_id, 
+        count: $count, 
+        params: $params
+    ) {
+        error_groups {
+            event
+            trace
+            metadata_log    
+        }
+        totalCount
     }
 }
 

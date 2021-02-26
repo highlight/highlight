@@ -236,6 +236,19 @@ type EventsObject struct {
 	Events    string
 }
 
+type ErrorResults struct {
+	ErrorGroups []*ErrorGroup
+	TotalCount  int
+}
+
+type ErrorSearchParams struct {
+	DateRange  *DateRange `json:"date_range"`
+	Browser    *string    `json:"browser"`
+	OS         *string    `json:"os"`
+	VisitedURL *string    `json:"visited_url"`
+	HideViewed bool       `json:"hide_viewed"`
+}
+
 type ErrorObject struct {
 	Model
 	OrganizationID int

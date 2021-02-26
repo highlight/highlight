@@ -48,7 +48,7 @@ type ComplexityRoot struct {
 		AddTrackProperties   func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		IdentifySession      func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
 		InitializeSession    func(childComplexity int, organizationVerboseID string) int
-		PushPayload          func(childComplexity int, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput) int
+		PushPayload          func(childComplexity int, sessionID int, eventsObject model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput) int
 	}
 
 	Query struct {
@@ -67,7 +67,7 @@ type MutationResolver interface {
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
 	AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
-	PushPayload(ctx context.Context, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput) (*int, error)
+	PushPayload(ctx context.Context, sessionID int, eventsObject model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput) (*int, error)
 }
 type QueryResolver interface {
 	Ignore(ctx context.Context, id int) (interface{}, error)
@@ -146,7 +146,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.PushPayload(childComplexity, args["session_id"].(int), args["events"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["errors"].([]*model.ErrorObjectInput)), true
+		return e.complexity.Mutation.PushPayload(childComplexity, args["session_id"].(int), args["eventsObject"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["errors"].([]*model.ErrorObjectInput)), true
 
 	case "Query.ignore":
 		if e.complexity.Query.Ignore == nil {
@@ -280,7 +280,7 @@ type Mutation {
     addSessionProperties(session_id: ID!, properties_object: Any): ID
     pushPayload(
         session_id: ID!
-        events: ReplayEventsInput!
+        eventsObject: ReplayEventsInput!
         messages: String!
         resources: String!
         errors: [ErrorObjectInput]!
@@ -407,14 +407,14 @@ func (ec *executionContext) field_Mutation_pushPayload_args(ctx context.Context,
 	}
 	args["session_id"] = arg0
 	var arg1 model.ReplayEventsInput
-	if tmp, ok := rawArgs["events"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("events"))
+	if tmp, ok := rawArgs["eventsObject"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("eventsObject"))
 		arg1, err = ec.unmarshalNReplayEventsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋclientᚑgraphᚋgraphᚋmodelᚐReplayEventsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["events"] = arg1
+	args["eventsObject"] = arg1
 	var arg2 string
 	if tmp, ok := rawArgs["messages"]; ok {
 		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("messages"))
@@ -689,7 +689,7 @@ func (ec *executionContext) _Mutation_pushPayload(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().PushPayload(rctx, args["session_id"].(int), args["events"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["errors"].([]*model.ErrorObjectInput))
+		return ec.resolvers.Mutation().PushPayload(rctx, args["session_id"].(int), args["eventsObject"].(model.ReplayEventsInput), args["messages"].(string), args["resources"].(string), args["errors"].([]*model.ErrorObjectInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
