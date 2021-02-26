@@ -1,4 +1,4 @@
-import React, { RefObject, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styles from './ErrorFeed.module.scss';
 import Skeleton from 'react-loading-skeleton';
@@ -29,7 +29,7 @@ export const ErrorFeed = () => {
         error_groups: [],
     });
 
-    const { loading, fetchMore } = useGetErrorGroupsQuery({
+    useGetErrorGroupsQuery({
         variables: { organization_id: organization_id },
         onCompleted: (response) => {
             if (response.error_groups) {
