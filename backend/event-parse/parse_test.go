@@ -141,25 +141,3 @@ func TestInjectStyleSheets(t *testing.T) {
 		t.Errorf("(-got +want)\n%s", diff)
 	}
 }
-
-// Tests a full cycle of unmarshal/marshal of the event object.
-// In `PushPayload`, we 1) unmarshal into a struct (to inject stylesheets), 2) marshal back to a string, 3) and write to the db.
-// In `worker.go`, we 1) unmarshal into a struct (to parse the session)
-// This test simulates that workflow.
-func TestEventUnmarshal(t *testing.T) {
-	eventsString := `
-			{
-				"events": [{
-					"data": {"test": 5},
-					"timestamp": 0,
-					"type": 4
-				}]
-			}
-			`
-	replayEvents := &ReplayEvents{}
-	err := json.Unmarshal([]byte(eventsString), replayEvents)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-}

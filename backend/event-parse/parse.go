@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
-	"github.com/k0kubun/pp"
 	"github.com/pkg/errors"
 )
 
@@ -44,8 +42,6 @@ func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
 		Data      json.RawMessage `json:"data"`
 	}{}
 	if err := json.Unmarshal(b, &aux); err != nil {
-		pp.Println("returning error")
-		ioutil.WriteFile("./debug.json", b, os.ModePerm)
 		return errors.New("error with custom unmarshal of events")
 	}
 	r.Data = aux.Data
@@ -57,7 +53,6 @@ func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
 
 // EventsFromString parses a json string in the form {events: [ev1, ev2, ...]}.
 func EventsFromString(eventsString string) (*ReplayEvents, error) {
-	pp.Println("calling eventsFromString")
 	events := &ReplayEvents{}
 	err := json.Unmarshal([]byte(eventsString), &events)
 	if err != nil {
