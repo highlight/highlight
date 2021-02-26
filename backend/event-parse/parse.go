@@ -42,7 +42,7 @@ func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
 		Data      json.RawMessage `json:"data"`
 	}{}
 	if err := json.Unmarshal(b, &aux); err != nil {
-		return errors.New("error with custom unmarshal of events")
+		return errors.Wrap(err, "error with custom unmarshal of events")
 	}
 	r.Data = aux.Data
 	r.Type = aux.Type
