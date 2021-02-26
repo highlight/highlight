@@ -6,7 +6,7 @@ import styles from './FieldsForm.module.scss';
 import commonStyles from '../../../Common.module.scss';
 import classNames from 'classnames/bind';
 import { useParams } from 'react-router-dom';
-import { CircularSpinner } from '../../../components/Spinner/Spinner';
+import { CircularSpinner } from '../../../components/Loading/Loading';
 import { message } from 'antd';
 import {
     useEditOrganizationMutation,

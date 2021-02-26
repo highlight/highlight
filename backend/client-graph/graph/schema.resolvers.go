@@ -227,6 +227,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				SessionID:      sessionID,
 				Event:          v.Event,
 				Type:           v.Type,
+				URL:            v.URL,
 				Source:         v.Source,
 				LineNumber:     v.LineNumber,
 				ColumnNumber:   v.ColumnNumber,
@@ -238,7 +239,12 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				continue
 			}
 
-			if err := r.UpdateErrorGroup(*errorToInsert, v.Trace[0], sessionObj.BrowserName, sessionObj.OSName); err != nil {
+			//create error fields array
+			metaFields := []*model.ErrorField{}
+			metaFields = append(metaFields, &model.ErrorField{Name: "browser", Value: sessionObj.BrowserName})
+			metaFields = append(metaFields, &model.ErrorField{Name: "os_name", Value: sessionObj.OSName})
+			metaFields = append(metaFields, &model.ErrorField{Name: "visited_url", Value: errorToInsert.URL})
+			if err := r.UpdateErrorGroup(*errorToInsert, v.Trace[0], metaFields); err != nil {
 				log.Errorf("Error updating error group: %v", errorToInsert)
 				continue
 			}

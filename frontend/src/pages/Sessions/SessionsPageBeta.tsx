@@ -7,13 +7,10 @@ import { SearchSidebar } from './SearchSidebar/SearchSidebar';
 import { SearchContext, SearchParams } from './SearchContext/SearchContext';
 import { SessionFeed } from './SessionsFeed/SessionsFeed';
 
-// @ts-ignore
-import useDimensions from 'react-use-dimensions';
 import { IntegrationCard } from './IntegrationCard/IntegrationCard';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
-    const [feedRef, { top, right, x }] = useDimensions();
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<SearchParams>(
         `cachedParams-${segmentName || 'no-selected-segment'}`,
@@ -52,15 +49,15 @@ export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
         >
             <div className={styles.sessionsBody}>
                 <div className={styles.leftPanel}>
-                    <SegmentSidebar feedPosition={{ top, x }} />
+                    <SegmentSidebar />
                 </div>
                 <div className={styles.centerPanel}>
-                    <div className={styles.sessionsSection} ref={feedRef}>
+                    <div className={styles.sessionsSection}>
                         <SessionFeed />
                     </div>
                 </div>
                 <div className={styles.rightPanel}>
-                    <SearchSidebar feedPosition={{ top, right }} />
+                    <SearchSidebar />
                 </div>
             </div>
         </SearchContext.Provider>

@@ -1,74 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import './App.scss';
+import { LoadingPage } from '../../components/Loading/Loading';
+import { useGetAdminQuery } from '../../graph/generated/hooks';
+import commonStyles from '../../Common.module.scss';
+import { ReactComponent as GoogleLogo } from '../../static/google.svg';
 
-import styles from './App.module.scss';
-import commonStyles from './Common.module.scss';
-import { Spinner } from './components/Spinner/Spinner';
-import { NewMemberPage } from './pages/NewMember/NewMemberPage';
-import { NewWorkspacePage } from './pages/NewWorkspace/NewWorkspacePage';
-import { auth, googleProvider } from './util/auth';
-import { ReactComponent as GoogleLogo } from './static/google.svg';
+import styles from './Login.module.scss';
+import { AppRouter } from '../../routers/AppRouter/AppRouter';
+import { H } from 'highlight.run';
 import { useForm } from 'react-hook-form';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import {
-    Switch,
-    Route,
-    BrowserRouter as Router,
-    Redirect,
-} from 'react-router-dom';
-import { H } from 'highlight.run';
-import { OrgRouter } from './OrgRouter';
-import {
-    useGetAdminQuery,
-    useGetOrganizationsQuery,
-} from './graph/generated/hooks';
-
-const App = () => {
-    const {
-        loading: o_loading,
-        error: o_error,
-        data: o_data,
-    } = useGetOrganizationsQuery();
-
-    if (o_error) {
-        return <p>{'App error: ' + JSON.stringify(o_error)}</p>;
-    }
-
-    if (o_error || o_loading) {
-        return (
-            <div className={styles.loadingWrapper}>
-                <Spinner />
-            </div>
-        );
-    }
-
-    return (
-        <div className={styles.appBody}>
-            <Router>
-                <Switch>
-                    <Route path="/:organization_id/invite/:invite_id">
-                        <NewMemberPage />
-                    </Route>
-                    <Route path="/new">
-                        <NewWorkspacePage />
-                    </Route>
-                    <Route path="/:organization_id">
-                        <OrgRouter />
-                    </Route>
-                    <Route path="/">
-                        <Redirect
-                            to={
-                                o_data?.organizations?.length
-                                    ? `/${o_data?.organizations[0]?.id}`
-                                    : `/new`
-                            }
-                        />
-                    </Route>
-                </Switch>
-            </Router>
-        </div>
-    );
-};
+import { auth, googleProvider } from '../../util/auth';
 
 export const AuthAdminRouter = () => {
     const { loading, error, data } = useGetAdminQuery();
@@ -91,13 +32,9 @@ export const AuthAdminRouter = () => {
         return <p>{'AuthAdminRouter error: ' + JSON.stringify(error)}</p>;
     }
     if (loading) {
-        return (
-            <div className={styles.loadingWrapper}>
-                <Spinner />
-            </div>
-        );
+        return <LoadingPage />;
     }
-    return <App />;
+    return <AppRouter />;
 };
 
 type Inputs = {
@@ -105,7 +42,7 @@ type Inputs = {
     password: string;
 };
 
-export const AuthAppRouter = () => {
+export const LoginForm = () => {
     const {
         watch,
         register,
@@ -147,11 +84,7 @@ export const AuthAppRouter = () => {
     };
 
     if (loading) {
-        return (
-            <div className={styles.loadingWrapper}>
-                <Spinner />
-            </div>
-        );
+        return <LoadingPage />;
     }
 
     if (user) {
@@ -262,5 +195,3 @@ export const AuthAppRouter = () => {
         </div>
     );
 };
-
-export default App;

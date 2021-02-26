@@ -2,8 +2,10 @@ import React from 'react';
 
 export const SidebarContext = React.createContext<{
     openSidebar: boolean;
-    setOpenSidebar: (val: boolean) => void;
+    setOpenSidebar: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
     openSidebar: true,
-    setOpenSidebar: (val: boolean) => {},
+    /* eslint-disable */
+    setOpenSidebar: (_) => {},
+    /* eslint-enable */
 });

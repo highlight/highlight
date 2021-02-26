@@ -5,7 +5,7 @@ import { useParams, Redirect } from 'react-router-dom';
 
 import styles from './NewMemberPage.module.scss';
 import commonStyles from '../../Common.module.scss';
-import { CircularSpinner, Spinner } from '../../components/Spinner/Spinner';
+import { CircularSpinner, LoadingBar } from '../../components/Loading/Loading';
 import {
     useAddAdminToOrganizationMutation,
     useGetAdminQuery,
@@ -26,7 +26,7 @@ export const NewMemberPage = () => {
         return <Redirect to={`/${organization_id}/setup`} />;
     }
     if (adminLoading) {
-        return <Spinner />;
+        return <LoadingBar />;
     }
 
     return (

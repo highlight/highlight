@@ -5,6 +5,7 @@ package model
 type ErrorObjectInput struct {
 	Event        string        `json:"event"`
 	Type         string        `json:"type"`
+	URL          string        `json:"url"`
 	Source       string        `json:"source"`
 	LineNumber   int           `json:"lineNumber"`
 	ColumnNumber int           `json:"columnNumber"`

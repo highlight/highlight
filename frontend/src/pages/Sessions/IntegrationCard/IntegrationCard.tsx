@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
-import { Spinner } from '../../../components/Spinner/Spinner';
+import { LoadingBar } from '../../../components/Loading/Loading';
 
 import styles from './IntegrationCard.module.scss';
 
@@ -22,7 +22,7 @@ export const IntegrationCard = () => {
                         to install Highlight. It should take less than a minute
                         for us to detect installation.
                     </div>
-                    <Spinner width={'100%'} />
+                    <LoadingBar width={'100%'} />
                 </div>
             </div>
         </>

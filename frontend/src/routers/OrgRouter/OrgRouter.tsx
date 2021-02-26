@@ -1,23 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Redirect, useParams } from 'react-router-dom';
-import { Spinner } from './components/Spinner/Spinner';
-import { Header } from './components/Header/Header';
+import { LoadingPage } from '../../components/Loading/Loading';
+import { Header } from '../../components/Header/Header';
 import { Switch, Route } from 'react-router-dom';
-import { Player } from './pages/Player/PlayerPage';
-import { WorkspaceTeam } from './pages/WorkspaceTeam/WorkspaceTeam';
-import { Billing } from './pages/Billing/Billing';
-import { SetupPage } from './pages/Setup/SetupPage';
-import { ErrorsPage } from './pages/Errors/ErrorsPage';
-import { useIntegrated } from './util/integrated';
-import styles from './App.module.scss';
-import { WorkspaceSettings } from './pages/WorkspaceSettings/WorkspaceSettings';
-import { Sidebar } from './components/Sidebar/Sidebar';
-import { SidebarContext } from './components/Sidebar/SidebarContext';
+import { Player } from '../../pages/Player/PlayerPage';
+import { WorkspaceTeam } from '../../pages/WorkspaceTeam/WorkspaceTeam';
+import { Billing } from '../../pages/Billing/Billing';
+import { SetupPage } from '../../pages/Setup/SetupPage';
+import { ErrorsPage } from '../../pages/Errors/ErrorsPage';
+import { useIntegrated } from '../../util/integrated';
+import { WorkspaceSettings } from '../../pages/WorkspaceSettings/WorkspaceSettings';
+import { Sidebar } from '../../components/Sidebar/Sidebar';
+import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
-import commonStyles from './Common.module.scss';
-import { SessionsPageBeta } from './pages/Sessions/SessionsPageBeta';
-import { Duration, MillisToDaysHoursMinSeconds } from './util/time';
-import { useGetOrganizationQuery } from './graph/generated/hooks';
+import commonStyles from '../../Common.module.scss';
+import { SessionsPageBeta } from '../../pages/Sessions/SessionsPageBeta';
+import { Duration, MillisToDaysHoursMinSeconds } from '../../util/time';
+import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -46,11 +45,7 @@ export const OrgRouter = () => {
         return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
     }
     if (integratedLoading || loading || !data?.organization) {
-        return (
-            <div className={styles.loadingWrapper}>
-                <Spinner />
-            </div>
-        );
+        return <LoadingPage />;
     }
     return (
         <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
