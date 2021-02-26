@@ -1,13 +1,9 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
 import { Button } from 'antd';
 import styles from './ErrorsPage.module.scss';
-import { useGetErrorGroupsQuery } from '../../graph/generated/hooks';
 import { ErrorFeed } from './ErrorFeed/ErrorFeed';
 
 export const ErrorsPage = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
-
     const throwError = (): void => {
         throw new Error('This error is from a throw');
     };
