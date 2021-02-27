@@ -70,7 +70,7 @@ export type MutationAddSessionPropertiesArgs = {
 
 export type MutationPushPayloadArgs = {
   session_id: Scalars['ID'];
-  eventsObject: ReplayEventsInput;
+  events: ReplayEventsInput;
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;

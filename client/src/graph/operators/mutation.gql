@@ -7,7 +7,7 @@ mutation PushPayload(
 ) {
     pushPayload(
         session_id: $session_id
-        eventsObject: $events
+        events: $events
         messages: $messages
         resources: $resources
         errors: $errors

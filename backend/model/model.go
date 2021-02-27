@@ -148,7 +148,7 @@ type Session struct {
 	BrowserVersion string `json:"browser_version"`
 	Status         string `json:"status"`
 	Language       string `json:"language"`
-	EventsObjects  []EventsObject
+	Eventss        []Events
 	// Tells us if the session has been parsed by a worker.
 	Processed bool `json:"processed"`
 	// The length of a session.
@@ -230,7 +230,7 @@ type MessagesObject struct {
 	Messages  string
 }
 
-type EventsObject struct {
+type Events struct {
 	Model
 	SessionID int
 	Events    string
@@ -296,7 +296,7 @@ func SetupDB() *gorm.DB {
 	DB.AutoMigrate(
 		&RecordingSettings{},
 		&MessagesObject{},
-		&EventsObject{},
+		&Events{},
 		&ErrorObject{},
 		&ErrorGroup{},
 		&ErrorField{},

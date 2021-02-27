@@ -149,17 +149,17 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, eventsObject customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)
 	}
 	organizationID := sessionObj.OrganizationID
-	if evs := eventsObject.Events; len(evs) > 0 {
+	if evs := events.Events; len(evs) > 0 {
 		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 		// should fix at some point.
-		eventBytes, err := json.Marshal(eventsObject)
+		eventBytes, err := json.Marshal(events)
 		if err != nil {
 			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
 		}
@@ -184,7 +184,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		if err != nil {
 			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
 		}
-		obj := &model.EventsObject{SessionID: sessionID, Events: string(b)}
+		obj := &model.Events{SessionID: sessionID, Events: string(b)}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
 		}

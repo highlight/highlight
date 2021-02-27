@@ -5,7 +5,7 @@ import Skeleton from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
 import { Tag, Tooltip } from 'antd';
 import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
-import { ErrorSearchParams, Maybe } from '../../../graph/generated/schemas';
+import { Maybe } from '../../../graph/generated/schemas';
 import { SearchContext } from '../../Sessions/SearchContext/SearchContext';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { DateInput } from '../../Sessions/SearchInputs/DateInput';
@@ -33,21 +33,13 @@ export const ErrorFeed = () => {
         totalCount: -1,
     });
     const { searchParams } = useContext(SearchContext);
-    const [
-        parsedSearchParams,
-        setParsedSearchParams,
-    ] = useState<ErrorSearchParams>({});
-
-    useEffect(() => {
-        const { date_range, os, browser, visited_url } = searchParams;
-        setParsedSearchParams({ date_range, os, browser, visited_url });
-    }, [searchParams]);
+    const { date_range, os, browser, visited_url } = searchParams;
 
     const { loading, fetchMore } = useGetErrorGroupsQuery({
         variables: {
             organization_id,
             count: count + 10,
-            params: parsedSearchParams,
+            params: { date_range, os, browser, visited_url },
         },
         onCompleted: (response) => {
             if (response.error_groups) {
@@ -65,7 +57,7 @@ export const ErrorFeed = () => {
             setCount((previousCount) => previousCount + 10);
             fetchMore({
                 variables: {
-                    params: parsedSearchParams,
+                    params: { date_range, os, browser, visited_url },
                     count,
                     organization_id,
                 },
