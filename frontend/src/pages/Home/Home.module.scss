@@ -33,14 +33,24 @@
 
 .logoHeader {
     margin-top: 30px;
-    font-size: 14px;
+    font-size: 16px;
+    font-weight: 200;
+    margin-bottom: 20px;
     color: #888888;
+}
+
+.humans {
+    margin-bottom: 10px;
+}
+
+.logos {
+    height: 80px;
 }
 
 .subHeader {
     text-align: center;
     font-size: 22px;
-    font-weight: 300;
+    font-weight: 200;
     display: flex;
     justify-content: center;
     max-width: 300px;
