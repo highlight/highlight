@@ -204,10 +204,6 @@ export class Highlight {
                     'currentSessionID',
                     this.sessionID.toString()
                 );
-                addCustomEvent('Viewport', {
-                    height: window.innerHeight,
-                    width: window.innerWidth,
-                });
             }
             setInterval(() => {
                 this._save();
@@ -218,6 +214,10 @@ export class Highlight {
             emit.bind(this);
             record({
                 emit,
+            });
+            addCustomEvent('Viewport', {
+                height: window.innerHeight,
+                width: window.innerWidth,
             });
 
             const highlightThis = this;
