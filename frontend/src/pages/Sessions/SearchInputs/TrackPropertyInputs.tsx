@@ -1,8 +1,8 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
 import {
-    SearchContext,
+    useSessionSearchContext,
     SearchParams,
     UserProperty,
 } from '../SearchContext/SearchContext';
@@ -15,7 +15,7 @@ import { useGetTrackSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const TrackPropertyInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSessionSearchContext();
 
     const { refetch } = useGetTrackSuggestionQuery({ skip: true });
 

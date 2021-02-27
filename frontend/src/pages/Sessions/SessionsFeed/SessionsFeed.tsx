@@ -1,6 +1,6 @@
-import React, { RefObject, useContext, useEffect, useState } from 'react';
+import React, { RefObject, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { SearchContext } from '../SearchContext/SearchContext';
+import { useSessionSearchContext } from '../SearchContext/SearchContext';
 import styles from './SessionsFeed.module.scss';
 import Skeleton from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
@@ -25,7 +25,7 @@ export const SessionFeed = () => {
         sessions: [],
         totalCount: -1,
     });
-    const { searchParams } = useContext(SearchContext);
+    const { searchParams } = useSessionSearchContext();
 
     const { loading, fetchMore } = useGetSessionsBetaQuery({
         variables: {

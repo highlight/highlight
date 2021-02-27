@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
 import {
-    SearchContext,
+    useSessionSearchContext,
     SearchParams,
     UserProperty,
 } from '../SearchContext/SearchContext';
@@ -16,7 +16,7 @@ import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSessionSearchContext();
 
     const { refetch } = useGetUserSuggestionQuery({ skip: true });
 
@@ -114,7 +114,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
 };
 
 export const IdentifiedUsersSwitch = () => {
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSessionSearchContext();
 
     return (
         <div className={inputStyles.switchRow}>

@@ -1,11 +1,12 @@
 import React from 'react';
+import { createContext } from '../../../util/context';
 
 export type UserProperty = {
     name: string;
     value: string;
 };
 
-export type SearchParams = {
+export interface SearchParams {
     user_properties: Array<UserProperty>;
     excluded_properties?: Array<UserProperty>;
     track_properties?: Array<UserProperty>;
@@ -16,22 +17,29 @@ export type SearchParams = {
     referrer?: string;
     identified: boolean;
     hide_viewed?: boolean;
-};
+}
 
-export const SearchContext = React.createContext<{
-    searchParams: SearchParams;
-    setSearchParams: React.Dispatch<React.SetStateAction<SearchParams>>;
-    existingParams: SearchParams;
-    setExistingParams: React.Dispatch<React.SetStateAction<SearchParams>>;
+export interface SessionSearchParams extends SearchParams {
+    boba?: string;
+}
+export interface ErrorSearchParams extends SearchParams {
+    lineNumber?: number;
+}
+
+interface ISearchContext<T> {
+    searchParams: T;
+    setSearchParams: React.Dispatch<React.SetStateAction<T>>;
+    existingParams: T;
+    setExistingParams: React.Dispatch<React.SetStateAction<T>>;
     segmentName: string | null;
     setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
-}>({
-    /* eslint-disable */
-    searchParams: { user_properties: [], identified: false },
-    setSearchParams: (params) => console.warn('noop'),
-    existingParams: { user_properties: [], identified: false },
-    setExistingParams: (params) => console.warn('goop'),
-    segmentName: null,
-    setSegmentName: (val) => console.warn('poop'),
-    /* eslint-enable */
-});
+}
+
+export const [useSessionSearchContext, SessionSearchProvider] = createContext<
+    ISearchContext<SessionSearchParams>
+>();
+
+export const [
+    useErrorFeedSearchContext,
+    ErrorFeedSearchProvider,
+] = createContext<ISearchContext<ErrorSearchParams>>();
