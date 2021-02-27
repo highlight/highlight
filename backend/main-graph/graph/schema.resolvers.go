@@ -348,6 +348,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		return nil, fmt.Errorf("error reading from error groups: %v", res.Error)
 	}
 
+	if count > len(errorGroups) {
+		count = len(errorGroups)
+	}
+
 	errorResults := &model.ErrorResults{
 		ErrorGroups: errorGroups[:count],
 		TotalCount:  len(errorGroups),
