@@ -8,7 +8,6 @@ import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
 import { Maybe } from '../../../graph/generated/schemas';
 import { SearchContext } from '../../Sessions/SearchContext/SearchContext';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
-import { DateInput } from '../../Sessions/SearchInputs/DateInput';
 
 export type ErrorMetadata = {
     browser: string;
@@ -69,9 +68,7 @@ export const ErrorFeed = () => {
         <>
             <div className={styles.fixedContent}>
                 <div className={styles.mainUserInput}>
-                    <div className={styles.userInputWrapper}>
-                        <DateInput />
-                    </div>
+                    <div className={styles.userInputWrapper}></div>
                 </div>
                 <div
                     className={styles.resultCount}
