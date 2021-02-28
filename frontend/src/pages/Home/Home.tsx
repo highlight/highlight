@@ -5,9 +5,9 @@ import { ReactComponent as Logos } from '../../static/logos.svg';
 import { HighlightLogo } from '../../components/HighlightLogo/HighlightLogo';
 import { Link } from 'react-router-dom';
 
-export const Home = ({
+export const Home: React.FC = ({
     children,
-}: React.PropsWithChildren<Record<string, unknown>>) => {
+}) => {
     return (
         <div className={styles.homePageWrapper}>
             <div className={styles.stylingWrapper}>
