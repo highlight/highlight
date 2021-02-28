@@ -25,24 +25,24 @@ export const Home = ({
                             Careers
                         </Link>
                     </div>
-                </div>
+                </nav>
                 <div className={styles.landingWrapper}>
                     <div className={styles.landing}>
-                        <div className={styles.header}>
+                        <h2 className={styles.header}>
                             Understand your app, with clarity.
-                        </div>
-                        <div className={styles.subHeader}>
+                        </h2>
+                        <h3 className={styles.subHeader}>
                             Get full transparency into the errors, interactions,
                             and performance metrics on your frontend.
-                        </div>
+                        </h3>
                         <Humans className={styles.humans} />
-                        <div className={styles.logoHeader}>
+                        <p className={styles.logoHeader}>
                             Highlight powers forward thinking companies.
-                        </div>
+                        </p>
                         <Logos className={styles.logos} />
                     </div>
                 </div>
-                <div className={styles.securityNav}>
+                <footer className={styles.securityNav}>
                     <div className={styles.securityWrapper}>
                         <Link
                             to={{
@@ -64,7 +64,7 @@ export const Home = ({
                             Privacy Policy
                         </Link>
                     </div>
-                </div>
+                </footer>
             </div>
             <div className={styles.contentWrapper}>{children}</div>
         </div>
