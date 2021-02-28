@@ -11,7 +11,7 @@ export const Home = ({
     return (
         <div className={styles.homePageWrapper}>
             <div className={styles.stylingWrapper}>
-                <div className={styles.nav}>
+                <nav className={styles.nav}>
                     <HighlightLogo />
                     <div style={{ marginLeft: 'auto' }}>
                         <Link
