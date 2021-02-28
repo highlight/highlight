@@ -3,8 +3,6 @@ export const hamburger: string;
 export const header: string;
 export const headerContent: string;
 export const homeLink: string;
-export const logo: string;
-export const logoText: string;
 export const logoWrapper: string;
 export const rightHeader: string;
 export const searchBar: string;

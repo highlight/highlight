@@ -17,12 +17,6 @@
     width: 24px;
 }
 
-.logoText {
-    font-size: 22px;
-    font-weight: 400;
-    user-select: none;
-}
-
 .headerContent {
     display: flex;
     flex-grow: 1;
@@ -119,13 +113,6 @@
 
 .logoWrapper:hover {
     color: black;
-}
-
-.logo {
-    margin: 8px;
-    fill: white;
-    height: 22px;
-    width: 22px;
 }
 
 .rightHeader {

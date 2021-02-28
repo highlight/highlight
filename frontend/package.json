@@ -55,6 +55,7 @@
         "react-infinite-scroll-hook": "^3.0.0",
         "react-input-autosize": "^2.2.2",
         "react-loading-skeleton": "^2.1.1",
+        "react-player": "^2.9.0",
         "react-resize-aware": "^3.0.1",
         "react-resize-detector": "^5.2.0",
         "react-router-dom": "^5.2.0",
