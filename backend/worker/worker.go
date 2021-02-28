@@ -29,8 +29,8 @@ func (w *Worker) processSession(s *model.Session) error {
 	}
 
 	// Get the events with the earliest 'created_at' timestamp.
-	firstEvents := &model.Events{}
-	if err := w.R.DB.Where(&model.Events{SessionID: s.ID}).Order("created_at asc").First(firstEvents).Error; err != nil {
+	firstEvents := &model.EventsObject{}
+	if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").First(firstEvents).Error; err != nil {
 		return errors.Wrap(err, "error retrieving first set of events")
 	}
 	firstEventsParsed, err := parse.EventsFromString(firstEvents.Events)
@@ -39,8 +39,8 @@ func (w *Worker) processSession(s *model.Session) error {
 	}
 
 	// Get the events with the latest 'created_at' timestamp.
-	lastEvents := &model.Events{}
-	if err := w.R.DB.Where(&model.Events{SessionID: s.ID}).Order("created_at desc").First(lastEvents).Error; err != nil {
+	lastEvents := &model.EventsObject{}
+	if err := w.R.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at desc").First(lastEvents).Error; err != nil {
 		return errors.Wrap(err, "error retrieving last set of events")
 	}
 	lastEventsParsed, err := parse.EventsFromString(lastEvents.Events)

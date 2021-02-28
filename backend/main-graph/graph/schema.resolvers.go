@@ -324,8 +324,8 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	eventObjs := []*model.Events{}
-	if res := r.DB.Order("created_at desc").Where(&model.Events{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
+	eventObjs := []*model.EventsObject{}
+	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
 	allEvents := make(map[string][]interface{})

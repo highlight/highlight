@@ -184,7 +184,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		if err != nil {
 			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
 		}
-		obj := &model.Events{SessionID: sessionID, Events: string(b)}
+		obj := &model.EventsObject{SessionID: sessionID, Events: string(b)}
 		if err := r.DB.Create(obj).Error; err != nil {
 			return nil, e.Wrap(err, "error creating events object")
 		}
