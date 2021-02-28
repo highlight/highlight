@@ -5,7 +5,6 @@ export const browserHeader: string;
 export const eventStreamContainer: string;
 export const header: string;
 export const headerLink: string;
-export const inspectorMode: string;
 export const loadingWrapper: string;
 export const playerBody: string;
 export const playerLeftSection: string;

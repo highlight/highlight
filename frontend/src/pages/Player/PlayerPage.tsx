@@ -28,13 +28,12 @@ import useResizeAware from 'react-resize-aware';
 import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
-import ReplayerContext, { PlayerMode, ReplayerState } from './ReplayerContext';
+import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import { usePlayer } from './PlayerHook/PlayerHook';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
 import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
-import classNames from 'classnames';
 
 export const Player = () => {
     const { session_id } = useParams<{ session_id: string }>();
@@ -47,7 +46,6 @@ export const Player = () => {
         scale: replayerScale,
         setScale,
         replayer,
-        mode,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
@@ -111,11 +109,7 @@ export const Player = () => {
 
     return (
         <ReplayerContext.Provider value={player}>
-            <div
-                className={classNames(styles.playerBody, {
-                    [styles.inspectorMode]: mode === PlayerMode.Inspector,
-                })}
-            >
+            <div className={styles.playerBody}>
                 <div className={styles.playerLeftSection}>
                     <SessionLevelBar />
                     <div className={styles.rrwebPlayerSection}>
@@ -148,12 +142,10 @@ export const Player = () => {
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
                 </div>
-                {mode !== PlayerMode.Inspector && (
-                    <div className={styles.playerRightSection}>
-                        <MetadataBox />
-                        <EventStream />
-                    </div>
-                )}
+                <div className={styles.playerRightSection}>
+                    <MetadataBox />
+                    <EventStream />
+                </div>
             </div>
         </ReplayerContext.Provider>
     );

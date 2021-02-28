@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { FaUndoAlt, FaPlay, FaPause, FaRedoAlt, FaTools } from 'react-icons/fa';
+import { FaUndoAlt, FaPlay, FaPause, FaRedoAlt } from 'react-icons/fa';
 import { useLocalStorage } from '@rehooks/local-storage';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
@@ -10,11 +10,9 @@ import Draggable from 'react-draggable';
 import styles from './Toolbar.module.scss';
 import ReplayerContext, {
     ParsedSessionInterval,
-    PlayerMode,
     ReplayerState,
 } from '../ReplayerContext';
 import classNames from 'classnames';
-import { Tooltip } from 'antd';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -25,8 +23,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         play,
         pause,
         sessionIntervals,
-        toggleInteractMode,
-        mode,
     } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
@@ -59,12 +55,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     useEffect(() => {
         replayer?.setConfig({ skipInactive, speed });
     }, [replayer, skipInactive, speed]);
-
-    useEffect(() => {
-        if (mode === PlayerMode.Inspector) {
-            setOpenDevTools(false);
-        }
-    }, [mode, setOpenDevTools]);
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
@@ -320,17 +310,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>
-                    <Tooltip
-                        title={`Right click on the session and click "Inspect". You can use the same DevTools you're used to.`}
-                        placement="topLeft"
-                    >
-                        <button
-                            onClick={toggleInteractMode}
-                            className={styles.button}
-                        >
-                            <FaTools className={styles.icon} />
-                        </button>
-                    </Tooltip>
                     <SettingsMenu
                         skipInactive={skipInactive}
                         onSkipInactiveChange={() =>
