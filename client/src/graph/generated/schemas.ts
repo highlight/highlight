@@ -23,6 +23,7 @@ export type Session = {
 export type ErrorObjectInput = {
   event: Scalars['String'];
   type: Scalars['String'];
+  url: Scalars['String'];
   source: Scalars['String'];
   lineNumber: Scalars['Int'];
   columnNumber: Scalars['Int'];

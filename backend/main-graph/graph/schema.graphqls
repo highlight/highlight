@@ -97,6 +97,22 @@ type SearchParams {
     hide_viewed: Boolean
 }
 
+input ErrorSearchParamsInput {
+    date_range: DateRangeInput
+    os: String
+    browser: String
+    visited_url: String
+    hide_viewed: Boolean
+}
+
+type ErrorSearchParams {
+    date_range: DateRange
+    os: String
+    browser: String
+    visited_url: String
+    hide_viewed: Boolean
+}
+
 type DateRange {
     start_date: Time
     end_date: Time
@@ -132,10 +148,19 @@ type SessionResults {
     totalCount: Int!
 }
 
+type ErrorResults {
+    error_groups: [ErrorGroup]!
+    totalCount: Int!
+}
+
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
-    error_groups(organization_id: ID!): [ErrorGroup]
+    error_groups(
+        organization_id: ID!
+        count: Int!
+        params: ErrorSearchParamsInput
+    ): ErrorResults
     messages(session_id: ID!): [Any]
     resources(session_id: ID!): [Any]
     admins(organization_id: ID!): [Admin]

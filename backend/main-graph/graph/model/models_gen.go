@@ -14,6 +14,14 @@ type DateRangeInput struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
+type ErrorSearchParamsInput struct {
+	DateRange  *DateRangeInput `json:"date_range"`
+	Os         *string         `json:"os"`
+	Browser    *string         `json:"browser"`
+	VisitedURL *string         `json:"visited_url"`
+	HideViewed *bool           `json:"hide_viewed"`
+}
+
 type SearchParamsInput struct {
 	UserProperties     []*UserPropertyInput `json:"user_properties"`
 	ExcludedProperties []*UserPropertyInput `json:"excluded_properties"`
