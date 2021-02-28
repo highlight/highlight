@@ -11,6 +11,7 @@ export const nav: string;
 export const navLink: string;
 export const purpleText: string;
 export const securityLink: string;
+export const securityNav: string;
 export const securityWrapper: string;
 export const stylingWrapper: string;
 export const subHeader: string;

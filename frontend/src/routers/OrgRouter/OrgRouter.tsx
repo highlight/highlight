@@ -41,6 +41,17 @@ export const OrgRouter = () => {
         setTrialTimeRemaining(trialTimeRemaining);
     }, [data]);
 
+    useEffect(() => {
+        window.Intercom('update', {
+            hide_default_launcher: true,
+        });
+        return () => {
+            window.Intercom('update', {
+                hide_default_launcher: false,
+            });
+        };
+    }, []);
+
     if (error) {
         return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
     }

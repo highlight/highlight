@@ -41,36 +41,28 @@ export const Home = ({
                         </div>
                         <Logos className={styles.logos} />
                     </div>
-                    <div
-                        style={{
-                            position: 'absolute',
-                            bottom: 0,
-                            width: '60vw',
-                            padding: 20,
-                        }}
-                    >
-                        <div className={styles.securityWrapper}>
-                            <Link
-                                to={{
-                                    pathname:
-                                        'https://www.highlight.run/terms-of-service',
-                                }}
-                                target="_blank"
-                                className={styles.securityLink}
-                            >
-                                Terms of service
-                            </Link>
-                            <Link
-                                to={{
-                                    pathname:
-                                        'https://www.highlight.run/privacy',
-                                }}
-                                target="_blank"
-                                className={styles.securityLink}
-                            >
-                                Privacy Policy
-                            </Link>
-                        </div>
+                </div>
+                <div className={styles.securityNav}>
+                    <div className={styles.securityWrapper}>
+                        <Link
+                            to={{
+                                pathname:
+                                    'https://www.highlight.run/terms-of-service ',
+                            }}
+                            target="_blank"
+                            className={styles.securityLink}
+                        >
+                            Terms of service
+                        </Link>
+                        <Link
+                            to={{
+                                pathname: 'https://www.highlight.run/privacy',
+                            }}
+                            target="_blank"
+                            className={styles.securityLink}
+                        >
+                            Privacy Policy
+                        </Link>
                     </div>
                 </div>
             </div>

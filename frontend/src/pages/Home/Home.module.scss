@@ -3,19 +3,36 @@
 .homePageWrapper {
     display: grid;
     grid-template-columns: 3fr 2fr;
+    grid-template-rows: 1fr;
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    height: 100vh;
     width: 100%;
+    flex-wrap: wrap;
+    height: 100vh;
+}
+
+@media only screen and (max-width: 1000px) {
+    .homePageWrapper {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1fr;
+        flex-direction: column;
+        height: 100%;
+    }
+}
+
+.securityNav {
+    width: 100%;
+    padding: 20px;
+    height: 100%;
 }
 
 .nav {
     display: flex;
     align-items: center;
     padding: 30px;
-    width: 60vw;
-    position: absolute;
+    width: 100%;
+    height: 100%;
 }
 
 .highlightText {
@@ -85,15 +102,6 @@
     text-decoration: underline;
 }
 
-.contentWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 100%;
-    background-color: $highlight-purple;
-}
-
 .landing {
     display: flex;
     flex-direction: column;
@@ -112,7 +120,16 @@
     height: 100%;
     width: 100%;
     display: grid;
-    grid-template-rows: 1fr;
+    grid-template-rows: 80px 1fr 80px;
     align-items: center;
     flex-direction: column;
+}
+
+.contentWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+    background-color: $highlight-purple;
 }
