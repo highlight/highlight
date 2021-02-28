@@ -10,10 +10,9 @@ import (
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
-	"github.com/jay-khatri/fullstory/backend/model"
-
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	parse "github.com/jay-khatri/fullstory/backend/event-parse"
+	"github.com/jay-khatri/fullstory/backend/event-parse"
+	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -150,17 +149,17 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, eventsObject customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)
 	}
 	organizationID := sessionObj.OrganizationID
-	if evs := eventsObject.Events; len(evs) > 0 {
+	if evs := events.Events; len(evs) > 0 {
 		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 		// should fix at some point.
-		eventBytes, err := json.Marshal(eventsObject)
+		eventBytes, err := json.Marshal(events)
 		if err != nil {
 			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
 		}

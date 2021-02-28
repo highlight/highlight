@@ -5,6 +5,14 @@ export type UserProperty = {
     value: string;
 };
 
+export type ErrorSearchParams = {
+    date_range?: { start_date: Date; end_date: Date };
+    os?: string;
+    browser?: string;
+    visited_url?: string;
+    hide_viewed?: boolean;
+};
+
 export type SearchParams = {
     user_properties: Array<UserProperty>;
     excluded_properties?: Array<UserProperty>;

@@ -117,6 +117,23 @@ export type SearchParams = {
     hide_viewed?: Maybe<Scalars['Boolean']>;
 };
 
+export type ErrorSearchParamsInput = {
+    date_range?: Maybe<DateRangeInput>;
+    os?: Maybe<Scalars['String']>;
+    browser?: Maybe<Scalars['String']>;
+    visited_url?: Maybe<Scalars['String']>;
+    hide_viewed?: Maybe<Scalars['Boolean']>;
+};
+
+export type ErrorSearchParams = {
+    __typename?: 'ErrorSearchParams';
+    date_range?: Maybe<DateRange>;
+    os?: Maybe<Scalars['String']>;
+    browser?: Maybe<Scalars['String']>;
+    visited_url?: Maybe<Scalars['String']>;
+    hide_viewed?: Maybe<Scalars['Boolean']>;
+};
+
 export type DateRange = {
     __typename?: 'DateRange';
     start_date?: Maybe<Scalars['Time']>;
@@ -157,11 +174,17 @@ export type SessionResults = {
     totalCount: Scalars['Int'];
 };
 
+export type ErrorResults = {
+    __typename?: 'ErrorResults';
+    error_groups: Array<Maybe<ErrorGroup>>;
+    totalCount: Scalars['Int'];
+};
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
-    error_groups?: Maybe<Array<Maybe<ErrorGroup>>>;
+    error_groups?: Maybe<ErrorResults>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
@@ -187,6 +210,8 @@ export type QueryEventsArgs = {
 
 export type QueryError_GroupsArgs = {
     organization_id: Scalars['ID'];
+    count: Scalars['Int'];
+    params?: Maybe<ErrorSearchParamsInput>;
 };
 
 export type QueryMessagesArgs = {

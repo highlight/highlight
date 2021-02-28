@@ -74,6 +74,9 @@ export const OrgRouter = () => {
                     <Route path="/:organization_id/setup">
                         <SetupPage integrated={integrated} />
                     </Route>
+                    <Route path="/:organization_id/errors/segment/:segment_id">
+                        <ErrorsPage />
+                    </Route>
                     <Route path="/:organization_id/errors">
                         <ErrorsPage />
                     </Route>

@@ -24,9 +24,10 @@ const (
 
 // ReplayEvent represents a single event that represents a change on the DOM.
 type ReplayEvent struct {
-	Timestamp time.Time
-	Type      EventType       `json:"type"`
-	Data      json.RawMessage `json:"data"`
+	Timestamp    time.Time       `json:"-"`
+	Type         EventType       `json:"type"`
+	Data         json.RawMessage `json:"data"`
+	TimestampRaw float64         `json:"timestamp"`
 }
 
 // ReplayEvents is a set of ReplayEvent(s).
@@ -46,6 +47,7 @@ func (r *ReplayEvent) UnmarshalJSON(b []byte) error {
 	r.Data = aux.Data
 	r.Type = aux.Type
 	r.Timestamp = javascriptToGolangTime(aux.Timestamp)
+	r.TimestampRaw = aux.Timestamp
 	return nil
 }
 
@@ -54,7 +56,7 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 	events := &ReplayEvents{}
 	err := json.Unmarshal([]byte(eventsString), &events)
 	if err != nil {
-		return nil, fmt.Errorf("error parsing events '%v' into ReplayEvents: %v", eventsString, err)
+		return nil, fmt.Errorf("error parsing events into ReplayEvents: %v", err)
 	}
 	if len(events.Events) < 1 {
 		return nil, errors.New("empty events")

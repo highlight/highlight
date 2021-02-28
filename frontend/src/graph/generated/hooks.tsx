@@ -968,11 +968,22 @@ export type GetBillingDetailsQueryResult = Apollo.QueryResult<
     Types.GetBillingDetailsQueryVariables
 >;
 export const GetErrorGroupsDocument = gql`
-    query GetErrorGroups($organization_id: ID!) {
-        error_groups(organization_id: $organization_id) {
-            event
-            trace
-            metadata_log
+    query GetErrorGroups(
+        $organization_id: ID!
+        $count: Int!
+        $params: ErrorSearchParamsInput
+    ) {
+        error_groups(
+            organization_id: $organization_id
+            count: $count
+            params: $params
+        ) {
+            error_groups {
+                event
+                trace
+                metadata_log
+            }
+            totalCount
         }
     }
 `;
@@ -990,6 +1001,8 @@ export const GetErrorGroupsDocument = gql`
  * const { data, loading, error } = useGetErrorGroupsQuery({
  *   variables: {
  *      organization_id: // value for 'organization_id'
+ *      count: // value for 'count'
+ *      params: // value for 'params'
  *   },
  * });
  */
