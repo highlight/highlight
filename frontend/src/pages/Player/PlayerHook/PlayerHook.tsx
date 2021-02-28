@@ -7,6 +7,7 @@ import { HighlightEvent } from '../HighlightEvent';
 
 import {
     ParsedSessionInterval,
+    PlayerMode,
     ReplayerContextInterface,
     ReplayerState,
 } from '../ReplayerContext';
@@ -16,6 +17,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
 
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
+    const [mode, setMode] = useState<PlayerMode>(PlayerMode.Normal);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
     const [time, setTime] = useState<number>(0);
@@ -148,6 +150,16 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
         }
     };
 
+    const onToggleInteractMode = () => {
+        if (mode === PlayerMode.Inspector) {
+            setMode(PlayerMode.Normal);
+            replayer?.disableInteract();
+        } else {
+            setMode(PlayerMode.Inspector);
+            replayer?.enableInteract();
+        }
+    };
+
     return {
         scale,
         setScale,
@@ -159,6 +171,8 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
         events,
         play,
         pause,
+        mode,
+        toggleInteractMode: onToggleInteractMode,
     };
 };
 

@@ -11,6 +11,20 @@ export enum ReplayerState {
     Paused,
 }
 
+/**
+ * The different player modes. Modes will change the type of interactions that player can support.
+ */
+export enum PlayerMode {
+    /**
+     * Normal playback mode.
+     */
+    Normal,
+    /**
+     * Allows users to inspect the DOM of the player.
+     */
+    Inspector,
+}
+
 export interface ParsedSessionInterval extends SessionInterval {
     startPercent: number;
     endPercent: number;
@@ -29,6 +43,8 @@ export interface ReplayerContextInterface {
     setScale: React.Dispatch<React.SetStateAction<number>>;
     events: Array<HighlightEvent>;
     sessionIntervals: Array<ParsedSessionInterval>;
+    mode: PlayerMode;
+    toggleInteractMode: () => void;
 }
 
 /* eslint-disable */
@@ -43,6 +59,8 @@ export const defaultValue: ReplayerContextInterface = {
     pause: (_) => {},
     events: [],
     sessionIntervals: [],
+    mode: PlayerMode.Normal,
+    toggleInteractMode: () => {},
 };
 /* eslint-enable */
 
