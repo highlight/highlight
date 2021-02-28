@@ -74,6 +74,7 @@ export type ErrorObject = {
     session_id: Scalars['Int'];
     event: Scalars['String'];
     type: Scalars['String'];
+    url: Scalars['String'];
     source?: Maybe<Scalars['String']>;
     line_number?: Maybe<Scalars['Int']>;
     column_number?: Maybe<Scalars['Int']>;
@@ -87,13 +88,6 @@ export type ErrorGroup = {
     event: Scalars['String'];
     trace: Scalars['String'];
     metadata_log?: Maybe<Scalars['String']>;
-};
-
-export type ErrorField = {
-    __typename?: 'ErrorField';
-    id: Scalars['ID'];
-    name: Scalars['String'];
-    value: Scalars['String'];
 };
 
 export type SearchParamsInput = {

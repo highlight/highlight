@@ -1,16 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './Home.module.scss';
 import { ReactComponent as Humans } from '../../static/human-image.svg';
 import { ReactComponent as Logos } from '../../static/logos.svg';
 import { HighlightLogo } from '../../components/HighlightLogo/HighlightLogo';
 import { Link } from 'react-router-dom';
-import { Modal } from 'antd';
-import ReactPlayer from 'react-player';
 
 export const Home = ({
     children,
 }: React.PropsWithChildren<Record<string, unknown>>) => {
-    const [showVideo, setShowVideo] = useState(false);
     return (
         <div className={styles.homePageWrapper}>
             <div className={styles.stylingWrapper}>
@@ -20,12 +17,13 @@ export const Home = ({
                         <Link
                             to={{ pathname: 'https://docs.highlight.run' }}
                             target="_blank"
+                            className={styles.navLink}
                         >
-                            <div style={{ marginLeft: 'auto' }}>Docs</div>
+                            Documentation
                         </Link>
-                        <button onClick={() => setShowVideo(true)}>
-                            video
-                        </button>
+                        <Link to={'/careers'} className={styles.navLink}>
+                            Careers
+                        </Link>
                     </div>
                 </div>
                 <div className={styles.landingWrapper}>
@@ -42,6 +40,37 @@ export const Home = ({
                             Highlight powers forward thinking companies.
                         </div>
                         <Logos className={styles.logos} />
+                    </div>
+                    <div
+                        style={{
+                            position: 'absolute',
+                            bottom: 0,
+                            width: '60vw',
+                            padding: 20,
+                        }}
+                    >
+                        <div className={styles.securityWrapper}>
+                            <Link
+                                to={{
+                                    pathname:
+                                        'https://www.highlight.run/terms-of-service',
+                                }}
+                                target="_blank"
+                                className={styles.securityLink}
+                            >
+                                Terms of service
+                            </Link>
+                            <Link
+                                to={{
+                                    pathname:
+                                        'https://www.highlight.run/privacy',
+                                }}
+                                target="_blank"
+                                className={styles.securityLink}
+                            >
+                                Privacy Policy
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>

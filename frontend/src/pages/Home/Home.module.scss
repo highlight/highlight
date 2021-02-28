@@ -65,6 +65,26 @@
     margin-bottom: 30px;
 }
 
+.navLink {
+    color: #888888;
+    margin: 10px;
+    font-size: 16px;
+}
+
+.securityWrapper {
+    margin-left: auto;
+    width: max-content;
+    flex-direction: column;
+    display: flex;
+}
+
+.securityLink {
+    color: #888888;
+    margin: 0 10px 5px 10px;
+    font-size: 12px;
+    text-decoration: underline;
+}
+
 .contentWrapper {
     display: flex;
     align-items: center;

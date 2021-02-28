@@ -13,6 +13,7 @@ import { DemoContext } from './DemoContext';
 import { H, HighlightOptions } from 'highlight.run';
 import { DemoRouter } from './DemoRouter';
 import { SkeletonTheme } from 'react-loading-skeleton';
+import { Careers } from './pages/Careers/Careers';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
@@ -26,12 +27,20 @@ if (dev) {
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
 
+window.Intercom('boot', {
+    app_id: 'gm6369ty',
+    alignment: 'left',
+});
+
 const App = () => {
     return (
         <ApolloProvider client={client}>
             <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
                 <Router>
                     <Switch>
+                        <Route path="/careers">
+                            <Careers />
+                        </Route>
                         <Route path="/demo" exact>
                             <DemoContext.Provider value={{ demo: true }}>
                                 <DemoRouter />
