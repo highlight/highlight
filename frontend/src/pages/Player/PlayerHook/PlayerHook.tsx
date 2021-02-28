@@ -51,6 +51,8 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             r.on(ReplayerEvents.Finish, () => {
                 setState(ReplayerState.Paused);
             });
+            // Allows users to interact with the DOM in the player.
+            r.enableInteract();
             // Preprocess and logic for player length with inactive sessions
             const metadata = r.getMetaData();
             const allIntervals = r.getActivityIntervals();
