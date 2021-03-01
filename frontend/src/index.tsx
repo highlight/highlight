@@ -14,8 +14,6 @@ import { H, HighlightOptions } from 'highlight.run';
 import { DemoRouter } from './DemoRouter';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import { Careers } from './pages/Careers/Careers';
-import { Home } from './pages/Home/Home';
-import { RequestAccessPage } from './pages/RequestAccess/RequestAccess';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
