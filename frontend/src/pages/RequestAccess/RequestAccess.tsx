@@ -37,8 +37,8 @@ export const RequestAccessPage = () => {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className={styles.title}>We're in private beta!</div>
                 <div className={styles.subTitle}>
-                    Request access below and we'll reach out. We appreciate the
-                    interest!
+                    Wanna use Highlight? Request access below and we'll reach
+                    out!
                 </div>
                 <input
                     placeholder={'Work Email'}
