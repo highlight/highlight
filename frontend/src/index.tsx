@@ -48,11 +48,6 @@ const App = () => {
                                 <DemoRouter />
                             </DemoContext.Provider>
                         </Route>
-                        <Route path="/r">
-                            <Home>
-                                <RequestAccessPage />
-                            </Home>
-                        </Route>
                         <Route path="/">
                             <DemoContext.Provider value={{ demo: false }}>
                                 <LoginForm />
