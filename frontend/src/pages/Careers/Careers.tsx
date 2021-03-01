@@ -2,8 +2,6 @@ import React from 'react';
 import styles from './Careers.module.scss';
 
 export const Careers = () => {
-    console.log('hello', 'this', 'is', 'jay');
-    console.log('hello \n', { t: 'this', i: 'is', j: 'jay' });
     return (
         <div className={styles.careersPage}>
             <p className={styles.careersText}>
