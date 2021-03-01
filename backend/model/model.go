@@ -238,7 +238,7 @@ type EventsObject struct {
 }
 
 type ErrorResults struct {
-	ErrorGroups []*ErrorGroup
+	ErrorGroups []ErrorGroup
 	TotalCount  int
 }
 
