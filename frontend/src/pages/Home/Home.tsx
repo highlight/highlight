@@ -23,9 +23,12 @@ export const Home: React.FC = ({ children }) => {
                         <Link to={'/careers'} className={styles.navLink}>
                             Careers
                         </Link>
-                        <Link to={'/'} className={styles.arrowWrapper}>
+                        <a
+                            href="https://app.highlight.run"
+                            className={styles.arrowWrapper}
+                        >
                             Sign In <ArrowRight className={styles.arrow} />
-                        </Link>
+                        </a>
                     </div>
                 </nav>
                 <div className={styles.landingWrapper}>
