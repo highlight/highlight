@@ -87,7 +87,6 @@ func main() {
 				DB: db,
 			},
 		}))))
-	mux.HandleFunc("/email", emailHandler)
 
 	handler := cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
