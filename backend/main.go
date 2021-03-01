@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"net/http"
 	"os"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
-	"github.com/slack-go/slack"
 	"github.com/stripe/stripe-go/client"
 
 	ha "github.com/99designs/gqlgen/handler"
@@ -52,33 +50,6 @@ func validateOrigin(request *http.Request, origin string) bool {
 }
 
 var defaultPort = "8082"
-
-type EmailObj struct {
-	Email string `json:"email"`
-}
-
-func emailHandler(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, "error parsing form", http.StatusInternalServerError)
-		return
-	}
-	if r.Method != http.MethodPost {
-		http.Error(w, "incorrect request method", http.StatusInternalServerError)
-		return
-	}
-	email := r.Form.Get("email")
-	if len(email) > 0 {
-		model.DB.Create(&model.EmailSignup{Email: email})
-		msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SIGNUP \nemail: %v\n```", email)}
-		err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
-		if err != nil {
-			log.Errorf("error sending slack hook: %v", err)
-		}
-
-	}
-	fmt.Fprintf(w, "success: %v", email)
-}
 
 func main() {
 	flag.Parse()
