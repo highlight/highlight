@@ -23,6 +23,7 @@ import _ from 'lodash';
 interface ParsedMessage extends ConsoleMessage {
     selected?: boolean;
     id: number;
+    stringToRender: string;
 }
 
 export const ConsolePage = ({ time }: { time: number }) => {
@@ -49,8 +50,6 @@ export const ConsolePage = ({ time }: { time: number }) => {
     });
     const virtuoso = useRef<VirtuosoHandle>(null);
 
-    const rawMessages = data?.messages;
-
     useEffect(() => {
         const base = parsedMessages?.map((o) => o.type) ?? [];
         const uniqueSet = new Set(base);
@@ -59,11 +58,17 @@ export const ConsolePage = ({ time }: { time: number }) => {
 
     useEffect(() => {
         setParsedMessages(
-            rawMessages?.map((m, i) => {
-                return { ...m, id: i };
-            })
+            data?.messages?.map((m: ConsoleMessage, i) => {
+                const s = buildConsoleString(m.value ?? []);
+                console.log(s);
+                return {
+                    ...m,
+                    id: i,
+                    stringToRender: s,
+                };
+            }) ?? []
         );
-    }, [rawMessages]);
+    }, [data]);
 
     // Logic for scrolling to current entry.
     useEffect(() => {
@@ -157,7 +162,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         ref={virtuoso}
                         overscan={500}
                         data={messagesToRender}
-                        itemContent={(_index, message) => (
+                        itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>
                                 <div
                                     className={styles.consoleMessage}
@@ -188,8 +193,9 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                         />
                                     </div>
                                     <div className={styles.messageText}>
-                                        {typeof message.value === 'string' &&
-                                            message.value}
+                                        {message.stringToRender}
+                                        {/* {typeof message.value === 'string' &&
+                                            message.value} */}
                                     </div>
                                     <GoToButton
                                         className={styles.goToButton}
@@ -213,4 +219,20 @@ export const ConsolePage = ({ time }: { time: number }) => {
             </div>
         </div>
     );
+};
+
+const buildConsoleString = (m: Array<any> | string): string => {
+    let s = '';
+    if (typeof m === 'string') {
+        s = m;
+    } else {
+        m.forEach((p) => {
+            if (typeof p === 'string') {
+                s += p;
+            } else if (typeof p === 'object') {
+                s += '\n' + JSON.stringify(p) + '\n';
+            }
+        });
+    }
+    return s;
 };
