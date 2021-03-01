@@ -158,7 +158,7 @@ type Session struct {
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
 	// Custom properties
 	Viewed     bool    `json:"viewed"`
-	FieldGroup *string `json:"tags"`
+	FieldGroup *string `json:"field_group"`
 }
 
 type Field struct {
