@@ -6,17 +6,15 @@ import { useSendEmailSignupMutation } from '../../graph/generated/hooks';
 import styles from './RequestAccess.module.scss';
 import commonStyles from '../../Common.module.scss';
 import { message } from 'antd';
+import { Link } from 'react-router-dom';
 
 type Inputs = {
     email: string;
 };
 
 export const RequestAccessPage = () => {
-    const { register, handleSubmit, errors, setError } = useForm<Inputs>();
-    const [
-        sendEmailSignup,
-        { loading, data, error },
-    ] = useSendEmailSignupMutation();
+    const { register, handleSubmit, errors } = useForm<Inputs>();
+    const [sendEmailSignup, { loading }] = useSendEmailSignupMutation();
 
     const onSubmit = async (data: Inputs) => {
         try {
@@ -38,7 +36,8 @@ export const RequestAccessPage = () => {
             <form onSubmit={handleSubmit(onSubmit)}>
                 <div className={styles.title}>We're in private beta!</div>
                 <div className={styles.subTitle}>
-                    Join our private beta by requesting access below! 🚀
+                    Request access below and we'll reach out. We appreciate the
+                    interest!
                 </div>
                 <input
                     placeholder={'Work Email'}

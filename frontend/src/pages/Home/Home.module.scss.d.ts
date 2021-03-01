@@ -1,3 +1,5 @@
+export const arrow: string;
+export const arrowWrapper: string;
 export const contentWrapper: string;
 export const header: string;
 export const highlightText: string;
