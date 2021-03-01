@@ -88,7 +88,6 @@ export type ErrorGroup = {
     event: Scalars['String'];
     trace: Scalars['String'];
     metadata_log?: Maybe<Scalars['String']>;
-    viewed?: Maybe<Scalars['Boolean']>;
 };
 
 export type SearchParamsInput = {

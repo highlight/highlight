@@ -4,4 +4,6 @@ interface Window {
     analytics: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     H: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Intercom: any;
 }

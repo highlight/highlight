@@ -1,5 +1,4 @@
 import React, { useEffect, useContext } from 'react';
-import { ReactComponent as HighlightLogoSmall } from '../../static/highlight-logo-small.svg';
 import { ReactComponent as Banner } from '../../static/banner.svg';
 import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { Link, withRouter } from 'react-router-dom';
@@ -12,6 +11,7 @@ import { DemoContext } from '../../DemoContext';
 import { SidebarContext } from '../Sidebar/SidebarContext';
 import classNames from 'classnames/bind';
 import { Duration } from '../../util/time';
+import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 
 type HeaderProps = {
     trialTimeRemaining?: Duration;
@@ -64,8 +64,7 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({
                             className={styles.homeLink}
                             to={demo ? '/' : `/${organization_id}/sessions`}
                         >
-                            <HighlightLogoSmall className={styles.logo} />
-                            <span className={styles.logoText}>Highlight</span>
+                            <HighlightLogo />
                         </Link>
                     </div>
                     <div className={styles.rightHeader}>
