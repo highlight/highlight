@@ -41,6 +41,7 @@ export type Session = {
     user_object?: Maybe<Scalars['Any']>;
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
+    field_group?: Maybe<Scalars['String']>;
 };
 
 export type RecordingSettings = {
