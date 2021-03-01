@@ -18,6 +18,7 @@ import GoToButton from '../../../../../components/Button/GoToButton';
 import ReplayerContext from '../../../ReplayerContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import ReactJson from 'react-json-view';
 import _ from 'lodash';
 
 interface ParsedMessage extends ConsoleMessage {
@@ -49,8 +50,6 @@ export const ConsolePage = ({ time }: { time: number }) => {
     });
     const virtuoso = useRef<VirtuosoHandle>(null);
 
-    const rawMessages = data?.messages;
-
     useEffect(() => {
         const base = parsedMessages?.map((o) => o.type) ?? [];
         const uniqueSet = new Set(base);
@@ -59,11 +58,14 @@ export const ConsolePage = ({ time }: { time: number }) => {
 
     useEffect(() => {
         setParsedMessages(
-            rawMessages?.map((m, i) => {
-                return { ...m, id: i };
-            })
+            data?.messages?.map((m: ConsoleMessage, i) => {
+                return {
+                    ...m,
+                    id: i,
+                };
+            }) ?? []
         );
-    }, [rawMessages]);
+    }, [data]);
 
     // Logic for scrolling to current entry.
     useEffect(() => {
@@ -157,7 +159,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         ref={virtuoso}
                         overscan={500}
                         data={messagesToRender}
-                        itemContent={(_index, message) => (
+                        itemContent={(_index, message: ParsedMessage) => (
                             <div key={message.id.toString()}>
                                 <div
                                     className={styles.consoleMessage}
@@ -188,8 +190,9 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                         />
                                     </div>
                                     <div className={styles.messageText}>
-                                        {typeof message.value === 'string' &&
-                                            message.value}
+                                        <ConsoleRender
+                                            m={message.value ?? ''}
+                                        />
                                     </div>
                                     <GoToButton
                                         className={styles.goToButton}
@@ -211,6 +214,47 @@ export const ConsolePage = ({ time }: { time: number }) => {
                     </div>
                 )}
             </div>
+        </div>
+    );
+};
+
+const ConsoleRender = ({ m }: { m: Array<any> | string }) => {
+    const input: Array<any> = typeof m === 'string' ? [m] : m;
+    const result: Array<string | object> = [];
+    // bundle strings together.
+    for (let i = 0; i < input.length; i++) {
+        if (
+            typeof input[i] === 'string' &&
+            typeof result[result.length - 1] === 'string'
+        ) {
+            result[result.length - 1] += ' ' + input[i];
+        } else {
+            result.push(input[i]);
+        }
+    }
+    return (
+        <div>
+            {result.map((r) =>
+                typeof r === 'object' ? (
+                    <ReactJson
+                        style={{
+                            fontFamily: 'AvenirNext',
+                            fontWeight: 300,
+                            margin: 10,
+                        }}
+                        name={false}
+                        collapsed
+                        src={r}
+                        iconStyle="circle"
+                    />
+                ) : typeof r === 'string' ? (
+                    <div className={styles.messageText}>{r}</div>
+                ) : (
+                    <div className={styles.messageText}>
+                        {JSON.stringify(r)}
+                    </div>
+                )
+            )}
         </div>
     );
 };
