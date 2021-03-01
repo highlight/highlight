@@ -54,6 +54,7 @@
         "react-icons": "^3.11.0",
         "react-infinite-scroll-hook": "^3.0.0",
         "react-input-autosize": "^2.2.2",
+        "react-json-view": "^1.21.1",
         "react-loading-skeleton": "^2.1.1",
         "react-resize-aware": "^3.0.1",
         "react-resize-detector": "^5.2.0",

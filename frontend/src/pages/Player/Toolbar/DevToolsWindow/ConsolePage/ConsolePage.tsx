@@ -18,12 +18,12 @@ import GoToButton from '../../../../../components/Button/GoToButton';
 import ReplayerContext from '../../../ReplayerContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import ReactJson from 'react-json-view';
 import _ from 'lodash';
 
 interface ParsedMessage extends ConsoleMessage {
     selected?: boolean;
     id: number;
-    stringToRender: string;
 }
 
 export const ConsolePage = ({ time }: { time: number }) => {
@@ -59,12 +59,9 @@ export const ConsolePage = ({ time }: { time: number }) => {
     useEffect(() => {
         setParsedMessages(
             data?.messages?.map((m: ConsoleMessage, i) => {
-                const s = buildConsoleString(m.value ?? []);
-                console.log(s);
                 return {
                     ...m,
                     id: i,
-                    stringToRender: s,
                 };
             }) ?? []
         );
@@ -193,9 +190,9 @@ export const ConsolePage = ({ time }: { time: number }) => {
                                         />
                                     </div>
                                     <div className={styles.messageText}>
-                                        {message.stringToRender}
-                                        {/* {typeof message.value === 'string' &&
-                                            message.value} */}
+                                        <ConsoleRender
+                                            m={message.value ?? ''}
+                                        />
                                     </div>
                                     <GoToButton
                                         className={styles.goToButton}
@@ -221,18 +218,39 @@ export const ConsolePage = ({ time }: { time: number }) => {
     );
 };
 
-const buildConsoleString = (m: Array<any> | string): string => {
-    let s = '';
-    if (typeof m === 'string') {
-        s = m;
-    } else {
-        m.forEach((p) => {
-            if (typeof p === 'string') {
-                s += p;
-            } else if (typeof p === 'object') {
-                s += '\n' + JSON.stringify(p) + '\n';
-            }
-        });
+const ConsoleRender = ({ m }: { m: Array<any> | string }) => {
+    const input: Array<any> = typeof m === 'string' ? [m] : m;
+    const result: Array<string | object> = [];
+    // bundle strings together.
+    for (let i = 0; i < input.length; i++) {
+        if (
+            typeof input[i] === 'string' &&
+            typeof result[result.length - 1] === 'string'
+        ) {
+            result[result.length - 1] += ' ' + input[i];
+        } else {
+            result.push(input[i]);
+        }
     }
-    return s;
+    return (
+        <div>
+            {result.map((r) =>
+                typeof r === 'object' ? (
+                    <ReactJson
+                        style={{ fontFamily: 'AvenirNext', fontWeight: 300 }}
+                        name={false}
+                        collapsed
+                        src={r}
+                        iconStyle="circle"
+                    />
+                ) : typeof r === 'string' ? (
+                    <div className={styles.messageText}>{r}</div>
+                ) : (
+                    <div className={styles.messageText}>
+                        {JSON.stringify(r)}
+                    </div>
+                )
+            )}
+        </div>
+    );
 };
