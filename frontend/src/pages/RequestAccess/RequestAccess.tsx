@@ -6,7 +6,6 @@ import { useSendEmailSignupMutation } from '../../graph/generated/hooks';
 import styles from './RequestAccess.module.scss';
 import commonStyles from '../../Common.module.scss';
 import { message } from 'antd';
-import { Link } from 'react-router-dom';
 
 type Inputs = {
     email: string;
