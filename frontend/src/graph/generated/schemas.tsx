@@ -294,6 +294,7 @@ export type Mutation = {
     sendAdminInvite?: Maybe<Scalars['String']>;
     addAdminToOrganization?: Maybe<Scalars['ID']>;
     createSegment?: Maybe<Segment>;
+    emailSignup: Scalars['String'];
     editSegment?: Maybe<Scalars['Boolean']>;
     deleteSegment?: Maybe<Scalars['Boolean']>;
     createErrorSegment?: Maybe<ErrorSegment>;
@@ -335,6 +336,10 @@ export type MutationCreateSegmentArgs = {
     organization_id: Scalars['ID'];
     name: Scalars['String'];
     params: SearchParamsInput;
+};
+
+export type MutationEmailSignupArgs = {
+    email: Scalars['String'];
 };
 
 export type MutationEditSegmentArgs = {

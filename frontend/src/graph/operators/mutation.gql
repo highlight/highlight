@@ -9,6 +9,10 @@ mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {
     createOrUpdateSubscription(organization_id: $organization_id, plan: $plan)
 }
 
+mutation SendEmailSignup($email: String!) {
+    emailSignup(email: $email)
+}
+
 mutation AddAdminToOrganization($organization_id: ID!, $invite_id: String!) {
     addAdminToOrganization(
         organization_id: $organization_id

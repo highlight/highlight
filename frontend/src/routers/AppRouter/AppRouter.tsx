@@ -13,6 +13,7 @@ import {
 } from 'react-router-dom';
 import { OrgRouter } from '../OrgRouter/OrgRouter';
 import { useGetOrganizationsQuery } from '../../graph/generated/hooks';
+import { Home } from '../../pages/Home/Home';
 
 export const AppRouter = () => {
     const {
@@ -34,10 +35,14 @@ export const AppRouter = () => {
             <Router>
                 <Switch>
                     <Route path="/:organization_id/invite/:invite_id">
-                        <NewMemberPage />
+                        <Home>
+                            <NewMemberPage />
+                        </Home>
                     </Route>
                     <Route path="/new">
-                        <NewWorkspacePage />
+                        <Home>
+                            <NewWorkspacePage />
+                        </Home>
                     </Route>
                     <Route path="/:organization_id">
                         <OrgRouter />

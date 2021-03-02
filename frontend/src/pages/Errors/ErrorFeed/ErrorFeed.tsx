@@ -29,6 +29,7 @@ export type ErrorTrace = {
 export const ErrorFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [count, setCount] = useState(10);
+    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const [data, setData] = useState<ErrorResults>({
         error_groups: [],
         totalCount: -1,
@@ -46,6 +47,7 @@ export const ErrorFeed = () => {
             if (response.error_groups) {
                 setData(gqlSanitize(response.error_groups));
             }
+            setShowLoadingSkeleton(false);
         },
     });
 
@@ -86,7 +88,7 @@ export const ErrorFeed = () => {
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
-                    {loading ? (
+                    {loading && showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
                             count={3}

@@ -1,18 +1,11 @@
-.boxWrapper {
-    background-color: white;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 100%;
-}
+@import 'src/static/shared.scss';
 
 .box {
     border-radius: 8px;
     padding: 30px;
     border: 1px solid #eaeaea;
     width: 350px;
+    background-color: white;
 }
 
 .title {

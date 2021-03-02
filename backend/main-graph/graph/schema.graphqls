@@ -217,6 +217,7 @@ type Mutation {
         name: String!
         params: SearchParamsInput!
     ): Segment
+    emailSignup(email: String!): String!
     editSegment(
         id: ID!
         organization_id: ID!
