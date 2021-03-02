@@ -45,7 +45,7 @@ type Inputs = {
 };
 
 export const LoginForm = () => {
-    const url = window.location.href;
+    const url = window.location.hostname;
     const {
         watch,
         register,
