@@ -13,6 +13,7 @@ import ReplayerContext, {
     ReplayerState,
 } from '../ReplayerContext';
 import classNames from 'classnames';
+import Skeleton from 'react-loading-skeleton';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -305,8 +306,14 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         />
                     </button>
                     <div className={styles.timeSection}>
-                        {MillisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
-                        {MillisToMinutesAndSeconds(max)}
+                        {disableControls ? (
+                            <Skeleton count={1} width="100px" />
+                        ) : (
+                            <>
+                                {MillisToMinutesAndSeconds(time)}&nbsp;/&nbsp;
+                                {MillisToMinutesAndSeconds(max)}
+                            </>
+                        )}
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>

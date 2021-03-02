@@ -11,6 +11,11 @@ import {
     ReplayerState,
 } from '../ReplayerContext';
 
+/**
+ * The number of events to add to Replayer in a frame.
+ */
+const EVENTS_CHUNK_SIZE = 25;
+
 export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     const { session_id } = useParams<{ session_id: string }>();
 
@@ -45,7 +50,8 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                 eventsData?.events ?? []
             );
             const inactiveThreshold = 0.02;
-            const r = new Replayer(newEvents, {
+            // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
+            const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
                 root: document.getElementById('player') as HTMLElement,
             });
             r.on(ReplayerEvents.Finish, () => {
@@ -94,9 +100,38 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             setEvents(newEvents);
             setReplayer(r);
             setSessionEndTime(r.getMetaData().totalTime);
-            setState(ReplayerState.LoadedAndUntouched);
         }
     }, [eventsData]);
+
+    // Loads the remaining events into Replayer.
+    useEffect(() => {
+        if (replayer) {
+            let timerId = 0;
+            let eventsIndex = EVENTS_CHUNK_SIZE;
+
+            const addEventsWorker = () => {
+                events
+                    .slice(eventsIndex, eventsIndex + EVENTS_CHUNK_SIZE)
+                    .forEach((event) => {
+                        replayer.addEvent(event);
+                    });
+                eventsIndex += EVENTS_CHUNK_SIZE;
+
+                if (eventsIndex > events.length) {
+                    cancelAnimationFrame(timerId);
+                    setState(ReplayerState.LoadedAndUntouched);
+                } else {
+                    timerId = requestAnimationFrame(addEventsWorker);
+                }
+            };
+
+            timerId = requestAnimationFrame(addEventsWorker);
+
+            return () => {
+                cancelAnimationFrame(timerId);
+            };
+        }
+    }, [events, events.length, replayer]);
 
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {
