@@ -11,7 +11,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	"github.com/jay-khatri/fullstory/backend/event-parse"
+	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
