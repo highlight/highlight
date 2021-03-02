@@ -30,45 +30,41 @@ export const NewMemberPage = () => {
     }
 
     return (
-        <div className={styles.boxWrapper}>
-            <div className={styles.box}>
-                <div className={styles.title}>Accept workspace invite?</div>
-                <div className={styles.subTitle}>
-                    Would you like to enter this workspace as '
-                    {adminData?.admin?.email}' ?
-                </div>
-                <button
-                    className={commonStyles.submitButton}
-                    onClick={() => {
-                        addAdmin({
-                            variables: {
-                                organization_id: organization_id,
-                                invite_id,
-                            },
-                        }).then(() => {
-                            setAdminAdded(true);
-                        });
-                    }}
-                >
-                    {addLoading ? (
-                        <CircularSpinner
-                            style={{ fontSize: 18, color: 'white' }}
-                        />
-                    ) : (
-                        'Enter Workspace'
-                    )}
-                </button>
-                <button
-                    className={commonStyles.secondaryButton}
-                    style={{ marginTop: 16 }}
-                    onClick={() => {
-                        auth.signOut();
-                        client.cache.reset();
-                    }}
-                >
-                    Login as different User
-                </button>
+        <div className={styles.box}>
+            <div className={styles.title}>Accept workspace invite?</div>
+            <div className={styles.subTitle}>
+                Would you like to enter this workspace as '
+                {adminData?.admin?.email}' ?
             </div>
+            <button
+                className={commonStyles.submitButton}
+                onClick={() => {
+                    addAdmin({
+                        variables: {
+                            organization_id: organization_id,
+                            invite_id,
+                        },
+                    }).then(() => {
+                        setAdminAdded(true);
+                    });
+                }}
+            >
+                {addLoading ? (
+                    <CircularSpinner style={{ fontSize: 18, color: 'white' }} />
+                ) : (
+                    'Enter Workspace'
+                )}
+            </button>
+            <button
+                className={commonStyles.secondaryButton}
+                style={{ marginTop: 16 }}
+                onClick={() => {
+                    auth.signOut();
+                    client.cache.reset();
+                }}
+            >
+                Login as different User
+            </button>
         </div>
     );
 };

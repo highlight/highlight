@@ -19,6 +19,15 @@ export type CreateOrUpdateSubscriptionMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
 
+export type SendEmailSignupMutationVariables = Types.Exact<{
+    email: Types.Scalars['String'];
+}>;
+
+export type SendEmailSignupMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'emailSignup'
+>;
+
 export type AddAdminToOrganizationMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     invite_id: Types.Scalars['String'];

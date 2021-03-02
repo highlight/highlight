@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, googleProvider } from '../../util/auth';
 import { Home } from '../Home/Home';
+import { RequestAccessPage } from '../RequestAccess/RequestAccess';
 
 export const AuthAdminRouter = () => {
     const { loading, error, data } = useGetAdminQuery();
@@ -44,6 +45,7 @@ type Inputs = {
 };
 
 export const LoginForm = () => {
+    const url = window.location.hostname;
     const {
         watch,
         register,
@@ -90,6 +92,17 @@ export const LoginForm = () => {
 
     if (user) {
         return <AuthAdminRouter />;
+    }
+
+    if (
+        url.toLowerCase() === 'highlight.run' ||
+        window.location.pathname.toLowerCase().includes('request')
+    ) {
+        return (
+            <Home>
+                <RequestAccessPage />
+            </Home>
+        );
     }
 
     return (

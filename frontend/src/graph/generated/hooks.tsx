@@ -102,6 +102,52 @@ export type CreateOrUpdateSubscriptionMutationOptions = Apollo.BaseMutationOptio
     Types.CreateOrUpdateSubscriptionMutation,
     Types.CreateOrUpdateSubscriptionMutationVariables
 >;
+export const SendEmailSignupDocument = gql`
+    mutation SendEmailSignup($email: String!) {
+        emailSignup(email: $email)
+    }
+`;
+export type SendEmailSignupMutationFn = Apollo.MutationFunction<
+    Types.SendEmailSignupMutation,
+    Types.SendEmailSignupMutationVariables
+>;
+
+/**
+ * __useSendEmailSignupMutation__
+ *
+ * To run a mutation, you first call `useSendEmailSignupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSendEmailSignupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sendEmailSignupMutation, { data, loading, error }] = useSendEmailSignupMutation({
+ *   variables: {
+ *      email: // value for 'email'
+ *   },
+ * });
+ */
+export function useSendEmailSignupMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.SendEmailSignupMutation,
+        Types.SendEmailSignupMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.SendEmailSignupMutation,
+        Types.SendEmailSignupMutationVariables
+    >(SendEmailSignupDocument, baseOptions);
+}
+export type SendEmailSignupMutationHookResult = ReturnType<
+    typeof useSendEmailSignupMutation
+>;
+export type SendEmailSignupMutationResult = Apollo.MutationResult<Types.SendEmailSignupMutation>;
+export type SendEmailSignupMutationOptions = Apollo.BaseMutationOptions<
+    Types.SendEmailSignupMutation,
+    Types.SendEmailSignupMutationVariables
+>;
 export const AddAdminToOrganizationDocument = gql`
     mutation AddAdminToOrganization(
         $organization_id: ID!

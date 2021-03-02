@@ -28,6 +28,7 @@
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "react/no-unescaped-entities": "off",
       "react/prop-types": "off",
+      "@typescript-eslint/ban-types": "off",
       "@typescript-eslint/ban-ts-comment": "off",
       "@typescript-eslint/no-empty-function": "off",
       "react/display-name": "off",
