@@ -28,12 +28,18 @@ export type ErrorTrace = {
 export const ErrorFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [count, setCount] = useState(10);
+    const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const [data, setData] = useState<any>({
         error_groups: [],
         totalCount: -1,
     });
-    const { searchParams } = useContext(SearchContext);
-    const { date_range, os, browser, visited_url } = searchParams;
+    const {
+        searchParams: { date_range, os, browser, visited_url },
+    } = useContext(SearchContext);
+
+    useEffect(() => {
+        setShowLoadingSkeleton(true); // needed to prevent component unmounting
+    }, [date_range, os, browser, visited_url]);
 
     const { loading, fetchMore } = useGetErrorGroupsQuery({
         variables: {
@@ -45,6 +51,7 @@ export const ErrorFeed = () => {
             if (response.error_groups) {
                 setData(response.error_groups);
             }
+            setShowLoadingSkeleton(false);
         },
     });
 
@@ -79,7 +86,7 @@ export const ErrorFeed = () => {
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
-                    {loading ? (
+                    {loading && showLoadingSkeleton ? (
                         <Skeleton
                             height={110}
                             count={3}
