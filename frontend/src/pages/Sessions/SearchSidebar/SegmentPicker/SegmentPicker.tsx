@@ -6,6 +6,7 @@ import Skeleton from 'react-loading-skeleton';
 
 import styles from './SegmentPicker.module.scss';
 import { useGetSegmentsQuery } from '../../../../graph/generated/hooks';
+import { gqlSanitize } from '../../../../util/gqlSanitize';
 
 export const SegmentPicker = () => {
     const { setSearchParams, setSegmentName, setExistingParams } = useContext(
@@ -24,7 +25,7 @@ export const SegmentPicker = () => {
     useEffect(() => {
         if (currentSegment) {
             const newParams: any = { ...currentSegment.params };
-            const parsed: SearchParams = sanitize(newParams);
+            const parsed: SearchParams = gqlSanitize(newParams);
             setSegmentName(currentSegment.name);
             setSearchParams(parsed);
             setExistingParams(parsed);
@@ -76,11 +77,4 @@ export const SegmentPicker = () => {
             )}
         </div>
     );
-};
-
-const sanitize = (object: any): any => {
-    const omitTypename = (key: any, value: any) =>
-        key === '__typename' ? undefined : value;
-    const newPayload = JSON.parse(JSON.stringify(object), omitTypename);
-    return newPayload;
 };

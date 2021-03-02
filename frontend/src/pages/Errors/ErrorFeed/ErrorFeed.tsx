@@ -5,10 +5,11 @@ import Skeleton from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
 import { Tag, Tooltip } from 'antd';
 import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
-import { Maybe } from '../../../graph/generated/schemas';
+import { ErrorResults, Maybe } from '../../../graph/generated/schemas';
 import { SearchContext } from '../../Sessions/SearchContext/SearchContext';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { DateInput } from '../../Sessions/SearchInputs/DateInput';
+import { gqlSanitize } from '../../../util/gqlSanitize';
 
 export type ErrorMetadata = {
     browser: string;
@@ -28,7 +29,7 @@ export type ErrorTrace = {
 export const ErrorFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [count, setCount] = useState(10);
-    const [data, setData] = useState<any>({
+    const [data, setData] = useState<ErrorResults>({
         error_groups: [],
         totalCount: -1,
     });
@@ -43,7 +44,7 @@ export const ErrorFeed = () => {
         },
         onCompleted: (response) => {
             if (response.error_groups) {
-                setData(response.error_groups);
+                setData(gqlSanitize(response.error_groups));
             }
         },
     });
@@ -211,9 +212,13 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
                                                 className={styles.errorBar}
                                                 style={{
                                                     height: `${
-                                                        (60 *
-                                                            errorDates[date]) /
-                                                        maxErrors
+                                                        errorDates
+                                                            ? (60 *
+                                                                  errorDates[
+                                                                      date
+                                                                  ]) /
+                                                              maxErrors
+                                                            : 0
                                                     }px`,
                                                 }}
                                             ></div>
