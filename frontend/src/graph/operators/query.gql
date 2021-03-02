@@ -193,6 +193,23 @@ query GetSegments($organization_id: ID!) {
     }
 }
 
+query GetErrorSegments($organization_id: ID!) {
+    error_segments(organization_id: $organization_id) {
+        id
+        name
+        params {
+            date_range {
+                start_date
+                end_date
+            }
+            os
+            browser
+            visited_url
+            hide_viewed
+        }
+    }
+}
+
 query IsIntegrated($organization_id: ID!) {
     isIntegrated(organization_id: $organization_id)
 }

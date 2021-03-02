@@ -1,0 +1,113 @@
+.segmentPickerMenu {
+    box-shadow: none;
+    min-width: 200px;
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+.segmentPickerInner {
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #eaeaea;
+    min-width: 220px;
+    color: black;
+}
+
+.downIcon {
+    transition: 0.4s;
+    margin-left: auto;
+    margin-right: 5px;
+    height: 14px;
+    width: 14px;
+    color: #5629c6;
+}
+
+.checkIcon {
+    margin-right: 5px;
+    margin-bottom: 2px;
+    margin-left: auto;
+    height: 15px;
+    width: 15px;
+    color: #5629c6;
+    fill: #5629c6;
+}
+
+.dropdownHandler {
+    cursor: pointer;
+    width: 100%;
+    margin-top: 13px;
+    height: 40px;
+    border: 1px solid #eaeaea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border-radius: 8px;
+    color: black;
+    font-size: 16px;
+    padding-left: 14px;
+}
+
+.plusIcon {
+    margin-right: 5px;
+    margin-bottom: 2px;
+    margin-left: auto;
+    height: 15px;
+    width: 15px;
+    color: #5629c6;
+    fill: #5629c6;
+}
+
+.newSearchDiv {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding-left: 15px;
+    color: #5629c6;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.newSearchDiv:hover {
+    background-color: #f2eefb;
+}
+
+.noSegmentsText {
+    margin-top: 10px;
+    color: #808080;
+}
+
+.segmentItem {
+    border-bottom: 1px solid #eaeaea;
+    padding: 10px;
+    font-size: 16px;
+    padding-left: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.segmentItem:hover {
+    background-color: #f2eefb;
+}
+
+.segmentText {
+    text-overflow: ellipsis;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    color: black;
+    margin-right: 20px;
+    font-size: 14px;
+}
+
+.segmentNameText {
+    width: 100%;
+    font-size: 14px;
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

@@ -68,6 +68,14 @@ export type Segment = {
     organization_id: Scalars['ID'];
 };
 
+export type ErrorSegment = {
+    __typename?: 'ErrorSegment';
+    id: Scalars['ID'];
+    name: Scalars['String'];
+    params: ErrorSearchParams;
+    organization_id: Scalars['ID'];
+};
+
 export type ErrorObject = {
     __typename?: 'ErrorObject';
     id: Scalars['ID'];
@@ -198,6 +206,7 @@ export type Query = {
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
+    error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     recording_settings?: Maybe<RecordingSettings>;
 };
 
@@ -261,6 +270,10 @@ export type QuerySegmentsArgs = {
     organization_id: Scalars['ID'];
 };
 
+export type QueryError_SegmentsArgs = {
+    organization_id: Scalars['ID'];
+};
+
 export type QueryRecording_SettingsArgs = {
     organization_id: Scalars['ID'];
 };
@@ -283,6 +296,9 @@ export type Mutation = {
     createSegment?: Maybe<Segment>;
     editSegment?: Maybe<Scalars['Boolean']>;
     deleteSegment?: Maybe<Scalars['Boolean']>;
+    createErrorSegment?: Maybe<ErrorSegment>;
+    editErrorSegment?: Maybe<Scalars['Boolean']>;
+    deleteErrorSegment?: Maybe<Scalars['Boolean']>;
     editRecordingSettings?: Maybe<RecordingSettings>;
     createOrUpdateSubscription?: Maybe<Scalars['String']>;
 };
@@ -328,6 +344,22 @@ export type MutationEditSegmentArgs = {
 };
 
 export type MutationDeleteSegmentArgs = {
+    segment_id: Scalars['ID'];
+};
+
+export type MutationCreateErrorSegmentArgs = {
+    organization_id: Scalars['ID'];
+    name: Scalars['String'];
+    params: ErrorSearchParamsInput;
+};
+
+export type MutationEditErrorSegmentArgs = {
+    id: Scalars['ID'];
+    organization_id: Scalars['ID'];
+    params: ErrorSearchParamsInput;
+};
+
+export type MutationDeleteErrorSegmentArgs = {
     segment_id: Scalars['ID'];
 };
 

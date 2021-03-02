@@ -7,7 +7,7 @@ import {
     SearchParams,
 } from '../Sessions/SearchContext/SearchContext';
 import { ErrorSearchSidebar } from './ErrorSearchSidebar/ErrorSearchSidebar';
-import { SegmentSidebar } from '../Sessions/SegmentSidebar/SegmentSidebar';
+import { ErrorSegmentSidebar } from './ErrorSegmentSidebar/ErrorSegmentSidebar';
 
 export const ErrorsPage = () => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export const ErrorsPage = () => {
         >
             <div className={styles.errorsBody}>
                 <div className={styles.leftPanel}>
-                    <SegmentSidebar />
+                    <ErrorSegmentSidebar />
                     <div className={styles.advancedText}>
                         <Button
                             type="primary"

@@ -33,13 +33,13 @@ export const ErrorFeed = () => {
         totalCount: -1,
     });
     const { searchParams } = useContext(SearchContext);
-    const { date_range, os, browser, visited_url } = searchParams;
+    const { date_range, os, browser, visited_url, hide_viewed } = searchParams;
 
     const { loading, fetchMore } = useGetErrorGroupsQuery({
         variables: {
             organization_id,
             count: count + 10,
-            params: { date_range, os, browser, visited_url },
+            params: { date_range, os, browser, visited_url, hide_viewed },
         },
         onCompleted: (response) => {
             if (response.error_groups) {
@@ -57,7 +57,13 @@ export const ErrorFeed = () => {
             setCount((previousCount) => previousCount + 10);
             fetchMore({
                 variables: {
-                    params: { date_range, os, browser, visited_url },
+                    params: {
+                        date_range,
+                        os,
+                        browser,
+                        visited_url,
+                        hide_viewed,
+                    },
                     count,
                     organization_id,
                 },
