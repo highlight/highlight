@@ -94,7 +94,10 @@ export const LoginForm = () => {
         return <AuthAdminRouter />;
     }
 
-    if (url.toLowerCase() === 'highlight.run' || window.location.pathname.toLowerCase().includes('request')) {
+    if (
+        url.toLowerCase() === 'highlight.run' ||
+        window.location.pathname.toLowerCase().includes('request')
+    ) {
         return (
             <Home>
                 <RequestAccessPage />
