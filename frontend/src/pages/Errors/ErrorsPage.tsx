@@ -40,7 +40,6 @@ export const ErrorsPage = () => {
         >
             <div className={styles.errorsBody}>
                 <div className={styles.leftPanel}>
-                    <SegmentSidebar />
                     <div className={styles.advancedText}>
                         <Button
                             type="primary"
@@ -58,6 +57,7 @@ export const ErrorsPage = () => {
                             Console Error
                         </Button>{' '}
                     </div>
+                    <SegmentSidebar />
                 </div>
                 <div className={styles.centerPanel}>
                     <div className={styles.errorsSection}>
