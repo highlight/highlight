@@ -51,6 +51,30 @@ export type CreateOrganizationMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type EditOrganizationMutationVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+    name?: Types.Maybe<Types.Scalars['String']>;
+    billing_email?: Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type EditOrganizationMutation = { __typename?: 'Mutation' } & {
+    editOrganization?: Types.Maybe<
+        { __typename?: 'Organization' } & Pick<
+            Types.Organization,
+            'name' | 'billing_email'
+        >
+    >;
+};
+
+export type DeleteOrganizationMutationVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+}>;
+
+export type DeleteOrganizationMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'deleteOrganization'
+>;
+
 export type EditSegmentMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     id: Types.Scalars['ID'];
@@ -111,27 +135,41 @@ export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
-export type DeleteOrganizationMutationVariables = Types.Exact<{
+export type EditErrorSegmentMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
     id: Types.Scalars['ID'];
+    params: Types.ErrorSearchParamsInput;
 }>;
 
-export type DeleteOrganizationMutation = { __typename?: 'Mutation' } & Pick<
+export type EditErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
     Types.Mutation,
-    'deleteOrganization'
+    'editErrorSegment'
 >;
 
-export type EditOrganizationMutationVariables = Types.Exact<{
-    id: Types.Scalars['ID'];
-    name?: Types.Maybe<Types.Scalars['String']>;
-    billing_email?: Types.Maybe<Types.Scalars['String']>;
+export type CreateErrorSegmentMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    params: Types.ErrorSearchParamsInput;
 }>;
 
-export type EditOrganizationMutation = { __typename?: 'Mutation' } & {
-    editOrganization?: Types.Maybe<
-        { __typename?: 'Organization' } & Pick<
-            Types.Organization,
-            'name' | 'billing_email'
-        >
+export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
+    createErrorSegment?: Types.Maybe<
+        { __typename?: 'ErrorSegment' } & Pick<
+            Types.ErrorSegment,
+            'name' | 'id'
+        > & {
+                params: { __typename?: 'ErrorSearchParams' } & Pick<
+                    Types.ErrorSearchParams,
+                    'os' | 'browser' | 'visited_url' | 'hide_viewed'
+                > & {
+                        date_range?: Types.Maybe<
+                            { __typename?: 'DateRange' } & Pick<
+                                Types.DateRange,
+                                'start_date' | 'end_date'
+                            >
+                        >;
+                    };
+            }
     >;
 };
 
@@ -444,6 +482,35 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
                                         >
                                     >
                                 >;
+                                date_range?: Types.Maybe<
+                                    { __typename?: 'DateRange' } & Pick<
+                                        Types.DateRange,
+                                        'start_date' | 'end_date'
+                                    >
+                                >;
+                            };
+                    }
+            >
+        >
+    >;
+};
+
+export type GetErrorSegmentsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
+    error_segments?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorSegment' } & Pick<
+                    Types.ErrorSegment,
+                    'id' | 'name'
+                > & {
+                        params: { __typename?: 'ErrorSearchParams' } & Pick<
+                            Types.ErrorSearchParams,
+                            'os' | 'browser' | 'visited_url' | 'hide_viewed'
+                        > & {
                                 date_range?: Types.Maybe<
                                     { __typename?: 'DateRange' } & Pick<
                                         Types.DateRange,

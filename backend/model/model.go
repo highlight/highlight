@@ -249,6 +249,12 @@ type ErrorSearchParams struct {
 	VisitedURL *string    `json:"visited_url"`
 	HideViewed bool       `json:"hide_viewed"`
 }
+type ErrorSegment struct {
+	Model
+	Name           *string
+	Params         *string `json:"params"`
+	OrganizationID int
+}
 
 type ErrorObject struct {
 	Model
@@ -270,6 +276,7 @@ type ErrorGroup struct {
 	Trace          string
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
+	FieldGroup     *string
 }
 
 type ErrorField struct {
@@ -301,6 +308,7 @@ func SetupDB() *gorm.DB {
 		&ErrorObject{},
 		&ErrorGroup{},
 		&ErrorField{},
+		&ErrorSegment{},
 		&Organization{},
 		&Segment{},
 		&Admin{},

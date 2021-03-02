@@ -27,46 +27,10 @@ mutation CreateOrganization($name: String!) {
     }
 }
 
-mutation EditSegment(
-    $organization_id: ID!
-    $id: ID!
-    $params: SearchParamsInput!
-) {
-    editSegment(organization_id: $organization_id, id: $id, params: $params)
-}
-
-mutation CreateSegment(
-    $organization_id: ID!
-    $name: String!
-    $params: SearchParamsInput!
-) {
-    createSegment(
-        organization_id: $organization_id
-        name: $name
-        params: $params
-    ) {
+mutation EditOrganization($id: ID!, $name: String, $billing_email: String) {
+    editOrganization(id: $id, name: $name, billing_email: $billing_email) {
         name
-        id
-        params {
-            user_properties {
-                name
-                value
-            }
-            excluded_properties {
-                name
-                value
-            }
-            date_range {
-                start_date
-                end_date
-            }
-            os
-            browser
-            visited_url
-            referrer
-            identified
-            hide_viewed
-        }
+        billing_email
     }
 }
 
@@ -117,9 +81,35 @@ mutation CreateSegment(
     }
 }
 
-mutation EditOrganization($id: ID!, $name: String, $billing_email: String) {
-    editOrganization(id: $id, name: $name, billing_email: $billing_email) {
+mutation EditErrorSegment(
+    $organization_id: ID!
+    $id: ID!
+    $params: ErrorSearchParamsInput!
+) {
+    editErrorSegment(organization_id: $organization_id, id: $id, params: $params)
+}
+
+mutation CreateErrorSegment(
+    $organization_id: ID!
+    $name: String!
+    $params: ErrorSearchParamsInput!
+) {
+    createErrorSegment(
+        organization_id: $organization_id
+        name: $name
+        params: $params
+    ) {
         name
-        billing_email
+        id
+        params {
+            date_range {
+                start_date
+                end_date
+            }
+            os
+            browser
+            visited_url
+            hide_viewed
+        }
     }
 }
