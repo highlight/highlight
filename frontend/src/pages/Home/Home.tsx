@@ -2,6 +2,7 @@ import React from 'react';
 import styles from './Home.module.scss';
 import { ReactComponent as Humans } from '../../static/human-image.svg';
 import { ReactComponent as Logos } from '../../static/logos.svg';
+import { ReactComponent as ArrowRight } from '../../static/arrow-right.svg';
 import { HighlightLogo } from '../../components/HighlightLogo/HighlightLogo';
 import { Link } from 'react-router-dom';
 
@@ -22,6 +23,12 @@ export const Home: React.FC = ({ children }) => {
                         <Link to={'/careers'} className={styles.navLink}>
                             Careers
                         </Link>
+                        <a
+                            href="https://app.highlight.run"
+                            className={styles.arrowWrapper}
+                        >
+                            Sign In <ArrowRight className={styles.arrow} />
+                        </a>
                     </div>
                 </nav>
                 <div className={styles.landingWrapper}>
