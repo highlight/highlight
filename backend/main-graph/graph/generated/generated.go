@@ -3068,9 +3068,9 @@ func (ec *executionContext) _ErrorResults_error_groups(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.ErrorGroup)
+	res := resTmp.([]model1.ErrorGroup)
 	fc.Result = res
-	return ec.marshalNErrorGroup2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
+	return ec.marshalNErrorGroup2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorResults_totalCount(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
@@ -8700,7 +8700,7 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNErrorGroup2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorGroup) graphql.Marshaler {
+func (ec *executionContext) marshalNErrorGroup2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v []model1.ErrorGroup) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -8724,7 +8724,7 @@ func (ec *executionContext) marshalNErrorGroup2ᚕᚖgithubᚗcomᚋjayᚑkhatri
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOErrorGroup2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, sel, v[i])
+			ret[i] = ec.marshalOErrorGroup2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -9301,11 +9301,8 @@ func (ec *executionContext) marshalOErrorField2ᚖgithubᚗcomᚋjayᚑkhatriᚋ
 	return ec._ErrorField(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOErrorGroup2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorGroup) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ErrorGroup(ctx, sel, v)
+func (ec *executionContext) marshalOErrorGroup2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v model1.ErrorGroup) graphql.Marshaler {
+	return ec._ErrorGroup(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalOErrorResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorResults(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorResults) graphql.Marshaler {
