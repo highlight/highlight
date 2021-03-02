@@ -94,7 +94,7 @@ export const LoginForm = () => {
         return <AuthAdminRouter />;
     }
 
-    if (url.startsWith('https://highlight.run') || url.endsWith('request')) {
+    if (url.toLowerCase() === 'highlight.run' || window.location.pathname.toLowerCase().includes('request')) {
         return (
             <Home>
                 <RequestAccessPage />
