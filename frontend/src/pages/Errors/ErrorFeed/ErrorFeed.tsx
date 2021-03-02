@@ -5,10 +5,11 @@ import Skeleton from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
 import { Tag, Tooltip } from 'antd';
 import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
-import { Maybe } from '../../../graph/generated/schemas';
+import { ErrorResults, Maybe } from '../../../graph/generated/schemas';
 import { SearchContext } from '../../Sessions/SearchContext/SearchContext';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { DateInput } from '../../Sessions/SearchInputs/DateInput';
+import { gqlSanitize } from '../../../util/gqlSanitize';
 
 export type ErrorMetadata = {
     browser: string;
@@ -29,27 +30,22 @@ export const ErrorFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [count, setCount] = useState(10);
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
-    const [data, setData] = useState<any>({
+    const [data, setData] = useState<ErrorResults>({
         error_groups: [],
         totalCount: -1,
     });
-    const {
-        searchParams: { date_range, os, browser, visited_url },
-    } = useContext(SearchContext);
-
-    useEffect(() => {
-        setShowLoadingSkeleton(true); // needed to prevent component unmounting
-    }, [date_range, os, browser, visited_url]);
+    const { searchParams } = useContext(SearchContext);
+    const { date_range, os, browser, visited_url, hide_viewed } = searchParams;
 
     const { loading, fetchMore } = useGetErrorGroupsQuery({
         variables: {
             organization_id,
             count: count + 10,
-            params: { date_range, os, browser, visited_url },
+            params: { date_range, os, browser, visited_url, hide_viewed },
         },
         onCompleted: (response) => {
             if (response.error_groups) {
-                setData(response.error_groups);
+                setData(gqlSanitize(response.error_groups));
             }
             setShowLoadingSkeleton(false);
         },
@@ -64,7 +60,13 @@ export const ErrorFeed = () => {
             setCount((previousCount) => previousCount + 10);
             fetchMore({
                 variables: {
-                    params: { date_range, os, browser, visited_url },
+                    params: {
+                        date_range,
+                        os,
+                        browser,
+                        visited_url,
+                        hide_viewed,
+                    },
                     count,
                     organization_id,
                 },
@@ -212,9 +214,13 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
                                                 className={styles.errorBar}
                                                 style={{
                                                     height: `${
-                                                        (60 *
-                                                            errorDates[date]) /
-                                                        maxErrors
+                                                        errorDates
+                                                            ? (60 *
+                                                                  errorDates[
+                                                                      date
+                                                                  ]) /
+                                                              maxErrors
+                                                            : 0
                                                     }px`,
                                                 }}
                                             ></div>

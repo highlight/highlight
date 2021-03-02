@@ -250,6 +250,103 @@ export type CreateOrganizationMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateOrganizationMutation,
     Types.CreateOrganizationMutationVariables
 >;
+export const EditOrganizationDocument = gql`
+    mutation EditOrganization($id: ID!, $name: String, $billing_email: String) {
+        editOrganization(id: $id, name: $name, billing_email: $billing_email) {
+            name
+            billing_email
+        }
+    }
+`;
+export type EditOrganizationMutationFn = Apollo.MutationFunction<
+    Types.EditOrganizationMutation,
+    Types.EditOrganizationMutationVariables
+>;
+
+/**
+ * __useEditOrganizationMutation__
+ *
+ * To run a mutation, you first call `useEditOrganizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditOrganizationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [editOrganizationMutation, { data, loading, error }] = useEditOrganizationMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      name: // value for 'name'
+ *      billing_email: // value for 'billing_email'
+ *   },
+ * });
+ */
+export function useEditOrganizationMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.EditOrganizationMutation,
+        Types.EditOrganizationMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.EditOrganizationMutation,
+        Types.EditOrganizationMutationVariables
+    >(EditOrganizationDocument, baseOptions);
+}
+export type EditOrganizationMutationHookResult = ReturnType<
+    typeof useEditOrganizationMutation
+>;
+export type EditOrganizationMutationResult = Apollo.MutationResult<Types.EditOrganizationMutation>;
+export type EditOrganizationMutationOptions = Apollo.BaseMutationOptions<
+    Types.EditOrganizationMutation,
+    Types.EditOrganizationMutationVariables
+>;
+export const DeleteOrganizationDocument = gql`
+    mutation DeleteOrganization($id: ID!) {
+        deleteOrganization(id: $id)
+    }
+`;
+export type DeleteOrganizationMutationFn = Apollo.MutationFunction<
+    Types.DeleteOrganizationMutation,
+    Types.DeleteOrganizationMutationVariables
+>;
+
+/**
+ * __useDeleteOrganizationMutation__
+ *
+ * To run a mutation, you first call `useDeleteOrganizationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteOrganizationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteOrganizationMutation, { data, loading, error }] = useDeleteOrganizationMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteOrganizationMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteOrganizationMutation,
+        Types.DeleteOrganizationMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteOrganizationMutation,
+        Types.DeleteOrganizationMutationVariables
+    >(DeleteOrganizationDocument, baseOptions);
+}
+export type DeleteOrganizationMutationHookResult = ReturnType<
+    typeof useDeleteOrganizationMutation
+>;
+export type DeleteOrganizationMutationResult = Apollo.MutationResult<Types.DeleteOrganizationMutation>;
+export type DeleteOrganizationMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteOrganizationMutation,
+    Types.DeleteOrganizationMutationVariables
+>;
 export const EditSegmentDocument = gql`
     mutation EditSegment(
         $organization_id: ID!
@@ -381,102 +478,130 @@ export type CreateSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateSegmentMutation,
     Types.CreateSegmentMutationVariables
 >;
-export const DeleteOrganizationDocument = gql`
-    mutation DeleteOrganization($id: ID!) {
-        deleteOrganization(id: $id)
+export const EditErrorSegmentDocument = gql`
+    mutation EditErrorSegment(
+        $organization_id: ID!
+        $id: ID!
+        $params: ErrorSearchParamsInput!
+    ) {
+        editErrorSegment(
+            organization_id: $organization_id
+            id: $id
+            params: $params
+        )
     }
 `;
-export type DeleteOrganizationMutationFn = Apollo.MutationFunction<
-    Types.DeleteOrganizationMutation,
-    Types.DeleteOrganizationMutationVariables
+export type EditErrorSegmentMutationFn = Apollo.MutationFunction<
+    Types.EditErrorSegmentMutation,
+    Types.EditErrorSegmentMutationVariables
 >;
 
 /**
- * __useDeleteOrganizationMutation__
+ * __useEditErrorSegmentMutation__
  *
- * To run a mutation, you first call `useDeleteOrganizationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteOrganizationMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useEditErrorSegmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useEditErrorSegmentMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [deleteOrganizationMutation, { data, loading, error }] = useDeleteOrganizationMutation({
+ * const [editErrorSegmentMutation, { data, loading, error }] = useEditErrorSegmentMutation({
  *   variables: {
+ *      organization_id: // value for 'organization_id'
  *      id: // value for 'id'
+ *      params: // value for 'params'
  *   },
  * });
  */
-export function useDeleteOrganizationMutation(
+export function useEditErrorSegmentMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.DeleteOrganizationMutation,
-        Types.DeleteOrganizationMutationVariables
+        Types.EditErrorSegmentMutation,
+        Types.EditErrorSegmentMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.DeleteOrganizationMutation,
-        Types.DeleteOrganizationMutationVariables
-    >(DeleteOrganizationDocument, baseOptions);
+        Types.EditErrorSegmentMutation,
+        Types.EditErrorSegmentMutationVariables
+    >(EditErrorSegmentDocument, baseOptions);
 }
-export type DeleteOrganizationMutationHookResult = ReturnType<
-    typeof useDeleteOrganizationMutation
+export type EditErrorSegmentMutationHookResult = ReturnType<
+    typeof useEditErrorSegmentMutation
 >;
-export type DeleteOrganizationMutationResult = Apollo.MutationResult<Types.DeleteOrganizationMutation>;
-export type DeleteOrganizationMutationOptions = Apollo.BaseMutationOptions<
-    Types.DeleteOrganizationMutation,
-    Types.DeleteOrganizationMutationVariables
+export type EditErrorSegmentMutationResult = Apollo.MutationResult<Types.EditErrorSegmentMutation>;
+export type EditErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.EditErrorSegmentMutation,
+    Types.EditErrorSegmentMutationVariables
 >;
-export const EditOrganizationDocument = gql`
-    mutation EditOrganization($id: ID!, $name: String, $billing_email: String) {
-        editOrganization(id: $id, name: $name, billing_email: $billing_email) {
+export const CreateErrorSegmentDocument = gql`
+    mutation CreateErrorSegment(
+        $organization_id: ID!
+        $name: String!
+        $params: ErrorSearchParamsInput!
+    ) {
+        createErrorSegment(
+            organization_id: $organization_id
+            name: $name
+            params: $params
+        ) {
             name
-            billing_email
+            id
+            params {
+                date_range {
+                    start_date
+                    end_date
+                }
+                os
+                browser
+                visited_url
+                hide_viewed
+            }
         }
     }
 `;
-export type EditOrganizationMutationFn = Apollo.MutationFunction<
-    Types.EditOrganizationMutation,
-    Types.EditOrganizationMutationVariables
+export type CreateErrorSegmentMutationFn = Apollo.MutationFunction<
+    Types.CreateErrorSegmentMutation,
+    Types.CreateErrorSegmentMutationVariables
 >;
 
 /**
- * __useEditOrganizationMutation__
+ * __useCreateErrorSegmentMutation__
  *
- * To run a mutation, you first call `useEditOrganizationMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useEditOrganizationMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreateErrorSegmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateErrorSegmentMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [editOrganizationMutation, { data, loading, error }] = useEditOrganizationMutation({
+ * const [createErrorSegmentMutation, { data, loading, error }] = useCreateErrorSegmentMutation({
  *   variables: {
- *      id: // value for 'id'
+ *      organization_id: // value for 'organization_id'
  *      name: // value for 'name'
- *      billing_email: // value for 'billing_email'
+ *      params: // value for 'params'
  *   },
  * });
  */
-export function useEditOrganizationMutation(
+export function useCreateErrorSegmentMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.EditOrganizationMutation,
-        Types.EditOrganizationMutationVariables
+        Types.CreateErrorSegmentMutation,
+        Types.CreateErrorSegmentMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.EditOrganizationMutation,
-        Types.EditOrganizationMutationVariables
-    >(EditOrganizationDocument, baseOptions);
+        Types.CreateErrorSegmentMutation,
+        Types.CreateErrorSegmentMutationVariables
+    >(CreateErrorSegmentDocument, baseOptions);
 }
-export type EditOrganizationMutationHookResult = ReturnType<
-    typeof useEditOrganizationMutation
+export type CreateErrorSegmentMutationHookResult = ReturnType<
+    typeof useCreateErrorSegmentMutation
 >;
-export type EditOrganizationMutationResult = Apollo.MutationResult<Types.EditOrganizationMutation>;
-export type EditOrganizationMutationOptions = Apollo.BaseMutationOptions<
-    Types.EditOrganizationMutation,
-    Types.EditOrganizationMutationVariables
+export type CreateErrorSegmentMutationResult = Apollo.MutationResult<Types.CreateErrorSegmentMutation>;
+export type CreateErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateErrorSegmentMutation,
+    Types.CreateErrorSegmentMutationVariables
 >;
 export const GetEventsDocument = gql`
     query GetEvents($session_id: ID!) {
@@ -1459,6 +1584,73 @@ export type GetSegmentsLazyQueryHookResult = ReturnType<
 export type GetSegmentsQueryResult = Apollo.QueryResult<
     Types.GetSegmentsQuery,
     Types.GetSegmentsQueryVariables
+>;
+export const GetErrorSegmentsDocument = gql`
+    query GetErrorSegments($organization_id: ID!) {
+        error_segments(organization_id: $organization_id) {
+            id
+            name
+            params {
+                date_range {
+                    start_date
+                    end_date
+                }
+                os
+                browser
+                visited_url
+                hide_viewed
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetErrorSegmentsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorSegmentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorSegmentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorSegmentsQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetErrorSegmentsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorSegmentsQuery,
+        Types.GetErrorSegmentsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorSegmentsQuery,
+        Types.GetErrorSegmentsQueryVariables
+    >(GetErrorSegmentsDocument, baseOptions);
+}
+export function useGetErrorSegmentsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorSegmentsQuery,
+        Types.GetErrorSegmentsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorSegmentsQuery,
+        Types.GetErrorSegmentsQueryVariables
+    >(GetErrorSegmentsDocument, baseOptions);
+}
+export type GetErrorSegmentsQueryHookResult = ReturnType<
+    typeof useGetErrorSegmentsQuery
+>;
+export type GetErrorSegmentsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorSegmentsLazyQuery
+>;
+export type GetErrorSegmentsQueryResult = Apollo.QueryResult<
+    Types.GetErrorSegmentsQuery,
+    Types.GetErrorSegmentsQueryVariables
 >;
 export const IsIntegratedDocument = gql`
     query IsIntegrated($organization_id: ID!) {

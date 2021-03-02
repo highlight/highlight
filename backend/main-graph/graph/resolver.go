@@ -135,6 +135,28 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 	return modelParams
 }
 
+func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.ErrorSearchParams {
+	// Parse the inputType into the regular type.
+	modelParams := &model.ErrorSearchParams{
+		Browser:    params.Browser,
+		OS:         params.Os,
+		VisitedURL: params.VisitedURL,
+	}
+	if params.HideViewed != nil {
+		modelParams.HideViewed = *params.HideViewed
+	}
+	if params.DateRange != nil {
+		modelParams.DateRange = &model.DateRange{}
+		if params.DateRange.StartDate != nil {
+			modelParams.DateRange.StartDate = *params.DateRange.StartDate
+		}
+		if params.DateRange.EndDate != nil {
+			modelParams.DateRange.EndDate = *params.DateRange.EndDate
+		}
+	}
+	return modelParams
+}
+
 func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*model.Session, error) {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session)
