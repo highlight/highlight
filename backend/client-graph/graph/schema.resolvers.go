@@ -11,7 +11,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	"github.com/jay-khatri/fullstory/backend/event-parse"
+	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -212,7 +212,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 	}
 	// put errors in db
-	if organizationID == 2 {
+	if organizationID == 1 {
 		for _, v := range errors {
 			traceBytes, err := json.Marshal(v.Trace)
 			if err != nil {
