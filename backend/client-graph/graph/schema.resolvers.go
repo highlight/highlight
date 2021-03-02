@@ -212,7 +212,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 	}
 	// put errors in db
-	if organizationID == 1 {
+	if organizationID == 2 {
 		for _, v := range errors {
 			traceBytes, err := json.Marshal(v.Trace)
 			if err != nil {

@@ -62,12 +62,19 @@ type ErrorObject {
     trace: [Any]
 }
 
+type ErrorField {
+    name: String!
+    value: String!
+}
+
 type ErrorGroup {
     id: ID!
     organization_id: Int!
     event: String!
     trace: String!
     metadata_log: String
+    fields: [ErrorField]
+    field_group: String
 }
 
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,

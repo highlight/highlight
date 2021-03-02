@@ -270,6 +270,7 @@ type ErrorGroup struct {
 	Trace          string
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
+	FieldGroup     *string
 }
 
 type ErrorField struct {
