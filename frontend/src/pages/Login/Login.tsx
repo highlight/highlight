@@ -45,7 +45,6 @@ type Inputs = {
 };
 
 export const LoginForm = () => {
-    const url = window.location.href;
     const {
         watch,
         register,
@@ -92,14 +91,6 @@ export const LoginForm = () => {
 
     if (user) {
         return <AuthAdminRouter />;
-    }
-
-    if (url.startsWith('https://highlight.run') || url.endsWith('request')) {
-        return (
-            <Home>
-                <RequestAccessPage />
-            </Home>
-        );
     }
 
     return (
