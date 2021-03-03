@@ -60,7 +60,6 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             r.enableInteract();
             setEvents(newEvents);
             setReplayer(r);
-            setSessionEndTime(r.getMetaData().totalTime);
         }
     }, [eventsData]);
 
@@ -127,6 +126,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                         replayer.getMetaData()
                     );
                     setSessionIntervals(sliderIntervalMap);
+                    setSessionEndTime(r.getMetaData().totalTime);
                     setState(ReplayerState.LoadedAndUntouched);
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
