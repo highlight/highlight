@@ -49,7 +49,6 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             const newEvents: HighlightEvent[] = toHighlightEvents(
                 eventsData?.events ?? []
             );
-            const inactiveThreshold = 0.02;
             // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
             const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
                 root: document.getElementById('player') as HTMLElement,
@@ -59,44 +58,6 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             });
             // Allows users to interact with the DOM in the player.
             r.enableInteract();
-            // Preprocess and logic for player length with inactive sessions
-            const metadata = r.getMetaData();
-            const allIntervals = r.getActivityIntervals();
-            const intervals = allIntervals.map((e) => ({
-                ...e,
-                startTime: e.startTime - metadata.startTime,
-                endTime: e.endTime - metadata.startTime,
-            }));
-            const { activeDuration, numInactive } = allIntervals.reduce(
-                (acc, interval) => ({
-                    activeDuration: interval.active
-                        ? acc.activeDuration + interval.duration
-                        : acc.activeDuration,
-                    numInactive: interval.active
-                        ? acc.numInactive
-                        : ++acc.numInactive,
-                }),
-                { activeDuration: 0, numInactive: 0 }
-            );
-            const inactiveSliceDuration = activeDuration
-                ? inactiveThreshold * activeDuration
-                : 1;
-            const totalDuration =
-                activeDuration + inactiveSliceDuration * numInactive;
-            let currTime = 0;
-            const sliderIntervalMap = intervals.map((e) => {
-                const prevTime = currTime;
-                currTime =
-                    currTime + (e.active ? e.duration : inactiveSliceDuration);
-                return {
-                    ...e,
-                    startPercent: prevTime / totalDuration,
-                    endPercent: currTime / totalDuration,
-                };
-            });
-            console.log('[Highlight] Session Intervals:', sliderIntervalMap);
-            console.log('[Highlight] Session Metadata:', r.getMetaData());
-            setSessionIntervals(sliderIntervalMap);
             setEvents(newEvents);
             setReplayer(r);
             setSessionEndTime(r.getMetaData().totalTime);
@@ -119,6 +80,53 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
 
                 if (eventsIndex > events.length) {
                     cancelAnimationFrame(timerId);
+
+                    const inactiveThreshold = 0.02;
+                    // Preprocess and logic for player length with inactive sessions
+                    const metadata = replayer.getMetaData();
+                    const allIntervals = replayer.getActivityIntervals();
+                    const intervals = allIntervals.map((e) => ({
+                        ...e,
+                        startTime: e.startTime - metadata.startTime,
+                        endTime: e.endTime - metadata.startTime,
+                    }));
+                    const { activeDuration, numInactive } = allIntervals.reduce(
+                        (acc, interval) => ({
+                            activeDuration: interval.active
+                                ? acc.activeDuration + interval.duration
+                                : acc.activeDuration,
+                            numInactive: interval.active
+                                ? acc.numInactive
+                                : ++acc.numInactive,
+                        }),
+                        { activeDuration: 0, numInactive: 0 }
+                    );
+                    const inactiveSliceDuration = activeDuration
+                        ? inactiveThreshold * activeDuration
+                        : 1;
+                    const totalDuration =
+                        activeDuration + inactiveSliceDuration * numInactive;
+                    let currTime = 0;
+                    const sliderIntervalMap = intervals.map((e) => {
+                        const prevTime = currTime;
+                        currTime =
+                            currTime +
+                            (e.active ? e.duration : inactiveSliceDuration);
+                        return {
+                            ...e,
+                            startPercent: prevTime / totalDuration,
+                            endPercent: currTime / totalDuration,
+                        };
+                    });
+                    console.log(
+                        '[Highlight] Session Intervals:',
+                        sliderIntervalMap
+                    );
+                    console.log(
+                        '[Highlight] Session Metadata:',
+                        replayer.getMetaData()
+                    );
+                    setSessionIntervals(sliderIntervalMap);
                     setState(ReplayerState.LoadedAndUntouched);
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
