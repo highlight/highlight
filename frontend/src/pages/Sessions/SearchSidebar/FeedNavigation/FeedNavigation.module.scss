@@ -2,29 +2,22 @@
 
 .feedTabNavigation {
     display: flex;
-    justify-content: center;
+    justify-content: start;
     margin: 10px 0px 20px;
 }
 
 .feedTabItem {
-    color: $highlight-purple;
-    padding: 6px 20px;
+    color: $text-primary;
+    padding: 5px 20px;
     width: 100px;
     text-align: center;
-    border: 1px solid $highlight-purple;
-}
-
-.feedTabItem:hover {
-    background-color: #f2eefb;
+    border: 1px solid rgb(234, 234, 234);
 }
 
 .feedTabSelected {
     background-color: $highlight-purple;
+    border-color: $highlight-purple;
     color: white;
-}
-
-.feedTabSelected:hover {
-    background-color: $highlight-purple;
 }
 
 .feedTabLeft {
