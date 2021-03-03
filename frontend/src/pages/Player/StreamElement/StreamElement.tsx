@@ -19,6 +19,8 @@ import GoToButton from '../../../components/Button/GoToButton';
 import ReplayerContext from '../ReplayerContext';
 import StreamElementPayload from './StreamElementPayload';
 import classNames from 'classnames/bind';
+import { BooleanParam, useQueryParam } from 'use-query-params';
+import ReactJson from 'react-json-view';
 
 export const StreamElement = ({
     e,
@@ -33,6 +35,7 @@ export const StreamElement = ({
     nodeMap: StaticMap;
     onGoToHandler: (event: string) => void;
 }) => {
+    const [debug] = useQueryParam('debug', BooleanParam);
     const [hover, setHover] = useState(false);
     const [selected, setSelected] = useState(false);
     const details = getEventRenderDetails(e, nodeMap);
@@ -43,7 +46,6 @@ export const StreamElement = ({
             className={styles.eventWrapper}
             onMouseEnter={() => setHover(true)}
             onMouseLeave={() => setHover(false)}
-            onClick={() => setSelected(!selected)}
             id={e.identifier}
             key={e.identifier}
         >
@@ -56,7 +58,10 @@ export const StreamElement = ({
                 id={e.identifier}
             >
                 <div className={styles.headerRow}>
-                    <div className={styles.iconWrapper}>
+                    <div
+                        onClick={() => setSelected(!selected)}
+                        className={styles.iconWrapper}
+                    >
                         {selected ? (
                             <DownIcon
                                 className={classNames(styles.directionIcon, {
@@ -132,7 +137,7 @@ export const StreamElement = ({
                             [styles.currentEventText]: isCurrent,
                         })}
                     >
-                        {details.title}
+                        {details.title ? details.title : debug ? e.type : ''}
                     </div>
                 </div>
                 <div
@@ -159,13 +164,23 @@ export const StreamElement = ({
                 {selected ? (
                     <>
                         <div className={styles.codeBlockWrapperVerbose}>
-                            <StreamElementPayload
-                                payload={
-                                    typeof details.payload === 'object'
-                                        ? JSON.stringify(details.payload)
-                                        : details.payload
-                                }
-                            />
+                            {debug ? (
+                                <ReactJson
+                                    style={{ wordBreak: 'break-word' }}
+                                    name={null}
+                                    collapsed
+                                    src={e.data}
+                                    iconStyle="circle"
+                                />
+                            ) : (
+                                <StreamElementPayload
+                                    payload={
+                                        typeof details.payload === 'object'
+                                            ? JSON.stringify(details.payload)
+                                            : details.payload
+                                    }
+                                />
+                            )}
                         </div>
                         <GoToButton
                             className={styles.goToButton}
