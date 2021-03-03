@@ -78,6 +78,8 @@ export const ErrorFeed = () => {
         },
     });
 
+    console.log(data);
+
     return (
         <>
             <div className={styles.fixedContent}>
