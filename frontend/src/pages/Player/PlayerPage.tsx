@@ -6,7 +6,7 @@ import React, {
     useMemo,
     useCallback,
 } from 'react';
-import { useQueryParam, NumberParam, BooleanParam } from 'use-query-params';
+import { useQueryParam, BooleanParam } from 'use-query-params';
 import { useParams } from 'react-router-dom';
 import {
     Replayer,
