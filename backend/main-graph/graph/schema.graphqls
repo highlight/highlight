@@ -118,6 +118,7 @@ input ErrorSearchParamsInput {
     browser: String
     visited_url: String
     hide_viewed: Boolean
+    event: String
 }
 
 type ErrorSearchParams {
@@ -126,6 +127,7 @@ type ErrorSearchParams {
     browser: String
     visited_url: String
     hide_viewed: Boolean
+    event: String
 }
 
 type DateRange {

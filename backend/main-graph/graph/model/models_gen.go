@@ -20,6 +20,7 @@ type ErrorSearchParamsInput struct {
 	Browser    *string         `json:"browser"`
 	VisitedURL *string         `json:"visited_url"`
 	HideViewed *bool           `json:"hide_viewed"`
+	Event      *string         `json:"event"`
 }
 
 type SearchParamsInput struct {
