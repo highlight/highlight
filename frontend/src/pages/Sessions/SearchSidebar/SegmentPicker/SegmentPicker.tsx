@@ -7,6 +7,7 @@ import Skeleton from 'react-loading-skeleton';
 import styles from './SegmentPicker.module.scss';
 import { useGetSegmentsQuery } from '../../../../graph/generated/hooks';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
+import classNames from 'classnames';
 
 export const SegmentPicker = () => {
     const { setSearchParams, setSegmentName, setExistingParams } = useContext(
@@ -50,7 +51,12 @@ export const SegmentPicker = () => {
                 <div className={styles.segmentPickerInner}>
                     <Link to={`/${organization_id}/sessions`} key={'sessions'}>
                         <div className={styles.segmentItem}>
-                            <div className={styles.segmentText}>
+                            <div
+                                className={classNames(
+                                    styles.segmentText,
+                                    currentSegment && styles.segmentUnselected
+                                )}
+                            >
                                 All Sessions
                             </div>
                             {!currentSegment && (
@@ -64,7 +70,13 @@ export const SegmentPicker = () => {
                             key={s?.id}
                         >
                             <div className={styles.segmentItem}>
-                                <div className={styles.segmentText}>
+                                <div
+                                    className={classNames(
+                                        styles.segmentText,
+                                        s?.id != currentSegment?.id &&
+                                            styles.segmentUnselected
+                                    )}
+                                >
                                     {s?.name}
                                 </div>
                                 {s?.id === currentSegment?.id && (

@@ -11,6 +11,10 @@
     border: 1px solid #eaeaea;
     min-width: 220px;
     color: black;
+
+    a:last-child .segmentItem {
+        border-bottom: 0px;
+    }
 }
 
 .downIcon {
@@ -101,6 +105,10 @@
     color: black;
     margin-right: 20px;
     font-size: 14px;
+}
+
+.segmentUnselected {
+    color: #808080;
 }
 
 .segmentNameText {

@@ -1,0 +1,36 @@
+@import 'src/static/shared.scss';
+
+.feedTabNavigation {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0px 20px;
+}
+
+.feedTabItem {
+    color: $highlight-purple;
+    padding: 6px 20px;
+    width: 100px;
+    text-align: center;
+    border: 1px solid $highlight-purple;
+}
+
+.feedTabItem:hover {
+    background-color: #f2eefb;
+}
+
+.feedTabSelected {
+    background-color: $highlight-purple;
+    color: white;
+}
+
+.feedTabSelected:hover {
+    background-color: $highlight-purple;
+}
+
+.feedTabLeft {
+    border-radius: 14px 0px 0px 14px;
+}
+
+.feedTabRight {
+    border-radius: 0px 14px 14px 0px;
+}

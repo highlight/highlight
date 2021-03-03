@@ -5,6 +5,7 @@ import classNames from 'classnames/bind';
 import { Link, useParams, useLocation } from 'react-router-dom';
 import { WorkspaceDropdown } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
 import { ReactComponent as SessionsIcon } from '../../static/sessions-icon.svg';
+import { ReactComponent as ErrorsIcon } from '../../static/errors-icon.svg';
 import { ReactComponent as SetupIcon } from '../../static/setup-icon.svg';
 import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg';
 import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
@@ -36,6 +37,16 @@ export const Sidebar = () => {
             >
                 <SessionsIcon />
                 <span className={styles.rowText}>Sessions</span>
+            </Link>
+            <Link
+                className={classNames([
+                    styles.row,
+                    page.includes('errors') && styles.selected,
+                ])}
+                to={demo ? '/' : `/${organization_id}/errors`}
+            >
+                <ErrorsIcon />
+                <span className={styles.rowText}>Errors</span>
             </Link>
             <Link
                 className={classNames([

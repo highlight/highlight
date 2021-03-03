@@ -11,6 +11,8 @@ import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { DateInput } from '../../Sessions/SearchInputs/DateInput';
 import { gqlSanitize } from '../../../util/gqlSanitize';
 
+const ONE_DAY = 1000 * 60 * 60 * 24;
+
 export type ErrorMetadata = {
     browser: string;
     os: string;
@@ -145,7 +147,7 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
         const pastSixDays = Object.fromEntries(
             new Map(
                 Array.from({ length: 6 }, (_, idx) => {
-                    currentDate.setDate(new Date().getDate() - idx);
+                    currentDate.setTime(new Date().getTime() - ONE_DAY * idx);
                     return [
                         currentDate.toLocaleDateString('fr-CA', {
                             year: 'numeric',
