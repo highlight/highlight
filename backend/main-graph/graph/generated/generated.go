@@ -237,7 +237,7 @@ type ComplexityRoot struct {
 }
 
 type ErrorGroupResolver interface {
-	Trace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
+	Trace(ctx context.Context, obj *model1.ErrorGroup) (*model.ErrorTrace, error)
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
 }
 type ErrorObjectResolver interface {
@@ -1452,7 +1452,7 @@ type ErrorGroup {
     id: ID!
     organization_id: Int!
     event: String!
-    trace: [ErrorTrace]!
+    trace: ErrorTrace
     metadata_log: [ErrorMetadata]!
     fields: [ErrorField]
     field_group: String
@@ -2707,14 +2707,11 @@ func (ec *executionContext) _ErrorGroup_trace(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.ErrorTrace)
+	res := resTmp.(*model.ErrorTrace)
 	fc.Result = res
-	return ec.marshalNErrorTrace2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx, field.Selections, res)
+	return ec.marshalOErrorTrace2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorGroup_metadata_log(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
@@ -7956,9 +7953,6 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 					}
 				}()
 				res = ec._ErrorGroup_trace(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
 				return res
 			})
 		case "metadata_log":
@@ -9255,43 +9249,6 @@ func (ec *executionContext) marshalNErrorSearchParams2ᚖgithubᚗcomᚋjayᚑkh
 func (ec *executionContext) unmarshalNErrorSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx context.Context, v interface{}) (model.ErrorSearchParamsInput, error) {
 	res, err := ec.unmarshalInputErrorSearchParamsInput(ctx, v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorTrace) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOErrorTrace2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
 }
 
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {

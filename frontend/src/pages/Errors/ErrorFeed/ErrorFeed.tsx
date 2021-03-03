@@ -235,7 +235,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                             style={{ width: '240px' }}
                         >
                             <div className={styles.topText} dir="rtl">
-                                {errorGroup.trace}
+                                {errorGroup?.trace?.file_name}
                             </div>
                             <div
                                 className={classNames(
@@ -243,7 +243,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                     'rr-block'
                                 )}
                             >
-                                {error?.event}
+                                {errorGroup?.event}
                             </div>
                             <div className={styles.tagWrapper}>
                                 <Tag color="#F2EEFB">
@@ -253,7 +253,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                             fontWeight: 300,
                                         }}
                                     >
-                                        {trace?.functionName}
+                                        {errorGroup?.trace?.function_name}
                                     </span>
                                 </Tag>
                             </div>
@@ -261,19 +261,25 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                         <div className={styles.errorTextSection}>
                             <div
                                 className={styles.topText}
-                            >{`Line ${trace.lineNumber}`}</div>
-                            <div
-                                className={styles.middleText}
-                            >{`${metadata[0]?.os} • ${metadata[0]?.browser}`}</div>
-                            <div className={styles.bottomText}>
-                                {`Since ${new Date(
-                                    metadata[0]?.timestamp
-                                ).toLocaleString('en-us', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                })}`}
-                            </div>
+                            >{`Line ${errorGroup?.trace?.line_number}`}</div>
+                            {errorGroup?.metadata_log[0] ? (
+                                <>
+                                    <div
+                                        className={styles.middleText}
+                                    >{`${errorGroup.metadata_log[0]?.os} • ${errorGroup.metadata_log[0]?.browser}`}</div>
+                                    <div className={styles.bottomText}>
+                                        {`Since ${new Date(
+                                            errorGroup.metadata_log[0].timestamp
+                                        ).toLocaleString('en-us', {
+                                            day: 'numeric',
+                                            month: 'long',
+                                            year: 'numeric',
+                                        })}`}
+                                    </div>
+                                </>
+                            ) : (
+                                <></>
+                            )}
                         </div>
                         <div className={styles.readMarkerContainer}></div>
                     </div>

@@ -22,9 +22,9 @@ import (
 	stripe "github.com/stripe/stripe-go"
 )
 
-func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
-	ret := []*modelInputs.ErrorTrace{}
-	if err := json.Unmarshal([]byte(*obj.MetadataLog), &ret); err != nil {
+func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) (*modelInputs.ErrorTrace, error) {
+	ret := &modelInputs.ErrorTrace{}
+	if err := json.Unmarshal([]byte(*obj.MetadataLog), ret); err != nil {
 		return nil, e.Wrap(err, "error unmarshaling error trace")
 	}
 	return ret, nil

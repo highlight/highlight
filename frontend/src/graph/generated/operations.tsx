@@ -355,15 +355,13 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                             Types.ErrorGroup,
                             'event'
                         > & {
-                                trace: Array<
-                                    Types.Maybe<
-                                        { __typename?: 'ErrorTrace' } & Pick<
-                                            Types.ErrorTrace,
-                                            | 'file_name'
-                                            | 'line_number'
-                                            | 'function_name'
-                                            | 'column_number'
-                                        >
+                                trace?: Types.Maybe<
+                                    { __typename?: 'ErrorTrace' } & Pick<
+                                        Types.ErrorTrace,
+                                        | 'file_name'
+                                        | 'line_number'
+                                        | 'function_name'
+                                        | 'column_number'
                                     >
                                 >;
                                 metadata_log: Array<

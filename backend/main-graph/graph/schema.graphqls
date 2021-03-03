@@ -78,7 +78,7 @@ type ErrorGroup {
     id: ID!
     organization_id: Int!
     event: String!
-    trace: [ErrorTrace]!
+    trace: ErrorTrace
     metadata_log: [ErrorMetadata]!
     fields: [ErrorField]
     field_group: String
