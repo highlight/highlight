@@ -166,6 +166,7 @@ export const StreamElement = ({
                         <div className={styles.codeBlockWrapperVerbose}>
                             {debug ? (
                                 <ReactJson
+                                    style={{ wordBreak: 'break-word' }}
                                     name={null}
                                     collapsed
                                     src={e.data}
