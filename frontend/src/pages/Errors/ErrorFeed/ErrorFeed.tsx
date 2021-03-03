@@ -5,7 +5,11 @@ import Skeleton from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
 import { Tag, Tooltip } from 'antd';
 import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
-import { ErrorResults, Maybe } from '../../../graph/generated/schemas';
+import {
+    ErrorGroup,
+    ErrorResults,
+    Maybe,
+} from '../../../graph/generated/schemas';
 import { SearchContext } from '../../Sessions/SearchContext/SearchContext';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { DateInput } from '../../Sessions/SearchInputs/DateInput';
@@ -100,9 +104,11 @@ export const ErrorFeed = () => {
                         />
                     ) : (
                         <>
-                            {data.error_groups?.map((u: any, ind: number) => {
-                                return <ErrorCard error={u} key={ind} />;
-                            })}
+                            {data.error_groups?.map(
+                                (u: Maybe<ErrorGroup>, ind: number) => (
+                                    <ErrorCard errorGroup={u} key={ind} />
+                                )
+                            )}
                             {data.error_groups.length < data.totalCount && (
                                 <Skeleton
                                     height={110}
@@ -121,24 +127,13 @@ export const ErrorFeed = () => {
     );
 };
 
-const ErrorCard = ({ error }: { error: Maybe<any> }) => {
+const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [hovered, setHovered] = useState(false);
-    const [trace, setTrace] = useState<ErrorTrace>({});
-    const [metadata, setMetadata] = useState<Array<ErrorMetadata>>([]);
     const [errorDates, setErrorDates] = useState<{ [date: string]: number }>(
         {}
     );
     const [maxErrors, setMaxErrors] = useState(5);
-
-    useEffect(() => {
-        try {
-            const parsedMetadata = JSON.parse(error.metadata_log);
-            setMetadata(parsedMetadata);
-            const parsedTrace = JSON.parse(error.trace);
-            setTrace(parsedTrace);
-        } catch (e) {}
-    }, [error]);
 
     useEffect(() => {
         const currentDate = new Date();
@@ -157,8 +152,8 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
                 })
             )
         );
-        for (const error of metadata) {
-            const created_date = new Date(error.timestamp).toLocaleDateString(
+        for (const error of errorGroup?.metadata_log ?? []) {
+            const created_date = new Date(error?.timestamp).toLocaleDateString(
                 'fr-CA',
                 {
                     year: 'numeric',
@@ -171,7 +166,7 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
             }
         }
         setErrorDates(pastSixDays);
-    }, [metadata]);
+    }, [errorGroup]);
 
     useEffect(
         () =>
@@ -184,10 +179,10 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
         [errorDates]
     );
 
-    return metadata && trace ? (
+    return (
         <Link
-            to={`/${organization_id}/errors/${error?.id}`}
-            key={error?.id}
+            to={`/${organization_id}/errors/${errorGroup?.id}`}
+            key={errorGroup?.id}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
@@ -240,7 +235,7 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
                             style={{ width: '240px' }}
                         >
                             <div className={styles.topText} dir="rtl">
-                                {trace?.fileName}
+                                {errorGroup.trace}
                             </div>
                             <div
                                 className={classNames(
@@ -291,7 +286,5 @@ const ErrorCard = ({ error }: { error: Maybe<any> }) => {
                 />
             </div>
         </Link>
-    ) : (
-        <></>
     );
 };

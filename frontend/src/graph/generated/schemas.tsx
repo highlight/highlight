@@ -101,10 +101,27 @@ export type ErrorGroup = {
     id: Scalars['ID'];
     organization_id: Scalars['Int'];
     event: Scalars['String'];
-    trace: Scalars['String'];
-    metadata_log?: Maybe<Scalars['String']>;
+    trace: Array<Maybe<ErrorTrace>>;
+    metadata_log: Array<Maybe<ErrorMetadata>>;
     fields?: Maybe<Array<Maybe<ErrorField>>>;
     field_group?: Maybe<Scalars['String']>;
+};
+
+export type ErrorMetadata = {
+    __typename?: 'ErrorMetadata';
+    browser?: Maybe<Scalars['String']>;
+    os?: Maybe<Scalars['String']>;
+    error_id?: Maybe<Scalars['Int']>;
+    session_id?: Maybe<Scalars['Int']>;
+    timestamp?: Maybe<Scalars['Time']>;
+};
+
+export type ErrorTrace = {
+    __typename?: 'ErrorTrace';
+    file_name?: Maybe<Scalars['String']>;
+    line_number?: Maybe<Scalars['Int']>;
+    function_name?: Maybe<Scalars['String']>;
+    column_number?: Maybe<Scalars['Int']>;
 };
 
 export type SearchParamsInput = {

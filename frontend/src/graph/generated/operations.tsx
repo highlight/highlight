@@ -353,8 +353,32 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                     Types.Maybe<
                         { __typename?: 'ErrorGroup' } & Pick<
                             Types.ErrorGroup,
-                            'event' | 'trace' | 'metadata_log'
-                        >
+                            'event'
+                        > & {
+                                trace: Array<
+                                    Types.Maybe<
+                                        { __typename?: 'ErrorTrace' } & Pick<
+                                            Types.ErrorTrace,
+                                            | 'file_name'
+                                            | 'line_number'
+                                            | 'function_name'
+                                            | 'column_number'
+                                        >
+                                    >
+                                >;
+                                metadata_log: Array<
+                                    Types.Maybe<
+                                        { __typename?: 'ErrorMetadata' } & Pick<
+                                            Types.ErrorMetadata,
+                                            | 'browser'
+                                            | 'os'
+                                            | 'error_id'
+                                            | 'session_id'
+                                            | 'timestamp'
+                                        >
+                                    >
+                                >;
+                            }
                     >
                 >;
             }

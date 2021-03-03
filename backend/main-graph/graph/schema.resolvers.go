@@ -22,6 +22,22 @@ import (
 	stripe "github.com/stripe/stripe-go"
 )
 
+func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
+	ret := []*modelInputs.ErrorTrace{}
+	if err := json.Unmarshal([]byte(*obj.MetadataLog), &ret); err != nil {
+		return nil, e.Wrap(err, "error unmarshaling error trace")
+	}
+	return ret, nil
+}
+
+func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
+	ret := []*modelInputs.ErrorMetadata{}
+	if err := json.Unmarshal([]byte(*obj.MetadataLog), &ret); err != nil {
+		return nil, e.Wrap(err, "error unmarshaling error metadata")
+	}
+	return ret, nil
+}
+
 func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
 	frames := []interface{}{}
 	if obj.Trace != nil {
@@ -870,6 +886,9 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+// ErrorGroup returns generated.ErrorGroupResolver implementation.
+func (r *Resolver) ErrorGroup() generated.ErrorGroupResolver { return &errorGroupResolver{r} }
+
 // ErrorObject returns generated.ErrorObjectResolver implementation.
 func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorObjectResolver{r} }
 
@@ -888,6 +907,7 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
+type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }

@@ -78,11 +78,27 @@ type ErrorGroup {
     id: ID!
     organization_id: Int!
     event: String!
-    trace: String!
-    metadata_log: String
+    trace: [ErrorTrace]!
+    metadata_log: [ErrorMetadata]!
     fields: [ErrorField]
     field_group: String
 }
+
+type ErrorMetadata {
+    browser: String
+    os: String
+    error_id: Int
+    session_id: Int
+    timestamp: Time
+}
+
+type ErrorTrace {
+    file_name: String
+    line_number: Int
+    function_name: String
+    column_number: Int
+}
+
 
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput

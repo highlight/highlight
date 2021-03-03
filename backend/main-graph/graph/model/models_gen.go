@@ -14,12 +14,27 @@ type DateRangeInput struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
+type ErrorMetadata struct {
+	Browser   *string    `json:"browser"`
+	Os        *string    `json:"os"`
+	ErrorID   *int       `json:"error_id"`
+	SessionID *int       `json:"session_id"`
+	Timestamp *time.Time `json:"timestamp"`
+}
+
 type ErrorSearchParamsInput struct {
 	DateRange  *DateRangeInput `json:"date_range"`
 	Os         *string         `json:"os"`
 	Browser    *string         `json:"browser"`
 	VisitedURL *string         `json:"visited_url"`
 	HideViewed *bool           `json:"hide_viewed"`
+}
+
+type ErrorTrace struct {
+	FileName     *string `json:"file_name"`
+	LineNumber   *int    `json:"line_number"`
+	FunctionName *string `json:"function_name"`
+	ColumnNumber *int    `json:"column_number"`
 }
 
 type SearchParamsInput struct {
