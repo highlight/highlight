@@ -90,6 +90,12 @@ export type ErrorObject = {
     trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
 };
 
+export type ErrorField = {
+    __typename?: 'ErrorField';
+    name: Scalars['String'];
+    value: Scalars['String'];
+};
+
 export type ErrorGroup = {
     __typename?: 'ErrorGroup';
     id: Scalars['ID'];
@@ -97,6 +103,8 @@ export type ErrorGroup = {
     event: Scalars['String'];
     trace: Scalars['String'];
     metadata_log?: Maybe<Scalars['String']>;
+    fields?: Maybe<Array<Maybe<ErrorField>>>;
+    field_group?: Maybe<Scalars['String']>;
 };
 
 export type SearchParamsInput = {
