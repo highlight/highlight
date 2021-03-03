@@ -126,7 +126,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                         replayer.getMetaData()
                     );
                     setSessionIntervals(sliderIntervalMap);
-                    setSessionEndTime(r.getMetaData().totalTime);
+                    setSessionEndTime(replayer.getMetaData().totalTime);
                     setState(ReplayerState.LoadedAndUntouched);
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
