@@ -6,6 +6,7 @@ import React, {
     useMemo,
     useCallback,
 } from 'react';
+import { useQueryParam, NumberParam, BooleanParam } from 'use-query-params';
 import { useParams } from 'react-router-dom';
 import {
     Replayer,
@@ -152,6 +153,7 @@ export const Player = () => {
 };
 
 const EventStream = () => {
+    const [debug] = useQueryParam('debug', BooleanParam);
     const { replayer, time, events } = useContext(ReplayerContext);
     const [currEvent, setCurrEvent] = useState('');
     const [loadingMap, setLoadingMap] = useState(true);
@@ -180,13 +182,16 @@ const EventStream = () => {
         if (!replayer) return;
         replayer.on('event-cast', (e: any) => {
             const event = e as HighlightEvent;
-            if (usefulEvent(event)) {
+            if (usefulEvent(event) || debug) {
                 setCurrEvent(event.identifier);
             }
         });
-    }, [replayer]);
+    }, [replayer, debug]);
 
-    const usefulEvents = useMemo(() => events.filter(usefulEvent), [events]);
+    const usefulEvents = useMemo(
+        () => (debug ? events : events.filter(usefulEvent)),
+        [events, debug]
+    );
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
