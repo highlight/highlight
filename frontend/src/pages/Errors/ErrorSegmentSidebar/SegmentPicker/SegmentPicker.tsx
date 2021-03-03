@@ -10,6 +10,7 @@ import Skeleton from 'react-loading-skeleton';
 import styles from './SegmentPicker.module.scss';
 import { useGetErrorSegmentsQuery } from '../../../../graph/generated/hooks';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
+import classNames from 'classnames';
 
 export const ErrorSegmentPicker = () => {
     const { setSearchParams, setSegmentName, setExistingParams } = useContext(
@@ -55,7 +56,14 @@ export const ErrorSegmentPicker = () => {
                 <div className={styles.segmentPickerInner}>
                     <Link to={`/${organization_id}/errors`} key={'errors'}>
                         <div className={styles.segmentItem}>
-                            <div className={styles.segmentText}>All Errors</div>
+                            <div
+                                className={classNames(
+                                    styles.segmentText,
+                                    currentSegment && styles.segmentUnselected
+                                )}
+                            >
+                                All Errors
+                            </div>
                             {!currentSegment && (
                                 <CheckIcon className={styles.checkIcon} />
                             )}
@@ -67,7 +75,13 @@ export const ErrorSegmentPicker = () => {
                             key={s?.id}
                         >
                             <div className={styles.segmentItem}>
-                                <div className={styles.segmentText}>
+                                <div
+                                    className={classNames(
+                                        styles.segmentText,
+                                        s?.id != currentSegment?.id &&
+                                            styles.segmentUnselected
+                                    )}
+                                >
                                     {s?.name}
                                 </div>
                                 {s?.id === currentSegment?.id && (

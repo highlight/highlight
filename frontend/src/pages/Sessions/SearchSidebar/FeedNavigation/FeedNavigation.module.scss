@@ -1,0 +1,29 @@
+@import 'src/static/shared.scss';
+
+.feedTabNavigation {
+    display: flex;
+    justify-content: flex-start;
+    margin: 10px 0px 20px;
+}
+
+.feedTabItem {
+    color: $text-primary;
+    padding: 5px 20px;
+    width: 100px;
+    text-align: center;
+    border: 1px solid rgb(234, 234, 234);
+}
+
+.feedTabSelected {
+    background-color: $highlight-purple;
+    border-color: $highlight-purple;
+    color: white;
+}
+
+.feedTabLeft {
+    border-radius: 14px 0px 0px 14px;
+}
+
+.feedTabRight {
+    border-radius: 0px 14px 14px 0px;
+}

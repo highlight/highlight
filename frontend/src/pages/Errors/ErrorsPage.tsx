@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { Button } from 'antd';
+import React, { useContext, useEffect, useState } from 'react';
 import styles from './ErrorsPage.module.scss';
 import { ErrorFeed } from './ErrorFeed/ErrorFeed';
 import {
@@ -8,24 +7,31 @@ import {
 } from '../Sessions/SearchContext/SearchContext';
 import { ErrorSearchSidebar } from './ErrorSearchSidebar/ErrorSearchSidebar';
 import { ErrorSegmentSidebar } from './ErrorSegmentSidebar/ErrorSegmentSidebar';
+import { useLocalStorage } from '@rehooks/local-storage';
+import { SidebarContext } from '../../components/Sidebar/SidebarContext';
+import FeedNavigation from '../Sessions/SearchSidebar/FeedNavigation/FeedNavigation';
 
 export const ErrorsPage = () => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
-    const [searchParams, setSearchParams] = useState<SearchParams>({
-        user_properties: [],
-        identified: false,
-    });
+    const [cachedParams, setCachedParams] = useLocalStorage<SearchParams>(
+        `cachedErrorParams-${segmentName || 'no-selected-segment'}`,
+        { user_properties: [], identified: false }
+    );
+    const [searchParams, setSearchParams] = useState<SearchParams>(
+        cachedParams || { user_properties: [], identified: false }
+    );
     const [existingParams, setExistingParams] = useState<SearchParams>({
         user_properties: [],
         identified: false,
     });
-    const throwError = (): void => {
-        throw new Error('This error is from a throw');
-    };
+    const { setOpenSidebar } = useContext(SidebarContext);
 
-    const consoleError = (): void => {
-        console.error('This error was from the console');
-    };
+    useEffect(() => setOpenSidebar(false), [setOpenSidebar]);
+
+    useEffect(() => setCachedParams(searchParams), [
+        searchParams,
+        setCachedParams,
+    ]);
 
     return (
         <SearchContext.Provider
@@ -40,24 +46,8 @@ export const ErrorsPage = () => {
         >
             <div className={styles.errorsBody}>
                 <div className={styles.leftPanel}>
+                    <FeedNavigation />
                     <ErrorSegmentSidebar />
-                    <div className={styles.advancedText}>
-                        <Button
-                            type="primary"
-                            style={{ background: 'red' }}
-                            onClick={throwError}
-                        >
-                            Throw Error
-                        </Button>{' '}
-                        <br></br>
-                        <Button
-                            type="primary"
-                            style={{ background: 'green' }}
-                            onClick={consoleError}
-                        >
-                            Console Error
-                        </Button>{' '}
-                    </div>
                 </div>
                 <div className={styles.centerPanel}>
                     <div className={styles.errorsSection}>

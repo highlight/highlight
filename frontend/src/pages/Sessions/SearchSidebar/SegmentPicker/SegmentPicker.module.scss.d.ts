@@ -9,3 +9,4 @@ export const segmentNameText: string;
 export const segmentPickerInner: string;
 export const segmentPickerMenu: string;
 export const segmentText: string;
+export const segmentUnselected: string;
