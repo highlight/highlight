@@ -140,6 +140,7 @@ export type ErrorSearchParamsInput = {
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
+    event?: Maybe<Scalars['String']>;
 };
 
 export type ErrorSearchParams = {
@@ -149,6 +150,7 @@ export type ErrorSearchParams = {
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
+    event?: Maybe<Scalars['String']>;
 };
 
 export type DateRange = {

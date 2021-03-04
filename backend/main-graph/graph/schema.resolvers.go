@@ -464,6 +464,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		queryString += "AND (viewed = false) "
 	}
 
+	if params.Event != nil {
+		queryString += fmt.Sprintf("AND (event ILIKE '%s') ", "%"+*params.Event+"%")
+	}
+
 	queryString += "ORDER BY updated_at DESC"
 
 	if err := r.DB.Raw(queryString).Scan(&errorGroups).Error; err != nil {

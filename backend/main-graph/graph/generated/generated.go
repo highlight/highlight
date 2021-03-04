@@ -96,6 +96,7 @@ type ComplexityRoot struct {
 	ErrorSearchParams struct {
 		Browser    func(childComplexity int) int
 		DateRange  func(childComplexity int) int
+		Event      func(childComplexity int) int
 		HideViewed func(childComplexity int) int
 		OS         func(childComplexity int) int
 		VisitedURL func(childComplexity int) int
@@ -481,6 +482,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorSearchParams.DateRange(childComplexity), true
+
+	case "ErrorSearchParams.event":
+		if e.complexity.ErrorSearchParams.Event == nil {
+			break
+		}
+
+		return e.complexity.ErrorSearchParams.Event(childComplexity), true
 
 	case "ErrorSearchParams.hide_viewed":
 		if e.complexity.ErrorSearchParams.HideViewed == nil {
@@ -1423,6 +1431,7 @@ input ErrorSearchParamsInput {
     browser: String
     visited_url: String
     hide_viewed: Boolean
+    event: String
 }
 
 type ErrorSearchParams {
@@ -1431,6 +1440,7 @@ type ErrorSearchParams {
     browser: String
     visited_url: String
     hide_viewed: Boolean
+    event: String
 }
 
 type DateRange {
@@ -3312,6 +3322,37 @@ func (ec *executionContext) _ErrorSearchParams_hide_viewed(ctx context.Context, 
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorSearchParams_event(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorSearchParams",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Event, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorSegment_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSegment) (ret graphql.Marshaler) {
@@ -7401,6 +7442,14 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 			if err != nil {
 				return it, err
 			}
+		case "event":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("event"))
+			it.Event, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -7800,6 +7849,8 @@ func (ec *executionContext) _ErrorSearchParams(ctx context.Context, sel ast.Sele
 			out.Values[i] = ec._ErrorSearchParams_visited_url(ctx, field, obj)
 		case "hide_viewed":
 			out.Values[i] = ec._ErrorSearchParams_hide_viewed(ctx, field, obj)
+		case "event":
+			out.Values[i] = ec._ErrorSearchParams_event(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

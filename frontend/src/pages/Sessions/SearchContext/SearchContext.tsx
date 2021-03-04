@@ -11,6 +11,7 @@ export type ErrorSearchParams = {
     browser?: string;
     visited_url?: string;
     hide_viewed?: boolean;
+    event?: string;
 };
 
 export type SearchParams = {
