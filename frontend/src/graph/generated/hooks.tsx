@@ -1158,8 +1158,6 @@ export const GetErrorGroupsDocument = gql`
                     column_number
                 }
                 metadata_log {
-                    browser
-                    os
                     error_id
                     session_id
                     timestamp

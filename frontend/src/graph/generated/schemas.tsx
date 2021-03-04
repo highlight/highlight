@@ -109,8 +109,6 @@ export type ErrorGroup = {
 
 export type ErrorMetadata = {
     __typename?: 'ErrorMetadata';
-    browser?: Maybe<Scalars['String']>;
-    os?: Maybe<Scalars['String']>;
     error_id?: Maybe<Scalars['Int']>;
     session_id?: Maybe<Scalars['Int']>;
     timestamp?: Maybe<Scalars['Time']>;
