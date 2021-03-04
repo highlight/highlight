@@ -29,7 +29,6 @@ export const RadioGroup = <T extends any>({
             <div
                 style={{
                     borderColor: '#eaeaea',
-                    backgroundColor: 'white',
                     color: 'black',
                 }}
                 className={styles.platformOption}

@@ -9,7 +9,7 @@ import { SessionFeed } from './SessionsFeed/SessionsFeed';
 
 import { IntegrationCard } from './IntegrationCard/IntegrationCard';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
-import FeedNavigation from './SearchSidebar/FeedNavigation/FeedNavigation';
+import { FeedNavigation } from './SearchSidebar/FeedNavigation/FeedNavigation';
 
 export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
