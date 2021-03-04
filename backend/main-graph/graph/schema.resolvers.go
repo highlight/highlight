@@ -14,6 +14,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -23,9 +24,23 @@ import (
 )
 
 func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) (*modelInputs.ErrorTrace, error) {
-	ret := &modelInputs.ErrorTrace{}
-	if err := json.Unmarshal([]byte(*obj.MetadataLog), ret); err != nil {
+	if obj.Trace == "" {
+		return nil, nil
+	}
+	trace := &struct {
+		FileName     *string `json:"fileName"`
+		LineNumber   *int    `json:"lineNumber"`
+		FunctionName *string `json:"functionName"`
+		ColumnNumber *int    `json:"columnNumber"`
+	}{}
+	if err := json.Unmarshal([]byte(obj.Trace), trace); err != nil {
 		return nil, e.Wrap(err, "error unmarshaling error trace")
+	}
+	ret := &modelInputs.ErrorTrace{
+		FileName:     trace.FileName,
+		LineNumber:   trace.LineNumber,
+		FunctionName: trace.FunctionName,
+		ColumnNumber: trace.ColumnNumber,
 	}
 	return ret, nil
 }
@@ -495,6 +510,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		TotalCount:  len(errorGroups),
 	}
 
+	pp.Println(len(errorGroups))
 	return errorResults, nil
 }
 
