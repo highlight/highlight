@@ -80,8 +80,6 @@ export const ErrorFeed = () => {
         },
     });
 
-    console.log(data);
-
     return (
         <>
             <div className={styles.fixedContent}>
@@ -132,6 +130,7 @@ export const ErrorFeed = () => {
 };
 
 const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
+    console.log(errorGroup?.id);
     const { organization_id } = useParams<{ organization_id: string }>();
     const [hovered, setHovered] = useState(false);
     const [errorDates, setErrorDates] = useState<{ [date: string]: number }>(

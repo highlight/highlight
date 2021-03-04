@@ -17,6 +17,7 @@ import commonStyles from '../../Common.module.scss';
 import { SessionsPageBeta } from '../../pages/Sessions/SessionsPageBeta';
 import { Duration, MillisToDaysHoursMinSeconds } from '../../util/time';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
+import { ErrorPage } from '../../pages/Error/ErrorPage';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -87,6 +88,9 @@ export const OrgRouter = () => {
                     </Route>
                     <Route path="/:organization_id/errors/segment/:segment_id">
                         <ErrorsPage integrated={integrated} />
+                    </Route>
+                    <Route path="/:organization_id/errors/:error_id">
+                        <ErrorPage />
                     </Route>
                     <Route path="/:organization_id/errors">
                         <ErrorsPage integrated={integrated} />

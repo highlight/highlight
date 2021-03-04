@@ -353,7 +353,7 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                     Types.Maybe<
                         { __typename?: 'ErrorGroup' } & Pick<
                             Types.ErrorGroup,
-                            'event'
+                            'id' | 'event'
                         > & {
                                 trace?: Types.Maybe<
                                     { __typename?: 'ErrorTrace' } & Pick<

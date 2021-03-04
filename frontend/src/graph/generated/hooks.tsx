@@ -1150,6 +1150,7 @@ export const GetErrorGroupsDocument = gql`
             params: $params
         ) {
             error_groups {
+                id
                 event
                 trace {
                     file_name

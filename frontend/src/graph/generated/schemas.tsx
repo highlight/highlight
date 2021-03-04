@@ -219,6 +219,7 @@ export type Query = {
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
     error_groups?: Maybe<ErrorResults>;
+    error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
@@ -248,6 +249,10 @@ export type QueryError_GroupsArgs = {
     organization_id: Scalars['ID'];
     count: Scalars['Int'];
     params?: Maybe<ErrorSearchParamsInput>;
+};
+
+export type QueryError_GroupArgs = {
+    id: Scalars['ID'];
 };
 
 export type QueryMessagesArgs = {
