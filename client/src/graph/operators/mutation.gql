@@ -33,7 +33,6 @@ mutation addSessionProperties($session_id: ID!, $properties_object: Any) {
     )
 }
 
-
 mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
     addTrackProperties(
         session_id: $session_id
