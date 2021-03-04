@@ -9,9 +9,10 @@ import { ErrorSearchSidebar } from './ErrorSearchSidebar/ErrorSearchSidebar';
 import { ErrorSegmentSidebar } from './ErrorSegmentSidebar/ErrorSegmentSidebar';
 import { useLocalStorage } from '@rehooks/local-storage';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
-import FeedNavigation from '../Sessions/SearchSidebar/FeedNavigation/FeedNavigation';
+import { FeedNavigation } from '../Sessions/SearchSidebar/FeedNavigation/FeedNavigation';
+import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
 
-export const ErrorsPage = () => {
+export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<SearchParams>(
         `cachedErrorParams-${segmentName || 'no-selected-segment'}`,
@@ -32,6 +33,10 @@ export const ErrorsPage = () => {
         searchParams,
         setCachedParams,
     ]);
+
+    if (!integrated) {
+        return <IntegrationCard />;
+    }
 
     return (
         <SearchContext.Provider

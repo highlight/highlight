@@ -14,6 +14,10 @@
     transition: 0.2s;
 }
 
+.platformOption:hover {
+    background-color: #f2eefb;
+}
+
 .platformOption:not(:last-child) {
     border-right: none;
 }
