@@ -210,6 +210,7 @@ export type Query = {
     billingDetails: Plan;
     field_suggestionBETA?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
+    error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
@@ -268,6 +269,12 @@ export type QueryProperty_SuggestionArgs = {
     organization_id: Scalars['ID'];
     query: Scalars['String'];
     type: Scalars['String'];
+};
+
+export type QueryError_Field_SuggestionArgs = {
+    organization_id: Scalars['ID'];
+    name: Scalars['String'];
+    query: Scalars['String'];
 };
 
 export type QueryOrganizationArgs = {

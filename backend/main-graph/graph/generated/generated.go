@@ -141,23 +141,24 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Admin               func(childComplexity int) int
-		Admins              func(childComplexity int, organizationID int) int
-		BillingDetails      func(childComplexity int, organizationID int) int
-		ErrorGroups         func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
-		ErrorSegments       func(childComplexity int, organizationID int) int
-		Events              func(childComplexity int, sessionID int) int
-		FieldSuggestionBeta func(childComplexity int, organizationID int, name string, query string) int
-		IsIntegrated        func(childComplexity int, organizationID int) int
-		Messages            func(childComplexity int, sessionID int) int
-		Organization        func(childComplexity int, id int) int
-		Organizations       func(childComplexity int) int
-		PropertySuggestion  func(childComplexity int, organizationID int, query string, typeArg string) int
-		RecordingSettings   func(childComplexity int, organizationID int) int
-		Resources           func(childComplexity int, sessionID int) int
-		Segments            func(childComplexity int, organizationID int) int
-		Session             func(childComplexity int, id int) int
-		SessionsBeta        func(childComplexity int, organizationID int, count int, params *model.SearchParamsInput) int
+		Admin                func(childComplexity int) int
+		Admins               func(childComplexity int, organizationID int) int
+		BillingDetails       func(childComplexity int, organizationID int) int
+		ErrorFieldSuggestion func(childComplexity int, organizationID int, name string, query string) int
+		ErrorGroups          func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
+		ErrorSegments        func(childComplexity int, organizationID int) int
+		Events               func(childComplexity int, sessionID int) int
+		FieldSuggestionBeta  func(childComplexity int, organizationID int, name string, query string) int
+		IsIntegrated         func(childComplexity int, organizationID int) int
+		Messages             func(childComplexity int, sessionID int) int
+		Organization         func(childComplexity int, id int) int
+		Organizations        func(childComplexity int) int
+		PropertySuggestion   func(childComplexity int, organizationID int, query string, typeArg string) int
+		RecordingSettings    func(childComplexity int, organizationID int) int
+		Resources            func(childComplexity int, sessionID int) int
+		Segments             func(childComplexity int, organizationID int) int
+		Session              func(childComplexity int, id int) int
+		SessionsBeta         func(childComplexity int, organizationID int, count int, params *model.SearchParamsInput) int
 	}
 
 	RecordingSettings struct {
@@ -255,6 +256,7 @@ type QueryResolver interface {
 	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
+	ErrorFieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.ErrorField, error)
 	Organizations(ctx context.Context) ([]*model1.Organization, error)
 	Organization(ctx context.Context, id int) (*model1.Organization, error)
 	Admin(ctx context.Context) (*model1.Admin, error)
@@ -795,6 +797,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.BillingDetails(childComplexity, args["organization_id"].(int)), true
+
+	case "Query.error_field_suggestion":
+		if e.complexity.Query.ErrorFieldSuggestion == nil {
+			break
+		}
+
+		args, err := ec.field_Query_error_field_suggestion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorFieldSuggestion(childComplexity, args["organization_id"].(int), args["name"].(string), args["query"].(string)), true
 
 	case "Query.error_groups":
 		if e.complexity.Query.ErrorGroups == nil {
@@ -1488,6 +1502,11 @@ type Query {
         query: String!
         type: String!
     ): [Field]
+    error_field_suggestion(
+        organization_id: ID!
+        name: String!
+        query: String!
+    ): [ErrorField]
     organizations: [Organization]
     organization(id: ID!): Organization
     admin: Admin
@@ -1942,6 +1961,39 @@ func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context,
 		}
 	}
 	args["organization_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_error_field_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["name"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("query"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg2
 	return args, nil
 }
 
@@ -4653,6 +4705,44 @@ func (ec *executionContext) _Query_property_suggestion(ctx context.Context, fiel
 	res := resTmp.([]*model1.Field)
 	fc.Result = res
 	return ec.marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_error_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_error_field_suggestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorFieldSuggestion(rctx, args["organization_id"].(int), args["name"].(string), args["query"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.ErrorField)
+	fc.Result = res
+	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_organizations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -8043,6 +8133,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_property_suggestion(ctx, field)
+				return res
+			})
+		case "error_field_suggestion":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_error_field_suggestion(ctx, field)
 				return res
 			})
 		case "organizations":

@@ -768,6 +768,22 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 	return fields, nil
 }
 
+func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model.ErrorField, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	fields := []*model.ErrorField{}
+	res := r.DB.Where(&model.ErrorField{Name: name}).
+		Where("length(value) > ?", 0).
+		Where("value ILIKE ?", "%"+query+"%").
+		Limit(8).
+		Find(&fields)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying error field suggestion")
+	}
+	return fields, nil
+}
+
 func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
 	admin, err := r.Query().Admin(ctx)
 	if err != nil {

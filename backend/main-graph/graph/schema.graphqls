@@ -197,6 +197,11 @@ type Query {
         query: String!
         type: String!
     ): [Field]
+    error_field_suggestion(
+        organization_id: ID!
+        name: String!
+        query: String!
+    ): [ErrorField]
     organizations: [Organization]
     organization(id: ID!): Organization
     admin: Admin
