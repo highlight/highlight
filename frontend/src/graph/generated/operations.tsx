@@ -337,6 +337,47 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & Pick<
     'billingDetails'
 >;
 
+export type GetErrorGroupQueryVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+}>;
+
+export type GetErrorGroupQuery = { __typename?: 'Query' } & {
+    error_group?: Types.Maybe<
+        { __typename?: 'ErrorGroup' } & Pick<
+            Types.ErrorGroup,
+            'id' | 'organization_id' | 'event' | 'field_group'
+        > & {
+                trace?: Types.Maybe<
+                    { __typename?: 'ErrorTrace' } & Pick<
+                        Types.ErrorTrace,
+                        | 'file_name'
+                        | 'line_number'
+                        | 'function_name'
+                        | 'column_number'
+                    >
+                >;
+                metadata_log: Array<
+                    Types.Maybe<
+                        { __typename?: 'ErrorMetadata' } & Pick<
+                            Types.ErrorMetadata,
+                            'error_id' | 'session_id' | 'timestamp'
+                        >
+                    >
+                >;
+                fields?: Types.Maybe<
+                    Array<
+                        Types.Maybe<
+                            { __typename?: 'ErrorField' } & Pick<
+                                Types.ErrorField,
+                                'name' | 'value'
+                            >
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
 export type GetErrorGroupsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
