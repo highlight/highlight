@@ -85,8 +85,6 @@ type ErrorGroup {
 }
 
 type ErrorMetadata {
-    browser: String
-    os: String
     error_id: Int
     session_id: Int
     timestamp: Time
