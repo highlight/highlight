@@ -1151,8 +1151,17 @@ export const GetErrorGroupsDocument = gql`
         ) {
             error_groups {
                 event
-                trace
-                metadata_log
+                trace {
+                    file_name
+                    line_number
+                    function_name
+                    column_number
+                }
+                metadata_log {
+                    error_id
+                    session_id
+                    timestamp
+                }
             }
             totalCount
         }
