@@ -130,7 +130,6 @@ export const ErrorFeed = () => {
 };
 
 const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
-    console.log(errorGroup?.id);
     const { organization_id } = useParams<{ organization_id: string }>();
     const [hovered, setHovered] = useState(false);
     const [errorDates, setErrorDates] = useState<{ [date: string]: number }>(
@@ -267,9 +266,6 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                             >{`Line ${errorGroup?.trace?.line_number}`}</div>
                             {errorGroup?.metadata_log[0] ? (
                                 <>
-                                    {/* <div
-                                        className={styles.middleText}
-                                    >{`${errorGroup.metadata_log[0]?.os} • ${errorGroup.metadata_log[0]?.browser}`}</div> */}
                                     <div className={styles.bottomText}>
                                         {`Since ${new Date(
                                             errorGroup.metadata_log[0].timestamp
