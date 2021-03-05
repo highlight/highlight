@@ -79,7 +79,7 @@ export const BrowserInput = () => {
         const fetched = await refetch({
             organization_id: organization_id,
             query: input,
-            name: 'browser_name',
+            name: 'browser',
         });
         const suggestions =
             fetched?.data.error_field_suggestion

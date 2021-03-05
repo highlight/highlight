@@ -1,8 +1,11 @@
 import { DatePicker } from 'antd';
 import React, { useContext } from 'react';
 import moment from 'moment';
-import { ErrorSearchContext, ErrorSearchParams } from '../ErrorSearchContext/ErrorSearchContext';
-import inputStyles from '../../Session/SearchInputs/InputStyles.module.scss';
+import {
+    ErrorSearchContext,
+    ErrorSearchParams,
+} from '../ErrorSearchContext/ErrorSearchContext';
+import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
 
 const { RangePicker } = DatePicker;
 

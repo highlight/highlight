@@ -37,10 +37,6 @@ export const ErrorSegmentPicker = () => {
             setExistingParams(parsed);
         } else {
             setSegmentName(null);
-            const empty = {
-                user_properties: [],
-                identified: false,
-            };
             setExistingParams({});
             setSearchParams({});
         }

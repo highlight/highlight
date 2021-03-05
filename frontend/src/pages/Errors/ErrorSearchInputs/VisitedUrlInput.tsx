@@ -5,7 +5,10 @@ import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
 import { ReactComponent as URLIcon } from '../../../static/link.svg';
-import { SharedSelectStyleProps, ContainsLabel } from '../../Sessions/SearchInputs/SearchInputUtil';
+import {
+    SharedSelectStyleProps,
+    ContainsLabel,
+} from '../../Sessions/SearchInputs/SearchInputUtil';
 import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const VisitedUrlInput = () => {
@@ -20,7 +23,7 @@ export const VisitedUrlInput = () => {
         const fetched = await refetch({
             organization_id: organization_id,
             query: input,
-            name: 'visited-url',
+            name: 'visited_url',
         });
         const suggestions = (fetched?.data?.error_field_suggestion ?? [])
             .map((e) => e?.value)

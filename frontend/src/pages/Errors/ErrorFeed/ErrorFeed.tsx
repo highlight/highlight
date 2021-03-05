@@ -10,7 +10,7 @@ import {
     ErrorResults,
     Maybe,
 } from '../../../graph/generated/schemas';
-import { SearchContext } from '../../Sessions/SearchContext/SearchContext';
+import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { DateInput } from '../../Sessions/SearchInputs/DateInput';
 import { gqlSanitize } from '../../../util/gqlSanitize';
@@ -40,7 +40,7 @@ export const ErrorFeed = () => {
         error_groups: [],
         totalCount: -1,
     });
-    const { searchParams } = useContext(SearchContext);
+    const { searchParams } = useContext(ErrorSearchContext);
     const { date_range, os, browser, visited_url, hide_viewed } = searchParams;
 
     const { loading, fetchMore } = useGetErrorGroupsQuery({
