@@ -11,7 +11,6 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
     ): void => {
         if (error) {
             StackTrace.fromError(error).then((result) => {
-                console.log('result', result);
                 callback({
                     event: JSON.stringify(event),
                     type: 'exception',

@@ -11,8 +11,6 @@ import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg
 import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
 import { DemoContext } from '../../DemoContext';
-import { Button } from 'antd';
-import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import commonStyles from '../../Common.module.scss';
 
 export const Sidebar = () => {

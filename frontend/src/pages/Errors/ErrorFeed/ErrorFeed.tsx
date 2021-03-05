@@ -80,8 +80,6 @@ export const ErrorFeed = () => {
         },
     });
 
-    console.log(data);
-
     return (
         <>
             <div className={styles.fixedContent}>
@@ -239,7 +237,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                             style={{ width: '240px' }}
                         >
                             <div className={styles.topText} dir="rtl">
-                                {errorGroup?.trace?.file_name}
+                                {errorGroup?.trace[0]?.file_name}
                             </div>
                             <div
                                 className={classNames(
@@ -247,7 +245,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                     'rr-block'
                                 )}
                             >
-                                {errorGroup?.event}
+                                {errorGroup?.event[0]}
                             </div>
                             <div className={styles.tagWrapper}>
                                 <Tag color="#F2EEFB">
@@ -257,7 +255,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                             fontWeight: 300,
                                         }}
                                     >
-                                        {errorGroup?.trace?.function_name}
+                                        {errorGroup?.trace[0]?.function_name}
                                     </span>
                                 </Tag>
                             </div>
@@ -265,7 +263,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                         <div className={styles.errorTextSection}>
                             <div
                                 className={styles.topText}
-                            >{`Line ${errorGroup?.trace?.line_number}`}</div>
+                            >{`Line ${errorGroup?.trace[0]?.line_number}`}</div>
                             {errorGroup?.metadata_log[0] ? (
                                 <>
                                     {/* <div

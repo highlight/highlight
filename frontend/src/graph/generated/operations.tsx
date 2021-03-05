@@ -347,13 +347,15 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
             Types.ErrorGroup,
             'id' | 'organization_id' | 'event' | 'field_group'
         > & {
-                trace?: Types.Maybe<
-                    { __typename?: 'ErrorTrace' } & Pick<
-                        Types.ErrorTrace,
-                        | 'file_name'
-                        | 'line_number'
-                        | 'function_name'
-                        | 'column_number'
+                trace: Array<
+                    Types.Maybe<
+                        { __typename?: 'ErrorTrace' } & Pick<
+                            Types.ErrorTrace,
+                            | 'file_name'
+                            | 'line_number'
+                            | 'function_name'
+                            | 'column_number'
+                        >
                     >
                 >;
                 metadata_log: Array<
@@ -396,13 +398,15 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                             Types.ErrorGroup,
                             'id' | 'event'
                         > & {
-                                trace?: Types.Maybe<
-                                    { __typename?: 'ErrorTrace' } & Pick<
-                                        Types.ErrorTrace,
-                                        | 'file_name'
-                                        | 'line_number'
-                                        | 'function_name'
-                                        | 'column_number'
+                                trace: Array<
+                                    Types.Maybe<
+                                        { __typename?: 'ErrorTrace' } & Pick<
+                                            Types.ErrorTrace,
+                                            | 'file_name'
+                                            | 'line_number'
+                                            | 'function_name'
+                                            | 'column_number'
+                                        >
                                     >
                                 >;
                                 metadata_log: Array<
