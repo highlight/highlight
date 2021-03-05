@@ -2,16 +2,13 @@ import React, { useState } from 'react';
 import styles from './ErrorSearchSidebar.module.scss';
 import classNames from 'classnames/bind';
 import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
-import {
-    ViewedSessionsSwitch,
-    VisitedUrlInput,
-} from '../../Sessions/SearchInputs/SessionInputs';
+import { VisitedUrlInput } from '../ErrorSearchInputs/VisitedUrlInput';
 import { SearchSection } from '../../Sessions/SearchSidebar/SearchSection/SearchSection';
-import { DateInput } from '../../Sessions/SearchInputs/DateInput';
+import { DateInput } from '../ErrorSearchInputs/DateInput';
 import {
     BrowserInput,
     OperatingSystemInput,
-} from '../../Sessions/SearchInputs/DeviceInputs';
+} from '../ErrorSearchInputs/DeviceInputs';
 
 export const ErrorSearchSidebar = () => {
     const [open, setOpen] = useState(true);
@@ -29,9 +26,6 @@ export const ErrorSearchSidebar = () => {
                     <Hamburger className={styles.hamburgerSide} />
                 </button>
                 <div className={styles.sideContentWrapper}>
-                    <div className={styles.toggleSection}>
-                        <ViewedSessionsSwitch />
-                    </div>
                     <SearchSection
                         title="Date Range"
                         open={false}

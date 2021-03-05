@@ -1,9 +1,9 @@
 import React, { useContext, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
-    SearchContext,
-    SearchParams,
-} from '../../../Sessions/SearchContext/SearchContext';
+    ErrorSearchContext,
+    ErrorSearchParams,
+} from '../../ErrorSearchContext/ErrorSearchContext';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import Skeleton from 'react-loading-skeleton';
 
@@ -14,7 +14,7 @@ import classNames from 'classnames';
 
 export const ErrorSegmentPicker = () => {
     const { setSearchParams, setSegmentName, setExistingParams } = useContext(
-        SearchContext
+        ErrorSearchContext
     );
     const { segment_id, organization_id } = useParams<{
         segment_id: string;
@@ -31,7 +31,7 @@ export const ErrorSegmentPicker = () => {
     useEffect(() => {
         if (currentSegment) {
             const newParams: any = { ...currentSegment.params };
-            const parsed: SearchParams = gqlSanitize(newParams);
+            const parsed: ErrorSearchParams = gqlSanitize(newParams);
             setSegmentName(currentSegment.name);
             setSearchParams(parsed);
             setExistingParams(parsed);
@@ -41,8 +41,8 @@ export const ErrorSegmentPicker = () => {
                 user_properties: [],
                 identified: false,
             };
-            setExistingParams({ ...empty });
-            setSearchParams({ ...empty });
+            setExistingParams({});
+            setSearchParams({});
         }
     }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
 

@@ -1391,6 +1391,73 @@ export type GetFieldSuggestionQueryResult = Apollo.QueryResult<
     Types.GetFieldSuggestionQuery,
     Types.GetFieldSuggestionQueryVariables
 >;
+export const GetErrorFieldSuggestionDocument = gql`
+    query GetErrorFieldSuggestion(
+        $organization_id: ID!
+        $name: String!
+        $query: String!
+    ) {
+        error_field_suggestion(
+            organization_id: $organization_id
+            name: $name
+            query: $query
+        ) {
+            name
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetErrorFieldSuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetErrorFieldSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorFieldSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorFieldSuggestionQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      name: // value for 'name'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetErrorFieldSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorFieldSuggestionQuery,
+        Types.GetErrorFieldSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorFieldSuggestionQuery,
+        Types.GetErrorFieldSuggestionQueryVariables
+    >(GetErrorFieldSuggestionDocument, baseOptions);
+}
+export function useGetErrorFieldSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorFieldSuggestionQuery,
+        Types.GetErrorFieldSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorFieldSuggestionQuery,
+        Types.GetErrorFieldSuggestionQueryVariables
+    >(GetErrorFieldSuggestionDocument, baseOptions);
+}
+export type GetErrorFieldSuggestionQueryHookResult = ReturnType<
+    typeof useGetErrorFieldSuggestionQuery
+>;
+export type GetErrorFieldSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetErrorFieldSuggestionLazyQuery
+>;
+export type GetErrorFieldSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetErrorFieldSuggestionQuery,
+    Types.GetErrorFieldSuggestionQueryVariables
+>;
 export const GetTrackSuggestionDocument = gql`
     query GetTrackSuggestion($organization_id: ID!, $query: String!) {
         property_suggestion(
