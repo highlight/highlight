@@ -27,6 +27,7 @@ import (
 
 var (
 	frontendURL  = os.Getenv("FRONTEND_URI")
+	landingURL   = os.Getenv("LANDING_PAGE_URI")
 	sendgridKey  = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey = os.Getenv("STRIPE_API_KEY")
 	runtime      = flag.String("runtime", "dev", "the runtime of the backend; either dev/worker/server")
@@ -40,10 +41,10 @@ func health(w http.ResponseWriter, r *http.Request) {
 func validateOrigin(request *http.Request, origin string) bool {
 	if path := request.URL.Path; path == "/main" {
 		// From the highlight frontend, only the url is whitelisted.
-		if origin == frontendURL {
+		if origin == frontendURL || origin == landingURL {
 			return true
 		}
-	} else if path == "/client" || path == "/email" {
+	} else if path == "/client" {
 		return true
 	}
 	return false

@@ -157,6 +157,19 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 	return modelParams
 }
 
+func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int) (*model.ErrorGroup, error) {
+	errorGroup := &model.ErrorGroup{}
+	res := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying session")
+	}
+	_, err := r.isAdminInOrganization(ctx, errorGroup.OrganizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error validating admin in organization")
+	}
+	return errorGroup, nil
+}
+
 func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*model.Session, error) {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session)

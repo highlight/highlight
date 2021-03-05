@@ -85,9 +85,10 @@ func (r *Resolver) AppendProperties(sessionID int, properties map[string]string,
 func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) error {
 	fieldsToAppend := []*model.Field{}
 	var newFieldGroup []FieldData
+	exists := false
 	if session.FieldGroup != nil {
 		if err := json.Unmarshal([]byte(*session.FieldGroup), &newFieldGroup); err != nil {
-			return e.Wrap(err, "error decoding time log data")
+			return e.Wrap(err, "error decoding session field group")
 		}
 	}
 	for _, f := range fields {
@@ -104,16 +105,24 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 				Value: f.Value,
 			})
 		} else {
+			exists = false
+			for _, existing := range newFieldGroup {
+				if field.Name == existing.Name && field.Value == existing.Value {
+					exists = true
+				}
+			}
 			fieldsToAppend = append(fieldsToAppend, field)
-			newFieldGroup = append(newFieldGroup, FieldData{
-				Name:  field.Name,
-				Value: field.Value,
-			})
+			if !exists {
+				newFieldGroup = append(newFieldGroup, FieldData{
+					Name:  field.Name,
+					Value: field.Value,
+				})
+			}
 		}
 	}
 	fieldBytes, err := json.Marshal(newFieldGroup)
 	if err != nil {
-		return e.Wrap(err, "Error marshalling field group")
+		return e.Wrap(err, "Error marshalling session field group")
 	}
 	fieldString := string(fieldBytes)
 
@@ -128,8 +137,8 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	return nil
 }
 
-func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame interface{}, fields []*model.ErrorField) error {
-	firstFrameBytes, err := json.Marshal(firstFrame)
+func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interface{}, fields []*model.ErrorField) error {
+	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
 		return e.Wrap(err, "Error marshalling first frame")
 	}
@@ -137,6 +146,8 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame inter
 
 	errorGroup := &model.ErrorGroup{}
 
+	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
+	// If it doesn't exist, we create a new error group.
 	if res := r.DB.Where(&model.ErrorGroup{
 		OrganizationID: errorObj.OrganizationID,
 		Event:          errorObj.Event,
@@ -186,6 +197,13 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame inter
 
 func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {
 	fieldsToAppend := []*model.ErrorField{}
+	var newFieldGroup []FieldData
+	exists := false
+	if errorGroup.FieldGroup != nil {
+		if err := json.Unmarshal([]byte(*errorGroup.FieldGroup), &newFieldGroup); err != nil {
+			return e.Wrap(err, "error decoding error group field group data")
+		}
+	}
 	for _, f := range fields {
 		field := &model.ErrorField{}
 		res := r.DB.Where(f).First(&field)
@@ -195,9 +213,34 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 				return e.Wrap(err, "error creating error field")
 			}
 			fieldsToAppend = append(fieldsToAppend, f)
+			newFieldGroup = append(newFieldGroup, FieldData{
+				Name:  f.Name,
+				Value: f.Value,
+			})
 		} else {
+			exists = false
+			for _, existing := range newFieldGroup {
+				if field.Name == existing.Name && field.Value == existing.Value {
+					exists = true
+				}
+			}
 			fieldsToAppend = append(fieldsToAppend, field)
+			if !exists {
+				newFieldGroup = append(newFieldGroup, FieldData{
+					Name:  field.Name,
+					Value: field.Value,
+				})
+			}
 		}
+	}
+	fieldBytes, err := json.Marshal(newFieldGroup)
+	if err != nil {
+		return e.Wrap(err, "Error marshalling error group field group")
+	}
+	fieldString := string(fieldBytes)
+
+	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}); res.RecordNotFound() || res.Error != nil {
+		return e.Wrap(err, "Error updating error group field group")
 	}
 	// We append to this session in the join table regardless.
 	re := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend)

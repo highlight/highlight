@@ -337,6 +337,49 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & Pick<
     'billingDetails'
 >;
 
+export type GetErrorGroupQueryVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+}>;
+
+export type GetErrorGroupQuery = { __typename?: 'Query' } & {
+    error_group?: Types.Maybe<
+        { __typename?: 'ErrorGroup' } & Pick<
+            Types.ErrorGroup,
+            'id' | 'organization_id' | 'event' | 'field_group'
+        > & {
+                trace: Array<
+                    Types.Maybe<
+                        { __typename?: 'ErrorTrace' } & Pick<
+                            Types.ErrorTrace,
+                            | 'file_name'
+                            | 'line_number'
+                            | 'function_name'
+                            | 'column_number'
+                        >
+                    >
+                >;
+                metadata_log: Array<
+                    Types.Maybe<
+                        { __typename?: 'ErrorMetadata' } & Pick<
+                            Types.ErrorMetadata,
+                            'error_id' | 'session_id' | 'timestamp'
+                        >
+                    >
+                >;
+                fields?: Types.Maybe<
+                    Array<
+                        Types.Maybe<
+                            { __typename?: 'ErrorField' } & Pick<
+                                Types.ErrorField,
+                                'name' | 'value'
+                            >
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
 export type GetErrorGroupsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
@@ -353,8 +396,30 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                     Types.Maybe<
                         { __typename?: 'ErrorGroup' } & Pick<
                             Types.ErrorGroup,
-                            'event' | 'trace' | 'metadata_log'
-                        >
+                            'id' | 'event'
+                        > & {
+                                trace: Array<
+                                    Types.Maybe<
+                                        { __typename?: 'ErrorTrace' } & Pick<
+                                            Types.ErrorTrace,
+                                            | 'file_name'
+                                            | 'line_number'
+                                            | 'function_name'
+                                            | 'column_number'
+                                        >
+                                    >
+                                >;
+                                metadata_log: Array<
+                                    Types.Maybe<
+                                        { __typename?: 'ErrorMetadata' } & Pick<
+                                            Types.ErrorMetadata,
+                                            | 'error_id'
+                                            | 'session_id'
+                                            | 'timestamp'
+                                        >
+                                    >
+                                >;
+                            }
                     >
                 >;
             }
@@ -390,6 +455,25 @@ export type GetFieldSuggestionQuery = { __typename?: 'Query' } & {
         Array<
             Types.Maybe<
                 { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+            >
+        >
+    >;
+};
+
+export type GetErrorFieldSuggestionQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetErrorFieldSuggestionQuery = { __typename?: 'Query' } & {
+    error_field_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorField' } & Pick<
+                    Types.ErrorField,
+                    'name' | 'value'
+                >
             >
         >
     >;

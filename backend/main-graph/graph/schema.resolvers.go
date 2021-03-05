@@ -22,6 +22,64 @@ import (
 	stripe "github.com/stripe/stripe-go"
 )
 
+func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) ([]*string, error) {
+	if obj.Trace == "" {
+		return nil, nil
+	}
+	var eventInterface interface{}
+	if err := json.Unmarshal([]byte(obj.Event), &eventInterface); err != nil {
+		return nil, nil
+	}
+	// the event interface is either in the form 'string' or '[]string':
+	if val, ok := eventInterface.(string); ok {
+		return []*string{&val}, nil
+	}
+	if val, ok := eventInterface.([]interface{}); ok {
+		ret := []*string{}
+		for _, v := range val {
+			if s, ok := v.(string); ok {
+				ret = append(ret, &s)
+			}
+		}
+		return ret, nil
+	}
+	return nil, nil
+}
+
+func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
+	if obj.Trace == "" {
+		return nil, nil
+	}
+	trace := []*struct {
+		FileName     *string `json:"fileName"`
+		LineNumber   *int    `json:"lineNumber"`
+		FunctionName *string `json:"functionName"`
+		ColumnNumber *int    `json:"columnNumber"`
+	}{}
+	if err := json.Unmarshal([]byte(obj.Trace), &trace); err != nil {
+		return nil, nil
+	}
+	ret := []*modelInputs.ErrorTrace{}
+	for _, t := range trace {
+		val := &modelInputs.ErrorTrace{
+			FileName:     t.FileName,
+			LineNumber:   t.LineNumber,
+			FunctionName: t.FunctionName,
+			ColumnNumber: t.ColumnNumber,
+		}
+		ret = append(ret, val)
+	}
+	return ret, nil
+}
+
+func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
+	ret := []*modelInputs.ErrorMetadata{}
+	if err := json.Unmarshal([]byte(*obj.MetadataLog), &ret); err != nil {
+		return nil, e.Wrap(err, "error unmarshaling error metadata")
+	}
+	return ret, nil
+}
+
 func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
 	frames := []interface{}{}
 	if obj.Trace != nil {
@@ -415,9 +473,63 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	errorGroups := []*model.ErrorGroup{}
-	if res := r.DB.Order("updated_at desc").Where(&model.ErrorGroup{OrganizationID: organizationID}).Find(&errorGroups); res.Error != nil {
-		return nil, fmt.Errorf("error reading from error groups: %v", res.Error)
+	errorFieldIds := []int{}
+	errorFieldQuery := r.DB.Model(&model.ErrorField{})
+
+	if params.Browser != nil {
+		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "browser", params.Browser)
+	}
+
+	if params.Os != nil {
+		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "os_name", params.Os)
+	}
+
+	if params.VisitedURL != nil {
+		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "visited_url", params.VisitedURL)
+	}
+
+	if err := errorFieldQuery.Pluck("id", &errorFieldIds).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error fields")
+	}
+
+	errorGroups := []model.ErrorGroup{}
+
+	queryString := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at
+	FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, array_agg(t.error_field_id) fieldIds
+	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
+
+	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
+	queryString += "AND (deleted_at IS NULL) "
+
+	if len(errorFieldIds) > 0 {
+		queryString += "AND ("
+		for idx, id := range errorFieldIds {
+			if idx == 0 {
+				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
+			} else {
+				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
+			}
+		}
+		queryString += ") "
+	}
+
+	if d := params.DateRange; d != nil {
+		queryString += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
+	}
+
+	//error_groups not tracked on viewed or not yet
+	if viewed := params.HideViewed; viewed != nil && *viewed && false {
+		queryString += "AND (viewed = false) "
+	}
+
+	if params.Event != nil {
+		queryString += fmt.Sprintf("AND (event ILIKE '%s') ", "%"+*params.Event+"%")
+	}
+
+	queryString += "ORDER BY updated_at DESC"
+
+	if err := r.DB.Raw(queryString).Scan(&errorGroups).Error; err != nil {
+		return nil, e.Wrap(err, "error reading from error groups")
 	}
 
 	if count > len(errorGroups) {
@@ -428,8 +540,11 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		ErrorGroups: errorGroups[:count],
 		TotalCount:  len(errorGroups),
 	}
-
 	return errorResults, nil
+}
+
+func (r *queryResolver) ErrorGroup(ctx context.Context, id int) (*model.ErrorGroup, error) {
+	return r.isAdminErrorGroupOwner(ctx, id)
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
@@ -597,8 +712,6 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds 
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
-	//WHERE (organization_id = ?) AND (length > ?", organizationID, 1000)
-	//query = query.Where("processed = ?", true).Order("created_at desc")
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
 	queryString += fmt.Sprintf("AND (length > %d) ", 1000)
 	queryString += "AND (processed = true) "
@@ -720,6 +833,22 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 	return fields, nil
 }
 
+func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model.ErrorField, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	fields := []*model.ErrorField{}
+	res := r.DB.Where(&model.ErrorField{Name: name}).
+		Where("length(value) > ?", 0).
+		Where("value ILIKE ?", "%"+query+"%").
+		Limit(8).
+		Find(&fields)
+	if err := res.Error; err != nil || res.RecordNotFound() {
+		return nil, e.Wrap(err, "error querying error field suggestion")
+	}
+	return fields, nil
+}
+
 func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organization, error) {
 	admin, err := r.Query().Admin(ctx)
 	if err != nil {
@@ -822,6 +951,9 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+// ErrorGroup returns generated.ErrorGroupResolver implementation.
+func (r *Resolver) ErrorGroup() generated.ErrorGroupResolver { return &errorGroupResolver{r} }
+
 // ErrorObject returns generated.ErrorObjectResolver implementation.
 func (r *Resolver) ErrorObject() generated.ErrorObjectResolver { return &errorObjectResolver{r} }
 
@@ -840,6 +972,7 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
+type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }

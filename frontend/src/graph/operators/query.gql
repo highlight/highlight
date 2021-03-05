@@ -98,6 +98,32 @@ query GetBillingDetails($organization_id: ID!) {
     billingDetails(organization_id: $organization_id)
 }
 
+query GetErrorGroup(
+    $id: ID!
+) {
+    error_group(id: $id) {
+        id
+        organization_id
+        event
+        trace {
+            file_name
+            line_number
+            function_name
+            column_number
+        }
+        metadata_log {
+            error_id
+            session_id
+            timestamp
+        }
+        fields {
+            name
+            value
+        }
+        field_group
+    }
+}
+
 query GetErrorGroups(
     $organization_id: ID!
     $count: Int!
@@ -109,9 +135,19 @@ query GetErrorGroups(
         params: $params
     ) {
         error_groups {
+            id
             event
-            trace
-            metadata_log    
+            trace {
+                file_name
+                line_number
+                function_name
+                column_number
+            }
+            metadata_log {
+                error_id
+                session_id
+                timestamp
+            }
         }
         totalCount
     }
@@ -131,6 +167,21 @@ query GetFieldSuggestion(
     $query: String!
 ) {
     field_suggestionBETA(
+        organization_id: $organization_id
+        name: $name
+        query: $query
+    ) {
+        name
+        value
+    }
+}
+
+query GetErrorFieldSuggestion(
+    $organization_id: ID!
+    $name: String!
+    $query: String!
+) {
+    error_field_suggestion(
         organization_id: $organization_id
         name: $name
         query: $query

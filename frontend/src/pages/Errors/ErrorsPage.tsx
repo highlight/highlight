@@ -1,34 +1,42 @@
-import React, { useState } from 'react';
-import { Button } from 'antd';
+import React, { useContext, useEffect, useState } from 'react';
 import styles from './ErrorsPage.module.scss';
 import { ErrorFeed } from './ErrorFeed/ErrorFeed';
 import {
-    SearchContext,
-    SearchParams,
-} from '../Sessions/SearchContext/SearchContext';
+    ErrorSearchContext,
+    ErrorSearchParams,
+} from './ErrorSearchContext/ErrorSearchContext';
 import { ErrorSearchSidebar } from './ErrorSearchSidebar/ErrorSearchSidebar';
 import { ErrorSegmentSidebar } from './ErrorSegmentSidebar/ErrorSegmentSidebar';
+import { useLocalStorage } from '@rehooks/local-storage';
+import { SidebarContext } from '../../components/Sidebar/SidebarContext';
+import { FeedNavigation } from '../Sessions/SearchSidebar/FeedNavigation/FeedNavigation';
+import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
 
-export const ErrorsPage = () => {
+export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
-    const [searchParams, setSearchParams] = useState<SearchParams>({
-        user_properties: [],
-        identified: false,
-    });
-    const [existingParams, setExistingParams] = useState<SearchParams>({
-        user_properties: [],
-        identified: false,
-    });
-    const throwError = (): void => {
-        throw new Error('This error is from a throw');
-    };
+    const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
+        `cachedErrorParams-${segmentName || 'no-selected-segment'}`,
+        {}
+    );
+    const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
+        cachedParams || { user_properties: [], identified: false }
+    );
+    const [existingParams, setExistingParams] = useState<ErrorSearchParams>({});
+    const { setOpenSidebar } = useContext(SidebarContext);
 
-    const consoleError = (): void => {
-        console.error('This error was from the console');
-    };
+    useEffect(() => setOpenSidebar(false), [setOpenSidebar]);
+
+    useEffect(() => setCachedParams(searchParams), [
+        searchParams,
+        setCachedParams,
+    ]);
+
+    if (!integrated) {
+        return <IntegrationCard />;
+    }
 
     return (
-        <SearchContext.Provider
+        <ErrorSearchContext.Provider
             value={{
                 searchParams,
                 setSearchParams,
@@ -40,24 +48,8 @@ export const ErrorsPage = () => {
         >
             <div className={styles.errorsBody}>
                 <div className={styles.leftPanel}>
+                    <FeedNavigation />
                     <ErrorSegmentSidebar />
-                    <div className={styles.advancedText}>
-                        <Button
-                            type="primary"
-                            style={{ background: 'red' }}
-                            onClick={throwError}
-                        >
-                            Throw Error
-                        </Button>{' '}
-                        <br></br>
-                        <Button
-                            type="primary"
-                            style={{ background: 'green' }}
-                            onClick={consoleError}
-                        >
-                            Console Error
-                        </Button>{' '}
-                    </div>
                 </div>
                 <div className={styles.centerPanel}>
                     <div className={styles.errorsSection}>
@@ -68,6 +60,6 @@ export const ErrorsPage = () => {
                     <ErrorSearchSidebar />
                 </div>
             </div>
-        </SearchContext.Provider>
+        </ErrorSearchContext.Provider>
     );
 };

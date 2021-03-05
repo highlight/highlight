@@ -6,10 +6,12 @@ export const RadioGroup = <T extends any>({
     onSelect,
     labels,
     selectedLabel,
+    style,
 }: {
     onSelect: (p: T) => void;
     labels: T[];
     selectedLabel: T;
+    style?: React.CSSProperties;
 }) => {
     const labelDivs = labels.map((label) => {
         return label === selectedLabel ? (
@@ -29,7 +31,6 @@ export const RadioGroup = <T extends any>({
             <div
                 style={{
                     borderColor: '#eaeaea',
-                    backgroundColor: 'white',
                     color: 'black',
                 }}
                 className={styles.platformOption}
@@ -40,5 +41,9 @@ export const RadioGroup = <T extends any>({
             </div>
         );
     });
-    return <div className={styles.radioGroupWrapper}>{labelDivs}</div>;
+    return (
+        <div style={style} className={styles.radioGroupWrapper}>
+            {labelDivs}
+        </div>
+    );
 };

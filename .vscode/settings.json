@@ -5,6 +5,7 @@
       "source.fixAll.eslint": true
     },
     "go.formatTool": "gofmt",
+    "go.useLanguageServer": true,
     "[go]": {
         "editor.defaultFormatter": "golang.go"
     },

@@ -2,6 +2,7 @@
     "recommendations": [
         "esbenp.prettier-vscode",
         "golang.go",
-        "dbaeumer.vscode-eslint"
+        "dbaeumer.vscode-eslint",
+        "graphql.vscode-graphql"
     ]
 }

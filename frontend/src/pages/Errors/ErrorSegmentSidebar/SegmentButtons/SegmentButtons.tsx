@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import _ from 'lodash';
 
 import commonStyles from '../../../../Common.module.scss';
-import { SearchContext } from '../../../Sessions/SearchContext/SearchContext';
+import { ErrorSearchContext } from '../../ErrorSearchContext/ErrorSearchContext';
 import { RouteComponentProps, useParams, withRouter } from 'react-router-dom';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
 import { message, Modal } from 'antd';
@@ -29,7 +29,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
         segmentName,
         existingParams,
         setExistingParams,
-    } = useContext(SearchContext);
+    } = useContext(ErrorSearchContext);
     const { date_range, os, browser, visited_url, hide_viewed } = searchParams;
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [editSegment, editSegmentOptions] = useEditErrorSegmentMutation({

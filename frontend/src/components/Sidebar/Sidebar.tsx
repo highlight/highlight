@@ -5,11 +5,13 @@ import classNames from 'classnames/bind';
 import { Link, useParams, useLocation } from 'react-router-dom';
 import { WorkspaceDropdown } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
 import { ReactComponent as SessionsIcon } from '../../static/sessions-icon.svg';
+import { ReactComponent as ErrorsIcon } from '../../static/errors-icon.svg';
 import { ReactComponent as SetupIcon } from '../../static/setup-icon.svg';
 import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg';
 import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
 import { DemoContext } from '../../DemoContext';
+import commonStyles from '../../Common.module.scss';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -37,6 +39,18 @@ export const Sidebar = () => {
                 <SessionsIcon />
                 <span className={styles.rowText}>Sessions</span>
             </Link>
+            {organization_id === '1' && (
+                <Link
+                    className={classNames([
+                        styles.row,
+                        page.includes('errors') && styles.selected,
+                    ])}
+                    to={demo ? '/' : `/${organization_id}/errors`}
+                >
+                    <ErrorsIcon />
+                    <span className={styles.rowText}>Errors</span>
+                </Link>
+            )}
             <Link
                 className={classNames([
                     styles.row,
@@ -106,6 +120,32 @@ export const Sidebar = () => {
                     >
                         Privacy Policy
                     </Link>
+                    {organization_id === '1' ? (
+                        <>
+                            <button
+                                className={commonStyles.secondaryButton}
+                                onClick={() => {
+                                    throw new Error(
+                                        'This error is from a throw'
+                                    );
+                                }}
+                            >
+                                Throw Error
+                            </button>
+                            <button
+                                className={commonStyles.secondaryButton}
+                                onClick={() => {
+                                    console.error(
+                                        'This error is from the console'
+                                    );
+                                }}
+                            >
+                                Console Error
+                            </button>
+                        </>
+                    ) : (
+                        <></>
+                    )}
                 </div>
             </div>
         </div>

@@ -1,5 +1,5 @@
 .radioGroupWrapper {
-    margin: 20px 0px 20px 0px;
+    margin: 0;
     display: flex;
 }
 
@@ -12,6 +12,10 @@
     border: 1px solid #e4e8eb;
     cursor: pointer;
     transition: 0.2s;
+}
+
+.platformOption:hover {
+    background-color: #f2eefb;
 }
 
 .platformOption:not(:last-child) {

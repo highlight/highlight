@@ -90,13 +90,36 @@ export type ErrorObject = {
     trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
 };
 
+export type ErrorField = {
+    __typename?: 'ErrorField';
+    name: Scalars['String'];
+    value: Scalars['String'];
+};
+
 export type ErrorGroup = {
     __typename?: 'ErrorGroup';
     id: Scalars['ID'];
     organization_id: Scalars['Int'];
-    event: Scalars['String'];
-    trace: Scalars['String'];
-    metadata_log?: Maybe<Scalars['String']>;
+    event: Array<Maybe<Scalars['String']>>;
+    trace: Array<Maybe<ErrorTrace>>;
+    metadata_log: Array<Maybe<ErrorMetadata>>;
+    fields?: Maybe<Array<Maybe<ErrorField>>>;
+    field_group?: Maybe<Scalars['String']>;
+};
+
+export type ErrorMetadata = {
+    __typename?: 'ErrorMetadata';
+    error_id?: Maybe<Scalars['Int']>;
+    session_id?: Maybe<Scalars['Int']>;
+    timestamp?: Maybe<Scalars['Time']>;
+};
+
+export type ErrorTrace = {
+    __typename?: 'ErrorTrace';
+    file_name?: Maybe<Scalars['String']>;
+    line_number?: Maybe<Scalars['Int']>;
+    function_name?: Maybe<Scalars['String']>;
+    column_number?: Maybe<Scalars['Int']>;
 };
 
 export type SearchParamsInput = {
@@ -132,6 +155,7 @@ export type ErrorSearchParamsInput = {
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
+    event?: Maybe<Scalars['String']>;
 };
 
 export type ErrorSearchParams = {
@@ -141,6 +165,7 @@ export type ErrorSearchParams = {
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
+    event?: Maybe<Scalars['String']>;
 };
 
 export type DateRange = {
@@ -194,6 +219,7 @@ export type Query = {
     session?: Maybe<Session>;
     events?: Maybe<Array<Maybe<Scalars['Any']>>>;
     error_groups?: Maybe<ErrorResults>;
+    error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
@@ -202,6 +228,7 @@ export type Query = {
     billingDetails: Plan;
     field_suggestionBETA?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
+    error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
@@ -222,6 +249,10 @@ export type QueryError_GroupsArgs = {
     organization_id: Scalars['ID'];
     count: Scalars['Int'];
     params?: Maybe<ErrorSearchParamsInput>;
+};
+
+export type QueryError_GroupArgs = {
+    id: Scalars['ID'];
 };
 
 export type QueryMessagesArgs = {
@@ -260,6 +291,12 @@ export type QueryProperty_SuggestionArgs = {
     organization_id: Scalars['ID'];
     query: Scalars['String'];
     type: Scalars['String'];
+};
+
+export type QueryError_Field_SuggestionArgs = {
+    organization_id: Scalars['ID'];
+    name: Scalars['String'];
+    query: Scalars['String'];
 };
 
 export type QueryOrganizationArgs = {

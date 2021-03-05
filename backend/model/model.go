@@ -200,7 +200,6 @@ type Segment struct {
 }
 
 func (s *SearchParams) GormDataType() string {
-	pp.Println("datatype", s.GormDataType())
 	out, err := json.Marshal(s)
 	if err != nil {
 		return ""
@@ -238,7 +237,7 @@ type EventsObject struct {
 }
 
 type ErrorResults struct {
-	ErrorGroups []*ErrorGroup
+	ErrorGroups []ErrorGroup
 	TotalCount  int
 }
 
@@ -248,6 +247,7 @@ type ErrorSearchParams struct {
 	OS         *string    `json:"os"`
 	VisitedURL *string    `json:"visited_url"`
 	HideViewed bool       `json:"hide_viewed"`
+	Event      *string    `json:"event"`
 }
 type ErrorSegment struct {
 	Model
@@ -276,6 +276,7 @@ type ErrorGroup struct {
 	Trace          string
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
+	FieldGroup     *string
 }
 
 type ErrorField struct {
