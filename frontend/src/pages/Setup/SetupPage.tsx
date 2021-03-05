@@ -50,6 +50,7 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                     Setup Highlight in your web application!
                 </div>
                 <RadioGroup<PlatformType>
+                    style={{ marginTop: 20, marginBottom: 20 }}
                     selectedLabel={platform}
                     labels={[
                         PlatformType.React,

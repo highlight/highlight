@@ -19,6 +19,7 @@ const FeedNavigationButtons: React.FunctionComponent<RouteComponentProps> = ({
     return organization_id === '1' ? (
         <RadioGroup<string>
             selectedLabel={page.charAt(0).toUpperCase() + page.slice(1)}
+            style={{ marginBottom: 20 }}
             labels={['Sessions', 'Errors']}
             onSelect={(p: string) => history.push(`/${organization_id}/${p}`)}
         />
