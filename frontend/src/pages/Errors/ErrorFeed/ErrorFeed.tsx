@@ -131,7 +131,7 @@ export const ErrorFeed = () => {
 const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [hovered, setHovered] = useState(false);
-    // Represents the last six days i.e. [5 days ago, 5 days ago, 4 days ago, etc..]
+    // Represents the last six days i.e. [5 days ago, 4 days ago, 3 days ago, etc..]
     const [errorDates, setErrorDates] = useState<Array<number>>(
         Array(6).fill(0)
     );
