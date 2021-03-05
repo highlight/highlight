@@ -14,8 +14,7 @@ import { SearchContext } from '../../Sessions/SearchContext/SearchContext';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { DateInput } from '../../Sessions/SearchInputs/DateInput';
 import { gqlSanitize } from '../../../util/gqlSanitize';
-
-const ONE_DAY = 1000 * 60 * 60 * 24;
+import moment from 'moment';
 
 export type ErrorMetadata = {
     browser: string;
@@ -132,54 +131,29 @@ export const ErrorFeed = () => {
 const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [hovered, setHovered] = useState(false);
-    const [errorDates, setErrorDates] = useState<{ [date: string]: number }>(
-        {}
-    );
-    const [maxErrors, setMaxErrors] = useState(5);
+    const [errorDates, setErrorDates] = useState<Array<number>>([
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ]);
 
     useEffect(() => {
-        const currentDate = new Date();
-        const pastSixDays = Object.fromEntries(
-            new Map(
-                Array.from({ length: 6 }, (_, idx) => {
-                    currentDate.setTime(new Date().getTime() - ONE_DAY * idx);
-                    return [
-                        currentDate.toLocaleDateString('fr-CA', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                        }),
-                        0,
-                    ];
-                })
-            )
-        );
+        if (!errorDates || !errorGroup) return;
+        const today = moment();
+        const errorDatesCopy = [...errorDates];
         for (const error of errorGroup?.metadata_log ?? []) {
-            const created_date = new Date(error?.timestamp).toLocaleDateString(
-                'fr-CA',
-                {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                }
-            );
-            if (pastSixDays.hasOwnProperty(created_date)) {
-                pastSixDays[created_date] += 1;
+            const errorDate = moment(error?.timestamp);
+            const insertIndex =
+                errorDates.length - 1 - today.diff(errorDate, 'days');
+            if (insertIndex >= 0 || insertIndex < errorDates.length) {
+                errorDatesCopy[insertIndex] += 1;
             }
         }
-        setErrorDates(pastSixDays);
-    }, [errorGroup]);
-
-    useEffect(
-        () =>
-            setMaxErrors(
-                Math.max(
-                    ...Object.keys(errorDates).map((date) => errorDates[date]),
-                    5
-                )
-            ),
-        [errorDates]
-    );
+        setErrorDates(errorDatesCopy);
+    }, [errorGroup, errorDates]);
 
     return (
         <Link
@@ -197,39 +171,30 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                 />
                 <div className={styles.errorCardContentWrapper}>
                     <div className={styles.avatarWrapper}>
-                        {Object.keys(errorDates)
-                            .sort()
-                            .map((date, ind) => (
-                                <Tooltip
-                                    title={`${date}\n ${errorDates[date]} occurences`}
-                                    overlayStyle={{ whiteSpace: 'pre-line' }}
-                                    key={ind}
-                                >
-                                    <div className={styles.errorBarDiv}>
-                                        {date ? (
-                                            <div
-                                                className={styles.errorBar}
-                                                style={{
-                                                    height: `${
-                                                        errorDates
-                                                            ? (60 *
-                                                                  errorDates[
-                                                                      date
-                                                                  ]) /
-                                                              maxErrors
-                                                            : 0
-                                                    }px`,
-                                                }}
-                                            ></div>
-                                        ) : (
-                                            <></>
-                                        )}
-                                        <div
-                                            className={styles.errorBarBase}
-                                        ></div>
-                                    </div>
-                                </Tooltip>
-                            ))}
+                        {errorDates.map((num, ind) => (
+                            <Tooltip
+                                title={`${
+                                    5 - ind
+                                } day(s) ago\n ${num} occurences`}
+                                overlayStyle={{
+                                    whiteSpace: 'pre-line',
+                                }}
+                                key={ind}
+                            >
+                                <div className={styles.errorBarDiv}>
+                                    <div
+                                        className={styles.errorBar}
+                                        style={{
+                                            height: `${
+                                                (60 * num) /
+                                                Math.max(...errorDates, 5)
+                                            }px`,
+                                        }}
+                                    />
+                                    <div className={styles.errorBarBase}></div>
+                                </div>
+                            </Tooltip>
+                        ))}
                     </div>
                     <div className={styles.errorTextSectionWrapper}>
                         <div

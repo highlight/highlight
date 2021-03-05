@@ -202,6 +202,7 @@
 .errorBar {
     border-radius: 2px;
     width: 100%;
-    height: 0px;
+    height: 1px;
+    transition: 0.2s height;
     background-color: $highlight-purple;
 }
