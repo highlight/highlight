@@ -17,9 +17,9 @@ export const ErrorPage = () => {
     });
     return (
         <div className={styles.errorPageWrapper}>
-            <div className={styles.blankSidebar}>hello</div>
+            <div className={styles.blankSidebar} />
             <div className={styles.errorPage}>
-                <ReactJson collapsed src={data ?? {}} />
+                <ReactJson src={data ?? {}} />
             </div>
         </div>
     );
