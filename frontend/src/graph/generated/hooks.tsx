@@ -1138,6 +1138,80 @@ export type GetBillingDetailsQueryResult = Apollo.QueryResult<
     Types.GetBillingDetailsQuery,
     Types.GetBillingDetailsQueryVariables
 >;
+export const GetErrorGroupDocument = gql`
+    query GetErrorGroup($id: ID!) {
+        error_group(id: $id) {
+            id
+            organization_id
+            event
+            trace {
+                file_name
+                line_number
+                function_name
+                column_number
+            }
+            metadata_log {
+                error_id
+                session_id
+                timestamp
+            }
+            fields {
+                name
+                value
+            }
+            field_group
+        }
+    }
+`;
+
+/**
+ * __useGetErrorGroupQuery__
+ *
+ * To run a query within a React component, call `useGetErrorGroupQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorGroupQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorGroupQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetErrorGroupQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorGroupQuery,
+        Types.GetErrorGroupQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorGroupQuery,
+        Types.GetErrorGroupQueryVariables
+    >(GetErrorGroupDocument, baseOptions);
+}
+export function useGetErrorGroupLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorGroupQuery,
+        Types.GetErrorGroupQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorGroupQuery,
+        Types.GetErrorGroupQueryVariables
+    >(GetErrorGroupDocument, baseOptions);
+}
+export type GetErrorGroupQueryHookResult = ReturnType<
+    typeof useGetErrorGroupQuery
+>;
+export type GetErrorGroupLazyQueryHookResult = ReturnType<
+    typeof useGetErrorGroupLazyQuery
+>;
+export type GetErrorGroupQueryResult = Apollo.QueryResult<
+    Types.GetErrorGroupQuery,
+    Types.GetErrorGroupQueryVariables
+>;
 export const GetErrorGroupsDocument = gql`
     query GetErrorGroups(
         $organization_id: ID!
@@ -1150,6 +1224,7 @@ export const GetErrorGroupsDocument = gql`
             params: $params
         ) {
             error_groups {
+                id
                 event
                 trace {
                     file_name

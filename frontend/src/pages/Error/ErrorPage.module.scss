@@ -1,0 +1,15 @@
+.blankSidebar {
+    height: 100%;
+    width: 280px;
+}
+
+.errorPageWrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+}
+
+.errorPage {
+    margin: 120px 80px 80px 80px;
+    width: calc(100vw - 650px);
+}

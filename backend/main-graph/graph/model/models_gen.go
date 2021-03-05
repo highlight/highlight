@@ -15,8 +15,6 @@ type DateRangeInput struct {
 }
 
 type ErrorMetadata struct {
-	Browser   *string    `json:"browser"`
-	Os        *string    `json:"os"`
 	ErrorID   *int       `json:"error_id"`
 	SessionID *int       `json:"session_id"`
 	Timestamp *time.Time `json:"timestamp"`

@@ -14,7 +14,6 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -513,9 +512,11 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		ErrorGroups: errorGroups[:count],
 		TotalCount:  len(errorGroups),
 	}
-
-	pp.Println(len(errorGroups))
 	return errorResults, nil
+}
+
+func (r *queryResolver) ErrorGroup(ctx context.Context, id int) (*model.ErrorGroup, error) {
+	return r.isAdminErrorGroupOwner(ctx, id)
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
