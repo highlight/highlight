@@ -137,19 +137,19 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     );
 
     useEffect(() => {
-        if (!errorDates || !errorGroup) return;
+        if (!errorGroup) return;
         const today = moment();
-        const errorDatesCopy = [...errorDates];
+        const errorDatesCopy = Array(6).fill(0);
         for (const error of errorGroup?.metadata_log ?? []) {
             const errorDate = moment(error?.timestamp);
             const insertIndex =
-                errorDates.length - 1 - today.diff(errorDate, 'days');
-            if (insertIndex >= 0 || insertIndex < errorDates.length) {
+                errorDatesCopy.length - 1 - today.diff(errorDate, 'days');
+            if (insertIndex >= 0 || insertIndex < errorDatesCopy.length) {
                 errorDatesCopy[insertIndex] += 1;
             }
         }
         setErrorDates(errorDatesCopy);
-    }, [errorGroup, errorDates]);
+    }, [errorGroup]);
 
     return (
         <Link
