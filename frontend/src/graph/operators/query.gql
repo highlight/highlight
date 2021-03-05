@@ -176,6 +176,21 @@ query GetFieldSuggestion(
     }
 }
 
+query GetErrorFieldSuggestion(
+    $organization_id: ID!
+    $name: String!
+    $query: String!
+) {
+    error_field_suggestion(
+        organization_id: $organization_id
+        name: $name
+        query: $query
+    ) {
+        name
+        value
+    }
+}
+
 query GetTrackSuggestion($organization_id: ID!, $query: String!) {
     property_suggestion(
         organization_id: $organization_id

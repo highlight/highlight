@@ -2,9 +2,9 @@ import React, { useContext, useEffect, useState } from 'react';
 import styles from './ErrorsPage.module.scss';
 import { ErrorFeed } from './ErrorFeed/ErrorFeed';
 import {
-    SearchContext,
-    SearchParams,
-} from '../Sessions/SearchContext/SearchContext';
+    ErrorSearchContext,
+    ErrorSearchParams,
+} from './ErrorSearchContext/ErrorSearchContext';
 import { ErrorSearchSidebar } from './ErrorSearchSidebar/ErrorSearchSidebar';
 import { ErrorSegmentSidebar } from './ErrorSegmentSidebar/ErrorSegmentSidebar';
 import { useLocalStorage } from '@rehooks/local-storage';
@@ -14,17 +14,14 @@ import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
 
 export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
-    const [cachedParams, setCachedParams] = useLocalStorage<SearchParams>(
+    const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
         `cachedErrorParams-${segmentName || 'no-selected-segment'}`,
-        { user_properties: [], identified: false }
+        {}
     );
-    const [searchParams, setSearchParams] = useState<SearchParams>(
+    const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
         cachedParams || { user_properties: [], identified: false }
     );
-    const [existingParams, setExistingParams] = useState<SearchParams>({
-        user_properties: [],
-        identified: false,
-    });
+    const [existingParams, setExistingParams] = useState<ErrorSearchParams>({});
     const { setOpenSidebar } = useContext(SidebarContext);
 
     useEffect(() => setOpenSidebar(false), [setOpenSidebar]);
@@ -39,7 +36,7 @@ export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
     }
 
     return (
-        <SearchContext.Provider
+        <ErrorSearchContext.Provider
             value={{
                 searchParams,
                 setSearchParams,
@@ -63,6 +60,6 @@ export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
                     <ErrorSearchSidebar />
                 </div>
             </div>
-        </SearchContext.Provider>
+        </ErrorSearchContext.Provider>
     );
 };

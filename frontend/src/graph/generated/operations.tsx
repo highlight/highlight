@@ -460,6 +460,25 @@ export type GetFieldSuggestionQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetErrorFieldSuggestionQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    name: Types.Scalars['String'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetErrorFieldSuggestionQuery = { __typename?: 'Query' } & {
+    error_field_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorField' } & Pick<
+                    Types.ErrorField,
+                    'name' | 'value'
+                >
+            >
+        >
+    >;
+};
+
 export type GetTrackSuggestionQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     query: Types.Scalars['String'];
