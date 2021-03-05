@@ -22,24 +22,52 @@ import (
 	stripe "github.com/stripe/stripe-go"
 )
 
-func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) (*modelInputs.ErrorTrace, error) {
+func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) ([]*string, error) {
 	if obj.Trace == "" {
 		return nil, nil
 	}
-	trace := &struct {
+	var eventInterface interface{}
+	if err := json.Unmarshal([]byte(obj.Event), &eventInterface); err != nil {
+		return nil, nil
+	}
+	// the event interface is either in the form 'string' or '[]string':
+	if val, ok := eventInterface.(string); ok {
+		return []*string{&val}, nil
+	}
+	if val, ok := eventInterface.([]interface{}); ok {
+		ret := []*string{}
+		for _, v := range val {
+			if s, ok := v.(string); ok {
+				ret = append(ret, &s)
+			}
+		}
+		return ret, nil
+	}
+	return nil, nil
+}
+
+func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
+	if obj.Trace == "" {
+		return nil, nil
+	}
+	trace := []*struct {
 		FileName     *string `json:"fileName"`
 		LineNumber   *int    `json:"lineNumber"`
 		FunctionName *string `json:"functionName"`
 		ColumnNumber *int    `json:"columnNumber"`
 	}{}
-	if err := json.Unmarshal([]byte(obj.Trace), trace); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling error trace")
+	if err := json.Unmarshal([]byte(obj.Trace), &trace); err != nil {
+		return nil, nil
 	}
-	ret := &modelInputs.ErrorTrace{
-		FileName:     trace.FileName,
-		LineNumber:   trace.LineNumber,
-		FunctionName: trace.FunctionName,
-		ColumnNumber: trace.ColumnNumber,
+	ret := []*modelInputs.ErrorTrace{}
+	for _, t := range trace {
+		val := &modelInputs.ErrorTrace{
+			FileName:     t.FileName,
+			LineNumber:   t.LineNumber,
+			FunctionName: t.FunctionName,
+			ColumnNumber: t.ColumnNumber,
+		}
+		ret = append(ret, val)
 	}
 	return ret, nil
 }

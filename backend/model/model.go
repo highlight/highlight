@@ -200,7 +200,6 @@ type Segment struct {
 }
 
 func (s *SearchParams) GormDataType() string {
-	pp.Println("datatype", s.GormDataType())
 	out, err := json.Marshal(s)
 	if err != nil {
 		return ""

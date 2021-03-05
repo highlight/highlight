@@ -11,6 +11,7 @@ import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg
 import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
 import { DemoContext } from '../../DemoContext';
+import commonStyles from '../../Common.module.scss';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -119,6 +120,32 @@ export const Sidebar = () => {
                     >
                         Privacy Policy
                     </Link>
+                    {organization_id === '1' ? (
+                        <>
+                            <button
+                                className={commonStyles.secondaryButton}
+                                onClick={() => {
+                                    throw new Error(
+                                        'This error is from a throw'
+                                    );
+                                }}
+                            >
+                                Throw Error
+                            </button>
+                            <button
+                                className={commonStyles.secondaryButton}
+                                onClick={() => {
+                                    console.error(
+                                        'This error is from the console'
+                                    );
+                                }}
+                            >
+                                Console Error
+                            </button>
+                        </>
+                    ) : (
+                        <></>
+                    )}
                 </div>
             </div>
         </div>

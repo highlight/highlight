@@ -137,8 +137,8 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	return nil
 }
 
-func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame interface{}, fields []*model.ErrorField) error {
-	firstFrameBytes, err := json.Marshal(firstFrame)
+func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interface{}, fields []*model.ErrorField) error {
+	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
 		return e.Wrap(err, "Error marshalling first frame")
 	}
@@ -146,6 +146,8 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, firstFrame inter
 
 	errorGroup := &model.ErrorGroup{}
 
+	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
+	// If it doesn't exist, we create a new error group.
 	if res := r.DB.Where(&model.ErrorGroup{
 		OrganizationID: errorObj.OrganizationID,
 		Event:          errorObj.Event,
