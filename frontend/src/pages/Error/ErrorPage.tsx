@@ -1,4 +1,5 @@
 import React, { useContext, useEffect } from 'react';
+import ReactJson from 'react-json-view';
 import { useParams } from 'react-router';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
@@ -14,5 +15,12 @@ export const ErrorPage = () => {
     const { data } = useGetErrorGroupQuery({
         variables: { id: error_id },
     });
-    return <p className={styles.error}>{JSON.stringify(data)}</p>;
+    return (
+        <div className={styles.errorPageWrapper}>
+            <div className={styles.blankSidebar}>hello</div>
+            <div className={styles.errorPage}>
+                <ReactJson collapsed src={data ?? {}} />
+            </div>
+        </div>
+    );
 };
