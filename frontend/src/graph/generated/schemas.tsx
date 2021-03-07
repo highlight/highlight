@@ -100,11 +100,11 @@ export type ErrorGroup = {
     __typename?: 'ErrorGroup';
     id: Scalars['ID'];
     organization_id: Scalars['Int'];
+    type: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
     trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
-    fields?: Maybe<Array<Maybe<ErrorField>>>;
-    field_group?: Maybe<Scalars['String']>;
+    field_group?: Maybe<Array<Maybe<ErrorField>>>;
 };
 
 export type ErrorMetadata = {

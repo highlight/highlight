@@ -77,11 +77,11 @@ type ErrorField {
 type ErrorGroup {
     id: ID!
     organization_id: Int!
+    type: String!
     event: [String]!
     trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
-    fields: [ErrorField]
-    field_group: String
+    field_group: [ErrorField]
 }
 
 type ErrorMetadata {

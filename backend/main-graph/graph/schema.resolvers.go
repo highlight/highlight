@@ -14,6 +14,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -78,6 +79,20 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 		return nil, e.Wrap(err, "error unmarshaling error metadata")
 	}
 	return ret, nil
+}
+
+func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {
+	if obj == nil || obj.FieldGroup == nil {
+		return nil, nil
+	}
+	var fields []*model.ErrorField
+	err := json.Unmarshal([]byte(*obj.FieldGroup), &fields)
+	if err != nil {
+		err := e.Wrap(err, "error converting field group to struct")
+		pp.Println(err)
+		return nil, err
+	}
+	return fields, nil
 }
 
 func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {

@@ -69,11 +69,11 @@ type ComplexityRoot struct {
 	ErrorGroup struct {
 		Event          func(childComplexity int) int
 		FieldGroup     func(childComplexity int) int
-		Fields         func(childComplexity int) int
 		ID             func(childComplexity int) int
 		MetadataLog    func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
 		Trace          func(childComplexity int) int
+		Type           func(childComplexity int) int
 	}
 
 	ErrorMetadata struct {
@@ -241,6 +241,7 @@ type ErrorGroupResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorGroup) ([]*string, error)
 	Trace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
+	FieldGroup(ctx context.Context, obj *model1.ErrorGroup) ([]*model1.ErrorField, error)
 }
 type ErrorObjectResolver interface {
 	Trace(ctx context.Context, obj *model1.ErrorObject) ([]interface{}, error)
@@ -371,13 +372,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorGroup.FieldGroup(childComplexity), true
 
-	case "ErrorGroup.fields":
-		if e.complexity.ErrorGroup.Fields == nil {
-			break
-		}
-
-		return e.complexity.ErrorGroup.Fields(childComplexity), true
-
 	case "ErrorGroup.id":
 		if e.complexity.ErrorGroup.ID == nil {
 			break
@@ -405,6 +399,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.Trace(childComplexity), true
+
+	case "ErrorGroup.type":
+		if e.complexity.ErrorGroup.Type == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.Type(childComplexity), true
 
 	case "ErrorMetadata.error_id":
 		if e.complexity.ErrorMetadata.ErrorID == nil {
@@ -1472,11 +1473,11 @@ type ErrorField {
 type ErrorGroup {
     id: ID!
     organization_id: Int!
+    type: String!
     event: [String]!
     trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
-    fields: [ErrorField]
-    field_group: String
+    field_group: [ErrorField]
 }
 
 type ErrorMetadata {
@@ -2724,6 +2725,40 @@ func (ec *executionContext) _ErrorGroup_organization_id(ctx context.Context, fie
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ErrorGroup_type(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorGroup",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ErrorGroup_event(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2826,37 +2861,6 @@ func (ec *executionContext) _ErrorGroup_metadata_log(ctx context.Context, field 
 	return ec.marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorGroup_fields(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "ErrorGroup",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Fields, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*model1.ErrorField)
-	fc.Result = res
-	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2868,13 +2872,13 @@ func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field g
 		Object:   "ErrorGroup",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.FieldGroup, nil
+		return ec.resolvers.ErrorGroup().FieldGroup(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2883,9 +2887,9 @@ func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.([]*model1.ErrorField)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorMetadata_error_id(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
@@ -8070,6 +8074,11 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "type":
+			out.Values[i] = ec._ErrorGroup_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "event":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -8112,10 +8121,17 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				}
 				return res
 			})
-		case "fields":
-			out.Values[i] = ec._ErrorGroup_fields(ctx, field, obj)
 		case "field_group":
-			out.Values[i] = ec._ErrorGroup_field_group(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorGroup_field_group(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
