@@ -80,6 +80,19 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	return ret, nil
 }
 
+func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {
+	if obj == nil || obj.FieldGroup == nil {
+		return nil, nil
+	}
+	var fields []*model.ErrorField
+	err := json.Unmarshal([]byte(*obj.FieldGroup), &fields)
+	if err != nil {
+		err := e.Wrap(err, "error converting field group to struct")
+		return nil, err
+	}
+	return fields, nil
+}
+
 func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
 	frames := []interface{}{}
 	if obj.Trace != nil {

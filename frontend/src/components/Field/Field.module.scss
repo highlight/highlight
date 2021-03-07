@@ -1,0 +1,28 @@
+@import 'src/static/shared.scss';
+
+$side: 8px;
+$vert: 2px;
+
+.keyValueWrapper {
+    display: flex;
+}
+
+.key {
+    padding: $vert $side $vert $side;
+    border-right: 1px solid $highlight-purple-light;
+    font-size: 12px;
+}
+
+.value {
+    padding: $vert $side $vert $side;
+    background-color: $highlight-purple-light;
+    font-size: 12px;
+}
+
+.wrapper {
+    display: inline-block;
+    margin-right: 11px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid $highlight-purple-light;
+}

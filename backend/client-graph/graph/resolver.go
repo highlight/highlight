@@ -152,11 +152,13 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interfa
 		OrganizationID: errorObj.OrganizationID,
 		Event:          errorObj.Event,
 		Trace:          frameString,
+		Type:           errorObj.Type,
 	}).First(&errorGroup); res.RecordNotFound() || res.Error != nil {
 		newErrorGroup := &model.ErrorGroup{
 			OrganizationID: errorObj.OrganizationID,
 			Event:          errorObj.Event,
 			Trace:          frameString,
+			Type:           errorObj.Type,
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return e.Wrap(err, "Error creating new error group")

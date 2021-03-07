@@ -103,6 +103,7 @@ query GetErrorGroup(
 ) {
     error_group(id: $id) {
         id
+        type
         organization_id
         event
         trace {
@@ -116,11 +117,10 @@ query GetErrorGroup(
             session_id
             timestamp
         }
-        fields {
+        field_group {
             name
             value
         }
-        field_group
     }
 }
 
@@ -136,6 +136,7 @@ query GetErrorGroups(
     ) {
         error_groups {
             id
+            type
             event
             trace {
                 file_name

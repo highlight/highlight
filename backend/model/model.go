@@ -273,6 +273,7 @@ type ErrorGroup struct {
 	Model
 	OrganizationID int
 	Event          string
+	Type           string
 	Trace          string
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`

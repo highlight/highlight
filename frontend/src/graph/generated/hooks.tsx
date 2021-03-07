@@ -1142,6 +1142,7 @@ export const GetErrorGroupDocument = gql`
     query GetErrorGroup($id: ID!) {
         error_group(id: $id) {
             id
+            type
             organization_id
             event
             trace {
@@ -1155,11 +1156,10 @@ export const GetErrorGroupDocument = gql`
                 session_id
                 timestamp
             }
-            fields {
+            field_group {
                 name
                 value
             }
-            field_group
         }
     }
 `;
@@ -1225,6 +1225,7 @@ export const GetErrorGroupsDocument = gql`
         ) {
             error_groups {
                 id
+                type
                 event
                 trace {
                     file_name
