@@ -14,7 +14,6 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -89,7 +88,6 @@ func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGro
 	err := json.Unmarshal([]byte(*obj.FieldGroup), &fields)
 	if err != nil {
 		err := e.Wrap(err, "error converting field group to struct")
-		pp.Println(err)
 		return nil, err
 	}
 	return fields, nil

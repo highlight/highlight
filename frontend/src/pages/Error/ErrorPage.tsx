@@ -36,7 +36,6 @@ export const ErrorPage = () => {
         for (let i = 0; i < split?.length; i++) {
             const curr = split[i];
             if (curr.toLowerCase().includes('error')) {
-                console.log('enter2');
                 title = (prev ? prev + ' ' : '') + curr;
                 setTitle(title);
                 return;
@@ -48,8 +47,6 @@ export const ErrorPage = () => {
     useEffect(() => {
         setOpenSidebar(true);
     }, [setOpenSidebar]);
-
-    console.log(data);
 
     return (
         <div className={styles.errorPageWrapper}>
