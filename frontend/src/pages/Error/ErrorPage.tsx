@@ -14,6 +14,7 @@ export const ErrorPage = () => {
     const { data } = useGetErrorGroupQuery({ variables: { id: error_id } });
     const [title, setTitle] = useState<string | undefined>(undefined);
     const [eventLineExpand, setEventLineExpand] = useState(false);
+    const [showExpandButton, setShowExpandButton] = useState(true);
 
     useEffect(() => {
         const eventText = data?.error_group?.event[0];
@@ -51,19 +52,27 @@ export const ErrorPage = () => {
         <div className={styles.errorPageWrapper}>
             <div className={styles.blankSidebar} />
             <div className={styles.errorPage}>
-                <div className={styles.title}>{title}</div>
+                <div className={styles.title}>
+                    <LinesEllipsis text={title} maxLine={1} />
+                </div>
                 <div className={styles.eventText}>
                     <LinesEllipsis
                         text={data?.error_group?.event.join() ?? ''}
                         maxLine={eventLineExpand ? Number.MAX_SAFE_INTEGER : 2}
                         style={{ display: 'inline' }}
+                        onReflow={(c) => {
+                            setShowExpandButton(
+                                !(c.text === data?.error_group?.event.join())
+                            );
+                        }}
                     />
-                    {!eventLineExpand && (
+                    {showExpandButton && (
                         <span
                             className={styles.expandButton}
                             onClick={() => setEventLineExpand(true)}
                         >
-                            expand
+                            {' '}
+                            show more
                         </span>
                     )}
                 </div>
