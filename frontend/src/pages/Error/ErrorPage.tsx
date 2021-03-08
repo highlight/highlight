@@ -198,6 +198,15 @@ export const StackSection: React.FC<StackSectionProps> = ({
                     {lineNumber}:{columnNumber}
                 </span>
             </div>
+            <div className={styles.iconWrapper}>
+                <DownIcon
+                    className={styles.icon}
+                    style={{
+                        transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                    }}
+                    onClick={() => setExpanded((e) => !e)}
+                />
+            </div>
         </div>
     );
     return (

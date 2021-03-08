@@ -87,13 +87,13 @@
 }
 
 .iconWrapper {
+    margin-left: auto;
     cursor: pointer;
     color: blue;
-    margin-left: auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 10px;
+    margin-right: 5px;
 }
 
 .collapsible {
@@ -102,8 +102,8 @@
 
 .icon {
     transition: 0.4s;
-    height: 16px;
-    width: 16px;
+    height: 14px;
+    width: 14px;
     color: #5629c6;
     float: right;
     cursor: pointer;
