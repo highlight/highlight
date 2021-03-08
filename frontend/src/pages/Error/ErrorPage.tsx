@@ -4,14 +4,19 @@ import { useParams } from 'react-router';
 import { Field } from '../../components/Field/Field';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
+import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
 import LinesEllipsis from 'react-lines-ellipsis';
 
 import styles from './ErrorPage.module.scss';
+import Skeleton from 'react-loading-skeleton';
+import Collapsible from 'react-collapsible';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
     const { setOpenSidebar } = useContext(SidebarContext);
-    const { data } = useGetErrorGroupQuery({ variables: { id: error_id } });
+    const { data, loading } = useGetErrorGroupQuery({
+        variables: { id: error_id },
+    });
     const [title, setTitle] = useState<string | undefined>(undefined);
     const [eventLineExpand, setEventLineExpand] = useState(false);
     const [showExpandButton, setShowExpandButton] = useState(true);
@@ -42,6 +47,7 @@ export const ErrorPage = () => {
             }
             prev = curr;
         }
+        setTitle(data?.error_group?.event[0] ?? '');
     }, [data]);
 
     useEffect(() => {
@@ -52,44 +58,169 @@ export const ErrorPage = () => {
         <div className={styles.errorPageWrapper}>
             <div className={styles.blankSidebar} />
             <div className={styles.errorPage}>
-                <div className={styles.title}>
-                    <LinesEllipsis text={title} maxLine={1} />
+                <div className={styles.titleWrapper}>
+                    <div className={styles.title}>
+                        {loading ? (
+                            <Skeleton count={1} style={{ width: 300 }} />
+                        ) : (
+                            <LinesEllipsis text={title} maxLine={1} />
+                        )}
+                    </div>
+                    <Field
+                        k={'mechanism'}
+                        v={data?.error_group?.type || 'window.onerror'}
+                        color={'#FFDDDD'}
+                    />
                 </div>
                 <div className={styles.eventText}>
-                    <LinesEllipsis
-                        text={data?.error_group?.event.join() ?? ''}
-                        maxLine={eventLineExpand ? Number.MAX_SAFE_INTEGER : 2}
-                        style={{ display: 'inline' }}
-                        onReflow={(c) => {
-                            setShowExpandButton(
-                                !(c.text === data?.error_group?.event.join())
-                            );
-                        }}
-                    />
-                    {showExpandButton && (
-                        <span
-                            className={styles.expandButton}
-                            onClick={() => setEventLineExpand(true)}
-                        >
-                            {' '}
-                            show more
-                        </span>
+                    {loading ? (
+                        <Skeleton
+                            count={2}
+                            style={{ height: 20, marginBottom: 10 }}
+                        />
+                    ) : (
+                        <>
+                            <LinesEllipsis
+                                text={data?.error_group?.event.join() ?? ''}
+                                maxLine={
+                                    eventLineExpand
+                                        ? Number.MAX_SAFE_INTEGER
+                                        : 2
+                                }
+                                style={{ display: 'inline' }}
+                                onReflow={(c) => {
+                                    setShowExpandButton(
+                                        !(
+                                            c.text ===
+                                            data?.error_group?.event.join()
+                                        )
+                                    );
+                                }}
+                            />
+                            {showExpandButton && (
+                                <span
+                                    className={styles.expandButton}
+                                    onClick={() => setEventLineExpand(true)}
+                                >
+                                    {' '}
+                                    show more
+                                </span>
+                            )}
+                        </>
                     )}
                 </div>
-                <div className={styles.subTitle}>Context / Fields</div>
+                <div className={styles.subTitle}>
+                    {loading ? (
+                        <Skeleton count={1} style={{ width: 300 }} />
+                    ) : (
+                        'Context / Fields'
+                    )}
+                </div>
                 <div className={styles.fieldWrapper}>
-                    {data?.error_group?.field_group?.map((e, i) => (
-                        <Field
-                            key={i}
-                            k={e?.name ?? ''}
-                            v={e?.value.toLowerCase() ?? ''}
+                    {loading ? (
+                        <Skeleton
+                            count={2}
+                            style={{ height: 20, marginBottom: 10 }}
                         />
-                    ))}
+                    ) : (
+                        <>
+                            {data?.error_group?.field_group?.map((e, i) => (
+                                <Field
+                                    key={i}
+                                    k={e?.name ?? ''}
+                                    v={e?.value.toLowerCase() ?? ''}
+                                />
+                            ))}
+                        </>
+                    )}
                 </div>
-                <div>
-                    <ReactJson src={data ?? {}} />
+                <div className={styles.subTitle}>
+                    {loading ? (
+                        <Skeleton
+                            duration={1}
+                            count={1}
+                            style={{ width: 300 }}
+                        />
+                    ) : (
+                        'Stack Trace'
+                    )}
                 </div>
+                {data?.error_group?.trace.map((e, i) => (
+                    <StackSection
+                        key={i}
+                        fileName={e?.file_name ?? ''}
+                        functionName={e?.function_name ?? ''}
+                        lineNumber={e?.line_number ?? 0}
+                        columnNumber={e?.column_number ?? 0}
+                    />
+                ))}
             </div>
+        </div>
+    );
+};
+
+type StackSectionProps = {
+    fileName?: string;
+    functionName?: string;
+    lineNumber?: number;
+    columnNumber?: number;
+};
+
+export const StackSection: React.FC<StackSectionProps> = ({
+    fileName,
+    functionName,
+    lineNumber,
+    columnNumber,
+}) => {
+    const [expanded, setExpanded] = useState(false);
+    const trigger = (
+        <div className={styles.triggerWrapper}>
+            <div className={styles.snippetHeadingTwo}>
+                <span
+                    className={styles.stackTraceErrorTitle}
+                    style={{ maxWidth: 300, fontWeight: 300 }}
+                >
+                    {fileName}
+                </span>
+                <span style={{ fontWeight: 300, color: '#808080' }}>
+                    &nbsp;in&nbsp;
+                </span>
+                <span
+                    className={styles.stackTraceErrorTitle}
+                    style={{ maxWidth: 300, fontWeight: 400 }}
+                >
+                    {functionName}
+                </span>
+                <span style={{ fontWeight: 300, color: '#808080' }}>
+                    &nbsp;at line&nbsp;
+                </span>
+                <span>
+                    {lineNumber}:{columnNumber}
+                </span>
+            </div>
+        </div>
+    );
+    return (
+        <div className={styles.section}>
+            <Collapsible
+                open={expanded}
+                onOpening={() => setExpanded(true)}
+                onClosing={() => setExpanded(false)}
+                trigger={trigger}
+                transitionTime={150}
+                style={{ margin: 10, width: '100%' }}
+                className={styles.collapsible}
+            >
+                {expanded ? (
+                    <>
+                        <div className={styles.subSection}>
+                            There's nothing to see here right now.
+                        </div>
+                    </>
+                ) : (
+                    <></>
+                )}
+            </Collapsible>
         </div>
     );
 };

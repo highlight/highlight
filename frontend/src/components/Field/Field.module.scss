@@ -9,20 +9,18 @@ $vert: 2px;
 
 .key {
     padding: $vert $side $vert $side;
-    border-right: 1px solid $highlight-purple-light;
     font-size: 12px;
 }
 
 .value {
     padding: $vert $side $vert $side;
-    background-color: $highlight-purple-light;
     font-size: 12px;
 }
 
 .wrapper {
     display: inline-block;
+    font-weight: 300 !important;
     margin-right: 11px;
     margin-bottom: 10px;
     border-radius: 4px;
-    border: 1px solid $highlight-purple-light;
 }

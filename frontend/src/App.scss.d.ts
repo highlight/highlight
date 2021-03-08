@@ -5,6 +5,7 @@ export const appHeader: string;
 export const appLink: string;
 export const appLogo: string;
 export const appLogoSpin: string;
+export const collapsible: string;
 export const collapsibleContentInner: string;
 export const rcSlider: string;
 export const replayerWrapper: string;

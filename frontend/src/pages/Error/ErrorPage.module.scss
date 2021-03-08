@@ -16,18 +16,27 @@
     font-size: 26px;
     margin-bottom: 10px;
     font-weight: 400;
+    display: inline-block;
+    margin-right: 10px;
 }
 
 .errorPage {
     margin: 120px 80px 80px 80px;
-    width: calc(100vw - 275px);
+    width: 1000px;
+    min-width: 1000px;
     word-break: break-word;
 }
 
 .eventText {
     color: #808080;
     font-size: 16px;
-    margin-bottom: 15px;
+    margin-bottom: 30px;
+    font-weight: 200;
+}
+
+.titleWrapper {
+    display: flex;
+    align-items: center;
 }
 
 .subTitle {
@@ -37,10 +46,71 @@
 }
 
 .fieldWrapper {
-    margin-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.subSection {
+    border-top: 1px solid #e4e8eb;
+    font-weight: 200;
+    width: 100%;
+    display: flex;
+    padding: 10px;
+    padding-bottom: 10px;
+    align-items: center;
 }
 
 .expandButton {
     color: $highlight-purple !important;
     cursor: pointer;
+}
+
+.section {
+    border: 1px solid #e4e8eb;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    transition: 0.4s;
+    display: flex;
+    width: 80%;
+}
+
+.snippetHeadingTwo {
+    font-weight: 400;
+    display: flex;
+    align-items: center;
+}
+
+.triggerWrapper {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    padding: 10px 10px 10px 10px;
+}
+
+.iconWrapper {
+    cursor: pointer;
+    color: blue;
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 10px;
+}
+
+.collapsible {
+    width: 100%;
+}
+
+.icon {
+    transition: 0.4s;
+    height: 16px;
+    width: 16px;
+    color: #5629c6;
+    float: right;
+    cursor: pointer;
+}
+
+.stackTraceErrorTitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
