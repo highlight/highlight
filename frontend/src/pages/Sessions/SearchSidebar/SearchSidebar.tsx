@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styles from './SearchSidebar.module.scss';
 import classNames from 'classnames/bind';
 import { DateInput } from '../SearchInputs/DateInput';
+import { LengthInput } from '../SearchInputs/LengthInput';
 import {
     BrowserInput,
     OperatingSystemInput,
@@ -69,6 +70,13 @@ export const SearchSidebar = () => {
                         searchParamsKey={['date_range']}
                     >
                         <DateInput />
+                    </SearchSection>
+                    <SearchSection
+                        title="Session Length"
+                        open={false}
+                        //searchParamsKey={['length_range']}
+                    >
+                        <LengthInput />
                     </SearchSection>
                     <SearchSection
                         title="Device Details"
