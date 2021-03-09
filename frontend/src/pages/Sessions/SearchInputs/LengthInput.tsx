@@ -3,7 +3,6 @@ import React, { useContext } from 'react';
 import 'antd/dist/antd.css';
 import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
-import { input } from '../../../Common.module.scss';
 
 export const LengthInput = () => {
     const { searchParams, setSearchParams } = useContext(SearchContext);
