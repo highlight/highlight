@@ -46,8 +46,9 @@ export const ErrorPage = () => {
             }
             prev = curr;
         }
-        setTitle(data?.error_group?.event[0] ?? '');
+        setTitle(data?.error_group?.event.join() ?? '');
     }, [data]);
+    console.log('title', title);
 
     useEffect(() => {
         setOpenSidebar(true);
@@ -58,18 +59,18 @@ export const ErrorPage = () => {
             <div className={styles.blankSidebar} />
             <div className={styles.errorPage}>
                 <div className={styles.titleWrapper}>
-                    <div className={styles.title}>
-                        {loading ? (
-                            <Skeleton count={1} style={{ width: 300 }} />
-                        ) : (
-                            <LinesEllipsis text={title} maxLine={1} />
-                        )}
-                    </div>
-                    <Field
-                        k={'mechanism'}
-                        v={data?.error_group?.type || 'window.onerror'}
-                        color={'#FFDDDD'}
-                    />
+                    {loading ? (
+                        <Skeleton count={1} style={{ width: 300 }} />
+                    ) : (
+                        <>
+                            <div className={styles.title}>{title}</div>
+                            <Field
+                                k={'mechanism'}
+                                v={data?.error_group?.type || 'window.onerror'}
+                                color={'#FFDDDD'}
+                            />
+                        </>
+                    )}
                 </div>
                 <div className={styles.eventText}>
                     {loading ? (
