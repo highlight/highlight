@@ -203,7 +203,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                             <div
                                 className={classNames(
                                     styles.middleText,
-                                    'rr-block'
+                                    'highlight-block'
                                 )}
                             >
                                 {errorGroup?.event[0]}
