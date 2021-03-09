@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -42,7 +43,11 @@ func health(w http.ResponseWriter, r *http.Request) {
 func validateOrigin(request *http.Request, origin string) bool {
 	if path := request.URL.Path; path == "/main" {
 		// From the highlight frontend, only the url is whitelisted.
-		if origin == frontendURL || origin == landingURL || strings.HasPrefix("https://frontend-pr-") {
+		isPreviewEnv := false
+		if u, err := url.Parse(origin); err == nil {
+			isPreviewEnv = strings.HasPrefix(u.Host, "frontend-pr-") && strings.HasSuffix(u.Host, ".onrender.com")
+		}
+		if origin == frontendURL || origin == landingURL || isPreviewEnv {
 			return true
 		}
 	} else if path == "/client" {
