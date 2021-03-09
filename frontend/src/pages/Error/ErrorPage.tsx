@@ -48,7 +48,6 @@ export const ErrorPage = () => {
         }
         setTitle(data?.error_group?.event.join() ?? '');
     }, [data]);
-    console.log('title', title);
 
     useEffect(() => {
         setOpenSidebar(true);
