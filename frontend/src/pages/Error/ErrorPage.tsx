@@ -55,6 +55,7 @@ export const ErrorPage = () => {
 
     return (
         <div className={styles.errorPageWrapper}>
+            hello
             <div className={styles.blankSidebar} />
             <div className={styles.errorPage}>
                 <div className={styles.titleWrapper}>
