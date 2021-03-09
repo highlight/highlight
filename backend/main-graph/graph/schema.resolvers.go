@@ -727,8 +727,18 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
 	if params.LengthRange != nil {
-		queryString += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min)
-		queryString += fmt.Sprintf("AND (length < %d) ", *params.LengthRange.Max)
+		if params.LengthRange.Min != nil {
+			if *params.LengthRange.Min == 0 {
+				queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+			} else {
+				queryString += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min*60000)
+			}
+		}
+		if params.LengthRange.Max != nil {
+			if *params.LengthRange.Max != 120 {
+				queryString += fmt.Sprintf("AND (length < %d) ", *params.LengthRange.Max*60000)
+			}
+		}
 	}
 	queryString += "AND (processed = true) "
 	queryString += "AND (deleted_at IS NULL) "

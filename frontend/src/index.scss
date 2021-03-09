@@ -24,6 +24,34 @@ a {
     width: 100% !important;
 }
 
+.ant-slider-rail {
+    background-color: lightgrey;
+}
+
+.ant-slider-track {
+    background-color: #5629c6;
+}
+
+.ant-slider-track:hover {
+    background-color: #5629c6;
+}
+
+.ant-slider-dot {
+    border-color: #5629c6;
+}
+
+.ant-slider-handle {
+    border-color: #5629c6;
+}
+
+.ant-slider-handle:hover {
+    border-color: #5629c6;
+}
+
+.ant-slider-handle-dragging:active {
+    border-color: #5629c6;
+}
+
 .ant-switch-checked {
     background-color: #5629c6;
 }
@@ -39,7 +67,12 @@ a {
 }
 
 .ant-tooltip-inner {
-    border-radius: 6px;
+    border-radius: 20px;
+    background-color: #5629c6;
+}
+
+.ant-tooltip-arrow-content {
+    background-color: #5629c6;
 }
 
 .ant-modal-content {

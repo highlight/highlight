@@ -127,6 +127,7 @@ export type SearchParamsInput = {
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     date_range?: Maybe<DateRangeInput>;
+    length_range?: Maybe<LengthRangeInput>;
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
@@ -141,6 +142,7 @@ export type SearchParams = {
     excluded_properties?: Maybe<Array<Maybe<UserProperty>>>;
     track_properties?: Maybe<Array<Maybe<UserProperty>>>;
     date_range?: Maybe<DateRange>;
+    length_range?: Maybe<LengthRange>;
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
@@ -177,6 +179,17 @@ export type DateRange = {
 export type DateRangeInput = {
     start_date?: Maybe<Scalars['Time']>;
     end_date?: Maybe<Scalars['Time']>;
+};
+
+export type LengthRange = {
+    __typename?: 'LengthRange';
+    min?: Maybe<Scalars['Int']>;
+    max?: Maybe<Scalars['Int']>;
+};
+
+export type LengthRangeInput = {
+    min?: Maybe<Scalars['Int']>;
+    max?: Maybe<Scalars['Int']>;
 };
 
 export type UserProperty = {
