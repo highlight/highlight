@@ -72,13 +72,6 @@ export const SearchSidebar = () => {
                         <DateInput />
                     </SearchSection>
                     <SearchSection
-                        title="Session Length"
-                        open={false}
-                        searchParamsKey={['length_range']}
-                    >
-                        <LengthInput />
-                    </SearchSection>
-                    <SearchSection
                         title="Device Details"
                         open={false}
                         searchParamsKey={['os', 'browser']}
@@ -89,8 +82,13 @@ export const SearchSidebar = () => {
                     <SearchSection
                         title="Session Details"
                         open={false}
-                        searchParamsKey={['visited_url', 'referrer']}
+                        searchParamsKey={[
+                            'visited_url',
+                            'referrer',
+                            'length_range',
+                        ]}
                     >
+                        <LengthInput />
                         <VisitedUrlInput />
                         <ReferrerInput />
                     </SearchSection>

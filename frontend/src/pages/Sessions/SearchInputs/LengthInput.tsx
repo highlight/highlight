@@ -3,21 +3,25 @@ import React, { useContext } from 'react';
 import 'antd/dist/antd.css';
 import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
+import { input } from '../../../Common.module.scss';
 
 export const LengthInput = () => {
     const { searchParams, setSearchParams } = useContext(SearchContext);
     const marks = {
-        0: '0 min',
-        120: '120+ mins',
+        0: '0',
+        60: '60+',
     };
     return (
         <div className={inputStyles.commonInputWrapper}>
+            <div className={inputStyles.switchText}>
+                <p>Length (min)</p>
+            </div>
             <Slider
                 range
                 tooltipPlacement={'bottom'}
                 disabled={false}
                 min={0}
-                max={120}
+                max={60}
                 marks={marks}
                 value={
                     searchParams.length_range
