@@ -111,6 +111,15 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 			modelParams.DateRange.EndDate = *params.DateRange.EndDate
 		}
 	}
+	if params.LengthRange != nil {
+		modelParams.LengthRange = &model.LengthRange{}
+		if params.LengthRange.Min != nil {
+			modelParams.LengthRange.Min = *params.LengthRange.Min
+		}
+		if params.LengthRange.Max != nil {
+			modelParams.LengthRange.Max = *params.LengthRange.Max
+		}
+	}
 	for _, property := range params.UserProperties {
 		newProperty := &model.UserProperty{
 			Name:  property.Name,

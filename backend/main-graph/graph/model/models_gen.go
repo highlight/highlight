@@ -36,11 +36,17 @@ type ErrorTrace struct {
 	ColumnNumber *int    `json:"column_number"`
 }
 
+type LengthRangeInput struct {
+	Min *int `json:"min"`
+	Max *int `json:"max"`
+}
+
 type SearchParamsInput struct {
 	UserProperties     []*UserPropertyInput `json:"user_properties"`
 	ExcludedProperties []*UserPropertyInput `json:"excluded_properties"`
 	TrackProperties    []*UserPropertyInput `json:"track_properties"`
 	DateRange          *DateRangeInput      `json:"date_range"`
+	LengthRange        *LengthRangeInput    `json:"length_range"`
 	Os                 *string              `json:"os"`
 	Browser            *string              `json:"browser"`
 	VisitedURL         *string              `json:"visited_url"`

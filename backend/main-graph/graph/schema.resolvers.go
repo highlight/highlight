@@ -726,7 +726,10 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
-	queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+	if params.LengthRange != nil {
+		queryString += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min)
+		queryString += fmt.Sprintf("AND (length < %d) ", *params.LengthRange.Max)
+	}
 	queryString += "AND (processed = true) "
 	queryString += "AND (deleted_at IS NULL) "
 

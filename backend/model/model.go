@@ -184,6 +184,7 @@ type SearchParams struct {
 	ExcludedProperties []*UserProperty `json:"excluded_properties"`
 	TrackProperties    []*UserProperty `json:"track_properties"`
 	DateRange          *DateRange      `json:"date_range"`
+	LengthRange        *LengthRange    `json:"length_range"`
 	Browser            *string         `json:"browser"`
 	OS                 *string         `json:"os"`
 	VisitedURL         *string         `json:"visited_url"`
@@ -217,6 +218,11 @@ func (s *SearchParams) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
 type DateRange struct {
 	StartDate time.Time
 	EndDate   time.Time
+}
+
+type LengthRange struct {
+	Min int
+	Max int
 }
 
 type UserProperty struct {

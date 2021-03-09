@@ -105,6 +105,7 @@ input SearchParamsInput {
     excluded_properties: [UserPropertyInput]
     track_properties: [UserPropertyInput]
     date_range: DateRangeInput
+    length_range: LengthRangeInput
     os: String
     browser: String
     visited_url: String
@@ -118,6 +119,7 @@ type SearchParams {
     excluded_properties: [UserProperty]
     track_properties: [UserProperty]
     date_range: DateRange
+    length_range: LengthRange
     os: String
     browser: String
     visited_url: String
@@ -152,6 +154,16 @@ type DateRange {
 input DateRangeInput {
     start_date: Time
     end_date: Time
+}
+
+type LengthRange {
+    min: Int
+    max: Int
+}
+
+input LengthRangeInput {
+    min: Int
+    max: Int
 }
 
 type UserProperty {

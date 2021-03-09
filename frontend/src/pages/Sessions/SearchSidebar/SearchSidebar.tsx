@@ -74,7 +74,7 @@ export const SearchSidebar = () => {
                     <SearchSection
                         title="Session Length"
                         open={false}
-                        //searchParamsKey={['length_range']}
+                        searchParamsKey={['length_range']}
                     >
                         <LengthInput />
                     </SearchSection>
