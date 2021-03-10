@@ -32,6 +32,7 @@ export const ErrorSegmentPicker = () => {
         if (currentSegment) {
             const newParams: any = { ...currentSegment.params };
             const parsed: ErrorSearchParams = gqlSanitize(newParams);
+            console.log('pars', parsed, newParams);
             setSegmentName(currentSegment.name);
             setSearchParams(parsed);
             setExistingParams(parsed);

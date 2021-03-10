@@ -9,6 +9,7 @@ import {
     BrowserInput,
     OperatingSystemInput,
 } from '../ErrorSearchInputs/DeviceInputs';
+import { EventInput } from '../ErrorSearchInputs/EventInput';
 
 export const ErrorSearchSidebar = () => {
     const [open, setOpen] = useState(true);
@@ -42,10 +43,11 @@ export const ErrorSearchSidebar = () => {
                         <BrowserInput />
                     </SearchSection>
                     <SearchSection
-                        title="Session Details"
+                        title="Event Details"
                         open={false}
                         searchParamsKey={['visited_url']}
                     >
+                        <EventInput />
                         <VisitedUrlInput />
                     </SearchSection>
                 </div>
