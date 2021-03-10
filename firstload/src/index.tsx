@@ -13,6 +13,7 @@ export type HighlightOptions = {
     disableNetworkRecording?: boolean;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
+    enableStrictPrivacy?: boolean;
 };
 
 const HighlightWarning = (context: string, msg: any) => {
@@ -64,6 +65,7 @@ export const H: HighlightPublicInterface = {
                     disableNetworkRecording: options?.disableNetworkRecording,
                     disableConsoleRecording: options?.disableConsoleRecording,
                     enableSegmentIntegration: options?.enableSegmentIntegration,
+                    isStrictPrivacy: options?.enableStrictPrivacy,
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);
