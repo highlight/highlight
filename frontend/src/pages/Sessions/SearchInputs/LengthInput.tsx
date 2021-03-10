@@ -12,9 +12,7 @@ export const LengthInput = () => {
     };
     return (
         <div className={inputStyles.commonInputWrapper}>
-            <div className={inputStyles.switchText}>
-                <p>Length (min)</p>
-            </div>
+            <div className={inputStyles.subTitle}>Length (min)</div>
             <Slider
                 range
                 tooltipPlacement={'bottom'}

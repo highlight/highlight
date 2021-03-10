@@ -88,9 +88,9 @@ export const SearchSidebar = () => {
                             'length_range',
                         ]}
                     >
-                        <LengthInput />
                         <VisitedUrlInput />
                         <ReferrerInput />
+                        <LengthInput />
                     </SearchSection>
                 </div>
             </div>
