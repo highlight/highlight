@@ -7,7 +7,6 @@ import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { HighlightLogo } from '../../components/HighlightLogo/HighlightLogo';
 import { Link } from 'react-router-dom';
 import { Dropdown } from 'antd';
-import { borderRadius } from 'react-select/src/theme';
 
 export const Home: React.FC = ({ children }) => {
     const width = window.innerWidth;
@@ -20,17 +19,7 @@ export const Home: React.FC = ({ children }) => {
                         {width <= 1000 ? (
                             <Dropdown
                                 overlay={
-                                    <div
-                                        className={styles.overlayWrapper}
-                                        style={{
-                                            backgroundColor: 'white',
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            border: '1px solid #D9D9D9',
-                                            borderRadius: 8,
-                                            padding: 10,
-                                        }}
-                                    >
+                                    <div className={styles.overlayWrapper}>
                                         <Link
                                             to={{
                                                 pathname:
