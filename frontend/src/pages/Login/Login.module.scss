@@ -11,8 +11,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    height: 100vh;
-    width: 100%;
+    max-width: 90vw;
 }
 
 .loginTitle {
@@ -33,7 +32,6 @@
     background-color: white;
     display: flex;
     flex-direction: column;
-    width: 400px;
 }
 
 .loginForm {
