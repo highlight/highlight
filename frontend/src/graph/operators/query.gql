@@ -258,6 +258,7 @@ query GetErrorSegments($organization_id: ID!) {
             browser
             visited_url
             hide_viewed
+            event
         }
     }
 }

@@ -1751,6 +1751,7 @@ export const GetErrorSegmentsDocument = gql`
                 browser
                 visited_url
                 hide_viewed
+                event
             }
         }
     }

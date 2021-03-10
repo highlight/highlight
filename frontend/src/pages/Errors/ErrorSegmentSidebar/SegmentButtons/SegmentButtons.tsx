@@ -46,7 +46,6 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                 params: searchParams,
             },
         }).then((r) => {
-            console.log(searchParams);
             history.push(
                 `/${organization_id}/errors/segment/${r.data?.createErrorSegment?.id}`
             );
