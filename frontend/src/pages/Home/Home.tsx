@@ -21,11 +21,12 @@ export const Home: React.FC = ({ children }) => {
                             <Dropdown
                                 overlay={
                                     <div
+                                        className={styles.overlayWrapper}
                                         style={{
                                             backgroundColor: 'white',
                                             display: 'flex',
                                             flexDirection: 'column',
-                                            border: '1px solid gray',
+                                            border: '1px solid #D9D9D9',
                                             borderRadius: 8,
                                             padding: 10,
                                         }}

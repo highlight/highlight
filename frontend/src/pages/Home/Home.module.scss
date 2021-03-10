@@ -20,6 +20,15 @@
     transition: 0.3s margin;
 }
 
+.overlayWrapper {
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    padding: 10px;
+}
+
 .arrowWrapper:hover {
     margin-left: 20px;
     margin-right: 0px;
