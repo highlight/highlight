@@ -72,6 +72,7 @@
     justify-content: center;
     margin-top: 20px;
     margin-bottom: 10px;
+    max-width: 90vw;
 }
 
 .logoHeader {
@@ -80,15 +81,18 @@
     font-weight: 200;
     margin-bottom: 20px;
     color: #888888;
+    max-width: 90vw;
 }
 
 .humans {
     margin-bottom: 10px;
     height: 250px;
+    max-width: 90vw;
 }
 
 .logos {
     height: 80px;
+    max-width: 90vw;
 }
 
 .subHeader {
@@ -97,7 +101,7 @@
     font-weight: 200;
     display: flex;
     justify-content: center;
-    max-width: 500px;
+    max-width: 90vw;
     margin-bottom: 30px;
 }
 

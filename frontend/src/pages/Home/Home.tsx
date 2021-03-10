@@ -3,32 +3,84 @@ import styles from './Home.module.scss';
 import { ReactComponent as Humans } from '../../static/human-image.svg';
 import { ReactComponent as Logos } from '../../static/logos.svg';
 import { ReactComponent as ArrowRight } from '../../static/arrow-right.svg';
+import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { HighlightLogo } from '../../components/HighlightLogo/HighlightLogo';
 import { Link } from 'react-router-dom';
+import { Dropdown } from 'antd';
+import { borderRadius } from 'react-select/src/theme';
 
 export const Home: React.FC = ({ children }) => {
+    const width = window.innerWidth;
     return (
         <div className={styles.homePageWrapper}>
             <div className={styles.stylingWrapper}>
                 <nav className={styles.nav}>
                     <HighlightLogo />
                     <div style={{ marginLeft: 'auto' }}>
-                        <Link
-                            to={{ pathname: 'https://docs.highlight.run' }}
-                            target="_blank"
-                            className={styles.navLink}
-                        >
-                            Documentation
-                        </Link>
-                        <Link to={'/careers'} className={styles.navLink}>
-                            Careers
-                        </Link>
-                        <a
-                            href="https://app.highlight.run"
-                            className={styles.arrowWrapper}
-                        >
-                            Sign In <ArrowRight className={styles.arrow} />
-                        </a>
+                        {width <= 1000 ? (
+                            <Dropdown
+                                overlay={
+                                    <div
+                                        style={{
+                                            backgroundColor: 'white',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            border: '1px solid gray',
+                                            borderRadius: 8,
+                                            padding: 10,
+                                        }}
+                                    >
+                                        <Link
+                                            to={{
+                                                pathname:
+                                                    'https://docs.highlight.run',
+                                            }}
+                                            target="_blank"
+                                        >
+                                            Documentation
+                                        </Link>
+                                        <Link to={'/careers'}>Careers</Link>
+                                        <a href="https://app.highlight.run">
+                                            Sign In
+                                        </a>
+                                    </div>
+                                }
+                                placement={'bottomRight'}
+                            >
+                                <Hamburger
+                                    style={{
+                                        height: 25,
+                                        width: 25,
+                                        marginRight: 10,
+                                    }}
+                                />
+                            </Dropdown>
+                        ) : (
+                            <>
+                                <Link
+                                    to={{
+                                        pathname: 'https://docs.highlight.run',
+                                    }}
+                                    target="_blank"
+                                    className={styles.navLink}
+                                >
+                                    Documentation
+                                </Link>
+                                <Link
+                                    to={'/careers'}
+                                    className={styles.navLink}
+                                >
+                                    Careers
+                                </Link>
+                                <a
+                                    href="https://app.highlight.run"
+                                    className={styles.arrowWrapper}
+                                >
+                                    Sign In{' '}
+                                    <ArrowRight className={styles.arrow} />
+                                </a>
+                            </>
+                        )}
                     </div>
                 </nav>
                 <div className={styles.landingWrapper}>
