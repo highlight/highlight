@@ -213,6 +213,8 @@ export class Highlight {
             };
             emit.bind(this);
             record({
+                ignoreClass: 'highlight-ignore',
+                blockClass: 'highlight-block',
                 emit,
             });
             addCustomEvent('Viewport', {

@@ -11,6 +11,7 @@ export const logoHeader: string;
 export const logos: string;
 export const nav: string;
 export const navLink: string;
+export const overlayWrapper: string;
 export const purpleText: string;
 export const securityLink: string;
 export const securityNav: string;
