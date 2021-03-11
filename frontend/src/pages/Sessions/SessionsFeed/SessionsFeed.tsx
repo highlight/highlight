@@ -10,6 +10,7 @@ import { Avatar } from '../../../components/Avatar/Avatar';
 import { Tag, Tooltip } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 import { useGetSessionsBetaQuery } from '../../../graph/generated/hooks';
+import { ReactComponent as EmptyState } from '../../../static/empty-state.svg';
 import {
     Maybe,
     Session,
@@ -88,10 +89,7 @@ export const SessionFeed = () => {
                         />
                     ) : (
                         <>
-                            {data.sessions.map((u) => {
-                                return <SessionCard session={u} key={u?.id} />;
-                            })}
-                            {data.sessions.length < data.totalCount && (
+                            {data.sessions.length < data.totalCount ? (
                                 <Skeleton
                                     height={110}
                                     style={{
@@ -100,6 +98,25 @@ export const SessionFeed = () => {
                                         marginBottom: 14,
                                     }}
                                 />
+                            ) : !data.sessions.length ? (
+                                <div style={{ height: '100%' }}>
+                                    <div
+                                        style={{
+                                            border: '1px solid #eaeaea',
+                                            width: 'max-content',
+                                            padding: 20,
+                                            borderRadius: 8,
+                                        }}
+                                    >
+                                        <EmptyState />
+                                    </div>
+                                </div>
+                            ) : (
+                                data.sessions.map((u) => {
+                                    return (
+                                        <SessionCard session={u} key={u?.id} />
+                                    );
+                                })
                             )}
                         </>
                     )}
