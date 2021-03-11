@@ -1,32 +1,29 @@
 import { Slider } from 'antd';
-import React, { useCallback, useContext } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
+import React, { useContext, useState } from 'react';
 import 'antd/dist/antd.css';
-import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
+import { SearchContext } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
 
 export const LengthInput = () => {
     const { searchParams, setSearchParams } = useContext(SearchContext);
-    const debouncedSearchParams = useDebouncedCallback(
-        useCallback((sessionLength: [number, number]) => {
-            let min = sessionLength[0];
-            let max = sessionLength[1];
-            if (min > max) {
-                const temp = max;
-                max = min;
-                min = temp;
-            }
-            setSearchParams(
-                (params: SearchParams): SearchParams => {
-                    return {
-                        ...params,
-                        length_range: { min, max },
-                    };
-                }
-            );
-        }, []),
-        500
-    );
+    const [localMin, setLocalMin] = useState(searchParams.length_range?.min);
+    const [localMax, setLocalMax] = useState(searchParams.length_range?.max);
+
+    const updateSearchParams = ([min, max]: [number, number]) => {
+        // The slider allows user to move the right-most knob to the left of the left-most knob and vice-versa. Because of this the former max knob becomes the new min knob so we need to swap the values.
+        if (min > max) {
+            const temp = max;
+            max = min;
+            min = temp;
+        }
+        setSearchParams((params) => {
+            return {
+                ...params,
+                length_range: { min, max },
+            };
+        });
+    };
+
     const marks = {
         0: '0',
         60: '60+',
@@ -41,15 +38,12 @@ export const LengthInput = () => {
                 min={0}
                 max={60}
                 marks={marks}
-                value={
-                    searchParams.length_range
-                        ? [
-                              searchParams.length_range.min,
-                              searchParams.length_range.max,
-                          ]
-                        : undefined
-                }
-                onChange={(value) => debouncedSearchParams(value)}
+                value={localMin && localMax ? [localMin, localMax] : undefined}
+                onChange={([min, max]) => {
+                    setLocalMin(min);
+                    setLocalMax(max);
+                }}
+                onAfterChange={(value) => updateSearchParams(value)}
             />
         </div>
     );
