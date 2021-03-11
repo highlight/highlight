@@ -1,11 +1,13 @@
 import { Slider } from 'antd';
 import React, { useContext } from 'react';
+import { useDebounce } from 'use-debounce';
 import 'antd/dist/antd.css';
 import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
 
 export const LengthInput = () => {
     const { searchParams, setSearchParams } = useContext(SearchContext);
+    const debouncedSearchParams = useDebounce(searchParams, 5000);
     const marks = {
         0: '0',
         60: '60+',
@@ -36,19 +38,14 @@ export const LengthInput = () => {
                         max = min;
                         min = temp;
                     }
-                    const timerid = setTimeout(
-                        () =>
-                            setSearchParams(
-                                (params: SearchParams): SearchParams => {
-                                    return {
-                                        ...params,
-                                        length_range: { min, max },
-                                    };
-                                }
-                            ),
-                        500
+                    setSearchParams(
+                        (params: SearchParams): SearchParams => {
+                            return {
+                                ...params,
+                                length_range: { min, max },
+                            };
+                        }
                     );
-                    return () => clearTimeout(timerid);
                 }}
             />
         </div>
