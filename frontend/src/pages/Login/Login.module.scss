@@ -11,13 +11,13 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    height: 100vh;
-    width: 100%;
+    max-width: 90vw;
 }
 
 .loginTitle {
     font-size: 23px;
     font-weight: 400;
+    width: 300px;
 }
 
 .loginSubTitle {
@@ -33,7 +33,6 @@
     background-color: white;
     display: flex;
     flex-direction: column;
-    width: 400px;
 }
 
 .loginForm {

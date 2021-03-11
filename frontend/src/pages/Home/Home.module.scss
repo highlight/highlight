@@ -20,6 +20,15 @@
     transition: 0.3s margin;
 }
 
+.overlayWrapper {
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    padding: 10px;
+}
+
 .arrowWrapper:hover {
     margin-left: 20px;
     margin-right: 0px;
@@ -72,6 +81,7 @@
     justify-content: center;
     margin-top: 20px;
     margin-bottom: 10px;
+    max-width: 90vw;
 }
 
 .logoHeader {
@@ -80,15 +90,18 @@
     font-weight: 200;
     margin-bottom: 20px;
     color: #888888;
+    max-width: 90vw;
 }
 
 .humans {
     margin-bottom: 10px;
     height: 250px;
+    max-width: 90vw;
 }
 
 .logos {
     height: 80px;
+    max-width: 90vw;
 }
 
 .subHeader {

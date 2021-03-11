@@ -1,9 +1,6 @@
 {
     "name": "webpack-js-library",
     "version": "1.0.0",
-    "engines": {
-        "node": "14.15.4"
-    },
     "description": "webpack setup for writing a javascript library and making it availabe as script or npm package",
     "main": "dist/index.js",
     "scripts": {

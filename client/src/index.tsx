@@ -213,6 +213,8 @@ export class Highlight {
             };
             emit.bind(this);
             record({
+                ignoreClass: 'highlight-ignore',
+                blockClass: 'highlight-block',
                 emit,
             });
             addCustomEvent('Viewport', {
@@ -268,7 +270,7 @@ export class Highlight {
                     if (c.type == 'Error' && c.value && c.trace)
                         highlightThis.errors.push({
                             event: JSON.stringify(c.value),
-                            type: 'console',
+                            type: 'console.error',
                             url: window.location.href,
                             source: c.trace[0].fileName
                                 ? c.trace[0].fileName

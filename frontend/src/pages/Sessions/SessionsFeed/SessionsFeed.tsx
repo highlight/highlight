@@ -146,7 +146,7 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                             <div
                                 className={classNames(
                                     styles.middleText,
-                                    'rr-block'
+                                    'highlight-block'
                                 )}
                             >
                                 {session?.identifier}

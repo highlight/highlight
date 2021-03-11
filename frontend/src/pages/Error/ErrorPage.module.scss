@@ -18,6 +18,10 @@
     font-weight: 400;
     display: inline-block;
     margin-right: 10px;
+    max-width: 400px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .errorPage {
@@ -83,7 +87,7 @@
     display: flex;
     flex-direction: row;
     width: 100%;
-    padding: 10px 10px 10px 10px;
+    padding: 15px 12px 15px 12px;
 }
 
 .iconWrapper {

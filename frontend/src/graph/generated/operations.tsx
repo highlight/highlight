@@ -593,7 +593,11 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
                 > & {
                         params: { __typename?: 'ErrorSearchParams' } & Pick<
                             Types.ErrorSearchParams,
-                            'os' | 'browser' | 'visited_url' | 'hide_viewed'
+                            | 'os'
+                            | 'browser'
+                            | 'visited_url'
+                            | 'hide_viewed'
+                            | 'event'
                         > & {
                                 date_range?: Types.Maybe<
                                     { __typename?: 'DateRange' } & Pick<

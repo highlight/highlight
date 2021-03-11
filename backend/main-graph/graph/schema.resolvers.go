@@ -90,7 +90,14 @@ func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGro
 		err := e.Wrap(err, "error converting field group to struct")
 		return nil, err
 	}
-	return fields, nil
+	var parsedFields []*model.ErrorField
+	for _, f := range fields {
+		if f.Name == "event" {
+			continue
+		}
+		parsedFields = append(parsedFields, f)
+	}
+	return parsedFields, nil
 }
 
 func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
@@ -678,9 +685,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		if err := visitedQuery.Pluck("id", &visitedIds).Error; err != nil {
 			return nil, e.Wrap(err, "error querying visited-url fields")
 		}
-		if len(visitedIds) > 0 {
-			fieldIds = append(fieldIds, visitedIds...)
-		} else {
+		if len(visitedIds) == 0 {
 			visitedCheck = false
 		}
 	}
@@ -689,9 +694,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		if err := referrerQuery.Pluck("id", &referrerIds).Error; err != nil {
 			return nil, e.Wrap(err, "error querying referrer fields")
 		}
-		if len(referrerIds) > 0 {
-			fieldIds = append(fieldIds, referrerIds...)
-		} else {
+		if len(referrerIds) == 0 {
 			referrerCheck = false
 		}
 	}
@@ -746,6 +749,31 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	if len(fieldIds) > 0 {
 		queryString += "AND ("
 		for idx, id := range fieldIds {
+			if idx == 0 {
+				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
+			} else {
+				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
+			}
+		}
+		queryString += ") "
+	}
+
+	if len(visitedIds) > 0 {
+		fmt.Println(visitedIds)
+		queryString += "AND ("
+		for idx, id := range visitedIds {
+			if idx == 0 {
+				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
+			} else {
+				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
+			}
+		}
+		queryString += ") "
+	}
+
+	if len(referrerIds) > 0 {
+		queryString += "AND ("
+		for idx, id := range referrerIds {
 			if idx == 0 {
 				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
 			} else {

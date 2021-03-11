@@ -13,7 +13,7 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
             StackTrace.fromError(error).then((result) => {
                 callback({
                     event: JSON.stringify(event),
-                    type: 'exception',
+                    type: 'window.onerror',
                     url: window.location.href,
                     source: source ? source : '',
                     lineNumber: result[0].lineNumber ? result[0].lineNumber : 0,
