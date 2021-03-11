@@ -11,14 +11,9 @@ import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg
 import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
 import { DemoContext } from '../../DemoContext';
-import commonStyles from '../../Common.module.scss';
 
 export const Sidebar = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
-    const { pathname } = useLocation();
     const { openSidebar } = useContext(SidebarContext);
-    const { demo } = useContext(DemoContext);
-    const page = pathname.split('/')[2] ?? '';
     return (
         <div
             className={classNames([
@@ -29,79 +24,39 @@ export const Sidebar = () => {
             <div style={{ width: '100%', padding: 20 }}>
                 <WorkspaceDropdown />
             </div>
-            <Link
-                className={classNames([
-                    styles.row,
-                    page.includes('sessions') && styles.selected,
-                ])}
-                to={demo ? '/' : `/${organization_id}/sessions`}
-            >
-                <SessionsIcon />
-                <span className={styles.rowText}>Sessions</span>
-            </Link>
-            {organization_id === '1' && (
-                <Link
-                    className={classNames([
-                        styles.row,
-                        page.includes('errors') && styles.selected,
-                    ])}
-                    to={demo ? '/' : `/${organization_id}/errors`}
-                >
-                    <ErrorsIcon />
-                    <span className={styles.rowText}>Errors</span>
-                </Link>
-            )}
-            <Link
-                className={classNames([
-                    styles.row,
-                    (!page || page.includes('setup')) && styles.selected,
-                ])}
-                to={demo ? '/' : `/${organization_id}/setup`}
-            >
-                <SetupIcon />
-                <span className={styles.rowText}>Setup</span>
-            </Link>
+            <SidebarItem text="Sessions" route="sessions">
+                <div className={styles.iconWrapper}>
+                    <SessionsIcon className={styles.icon} />
+                </div>
+            </SidebarItem>
+            <SidebarItem text="Errors" route="errors">
+                <div className={styles.iconWrapper}>
+                    <ErrorsIcon className={styles.icon} />
+                </div>
+            </SidebarItem>
+            <SidebarItem text="Setup" route="setup">
+                <div className={styles.iconWrapper}>
+                    <SetupIcon className={styles.icon} />
+                </div>
+            </SidebarItem>
             <div className={styles.settingsDivider} />
             <div className={styles.settingsTitle}>Settings</div>
-            <Link
-                className={classNames([
-                    styles.row,
-                    page.includes('settings') && styles.selected,
-                ])}
-                to={demo ? '/' : `/${organization_id}/settings`}
-            >
-                <WorkspaceIcon />
-                <span className={styles.rowText}>Workspace</span>
-            </Link>
-            <Link
-                className={classNames([
-                    styles.row,
-                    page.includes('team') && styles.selected,
-                ])}
-                to={demo ? '/' : `/${organization_id}/team`}
-            >
-                <TeamIcon />
-                <span className={styles.rowText}>Team</span>
-            </Link>
-            <Link
-                className={classNames([
-                    styles.row,
-                    page.includes('billing') && styles.selected,
-                ])}
-                to={demo ? '/' : `/${organization_id}/billing`}
-            >
-                <CreditCardIcon />
-                <span className={styles.rowText}>Billing</span>
-            </Link>
-            <div
-                style={{
-                    flexGrow: 1,
-                    height: '100%',
-                    position: 'relative',
-                    width: '100%',
-                    padding: 20,
-                }}
-            >
+            <SidebarItem text="Workspace" route="settings">
+                <div className={styles.iconWrapper}>
+                    <WorkspaceIcon className={styles.icon} />
+                </div>
+            </SidebarItem>
+            <SidebarItem text="Team" route="team">
+                <div className={styles.iconWrapper}>
+                    <TeamIcon className={styles.icon} />
+                </div>
+            </SidebarItem>
+            <SidebarItem text="Billing" route="billing">
+                <div className={styles.iconWrapper}>
+                    <CreditCardIcon className={styles.icon} />
+                </div>
+            </SidebarItem>
+            <div className={styles.bottomWrapper}>
                 <div className={styles.bottomSection}>
                     <Link
                         to={{
@@ -120,34 +75,34 @@ export const Sidebar = () => {
                     >
                         Privacy Policy
                     </Link>
-                    {organization_id === '1' ? (
-                        <>
-                            <button
-                                className={commonStyles.secondaryButton}
-                                onClick={() => {
-                                    throw new Error(
-                                        'This error is from a throw'
-                                    );
-                                }}
-                            >
-                                Throw Error
-                            </button>
-                            <button
-                                className={commonStyles.secondaryButton}
-                                onClick={() => {
-                                    console.error(
-                                        'This error is from the console'
-                                    );
-                                }}
-                            >
-                                Console Error
-                            </button>
-                        </>
-                    ) : (
-                        <></>
-                    )}
                 </div>
             </div>
         </div>
+    );
+};
+
+const SidebarItem: React.FC<{
+    route: string;
+    text: string;
+}> = ({ route, text, children }) => {
+    const { organization_id } = useParams<{ organization_id: string }>();
+    const { pathname } = useLocation();
+    const page = pathname.split('/')[2] ?? '';
+    const { demo } = useContext(DemoContext);
+    return (
+        <Link
+            className={styles.row}
+            to={demo ? '/' : `/${organization_id}/${route}`}
+        >
+            <div
+                className={classNames([
+                    styles.innerButton,
+                    page.includes(route) && styles.selected,
+                ])}
+            >
+                {children}
+                <span className={styles.rowText}>{text}</span>
+            </div>
+        </Link>
     );
 };
