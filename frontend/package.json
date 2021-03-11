@@ -1,9 +1,6 @@
 {
     "name": "frontend-ts",
     "version": "0.1.0",
-    "engines": {
-        "node": "14.15.4"
-    },
     "private": true,
     "dependencies": {
         "@apollo/client": "^3.1.4",
