@@ -1,5 +1,3 @@
-@import 'src/static/shared.scss';
-
 .sideBar {
     position: fixed;
     height: 100%;
@@ -46,14 +44,6 @@
     justify-content: flex-end;
 }
 
-.bottomWrapper {
-    flex-grow: 1;
-    height: 100%;
-    position: relative;
-    width: 100%;
-    padding: 20px;
-}
-
 .bottomLink {
     color: #666666;
     text-decoration: underline;
@@ -66,48 +56,29 @@
 }
 
 .row {
-    color: black !important;
+    color: black;
     display: flex;
     padding-left: 20px;
     align-items: center;
     width: 100%;
-    padding: 4px 10px 4px 10px;
+    padding-top: 8px;
+    padding-bottom: 8px;
     font-size: 16px;
     transition: 0.1s;
     cursor: pointer;
     border-left: 3px solid white;
 }
 
-.iconWrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-}
-
-.icon {
-    height: 16px;
-    width: 16px;
-    margin-left: 3px;
+.row:hover {
+    color: #5629c6;
+    fill: #5629c6;
+    border-left: 4px solid #5629c6;
 }
 
 .selected {
-    background-color: $highlight-purple !important;
-    color: white;
-    fill: white;
-}
-
-.innerButton {
-    display: flex;
-    width: 100%;
-    align-items: center;
-    padding: 5px 10px 5px 10px;
-    border-radius: 8px;
-    transition: 0.3s background-color;
-}
-
-.innerButton:hover {
-    background-color: $highlight-purple-light;
+    color: #5629c6;
+    fill: #5629c6;
+    border-left: 4px solid #5629c6;
 }
 
 .selectedDiv {
@@ -118,6 +89,6 @@
 .rowText {
     font-size: 16px;
     display: flex;
-    margin-left: 8px;
+    margin-left: 10px;
     align-items: center;
 }
