@@ -735,7 +735,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 			}
 		}
 		if params.LengthRange.Max != nil {
-			if *params.LengthRange.Max != 120 {
+			if *params.LengthRange.Max != 60 {
 				queryString += fmt.Sprintf("AND (length < %d) ", *params.LengthRange.Max*60000)
 			}
 		}

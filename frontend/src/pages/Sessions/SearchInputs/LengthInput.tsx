@@ -36,14 +36,19 @@ export const LengthInput = () => {
                         max = min;
                         min = temp;
                     }
-                    setSearchParams(
-                        (params: SearchParams): SearchParams => {
-                            return {
-                                ...params,
-                                length_range: { min, max },
-                            };
-                        }
+                    const timerid = setTimeout(
+                        () =>
+                            setSearchParams(
+                                (params: SearchParams): SearchParams => {
+                                    return {
+                                        ...params,
+                                        length_range: { min, max },
+                                    };
+                                }
+                            ),
+                        500
                     );
+                    return () => clearTimeout(timerid);
                 }}
             />
         </div>
