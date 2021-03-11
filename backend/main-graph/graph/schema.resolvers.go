@@ -90,7 +90,14 @@ func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGro
 		err := e.Wrap(err, "error converting field group to struct")
 		return nil, err
 	}
-	return fields, nil
+	var parsedFields []*model.ErrorField
+	for _, f := range fields {
+		if f.Name == "event" {
+			continue
+		}
+		parsedFields = append(parsedFields, f)
+	}
+	return parsedFields, nil
 }
 
 func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
