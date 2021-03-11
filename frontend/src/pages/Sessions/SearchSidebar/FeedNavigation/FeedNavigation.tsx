@@ -16,15 +16,13 @@ const FeedNavigationButtons: React.FunctionComponent<RouteComponentProps> = ({
     const { pathname } = useLocation();
     const page = pathname.split('/')[2] ?? '';
 
-    return organization_id === '1' ? (
+    return (
         <RadioGroup<string>
             selectedLabel={page.charAt(0).toUpperCase() + page.slice(1)}
             style={{ marginBottom: 20 }}
             labels={['Sessions', 'Errors']}
             onSelect={(p: string) => history.push(`/${organization_id}/${p}`)}
         />
-    ) : (
-        <></>
     );
 };
 

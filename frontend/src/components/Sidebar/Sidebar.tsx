@@ -120,32 +120,6 @@ export const Sidebar = () => {
                     >
                         Privacy Policy
                     </Link>
-                    {organization_id === '1' ? (
-                        <>
-                            <button
-                                className={commonStyles.secondaryButton}
-                                onClick={() => {
-                                    throw new Error(
-                                        'This error is from a throw'
-                                    );
-                                }}
-                            >
-                                Throw Error
-                            </button>
-                            <button
-                                className={commonStyles.secondaryButton}
-                                onClick={() => {
-                                    console.error(
-                                        'This error is from the console'
-                                    );
-                                }}
-                            >
-                                Console Error
-                            </button>
-                        </>
-                    ) : (
-                        <></>
-                    )}
                 </div>
             </div>
         </div>
