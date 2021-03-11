@@ -1,13 +1,32 @@
 import { Slider } from 'antd';
-import React, { useContext } from 'react';
-import { useDebounce } from 'use-debounce';
+import React, { useCallback, useContext } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 import 'antd/dist/antd.css';
 import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
 
 export const LengthInput = () => {
     const { searchParams, setSearchParams } = useContext(SearchContext);
-    const debouncedSearchParams = useDebounce(searchParams, 5000);
+    const debouncedSearchParams = useDebouncedCallback(
+        useCallback((sessionLength: [number, number]) => {
+            let min = sessionLength[0];
+            let max = sessionLength[1];
+            if (min > max) {
+                const temp = max;
+                max = min;
+                min = temp;
+            }
+            setSearchParams(
+                (params: SearchParams): SearchParams => {
+                    return {
+                        ...params,
+                        length_range: { min, max },
+                    };
+                }
+            );
+        }, []),
+        500
+    );
     const marks = {
         0: '0',
         60: '60+',
@@ -30,23 +49,7 @@ export const LengthInput = () => {
                           ]
                         : undefined
                 }
-                onChange={(lengthNums: [number, number]) => {
-                    let min = lengthNums[0];
-                    let max = lengthNums[1];
-                    if (min > max) {
-                        const temp = max;
-                        max = min;
-                        min = temp;
-                    }
-                    setSearchParams(
-                        (params: SearchParams): SearchParams => {
-                            return {
-                                ...params,
-                                length_range: { min, max },
-                            };
-                        }
-                    );
-                }}
+                onChange={(value) => debouncedSearchParams(value)}
             />
         </div>
     );
