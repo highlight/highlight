@@ -141,6 +141,7 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 		Browser:    params.Browser,
 		OS:         params.Os,
 		VisitedURL: params.VisitedURL,
+		Event:      params.Event,
 	}
 	if params.HideViewed != nil {
 		modelParams.HideViewed = *params.HideViewed

@@ -30,7 +30,6 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
         existingParams,
         setExistingParams,
     } = useContext(ErrorSearchContext);
-    const { date_range, os, browser, visited_url, hide_viewed } = searchParams;
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [editSegment, editSegmentOptions] = useEditErrorSegmentMutation({
         refetchQueries: ['GetErrorSegments'],
@@ -44,7 +43,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
             variables: {
                 organization_id,
                 name: inputs.name,
-                params: { date_range, os, browser, visited_url, hide_viewed },
+                params: searchParams,
             },
         }).then((r) => {
             history.push(
@@ -121,12 +120,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                                 variables: {
                                     organization_id,
                                     id: segment_id,
-                                    params: {
-                                        date_range,
-                                        os,
-                                        browser,
-                                        visited_url,
-                                    },
+                                    params: searchParams,
                                 },
                             })
                                 .then(() => {
