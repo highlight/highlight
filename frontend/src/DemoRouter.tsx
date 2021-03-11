@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.scss';
 
 import commonStyles from './Common.module.scss';
@@ -10,6 +10,18 @@ import { DemoContext } from './DemoContext';
 
 export const DemoRouter = () => {
     const [openSidebar, setOpenSidebar] = useState(false);
+
+    useEffect(() => {
+        window.Intercom('update', {
+            hide_default_launcher: true,
+        });
+        return () => {
+            window.Intercom('update', {
+                hide_default_launcher: false,
+            });
+        };
+    }, []);
+
     return (
         <DemoContext.Provider value={{ demo: true }}>
             <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
