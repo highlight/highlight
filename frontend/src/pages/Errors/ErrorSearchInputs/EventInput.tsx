@@ -10,6 +10,7 @@ import {
     ContainsLabel,
 } from '../../Sessions/SearchInputs/SearchInputUtil';
 import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
+import { SearchMatchOption } from '../../../components/Option/Option';
 
 export const EventInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -63,6 +64,7 @@ export const EventInput = () => {
                             <ErrorsIcon fill="#808080" />
                         </div>
                     ),
+                    Option: (props) => <SearchMatchOption {...props} />,
                     IndicatorSeparator: () => null,
                 }}
                 loadOptions={generateOptions}
