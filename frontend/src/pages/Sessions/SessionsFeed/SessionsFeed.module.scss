@@ -22,6 +22,47 @@
     background-color: #5629c6;
 }
 
+.emptyStateWrapper {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.emptySubTitle {
+    font-size: 16px;
+    color: #808080;
+    font-weight: 200;
+    max-width: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.emptyTitle {
+    margin-top: 30px;
+    font-size: 18px;
+    font-weight: 300;
+}
+
+.emptyStateIcon {
+    width: 70000px;
+    height: 30px;
+}
+
+.emptyStateSection {
+    border: 1px solid #eaeaea;
+    width: max-content;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .topText {
     color: #a8a8a8;
     font-size: 12px;
