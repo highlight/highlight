@@ -26,7 +26,7 @@ export const Sidebar = () => {
                     openSidebar ? styles.open : undefined,
                 ])}
             >
-                <div style={{ width: '100%', padding: '20px 20px 5px 20px' }}>
+                <div style={{ width: '100%', padding: '20px 20px 10px 20px' }}>
                     <WorkspaceDropdown />
                 </div>
                 <SidebarItem text="Sessions" route="sessions">
@@ -39,13 +39,13 @@ export const Sidebar = () => {
                         <ErrorsIcon className={styles.icon} />
                     </div>
                 </SidebarItem>
+                <div className={styles.settingsDivider} />
+                <div className={styles.settingsTitle}>Settings</div>
                 <SidebarItem text="Setup" route="setup">
                     <div className={styles.iconWrapper}>
                         <SetupIcon className={styles.icon} />
                     </div>
                 </SidebarItem>
-                <div className={styles.settingsDivider} />
-                <div className={styles.settingsTitle}>Settings</div>
                 <SidebarItem text="Workspace" route="settings">
                     <div className={styles.iconWrapper}>
                         <WorkspaceIcon className={styles.icon} />
@@ -113,10 +113,10 @@ const StaticSidebar = () => {
                 <MiniSidebarItem route="errors">
                     <ErrorsIcon className={styles.icon} />
                 </MiniSidebarItem>
+                <div className={styles.settingsDivider} />
                 <MiniSidebarItem route="setup">
                     <SetupIcon className={styles.icon} />
                 </MiniSidebarItem>
-                <div className={styles.settingsDivider} />
                 <MiniSidebarItem route="settings">
                     <WorkspaceIcon className={styles.icon} />
                 </MiniSidebarItem>
