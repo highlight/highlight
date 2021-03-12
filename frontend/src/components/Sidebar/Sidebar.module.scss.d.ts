@@ -5,6 +5,8 @@ export const icon: string;
 export const iconWrapper: string;
 export const innerButton: string;
 export const link: string;
+export const miniRow: string;
+export const miniSidebarIconWrapper: string;
 export const open: string;
 export const row: string;
 export const rowText: string;

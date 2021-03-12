@@ -65,6 +65,15 @@
     color: inherit;
 }
 
+.miniRow {
+    color: black !important;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
 .row {
     color: black !important;
     display: flex;
@@ -78,6 +87,19 @@
     border-left: 3px solid white;
 }
 
+.miniSidebarIconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.miniSidebarIconWrapper:hover {
+    background-color: $highlight-purple-light;
+}
+
 .iconWrapper {
     display: flex;
     align-items: center;
@@ -88,7 +110,6 @@
 .icon {
     height: 16px;
     width: 16px;
-    margin-left: 3px;
 }
 
 .selected {
@@ -101,7 +122,7 @@
     display: flex;
     width: 100%;
     align-items: center;
-    padding: 3px 12px 3px 12px;
+    padding: 10px 10px 10px 10px;
     border-radius: 8px;
     transition: 0.3s background-color;
 }
@@ -119,5 +140,6 @@
     font-size: 16px;
     display: flex;
     margin-left: 8px;
+    line-height: 1;
     align-items: center;
 }
