@@ -10,6 +10,7 @@ import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
 import classNames from 'classnames/bind';
 import { SharedSelectStyleProps, ContainsLabel } from './SearchInputUtil';
 import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
+import { SearchMatchOption } from '../../../components/Option/Option';
 
 export const VisitedUrlInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -63,6 +64,7 @@ export const VisitedUrlInput = () => {
                             <URLIcon fill="#808080" />
                         </div>
                     ),
+                    Option: (props) => <SearchMatchOption {...props} />,
                     IndicatorSeparator: () => null,
                 }}
                 loadOptions={generateOptions}
@@ -127,6 +129,7 @@ export const ReferrerInput = () => {
                             <ReferrerIcon fill="#808080" />
                         </div>
                     ),
+                    Option: (props) => <SearchMatchOption {...props} />,
                     IndicatorSeparator: () => null,
                 }}
                 defaultOptions
