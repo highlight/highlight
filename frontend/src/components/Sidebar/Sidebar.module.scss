@@ -94,10 +94,11 @@
     padding: 8px;
     border-radius: 8px;
     transition: 0.3s;
+    fill: #808080;
 }
 
 .miniSidebarIconWrapper:hover {
-    background-color: $highlight-purple-light;
+    background-color: #fafafa;
 }
 
 .iconWrapper {
@@ -108,14 +109,14 @@
 }
 
 .icon {
-    height: 16px;
-    width: 16px;
+    height: 20px;
+    width: 20px;
 }
 
 .selected {
-    background-color: $highlight-purple !important;
-    color: white;
-    fill: white;
+    background-color: #f4f4f4 !important;
+    color: black !important;
+    fill: black !important;
 }
 
 .innerButton {
@@ -123,12 +124,14 @@
     width: 100%;
     align-items: center;
     padding: 10px 10px 10px 10px;
-    border-radius: 8px;
+    border-radius: 6px;
     transition: 0.3s background-color;
+    color: #808080;
+    fill: #808080;
 }
 
 .innerButton:hover {
-    background-color: $highlight-purple-light;
+    background-color: #fafafa;
 }
 
 .selectedDiv {
@@ -137,9 +140,9 @@
 }
 
 .rowText {
-    font-size: 16px;
+    font-size: 15px;
     display: flex;
-    margin-left: 8px;
+    margin-left: 15px;
     line-height: 1;
     align-items: center;
 }

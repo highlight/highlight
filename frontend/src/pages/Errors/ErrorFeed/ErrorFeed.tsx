@@ -12,9 +12,10 @@ import {
 } from '../../../graph/generated/schemas';
 import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
-import { DateInput } from '../../Sessions/SearchInputs/DateInput';
 import { gqlSanitize } from '../../../util/gqlSanitize';
 import moment from 'moment';
+import { EventInput } from '../ErrorSearchInputs/EventInput';
+import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 
 export type ErrorMetadata = {
     browser: string;
@@ -40,13 +41,12 @@ export const ErrorFeed = () => {
         totalCount: -1,
     });
     const { searchParams } = useContext(ErrorSearchContext);
-    const { date_range, os, browser, visited_url, hide_viewed } = searchParams;
 
     const { loading, fetchMore } = useGetErrorGroupsQuery({
         variables: {
             organization_id,
             count: count + 10,
-            params: { date_range, os, browser, visited_url, hide_viewed },
+            params: searchParams,
         },
         onCompleted: (response) => {
             if (response.error_groups) {
@@ -65,13 +65,7 @@ export const ErrorFeed = () => {
             setCount((previousCount) => previousCount + 10);
             fetchMore({
                 variables: {
-                    params: {
-                        date_range,
-                        os,
-                        browser,
-                        visited_url,
-                        hide_viewed,
-                    },
+                    params: searchParams,
                     count,
                     organization_id,
                 },
@@ -84,7 +78,7 @@ export const ErrorFeed = () => {
             <div className={styles.fixedContent}>
                 <div className={styles.mainUserInput}>
                     <div className={styles.userInputWrapper}>
-                        <DateInput />
+                        <EventInput />
                     </div>
                 </div>
                 <div
@@ -105,9 +99,13 @@ export const ErrorFeed = () => {
                         />
                     ) : (
                         <>
-                            {data.error_groups?.map(
-                                (u: Maybe<ErrorGroup>, ind: number) => (
-                                    <ErrorCard errorGroup={u} key={ind} />
+                            {!data.error_groups.length ? (
+                                <SearchEmptyState item={'errors'} />
+                            ) : (
+                                data.error_groups?.map(
+                                    (u: Maybe<ErrorGroup>, ind: number) => (
+                                        <ErrorCard errorGroup={u} key={ind} />
+                                    )
                                 )
                             )}
                             {data.error_groups.length < data.totalCount && (
