@@ -4,11 +4,21 @@ import { Field } from '../../components/Field/Field';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
 import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    Tooltip,
+    ResponsiveContainer,
+    CartesianGrid,
+} from 'recharts';
 import LinesEllipsis from 'react-lines-ellipsis';
 
 import styles from './ErrorPage.module.scss';
 import Skeleton from 'react-loading-skeleton';
 import Collapsible from 'react-collapsible';
+import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
+import moment from 'moment';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -50,7 +60,7 @@ export const ErrorPage = () => {
     }, [data]);
 
     useEffect(() => {
-        setOpenSidebar(true);
+        setOpenSidebar(false);
     }, [setOpenSidebar]);
 
     return (
@@ -144,15 +154,31 @@ export const ErrorPage = () => {
                         'Stack Trace'
                     )}
                 </div>
-                {data?.error_group?.trace.map((e, i) => (
-                    <StackSection
-                        key={i}
-                        fileName={e?.file_name ?? ''}
-                        functionName={e?.function_name ?? ''}
-                        lineNumber={e?.line_number ?? 0}
-                        columnNumber={e?.column_number ?? 0}
-                    />
-                ))}
+                <div className={styles.fieldWrapper}>
+                    {data?.error_group?.trace.map((e, i) => (
+                        <StackSection
+                            key={i}
+                            fileName={e?.file_name ?? ''}
+                            functionName={e?.function_name ?? ''}
+                            lineNumber={e?.line_number ?? 0}
+                            columnNumber={e?.column_number ?? 0}
+                        />
+                    ))}
+                </div>
+                <div className={styles.subTitle}>
+                    {loading ? (
+                        <Skeleton
+                            duration={1}
+                            count={1}
+                            style={{ width: 300 }}
+                        />
+                    ) : (
+                        'Error Frequency'
+                    )}
+                </div>
+                <div className={styles.fieldWrapper}>
+                    <ErrorFrequencyGraph errorGroup={data?.error_group} />
+                </div>
             </div>
         </div>
     );
@@ -229,6 +255,74 @@ export const StackSection: React.FC<StackSectionProps> = ({
                     <></>
                 )}
             </Collapsible>
+        </div>
+    );
+};
+
+type FrequencyGraphProps = {
+    errorGroup?: Maybe<ErrorGroup>;
+};
+
+type ErrorFrequency = {
+    date: string;
+    occurences: number;
+};
+
+export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
+    errorGroup,
+}) => {
+    const [errorDates, setErrorDates] = useState<Array<ErrorFrequency>>(
+        Array(30).fill(0)
+    );
+    const [totalErrors, setTotalErrors] = useState<number>(0);
+
+    useEffect(() => {
+        if (!errorGroup) return;
+        const today = moment();
+        const errorDatesCopy = Array(30).fill(0);
+        for (const error of errorGroup?.metadata_log ?? []) {
+            const errorDate = moment(error?.timestamp);
+            const insertIndex =
+                errorDatesCopy.length - 1 - today.diff(errorDate, 'days');
+            if (insertIndex >= 0 || insertIndex < errorDatesCopy.length) {
+                errorDatesCopy[insertIndex] += 1;
+            }
+        }
+        const errorData = errorDatesCopy.map((val, idx) => ({
+            date: moment()
+                .startOf('day')
+                .subtract(29 - idx, 'days')
+                .format('D MMM YYYY'),
+            occurences: val,
+        }));
+        setTotalErrors(errorDatesCopy.reduce((acc, val) => acc + val, 0));
+        setErrorDates(errorData);
+        console.log(errorGroup);
+    }, [errorGroup]);
+    return (
+        <div>
+            <ResponsiveContainer width="80%" height={200}>
+                <BarChart
+                    width={500}
+                    height={300}
+                    data={errorDates}
+                    margin={{
+                        top: 5,
+                        right: 10,
+                        left: 10,
+                        bottom: 0,
+                    }}
+                >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" tick={false} />
+                    <Tooltip />
+                    <Bar dataKey="occurences" fill="#5629c6" />
+                </BarChart>
+            </ResponsiveContainer>
+            <div className={styles.graphLabels}>
+                <div>Past 30 days</div>
+                <div>{`Total Occurences: ${totalErrors}`}</div>
+            </div>
         </div>
     );
 };

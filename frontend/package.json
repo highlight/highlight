@@ -63,6 +63,7 @@
         "react-spinners": "^0.9.0",
         "react-spinners-kit": "^1.9.1",
         "react-virtuoso": "^1.5.4",
+        "recharts": "^2.0.8",
         "rrweb-snapshot": "^0.8.2",
         "stacktrace-js": "^2.0.2",
         "stripe": "^8.128.0",

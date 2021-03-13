@@ -5,6 +5,7 @@ export const errorPageWrapper: string;
 export const eventText: string;
 export const expandButton: string;
 export const fieldWrapper: string;
+export const graphLabels: string;
 export const icon: string;
 export const iconWrapper: string;
 export const section: string;
