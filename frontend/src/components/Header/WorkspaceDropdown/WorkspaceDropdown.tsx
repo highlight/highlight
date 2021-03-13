@@ -12,8 +12,10 @@ import {
     useGetOrganizationQuery,
     useGetOrganizationsQuery,
 } from '../../../graph/generated/hooks';
+import { SidebarContext } from '../../Sidebar/SidebarContext';
 
 export const MiniWorkspaceIcon = () => {
+    const { setOpenSidebar } = useContext(SidebarContext);
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data: currentOrg } = useGetOrganizationQuery({
         variables: { id: organization_id },
@@ -21,6 +23,7 @@ export const MiniWorkspaceIcon = () => {
     return (
         <div className={styles.workspaceIconMiniWrapper}>
             <div
+                onClick={() => setOpenSidebar(true)}
                 className={styles.workspaceIcon}
                 style={{
                     backgroundColor: generateRandomColor(
