@@ -36,14 +36,18 @@ export const Sidebar = () => {
                 </SidebarItem>
                 <SidebarItem text="Errors" route="errors">
                     <div className={styles.iconWrapper}>
-                        <ErrorsIcon className={styles.icon} />
+                        <ErrorsIcon
+                            className={classNames(styles.icon, styles.rotated)}
+                        />
                     </div>
                 </SidebarItem>
                 <div className={styles.settingsDivider} />
                 <div className={styles.settingsTitle}>Settings</div>
                 <SidebarItem text="Setup" route="setup">
                     <div className={styles.iconWrapper}>
-                        <SetupIcon className={styles.icon} />
+                        <SetupIcon
+                            className={classNames(styles.icon, styles.rotated)}
+                        />
                     </div>
                 </SidebarItem>
                 <SidebarItem text="Workspace" route="settings">
@@ -92,30 +96,21 @@ export const Sidebar = () => {
 const StaticSidebar = () => {
     return (
         <>
-            <div
-                style={{
-                    position: 'fixed',
-                    top: 80,
-                    width: 64,
-                    height: 'calc(100vh - 80px)',
-                    borderRight: '1px solid #eaeaea',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    zIndex: 30,
-                    backgroundColor: 'white',
-                    alignItems: 'center',
-                }}
-            >
+            <div className={styles.staticSidebarWrapper}>
                 <MiniWorkspaceIcon />
                 <MiniSidebarItem route="sessions">
                     <SessionsIcon className={styles.icon} />
                 </MiniSidebarItem>
                 <MiniSidebarItem route="errors">
-                    <ErrorsIcon className={styles.icon} />
+                    <ErrorsIcon
+                        className={classNames(styles.icon, styles.rotated)}
+                    />
                 </MiniSidebarItem>
                 <div className={styles.settingsDivider} />
                 <MiniSidebarItem route="setup">
-                    <SetupIcon className={styles.icon} />
+                    <SetupIcon
+                        className={classNames(styles.icon, styles.rotated)}
+                    />
                 </MiniSidebarItem>
                 <MiniSidebarItem route="settings">
                     <WorkspaceIcon className={styles.icon} />
