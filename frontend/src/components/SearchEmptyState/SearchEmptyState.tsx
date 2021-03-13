@@ -8,6 +8,7 @@ import {
 } from './SearchEmptyState.module.scss';
 
 import { ReactComponent as EmptyState } from '../../static/empty-state.svg';
+import styles from './SearchEmptyState.module.scss';
 
 export const SearchEmptyState = ({ item }: { item: string }) => (
     <div className={emptyStateWrapper}>
@@ -35,7 +36,18 @@ export const SearchEmptyState = ({ item }: { item: string }) => (
         <h1 className={emptyTitle}>Couldn't find any relevant {item} 😔</h1>
         <h3 className={emptySubTitle}>
             We couldn't find any {item} for your search. If you think
-            something's wrong, feel free to message us on intercom.
+            something's wrong, feel free to message us on{' '}
+            <p
+                className={styles.intercomButton}
+                onClick={() =>
+                    window.Intercom('update', {
+                        hide_default_launcher: false,
+                    })
+                }
+            >
+                intercom
+            </p>
+            .
         </h3>
     </div>
 );

@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .emptyStateSection {
     border: 1px solid #eaeaea;
     width: max-content;
@@ -26,10 +28,18 @@
     align-items: center;
     justify-content: center;
     text-align: center;
+    display: inline-block;
 }
 
 .emptyTitle {
     margin-top: 30px;
     font-size: 18px;
     font-weight: 300;
+}
+
+.intercomButton {
+    color: $highlight-purple;
+    cursor: pointer;
+    display: inline-block;
+    line-height: 1;
 }
