@@ -20,13 +20,34 @@
 
 .orgItem {
     border-bottom: 1px solid #eaeaea;
-    padding: 10px;
+    padding: 10px 10px 10px 6px;
     font-size: 16px;
-    padding-left: 15px;
     cursor: pointer;
     display: flex;
     align-items: center;
     width: 100%;
+}
+
+.workspaceIcon {
+    height: 26px;
+    width: 26px;
+    min-width: 26px;
+    min-height: 26px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 400;
+    font-size: 14px;
+    color: white;
+}
+
+.workspaceIconMiniWrapper {
+    padding: 5px;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    margin-top: 20px;
+    margin-bottom: 5px;
 }
 
 .orgItem:hover {
@@ -36,6 +57,7 @@
 .orgText {
     color: black;
     margin-right: 20px;
+    margin-left: 10px;
 }
 
 .newOrgDiv {
@@ -103,10 +125,17 @@
 
 .orgNameText {
     width: 100%;
-    display: block;
+    display: flex;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.orgNameWrapper {
+    display: flex;
+    width: 100%;
 }
 
 .dropdownHandler {
@@ -117,9 +146,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px;
+    padding: 10px 10px 10px 6px;
     border-radius: 8px;
     color: black;
     font-size: 16px;
-    padding-left: 14px;
 }

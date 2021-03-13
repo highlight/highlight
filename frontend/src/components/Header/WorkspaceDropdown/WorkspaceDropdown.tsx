@@ -7,10 +7,32 @@ import { ReactComponent as CheckIcon } from '../../../static/check.svg';
 
 import styles from './WorkspaceDropdown.module.scss';
 import { DemoContext } from '../../../DemoContext';
+import randomcolor from 'randomcolor';
 import {
     useGetOrganizationQuery,
     useGetOrganizationsQuery,
 } from '../../../graph/generated/hooks';
+
+export const MiniWorkspaceIcon = () => {
+    const { organization_id } = useParams<{ organization_id: string }>();
+    const { data: currentOrg } = useGetOrganizationQuery({
+        variables: { id: organization_id },
+    });
+    return (
+        <div className={styles.workspaceIconMiniWrapper}>
+            <div
+                className={styles.workspaceIcon}
+                style={{
+                    backgroundColor: generateRandomColor(
+                        currentOrg?.organization?.name ?? ''
+                    ),
+                }}
+            >
+                {currentOrg?.organization?.name[0].toUpperCase() ?? 'H'}
+            </div>
+        </div>
+    );
+};
 
 export const WorkspaceDropdown = () => {
     const [visible, setVisible] = useState(false);
@@ -30,6 +52,16 @@ export const WorkspaceDropdown = () => {
                         key={o?.id}
                     >
                         <div className={styles.orgItem}>
+                            <div
+                                className={styles.workspaceIcon}
+                                style={{
+                                    backgroundColor: generateRandomColor(
+                                        o?.name ?? ''
+                                    ),
+                                }}
+                            >
+                                {o?.name[0].toUpperCase() ?? 'H'}
+                            </div>
                             <div className={styles.orgText}>{o?.name}</div>
                             {o?.id.toString() === organization_id ? (
                                 <CheckIcon className={styles.plusIcon} />
@@ -56,8 +88,20 @@ export const WorkspaceDropdown = () => {
                 className={styles.dropdownHandler}
                 onClick={(e) => e.preventDefault()}
             >
-                <div className={styles.orgNameText}>
-                    {demo ? 'Highlight' : currentOrg?.organization?.name}
+                <div className={styles.orgNameWrapper}>
+                    <div
+                        className={styles.workspaceIcon}
+                        style={{
+                            backgroundColor: generateRandomColor(
+                                currentOrg?.organization?.name ?? ''
+                            ),
+                        }}
+                    >
+                        {currentOrg?.organization?.name[0].toUpperCase() ?? 'H'}
+                    </div>
+                    <div className={styles.orgNameText}>
+                        {demo ? 'Highlight' : currentOrg?.organization?.name}
+                    </div>
                 </div>
                 <DownIcon
                     className={styles.icon}
@@ -68,4 +112,11 @@ export const WorkspaceDropdown = () => {
             </div>
         </Dropdown>
     );
+};
+
+const generateRandomColor = (str: string): string => {
+    return randomcolor({
+        luminosity: 'dark',
+        seed: str,
+    });
 };
