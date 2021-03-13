@@ -15,6 +15,7 @@ import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { gqlSanitize } from '../../../util/gqlSanitize';
 import moment from 'moment';
 import { EventInput } from '../ErrorSearchInputs/EventInput';
+import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 
 export type ErrorMetadata = {
     browser: string;
@@ -98,9 +99,13 @@ export const ErrorFeed = () => {
                         />
                     ) : (
                         <>
-                            {data.error_groups?.map(
-                                (u: Maybe<ErrorGroup>, ind: number) => (
-                                    <ErrorCard errorGroup={u} key={ind} />
+                            {!data.error_groups.length ? (
+                                <SearchEmptyState item={'errors'} />
+                            ) : (
+                                data.error_groups?.map(
+                                    (u: Maybe<ErrorGroup>, ind: number) => (
+                                        <ErrorCard errorGroup={u} key={ind} />
+                                    )
                                 )
                             )}
                             {data.error_groups.length < data.totalCount && (

@@ -14,7 +14,7 @@ import { Sidebar } from '../../components/Sidebar/Sidebar';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 import commonStyles from '../../Common.module.scss';
-import { SessionsPageBeta } from '../../pages/Sessions/SessionsPageBeta';
+import { SessionsPage } from '../../pages/Sessions/SessionsPage';
 import { Duration, MillisToDaysHoursMinSeconds } from '../../util/time';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { ErrorPage } from '../../pages/Error/ErrorPage';
@@ -66,13 +66,13 @@ export const OrgRouter = () => {
                 <Sidebar />
                 <Switch>
                     <Route path="/:organization_id/sessions/segment/:segment_id">
-                        <SessionsPageBeta integrated={integrated} />
+                        <SessionsPage integrated={integrated} />
                     </Route>
                     <Route path="/:organization_id/sessions/:session_id">
                         <Player />
                     </Route>
                     <Route path="/:organization_id/sessions">
-                        <SessionsPageBeta integrated={integrated} />
+                        <SessionsPage integrated={integrated} />
                     </Route>
                     <Route path="/:organization_id/settings">
                         <WorkspaceSettings />

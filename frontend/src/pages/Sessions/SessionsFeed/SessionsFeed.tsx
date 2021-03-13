@@ -15,6 +15,7 @@ import {
     Session,
     SessionResults,
 } from '../../../graph/generated/schemas';
+import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 
 export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -88,9 +89,15 @@ export const SessionFeed = () => {
                         />
                     ) : (
                         <>
-                            {data.sessions.map((u) => {
-                                return <SessionCard session={u} key={u?.id} />;
-                            })}
+                            {!data.sessions.length ? (
+                                <SearchEmptyState item={'sessions'} />
+                            ) : (
+                                data.sessions.map((u) => {
+                                    return (
+                                        <SessionCard session={u} key={u?.id} />
+                                    );
+                                })
+                            )}
                             {data.sessions.length < data.totalCount && (
                                 <Skeleton
                                     height={110}
