@@ -1,0 +1,45 @@
+@import 'src/static/shared.scss';
+
+.emptyStateSection {
+    border: 1px solid #eaeaea;
+    width: max-content;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emptyStateWrapper {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.emptySubTitle {
+    font-size: 16px;
+    color: #808080;
+    font-weight: 200;
+    max-width: 450px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    display: inline-block;
+}
+
+.emptyTitle {
+    margin-top: 30px;
+    font-size: 18px;
+    font-weight: 300;
+}
+
+.intercomButton {
+    color: $highlight-purple;
+    cursor: pointer;
+    display: inline-block;
+    line-height: 1;
+}
