@@ -39,18 +39,16 @@ export const Sidebar = () => {
                 <SessionsIcon />
                 <span className={styles.rowText}>Sessions</span>
             </Link>
-            {organization_id === '1' && (
-                <Link
-                    className={classNames([
-                        styles.row,
-                        page.includes('errors') && styles.selected,
-                    ])}
-                    to={demo ? '/' : `/${organization_id}/errors`}
-                >
-                    <ErrorsIcon />
-                    <span className={styles.rowText}>Errors</span>
-                </Link>
-            )}
+            <Link
+                className={classNames([
+                    styles.row,
+                    page.includes('errors') && styles.selected,
+                ])}
+                to={demo ? '/' : `/${organization_id}/errors`}
+            >
+                <ErrorsIcon />
+                <span className={styles.rowText}>Errors</span>
+            </Link>
             <Link
                 className={classNames([
                     styles.row,

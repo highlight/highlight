@@ -212,42 +212,40 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 	}
 	// put errors in db
-	if organizationID == 1 {
-		for _, v := range errors {
-			traceBytes, err := json.Marshal(v.Trace)
-			if err != nil {
-				log.Errorf("Error marshaling trace: %v", v.Trace)
-				continue
-			}
-			traceString := string(traceBytes)
+	for _, v := range errors {
+		traceBytes, err := json.Marshal(v.Trace)
+		if err != nil {
+			log.Errorf("Error marshaling trace: %v", v.Trace)
+			continue
+		}
+		traceString := string(traceBytes)
 
-			errorToInsert := &model.ErrorObject{
-				OrganizationID: organizationID,
-				SessionID:      sessionID,
-				Event:          v.Event,
-				Type:           v.Type,
-				URL:            v.URL,
-				Source:         v.Source,
-				LineNumber:     v.LineNumber,
-				ColumnNumber:   v.ColumnNumber,
-				Trace:          &traceString,
-			}
-			// TODO: We need to do a batch insert which is supported by the new gorm lib.
-			if err := r.DB.Create(errorToInsert).Error; err != nil {
-				log.Errorf("Error performing error insert for error: %v", v.Event)
-				continue
-			}
+		errorToInsert := &model.ErrorObject{
+			OrganizationID: organizationID,
+			SessionID:      sessionID,
+			Event:          v.Event,
+			Type:           v.Type,
+			URL:            v.URL,
+			Source:         v.Source,
+			LineNumber:     v.LineNumber,
+			ColumnNumber:   v.ColumnNumber,
+			Trace:          &traceString,
+		}
+		// TODO: We need to do a batch insert which is supported by the new gorm lib.
+		if err := r.DB.Create(errorToInsert).Error; err != nil {
+			log.Errorf("Error performing error insert for error: %v", v.Event)
+			continue
+		}
 
-			//create error fields array
-			metaFields := []*model.ErrorField{}
-			metaFields = append(metaFields, &model.ErrorField{Name: "browser", Value: sessionObj.BrowserName})
-			metaFields = append(metaFields, &model.ErrorField{Name: "os_name", Value: sessionObj.OSName})
-			metaFields = append(metaFields, &model.ErrorField{Name: "visited_url", Value: errorToInsert.URL})
-			metaFields = append(metaFields, &model.ErrorField{Name: "event", Value: errorToInsert.Event})
-			if err := r.UpdateErrorGroup(*errorToInsert, v.Trace, metaFields); err != nil {
-				log.Errorf("Error updating error group: %v", errorToInsert)
-				continue
-			}
+		//create error fields array
+		metaFields := []*model.ErrorField{}
+		metaFields = append(metaFields, &model.ErrorField{Name: "browser", Value: sessionObj.BrowserName})
+		metaFields = append(metaFields, &model.ErrorField{Name: "os_name", Value: sessionObj.OSName})
+		metaFields = append(metaFields, &model.ErrorField{Name: "visited_url", Value: errorToInsert.URL})
+		metaFields = append(metaFields, &model.ErrorField{Name: "event", Value: errorToInsert.Event})
+		if err := r.UpdateErrorGroup(*errorToInsert, v.Trace, metaFields); err != nil {
+			log.Errorf("Error updating error group: %v", errorToInsert)
+			continue
 		}
 	}
 	now := time.Now()
