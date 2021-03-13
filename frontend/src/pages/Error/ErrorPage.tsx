@@ -19,6 +19,7 @@ import Skeleton from 'react-loading-skeleton';
 import Collapsible from 'react-collapsible';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import moment from 'moment';
+import { frequencyTimeData } from '../../util/errorCalculations';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -277,17 +278,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
     const [totalErrors, setTotalErrors] = useState<number>(0);
 
     useEffect(() => {
-        if (!errorGroup) return;
-        const today = moment();
-        const errorDatesCopy = Array(30).fill(0);
-        for (const error of errorGroup?.metadata_log ?? []) {
-            const errorDate = moment(error?.timestamp);
-            const insertIndex =
-                errorDatesCopy.length - 1 - today.diff(errorDate, 'days');
-            if (insertIndex >= 0 || insertIndex < errorDatesCopy.length) {
-                errorDatesCopy[insertIndex] += 1;
-            }
-        }
+        const errorDatesCopy = frequencyTimeData(errorGroup, 30);
         const errorData = errorDatesCopy.map((val, idx) => ({
             date: moment()
                 .startOf('day')
@@ -297,7 +288,6 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
         }));
         setTotalErrors(errorDatesCopy.reduce((acc, val) => acc + val, 0));
         setErrorDates(errorData);
-        console.log(errorGroup);
     }, [errorGroup]);
     return (
         <div>
