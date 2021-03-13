@@ -1155,6 +1155,9 @@ export const GetErrorGroupDocument = gql`
                 error_id
                 session_id
                 timestamp
+                os
+                browser
+                visited_url
             }
             field_group {
                 name

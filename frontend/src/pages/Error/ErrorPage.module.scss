@@ -121,9 +121,30 @@
 
 .graphLabels {
     margin-top: -20px;
-    padding: 0px 10px 40px 10px;
+    padding: 0px 10px 0px 10px;
     width: 80%;
     display: flex;
     justify-content: space-between;
     color: #808080;
+}
+
+.errorLogOverflow {
+    direction: rtl;
+}
+
+.errorLogsTitle {
+    font-weight: 400;
+}
+
+.errorLogItem {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 80px 80px 2fr 1fr 1fr 2fr;
+
+    span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0px 6px;
+    }
 }

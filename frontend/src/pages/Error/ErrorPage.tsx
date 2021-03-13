@@ -20,6 +20,7 @@ import Collapsible from 'react-collapsible';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import moment from 'moment';
 import { frequencyTimeData } from '../../util/errorCalculations';
+import classNames from 'classnames';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -179,6 +180,63 @@ export const ErrorPage = () => {
                 </div>
                 <div className={styles.fieldWrapper}>
                     <ErrorFrequencyGraph errorGroup={data?.error_group} />
+                </div>
+                <div
+                    className={styles.fieldWrapper}
+                    style={{ paddingBottom: '40px' }}
+                >
+                    <div className={styles.section}>
+                        <div className={styles.collapsible}>
+                            <div className={styles.triggerWrapper}>
+                                <div
+                                    className={classNames(
+                                        styles.errorLogsTitle,
+                                        styles.errorLogItem
+                                    )}
+                                >
+                                    <span>Error ID</span>
+                                    <span>Session ID</span>
+                                    <span>Visited URL</span>
+                                    <span>Browser</span>
+                                    <span>OS</span>
+                                    <span>Timestamp</span>
+                                </div>
+                            </div>
+                            {data?.error_group?.metadata_log
+                                .slice(
+                                    Math.max(
+                                        data?.error_group?.metadata_log.length -
+                                            6,
+                                        0
+                                    )
+                                )
+                                .reverse()
+                                .map((e, i) => (
+                                    <div
+                                        key={i}
+                                        className={classNames(
+                                            styles.subSection,
+                                            styles.errorLogItem
+                                        )}
+                                    >
+                                        <span>{e?.error_id}</span>
+                                        <span>{e?.session_id}</span>
+                                        <span
+                                            className={styles.errorLogOverflow}
+                                        >
+                                            {e?.visited_url}
+                                        </span>
+                                        <span>{e?.browser}</span>
+                                        <span>{e?.os}</span>
+                                        <span>
+                                            {moment(e?.timestamp).format(
+                                                'D MMMM YYYY, HH:mm:ss'
+                                            )}
+                                        </span>
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
