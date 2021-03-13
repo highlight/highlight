@@ -11,7 +11,7 @@ import { IntegrationCard } from './IntegrationCard/IntegrationCard';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { FeedNavigation } from './SearchSidebar/FeedNavigation/FeedNavigation';
 
-export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
+export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<SearchParams>(
         `cachedParams-${segmentName || 'no-selected-segment'}`,
@@ -27,6 +27,17 @@ export const SessionsPageBeta = ({ integrated }: { integrated: boolean }) => {
     const { setOpenSidebar } = useContext(SidebarContext);
 
     useEffect(() => setOpenSidebar(false), [setOpenSidebar]);
+
+    useEffect(() => {
+        window.Intercom('update', {
+            hide_default_launcher: false,
+        });
+        return () => {
+            window.Intercom('update', {
+                hide_default_launcher: true,
+            });
+        };
+    }, []);
 
     useEffect(() => setCachedParams(searchParams), [
         searchParams,

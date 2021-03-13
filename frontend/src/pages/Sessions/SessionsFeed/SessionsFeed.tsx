@@ -10,12 +10,12 @@ import { Avatar } from '../../../components/Avatar/Avatar';
 import { Tag, Tooltip } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 import { useGetSessionsBetaQuery } from '../../../graph/generated/hooks';
-import { ReactComponent as EmptyState } from '../../../static/empty-state.svg';
 import {
     Maybe,
     Session,
     SessionResults,
 } from '../../../graph/generated/schemas';
+import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 
 export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -90,7 +90,7 @@ export const SessionFeed = () => {
                     ) : (
                         <>
                             {!data.sessions.length ? (
-                                <EmptyResults />
+                                <SearchEmptyState item={'sessions'} />
                             ) : (
                                 data.sessions.map((u) => {
                                     return (
@@ -240,36 +240,3 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
         </Link>
     );
 };
-
-const EmptyResults = () => (
-    <div className={styles.emptyStateWrapper}>
-        <div style={{ marginRight: 80 }} className={styles.emptyStateSection}>
-            <EmptyState
-                height={30}
-                width={220}
-                preserveAspectRatio="xMinYMin"
-            />
-        </div>
-        <div style={{ marginLeft: 80 }} className={styles.emptyStateSection}>
-            <EmptyState
-                height={30}
-                width={220}
-                preserveAspectRatio="xMinYMin"
-            />
-        </div>
-        <div style={{ marginRight: 80 }} className={styles.emptyStateSection}>
-            <EmptyState
-                height={30}
-                width={220}
-                preserveAspectRatio="xMinYMin"
-            />
-        </div>
-        <h1 className={styles.emptyTitle}>
-            Couldn't find anything relevant 😔
-        </h1>
-        <h3 className={styles.emptySubTitle}>
-            We couldn't find any results for your search. If you've just
-            installed, it can take a few minutes for sessions to propogate.
-        </h3>
-    </div>
-);

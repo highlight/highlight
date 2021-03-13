@@ -31,6 +31,17 @@ export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
         setCachedParams,
     ]);
 
+    useEffect(() => {
+        window.Intercom('update', {
+            hide_default_launcher: false,
+        });
+        return () => {
+            window.Intercom('update', {
+                hide_default_launcher: true,
+            });
+        };
+    }, []);
+
     if (!integrated) {
         return <IntegrationCard />;
     }
