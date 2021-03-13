@@ -28,17 +28,6 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
 
     useEffect(() => setOpenSidebar(false), [setOpenSidebar]);
 
-    useEffect(() => {
-        window.Intercom('update', {
-            hide_default_launcher: false,
-        });
-        return () => {
-            window.Intercom('update', {
-                hide_default_launcher: true,
-            });
-        };
-    }, []);
-
     useEffect(() => setCachedParams(searchParams), [
         searchParams,
         setCachedParams,
