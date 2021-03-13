@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .sideBar {
     position: fixed;
     height: 100%;
@@ -44,6 +46,14 @@
     justify-content: flex-end;
 }
 
+.bottomWrapper {
+    flex-grow: 1;
+    height: 100%;
+    position: relative;
+    width: 100%;
+    padding: 20px;
+}
+
 .bottomLink {
     color: #666666;
     text-decoration: underline;
@@ -55,30 +65,90 @@
     color: inherit;
 }
 
+.miniRow {
+    color: black !important;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
 .row {
-    color: black;
+    color: black !important;
     display: flex;
     padding-left: 20px;
     align-items: center;
     width: 100%;
-    padding-top: 8px;
-    padding-bottom: 8px;
+    padding: 4px 10px 4px 10px;
     font-size: 16px;
     transition: 0.1s;
     cursor: pointer;
     border-left: 3px solid white;
 }
 
-.row:hover {
-    color: #5629c6;
-    fill: #5629c6;
-    border-left: 4px solid #5629c6;
+.miniSidebarIconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 8px;
+    transition: 0.3s;
+    fill: #808080;
+}
+
+.miniSidebarIconWrapper:hover {
+    background-color: #fafafa;
+}
+
+.iconWrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.icon {
+    height: 18px;
+    width: 18px;
+}
+
+.staticSidebarWrapper {
+    position: fixed;
+    top: 80px;
+    width: 64px;
+    height: calc(100vh - 80px);
+    border-right: 1px solid #eaeaea;
+    display: flex;
+    flex-direction: column;
+    z-index: 30;
+    background-color: white;
+    align-items: center;
 }
 
 .selected {
-    color: #5629c6;
-    fill: #5629c6;
-    border-left: 4px solid #5629c6;
+    background-color: #f4f4f4 !important;
+    color: black !important;
+    fill: black !important;
+}
+
+.rotated {
+    transform: rotate(30deg);
+}
+
+.innerButton {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 10px 10px 10px 10px;
+    border-radius: 6px;
+    transition: 0.3s background-color;
+    color: #808080;
+    fill: #808080;
+}
+
+.innerButton:hover {
+    background-color: #fafafa;
 }
 
 .selectedDiv {
@@ -87,8 +157,9 @@
 }
 
 .rowText {
-    font-size: 16px;
+    font-size: 15px;
     display: flex;
-    margin-left: 10px;
+    margin-left: 15px;
+    line-height: 1;
     align-items: center;
 }

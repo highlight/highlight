@@ -3,7 +3,10 @@ import styles from './Sidebar.module.scss';
 import { SidebarContext } from './SidebarContext';
 import classNames from 'classnames/bind';
 import { Link, useParams, useLocation } from 'react-router-dom';
-import { WorkspaceDropdown } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
+import {
+    MiniWorkspaceIcon,
+    WorkspaceDropdown,
+} from '../Header/WorkspaceDropdown/WorkspaceDropdown';
 import { ReactComponent as SessionsIcon } from '../../static/sessions-icon.svg';
 import { ReactComponent as ErrorsIcon } from '../../static/errors-icon.svg';
 import { ReactComponent as SetupIcon } from '../../static/setup-icon.svg';
@@ -11,141 +14,165 @@ import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg
 import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
 import { DemoContext } from '../../DemoContext';
-import commonStyles from '../../Common.module.scss';
 
 export const Sidebar = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
-    const { pathname } = useLocation();
     const { openSidebar } = useContext(SidebarContext);
-    const { demo } = useContext(DemoContext);
-    const page = pathname.split('/')[2] ?? '';
     return (
-        <div
-            className={classNames([
-                styles.sideBar,
-                openSidebar ? styles.open : undefined,
-            ])}
-        >
-            <div style={{ width: '100%', padding: 20 }}>
-                <WorkspaceDropdown />
-            </div>
-            <Link
-                className={classNames([
-                    styles.row,
-                    page.includes('sessions') && styles.selected,
-                ])}
-                to={demo ? '/' : `/${organization_id}/sessions`}
-            >
-                <SessionsIcon />
-                <span className={styles.rowText}>Sessions</span>
-            </Link>
-            <Link
-                className={classNames([
-                    styles.row,
-                    page.includes('errors') && styles.selected,
-                ])}
-                to={demo ? '/' : `/${organization_id}/errors`}
-            >
-                <ErrorsIcon />
-                <span className={styles.rowText}>Errors</span>
-            </Link>
-            <Link
-                className={classNames([
-                    styles.row,
-                    (!page || page.includes('setup')) && styles.selected,
-                ])}
-                to={demo ? '/' : `/${organization_id}/setup`}
-            >
-                <SetupIcon />
-                <span className={styles.rowText}>Setup</span>
-            </Link>
-            <div className={styles.settingsDivider} />
-            <div className={styles.settingsTitle}>Settings</div>
-            <Link
-                className={classNames([
-                    styles.row,
-                    page.includes('settings') && styles.selected,
-                ])}
-                to={demo ? '/' : `/${organization_id}/settings`}
-            >
-                <WorkspaceIcon />
-                <span className={styles.rowText}>Workspace</span>
-            </Link>
-            <Link
-                className={classNames([
-                    styles.row,
-                    page.includes('team') && styles.selected,
-                ])}
-                to={demo ? '/' : `/${organization_id}/team`}
-            >
-                <TeamIcon />
-                <span className={styles.rowText}>Team</span>
-            </Link>
-            <Link
-                className={classNames([
-                    styles.row,
-                    page.includes('billing') && styles.selected,
-                ])}
-                to={demo ? '/' : `/${organization_id}/billing`}
-            >
-                <CreditCardIcon />
-                <span className={styles.rowText}>Billing</span>
-            </Link>
+        <>
+            <StaticSidebar />
             <div
-                style={{
-                    flexGrow: 1,
-                    height: '100%',
-                    position: 'relative',
-                    width: '100%',
-                    padding: 20,
-                }}
+                className={classNames([
+                    styles.sideBar,
+                    openSidebar ? styles.open : undefined,
+                ])}
             >
-                <div className={styles.bottomSection}>
-                    <Link
-                        to={{
-                            pathname:
-                                'https://www.highlight.run/terms-of-service',
-                        }}
-                        className={styles.bottomLink}
-                        target="_blank"
-                    >
-                        Terms of Service
-                    </Link>
-                    <Link
-                        className={styles.bottomLink}
-                        to={{ pathname: 'https://www.highlight.run/privacy' }}
-                        target="_blank"
-                    >
-                        Privacy Policy
-                    </Link>
-                    {organization_id === '1' ? (
-                        <>
-                            <button
-                                className={commonStyles.secondaryButton}
-                                onClick={() => {
-                                    throw new Error(
-                                        'This error is from a throw'
-                                    );
-                                }}
-                            >
-                                Throw Error
-                            </button>
-                            <button
-                                className={commonStyles.secondaryButton}
-                                onClick={() => {
-                                    console.error(
-                                        'This error is from the console'
-                                    );
-                                }}
-                            >
-                                Console Error
-                            </button>
-                        </>
-                    ) : (
-                        <></>
-                    )}
+                <div style={{ width: '100%', padding: '20px 20px 10px 20px' }}>
+                    <WorkspaceDropdown />
+                </div>
+                <SidebarItem text="Sessions" route="sessions">
+                    <div className={styles.iconWrapper}>
+                        <SessionsIcon className={styles.icon} />
+                    </div>
+                </SidebarItem>
+                <SidebarItem text="Errors" route="errors">
+                    <div className={styles.iconWrapper}>
+                        <ErrorsIcon
+                            className={classNames(styles.icon, styles.rotated)}
+                        />
+                    </div>
+                </SidebarItem>
+                <div className={styles.settingsDivider} />
+                <div className={styles.settingsTitle}>Settings</div>
+                <SidebarItem text="Setup" route="setup">
+                    <div className={styles.iconWrapper}>
+                        <SetupIcon
+                            className={classNames(styles.icon, styles.rotated)}
+                        />
+                    </div>
+                </SidebarItem>
+                <SidebarItem text="Workspace" route="settings">
+                    <div className={styles.iconWrapper}>
+                        <WorkspaceIcon className={styles.icon} />
+                    </div>
+                </SidebarItem>
+                <SidebarItem text="Team" route="team">
+                    <div className={styles.iconWrapper}>
+                        <TeamIcon className={styles.icon} />
+                    </div>
+                </SidebarItem>
+                <SidebarItem text="Billing" route="billing">
+                    <div className={styles.iconWrapper}>
+                        <CreditCardIcon className={styles.icon} />
+                    </div>
+                </SidebarItem>
+                <div className={styles.bottomWrapper}>
+                    <div className={styles.bottomSection}>
+                        <Link
+                            to={{
+                                pathname:
+                                    'https://www.highlight.run/terms-of-service',
+                            }}
+                            className={styles.bottomLink}
+                            target="_blank"
+                        >
+                            Terms of Service
+                        </Link>
+                        <Link
+                            className={styles.bottomLink}
+                            to={{
+                                pathname: 'https://www.highlight.run/privacy',
+                            }}
+                            target="_blank"
+                        >
+                            Privacy Policy
+                        </Link>
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
+    );
+};
+
+const StaticSidebar = () => {
+    return (
+        <>
+            <div className={styles.staticSidebarWrapper}>
+                <MiniWorkspaceIcon />
+                <MiniSidebarItem route="sessions">
+                    <SessionsIcon className={styles.icon} />
+                </MiniSidebarItem>
+                <MiniSidebarItem route="errors">
+                    <ErrorsIcon
+                        className={classNames(styles.icon, styles.rotated)}
+                    />
+                </MiniSidebarItem>
+                <div className={styles.settingsDivider} />
+                <MiniSidebarItem route="setup">
+                    <SetupIcon
+                        className={classNames(styles.icon, styles.rotated)}
+                    />
+                </MiniSidebarItem>
+                <MiniSidebarItem route="settings">
+                    <WorkspaceIcon className={styles.icon} />
+                </MiniSidebarItem>
+                <MiniSidebarItem route="team">
+                    <TeamIcon className={styles.icon} />
+                </MiniSidebarItem>
+                <MiniSidebarItem route="billing">
+                    <CreditCardIcon className={styles.icon} />
+                </MiniSidebarItem>
+            </div>
+            <div style={{ width: 64, height: '100%' }} />
+        </>
+    );
+};
+
+const SidebarItem: React.FC<{
+    route: string;
+    text: string;
+}> = ({ route, text, children }) => {
+    const { organization_id } = useParams<{ organization_id: string }>();
+    const { pathname } = useLocation();
+    const page = pathname.split('/')[2] ?? '';
+    const { demo } = useContext(DemoContext);
+    return (
+        <Link
+            className={styles.row}
+            to={demo ? '/' : `/${organization_id}/${route}`}
+        >
+            <div
+                className={classNames([
+                    styles.innerButton,
+                    page.includes(route) && styles.selected,
+                ])}
+            >
+                {children}
+                <span className={styles.rowText}>{text}</span>
+            </div>
+        </Link>
+    );
+};
+
+const MiniSidebarItem: React.FC<{
+    route: string;
+}> = ({ route, children }) => {
+    const { organization_id } = useParams<{ organization_id: string }>();
+    const { pathname } = useLocation();
+    const page = pathname.split('/')[2] ?? '';
+    const { demo } = useContext(DemoContext);
+    return (
+        <Link
+            className={styles.miniRow}
+            to={demo ? '/' : `/${organization_id}/${route}`}
+        >
+            <div
+                className={classNames([
+                    styles.miniSidebarIconWrapper,
+                    page.includes(route) && styles.selected,
+                ])}
+            >
+                {children}
+            </div>
+        </Link>
     );
 };
