@@ -3,7 +3,6 @@ import { components } from 'react-select';
 import Highlighter from 'react-highlight-words';
 
 export const SearchMatchOption = (props: any) => {
-    console.log('trigger');
     const label = props.data.label;
     const selectProps = props.selectProps.inputValue
         ? props.selectProps.inputValue
@@ -20,13 +19,12 @@ export const SearchMatchOption = (props: any) => {
     const parsedLabel =
         (foundIndex === label.length ? '' : '...') +
         label.substring(0, foundIndex);
-    console.log(foundIndex, label.length, selectProps, parsedLabel);
     return (
         <components.Option {...props}>
             <Highlighter
                 searchWords={[selectProps.length < 2 ? '' : selectProps]}
                 highlightStyle={{
-                    fontWeight: 500,
+                    fontWeight: 400,
                     padding: '0px',
                     backgroundColor: 'transparent',
                 }}
