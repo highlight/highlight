@@ -2893,6 +2893,13 @@
   dependencies:
     "@types/react" "^16"
 
+"@types/react-highlight-words@^0.16.1":
+  version "0.16.1"
+  resolved "https://registry.yarnpkg.com/@types/react-highlight-words/-/react-highlight-words-0.16.1.tgz#9744f9587e16cf74870b77ab419ec79c29f63068"
+  integrity sha512-J0JTrBbnCEpbGkXYs7FxZXlH/wJVO9cu1R0UYh+DGfw4/leMfUn37/dUdTXkcjkOMCxRSHk+OUNM3jQ//inM8w==
+  dependencies:
+    "@types/react" "*"
+
 "@types/react-input-autosize@^2.2.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@types/react-input-autosize/-/react-input-autosize-2.2.0.tgz#d62b07567088e547500f4693ae25dce0639c1b4e"
@@ -7601,6 +7608,11 @@ hex-color-regex@^1.1.0:
   resolved "https://registry.yarnpkg.com/hex-color-regex/-/hex-color-regex-1.1.0.tgz#4c06fccb4602fe2602b3c93df82d7e7dbf1a8a8e"
   integrity sha512-l9sfDFsuqtOqKDsQdqrMRk0U85RZc0RtOR9yPI7mRVOa4FsR/BVnZ0shmQRM96Ji99kYZP/7hn1cedc1+ApsTQ==
 
+highlight-words-core@^1.2.0:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/highlight-words-core/-/highlight-words-core-1.2.2.tgz#1eff6d7d9f0a22f155042a00791237791b1eeaaa"
+  integrity sha512-BXUKIkUuh6cmmxzi5OIbUJxrG8OAk2MqoL1DtO3Wo9D2faJg2ph5ntyuQeLqaHJmzER6H5tllCDA9ZnNe9BVGg==
+
 highlight.run@^1.0.64:
   version "1.0.68"
   resolved "https://registry.yarnpkg.com/highlight.run/-/highlight.run-1.0.68.tgz#e4f17b536063160306624703896aa0137315da78"
@@ -9741,6 +9753,11 @@ media-typer@0.3.0:
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/media-typer/-/media-typer-0.3.0.tgz#8710d7af0aa626f8fffa1ce00168545263255748"
   integrity sha1-hxDXrwqmJvj/+hzgAWhUUmMlV0g=
+
+memoize-one@^4.0.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-4.1.0.tgz#a2387c58c03fff27ca390c31b764a79addf3f906"
+  integrity sha512-2GApq0yI/b22J2j9rhbrAlsHb0Qcz+7yWxeLG8h+95sl1XPUgeLimQSOdur4Vw7cUhrBHwaUZxWFZueojqNRzA==
 
 memoize-one@^5.0.0:
   version "5.1.1"
@@ -12542,6 +12559,15 @@ react-firebase-hooks@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/react-firebase-hooks/-/react-firebase-hooks-2.2.0.tgz#a2cea46d3da94619e8a316b85173638698ef7d2b"
   integrity sha512-bwBaCYa8M+bpTqD0masAPGDTzxiTkGbyxv363hyR+NeNH1HbezPll6G7aMIGl+7OOYRPzfdmpkk72zc3VgXfEw==
+
+react-highlight-words@^0.17.0:
+  version "0.17.0"
+  resolved "https://registry.yarnpkg.com/react-highlight-words/-/react-highlight-words-0.17.0.tgz#e79a559a2de301548339d7216264d6cd0f1eed6f"
+  integrity sha512-uX1Qh5IGjnLuJT0Zok234QDwRC8h4hcVMnB99Cb7aquB1NlPPDiWKm0XpSZOTdSactvnClCk8LOmVlP+75dgHA==
+  dependencies:
+    highlight-words-core "^1.2.0"
+    memoize-one "^4.0.0"
+    prop-types "^15.5.8"
 
 react-hook-form@^6.9.1:
   version "6.15.1"
