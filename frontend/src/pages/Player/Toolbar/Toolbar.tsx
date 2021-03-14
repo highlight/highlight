@@ -186,11 +186,11 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     className={styles.sliderWrapper}
                     ref={sliderWrapperRef}
                     onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
-                        setSliderClientX(e.clientX)
+                        setSliderClientX(e.clientX - 64)
                     }
                     onMouseLeave={() => setSliderClientX(-1)}
                     onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                        const ratio = e.clientX / wrapperWidth;
+                        const ratio = (e.clientX - 64) / wrapperWidth;
                         setTime(getSliderTime(ratio));
                     }}
                 >
