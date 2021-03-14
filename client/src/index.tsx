@@ -51,6 +51,12 @@ type PropertyType = {
 
 type Source = 'segment' | undefined;
 
+/**
+ * The amount of time between sending the client-side payload to Highlight backend client.
+ * In milliseconds.
+ */
+const SEND_FREQUENCY = 1000 * 5;
+
 export class Highlight {
     organizationID: string;
     graphqlSDK: Sdk;
@@ -205,9 +211,9 @@ export class Highlight {
                     this.sessionID.toString()
                 );
             }
-            setInterval(() => {
+            setTimeout(() => {
                 this._save();
-            }, 5 * 1000);
+            }, SEND_FREQUENCY);
             const emit = (event: eventWithTime) => {
                 this.events.push(event);
             };
@@ -340,6 +346,9 @@ export class Highlight {
         } catch (e) {
             HighlightWarning('_save', e);
         }
+        setTimeout(() => {
+            this._save();
+        }, SEND_FREQUENCY);
     }
 }
 
