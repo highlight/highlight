@@ -13,9 +13,10 @@ export const RadioGroup = <T extends any>({
     selectedLabel: T;
     style?: React.CSSProperties;
 }) => {
-    const labelDivs = labels.map((label) => {
+    const labelDivs = labels.map((label, i) => {
         return label === selectedLabel ? (
             <div
+                key={i}
                 style={{
                     borderColor: '#5629c6',
                     backgroundColor: '#5629c6',
@@ -29,6 +30,7 @@ export const RadioGroup = <T extends any>({
             </div>
         ) : (
             <div
+                key={i}
                 style={{
                     borderColor: '#eaeaea',
                     color: 'black',
