@@ -2,6 +2,7 @@ import {
     playerMetaData,
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
+import { ParsedSessionInterval } from '../../ReplayerContext';
 
 const INACTIVE_THRESHOLD = 0.02;
 
@@ -14,14 +15,28 @@ const INACTIVE_THRESHOLD = 0.02;
 export const getSessionIntervals = (
     metadata: playerMetaData,
     allIntervals: SessionInterval[]
-) => {
-    console.log(metadata, allIntervals);
-    // Preprocess and logic for player length with inactive sessions
+): ParsedSessionInterval[] => {
+    // The intervals we get from rrweb are sometimes bad. Without special handling, the sessions bar is unusable. See HIG-211 for context.
+    const isBadSession = allIntervals.some((interval) => interval.duration < 0);
     const intervals = allIntervals.map((e) => ({
         ...e,
         startTime: e.startTime - metadata.startTime,
         endTime: e.endTime - metadata.startTime,
     }));
+
+    if (isBadSession) {
+        return [
+            {
+                active: true,
+                duration: metadata.totalTime,
+                endPercent: 1,
+                startPercent: 0,
+                endTime: metadata.endTime,
+                startTime: metadata.startTime,
+            },
+        ];
+    }
+
     const { activeDuration, numInactive } = allIntervals.reduce(
         (acc, interval) => ({
             activeDuration: interval.active
@@ -36,6 +51,7 @@ export const getSessionIntervals = (
         : 1;
     const totalDuration = activeDuration + inactiveSliceDuration * numInactive;
     let currTime = 0;
+
     const sliderIntervalMap = intervals.map((e) => {
         const prevTime = currTime;
         currTime = currTime + (e.active ? e.duration : inactiveSliceDuration);
