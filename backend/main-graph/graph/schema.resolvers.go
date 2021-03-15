@@ -275,7 +275,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 			os.Getenv("SLACK_CLIENT_ID"),
 			os.Getenv("SLACK_CLIENT_SECRET"),
 			code,
-			"https://09f94553d971.ngrok.io/1/alerts",
+			redirect,
 		)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting slack oauth response")
