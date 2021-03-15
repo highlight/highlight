@@ -22,11 +22,11 @@ export const getSessionIntervals = (
         return [
             {
                 active: true,
-                duration: metadata.totalTime / 1000,
+                duration: metadata.totalTime,
                 endPercent: 1,
                 startPercent: 0,
-                endTime: metadata.endTime,
-                startTime: metadata.startTime,
+                endTime: metadata.totalTime,
+                startTime: 0,
             },
         ];
     }
