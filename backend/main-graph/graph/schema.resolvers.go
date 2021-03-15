@@ -934,6 +934,7 @@ func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, organizationID
 	res := r.DB.Where(&model.ErrorField{Name: name}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
+		Where("organization_id = ?", organizationID).
 		Limit(8).
 		Find(&fields)
 	if err := res.Error; err != nil || res.RecordNotFound() {
