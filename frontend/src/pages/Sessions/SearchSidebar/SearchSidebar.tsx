@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styles from './SearchSidebar.module.scss';
 import classNames from 'classnames/bind';
 import { DateInput } from '../SearchInputs/DateInput';
+import { LengthInput } from '../SearchInputs/LengthInput';
 import {
     BrowserInput,
     OperatingSystemInput,
@@ -81,10 +82,15 @@ export const SearchSidebar = () => {
                     <SearchSection
                         title="Session Details"
                         open={false}
-                        searchParamsKey={['visited_url', 'referrer']}
+                        searchParamsKey={[
+                            'visited_url',
+                            'referrer',
+                            'length_range',
+                        ]}
                     >
                         <VisitedUrlInput />
                         <ReferrerInput />
+                        <LengthInput />
                     </SearchSection>
                 </div>
             </div>

@@ -10,6 +10,7 @@ export type SearchParams = {
     excluded_properties?: Array<UserProperty>;
     track_properties?: Array<UserProperty>;
     date_range?: { start_date: Date; end_date: Date };
+    length_range?: { min: number; max: number };
     os?: string;
     browser?: string;
     visited_url?: string;

@@ -129,6 +129,11 @@ type ComplexityRoot struct {
 		Value func(childComplexity int) int
 	}
 
+	LengthRange struct {
+		Max func(childComplexity int) int
+		Min func(childComplexity int) int
+	}
+
 	Mutation struct {
 		AddAdminToOrganization         func(childComplexity int, organizationID int, inviteID string) int
 		AddSlackIntegrationToWorkspace func(childComplexity int, organizationID int, code string) int
@@ -190,6 +195,7 @@ type ComplexityRoot struct {
 		ExcludedProperties func(childComplexity int) int
 		HideViewed         func(childComplexity int) int
 		Identified         func(childComplexity int) int
+		LengthRange        func(childComplexity int) int
 		OS                 func(childComplexity int) int
 		Referrer           func(childComplexity int) int
 		TrackProperties    func(childComplexity int) int
@@ -632,6 +638,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Field.Value(childComplexity), true
+
+	case "LengthRange.max":
+		if e.complexity.LengthRange.Max == nil {
+			break
+		}
+
+		return e.complexity.LengthRange.Max(childComplexity), true
+
+	case "LengthRange.min":
+		if e.complexity.LengthRange.Min == nil {
+			break
+		}
+
+		return e.complexity.LengthRange.Min(childComplexity), true
 
 	case "Mutation.addAdminToOrganization":
 		if e.complexity.Mutation.AddAdminToOrganization == nil {
@@ -1134,6 +1154,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SearchParams.Identified(childComplexity), true
 
+	case "SearchParams.length_range":
+		if e.complexity.SearchParams.LengthRange == nil {
+			break
+		}
+
+		return e.complexity.SearchParams.LengthRange(childComplexity), true
+
 	case "SearchParams.os":
 		if e.complexity.SearchParams.OS == nil {
 			break
@@ -1515,6 +1542,7 @@ input SearchParamsInput {
     excluded_properties: [UserPropertyInput]
     track_properties: [UserPropertyInput]
     date_range: DateRangeInput
+    length_range: LengthRangeInput
     os: String
     browser: String
     visited_url: String
@@ -1528,6 +1556,7 @@ type SearchParams {
     excluded_properties: [UserProperty]
     track_properties: [UserProperty]
     date_range: DateRange
+    length_range: LengthRange
     os: String
     browser: String
     visited_url: String
@@ -1562,6 +1591,16 @@ type DateRange {
 input DateRangeInput {
     start_date: Time
     end_date: Time
+}
+
+type LengthRange {
+    min: Int
+    max: Int
+}
+
+input LengthRangeInput {
+    min: Int
+    max: Int
 }
 
 type UserProperty {
@@ -3965,6 +4004,68 @@ func (ec *executionContext) _Field_type(ctx context.Context, field graphql.Colle
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _LengthRange_min(ctx context.Context, field graphql.CollectedField, obj *model1.LengthRange) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LengthRange",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Min, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LengthRange_max(ctx context.Context, field graphql.CollectedField, obj *model1.LengthRange) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LengthRange",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Max, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5744,6 +5845,37 @@ func (ec *executionContext) _SearchParams_date_range(ctx context.Context, field 
 	res := resTmp.(*model1.DateRange)
 	fc.Result = res
 	return ec.marshalODateRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDateRange(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SearchParams_length_range(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SearchParams",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LengthRange, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.LengthRange)
+	fc.Result = res
+	return ec.marshalOLengthRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐLengthRange(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchParams_os(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
@@ -7907,6 +8039,34 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, obj interface{}) (model.LengthRangeInput, error) {
+	var it model.LengthRangeInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "min":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("min"))
+			it.Min, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "max":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("max"))
+			it.Max, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context, obj interface{}) (model.SearchParamsInput, error) {
 	var it model.SearchParamsInput
 	var asMap = obj.(map[string]interface{})
@@ -7942,6 +8102,14 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("date_range"))
 			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "length_range":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("length_range"))
+			it.LengthRange, err = ec.unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐLengthRangeInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8498,6 +8666,32 @@ func (ec *executionContext) _Field(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var lengthRangeImplementors = []string{"LengthRange"}
+
+func (ec *executionContext) _LengthRange(ctx context.Context, sel ast.SelectionSet, obj *model1.LengthRange) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, lengthRangeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("LengthRange")
+		case "min":
+			out.Values[i] = ec._LengthRange_min(ctx, field, obj)
+		case "max":
+			out.Values[i] = ec._LengthRange_max(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -8898,6 +9092,8 @@ func (ec *executionContext) _SearchParams(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._SearchParams_track_properties(ctx, field, obj)
 		case "date_range":
 			out.Values[i] = ec._SearchParams_date_range(ctx, field, obj)
+		case "length_range":
+			out.Values[i] = ec._SearchParams_length_range(ctx, field, obj)
 		case "os":
 			out.Values[i] = ec._SearchParams_os(ctx, field, obj)
 		case "browser":
@@ -10301,6 +10497,21 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return graphql.MarshalInt(*v)
+}
+
+func (ec *executionContext) marshalOLengthRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐLengthRange(ctx context.Context, sel ast.SelectionSet, v *model1.LengthRange) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._LengthRange(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐLengthRangeInput(ctx context.Context, v interface{}) (*model.LengthRangeInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputLengthRangeInput(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOOrganization2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v []*model1.Organization) graphql.Marshaler {
