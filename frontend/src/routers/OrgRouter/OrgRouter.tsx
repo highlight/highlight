@@ -18,6 +18,7 @@ import { SessionsPage } from '../../pages/Sessions/SessionsPage';
 import { Duration, MillisToDaysHoursMinSeconds } from '../../util/time';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { ErrorPage } from '../../pages/Error/ErrorPage';
+import { AlertsPage } from '../../pages/Alerts/Alerts';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -76,6 +77,9 @@ export const OrgRouter = () => {
                     </Route>
                     <Route path="/:organization_id/settings">
                         <WorkspaceSettings />
+                    </Route>
+                    <Route path="/:organization_id/alerts">
+                        <AlertsPage />j
                     </Route>
                     <Route path="/:organization_id/team">
                         <WorkspaceTeam />

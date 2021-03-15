@@ -75,6 +75,9 @@ type Organization struct {
 	Segments         []Segment `gorm:"foreignKey:ID;"`
 	RecordingSetting RecordingSettings
 	TrialEndDate     *time.Time `json:"trial_end_date"`
+	// Slack API Interaction.
+	SlackAccessToken *string
+	SlackWebhookURL  *string
 }
 
 func (u *Organization) VerboseID() string {
