@@ -168,15 +168,15 @@ const EventStream = () => {
 
     useEffect(() => {
         if (events.length) {
-            setStaticMap(buildStaticMap(events as eventWithTime[]));
+            // setStaticMap(buildStaticMap(events as eventWithTime[]));
         }
     }, [events]);
 
-    useEffect(() => {
-        if (staticMap !== undefined) {
-            setLoadingMap(false);
-        }
-    }, [staticMap]);
+    // useEffect(() => {
+    //     if (staticMap !== undefined) {
+    //         setLoadingMap(false);
+    //     }
+    // }, [staticMap]);
 
     useEffect(() => {
         if (!replayer) return;
@@ -230,7 +230,7 @@ const EventStream = () => {
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
-                {loadingMap || !events.length || !staticMap ? (
+                {loadingMap || !events.length ? (
                     <div className={styles.skeletonContainer}>
                         <Skeleton
                             count={4}
@@ -242,34 +242,35 @@ const EventStream = () => {
                         />
                     </div>
                 ) : (
-                    replayer && (
-                        <Virtuoso
-                            onMouseEnter={() => {
-                                setIsInteractingWithStreamEvents(true);
-                            }}
-                            onMouseLeave={() => {
-                                setIsInteractingWithStreamEvents(false);
-                            }}
-                            ref={virtuoso}
-                            data={usefulEvents}
-                            overscan={500}
-                            itemContent={(index, event) => (
-                                <StreamElement
-                                    e={event}
-                                    key={index}
-                                    start={replayer.getMetaData().startTime}
-                                    isCurrent={
-                                        event.timestamp -
-                                            replayer.getMetaData().startTime ===
-                                            time ||
-                                        event.identifier === currEvent
-                                    }
-                                    onGoToHandler={setCurrEvent}
-                                    nodeMap={staticMap}
-                                />
-                            )}
-                        />
-                    )
+                    // replayer && (
+                    //     <Virtuoso
+                    //         onMouseEnter={() => {
+                    //             setIsInteractingWithStreamEvents(true);
+                    //         }}
+                    //         onMouseLeave={() => {
+                    //             setIsInteractingWithStreamEvents(false);
+                    //         }}
+                    //         ref={virtuoso}
+                    //         data={usefulEvents}
+                    //         overscan={500}
+                    //         itemContent={(index, event) => (
+                    //             <StreamElement
+                    //                 e={event}
+                    //                 key={index}
+                    //                 start={replayer.getMetaData().startTime}
+                    //                 isCurrent={
+                    //                     event.timestamp -
+                    //                         replayer.getMetaData().startTime ===
+                    //                         time ||
+                    //                     event.identifier === currEvent
+                    //                 }
+                    //                 onGoToHandler={setCurrEvent}
+                    //                 nodeMap={staticMap}
+                    //             />
+                    //         )}
+                    //     />
+                    // )
+                    <h2>Events</h2>
                 )}
             </div>
         </>
