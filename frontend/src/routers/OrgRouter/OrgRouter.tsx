@@ -79,7 +79,7 @@ export const OrgRouter = () => {
                         <WorkspaceSettings />
                     </Route>
                     <Route path="/:organization_id/alerts">
-                        <AlertsPage />j
+                        <AlertsPage />
                     </Route>
                     <Route path="/:organization_id/team">
                         <WorkspaceTeam />
