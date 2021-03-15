@@ -281,8 +281,10 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 		return nil, e.Wrap(err, "error getting slack oauth response")
 	}
 	if err := r.DB.Model(org).Updates(&model.Organization{
-		SlackAccessToken: &resp.AccessToken,
-		SlackWebhookURL:  &resp.IncomingWebhook.URL,
+		SlackAccessToken:      &resp.AccessToken,
+		SlackWebhookURL:       &resp.IncomingWebhook.URL,
+		SlackWebhookChannelID: &resp.IncomingWebhook.ChannelID,
+		SlackWebhookChannel:   &resp.IncomingWebhook.Channel,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}

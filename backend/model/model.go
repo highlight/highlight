@@ -76,8 +76,10 @@ type Organization struct {
 	RecordingSetting RecordingSettings
 	TrialEndDate     *time.Time `json:"trial_end_date"`
 	// Slack API Interaction.
-	SlackAccessToken *string
-	SlackWebhookURL  *string
+	SlackAccessToken      *string
+	SlackWebhookURL       *string
+	SlackWebhookChannel   *string
+	SlackWebhookChannelID *string
 }
 
 func (u *Organization) VerboseID() string {
