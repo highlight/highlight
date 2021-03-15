@@ -18,17 +18,11 @@ export const getSessionIntervals = (
 ): ParsedSessionInterval[] => {
     // The intervals we get from rrweb are sometimes bad. Without special handling, the sessions bar is unusable. See HIG-211 for context.
     const isBadSession = allIntervals.some((interval) => interval.duration < 0);
-    const intervals = allIntervals.map((e) => ({
-        ...e,
-        startTime: e.startTime - metadata.startTime,
-        endTime: e.endTime - metadata.startTime,
-    }));
-
     if (isBadSession) {
         return [
             {
                 active: true,
-                duration: metadata.totalTime,
+                duration: metadata.totalTime / 1000,
                 endPercent: 1,
                 startPercent: 0,
                 endTime: metadata.endTime,
@@ -37,6 +31,11 @@ export const getSessionIntervals = (
         ];
     }
 
+    const intervals = allIntervals.map((e) => ({
+        ...e,
+        startTime: e.startTime - metadata.startTime,
+        endTime: e.endTime - metadata.startTime,
+    }));
     const { activeDuration, numInactive } = allIntervals.reduce(
         (acc, interval) => ({
             activeDuration: interval.active
