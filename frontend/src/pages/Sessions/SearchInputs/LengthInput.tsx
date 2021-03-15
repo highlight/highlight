@@ -6,8 +6,12 @@ import inputStyles from './InputStyles.module.scss';
 
 export const LengthInput = () => {
     const { searchParams, setSearchParams } = useContext(SearchContext);
-    const [localMin, setLocalMin] = useState(searchParams.length_range?.min);
-    const [localMax, setLocalMax] = useState(searchParams.length_range?.max);
+    const [localMin, setLocalMin] = useState(
+        searchParams.length_range?.min ? searchParams.length_range?.min : 0
+    );
+    const [localMax, setLocalMax] = useState(
+        searchParams.length_range?.max ? searchParams.length_range?.max : 0
+    );
 
     const updateSearchParams = ([min, max]: [number, number]) => {
         // The slider allows user to move the right-most knob to the left of the left-most knob and vice-versa. Because of this the former max knob becomes the new min knob so we need to swap the values.
@@ -30,7 +34,7 @@ export const LengthInput = () => {
     };
     return (
         <div className={inputStyles.commonInputWrapper}>
-            <div className={inputStyles.subTitle}>Length (min)</div>
+            <div className={inputStyles.subTitle}>Length (minutes)</div>
             <Slider
                 range
                 tooltipPlacement={'bottom'}
