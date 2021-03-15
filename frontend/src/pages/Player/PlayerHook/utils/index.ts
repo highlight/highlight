@@ -16,7 +16,7 @@ export const getSessionIntervals = (
     metadata: playerMetaData,
     allIntervals: SessionInterval[]
 ): ParsedSessionInterval[] => {
-    // The intervals we get from rrweb are sometimes bad. Without special handling, the sessions bar is unusable. See HIG-211 for context.
+    // The intervals we get from rrweb are sometimes bad. Without special handling, the sessions bar is unusable. We mitigate an unusable slider by providing a single interval. See HIG-211 for context.
     const isBadSession = allIntervals.some((interval) => interval.duration < 0);
     if (isBadSession) {
         return [

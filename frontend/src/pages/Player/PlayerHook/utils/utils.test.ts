@@ -7,18 +7,18 @@ import { getSessionIntervals } from '.';
 describe('getSessionIntervals', () => {
     describe('Incorrect end time calculations', () => {
         it.each([
-            // [
-            //     'Happy Path e.g. a working session',
-            //     happyPathMetadata,
-            //     happyPathAllIntervals,
-            // ],
+            [
+                'Happy Path e.g. a working session',
+                happyPathMetadata,
+                happyPathAllIntervals,
+            ],
             ['HIG-211', hig211Metadata, hig211AllIntervals],
         ])(
             'should calculate the correct intervals for %s',
             (_, metadata, allIntervals) => {
                 const intervals = getSessionIntervals(metadata, allIntervals);
 
-                const pointer = 1;
+                let pointer = 1;
 
                 while (pointer < intervals.length) {
                     const [previousInterval, currentInterval] = [
@@ -47,6 +47,8 @@ describe('getSessionIntervals', () => {
                     expect(previousInterval.endPercent).toBeGreaterThanOrEqual(
                         0
                     );
+
+                    pointer++;
                 }
             }
         );
