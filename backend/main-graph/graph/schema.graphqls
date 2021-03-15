@@ -70,6 +70,7 @@ type ErrorObject {
 }
 
 type ErrorField {
+    organization_id: Int!
     name: String!
     value: String!
 }
