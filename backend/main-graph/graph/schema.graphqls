@@ -241,6 +241,7 @@ type Mutation {
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
+    addSlackIntegrationToWorkspace(organization_id: ID!, code: String!): Boolean
     createSegment(
         organization_id: ID!
         name: String!

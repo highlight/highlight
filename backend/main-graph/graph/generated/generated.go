@@ -130,21 +130,22 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		AddAdminToOrganization     func(childComplexity int, organizationID int, inviteID string) int
-		CreateErrorSegment         func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
-		CreateOrUpdateSubscription func(childComplexity int, organizationID int, plan model.Plan) int
-		CreateOrganization         func(childComplexity int, name string) int
-		CreateSegment              func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
-		DeleteErrorSegment         func(childComplexity int, segmentID int) int
-		DeleteOrganization         func(childComplexity int, id int) int
-		DeleteSegment              func(childComplexity int, segmentID int) int
-		EditErrorSegment           func(childComplexity int, id int, organizationID int, params model.ErrorSearchParamsInput) int
-		EditOrganization           func(childComplexity int, id int, name *string, billingEmail *string) int
-		EditRecordingSettings      func(childComplexity int, organizationID int, details *string) int
-		EditSegment                func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
-		EmailSignup                func(childComplexity int, email string) int
-		MarkSessionAsViewed        func(childComplexity int, id int) int
-		SendAdminInvite            func(childComplexity int, organizationID int, email string) int
+		AddAdminToOrganization         func(childComplexity int, organizationID int, inviteID string) int
+		AddSlackIntegrationToWorkspace func(childComplexity int, organizationID int, code string) int
+		CreateErrorSegment             func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
+		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, plan model.Plan) int
+		CreateOrganization             func(childComplexity int, name string) int
+		CreateSegment                  func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
+		DeleteErrorSegment             func(childComplexity int, segmentID int) int
+		DeleteOrganization             func(childComplexity int, id int) int
+		DeleteSegment                  func(childComplexity int, segmentID int) int
+		EditErrorSegment               func(childComplexity int, id int, organizationID int, params model.ErrorSearchParamsInput) int
+		EditOrganization               func(childComplexity int, id int, name *string, billingEmail *string) int
+		EditRecordingSettings          func(childComplexity int, organizationID int, details *string) int
+		EditSegment                    func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
+		EmailSignup                    func(childComplexity int, email string) int
+		MarkSessionAsViewed            func(childComplexity int, id int) int
+		SendAdminInvite                func(childComplexity int, organizationID int, email string) int
 	}
 
 	Organization struct {
@@ -256,6 +257,7 @@ type MutationResolver interface {
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
+	AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string) (*bool, error)
 	CreateSegment(ctx context.Context, organizationID int, name string, params model.SearchParamsInput) (*model1.Segment, error)
 	EmailSignup(ctx context.Context, email string) (string, error)
 	EditSegment(ctx context.Context, id int, organizationID int, params model.SearchParamsInput) (*bool, error)
@@ -642,6 +644,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddAdminToOrganization(childComplexity, args["organization_id"].(int), args["invite_id"].(string)), true
+
+	case "Mutation.addSlackIntegrationToWorkspace":
+		if e.complexity.Mutation.AddSlackIntegrationToWorkspace == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addSlackIntegrationToWorkspace_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddSlackIntegrationToWorkspace(childComplexity, args["organization_id"].(int), args["code"].(string)), true
 
 	case "Mutation.createErrorSegment":
 		if e.complexity.Mutation.CreateErrorSegment == nil {
@@ -1637,6 +1651,7 @@ type Mutation {
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
+    addSlackIntegrationToWorkspace(organization_id: ID!, code: String!): Boolean
     createSegment(
         organization_id: ID!
         name: String!
@@ -1697,6 +1712,30 @@ func (ec *executionContext) field_Mutation_addAdminToOrganization_args(ctx conte
 		}
 	}
 	args["invite_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addSlackIntegrationToWorkspace_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["code"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("code"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["code"] = arg1
 	return args, nil
 }
 
@@ -4152,6 +4191,44 @@ func (ec *executionContext) _Mutation_addAdminToOrganization(ctx context.Context
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOID2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_addSlackIntegrationToWorkspace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_addSlackIntegrationToWorkspace_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().AddSlackIntegrationToWorkspace(rctx, args["organization_id"].(int), args["code"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createSegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -8448,6 +8525,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_sendAdminInvite(ctx, field)
 		case "addAdminToOrganization":
 			out.Values[i] = ec._Mutation_addAdminToOrganization(ctx, field)
+		case "addSlackIntegrationToWorkspace":
+			out.Values[i] = ec._Mutation_addSlackIntegrationToWorkspace(ctx, field)
 		case "createSegment":
 			out.Values[i] = ec._Mutation_createSegment(ctx, field)
 		case "emailSignup":

@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -251,6 +252,44 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 		return nil, e.Wrap(err, "error adding admin to association")
 	}
 	return &org.ID, nil
+}
+
+func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string) (*bool, error) {
+	// NOTE: In order to use this endpoint on your local machine, use ngrok to serve
+	// the frontend on a tunnel, and set "LOCAL_TUNNEL_URI" to the base URL.
+	// The Slack API doesn't support non-ssl, hence this requirement.
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+	var redirect string
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		redirect = os.Getenv("LOCAL_TUNNEL_URI")
+	} else {
+		redirect = os.Getenv("FRONTEND_URI")
+	}
+	redirect += "/" + strconv.Itoa(organizationID) + "/alerts"
+	resp, err := slack.
+		GetOAuthV2Response(
+			&http.Client{},
+			os.Getenv("SLACK_CLIENT_ID"),
+			os.Getenv("SLACK_CLIENT_SECRET"),
+			code,
+			redirect,
+		)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting slack oauth response")
+	}
+	if err := r.DB.Model(org).Updates(&model.Organization{
+		SlackAccessToken:      &resp.AccessToken,
+		SlackWebhookURL:       &resp.IncomingWebhook.URL,
+		SlackWebhookChannelID: &resp.IncomingWebhook.ChannelID,
+		SlackWebhookChannel:   &resp.IncomingWebhook.Channel,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields")
+	}
+	t := true
+	return &t, nil
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
