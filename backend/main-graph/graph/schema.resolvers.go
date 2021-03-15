@@ -257,6 +257,7 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string) (*bool, error) {
 	// NOTE: In order to use this endpoint on your local machine, use ngrok to serve
 	// the frontend on a tunnel, and set "LOCAL_TUNNEL_URI" to the base URL.
+	// The Slack API doesn't support non-ssl, hence this requirement.
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
