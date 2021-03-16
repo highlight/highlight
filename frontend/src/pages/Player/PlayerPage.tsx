@@ -8,22 +8,13 @@ import React, {
 } from 'react';
 import { useQueryParam, BooleanParam } from 'use-query-params';
 import { useParams } from 'react-router-dom';
-import {
-    Replayer,
-    MouseInteractions,
-    IncrementalSource,
-    EventType,
-} from '@highlight-run/rrweb';
-import {
-    eventWithTime,
-    incrementalData,
-} from '@highlight-run/rrweb/dist/types';
+import { Replayer, EventType } from '@highlight-run/rrweb';
+import { eventWithTime } from '@highlight-run/rrweb/dist/types';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Toolbar } from './Toolbar/Toolbar';
 import { StreamElement } from './StreamElement/StreamElement';
 import { MetadataBox } from './MetadataBox/MetadataBox';
 import { HighlightEvent } from './HighlightEvent';
-import { StaticMap, buildStaticMap } from './StaticMap/StaticMap';
 // @ts-ignore
 import useResizeAware from 'react-resize-aware';
 import styles from './PlayerPage.module.scss';
@@ -156,27 +147,11 @@ const EventStream = () => {
     const [debug] = useQueryParam('debug', BooleanParam);
     const { replayer, time, events } = useContext(ReplayerContext);
     const [currEvent, setCurrEvent] = useState('');
-    const [loadingMap, setLoadingMap] = useState(true);
-    const [staticMap, setStaticMap] = useState<StaticMap | undefined>(
-        undefined
-    );
     const [
         isInteractingWithStreamEvents,
         setIsInteractingWithStreamEvents,
     ] = useState(false);
     const virtuoso = useRef<VirtuosoHandle>(null);
-
-    useEffect(() => {
-        if (events.length) {
-            setStaticMap(buildStaticMap(events as eventWithTime[]));
-        }
-    }, [events]);
-
-    useEffect(() => {
-        if (staticMap !== undefined) {
-            setLoadingMap(false);
-        }
-    }, [staticMap]);
 
     useEffect(() => {
         if (!replayer) return;
@@ -230,7 +205,7 @@ const EventStream = () => {
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
-                {loadingMap || !events.length || !staticMap ? (
+                {!events.length ? (
                     <div className={styles.skeletonContainer}>
                         <Skeleton
                             count={4}
@@ -265,7 +240,6 @@ const EventStream = () => {
                                         event.identifier === currEvent
                                     }
                                     onGoToHandler={setCurrEvent}
-                                    nodeMap={staticMap}
                                 />
                             )}
                         />
@@ -287,19 +261,12 @@ const PlayerSkeleton = ({ height }: { height: number | undefined }) => {
 
 // used in filter() type methods to fetch events we want
 const usefulEvent = (e: eventWithTime): boolean => {
-    if (e.type === EventType.Custom) return true;
+    if (e.type === EventType.Custom) {
+        return !!e.data.tag;
+    }
     // If its not an 'incrementalSnapshot', discard.
     if ((e as eventWithTime).type !== EventType.IncrementalSnapshot)
         return false;
-    const snapshotEventData = e.data as incrementalData;
-    switch (snapshotEventData.source) {
-        case IncrementalSource.MouseInteraction:
-            switch (snapshotEventData.type) {
-                case MouseInteractions.Click:
-                    return true;
-                case MouseInteractions.Focus:
-                    return true;
-            }
-    }
+
     return false;
 };

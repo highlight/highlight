@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { MouseInteractions, EventType } from '@highlight-run/rrweb';
+import { EventType } from '@highlight-run/rrweb';
 import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
 import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
@@ -12,8 +12,6 @@ import { ReactComponent as TrackIcon } from '../../../static/track.svg';
 import { ReactComponent as TabIcon } from '../../../static/tab.svg';
 import { HighlightEvent } from '../HighlightEvent';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
-import { mouseInteractionData } from '@highlight-run/rrweb/dist/types';
-import { StaticMap } from '../StaticMap/StaticMap';
 import styles from './StreamElement.module.scss';
 import GoToButton from '../../../components/Button/GoToButton';
 import ReplayerContext from '../ReplayerContext';
@@ -26,21 +24,20 @@ export const StreamElement = ({
     e,
     start,
     isCurrent,
-    nodeMap,
     onGoToHandler,
 }: {
     e: HighlightEvent;
     start: number;
     isCurrent: boolean;
-    nodeMap: StaticMap;
     onGoToHandler: (event: string) => void;
 }) => {
     const [debug] = useQueryParam('debug', BooleanParam);
     const [hover, setHover] = useState(false);
     const [selected, setSelected] = useState(false);
-    const details = getEventRenderDetails(e, nodeMap);
+    const details = getEventRenderDetails(e);
     const { pause } = useContext(ReplayerContext);
     const timeSinceStart = e?.timestamp - start;
+
     return (
         <div
             className={styles.eventWrapper}
@@ -216,48 +213,13 @@ type EventRenderDetails = {
     payload?: string;
 };
 
-const getEventRenderDetails = (
-    e: HighlightEvent,
-    nodeMap: StaticMap
-): EventRenderDetails => {
+const getEventRenderDetails = (e: HighlightEvent): EventRenderDetails => {
     const details: EventRenderDetails = {};
     if (e.type === EventType.Custom) {
         details.title = e.data.tag;
         const payload: any = e.data.payload;
         details.payload = payload;
-    } else if (e.type === EventType.IncrementalSnapshot) {
-        const mouseInteraction = e.data as mouseInteractionData;
-        let eventStr = '';
-        switch (mouseInteraction.type) {
-            case MouseInteractions.Click:
-                eventStr = 'Click';
-                break;
-            case MouseInteractions.Focus:
-                eventStr = 'Focus';
-                break;
-        }
-        if (nodeMap[mouseInteraction.id] && nodeMap[mouseInteraction.id][0]) {
-            const node = nodeMap[mouseInteraction.id][0].node;
-            let idString = nodeMap[mouseInteraction.id][0].node.tagName;
-            if (node?.attributes) {
-                const attrs = node?.attributes;
-                if ('class' in attrs && attrs?.class?.toString()) {
-                    idString = idString.concat('.' + attrs.class);
-                }
-                if ('id' in attrs && attrs?.id?.toString()) {
-                    idString = idString.concat('#' + attrs.id);
-                }
-                Object.keys(attrs)
-                    .filter((key) => !['class', 'id'].includes(key))
-                    .forEach(
-                        (key) =>
-                            (idString += '[' + key + '=' + attrs[key] + ']')
-                    );
-            }
-            details.payload = idString;
-        }
-
-        details.title = eventStr;
     }
+
     return details;
 };

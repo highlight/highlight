@@ -14,6 +14,8 @@ import {
 import { TabStateListener } from './listeners/tab-state-listener';
 import { ViewportResizeListener } from './listeners/viewport-resize-listener';
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
+import { ClickListener } from './listeners/click-listener/click-listener';
+import { FocusListener } from './listeners/focus-listener/focus-listener';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -298,6 +300,16 @@ export class Highlight {
             });
             ViewportResizeListener((viewport) => {
                 addCustomEvent('Viewport', viewport);
+            });
+            ClickListener((clickTarget) => {
+                if (clickTarget) {
+                    addCustomEvent('Click', clickTarget);
+                }
+            });
+            FocusListener((focusTarget) => {
+                if (focusTarget) {
+                    addCustomEvent('Focus', focusTarget);
+                }
             });
             this.ready = true;
         } catch (e) {
