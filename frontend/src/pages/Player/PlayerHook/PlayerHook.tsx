@@ -110,6 +110,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     useEffect(() => {
         if (state === ReplayerState.Playing) {
             let timerId: number;
+            console.log(replayer?.getMetaData());
 
             const frameAction = () => {
                 if (replayer) {
