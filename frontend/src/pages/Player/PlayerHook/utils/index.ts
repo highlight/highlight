@@ -32,6 +32,26 @@ export const getSessionIntervals = (
         ];
     }
 
+    let sliderIntervalMap = getIntervalWithPercentages(metadata, allIntervals);
+
+    if (
+        sliderIntervalMap[sliderIntervalMap.length - 1].endTime <
+        metadata.totalTime
+    ) {
+        allIntervals[allIntervals.length - 1].endTime = metadata.totalTime;
+
+        // Recalculate the interval percentages because we extended the last interval.
+        sliderIntervalMap = getIntervalWithPercentages(metadata, allIntervals);
+    }
+    console.log('[Highlight] Session Intervals:', sliderIntervalMap);
+
+    return sliderIntervalMap;
+};
+
+const getIntervalWithPercentages = (
+    metadata: playerMetaData,
+    allIntervals: SessionInterval[]
+) => {
     const intervals = allIntervals.map((e) => ({
         ...e,
         startTime: e.startTime - metadata.startTime,
@@ -52,7 +72,7 @@ export const getSessionIntervals = (
     const totalDuration = activeDuration + inactiveSliceDuration * numInactive;
     let currTime = 0;
 
-    const sliderIntervalMap = intervals.map((e) => {
+    return intervals.map((e) => {
         const prevTime = currTime;
         currTime = currTime + (e.active ? e.duration : inactiveSliceDuration);
         return {
@@ -61,15 +81,4 @@ export const getSessionIntervals = (
             endPercent: currTime / totalDuration,
         };
     });
-
-    if (
-        sliderIntervalMap[sliderIntervalMap.length - 1].endTime !==
-        metadata.totalTime
-    ) {
-        sliderIntervalMap[sliderIntervalMap.length - 1].endTime =
-            metadata.totalTime;
-    }
-    console.log('[Highlight] Session Intervals:', sliderIntervalMap);
-
-    return sliderIntervalMap;
 };
