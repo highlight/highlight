@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/DataDog/datadog-go/statsd"
 	"github.com/gorilla/handlers"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 	"github.com/jay-khatri/fullstory/backend/model"
@@ -27,6 +28,7 @@ import (
 )
 
 var (
+	environment    = os.Getenv("ENVIRONMENT")
 	frontendURL    = os.Getenv("FRONTEND_URI")
 	landingURL     = os.Getenv("LANDING_PAGE_URI")
 	sendgridKey    = os.Getenv("SENDGRID_API_KEY")
@@ -62,6 +64,14 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
+
+	if environment == "dev" {
+		_, err := statsd.New("127.0.0.1:8125")
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	rd.SetupRedisStore()
 	db := model.SetupDB()
 	mux := http.NewServeMux()
