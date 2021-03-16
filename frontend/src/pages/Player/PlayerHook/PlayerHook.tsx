@@ -120,7 +120,6 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                 );
                 setSessionIntervals(sessionIntervals);
             }
-            setSessionIntervals(sessionIntervals);
 
             const frameAction = () => {
                 if (replayer) {
