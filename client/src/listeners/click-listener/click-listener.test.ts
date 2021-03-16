@@ -1,12 +1,23 @@
 import { getTargetSelector } from './click-listener';
 
 describe('click-listener', () => {
+    const mockGetAttribute = (context: any) => (attribute: string) => {
+        const mapping = {
+            class: 'className',
+            id: 'id',
+        };
+        return context[mapping[attribute]];
+    };
+
     it('should handle elements with no class names and no ids', () => {
         const mockEvent = ({
             target: {
                 id: '',
                 className: '',
                 tagName: 'BUTTON',
+                getAttribute: function (attribute: string) {
+                    return mockGetAttribute(this)(attribute);
+                },
             } as Element,
         } as unknown) as MouseEvent;
         const result = getTargetSelector(mockEvent);
@@ -20,6 +31,9 @@ describe('click-listener', () => {
                 id: '',
                 className: 'abc123',
                 tagName: 'BUTTON',
+                getAttribute: function (attribute: string) {
+                    return mockGetAttribute(this)(attribute);
+                },
             } as Element,
         } as unknown) as MouseEvent;
         const result = getTargetSelector(mockEvent);
@@ -33,6 +47,9 @@ describe('click-listener', () => {
                 id: '',
                 className: 'abc123 foo023 bar123 baz123',
                 tagName: 'BUTTON',
+                getAttribute: function (attribute: string) {
+                    return mockGetAttribute(this)(attribute);
+                },
             } as Element,
         } as unknown) as MouseEvent;
         const result = getTargetSelector(mockEvent);
@@ -46,6 +63,9 @@ describe('click-listener', () => {
                 id: 'uniqueId123',
                 className: '',
                 tagName: 'BUTTON',
+                getAttribute: function (attribute: string) {
+                    return mockGetAttribute(this)(attribute);
+                },
             } as Element,
         } as unknown) as MouseEvent;
         const result = getTargetSelector(mockEvent);
@@ -59,6 +79,9 @@ describe('click-listener', () => {
                 id: 'uniqueId123 fo___o0823 baHJKFSDHGsdfdf',
                 className: '',
                 tagName: 'BUTTON',
+                getAttribute: function (attribute: string) {
+                    return mockGetAttribute(this)(attribute);
+                },
             } as Element,
         } as unknown) as MouseEvent;
         const result = getTargetSelector(mockEvent);
@@ -72,6 +95,9 @@ describe('click-listener', () => {
                 id: 'uniqueId123 fo___o0823 baHJKFSDHGsdfdf',
                 className: 'abc123 foo023 bar123 baz123',
                 tagName: 'BUTTON',
+                getAttribute: function (attribute: string) {
+                    return mockGetAttribute(this)(attribute);
+                },
             } as Element,
         } as unknown) as MouseEvent;
         const result = getTargetSelector(mockEvent);
@@ -87,6 +113,9 @@ describe('click-listener', () => {
                 id: '',
                 className: ' foobar   ',
                 tagName: 'BUTTON',
+                getAttribute: function (attribute: string) {
+                    return mockGetAttribute(this)(attribute);
+                },
             } as Element,
         } as unknown) as MouseEvent;
         const result = getTargetSelector(mockEvent);
@@ -100,23 +129,13 @@ describe('click-listener', () => {
                 id: '   bar',
                 className: '',
                 tagName: 'BUTTON',
+                getAttribute: function (attribute: string) {
+                    return mockGetAttribute(this)(attribute);
+                },
             } as Element,
         } as unknown) as MouseEvent;
         const result = getTargetSelector(mockEvent);
 
         expect(result).toBe('#bar');
-    });
-
-    it('should handle SVGs', () => {
-        const mockEvent = ({
-            target: ({
-                className: {
-                    baseVal: 'foobar baz',
-                },
-            } as unknown) as Element,
-        } as unknown) as MouseEvent;
-        const result = getTargetSelector(mockEvent);
-
-        expect(result).toBe('.foobar.baz');
     });
 });

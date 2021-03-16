@@ -9,26 +9,14 @@ export const getTargetSelector = (event: MouseEvent) => {
     let selector = '';
     if (event.target) {
         const target = event.target as Element;
+        const classNames = target.getAttribute('class');
+        const ids = target.getAttribute('id');
 
-        if (target.id) {
-            selector = selector.concat(getSelectorString(target.id, '#'));
+        if (ids) {
+            selector = selector.concat(getSelectorString(ids, '#'));
         }
-        if (target.className) {
-            if (target.className.trim) {
-                selector = selector.concat(
-                    getSelectorString(target.className, '.')
-                );
-            } else if (
-                ((target.className as unknown) as SVGAnimatedString)?.baseVal
-            ) {
-                selector = selector.concat(
-                    getSelectorString(
-                        ((target.className as unknown) as SVGAnimatedString)
-                            .baseVal,
-                        '.'
-                    )
-                );
-            }
+        if (classNames) {
+            selector = selector.concat(getSelectorString(classNames, '.'));
         }
 
         if (selector === '') {
