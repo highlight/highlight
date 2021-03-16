@@ -119,10 +119,15 @@
     text-overflow: ellipsis;
 }
 
+.graphSection {
+    flex-direction: column;
+    padding: 30px 15px 20px 15px;
+}
+
 .graphLabels {
     margin-top: -20px;
     padding: 0px 10px 0px 10px;
-    width: 80%;
+    width: 100%;
     display: flex;
     justify-content: space-between;
     color: #808080;

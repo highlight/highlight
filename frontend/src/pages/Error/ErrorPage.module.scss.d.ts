@@ -9,6 +9,7 @@ export const eventText: string;
 export const expandButton: string;
 export const fieldWrapper: string;
 export const graphLabels: string;
+export const graphSection: string;
 export const icon: string;
 export const iconWrapper: string;
 export const section: string;

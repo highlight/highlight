@@ -11,6 +11,8 @@ import {
     Tooltip,
     ResponsiveContainer,
     CartesianGrid,
+    YAxis,
+    Cell,
 } from 'recharts';
 import LinesEllipsis from 'react-lines-ellipsis';
 
@@ -348,8 +350,8 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
         setErrorDates(errorData);
     }, [errorGroup]);
     return (
-        <div>
-            <ResponsiveContainer width="80%" height={200}>
+        <div className={classNames(styles.section, styles.graphSection)}>
+            <ResponsiveContainer width="100%" height={300}>
                 <BarChart
                     width={500}
                     height={300}
@@ -361,10 +363,32 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                         bottom: 0,
                     }}
                 >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" tick={false} />
+                    <CartesianGrid stroke={'#D9D9D9'} vertical={false} />
+                    <XAxis
+                        dataKey="date"
+                        tick={false}
+                        axisLine={{ stroke: '#D9D9D9' }}
+                    />
+                    <YAxis
+                        tickCount={10}
+                        interval="preserveStart"
+                        allowDecimals={false}
+                        hide={true}
+                    />
                     <Tooltip />
-                    <Bar dataKey="occurences" fill="#5629c6" />
+                    <Bar dataKey="occurences">
+                        {errorDates.map((e, i) => (
+                            <Cell
+                                key={i}
+                                fill={
+                                    e.occurences >
+                                    Math.max(totalErrors * 0.1, 10)
+                                        ? '#C62929'
+                                        : '#835E00'
+                                }
+                            />
+                        ))}
+                    </Bar>
                 </BarChart>
             </ResponsiveContainer>
             <div className={styles.graphLabels}>
