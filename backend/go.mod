@@ -7,6 +7,8 @@ require (
 	cloud.google.com/go/storage v1.11.0 // indirect
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/99designs/gqlgen v0.12.2
+	github.com/DataDog/datadog-go v4.4.0+incompatible
+	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-redis/redis/v7 v7.4.0

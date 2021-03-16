@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/DataDog/datadog-go/statsd"
 	"github.com/gorilla/handlers"
 	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 	"github.com/jay-khatri/fullstory/backend/model"
@@ -15,7 +16,6 @@ import (
 	"github.com/stripe/stripe-go/client"
 
 	ha "github.com/99designs/gqlgen/handler"
-	beeline "github.com/honeycombio/beeline-go"
 	cgraph "github.com/jay-khatri/fullstory/backend/client-graph/graph"
 	cgenerated "github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
@@ -28,6 +28,7 @@ import (
 
 var (
 	frontendURL    = os.Getenv("FRONTEND_URI")
+	statsdHost     = os.Getenv("STATSD_HOST")
 	landingURL     = os.Getenv("LANDING_PAGE_URI")
 	sendgridKey    = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey   = os.Getenv("STRIPE_API_KEY")
@@ -62,18 +63,20 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
+
+	// Connect to the datadog daemon.
+	_, err := statsd.New(statsdHost)
+	if err != nil {
+		log.Fatalf("error connecting to statsd: %v", err)
+		return
+	}
+
 	rd.SetupRedisStore()
 	db := model.SetupDB()
 	mux := http.NewServeMux()
 
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
-
-	beeline.Init(beeline.Config{
-		WriteKey: "5ef6d60bb0e65ec29ac69cc60b1c2a84",
-		Dataset:  "highlight-backend",
-	})
-	defer beeline.Close()
 
 	mgraph.SetupAuthClient()
 	main := &mgraph.Resolver{

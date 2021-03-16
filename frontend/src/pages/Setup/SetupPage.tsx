@@ -43,7 +43,7 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
             <div className={styles.setupPage}>
                 <div className={styles.headingWrapper}>
                     <div className={styles.snippetHeading}>
-                        Your Recording Snippet
+                        Your Highlight Snippet
                     </div>
                 </div>
                 <div className={styles.subTitle}>
