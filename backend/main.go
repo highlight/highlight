@@ -30,6 +30,7 @@ import (
 var (
 	environment    = os.Getenv("ENVIRONMENT")
 	frontendURL    = os.Getenv("FRONTEND_URI")
+	statsdHost     = os.Getenv("STATSD_HOST")
 	landingURL     = os.Getenv("LANDING_PAGE_URI")
 	sendgridKey    = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey   = os.Getenv("STRIPE_API_KEY")
@@ -65,11 +66,11 @@ func main() {
 		port = defaultPort
 	}
 
-	if environment == "dev" {
-		_, err := statsd.New("127.0.0.1:8125")
-		if err != nil {
-			log.Fatal(err)
-		}
+	// Connect to the datadog daemon.
+	_, err := statsd.New(statsdHost)
+	if err != nil {
+		log.Fatalf("error connecting to statsd: %v", err)
+		return
 	}
 
 	rd.SetupRedisStore()
