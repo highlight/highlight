@@ -2,6 +2,7 @@ import hig211Metadata from './mock_data/intervalCalculationsIncorrect/metadata.j
 import hig211AllIntervals from './mock_data/intervalCalculationsIncorrect/allIntervals.json';
 import happyPathMetadata from './mock_data/intervalCalculationsCorrect/metadata.json';
 import happyPathAllIntervals from './mock_data/intervalCalculationsCorrect/allIntervals.json';
+
 import { getSessionIntervals } from '.';
 
 describe('getSessionIntervals', () => {
@@ -50,6 +51,12 @@ describe('getSessionIntervals', () => {
 
                     pointer++;
                 }
+
+                const lastInterval = intervals[pointer - 1];
+                expect(lastInterval.endPercent).toBe(1);
+                expect(lastInterval.endTime + metadata.startTime).toBe(
+                    metadata.endTime
+                );
             }
         );
     });

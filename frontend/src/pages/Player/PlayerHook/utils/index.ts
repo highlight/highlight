@@ -16,7 +16,6 @@ export const getSessionIntervals = (
     metadata: playerMetaData,
     allIntervals: SessionInterval[]
 ): ParsedSessionInterval[] => {
-    console.log({ allIntervals });
     // The intervals we get from rrweb are sometimes bad. Without special handling, the sessions bar is unusable. We mitigate an unusable slider by providing a single interval. See HIG-211 for context.
     const isBadSession = allIntervals.some((interval) => interval.duration < 0);
     if (isBadSession) {
@@ -32,21 +31,10 @@ export const getSessionIntervals = (
         ];
     }
 
-    let sliderIntervalMap = getIntervalWithPercentages(metadata, allIntervals);
-
-    if (
-        sliderIntervalMap[sliderIntervalMap.length - 1].endTime <
-        metadata.totalTime
-    ) {
-        allIntervals[allIntervals.length - 1].endTime = metadata.totalTime;
-        allIntervals[allIntervals.length - 1].duration =
-            metadata.totalTime -
-            allIntervals[allIntervals.length - 1].startTime;
-
-        // Recalculate the interval percentages because we extended the last interval.
-        sliderIntervalMap = getIntervalWithPercentages(metadata, allIntervals);
-    }
-    console.log('[Highlight] Session Intervals:', sliderIntervalMap);
+    const sliderIntervalMap = getIntervalWithPercentages(
+        metadata,
+        allIntervals
+    );
 
     return sliderIntervalMap;
 };

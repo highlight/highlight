@@ -111,16 +111,6 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
         if (state === ReplayerState.Playing) {
             let timerId: number;
 
-            if (replayer) {
-                console.log(replayer?.getMetaData());
-                console.log(replayer?.getActivityIntervals());
-                const sessionIntervals = getSessionIntervals(
-                    replayer?.getMetaData(),
-                    replayer?.getActivityIntervals()
-                );
-                setSessionIntervals(sessionIntervals);
-            }
-
             const frameAction = () => {
                 if (replayer) {
                     setTime(replayer.getCurrentTime());
