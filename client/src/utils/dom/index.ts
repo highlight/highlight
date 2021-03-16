@@ -13,18 +13,14 @@ export const getElementSelector = (element: Element) => {
         selector = selector.concat(getSelectorString(classNames, '.'));
     }
 
+    // Default to the element's tag if the element doesn't have ids or class names.
     if (selector === '') {
         selector = selector.concat(element.tagName.toLowerCase());
-    }
-    if (selector === '') {
-        selector = selector.concat(
-            (element as HTMLElement).tagName.toLowerCase()
-        );
     }
 
     return selector;
 };
 
-const getSelectorString = (selector: string, delimeter: string) => {
-    return `${delimeter}${selector.trim().split(' ').join(delimeter)}`;
+const getSelectorString = (selector: string, delimiter: string) => {
+    return `${delimiter}${selector.trim().split(' ').join(delimiter)}`;
 };
