@@ -2,10 +2,11 @@ import { getElementSelector } from './index';
 
 describe('getElementSelector', () => {
     const mockGetAttribute = (context: any) => (attribute: string) => {
-        const mapping = {
+        const mapping: { class: string; id: string } = {
             class: 'className',
             id: 'id',
         };
+        // @ts-ignore
         return context[mapping[attribute]];
     };
 
