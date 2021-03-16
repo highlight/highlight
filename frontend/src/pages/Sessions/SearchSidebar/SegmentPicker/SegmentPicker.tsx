@@ -36,8 +36,8 @@ export const SegmentPicker = () => {
                 user_properties: [],
                 identified: false,
             };
-            setExistingParams({ ...empty });
-            setSearchParams({ ...empty });
+            setExistingParams(empty);
+            setSearchParams(empty);
         }
     }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
 

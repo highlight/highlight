@@ -13,17 +13,17 @@ export const LengthInput = () => {
         searchParams.length_range?.max ? searchParams.length_range?.max : 0
     );
 
-    const updateSearchParams = ([min, max]: [number, number]) => {
+    const updateSearchParams = () => {
         // The slider allows user to move the right-most knob to the left of the left-most knob and vice-versa. Because of this the former max knob becomes the new min knob so we need to swap the values.
-        if (min > max) {
-            const temp = max;
-            max = min;
-            min = temp;
+        if (localMin > localMax) {
+            const temp = localMax;
+            setLocalMax(localMin);
+            setLocalMin(temp);
         }
         setSearchParams((params) => {
             return {
                 ...params,
-                length_range: { min, max },
+                length_range: { min: localMin, max: localMax },
             };
         });
     };
@@ -42,12 +42,12 @@ export const LengthInput = () => {
                 min={0}
                 max={60}
                 marks={marks}
-                value={localMin && localMax ? [localMin, localMax] : undefined}
+                value={[localMin, localMax]}
                 onChange={([min, max]) => {
                     setLocalMin(min);
                     setLocalMax(max);
                 }}
-                onAfterChange={(value) => updateSearchParams(value)}
+                onAfterChange={updateSearchParams}
             />
         </div>
     );
