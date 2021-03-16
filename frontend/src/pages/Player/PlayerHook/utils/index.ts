@@ -61,6 +61,14 @@ export const getSessionIntervals = (
             endPercent: currTime / totalDuration,
         };
     });
+
+    if (
+        sliderIntervalMap[sliderIntervalMap.length - 1].endTime !==
+        metadata.totalTime
+    ) {
+        sliderIntervalMap[sliderIntervalMap.length - 1].endTime =
+            metadata.totalTime;
+    }
     console.log('[Highlight] Session Intervals:', sliderIntervalMap);
 
     return sliderIntervalMap;
