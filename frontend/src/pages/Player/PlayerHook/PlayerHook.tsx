@@ -90,11 +90,6 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                         '[Highlight] Session Metadata:',
                         replayer.getMetaData()
                     );
-                    replayer.on(ReplayerEvents.FullsnapshotRebuilded, (e) => {
-                        console.log(e);
-                        console.log(replayer.getMetaData());
-                        console.log(replayer.getActivityIntervals());
-                    });
                     setSessionIntervals(sessionIntervals);
                     setSessionEndTime(replayer.getMetaData().totalTime);
                     setState(ReplayerState.LoadedAndUntouched);
@@ -115,8 +110,17 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     useEffect(() => {
         if (state === ReplayerState.Playing) {
             let timerId: number;
-            console.log(replayer?.getMetaData());
-            console.log(replayer?.getActivityIntervals());
+
+            if (replayer) {
+                console.log(replayer?.getMetaData());
+                console.log(replayer?.getActivityIntervals());
+                const sessionIntervals = getSessionIntervals(
+                    replayer?.getMetaData(),
+                    replayer?.getActivityIntervals()
+                );
+                setSessionIntervals(sessionIntervals);
+            }
+            setSessionIntervals(sessionIntervals);
 
             const frameAction = () => {
                 if (replayer) {
