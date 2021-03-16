@@ -39,6 +39,9 @@ export const getSessionIntervals = (
         metadata.totalTime
     ) {
         allIntervals[allIntervals.length - 1].endTime = metadata.totalTime;
+        allIntervals[allIntervals.length - 1].duration =
+            metadata.totalTime -
+            allIntervals[allIntervals.length - 1].startTime;
 
         // Recalculate the interval percentages because we extended the last interval.
         sliderIntervalMap = getIntervalWithPercentages(metadata, allIntervals);
