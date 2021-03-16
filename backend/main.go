@@ -28,7 +28,6 @@ import (
 )
 
 var (
-	environment    = os.Getenv("ENVIRONMENT")
 	frontendURL    = os.Getenv("FRONTEND_URI")
 	statsdHost     = os.Getenv("STATSD_HOST")
 	landingURL     = os.Getenv("LANDING_PAGE_URI")
