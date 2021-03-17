@@ -19,6 +19,7 @@ import { H } from 'highlight.run';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { AlertsPage } from '../Alerts/Alerts';
 import useLocalStorage from '@rehooks/local-storage';
+import SvgSlackLogo from '../../components/icons/SlackLogo';
 
 enum PlatformType {
     Html = 'HTML',
@@ -113,7 +114,14 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         </Section>
                         <Section
                             title="Verify Installation"
-                            integrated={integrated}
+                            headingIcon={
+                                integrated && (
+                                    <IntegrationDetector
+                                        verbose={false}
+                                        integrated={integrated}
+                                    />
+                                )
+                            }
                         >
                             <div className={styles.snippetSubHeading}>
                                 Please follow the setup instructions above to
@@ -125,19 +133,19 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 verbose={true}
                             />
                         </Section>
-                        <Section title="Slack Alerts">
+                        <Section
+                            title="Enable Slack Alerts"
+                            headingIcon={
+                                <SvgSlackLogo height="15" width="15" />
+                            }
+                        >
                             <p className={styles.snippetSubHeading}>
                                 Get notified of errors happening in your
                                 application.
                             </p>
                             <AlertsPage
                                 className={styles.alertsPage}
-                                redirectUrl={
-                                    (process.env.REACT_APP_ENVIRONMENT === 'dev'
-                                        ? process.env.REACT_APP_LOCAL_TUNNEL_URI
-                                        : process.env.REACT_APP_FRONTEND_URI) +
-                                    `/${organization_id}/setup`
-                                }
+                                path="setup"
                             />
                         </Section>
                     </>
@@ -304,13 +312,13 @@ export default MyApp`}
 
 type SectionProps = {
     title: string;
-    integrated?: boolean;
+    headingIcon?: React.ReactNode;
 };
 
 export const Section: FunctionComponent<SectionProps> = ({
     children,
     title,
-    integrated,
+    headingIcon,
 }) => {
     const [expanded, setExpanded] = useLocalStorage<boolean>(
         `setup-page-section-state-${title}`,
@@ -321,14 +329,7 @@ export const Section: FunctionComponent<SectionProps> = ({
         <div className={styles.triggerWrapper}>
             <div className={styles.snippetHeadingTwo}>
                 <span style={{ marginRight: 8 }}>{title}</span>
-                {!expanded && integrated !== undefined ? (
-                    <IntegrationDetector
-                        verbose={false}
-                        integrated={integrated}
-                    />
-                ) : (
-                    <></>
-                )}
+                {!expanded && headingIcon}
             </div>
             <DownIcon
                 className={styles.icon}

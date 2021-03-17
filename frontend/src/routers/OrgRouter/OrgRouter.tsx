@@ -79,14 +79,7 @@ export const OrgRouter = () => {
                         <WorkspaceSettings />
                     </Route>
                     <Route path="/:organization_id/alerts">
-                        <AlertsPage
-                            redirectUrl={
-                                (process.env.REACT_APP_ENVIRONMENT === 'dev'
-                                    ? process.env.REACT_APP_LOCAL_TUNNEL_URI
-                                    : process.env.REACT_APP_FRONTEND_URI) +
-                                `/${organization_id}/alerts`
-                            }
-                        />
+                        <AlertsPage path="alerts" />
                     </Route>
                     <Route path="/:organization_id/team">
                         <WorkspaceTeam />

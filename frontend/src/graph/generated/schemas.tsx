@@ -386,6 +386,7 @@ export type MutationAddAdminToOrganizationArgs = {
 export type MutationAddSlackIntegrationToWorkspaceArgs = {
     organization_id: Scalars['ID'];
     code: Scalars['String'];
+    path: Scalars['String'];
 };
 
 export type MutationCreateSegmentArgs = {

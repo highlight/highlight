@@ -6,12 +6,12 @@ import { useAddSlackIntegrationToWorkspaceMutation } from '../../graph/generated
 import { alertsBody } from './Alerts.module.scss';
 
 interface AlertsProp {
-    redirectUrl: string;
+    path: string;
 }
 
 const Alerts: React.FC<
     RouteComponentProps & HTMLProps<HTMLDivElement> & AlertsProp
-> = ({ history, className, redirectUrl }) => {
+> = ({ history, className, path }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [addSlackIntegration] = useAddSlackIntegrationToWorkspaceMutation();
     const [integrationLoading, setIntegrationLoading] = useState<
@@ -25,7 +25,11 @@ const Alerts: React.FC<
         if (!code) return;
         setIntegrationLoading(true);
         addSlackIntegration({
-            variables: { organization_id: organization_id, code: code },
+            variables: {
+                organization_id: organization_id,
+                code,
+                path,
+            },
         })
             .then(() => {
                 setIntegrationLoading(false);
@@ -38,12 +42,18 @@ const Alerts: React.FC<
                 // Remove the "code" URL param that Slack adds to the redirect URL.
                 history.replace({ search: '' });
             });
-    }, [addSlackIntegration, history, organization_id, searchLocation]);
+    }, [addSlackIntegration, history, organization_id, path, searchLocation]);
+
+    const redirectUriOrigin = `${
+        process.env.REACT_APP_ENVIRONMENT === 'dev'
+            ? process.env.REACT_APP_LOCAL_TUNNEL_URI
+            : process.env.REACT_APP_FRONTEND_URI
+    }/${organization_id}`;
 
     return (
         <div className={className || alertsBody}>
             <a
-                href={`https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=incoming-webhook&redirect_uri=${redirectUrl}`}
+                href={`https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=incoming-webhook&redirect_uri=${redirectUriOrigin}/${path}`}
             >
                 {integrationLoading ? (
                     'loading'

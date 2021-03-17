@@ -20,10 +20,11 @@ mutation AddAdminToOrganization($organization_id: ID!, $invite_id: String!) {
     )
 }
 
-mutation AddSlackIntegrationToWorkspace($organization_id: ID!, $code: String!) {
+mutation AddSlackIntegrationToWorkspace($organization_id: ID!, $code: String!, $path: String!) {
     addSlackIntegrationToWorkspace(
         organization_id: $organization_id
         code: $code
+        path: $path
     )
 }
 

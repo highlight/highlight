@@ -205,10 +205,12 @@ export const AddSlackIntegrationToWorkspaceDocument = gql`
     mutation AddSlackIntegrationToWorkspace(
         $organization_id: ID!
         $code: String!
+        $path: String!
     ) {
         addSlackIntegrationToWorkspace(
             organization_id: $organization_id
             code: $code
+            path: $path
         )
     }
 `;
@@ -232,6 +234,7 @@ export type AddSlackIntegrationToWorkspaceMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      code: // value for 'code'
+ *      path: // value for 'path'
  *   },
  * });
  */
