@@ -245,9 +245,16 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "os_name", Value: sessionObj.OSName})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
-		if err := r.UpdateErrorGroup(*errorToInsert, v.Trace, metaFields); err != nil {
+		group, err := r.UpdateErrorGroup(*errorToInsert, v.Trace, metaFields)
+		if err != nil {
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
+		}
+		if organizationID == 1 {
+			if err := r.SlackErrorMessage(group, organizationID); err != nil {
+				log.Errorf("Error sending slack error message: %v", err)
+				continue
+			}
 		}
 	}
 	now := time.Now()

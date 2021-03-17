@@ -269,6 +269,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 		redirect = os.Getenv("FRONTEND_URI")
 	}
 	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
+	fmt.Println(redirect)
 	resp, err := slack.
 		GetOAuthV2Response(
 			&http.Client{},
