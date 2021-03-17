@@ -17,6 +17,7 @@ import Collapsible from 'react-collapsible';
 import Skeleton from 'react-loading-skeleton';
 import { H } from 'highlight.run';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
+import { AlertsPage } from '../Alerts/Alerts';
 
 enum PlatformType {
     Html = 'HTML',
@@ -118,10 +119,24 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 install Highlight. It should take less than a
                                 minute for us to detect installation.
                             </div>
-                            <br />
                             <IntegrationDetector
                                 integrated={integrated}
                                 verbose={true}
+                            />
+                        </Section>
+                        <Section title="Slack Alerts">
+                            <p className={styles.snippetSubHeading}>
+                                Get notified of errors happening in your
+                                application.
+                            </p>
+                            <AlertsPage
+                                className={styles.alertsPage}
+                                redirectUrl={
+                                    (process.env.REACT_APP_ENVIRONMENT === 'dev'
+                                        ? process.env.REACT_APP_LOCAL_TUNNEL_URI
+                                        : process.env.REACT_APP_FRONTEND_URI) +
+                                    `/${organization_id}/setup`
+                                }
                             />
                         </Section>
                     </>
@@ -246,9 +261,9 @@ import ReactDOM from 'react-dom';
 import './index.scss';
 import App from './App';
 import { H } from 'highlight.run'
- 
+
 H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
- 
+
 ReactDOM.render(<App />, document.getElementById('root'));`}
                         />
                     ) : platform === PlatformType.Vue ? (
@@ -256,10 +271,10 @@ ReactDOM.render(<App />, document.getElementById('root'));`}
                             text={`import Vue from 'vue';
 import App from './App.vue';
 import { H } from 'highlight.run';
- 
+
 H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
 Vue.prototype.$H = H;
- 
+
 new Vue({
   render: h => h(App)
 }).$mount('#app');`}
