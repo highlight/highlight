@@ -1,0 +1,63 @@
+@import 'src/static/shared.scss';
+
+.header {
+    font-size: 19px;
+    font-weight: 300;
+    color: $text-primary;
+    margin: 0;
+    margin-bottom: $size-medium;
+}
+
+.description {
+    font-weight: 200;
+    line-height: 20px;
+    font-size: 15px;
+    color: $text-label;
+    margin: 0 auto;
+    margin-bottom: $size-medium;
+    max-width: 362px;
+}
+
+.container {
+    border: 1px solid $border-light-gray;
+    padding: $size-medium;
+    padding-bottom: $size-large;
+    text-align: center;
+    margin-bottom: 14px;
+    border-radius: 8px;
+}
+
+.closeButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.closeIcon {
+    color: $text-primary;
+    height: $size-small;
+    width: $size-small;
+}
+
+.actionsContainer {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.link {
+    padding: $size-xSmall 0;
+    text-align: center;
+    background: $highlight-purple;
+    color: $text-primary-inverted;
+    width: 211px;
+    display: block;
+    margin: 0 auto;
+    border-radius: $button-border-radius;
+
+    &:hover {
+        color: $text-primary-inverted;
+    }
+}
