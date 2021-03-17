@@ -260,7 +260,8 @@ const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
         if (!canvas) return;
 
         let x =
-            event.clientX +
+            event.clientX -
+            64 +
             document.body.scrollLeft +
             document.documentElement.scrollLeft;
 
