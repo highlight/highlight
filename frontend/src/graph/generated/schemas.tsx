@@ -92,7 +92,7 @@ export type ErrorObject = {
 
 export type ErrorField = {
     __typename?: 'ErrorField';
-    organization_id: Scalars['Int'];
+    organization_id?: Maybe<Scalars['Int']>;
     name: Scalars['String'];
     value: Scalars['String'];
 };
