@@ -2,14 +2,15 @@
 
 .header {
     font-size: 19px;
-    font-weight: normal;
+    font-weight: 300;
     color: $text-primary;
     margin: 0;
     margin-bottom: $size-medium;
 }
 
 .description {
-    font-weight: normal;
+    font-weight: 200;
+    line-height: 20px;
     font-size: 15px;
     color: $text-label;
     margin: 0 auto;

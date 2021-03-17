@@ -44,7 +44,7 @@ export const SessionFeed = () => {
     });
 
     // TODO: Replace hardcoded value with reading from the plan type.
-    const hasReachedSessionsLimit = false;
+    const hasReachedSessionsLimit = true;
 
     useEffect(() => {
         setShowLoadingSkeleton(true);

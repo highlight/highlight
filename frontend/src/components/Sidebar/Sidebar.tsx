@@ -14,9 +14,12 @@ import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg
 import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
 import { DemoContext } from '../../DemoContext';
+import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
 
 export const Sidebar = () => {
     const { openSidebar } = useContext(SidebarContext);
+    const { pathname } = useLocation();
+
     return (
         <>
             <StaticSidebar />
@@ -67,6 +70,10 @@ export const Sidebar = () => {
                 </SidebarItem>
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
+                        {/* TODO: Integrate with billing plan. */}
+                        {false && pathname.includes('settings') && (
+                            <CurrentUsageCard currentUsage={500} limit={1500} />
+                        )}
                         <Link
                             to={{
                                 pathname:
