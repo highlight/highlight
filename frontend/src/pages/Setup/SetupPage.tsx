@@ -17,9 +17,9 @@ import Collapsible from 'react-collapsible';
 import Skeleton from 'react-loading-skeleton';
 import { H } from 'highlight.run';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
-import { AlertsPage } from '../Alerts/Alerts';
 import useLocalStorage from '@rehooks/local-storage';
 import SvgSlackLogo from '../../components/icons/SlackLogo';
+import SlackIntegration from '../Alerts/SlackIntegration/SlackIntegration';
 
 enum PlatformType {
     Html = 'HTML',
@@ -143,10 +143,7 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 Get notified of errors happening in your
                                 application.
                             </p>
-                            <AlertsPage
-                                className={styles.alertsPage}
-                                redirect_path="setup"
-                            />
+                            <SlackIntegration redirectPath="setup" />
                         </Section>
                     </>
                 )}

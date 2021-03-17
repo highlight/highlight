@@ -1,4 +1,3 @@
-export const alertsPage: string;
 export const blankSidebar: string;
 export const callout: string;
 export const calloutEmoji: string;
