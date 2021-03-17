@@ -20,16 +20,18 @@ export const SearchMatchOption = (props: any) => {
         (foundIndex === label.length ? '' : '...') +
         label.substring(0, foundIndex);
     return (
-        <components.Option {...props}>
-            <Highlighter
-                searchWords={[selectProps.length < 2 ? '' : selectProps]}
-                highlightStyle={{
-                    fontWeight: 400,
-                    padding: '0px',
-                    backgroundColor: 'transparent',
-                }}
-                textToHighlight={parsedLabel}
-            />
-        </components.Option>
+        <div title={label}>
+            <components.Option {...props}>
+                <Highlighter
+                    searchWords={[selectProps.length < 2 ? '' : selectProps]}
+                    highlightStyle={{
+                        fontWeight: 400,
+                        padding: '0px',
+                        backgroundColor: 'transparent',
+                    }}
+                    textToHighlight={parsedLabel}
+                />
+            </components.Option>
+        </div>
     );
 };
