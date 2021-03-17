@@ -224,10 +224,14 @@ export const ErrorPage = () => {
                                     >
                                         <span>{e?.error_id}</span>
                                         <span>{e?.session_id}</span>
-                                        <span
-                                            className={styles.errorLogOverflow}
-                                        >
-                                            {e?.visited_url}
+                                        <span className={styles.errorLogCell}>
+                                            <span
+                                                className={
+                                                    styles.errorLogOverflow
+                                                }
+                                            >
+                                                {e?.visited_url}
+                                            </span>
                                         </span>
                                         <span>{e?.browser}</span>
                                         <span>{e?.os}</span>
