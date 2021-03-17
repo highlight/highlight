@@ -15,7 +15,7 @@ export const CurrentUsageCard: React.FC<CurrentUsageCardProps> = ({
         <section className={styles.container}>
             <h3 className={styles.header}>Upgrade to increase your limit!</h3>
             <p className={styles.description}>
-                This workspace has used {currentUsage} of its {limit} event
+                This workspace has used {currentUsage} of its {limit} sessions
                 limit ({((currentUsage / limit) * 100).toFixed(0)}%).
             </p>
             <Progress
