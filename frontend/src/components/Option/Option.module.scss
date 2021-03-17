@@ -1,0 +1,16 @@
+.propertyWrapper {
+    display: flex;
+    width: 100%;
+}
+
+.propertyTag {
+    margin-right: 8px;
+    color: black;
+    font-weight: 300;
+}
+
+.propertyLabel {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
