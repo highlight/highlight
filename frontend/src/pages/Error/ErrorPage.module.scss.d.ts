@@ -1,4 +1,3 @@
-export const blankSidebar: string;
 export const collapsible: string;
 export const errorLogItem: string;
 export const errorLogOverflow: string;

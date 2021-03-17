@@ -69,7 +69,6 @@ export const ErrorPage = () => {
 
     return (
         <div className={styles.errorPageWrapper}>
-            <div className={styles.blankSidebar} />
             <div className={styles.errorPage}>
                 <div className={styles.titleWrapper}>
                     {loading ? (
@@ -137,13 +136,16 @@ export const ErrorPage = () => {
                         />
                     ) : (
                         <>
-                            {data?.error_group?.field_group?.map((e, i) => (
-                                <Field
-                                    key={i}
-                                    k={e?.name ?? ''}
-                                    v={e?.value.toLowerCase() ?? ''}
-                                />
-                            ))}
+                            {data?.error_group?.field_group?.map(
+                                (e, i) =>
+                                    e?.name != 'visited_url' && (
+                                        <Field
+                                            key={i}
+                                            k={e?.name ?? ''}
+                                            v={e?.value.toLowerCase() ?? ''}
+                                        />
+                                    )
+                            )}
                         </>
                     )}
                 </div>
@@ -375,8 +377,16 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                         allowDecimals={false}
                         hide={true}
                     />
-                    <Tooltip />
-                    <Bar dataKey="occurences">
+                    <Tooltip
+                        contentStyle={{
+                            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                            borderRadius: '5px',
+                            borderWidth: 0,
+                            color: 'white',
+                        }}
+                        itemStyle={{ color: 'white' }}
+                    />
+                    <Bar dataKey="occurences" radius={[2, 2, 0, 0]}>
                         {errorDates.map((e, i) => (
                             <Cell
                                 key={i}
