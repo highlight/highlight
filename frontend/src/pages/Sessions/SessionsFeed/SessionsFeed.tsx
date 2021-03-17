@@ -7,7 +7,7 @@ import classNames from 'classnames/bind';
 import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { Avatar } from '../../../components/Avatar/Avatar';
-import { Tag, Tooltip } from 'antd';
+import { Tooltip } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 import { useGetSessionsBetaQuery } from '../../../graph/generated/hooks';
 import {
@@ -16,6 +16,7 @@ import {
     SessionResults,
 } from '../../../graph/generated/schemas';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
+import { Field } from '../../../components/Field/Field';
 
 export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -166,18 +167,17 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                             f?.name !== 'identifier' &&
                                             f?.value.length
                                     )
-                                    .map((f) => (
-                                        <Tag color="#F2EEFB" key={f?.value}>
-                                            <span
-                                                style={{
-                                                    color: 'black',
-                                                    fontWeight: 300,
-                                                }}
-                                            >
-                                                {f?.name}:&nbsp;{f?.value}
-                                            </span>
-                                        </Tag>
-                                    ))}
+                                    .map(
+                                        (f) =>
+                                            f && (
+                                                <Field
+                                                    color="#F2EEFB"
+                                                    key={f.value}
+                                                    k={f.name}
+                                                    v={f.value}
+                                                />
+                                            )
+                                    )}
                             </div>
                         </div>
                         <div className={styles.sessionTextSection}>

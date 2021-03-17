@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import styles from './ErrorFeed.module.scss';
 import Skeleton from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
-import { Tag, Tooltip } from 'antd';
+import { Tooltip } from 'antd';
 import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
 import {
     ErrorGroup,
@@ -13,9 +13,10 @@ import {
 import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { gqlSanitize } from '../../../util/gqlSanitize';
-import { EventInput } from '../ErrorSearchInputs/EventInput';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import { frequencyTimeData } from '../../../util/errorCalculations';
+import { Field } from '../../../components/Field/Field';
+import { EventInput } from '../ErrorSearchInputs/EventInput';
 
 export type ErrorMetadata = {
     browser: string;
@@ -196,16 +197,13 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                 {errorGroup?.event[0]}
                             </div>
                             <div className={styles.tagWrapper}>
-                                <Tag color="#F2EEFB">
-                                    <span
-                                        style={{
-                                            color: 'black',
-                                            fontWeight: 300,
-                                        }}
-                                    >
-                                        {errorGroup?.trace[0]?.function_name}
-                                    </span>
-                                </Tag>
+                                {errorGroup?.trace[0]?.function_name && (
+                                    <Field
+                                        color="#F2EEFB"
+                                        k={'function'}
+                                        v={errorGroup.trace[0].function_name}
+                                    />
+                                )}
                             </div>
                         </div>
                         <div className={styles.errorTextSection}>
