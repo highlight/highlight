@@ -3,7 +3,6 @@ import { useParams } from 'react-router';
 import { Field } from '../../components/Field/Field';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
-import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
 import {
     BarChart,
     Bar,
@@ -18,7 +17,6 @@ import LinesEllipsis from 'react-lines-ellipsis';
 
 import styles from './ErrorPage.module.scss';
 import Skeleton from 'react-loading-skeleton';
-import Collapsible from 'react-collapsible';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import moment from 'moment';
 import { frequencyTimeData } from '../../util/errorCalculations';
@@ -260,7 +258,6 @@ export const StackSection: React.FC<StackSectionProps> = ({
     lineNumber,
     columnNumber,
 }) => {
-    const [expanded, setExpanded] = useState(false);
     const trigger = (
         <div className={styles.triggerWrapper}>
             <div className={styles.snippetHeadingTwo}>
@@ -286,38 +283,11 @@ export const StackSection: React.FC<StackSectionProps> = ({
                     {lineNumber}:{columnNumber}
                 </span>
             </div>
-            <div className={styles.iconWrapper}>
-                <DownIcon
-                    className={styles.icon}
-                    style={{
-                        transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                    }}
-                    onClick={() => setExpanded((e) => !e)}
-                />
-            </div>
         </div>
     );
     return (
         <div className={styles.section}>
-            <Collapsible
-                open={expanded}
-                onOpening={() => setExpanded(true)}
-                onClosing={() => setExpanded(false)}
-                trigger={trigger}
-                transitionTime={150}
-                style={{ margin: 10, width: '100%' }}
-                className={styles.collapsible}
-            >
-                {expanded ? (
-                    <>
-                        <div className={styles.subSection}>
-                            There's nothing to see here right now.
-                        </div>
-                    </>
-                ) : (
-                    <></>
-                )}
-            </Collapsible>
+            <div className={styles.collapsible}>{trigger}</div>
         </div>
     );
 };
