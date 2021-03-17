@@ -4,11 +4,25 @@ import { Field } from '../../components/Field/Field';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
 import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    Tooltip,
+    ResponsiveContainer,
+    CartesianGrid,
+    YAxis,
+    Cell,
+} from 'recharts';
 import LinesEllipsis from 'react-lines-ellipsis';
 
 import styles from './ErrorPage.module.scss';
 import Skeleton from 'react-loading-skeleton';
 import Collapsible from 'react-collapsible';
+import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
+import moment from 'moment';
+import { frequencyTimeData } from '../../util/errorCalculations';
+import classNames from 'classnames';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -50,12 +64,11 @@ export const ErrorPage = () => {
     }, [data]);
 
     useEffect(() => {
-        setOpenSidebar(true);
+        setOpenSidebar(false);
     }, [setOpenSidebar]);
 
     return (
         <div className={styles.errorPageWrapper}>
-            <div className={styles.blankSidebar} />
             <div className={styles.errorPage}>
                 <div className={styles.titleWrapper}>
                     {loading ? (
@@ -123,13 +136,16 @@ export const ErrorPage = () => {
                         />
                     ) : (
                         <>
-                            {data?.error_group?.field_group?.map((e, i) => (
-                                <Field
-                                    key={i}
-                                    k={e?.name ?? ''}
-                                    v={e?.value.toLowerCase() ?? ''}
-                                />
-                            ))}
+                            {data?.error_group?.field_group?.map(
+                                (e, i) =>
+                                    e?.name != 'visited_url' && (
+                                        <Field
+                                            key={i}
+                                            k={e?.name ?? ''}
+                                            v={e?.value.toLowerCase() ?? ''}
+                                        />
+                                    )
+                            )}
                         </>
                     )}
                 </div>
@@ -144,15 +160,88 @@ export const ErrorPage = () => {
                         'Stack Trace'
                     )}
                 </div>
-                {data?.error_group?.trace.map((e, i) => (
-                    <StackSection
-                        key={i}
-                        fileName={e?.file_name ?? ''}
-                        functionName={e?.function_name ?? ''}
-                        lineNumber={e?.line_number ?? 0}
-                        columnNumber={e?.column_number ?? 0}
-                    />
-                ))}
+                <div className={styles.fieldWrapper}>
+                    {data?.error_group?.trace.map((e, i) => (
+                        <StackSection
+                            key={i}
+                            fileName={e?.file_name ?? ''}
+                            functionName={e?.function_name ?? ''}
+                            lineNumber={e?.line_number ?? 0}
+                            columnNumber={e?.column_number ?? 0}
+                        />
+                    ))}
+                </div>
+                <div className={styles.subTitle}>
+                    {loading ? (
+                        <Skeleton
+                            duration={1}
+                            count={1}
+                            style={{ width: 300 }}
+                        />
+                    ) : (
+                        'Error Frequency'
+                    )}
+                </div>
+                <div className={styles.fieldWrapper}>
+                    <ErrorFrequencyGraph errorGroup={data?.error_group} />
+                </div>
+                <div
+                    className={styles.fieldWrapper}
+                    style={{ paddingBottom: '40px' }}
+                >
+                    <div className={styles.section}>
+                        <div className={styles.collapsible}>
+                            <div className={styles.triggerWrapper}>
+                                <div
+                                    className={classNames(
+                                        styles.errorLogsTitle,
+                                        styles.errorLogItem
+                                    )}
+                                >
+                                    <span>Error ID</span>
+                                    <span>Session ID</span>
+                                    <span>Visited URL</span>
+                                    <span>Browser</span>
+                                    <span>OS</span>
+                                    <span>Timestamp</span>
+                                </div>
+                            </div>
+                            {data?.error_group?.metadata_log
+                                .slice(
+                                    Math.max(
+                                        data?.error_group?.metadata_log.length -
+                                            6,
+                                        0
+                                    )
+                                )
+                                .reverse()
+                                .map((e, i) => (
+                                    <div
+                                        key={i}
+                                        className={classNames(
+                                            styles.subSection,
+                                            styles.errorLogItem
+                                        )}
+                                    >
+                                        <span>{e?.error_id}</span>
+                                        <span>{e?.session_id}</span>
+                                        <span
+                                            className={styles.errorLogOverflow}
+                                        >
+                                            {e?.visited_url}
+                                        </span>
+                                        <span>{e?.browser}</span>
+                                        <span>{e?.os}</span>
+                                        <span>
+                                            {moment(e?.timestamp).format(
+                                                'D MMMM YYYY, HH:mm:ss'
+                                            )}
+                                        </span>
+                                    </div>
+                                ))}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
@@ -229,6 +318,93 @@ export const StackSection: React.FC<StackSectionProps> = ({
                     <></>
                 )}
             </Collapsible>
+        </div>
+    );
+};
+
+type FrequencyGraphProps = {
+    errorGroup?: Maybe<ErrorGroup>;
+};
+
+type ErrorFrequency = {
+    date: string;
+    occurences: number;
+};
+
+export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
+    errorGroup,
+}) => {
+    const [errorDates, setErrorDates] = useState<Array<ErrorFrequency>>(
+        Array(30).fill(0)
+    );
+    const [totalErrors, setTotalErrors] = useState<number>(0);
+
+    useEffect(() => {
+        const errorDatesCopy = frequencyTimeData(errorGroup, 30);
+        const errorData = errorDatesCopy.map((val, idx) => ({
+            date: moment()
+                .startOf('day')
+                .subtract(29 - idx, 'days')
+                .format('D MMM YYYY'),
+            occurences: val,
+        }));
+        setTotalErrors(errorDatesCopy.reduce((acc, val) => acc + val, 0));
+        setErrorDates(errorData);
+    }, [errorGroup]);
+    return (
+        <div className={classNames(styles.section, styles.graphSection)}>
+            <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                    width={500}
+                    height={300}
+                    data={errorDates}
+                    margin={{
+                        top: 5,
+                        right: 10,
+                        left: 10,
+                        bottom: 0,
+                    }}
+                >
+                    <CartesianGrid stroke={'#D9D9D9'} vertical={false} />
+                    <XAxis
+                        dataKey="date"
+                        tick={false}
+                        axisLine={{ stroke: '#D9D9D9' }}
+                    />
+                    <YAxis
+                        tickCount={10}
+                        interval="preserveStart"
+                        allowDecimals={false}
+                        hide={true}
+                    />
+                    <Tooltip
+                        contentStyle={{
+                            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                            borderRadius: '5px',
+                            borderWidth: 0,
+                            color: 'white',
+                        }}
+                        itemStyle={{ color: 'white' }}
+                    />
+                    <Bar dataKey="occurences" radius={[2, 2, 0, 0]}>
+                        {errorDates.map((e, i) => (
+                            <Cell
+                                key={i}
+                                fill={
+                                    e.occurences >
+                                    Math.max(totalErrors * 0.1, 10)
+                                        ? '#C62929'
+                                        : '#835E00'
+                                }
+                            />
+                        ))}
+                    </Bar>
+                </BarChart>
+            </ResponsiveContainer>
+            <div className={styles.graphLabels}>
+                <div>Past 30 days</div>
+                <div>{`Total Occurences: ${totalErrors}`}</div>
+            </div>
         </div>
     );
 };

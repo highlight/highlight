@@ -13,9 +13,9 @@ import {
 import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { gqlSanitize } from '../../../util/gqlSanitize';
-import moment from 'moment';
 import { EventInput } from '../ErrorSearchInputs/EventInput';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
+import { frequencyTimeData } from '../../../util/errorCalculations';
 
 export type ErrorMetadata = {
     browser: string;
@@ -135,18 +135,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     );
 
     useEffect(() => {
-        if (!errorGroup) return;
-        const today = moment();
-        const errorDatesCopy = Array(6).fill(0);
-        for (const error of errorGroup?.metadata_log ?? []) {
-            const errorDate = moment(error?.timestamp);
-            const insertIndex =
-                errorDatesCopy.length - 1 - today.diff(errorDate, 'days');
-            if (insertIndex >= 0 || insertIndex < errorDatesCopy.length) {
-                errorDatesCopy[insertIndex] += 1;
-            }
-        }
-        setErrorDates(errorDatesCopy);
+        setErrorDates(frequencyTimeData(errorGroup, 6));
     }, [errorGroup]);
 
     return (

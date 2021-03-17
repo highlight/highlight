@@ -77,9 +77,12 @@ type ComplexityRoot struct {
 	}
 
 	ErrorMetadata struct {
-		ErrorID   func(childComplexity int) int
-		SessionID func(childComplexity int) int
-		Timestamp func(childComplexity int) int
+		Browser    func(childComplexity int) int
+		ErrorID    func(childComplexity int) int
+		Os         func(childComplexity int) int
+		SessionID  func(childComplexity int) int
+		Timestamp  func(childComplexity int) int
+		VisitedURL func(childComplexity int) int
 	}
 
 	ErrorObject struct {
@@ -415,12 +418,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorGroup.Type(childComplexity), true
 
+	case "ErrorMetadata.browser":
+		if e.complexity.ErrorMetadata.Browser == nil {
+			break
+		}
+
+		return e.complexity.ErrorMetadata.Browser(childComplexity), true
+
 	case "ErrorMetadata.error_id":
 		if e.complexity.ErrorMetadata.ErrorID == nil {
 			break
 		}
 
 		return e.complexity.ErrorMetadata.ErrorID(childComplexity), true
+
+	case "ErrorMetadata.os":
+		if e.complexity.ErrorMetadata.Os == nil {
+			break
+		}
+
+		return e.complexity.ErrorMetadata.Os(childComplexity), true
 
 	case "ErrorMetadata.session_id":
 		if e.complexity.ErrorMetadata.SessionID == nil {
@@ -435,6 +452,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorMetadata.Timestamp(childComplexity), true
+
+	case "ErrorMetadata.visited_url":
+		if e.complexity.ErrorMetadata.VisitedURL == nil {
+			break
+		}
+
+		return e.complexity.ErrorMetadata.VisitedURL(childComplexity), true
 
 	case "ErrorObject.column_number":
 		if e.complexity.ErrorObject.ColumnNumber == nil {
@@ -1525,6 +1549,9 @@ type ErrorMetadata {
     error_id: Int
     session_id: Int
     timestamp: Time
+    os: String
+    browser: String
+    visited_url: String
 }
 
 type ErrorTrace {
@@ -3061,6 +3088,99 @@ func (ec *executionContext) _ErrorMetadata_timestamp(ctx context.Context, field 
 	res := resTmp.(*time.Time)
 	fc.Result = res
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorMetadata_os(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorMetadata",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Os, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorMetadata_browser(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorMetadata",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Browser, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorMetadata_visited_url(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorMetadata",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VisitedURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorObject_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
@@ -8405,6 +8525,12 @@ func (ec *executionContext) _ErrorMetadata(ctx context.Context, sel ast.Selectio
 			out.Values[i] = ec._ErrorMetadata_session_id(ctx, field, obj)
 		case "timestamp":
 			out.Values[i] = ec._ErrorMetadata_timestamp(ctx, field, obj)
+		case "os":
+			out.Values[i] = ec._ErrorMetadata_os(ctx, field, obj)
+		case "browser":
+			out.Values[i] = ec._ErrorMetadata_browser(ctx, field, obj)
+		case "visited_url":
+			out.Values[i] = ec._ErrorMetadata_visited_url(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

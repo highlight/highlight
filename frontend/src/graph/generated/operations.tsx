@@ -371,7 +371,12 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                     Types.Maybe<
                         { __typename?: 'ErrorMetadata' } & Pick<
                             Types.ErrorMetadata,
-                            'error_id' | 'session_id' | 'timestamp'
+                            | 'error_id'
+                            | 'session_id'
+                            | 'timestamp'
+                            | 'os'
+                            | 'browser'
+                            | 'visited_url'
                         >
                     >
                 >;

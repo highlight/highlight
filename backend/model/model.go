@@ -277,6 +277,8 @@ type ErrorObject struct {
 	Source         string
 	LineNumber     int
 	ColumnNumber   int
+	OS             string
+	Browser        string
 	Trace          *string `json:"trace"`
 }
 

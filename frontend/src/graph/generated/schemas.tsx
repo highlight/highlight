@@ -112,6 +112,9 @@ export type ErrorMetadata = {
     error_id?: Maybe<Scalars['Int']>;
     session_id?: Maybe<Scalars['Int']>;
     timestamp?: Maybe<Scalars['Time']>;
+    os?: Maybe<Scalars['String']>;
+    browser?: Maybe<Scalars['String']>;
+    visited_url?: Maybe<Scalars['String']>;
 };
 
 export type ErrorTrace = {

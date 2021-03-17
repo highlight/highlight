@@ -51,9 +51,12 @@ var PropertyType = struct {
 }
 
 type ErrorMetaData struct {
-	Timestamp time.Time `json:"timestamp"`
-	ErrorID   int       `json:"error_id"`
-	SessionID int       `json:"session_id"`
+	Timestamp  time.Time `json:"timestamp"`
+	ErrorID    int       `json:"error_id"`
+	SessionID  int       `json:"session_id"`
+	Browser    string    `json:"browser"`
+	OS         string    `json:"os"`
+	VisitedURL string    `json:"visited_url"`
 }
 
 type FieldData struct {
@@ -174,9 +177,12 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interfa
 	}
 
 	newMetadataLog = append(newMetadataLog, ErrorMetaData{
-		Timestamp: errorObj.CreatedAt,
-		ErrorID:   errorObj.ID,
-		SessionID: errorObj.SessionID,
+		Timestamp:  errorObj.CreatedAt,
+		ErrorID:    errorObj.ID,
+		SessionID:  errorObj.SessionID,
+		OS:         errorObj.OS,
+		Browser:    errorObj.Browser,
+		VisitedURL: errorObj.URL,
 	})
 
 	logBytes, err := json.Marshal(newMetadataLog)

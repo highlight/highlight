@@ -88,6 +88,9 @@ type ErrorMetadata {
     error_id: Int
     session_id: Int
     timestamp: Time
+    os: String
+    browser: String
+    visited_url: String
 }
 
 type ErrorTrace {
