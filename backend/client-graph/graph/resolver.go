@@ -10,8 +10,8 @@ import (
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
 	"github.com/mssola/user_agent"
-	"github.com/slack-go/slack"
 	e "github.com/pkg/errors"
+	"github.com/slack-go/slack"
 )
 
 // This file will not be regenerated automatically.
@@ -263,7 +263,7 @@ func (r *Resolver) SlackErrorMessage(group *model.ErrorGroup, org_id int) error 
 	organization := &model.Organization{}
 	res := r.DB.Where("id = ?", org_id).First(&organization)
 	if err := res.Error; err != nil {
-		return e.Wrap(err,"error messaging organization")
+		return e.Wrap(err, "error messaging organization")
 	}
 	msg := slack.WebhookMessage{
 		Text: group.Event,
