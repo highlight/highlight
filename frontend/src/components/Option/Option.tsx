@@ -2,7 +2,6 @@ import React from 'react';
 import { components, OptionProps } from 'react-select';
 import Highlighter from 'react-highlight-words';
 import styles from './Option.module.scss';
-import { Tag } from 'antd';
 
 const SearchMatch = ({
     label,
@@ -89,16 +88,12 @@ export const PropertyOption = (
     return (
         <components.Option {...props}>
             <div className={styles.propertyWrapper}>
-                {name && (
-                    <Tag color="#F2EEFB" className={styles.propertyTag}>
-                        <span>{name}</span>
-                    </Tag>
-                )}
                 <SearchMatch
                     className={styles.propertyLabel}
                     selectProps={props.selectProps.inputValue || ''}
                     label={name ? value : label}
                 />
+                {name && <span className={styles.propertyTag}>{name}</span>}
             </div>
         </components.Option>
     );

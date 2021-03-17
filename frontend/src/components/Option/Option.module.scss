@@ -1,12 +1,16 @@
+@import 'src/static/shared.scss';
+
 .propertyWrapper {
     display: flex;
     width: 100%;
+    align-items: center;
 }
 
 .propertyTag {
-    margin-right: 8px;
-    color: black;
+    margin-left: 8px;
+    color: $text-label;
     font-weight: 300;
+    font-size: 12px;
 }
 
 .propertyLabel {
