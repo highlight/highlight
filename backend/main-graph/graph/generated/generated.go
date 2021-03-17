@@ -62,9 +62,8 @@ type ComplexityRoot struct {
 	}
 
 	ErrorField struct {
-		Name           func(childComplexity int) int
-		OrganizationID func(childComplexity int) int
-		Value          func(childComplexity int) int
+		Name  func(childComplexity int) int
+		Value func(childComplexity int) int
 	}
 
 	ErrorGroup struct {
@@ -362,13 +361,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorField.Name(childComplexity), true
-
-	case "ErrorField.organization_id":
-		if e.complexity.ErrorField.OrganizationID == nil {
-			break
-		}
-
-		return e.complexity.ErrorField.OrganizationID(childComplexity), true
 
 	case "ErrorField.value":
 		if e.complexity.ErrorField.Value == nil {
@@ -1539,7 +1531,6 @@ type ErrorObject {
 }
 
 type ErrorField {
-    organization_id: Int!
     name: String!
     value: String!
 }
@@ -2701,40 +2692,6 @@ func (ec *executionContext) _DateRange_end_date(ctx context.Context, field graph
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ErrorField_organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "ErrorField",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.OrganizationID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorField_name(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorField) (ret graphql.Marshaler) {
@@ -8440,11 +8397,6 @@ func (ec *executionContext) _ErrorField(ctx context.Context, sel ast.SelectionSe
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ErrorField")
-		case "organization_id":
-			out.Values[i] = ec._ErrorField_organization_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "name":
 			out.Values[i] = ec._ErrorField_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

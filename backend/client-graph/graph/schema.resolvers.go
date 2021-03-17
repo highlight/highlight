@@ -241,10 +241,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 
 		//create error fields array
 		metaFields := []*model.ErrorField{}
-		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "browser", Value: sessionObj.BrowserName})
-		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "os_name", Value: sessionObj.OSName})
-		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
-		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
+		metaFields = append(metaFields, &model.ErrorField{Name: "browser", Value: sessionObj.BrowserName})
+		metaFields = append(metaFields, &model.ErrorField{Name: "os_name", Value: sessionObj.OSName})
+		metaFields = append(metaFields, &model.ErrorField{Name: "visited_url", Value: errorToInsert.URL})
+		metaFields = append(metaFields, &model.ErrorField{Name: "event", Value: errorToInsert.Event})
 		if err := r.UpdateErrorGroup(*errorToInsert, v.Trace, metaFields); err != nil {
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue

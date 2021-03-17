@@ -295,10 +295,9 @@ type ErrorGroup struct {
 
 type ErrorField struct {
 	Model
-	OrganizationID int
-	Name           string
-	Value          string
-	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
+	Name        string
+	Value       string
+	ErrorGroups []ErrorGroup `gorm:"many2many:error_group_fields;"`
 }
 
 func SetupDB() *gorm.DB {
