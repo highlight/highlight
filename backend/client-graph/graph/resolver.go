@@ -259,7 +259,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	return nil
 }
 
-func (r *Resolver) SlackErrorMessage(group *model.ErrorGroup, org_id int) error {
+func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int) error {
 	organization := &model.Organization{}
 	res := r.DB.Where("id = ?", org_id).First(&organization)
 	if err := res.Error; err != nil {
