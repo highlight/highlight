@@ -6,12 +6,12 @@ import { useAddSlackIntegrationToWorkspaceMutation } from '../../graph/generated
 import { alertsBody } from './Alerts.module.scss';
 
 interface AlertsProp {
-    path: string;
+    redirect_path: string;
 }
 
 const Alerts: React.FC<
     RouteComponentProps & HTMLProps<HTMLDivElement> & AlertsProp
-> = ({ history, className, path }) => {
+> = ({ history, className, redirect_path }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const [addSlackIntegration] = useAddSlackIntegrationToWorkspaceMutation();
     const [integrationLoading, setIntegrationLoading] = useState<
@@ -28,7 +28,7 @@ const Alerts: React.FC<
             variables: {
                 organization_id: organization_id,
                 code,
-                path,
+                redirect_path,
             },
         })
             .then(() => {
@@ -42,7 +42,13 @@ const Alerts: React.FC<
                 // Remove the "code" URL param that Slack adds to the redirect URL.
                 history.replace({ search: '' });
             });
-    }, [addSlackIntegration, history, organization_id, path, searchLocation]);
+    }, [
+        addSlackIntegration,
+        history,
+        organization_id,
+        redirect_path,
+        searchLocation,
+    ]);
 
     const redirectUriOrigin = `${
         process.env.REACT_APP_ENVIRONMENT === 'dev'

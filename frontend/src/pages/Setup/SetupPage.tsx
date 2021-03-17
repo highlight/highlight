@@ -145,7 +145,7 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             </p>
                             <AlertsPage
                                 className={styles.alertsPage}
-                                path="setup"
+                                redirect_path="setup"
                             />
                         </Section>
                     </>
