@@ -41,6 +41,7 @@ export type AddAdminToOrganizationMutation = { __typename?: 'Mutation' } & Pick<
 export type AddSlackIntegrationToWorkspaceMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     code: Types.Scalars['String'];
+    redirect_path: Types.Scalars['String'];
 }>;
 
 export type AddSlackIntegrationToWorkspaceMutation = {
