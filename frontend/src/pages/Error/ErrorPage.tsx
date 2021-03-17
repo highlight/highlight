@@ -7,7 +7,7 @@ import {
     BarChart,
     Bar,
     XAxis,
-    Tooltip,
+    Tooltip as RechartsTooltip,
     ResponsiveContainer,
     CartesianGrid,
     YAxis,
@@ -21,6 +21,7 @@ import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import moment from 'moment';
 import { frequencyTimeData } from '../../util/errorCalculations';
 import classNames from 'classnames';
+import { Tooltip } from 'antd';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -259,31 +260,35 @@ export const StackSection: React.FC<StackSectionProps> = ({
     columnNumber,
 }) => {
     const trigger = (
-        <div className={styles.triggerWrapper}>
-            <div className={styles.snippetHeadingTwo}>
-                <span
-                    className={styles.stackTraceErrorTitle}
-                    style={{ maxWidth: 300, fontWeight: 300 }}
-                >
-                    {fileName}
-                </span>
-                <span style={{ fontWeight: 300, color: '#808080' }}>
-                    &nbsp;in&nbsp;
-                </span>
-                <span
-                    className={styles.stackTraceErrorTitle}
-                    style={{ maxWidth: 300, fontWeight: 400 }}
-                >
-                    {functionName}
-                </span>
-                <span style={{ fontWeight: 300, color: '#808080' }}>
-                    &nbsp;at line&nbsp;
-                </span>
-                <span>
-                    {lineNumber}:{columnNumber}
-                </span>
+        <Tooltip
+            title={`${fileName} in ${functionName} at line ${lineNumber}:${columnNumber}`}
+        >
+            <div className={styles.triggerWrapper}>
+                <div className={styles.snippetHeadingTwo}>
+                    <span
+                        className={styles.stackTraceErrorTitle}
+                        style={{ maxWidth: 300, fontWeight: 300 }}
+                    >
+                        {fileName}
+                    </span>
+                    <span style={{ fontWeight: 300, color: '#808080' }}>
+                        &nbsp;in&nbsp;
+                    </span>
+                    <span
+                        className={styles.stackTraceErrorTitle}
+                        style={{ maxWidth: 300, fontWeight: 400 }}
+                    >
+                        {functionName}
+                    </span>
+                    <span style={{ fontWeight: 300, color: '#808080' }}>
+                        &nbsp;at line&nbsp;
+                    </span>
+                    <span>
+                        {lineNumber}:{columnNumber}
+                    </span>
+                </div>
             </div>
-        </div>
+        </Tooltip>
     );
     return (
         <div className={styles.section}>
@@ -347,7 +352,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                         allowDecimals={false}
                         hide={true}
                     />
-                    <Tooltip
+                    <RechartsTooltip
                         contentStyle={{
                             backgroundColor: 'rgba(0, 0, 0, 0.85)',
                             borderRadius: '5px',
