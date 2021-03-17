@@ -265,8 +265,25 @@ func (r *Resolver) SlackErrorMessage(group *model.ErrorGroup, org_id int) error 
 	if err := res.Error; err != nil {
 		return e.Wrap(err, "error messaging organization")
 	}
+	shortEvent := group.Event
+	if len(group.Event) > 50 {
+		shortEvent = group.Event[:50] + "..."
+	}
+	errorLink := "<app.highligh.run|hello>"
 	msg := slack.WebhookMessage{
 		Text: group.Event,
+		Blocks: &slack.Blocks{
+			BlockSet: []slack.Block{
+				slack.NewSectionBlock(
+					slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error:*\n"+shortEvent+"\n"+errorLink, false, false),
+					[]*slack.TextBlockObject{
+						slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", org_id), false, false),
+						slack.NewTextBlockObject(slack.MarkdownType, "*User:*\nunknown", false, false),
+					},
+					nil,
+				),
+			},
+		},
 	}
 	err := slack.PostWebhook(
 		*organization.SlackWebhookURL,

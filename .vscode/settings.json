@@ -13,5 +13,8 @@
       "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "editor.hover.enabled": true,
-    "editor.colorDecorators": true
+    "editor.colorDecorators": true,
+    "[typescriptreact]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
 }
