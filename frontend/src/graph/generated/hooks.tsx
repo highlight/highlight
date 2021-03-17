@@ -1736,6 +1736,10 @@ export const GetSegmentsDocument = gql`
                     start_date
                     end_date
                 }
+                length_range {
+                    min
+                    max
+                }
                 os
                 browser
                 visited_url

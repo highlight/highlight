@@ -586,6 +586,12 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
                                         'start_date' | 'end_date'
                                     >
                                 >;
+                                length_range?: Types.Maybe<
+                                    { __typename?: 'LengthRange' } & Pick<
+                                        Types.LengthRange,
+                                        'min' | 'max'
+                                    >
+                                >;
                             };
                     }
             >
