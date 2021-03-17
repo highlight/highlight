@@ -18,6 +18,7 @@ import Skeleton from 'react-loading-skeleton';
 import { H } from 'highlight.run';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { AlertsPage } from '../Alerts/Alerts';
+import useLocalStorage from '@rehooks/local-storage';
 
 enum PlatformType {
     Html = 'HTML',
@@ -311,7 +312,11 @@ export const Section: FunctionComponent<SectionProps> = ({
     title,
     integrated,
 }) => {
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useLocalStorage<boolean>(
+        `setup-page-section-state-${title}`,
+        false
+    );
+
     const trigger = (
         <div className={styles.triggerWrapper}>
             <div className={styles.snippetHeadingTwo}>
@@ -330,7 +335,7 @@ export const Section: FunctionComponent<SectionProps> = ({
                 style={{
                     transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
                 }}
-                onClick={() => setExpanded((e) => !e)}
+                onClick={() => setExpanded(!expanded)}
             />
         </div>
     );
