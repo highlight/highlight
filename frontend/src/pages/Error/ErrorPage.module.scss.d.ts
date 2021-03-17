@@ -1,4 +1,5 @@
 export const collapsible: string;
+export const errorLogCell: string;
 export const errorLogItem: string;
 export const errorLogOverflow: string;
 export const errorLogsTitle: string;

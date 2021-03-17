@@ -3,12 +3,11 @@ import { useParams } from 'react-router';
 import { Field } from '../../components/Field/Field';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
-import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
 import {
     BarChart,
     Bar,
     XAxis,
-    Tooltip,
+    Tooltip as RechartsTooltip,
     ResponsiveContainer,
     CartesianGrid,
     YAxis,
@@ -18,11 +17,11 @@ import LinesEllipsis from 'react-lines-ellipsis';
 
 import styles from './ErrorPage.module.scss';
 import Skeleton from 'react-loading-skeleton';
-import Collapsible from 'react-collapsible';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import moment from 'moment';
 import { frequencyTimeData } from '../../util/errorCalculations';
 import classNames from 'classnames';
+import { Tooltip } from 'antd';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -225,10 +224,14 @@ export const ErrorPage = () => {
                                     >
                                         <span>{e?.error_id}</span>
                                         <span>{e?.session_id}</span>
-                                        <span
-                                            className={styles.errorLogOverflow}
-                                        >
-                                            {e?.visited_url}
+                                        <span className={styles.errorLogCell}>
+                                            <span
+                                                className={
+                                                    styles.errorLogOverflow
+                                                }
+                                            >
+                                                {e?.visited_url}
+                                            </span>
                                         </span>
                                         <span>{e?.browser}</span>
                                         <span>{e?.os}</span>
@@ -260,64 +263,40 @@ export const StackSection: React.FC<StackSectionProps> = ({
     lineNumber,
     columnNumber,
 }) => {
-    const [expanded, setExpanded] = useState(false);
     const trigger = (
-        <div className={styles.triggerWrapper}>
-            <div className={styles.snippetHeadingTwo}>
-                <span
-                    className={styles.stackTraceErrorTitle}
-                    style={{ maxWidth: 300, fontWeight: 300 }}
-                >
-                    {fileName}
-                </span>
-                <span style={{ fontWeight: 300, color: '#808080' }}>
-                    &nbsp;in&nbsp;
-                </span>
-                <span
-                    className={styles.stackTraceErrorTitle}
-                    style={{ maxWidth: 300, fontWeight: 400 }}
-                >
-                    {functionName}
-                </span>
-                <span style={{ fontWeight: 300, color: '#808080' }}>
-                    &nbsp;at line&nbsp;
-                </span>
-                <span>
-                    {lineNumber}:{columnNumber}
-                </span>
+        <Tooltip
+            title={`${fileName} in ${functionName} at line ${lineNumber}:${columnNumber}`}
+        >
+            <div className={styles.triggerWrapper}>
+                <div className={styles.snippetHeadingTwo}>
+                    <span
+                        className={styles.stackTraceErrorTitle}
+                        style={{ maxWidth: 300, fontWeight: 300 }}
+                    >
+                        {fileName}
+                    </span>
+                    <span style={{ fontWeight: 300, color: '#808080' }}>
+                        &nbsp;in&nbsp;
+                    </span>
+                    <span
+                        className={styles.stackTraceErrorTitle}
+                        style={{ maxWidth: 300, fontWeight: 400 }}
+                    >
+                        {functionName}
+                    </span>
+                    <span style={{ fontWeight: 300, color: '#808080' }}>
+                        &nbsp;at line&nbsp;
+                    </span>
+                    <span>
+                        {lineNumber}:{columnNumber}
+                    </span>
+                </div>
             </div>
-            <div className={styles.iconWrapper}>
-                <DownIcon
-                    className={styles.icon}
-                    style={{
-                        transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                    }}
-                    onClick={() => setExpanded((e) => !e)}
-                />
-            </div>
-        </div>
+        </Tooltip>
     );
     return (
         <div className={styles.section}>
-            <Collapsible
-                open={expanded}
-                onOpening={() => setExpanded(true)}
-                onClosing={() => setExpanded(false)}
-                trigger={trigger}
-                transitionTime={150}
-                style={{ margin: 10, width: '100%' }}
-                className={styles.collapsible}
-            >
-                {expanded ? (
-                    <>
-                        <div className={styles.subSection}>
-                            There's nothing to see here right now.
-                        </div>
-                    </>
-                ) : (
-                    <></>
-                )}
-            </Collapsible>
+            <div className={styles.collapsible}>{trigger}</div>
         </div>
     );
 };
@@ -377,7 +356,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                         allowDecimals={false}
                         hide={true}
                     />
-                    <Tooltip
+                    <RechartsTooltip
                         contentStyle={{
                             backgroundColor: 'rgba(0, 0, 0, 0.85)',
                             borderRadius: '5px',
