@@ -11,7 +11,7 @@ import { Tag, Tooltip } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 import {
     useGetSessionsBetaQuery,
-    useUnprocessedSessionsQuery,
+    useUnprocessedSessionsCountQuery,
 } from '../../../graph/generated/hooks';
 import {
     Maybe,
@@ -36,7 +36,7 @@ export const SessionFeed = () => {
     const {
         data: unprocessedSessionsCount,
         loading: unprocessedSessionsLoading,
-    } = useUnprocessedSessionsQuery({
+    } = useUnprocessedSessionsCountQuery({
         variables: { organization_id },
         pollInterval: 5000,
     });
@@ -99,7 +99,10 @@ export const SessionFeed = () => {
                                 className={styles.unprocessedSessionsContainer}
                             >
                                 <ActivityIcon isActive />
-                                {unprocessedSessionsCount?.UnprocessedSessions}
+                                {
+                                    unprocessedSessionsCount
+                                        ?.UnprocessedSessions?.totalCount
+                                }
                             </div>
                         </Tooltip>
                     )}

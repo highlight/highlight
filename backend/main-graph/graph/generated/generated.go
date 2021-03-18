@@ -288,7 +288,7 @@ type QueryResolver interface {
 	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
-	UnprocessedSessions(ctx context.Context, organizationID int) (*int, error)
+	UnprocessedSessions(ctx context.Context, organizationID int) (*model1.SessionResults, error)
 	SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
@@ -1696,7 +1696,7 @@ type Query {
     resources(session_id: ID!): [Any]
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
-    UnprocessedSessions(organization_id: ID!): Int
+    UnprocessedSessions(organization_id: ID!): SessionResults
     sessionsBETA(
         organization_id: ID!
         count: Int!
@@ -5377,9 +5377,9 @@ func (ec *executionContext) _Query_UnprocessedSessions(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(*model1.SessionResults)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOSessionResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {

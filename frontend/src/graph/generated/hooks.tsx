@@ -1922,9 +1922,87 @@ export type IsIntegratedQueryResult = Apollo.QueryResult<
     Types.IsIntegratedQuery,
     Types.IsIntegratedQueryVariables
 >;
+export const UnprocessedSessionsCountDocument = gql`
+    query UnprocessedSessionsCount($organization_id: ID!) {
+        UnprocessedSessions(organization_id: $organization_id) {
+            totalCount
+        }
+    }
+`;
+
+/**
+ * __useUnprocessedSessionsCountQuery__
+ *
+ * To run a query within a React component, call `useUnprocessedSessionsCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUnprocessedSessionsCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUnprocessedSessionsCountQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useUnprocessedSessionsCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >(UnprocessedSessionsCountDocument, baseOptions);
+}
+export function useUnprocessedSessionsCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >(UnprocessedSessionsCountDocument, baseOptions);
+}
+export type UnprocessedSessionsCountQueryHookResult = ReturnType<
+    typeof useUnprocessedSessionsCountQuery
+>;
+export type UnprocessedSessionsCountLazyQueryHookResult = ReturnType<
+    typeof useUnprocessedSessionsCountLazyQuery
+>;
+export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
+    Types.UnprocessedSessionsCountQuery,
+    Types.UnprocessedSessionsCountQueryVariables
+>;
 export const UnprocessedSessionsDocument = gql`
     query UnprocessedSessions($organization_id: ID!) {
-        UnprocessedSessions(organization_id: $organization_id)
+        UnprocessedSessions(organization_id: $organization_id) {
+            sessions {
+                id
+                user_id
+                identifier
+                os_name
+                os_version
+                browser_name
+                browser_version
+                city
+                state
+                postal
+                created_at
+                length
+                viewed
+                fields {
+                    name
+                    value
+                    type
+                }
+            }
+            totalCount
+        }
     }
 `;
 

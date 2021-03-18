@@ -674,18 +674,22 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 	return &f, nil
 }
 
-func (r *queryResolver) UnprocessedSessions(ctx context.Context, organizationID int) (*int, error) {
+func (r *queryResolver) UnprocessedSessions(ctx context.Context, organizationID int) (*model.SessionResults, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
-	var count int
-	sessions := []*model.Session{}
+	sessions := []model.Session{}
 	f := false
-	r.DB.Find(&sessions).Where(
-		&model.Session{OrganizationID: organizationID, Processed: &f}).Count(&count)
+	r.DB.Where(
+		&model.Session{OrganizationID: organizationID, Processed: &f}).Find(&sessions)
 
-	return &count, nil
+	sessionResults := &model.SessionResults{
+		Sessions:   sessions,
+		TotalCount: len(sessions),
+	}
+
+	return sessionResults, nil
 }
 
 func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {

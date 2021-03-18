@@ -642,11 +642,60 @@ export type IsIntegratedQuery = { __typename?: 'Query' } & Pick<
     'isIntegrated'
 >;
 
+export type UnprocessedSessionsCountQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & {
+    UnprocessedSessions?: Types.Maybe<
+        { __typename?: 'SessionResults' } & Pick<
+            Types.SessionResults,
+            'totalCount'
+        >
+    >;
+};
+
 export type UnprocessedSessionsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
 
-export type UnprocessedSessionsQuery = { __typename?: 'Query' } & Pick<
-    Types.Query,
-    'UnprocessedSessions'
->;
+export type UnprocessedSessionsQuery = { __typename?: 'Query' } & {
+    UnprocessedSessions?: Types.Maybe<
+        { __typename?: 'SessionResults' } & Pick<
+            Types.SessionResults,
+            'totalCount'
+        > & {
+                sessions: Array<
+                    Types.Maybe<
+                        { __typename?: 'Session' } & Pick<
+                            Types.Session,
+                            | 'id'
+                            | 'user_id'
+                            | 'identifier'
+                            | 'os_name'
+                            | 'os_version'
+                            | 'browser_name'
+                            | 'browser_version'
+                            | 'city'
+                            | 'state'
+                            | 'postal'
+                            | 'created_at'
+                            | 'length'
+                            | 'viewed'
+                        > & {
+                                fields?: Types.Maybe<
+                                    Array<
+                                        Types.Maybe<
+                                            { __typename?: 'Field' } & Pick<
+                                                Types.Field,
+                                                'name' | 'value' | 'type'
+                                            >
+                                        >
+                                    >
+                                >;
+                            }
+                    >
+                >;
+            }
+    >;
+};

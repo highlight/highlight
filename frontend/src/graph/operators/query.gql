@@ -98,9 +98,7 @@ query GetBillingDetails($organization_id: ID!) {
     billingDetails(organization_id: $organization_id)
 }
 
-query GetErrorGroup(
-    $id: ID!
-) {
+query GetErrorGroup($id: ID!) {
     error_group(id: $id) {
         id
         type
@@ -133,8 +131,8 @@ query GetErrorGroups(
     $params: ErrorSearchParamsInput
 ) {
     error_groups(
-        organization_id: $organization_id,
-        count: $count,
+        organization_id: $organization_id
+        count: $count
         params: $params
     ) {
         error_groups {
@@ -239,8 +237,8 @@ query GetSegments($organization_id: ID!) {
                 end_date
             }
             length_range {
-              min
-              max
+                min
+                max
             }
             os
             browser
@@ -274,6 +272,33 @@ query IsIntegrated($organization_id: ID!) {
     isIntegrated(organization_id: $organization_id)
 }
 
+query UnprocessedSessionsCount($organization_id: ID!) {
+    UnprocessedSessions(organization_id: $organization_id) {
+        totalCount
+    }
+}
 query UnprocessedSessions($organization_id: ID!) {
-    UnprocessedSessions(organization_id: $organization_id)
+    UnprocessedSessions(organization_id: $organization_id) {
+        sessions {
+            id
+            user_id
+            identifier
+            os_name
+            os_version
+            browser_name
+            browser_version
+            city
+            state
+            postal
+            created_at
+            length
+            viewed
+            fields {
+                name
+                value
+                type
+            }
+        }
+        totalCount
+    }
 }
