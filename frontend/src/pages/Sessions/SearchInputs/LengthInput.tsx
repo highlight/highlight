@@ -1,5 +1,5 @@
 import { Slider } from 'antd';
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import 'antd/dist/antd.css';
 import { SearchContext } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
@@ -29,6 +29,12 @@ export const LengthInput = () => {
         0: '0',
         60: '60+',
     };
+
+    useEffect(() => {
+        setLocalMax(searchParams.length_range?.max ?? 0);
+        setLocalMin(searchParams.length_range?.min ?? 60);
+    }, [searchParams.length_range]);
+
     return (
         <div className={inputStyles.commonInputWrapper}>
             <div className={inputStyles.subTitle}>Length (minutes)</div>

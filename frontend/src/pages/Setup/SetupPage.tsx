@@ -17,6 +17,9 @@ import Collapsible from 'react-collapsible';
 import Skeleton from 'react-loading-skeleton';
 import { H } from 'highlight.run';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
+import useLocalStorage from '@rehooks/local-storage';
+import SvgSlackLogo from '../../components/icons/SlackLogo';
+import SlackIntegration from '../Alerts/SlackIntegration/SlackIntegration';
 
 enum PlatformType {
     Html = 'HTML',
@@ -111,18 +114,36 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         </Section>
                         <Section
                             title="Verify Installation"
-                            integrated={integrated}
+                            headingIcon={
+                                integrated && (
+                                    <IntegrationDetector
+                                        verbose={false}
+                                        integrated={integrated}
+                                    />
+                                )
+                            }
                         >
                             <div className={styles.snippetSubHeading}>
                                 Please follow the setup instructions above to
                                 install Highlight. It should take less than a
                                 minute for us to detect installation.
                             </div>
-                            <br />
                             <IntegrationDetector
                                 integrated={integrated}
                                 verbose={true}
                             />
+                        </Section>
+                        <Section
+                            title="Enable Slack Alerts"
+                            headingIcon={
+                                <SvgSlackLogo height="15" width="15" />
+                            }
+                        >
+                            <p className={styles.snippetSubHeading}>
+                                Get notified of errors happening in your
+                                application.
+                            </p>
+                            <SlackIntegration redirectPath="setup" />
                         </Section>
                     </>
                 )}
@@ -246,9 +267,9 @@ import ReactDOM from 'react-dom';
 import './index.scss';
 import App from './App';
 import { H } from 'highlight.run'
- 
+
 H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
- 
+
 ReactDOM.render(<App />, document.getElementById('root'));`}
                         />
                     ) : platform === PlatformType.Vue ? (
@@ -256,10 +277,10 @@ ReactDOM.render(<App />, document.getElementById('root'));`}
                             text={`import Vue from 'vue';
 import App from './App.vue';
 import { H } from 'highlight.run';
- 
+
 H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
 Vue.prototype.$H = H;
- 
+
 new Vue({
   render: h => h(App)
 }).$mount('#app');`}
@@ -288,34 +309,31 @@ export default MyApp`}
 
 type SectionProps = {
     title: string;
-    integrated?: boolean;
+    headingIcon?: React.ReactNode;
 };
 
 export const Section: FunctionComponent<SectionProps> = ({
     children,
     title,
-    integrated,
+    headingIcon,
 }) => {
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useLocalStorage<boolean>(
+        `setup-page-section-state-${title}`,
+        false
+    );
+
     const trigger = (
         <div className={styles.triggerWrapper}>
             <div className={styles.snippetHeadingTwo}>
                 <span style={{ marginRight: 8 }}>{title}</span>
-                {!expanded && integrated !== undefined ? (
-                    <IntegrationDetector
-                        verbose={false}
-                        integrated={integrated}
-                    />
-                ) : (
-                    <></>
-                )}
+                {!expanded && headingIcon}
             </div>
             <DownIcon
                 className={styles.icon}
                 style={{
                     transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
                 }}
-                onClick={() => setExpanded((e) => !e)}
+                onClick={() => setExpanded(!expanded)}
             />
         </div>
     );

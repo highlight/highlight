@@ -205,10 +205,12 @@ export const AddSlackIntegrationToWorkspaceDocument = gql`
     mutation AddSlackIntegrationToWorkspace(
         $organization_id: ID!
         $code: String!
+        $redirect_path: String!
     ) {
         addSlackIntegrationToWorkspace(
             organization_id: $organization_id
             code: $code
+            redirect_path: $redirect_path
         )
     }
 `;
@@ -232,6 +234,7 @@ export type AddSlackIntegrationToWorkspaceMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      code: // value for 'code'
+ *      redirect_path: // value for 'redirect_path'
  *   },
  * });
  */
@@ -1735,6 +1738,10 @@ export const GetSegmentsDocument = gql`
                 date_range {
                     start_date
                     end_date
+                }
+                length_range {
+                    min
+                    max
                 }
                 os
                 browser
