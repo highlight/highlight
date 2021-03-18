@@ -155,7 +155,7 @@ type Session struct {
 	Language       string `json:"language"`
 	EventsObjects  []EventsObject
 	// Tells us if the session has been parsed by a worker.
-	Processed bool `json:"processed"`
+	Processed *bool `json:"processed"`
 	// The length of a session.
 	Length           int64      `json:"length"`
 	Fields           []*Field   `json:"fields" gorm:"many2many:session_fields;"`

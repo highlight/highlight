@@ -133,8 +133,8 @@ query GetErrorGroups(
     $params: ErrorSearchParamsInput
 ) {
     error_groups(
-        organization_id: $organization_id, 
-        count: $count, 
+        organization_id: $organization_id,
+        count: $count,
         params: $params
     ) {
         error_groups {
@@ -268,4 +268,8 @@ query GetErrorSegments($organization_id: ID!) {
 
 query IsIntegrated($organization_id: ID!) {
     isIntegrated(organization_id: $organization_id)
+}
+
+query UnprocessedSessions($organization_id: ID!) {
+    UnprocessedSessions(organization_id: $organization_id)
 }

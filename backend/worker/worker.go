@@ -20,10 +20,11 @@ type Worker struct {
 
 func (w *Worker) processSession(s *model.Session) error {
 	// Set the session as processed; if any is error thrown after this, the session gets ignored.
+	t := true
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
-		&model.Session{Processed: true},
+		&model.Session{Processed: &t},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
@@ -53,7 +54,7 @@ func (w *Worker) processSession(s *model.Session) error {
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
-		&model.Session{Processed: true, Length: diff.Milliseconds()},
+		&model.Session{Processed: &t, Length: diff.Milliseconds()},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}

@@ -9,7 +9,10 @@ import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import { Tag, Tooltip } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
-import { useGetSessionsBetaQuery } from '../../../graph/generated/hooks';
+import {
+    useGetSessionsBetaQuery,
+    useUnprocessedSessionsQuery,
+} from '../../../graph/generated/hooks';
 import {
     Maybe,
     Session,
@@ -17,6 +20,7 @@ import {
 } from '../../../graph/generated/schemas';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
+import ActivityIcon from '../../Player/SessionLevelBar/ActivityIcon/ActivityIcon';
 
 export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -29,6 +33,13 @@ export const SessionFeed = () => {
     });
     const { searchParams } = useContext(SearchContext);
 
+    const {
+        data: unprocessedSessionsCount,
+        loading: unprocessedSessionsLoading,
+    } = useUnprocessedSessionsQuery({
+        variables: { organization_id },
+        pollInterval: 1000,
+    });
     const { loading, fetchMore } = useGetSessionsBetaQuery({
         variables: {
             params: searchParams,
@@ -75,9 +86,24 @@ export const SessionFeed = () => {
                         <UserPropertyInput include />
                     </div>
                 </div>
-                <div
-                    className={styles.resultCount}
-                >{`${data.totalCount} sessions`}</div>
+                <div className={styles.countContainer}>
+                    <div
+                        className={styles.resultCount}
+                    >{`${data.totalCount} sessions`}</div>
+                    {!unprocessedSessionsLoading && (
+                        <Tooltip
+                            title="The number of live sessions"
+                            arrowPointAtCenter
+                        >
+                            <div
+                                className={styles.unprocessedSessionsContainer}
+                            >
+                                <ActivityIcon isActive />
+                                {unprocessedSessionsCount?.UnprocessedSessions}
+                            </div>
+                        </Tooltip>
+                    )}
+                </div>
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>

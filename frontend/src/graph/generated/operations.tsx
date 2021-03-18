@@ -634,3 +634,12 @@ export type IsIntegratedQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'isIntegrated'
 >;
+
+export type UnprocessedSessionsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type UnprocessedSessionsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'UnprocessedSessions'
+>;

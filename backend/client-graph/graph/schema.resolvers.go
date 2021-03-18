@@ -11,7 +11,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	"github.com/jay-khatri/fullstory/backend/event-parse"
+	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -63,6 +63,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 
 	// Get the language from the request header
 	acceptLanguageString := ctx.Value("acceptLanguage").(string)
+	f := false
 
 	session := &model.Session{
 		UserID:         user.ID,
@@ -77,6 +78,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		BrowserName:    deviceDetails.BrowserName,
 		BrowserVersion: deviceDetails.BrowserVersion,
 		Language:       acceptLanguageString,
+		Processed:      &f,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
