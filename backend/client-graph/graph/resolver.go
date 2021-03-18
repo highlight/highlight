@@ -259,7 +259,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	return nil
 }
 
-func (r *Resolver) SlackErrorMessage(group *model.ErrorGroup, org_id int) error {
+func (r *Resolver) SlackErrorMessage(group *model.ErrorGroup, org_id int, user_identifier string) error {
 	organization := &model.Organization{}
 	res := r.DB.Where("id = ?", org_id).First(&organization)
 	if err := res.Error; err != nil {
@@ -269,7 +269,7 @@ func (r *Resolver) SlackErrorMessage(group *model.ErrorGroup, org_id int) error 
 	if len(group.Event) > 50 {
 		shortEvent = group.Event[:50] + "..."
 	}
-	errorLink := "<app.highligh.run|hello>"
+	errorLink := fmt.Sprintf("<app.highlight.run/%d/errors/%d>", org_id, group.ID)
 	msg := slack.WebhookMessage{
 		Text: group.Event,
 		Blocks: &slack.Blocks{
@@ -278,9 +278,23 @@ func (r *Resolver) SlackErrorMessage(group *model.ErrorGroup, org_id int) error 
 					slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error:*\n"+shortEvent+"\n"+errorLink, false, false),
 					[]*slack.TextBlockObject{
 						slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", org_id), false, false),
-						slack.NewTextBlockObject(slack.MarkdownType, "*User:*\nunknown", false, false),
+						slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+user_identifier, false, false),
 					},
 					nil,
+				),
+				slack.NewDividerBlock(),
+				slack.NewActionBlock(
+					"",
+					slack.NewButtonBlockElement(
+						"",
+						"click",
+						slack.NewTextBlockObject(
+							slack.PlainTextType,
+							"Resolve...",
+							false,
+							false,
+						),
+					),
 				),
 			},
 		},

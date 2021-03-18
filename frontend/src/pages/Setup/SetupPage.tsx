@@ -144,6 +144,13 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 application.
                             </p>
                             <SlackIntegration redirectPath="setup" />
+                            <button
+                                onClick={() => {
+                                    throw new Error('errors page');
+                                }}
+                            >
+                                Throw an Error
+                            </button>
                         </Section>
                     </>
                 )}
