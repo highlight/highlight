@@ -140,7 +140,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddAdminToOrganization         func(childComplexity int, organizationID int, inviteID string) int
-		AddSlackIntegrationToWorkspace func(childComplexity int, organizationID int, code string) int
+		AddSlackIntegrationToWorkspace func(childComplexity int, organizationID int, code string, redirectPath string) int
 		CreateErrorSegment             func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
 		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, plan model.Plan) int
 		CreateOrganization             func(childComplexity int, name string) int
@@ -268,7 +268,7 @@ type MutationResolver interface {
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
-	AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string) (*bool, error)
+	AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error)
 	CreateSegment(ctx context.Context, organizationID int, name string, params model.SearchParamsInput) (*model1.Segment, error)
 	EmailSignup(ctx context.Context, email string) (string, error)
 	EditSegment(ctx context.Context, id int, organizationID int, params model.SearchParamsInput) (*bool, error)
@@ -709,7 +709,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.AddSlackIntegrationToWorkspace(childComplexity, args["organization_id"].(int), args["code"].(string)), true
+		return e.complexity.Mutation.AddSlackIntegrationToWorkspace(childComplexity, args["organization_id"].(int), args["code"].(string), args["redirect_path"].(string)), true
 
 	case "Mutation.createErrorSegment":
 		if e.complexity.Mutation.CreateErrorSegment == nil {
@@ -1741,7 +1741,7 @@ type Mutation {
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-    addSlackIntegrationToWorkspace(organization_id: ID!, code: String!): Boolean
+    addSlackIntegrationToWorkspace(organization_id: ID!, code: String!, redirect_path: String!): Boolean
     createSegment(
         organization_id: ID!
         name: String!
@@ -1826,6 +1826,15 @@ func (ec *executionContext) field_Mutation_addSlackIntegrationToWorkspace_args(c
 		}
 	}
 	args["code"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["redirect_path"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("redirect_path"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["redirect_path"] = arg2
 	return args, nil
 }
 
@@ -4508,7 +4517,7 @@ func (ec *executionContext) _Mutation_addSlackIntegrationToWorkspace(ctx context
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().AddSlackIntegrationToWorkspace(rctx, args["organization_id"].(int), args["code"].(string))
+		return ec.resolvers.Mutation().AddSlackIntegrationToWorkspace(rctx, args["organization_id"].(int), args["code"].(string), args["redirect_path"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
