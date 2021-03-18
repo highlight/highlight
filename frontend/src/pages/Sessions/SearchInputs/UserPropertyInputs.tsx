@@ -13,6 +13,7 @@ import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import classNames from 'classnames/bind';
 import { ContainsLabel } from './SearchInputUtil';
 import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
+import { PropertyOption } from '../../../components/Option/Option';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -104,6 +105,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                             <UserIcon fill="#808080" />
                         </div>
                     ),
+                    Option: (props) => <PropertyOption {...props} />,
                     IndicatorSeparator: () => null,
                 }}
                 formatCreateLabel={ContainsLabel}

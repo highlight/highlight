@@ -1,0 +1,20 @@
+@import 'src/static/shared.scss';
+
+.propertyWrapper {
+    display: flex;
+    width: 100%;
+    align-items: center;
+}
+
+.propertyTag {
+    margin-left: 8px;
+    color: $text-label;
+    font-weight: 300;
+    font-size: 12px;
+}
+
+.propertyLabel {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
