@@ -78,7 +78,7 @@ export const ErrorPage = () => {
                             <Field
                                 k={'mechanism'}
                                 v={data?.error_group?.type || 'window.onerror'}
-                                color={'normal'}
+                                color={'warning'}
                             />
                         </>
                     )}

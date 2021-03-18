@@ -4,6 +4,7 @@ import styles from './Field.module.scss';
 
 const fieldColorMap = {
     normal: '#F2EEFB',
+    warning: '#FFDDDD',
     default: '#eee7ff',
 };
 
@@ -14,7 +15,7 @@ export const Field = ({
 }: {
     k: string;
     v: string;
-    color?: 'normal' | 'default';
+    color?: 'normal' | 'warning' | 'default';
 }) => {
     const c = fieldColorMap[color || 'default'];
     return (
