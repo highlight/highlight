@@ -72,7 +72,7 @@ export const MetadataBox = () => {
                                     {parsedFields?.map((f, i) => (
                                         <Field
                                             key={i.toString()}
-                                            color="#F2EEFB"
+                                            color={'normal'}
                                             k={f.name}
                                             v={f.value}
                                         ></Field>

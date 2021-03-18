@@ -199,7 +199,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                             <div className={styles.tagWrapper}>
                                 {errorGroup?.trace[0]?.function_name && (
                                     <Field
-                                        color="#F2EEFB"
+                                        color={'normal'}
                                         k={'function'}
                                         v={errorGroup.trace[0].function_name}
                                     />

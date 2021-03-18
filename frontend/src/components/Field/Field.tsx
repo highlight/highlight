@@ -2,6 +2,11 @@ import React from 'react';
 
 import styles from './Field.module.scss';
 
+const fieldColorMap = {
+    normal: '#F2EEFB',
+    default: '#eee7ff',
+};
+
 export const Field = ({
     k,
     v,
@@ -9,9 +14,9 @@ export const Field = ({
 }: {
     k: string;
     v: string;
-    color?: string;
+    color?: 'normal' | 'default';
 }) => {
-    const c = color || '#eee7ff';
+    const c = fieldColorMap[color || 'default'];
     return (
         <div className={styles.wrapper} style={{ border: `1px solid ${c}` }}>
             <div className={styles.keyValueWrapper}>

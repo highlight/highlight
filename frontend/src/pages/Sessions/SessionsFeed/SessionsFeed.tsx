@@ -171,7 +171,7 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                         (f) =>
                                             f && (
                                                 <Field
-                                                    color="#F2EEFB"
+                                                    color={'normal'}
                                                     key={f.value}
                                                     k={f.name}
                                                     v={f.value}
