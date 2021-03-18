@@ -12,6 +12,7 @@ import { useIntegrated } from '../../util/integrated';
 import { WorkspaceSettings } from '../../pages/WorkspaceSettings/WorkspaceSettings';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
+import { Buttons } from '../../pages/Buttons/Buttons';
 
 import commonStyles from '../../Common.module.scss';
 import { SessionsPage } from '../../pages/Sessions/SessionsPage';
@@ -98,6 +99,9 @@ export const OrgRouter = () => {
                     </Route>
                     <Route path="/:organization_id/errors">
                         <ErrorsPage integrated={integrated} />
+                    </Route>
+                    <Route path="/:organization_id/buttons">
+                        <Buttons />
                     </Route>
                     <Route path="/:organization_id">
                         {integrated ? (

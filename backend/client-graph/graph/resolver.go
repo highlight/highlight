@@ -269,11 +269,12 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, us
 	if len(group.Event) > 50 {
 		shortEvent = group.Event[:50] + "..."
 	}
-	errorLink := fmt.Sprintf("<app.highlight.run/%d/errors/%d>", org_id, group.ID)
+	errorLink := fmt.Sprintf("<https://app.highlight.run/%d/errors/%d/>", org_id, group.ID)
 	msg := slack.WebhookMessage{
 		Text: group.Event,
 		Blocks: &slack.Blocks{
 			BlockSet: []slack.Block{
+				slack.NewDividerBlock(),
 				slack.NewSectionBlock(
 					slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error:*\n"+shortEvent+"\n"+errorLink, false, false),
 					[]*slack.TextBlockObject{

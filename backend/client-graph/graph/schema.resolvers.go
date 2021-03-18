@@ -250,12 +250,12 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
 		}
-		if organizationID == 1 {
-			if err := r.SendSlackErrorMessage(group, organizationID, sessionObj.Identifier); err != nil {
-				log.Errorf("Error sending slack error message: %v", err)
-				continue
-			}
+		//if organizationID == 1 {
+		if err := r.SendSlackErrorMessage(group, 4, sessionObj.Identifier); err != nil {
+			log.Errorf("Error sending slack error message: %v", err)
+			continue
 		}
+		//}
 	}
 	now := time.Now()
 	res = r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
