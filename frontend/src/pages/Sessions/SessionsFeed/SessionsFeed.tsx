@@ -38,7 +38,7 @@ export const SessionFeed = () => {
         loading: unprocessedSessionsLoading,
     } = useUnprocessedSessionsQuery({
         variables: { organization_id },
-        pollInterval: 1000,
+        pollInterval: 5000,
     });
     const { loading, fetchMore } = useGetSessionsBetaQuery({
         variables: {
