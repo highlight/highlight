@@ -254,7 +254,7 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 	return &org.ID, nil
 }
 
-func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string) (*bool, error) {
+func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
 	// NOTE: In order to use this endpoint on your local machine, use ngrok to serve
 	// the frontend on a tunnel, and set "LOCAL_TUNNEL_URI" to the base URL.
 	// The Slack API doesn't support non-ssl, hence this requirement.
@@ -268,7 +268,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 	} else {
 		redirect = os.Getenv("FRONTEND_URI")
 	}
-	redirect += "/" + strconv.Itoa(organizationID) + "/alerts"
+	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
 	resp, err := slack.
 		GetOAuthV2Response(
 			&http.Client{},
@@ -761,10 +761,10 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
-	queryString := `SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,  
-	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed 
-	FROM (SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,  
-	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds 
+	queryString := `SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,
+	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed
+	FROM (SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,
+	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)

@@ -7,7 +7,7 @@ import classNames from 'classnames/bind';
 import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { Avatar } from '../../../components/Avatar/Avatar';
-import { Tag, Tooltip } from 'antd';
+import { Tooltip } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 import { useGetSessionsBetaQuery } from '../../../graph/generated/hooks';
 import {
@@ -16,6 +16,8 @@ import {
     SessionResults,
 } from '../../../graph/generated/schemas';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
+import { Field } from '../../../components/Field/Field';
+import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
 
 export const SessionFeed = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -41,6 +43,9 @@ export const SessionFeed = () => {
             setShowLoadingSkeleton(false);
         },
     });
+
+    // TODO: Replace hardcoded value with reading from the plan type.
+    const hasReachedSessionsLimit = false;
 
     useEffect(() => {
         setShowLoadingSkeleton(true);
@@ -92,11 +97,19 @@ export const SessionFeed = () => {
                             {!data.sessions.length ? (
                                 <SearchEmptyState item={'sessions'} />
                             ) : (
-                                data.sessions.map((u) => {
-                                    return (
-                                        <SessionCard session={u} key={u?.id} />
-                                    );
-                                })
+                                <>
+                                    {hasReachedSessionsLimit && (
+                                        <LimitedSessionCard />
+                                    )}
+                                    {data.sessions.map((u) => {
+                                        return (
+                                            <SessionCard
+                                                session={u}
+                                                key={u?.id}
+                                            />
+                                        );
+                                    })}
+                                </>
                             )}
                             {data.sessions.length < data.totalCount && (
                                 <Skeleton
@@ -166,18 +179,17 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                             f?.name !== 'identifier' &&
                                             f?.value.length
                                     )
-                                    .map((f) => (
-                                        <Tag color="#F2EEFB" key={f?.value}>
-                                            <span
-                                                style={{
-                                                    color: 'black',
-                                                    fontWeight: 300,
-                                                }}
-                                            >
-                                                {f?.name}:&nbsp;{f?.value}
-                                            </span>
-                                        </Tag>
-                                    ))}
+                                    .map(
+                                        (f) =>
+                                            f && (
+                                                <Field
+                                                    color={'normal'}
+                                                    key={f.value}
+                                                    k={f.name}
+                                                    v={f.value}
+                                                />
+                                            )
+                                    )}
                             </div>
                         </div>
                         <div className={styles.sessionTextSection}>

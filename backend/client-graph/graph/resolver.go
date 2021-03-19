@@ -11,6 +11,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
+	"github.com/slack-go/slack"
 )
 
 // This file will not be regenerated automatically.
@@ -140,10 +141,10 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	return nil
 }
 
-func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interface{}, fields []*model.ErrorField) error {
+func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interface{}, fields []*model.ErrorField) (*model.ErrorGroup, error) {
 	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
-		return e.Wrap(err, "Error marshalling first frame")
+		return nil, e.Wrap(err, "Error marshalling first frame")
 	}
 	frameString := string(firstFrameBytes)
 
@@ -164,7 +165,7 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interfa
 			Type:           errorObj.Type,
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
-			return e.Wrap(err, "Error creating new error group")
+			return nil, e.Wrap(err, "Error creating new error group")
 		}
 		errorGroup = newErrorGroup
 	}
@@ -172,7 +173,7 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interfa
 	var newMetadataLog []ErrorMetaData
 	if errorGroup.MetadataLog != nil {
 		if err := json.Unmarshal([]byte(*errorGroup.MetadataLog), &newMetadataLog); err != nil {
-			return e.Wrap(err, "error decoding time log data")
+			return nil, e.Wrap(err, "error decoding time log data")
 		}
 	}
 
@@ -187,20 +188,20 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interfa
 
 	logBytes, err := json.Marshal(newMetadataLog)
 	if err != nil {
-		return e.Wrap(err, "Error marshalling metadata log")
+		return nil, e.Wrap(err, "Error marshalling metadata log")
 	}
 	logString := string(logBytes)
 
 	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString}); res.RecordNotFound() || res.Error != nil {
-		return e.Wrap(err, "Error updating error group metadata log")
+		return nil, e.Wrap(err, "Error updating error group metadata log")
 	}
 
 	err = r.AppendErrorFields(fields, errorGroup)
 	if err != nil {
-		return e.Wrap(err, "error appending error fields")
+		return nil, e.Wrap(err, "error appending error fields")
 	}
 
-	return nil
+	return errorGroup, nil
 }
 
 func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {
@@ -254,6 +255,60 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	re := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend)
 	if err := re.Error; err != nil {
 		return e.Wrap(err, "error updating error fields")
+	}
+	return nil
+}
+
+func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, user_identifier string) error {
+	organization := &model.Organization{}
+	if organization.SlackWebhookURL == nil || group == nil {
+		return nil
+	}
+	res := r.DB.Where("id = ?", org_id).First(&organization)
+	if err := res.Error; err != nil {
+		return e.Wrap(err, "error messaging organization")
+	}
+	shortEvent := group.Event
+	if len(group.Event) > 50 {
+		shortEvent = group.Event[:50] + "..."
+	}
+	errorLink := fmt.Sprintf("<https://app.highlight.run/%d/errors/%d/>", org_id, group.ID)
+	msg := slack.WebhookMessage{
+		Text: group.Event,
+		Blocks: &slack.Blocks{
+			BlockSet: []slack.Block{
+				slack.NewDividerBlock(),
+				slack.NewSectionBlock(
+					slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error:*\n"+shortEvent+"\n"+errorLink, false, false),
+					[]*slack.TextBlockObject{
+						slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", org_id), false, false),
+						slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+user_identifier, false, false),
+					},
+					nil,
+				),
+				slack.NewDividerBlock(),
+				slack.NewActionBlock(
+					"",
+					slack.NewButtonBlockElement(
+						"",
+						"click",
+						slack.NewTextBlockObject(
+							slack.PlainTextType,
+							"Resolve...",
+							false,
+							false,
+						),
+					),
+				),
+			},
+		},
+	}
+	err := slack.PostWebhook(
+		*organization.SlackWebhookURL,
+		&msg,
+	)
+	if err != nil {
+		return e.Wrap(err, "error sending slack msg")
 	}
 	return nil
 }

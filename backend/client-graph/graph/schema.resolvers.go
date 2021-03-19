@@ -11,7 +11,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	"github.com/jay-khatri/fullstory/backend/event-parse"
+	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -245,9 +245,16 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "os_name", Value: sessionObj.OSName})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
-		if err := r.UpdateErrorGroup(*errorToInsert, v.Trace, metaFields); err != nil {
+		group, err := r.UpdateErrorGroup(*errorToInsert, v.Trace, metaFields)
+		if err != nil {
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
+		}
+		if organizationID == 1 {
+			if err := r.SendSlackErrorMessage(group, organizationID, sessionObj.Identifier); err != nil {
+				log.Errorf("Error sending slack error message: %v", err)
+				continue
+			}
 		}
 	}
 	now := time.Now()

@@ -20,8 +20,7 @@
 }
 
 .errorPage {
-    margin: 120px auto 80px auto;
-    padding: 0px 80px;
+    margin: 120px 80px 80px 80px;
     width: 1000px;
     min-width: 1000px;
     word-break: break-word;
@@ -127,6 +126,10 @@
     display: flex;
     justify-content: space-between;
     color: #808080;
+}
+
+.errorLogCell {
+    display: flex;
 }
 
 .errorLogOverflow {

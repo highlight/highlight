@@ -139,8 +139,8 @@ query GetErrorGroups(
     $params: ErrorSearchParamsInput
 ) {
     error_groups(
-        organization_id: $organization_id, 
-        count: $count, 
+        organization_id: $organization_id,
+        count: $count,
         params: $params
     ) {
         error_groups {
@@ -243,6 +243,10 @@ query GetSegments($organization_id: ID!) {
             date_range {
                 start_date
                 end_date
+            }
+            length_range {
+              min
+              max
             }
             os
             browser
