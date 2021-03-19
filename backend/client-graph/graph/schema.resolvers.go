@@ -77,6 +77,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		BrowserName:    deviceDetails.BrowserName,
 		BrowserVersion: deviceDetails.BrowserVersion,
 		Language:       acceptLanguageString,
+		Processed:      &model.F,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {

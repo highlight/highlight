@@ -241,6 +241,7 @@ export type Query = {
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
+    unprocessedSessionsCount?: Maybe<Scalars['Int']>;
     sessionsBETA?: Maybe<SessionResults>;
     billingDetails: Plan;
     field_suggestionBETA?: Maybe<Array<Maybe<Field>>>;
@@ -288,9 +289,14 @@ export type QueryIsIntegratedArgs = {
     organization_id: Scalars['ID'];
 };
 
+export type QueryUnprocessedSessionsCountArgs = {
+    organization_id: Scalars['ID'];
+};
+
 export type QuerySessionsBetaArgs = {
     organization_id: Scalars['ID'];
     count: Scalars['Int'];
+    processed: Scalars['Boolean'];
     params?: Maybe<SearchParamsInput>;
 };
 

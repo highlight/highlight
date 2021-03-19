@@ -181,7 +181,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int) (*mo
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session)
 	if err := res.Update(&model.Session{
-		Viewed: true,
+		Viewed: &model.T,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
@@ -193,8 +193,7 @@ func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*boo
 	if err := r.DB.Delete(&model.Organization{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting organization")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error) {
@@ -288,8 +287,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
@@ -341,16 +339,14 @@ func (r *mutationResolver) EditSegment(ctx context.Context, id int, organization
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing new recording settings")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*bool, error) {
 	if err := r.DB.Delete(&model.Segment{Model: model.Model{ID: segmentID}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting segment")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) CreateErrorSegment(ctx context.Context, organizationID int, name string, params modelInputs.ErrorSearchParamsInput) (*model.ErrorSegment, error) {
@@ -392,16 +388,14 @@ func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, organiz
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing new recording settings")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error) {
 	if err := r.DB.Delete(&model.ErrorSegment{Model: model.Model{ID: segmentID}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting segment")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model.RecordingSettings, error) {
@@ -667,14 +661,26 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
-	f, t := false, true
 	if len(sessions) > 0 {
-		return &t, nil
+		return &model.T, nil
 	}
-	return &f, nil
+	return &model.F, nil
 }
 
-func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var count int
+	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, Processed: &model.F}).Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
+	}
+
+	return &count, nil
+}
+
+func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -768,7 +774,9 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
-	queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+	if processed {
+		queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
 			queryString += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min*60000)
@@ -779,7 +787,8 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 			}
 		}
 	}
-	queryString += "AND (processed = true) "
+
+	queryString += "AND (processed = " + strconv.FormatBool(processed) + ") "
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
