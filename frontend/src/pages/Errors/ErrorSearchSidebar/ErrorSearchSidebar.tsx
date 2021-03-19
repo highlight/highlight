@@ -9,7 +9,10 @@ import {
     BrowserInput,
     OperatingSystemInput,
 } from '../ErrorSearchInputs/DeviceInputs';
-import { EventInput } from '../ErrorSearchInputs/EventInput';
+import {
+    EventInput,
+    ResolvedErrorSwitch,
+} from '../ErrorSearchInputs/EventInput';
 
 export const ErrorSearchSidebar = () => {
     const [open, setOpen] = useState(true);
@@ -27,6 +30,9 @@ export const ErrorSearchSidebar = () => {
                     <Hamburger className={styles.hamburgerSide} />
                 </button>
                 <div className={styles.sideContentWrapper}>
+                    <div className={styles.toggleSection}>
+                        <ResolvedErrorSwitch />
+                    </div>
                     <SearchSection
                         title="Date Range"
                         open={false}

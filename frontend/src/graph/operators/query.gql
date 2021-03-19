@@ -106,6 +106,7 @@ query GetErrorGroup(
         type
         organization_id
         event
+        resolved
         trace {
             file_name
             line_number
@@ -141,6 +142,7 @@ query GetErrorGroups(
             id
             type
             event
+            resolved
             trace {
                 file_name
                 line_number
@@ -264,7 +266,7 @@ query GetErrorSegments($organization_id: ID!) {
             os
             browser
             visited_url
-            hide_viewed
+            hide_resolved
             event
         }
     }

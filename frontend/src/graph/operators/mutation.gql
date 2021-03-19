@@ -5,6 +5,13 @@ mutation MarkSessionAsViewed($id: ID!) {
     }
 }
 
+mutation markErrorGroupAsResolved($id: ID!, $resolved: Boolean!) {
+    markErrorGroupAsResolved(id: $id, resolved: $resolved) {
+        id
+        resolved
+    }
+}
+
 mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {
     createOrUpdateSubscription(organization_id: $organization_id, plan: $plan)
 }
@@ -117,7 +124,7 @@ mutation CreateErrorSegment(
             os
             browser
             visited_url
-            hide_viewed
+            hide_resolved
         }
     }
 }

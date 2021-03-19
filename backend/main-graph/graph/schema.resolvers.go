@@ -189,6 +189,22 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int) (*mo
 	return session, nil
 }
 
+func (r *mutationResolver) MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model.ErrorGroup, error) {
+	_, err := r.isAdminErrorGroupOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not errorGroup owner")
+	}
+	errorGroup := &model.ErrorGroup{}
+	res := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: id}}).First(&errorGroup)
+	if err := res.Update(&model.ErrorGroup{
+		Resolved: *resolved,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing errorGroup resolved status")
+	}
+
+	return errorGroup, nil
+}
+
 func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*bool, error) {
 	if err := r.DB.Delete(&model.Organization{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting organization")
@@ -577,8 +593,8 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	}
 
 	//error_groups not tracked on viewed or not yet
-	if viewed := params.HideViewed; viewed != nil && *viewed && false {
-		queryString += "AND (viewed = false) "
+	if resolved := params.HideResolved; resolved != nil && *resolved && false {
+		queryString += "AND (resolved = false) "
 	}
 
 	if params.Event != nil {
