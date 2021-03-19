@@ -24,6 +24,8 @@ import (
 var (
 	DB     *gorm.DB
 	HashID *hashids.HashID
+	F      bool = false
+	T      bool = true
 )
 
 func init() {
@@ -162,7 +164,7 @@ type Session struct {
 	UserObject       JSONB      `json:"user_object" sql:"type:jsonb"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
 	// Custom properties
-	Viewed     bool    `json:"viewed"`
+	Viewed     *bool   `json:"viewed"`
 	FieldGroup *string `json:"field_group"`
 }
 

@@ -6940,9 +6940,9 @@ func (ec *executionContext) _Session_viewed(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Session_field_group(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
