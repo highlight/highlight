@@ -251,7 +251,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			continue
 		}
 		if organizationID == 1 {
-			if err := r.SendSlackErrorMessage(group, organizationID, sessionObj.Identifier); err != nil {
+			if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL); err != nil {
 				log.Errorf("Error sending slack error message: %v", err)
 				continue
 			}
