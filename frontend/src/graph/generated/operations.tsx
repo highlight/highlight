@@ -649,5 +649,5 @@ export type UnprocessedSessionsCountQueryVariables = Types.Exact<{
 
 export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
-    'UnprocessedSessionsCount'
+    'unprocessedSessionsCount'
 >;

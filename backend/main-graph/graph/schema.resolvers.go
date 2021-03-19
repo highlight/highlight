@@ -672,9 +672,8 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
-	f := false
 	var count int
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, Processed: &f}).Count(&count).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, Processed: &model.F}).Count(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
 	}
 

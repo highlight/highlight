@@ -212,7 +212,7 @@ type Query {
     resources(session_id: ID!): [Any]
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
-    UnprocessedSessionsCount(organization_id: ID!): Int
+    unprocessedSessionsCount(organization_id: ID!): Int
     sessionsBETA(
         organization_id: ID!
         count: Int!

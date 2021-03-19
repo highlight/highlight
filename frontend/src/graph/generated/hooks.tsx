@@ -1927,7 +1927,7 @@ export type IsIntegratedQueryResult = Apollo.QueryResult<
 >;
 export const UnprocessedSessionsCountDocument = gql`
     query UnprocessedSessionsCount($organization_id: ID!) {
-        UnprocessedSessionsCount(organization_id: $organization_id)
+        unprocessedSessionsCount(organization_id: $organization_id)
     }
 `;
 

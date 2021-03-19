@@ -241,7 +241,7 @@ export type Query = {
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
-    UnprocessedSessionsCount?: Maybe<Scalars['Int']>;
+    unprocessedSessionsCount?: Maybe<Scalars['Int']>;
     sessionsBETA?: Maybe<SessionResults>;
     billingDetails: Plan;
     field_suggestionBETA?: Maybe<Array<Maybe<Field>>>;

@@ -42,8 +42,7 @@ export const SessionFeed = () => {
             organization_id,
             processed: segment_id !== LIVE_SEGMENT_ID,
         },
-        pollInterval:
-            segment_id === LIVE_SEGMENT_ID ? SESSIONS_FEED_POLL_INTERVAL : 0,
+        pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
             if (response.sessionsBETA) {
                 setData(response.sessionsBETA);

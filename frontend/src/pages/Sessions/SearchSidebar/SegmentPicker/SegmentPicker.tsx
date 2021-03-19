@@ -106,7 +106,7 @@ export const SegmentPicker = () => {
                                                 }
                                             )}
                                         >
-                                            {unprocessedSessionsCount?.UnprocessedSessionsCount ??
+                                            {unprocessedSessionsCount?.unprocessedSessionsCount ??
                                                 0}
                                         </div>
                                     </Tooltip>

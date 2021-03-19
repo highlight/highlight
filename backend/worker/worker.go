@@ -20,11 +20,10 @@ type Worker struct {
 
 func (w *Worker) processSession(s *model.Session) error {
 	// Set the session as processed; if any is error thrown after this, the session gets ignored.
-	t := true
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
-		&model.Session{Processed: &t},
+		&model.Session{Processed: &model.T},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
@@ -58,7 +57,7 @@ func (w *Worker) processSession(s *model.Session) error {
 			// We are setting Viewed to false so sessions the user viewed while they were live will be reset.
 			Viewed:    &model.F,
 			Processed: &model.T,
-			Length:    diff.Microseconds(),
+			Length:    diff.Milliseconds(),
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
