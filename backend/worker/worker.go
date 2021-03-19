@@ -54,7 +54,12 @@ func (w *Worker) processSession(s *model.Session) error {
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
-		&model.Session{Processed: &t, Length: diff.Milliseconds()},
+		map[string]interface{}{
+			// We are setting Viewed to false so sessions the user viewed while they were live will be reset.
+			"Viewed":    false,
+			"Processed": true,
+			"Length":    diff.Microseconds(),
+		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
