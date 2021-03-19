@@ -796,11 +796,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		}
 	}
 
-	processedString := "true"
-	if !processed {
-		processedString = "false"
-	}
-	queryString += "AND (processed = " + processedString + ") "
+	queryString += "AND (processed = " + strconv.FormatBool(processed) + ") "
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
