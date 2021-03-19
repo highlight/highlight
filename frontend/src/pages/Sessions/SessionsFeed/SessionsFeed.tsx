@@ -9,10 +9,7 @@ import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import { Tag, Tooltip } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
-import {
-    useGetSessionsBetaQuery,
-    useUnprocessedSessionsCountQuery,
-} from '../../../graph/generated/hooks';
+import { useGetSessionsBetaQuery } from '../../../graph/generated/hooks';
 import {
     Maybe,
     Session,
@@ -20,7 +17,6 @@ import {
 } from '../../../graph/generated/schemas';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
-import ActivityIcon from '../../Player/SessionLevelBar/ActivityIcon/ActivityIcon';
 import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
@@ -39,13 +35,6 @@ export const SessionFeed = () => {
     });
     const { searchParams } = useContext(SearchContext);
 
-    const {
-        data: unprocessedSessionsCount,
-        loading: unprocessedSessionsLoading,
-    } = useUnprocessedSessionsCountQuery({
-        variables: { organization_id },
-        pollInterval: SESSIONS_FEED_POLL_INTERVAL,
-    });
     const { loading, fetchMore } = useGetSessionsBetaQuery({
         variables: {
             params: searchParams,
@@ -88,12 +77,6 @@ export const SessionFeed = () => {
         },
     });
 
-    const showLiveSessionsCount =
-        !unprocessedSessionsLoading &&
-        segment_id !== LIVE_SEGMENT_ID &&
-        unprocessedSessionsCount?.UnprocessedSessionsCount &&
-        unprocessedSessionsCount.UnprocessedSessionsCount >= 0;
-
     return (
         <>
             <div className={styles.fixedContent}>
@@ -102,27 +85,9 @@ export const SessionFeed = () => {
                         <UserPropertyInput include />
                     </div>
                 </div>
-                <div className={styles.countContainer}>
-                    <div
-                        className={styles.resultCount}
-                    >{`${data.totalCount} sessions`}</div>
-                    {showLiveSessionsCount && (
-                        <Tooltip
-                            title="The number of live sessions"
-                            arrowPointAtCenter
-                        >
-                            <Link
-                                className={styles.unprocessedSessionsCountLink}
-                                to={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
-                            >
-                                <ActivityIcon isActive />
-                                {
-                                    unprocessedSessionsCount?.UnprocessedSessionsCount
-                                }
-                            </Link>
-                        </Tooltip>
-                    )}
-                </div>
+                <div
+                    className={styles.resultCount}
+                >{`${data.totalCount} sessions`}</div>
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>

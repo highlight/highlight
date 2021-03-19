@@ -1,7 +1,6 @@
 export const avatarWrapper: string;
 export const blueTitle: string;
 export const bottomText: string;
-export const countContainer: string;
 export const emptyStateIcon: string;
 export const emptyStateSection: string;
 export const emptyStateWrapper: string;
@@ -29,5 +28,4 @@ export const sessionTextSectionWrapper: string;
 export const sessionTextWrapper: string;
 export const tagWrapper: string;
 export const topText: string;
-export const unprocessedSessionsCountLink: string;
 export const userInputWrapper: string;

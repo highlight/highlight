@@ -5,9 +5,13 @@ import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import Skeleton from 'react-loading-skeleton';
 
 import styles from './SegmentPicker.module.scss';
-import { useGetSegmentsQuery } from '../../../../graph/generated/hooks';
+import {
+    useGetSegmentsQuery,
+    useUnprocessedSessionsCountQuery,
+} from '../../../../graph/generated/hooks';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
+import { Tooltip } from 'antd';
 
 export const LIVE_SEGMENT_ID = 'live';
 
@@ -22,6 +26,13 @@ export const SegmentPicker = () => {
 
     const { loading, data } = useGetSegmentsQuery({
         variables: { organization_id },
+    });
+    const {
+        data: unprocessedSessionsCount,
+        loading: unprocessedSessionsLoading,
+    } = useUnprocessedSessionsCountQuery({
+        variables: { organization_id },
+        pollInterval: 5000,
     });
     const currentSegment = data?.segments?.find((s) => s?.id === segment_id);
 
@@ -75,11 +86,31 @@ export const SegmentPicker = () => {
                             <div
                                 className={classNames(
                                     styles.segmentText,
-                                    segment_id !== LIVE_SEGMENT_ID &&
-                                        styles.segmentUnselected
+                                    styles.liveSessionsSegment,
+                                    {
+                                        [styles.segmentUnselected]:
+                                            segment_id !== LIVE_SEGMENT_ID,
+                                    }
                                 )}
                             >
                                 Live Sessions
+                                {!unprocessedSessionsLoading && (
+                                    <Tooltip title="The number of live sessions">
+                                        <div
+                                            className={classNames(
+                                                styles.liveSessionsCount,
+                                                {
+                                                    [styles.liveSessionsCountInactive]:
+                                                        segment_id !==
+                                                        LIVE_SEGMENT_ID,
+                                                }
+                                            )}
+                                        >
+                                            {unprocessedSessionsCount?.UnprocessedSessionsCount ??
+                                                0}
+                                        </div>
+                                    </Tooltip>
+                                )}
                             </div>
                             {LIVE_SEGMENT_ID === segment_id && (
                                 <CheckIcon className={styles.checkIcon} />

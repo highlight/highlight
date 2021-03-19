@@ -199,8 +199,8 @@
     justify-content: center;
 }
 
-.countContainer {
-    display: flex;
+.resultCount {
+    margin: 0px -3px;
     width: 100%;
     background: linear-gradient(
         to top,
@@ -211,17 +211,6 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 5px 16px 5px;
-    color: #a8a8a8;
-}
-
-.resultCount {
-    margin: 0px -3px;
-}
-
-.unprocessedSessionsCountLink {
-    display: flex;
-    align-items: center;
-    gap: $size-xSmall;
     color: #a8a8a8;
 }
 
