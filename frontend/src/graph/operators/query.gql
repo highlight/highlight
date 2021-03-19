@@ -38,11 +38,13 @@ mutation SendAdminInvite($organization_id: ID!, $email: String!) {
 query GetSessionsBETA(
     $organization_id: ID!
     $count: Int!
+    $processed: Boolean!
     $params: SearchParamsInput
 ) {
     sessionsBETA(
         organization_id: $organization_id
         count: $count
+        processed: $processed
         params: $params
     ) {
         sessions {

@@ -184,7 +184,7 @@ type ComplexityRoot struct {
 		Resources            func(childComplexity int, sessionID int) int
 		Segments             func(childComplexity int, organizationID int) int
 		Session              func(childComplexity int, id int) int
-		SessionsBeta         func(childComplexity int, organizationID int, count int, params *model.SearchParamsInput) int
+		SessionsBeta         func(childComplexity int, organizationID int, count int, processed bool, params *model.SearchParamsInput) int
 		UnprocessedSessions  func(childComplexity int, organizationID int) int
 	}
 
@@ -289,7 +289,7 @@ type QueryResolver interface {
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessions(ctx context.Context, organizationID int) (*model1.SessionResults, error)
-	SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParamsInput) (*model1.SessionResults, error)
+	SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
@@ -1130,7 +1130,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SessionsBeta(childComplexity, args["organization_id"].(int), args["count"].(int), args["params"].(*model.SearchParamsInput)), true
+		return e.complexity.Query.SessionsBeta(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput)), true
 
 	case "Query.UnprocessedSessions":
 		if e.complexity.Query.UnprocessedSessions == nil {
@@ -1584,7 +1584,6 @@ type ErrorTrace {
     column_number: Int
 }
 
-
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
@@ -1700,6 +1699,7 @@ type Query {
     sessionsBETA(
         organization_id: ID!
         count: Int!
+        processed: Boolean!
         params: SearchParamsInput
     ): SessionResults
     billingDetails(organization_id: ID!): Plan!
@@ -1741,7 +1741,11 @@ type Mutation {
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-    addSlackIntegrationToWorkspace(organization_id: ID!, code: String!, redirect_path: String!): Boolean
+    addSlackIntegrationToWorkspace(
+        organization_id: ID!
+        code: String!
+        redirect_path: String!
+    ): Boolean
     createSegment(
         organization_id: ID!
         name: String!
@@ -2528,15 +2532,24 @@ func (ec *executionContext) field_Query_sessionsBETA_args(ctx context.Context, r
 		}
 	}
 	args["count"] = arg1
-	var arg2 *model.SearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
-		arg2, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+	var arg2 bool
+	if tmp, ok := rawArgs["processed"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("processed"))
+		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg2
+	args["processed"] = arg2
+	var arg3 *model.SearchParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		arg3, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg3
 	return args, nil
 }
 
@@ -5406,7 +5419,7 @@ func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsBeta(rctx, args["organization_id"].(int), args["count"].(int), args["params"].(*model.SearchParamsInput))
+		return ec.resolvers.Query().SessionsBeta(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

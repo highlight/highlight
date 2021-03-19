@@ -296,6 +296,7 @@ export type QueryUnprocessedSessionsArgs = {
 export type QuerySessionsBetaArgs = {
     organization_id: Scalars['ID'];
     count: Scalars['Int'];
+    processed: Scalars['Boolean'];
     params?: Maybe<SearchParamsInput>;
 };
 

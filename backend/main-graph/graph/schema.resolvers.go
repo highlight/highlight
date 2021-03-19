@@ -692,7 +692,7 @@ func (r *queryResolver) UnprocessedSessions(ctx context.Context, organizationID 
 	return sessionResults, nil
 }
 
-func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -786,7 +786,9 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
-	queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+	if processed {
+		queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
 			queryString += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min*60000)
@@ -797,7 +799,12 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 			}
 		}
 	}
-	queryString += "AND (processed = true) "
+
+	processedString := "true"
+	if !processed {
+		processedString = "false"
+	}
+	queryString += "AND (processed = " + processedString + ") "
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {

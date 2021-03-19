@@ -9,6 +9,8 @@ import { useGetSegmentsQuery } from '../../../../graph/generated/hooks';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
 
+export const LIVE_SEGMENT_ID = 'live';
+
 export const SegmentPicker = () => {
     const { setSearchParams, setSegmentName, setExistingParams } = useContext(
         SearchContext
@@ -54,12 +56,32 @@ export const SegmentPicker = () => {
                             <div
                                 className={classNames(
                                     styles.segmentText,
-                                    currentSegment && styles.segmentUnselected
+                                    (currentSegment || segment_id) &&
+                                        styles.segmentUnselected
                                 )}
                             >
                                 All Sessions
                             </div>
-                            {!currentSegment && (
+                            {!currentSegment && !segment_id && (
+                                <CheckIcon className={styles.checkIcon} />
+                            )}
+                        </div>
+                    </Link>
+                    <Link
+                        to={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
+                        key={'live-sessions'}
+                    >
+                        <div className={styles.segmentItem}>
+                            <div
+                                className={classNames(
+                                    styles.segmentText,
+                                    segment_id !== LIVE_SEGMENT_ID &&
+                                        styles.segmentUnselected
+                                )}
+                            >
+                                Live Sessions
+                            </div>
+                            {LIVE_SEGMENT_ID === segment_id && (
                                 <CheckIcon className={styles.checkIcon} />
                             )}
                         </div>

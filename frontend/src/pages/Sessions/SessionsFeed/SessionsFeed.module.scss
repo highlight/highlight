@@ -218,10 +218,11 @@
     margin: 0px -3px;
 }
 
-.unprocessedSessionsContainer {
+.unprocessedSessionsCountLink {
     display: flex;
     align-items: center;
     gap: $size-xSmall;
+    color: #a8a8a8;
 }
 
 .sessionCard {

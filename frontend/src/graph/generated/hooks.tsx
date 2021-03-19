@@ -887,11 +887,13 @@ export const GetSessionsBetaDocument = gql`
     query GetSessionsBETA(
         $organization_id: ID!
         $count: Int!
+        $processed: Boolean!
         $params: SearchParamsInput
     ) {
         sessionsBETA(
             organization_id: $organization_id
             count: $count
+            processed: $processed
             params: $params
         ) {
             sessions {
@@ -933,6 +935,7 @@ export const GetSessionsBetaDocument = gql`
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      count: // value for 'count'
+ *      processed: // value for 'processed'
  *      params: // value for 'params'
  *   },
  * });

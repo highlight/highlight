@@ -21,9 +21,15 @@ import {
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
 import ActivityIcon from '../../Player/SessionLevelBar/ActivityIcon/ActivityIcon';
+import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
+
+const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
 export const SessionFeed = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { organization_id, segment_id } = useParams<{
+        organization_id: string;
+        segment_id: string;
+    }>();
     const [count, setCount] = useState(10);
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
@@ -38,14 +44,17 @@ export const SessionFeed = () => {
         loading: unprocessedSessionsLoading,
     } = useUnprocessedSessionsCountQuery({
         variables: { organization_id },
-        pollInterval: 5000,
+        pollInterval: SESSIONS_FEED_POLL_INTERVAL,
     });
     const { loading, fetchMore } = useGetSessionsBetaQuery({
         variables: {
             params: searchParams,
             count: count + 10,
             organization_id,
+            processed: segment_id !== LIVE_SEGMENT_ID,
         },
+        pollInterval:
+            segment_id === LIVE_SEGMENT_ID ? SESSIONS_FEED_POLL_INTERVAL : 0,
         onCompleted: (response) => {
             if (response.sessionsBETA) {
                 setData(response.sessionsBETA);
@@ -73,6 +82,7 @@ export const SessionFeed = () => {
                     params: searchParams,
                     count,
                     organization_id,
+                    processed: false,
                 },
             });
         },
@@ -90,22 +100,26 @@ export const SessionFeed = () => {
                     <div
                         className={styles.resultCount}
                     >{`${data.totalCount} sessions`}</div>
-                    {!unprocessedSessionsLoading && (
-                        <Tooltip
-                            title="The number of live sessions"
-                            arrowPointAtCenter
-                        >
-                            <div
-                                className={styles.unprocessedSessionsContainer}
+                    {!unprocessedSessionsLoading &&
+                        segment_id !== LIVE_SEGMENT_ID && (
+                            <Tooltip
+                                title="The number of live sessions"
+                                arrowPointAtCenter
                             >
-                                <ActivityIcon isActive />
-                                {
-                                    unprocessedSessionsCount
-                                        ?.UnprocessedSessions?.totalCount
-                                }
-                            </div>
-                        </Tooltip>
-                    )}
+                                <Link
+                                    className={
+                                        styles.unprocessedSessionsCountLink
+                                    }
+                                    to={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
+                                >
+                                    <ActivityIcon isActive />
+                                    {
+                                        unprocessedSessionsCount
+                                            ?.UnprocessedSessions?.totalCount
+                                    }
+                                </Link>
+                            </Tooltip>
+                        )}
                 </div>
             </div>
             <div className={styles.feedContent}>

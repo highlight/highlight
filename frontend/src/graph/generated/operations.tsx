@@ -256,6 +256,7 @@ export type SendAdminInviteMutation = { __typename?: 'Mutation' } & Pick<
 export type GetSessionsBetaQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
+    processed: Types.Scalars['Boolean'];
     params?: Types.Maybe<Types.SearchParamsInput>;
 }>;
 

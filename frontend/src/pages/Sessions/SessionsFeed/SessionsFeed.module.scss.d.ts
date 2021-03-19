@@ -29,5 +29,5 @@ export const sessionTextSectionWrapper: string;
 export const sessionTextWrapper: string;
 export const tagWrapper: string;
 export const topText: string;
-export const unprocessedSessionsContainer: string;
+export const unprocessedSessionsCountLink: string;
 export const userInputWrapper: string;
