@@ -1,0 +1,16 @@
+{
+    "manifest_version": 2,
+    "name": "Highlight Extension",
+    "description": "An extension that lets you run Highlight from a browser extension.",
+    "version": "1",
+    "author": "Highlight",
+    "browser_action": {
+        "default_icon": "tab-icon.png",
+        "default_title": "Highlight"
+    },
+    "permissions": ["activeTab"],
+    "background": {
+        "persistent": false,
+        "scripts": ["background.js"]
+    }
+}
