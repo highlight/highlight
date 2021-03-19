@@ -261,6 +261,9 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 
 func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, user_identifier string) error {
 	organization := &model.Organization{}
+	if organization.SlackWebhookURL == nil {
+		return nil
+	}
 	res := r.DB.Where("id = ?", org_id).First(&organization)
 	if err := res.Error; err != nil {
 		return e.Wrap(err, "error messaging organization")
