@@ -172,7 +172,10 @@ export const SessionFeed = () => {
 };
 
 const SessionCard = ({ session }: { session: Maybe<Session> }) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { organization_id, segment_id } = useParams<{
+        organization_id: string;
+        segment_id: string;
+    }>();
     const [hovered, setHovered] = useState(false);
     const created = new Date(session?.created_at);
     return (
@@ -237,9 +240,11 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                         </div>
                         <div className={styles.sessionTextSection}>
                             <div className={styles.topText}>
-                                {MillisToMinutesAndSecondsVerbose(
-                                    session?.length || 0
-                                ) || '30 min 20 sec'}
+                                {segment_id === LIVE_SEGMENT_ID
+                                    ? 'In Progress'
+                                    : MillisToMinutesAndSecondsVerbose(
+                                          session?.length || 0
+                                      ) || '30 min 20 sec'}
                             </div>
                             <div className={styles.middleText}>
                                 {created.toLocaleString('en-us', {
