@@ -44,6 +44,25 @@ export type Session = {
     field_group?: Maybe<Scalars['String']>;
 };
 
+export type BillingDetails = {
+    __typename?: 'BillingDetails';
+    plan: Plan;
+    meter: Scalars['Int'];
+};
+
+export type Plan = {
+    __typename?: 'Plan';
+    type: PlanType;
+    quota: Scalars['Int'];
+};
+
+export enum PlanType {
+    None = 'None',
+    Basic = 'Basic',
+    Startup = 'Startup',
+    Enterprise = 'Enterprise',
+}
+
 export type RecordingSettings = {
     __typename?: 'RecordingSettings';
     id: Scalars['ID'];
@@ -242,7 +261,7 @@ export type Query = {
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     sessionsBETA?: Maybe<SessionResults>;
-    billingDetails: Plan;
+    billingDetails: BillingDetails;
     field_suggestionBETA?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
@@ -331,13 +350,6 @@ export type QueryError_SegmentsArgs = {
 export type QueryRecording_SettingsArgs = {
     organization_id: Scalars['ID'];
 };
-
-export enum Plan {
-    None = 'None',
-    Basic = 'Basic',
-    Startup = 'Startup',
-    Enterprise = 'Enterprise',
-}
 
 export type Mutation = {
     __typename?: 'Mutation';
@@ -435,5 +447,5 @@ export type MutationEditRecordingSettingsArgs = {
 
 export type MutationCreateOrUpdateSubscriptionArgs = {
     organization_id: Scalars['ID'];
-    plan: Plan;
+    plan_type: PlanType;
 };

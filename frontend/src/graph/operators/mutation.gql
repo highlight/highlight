@@ -5,8 +5,8 @@ mutation MarkSessionAsViewed($id: ID!) {
     }
 }
 
-mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {
-    createOrUpdateSubscription(organization_id: $organization_id, plan: $plan)
+mutation CreateOrUpdateSubscription($organization_id: ID!, $plan_type: PlanType!) {
+    createOrUpdateSubscription(organization_id: $organization_id, plan_type: $plan_type)
 }
 
 mutation SendEmailSignup($email: String!) {

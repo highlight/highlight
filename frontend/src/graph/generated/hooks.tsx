@@ -53,10 +53,13 @@ export type MarkSessionAsViewedMutationOptions = Apollo.BaseMutationOptions<
     Types.MarkSessionAsViewedMutationVariables
 >;
 export const CreateOrUpdateSubscriptionDocument = gql`
-    mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {
+    mutation CreateOrUpdateSubscription(
+        $organization_id: ID!
+        $plan_type: PlanType!
+    ) {
         createOrUpdateSubscription(
             organization_id: $organization_id
-            plan: $plan
+            plan_type: $plan_type
         )
     }
 `;
@@ -79,7 +82,7 @@ export type CreateOrUpdateSubscriptionMutationFn = Apollo.MutationFunction<
  * const [createOrUpdateSubscriptionMutation, { data, loading, error }] = useCreateOrUpdateSubscriptionMutation({
  *   variables: {
  *      organization_id: // value for 'organization_id'
- *      plan: // value for 'plan'
+ *      plan_type: // value for 'plan_type'
  *   },
  * });
  */
@@ -1139,7 +1142,13 @@ export type GetOrganizationQueryResult = Apollo.QueryResult<
 >;
 export const GetBillingDetailsDocument = gql`
     query GetBillingDetails($organization_id: ID!) {
-        billingDetails(organization_id: $organization_id)
+        billingDetails(organization_id: $organization_id) {
+            plan {
+                type
+                quota
+            }
+            meter
+        }
     }
 `;
 

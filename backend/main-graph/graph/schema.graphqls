@@ -28,6 +28,23 @@ type Session {
     field_group: String
 }
 
+type BillingDetails {
+    plan: Plan!
+    meter: Int!
+}
+
+type Plan {
+    type: PlanType!
+    quota: Int!
+}
+
+enum PlanType {
+    None
+    Basic
+    Startup
+    Enterprise
+}
+
 type RecordingSettings {
     id: ID!
     organization_id: ID!
@@ -218,7 +235,7 @@ type Query {
         count: Int!
         params: SearchParamsInput
     ): SessionResults
-    billingDetails(organization_id: ID!): Plan!
+    billingDetails(organization_id: ID!): BillingDetails!
     # gets all the organizations of a user
     field_suggestionBETA(
         organization_id: ID!
@@ -243,12 +260,6 @@ type Query {
     recording_settings(organization_id: ID!): RecordingSettings
 }
 
-enum Plan {
-    None
-    Basic
-    Startup
-    Enterprise
-}
 
 type Mutation {
     createOrganization(name: String!): Organization
@@ -287,5 +298,5 @@ type Mutation {
     ): RecordingSettings
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
-    createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
+    createOrUpdateSubscription(organization_id: ID!, plan_type: PlanType!): String
 }

@@ -17,7 +17,7 @@ import {
     useCreateOrUpdateSubscriptionMutation,
     useGetBillingDetailsQuery,
 } from '../../graph/generated/hooks';
-import { Plan } from '../../graph/generated/schemas';
+import { PlanType } from '../../graph/generated/schemas';
 
 const getStripePromiseOrNull = () => {
     const stripe_publishable_key = process.env.REACT_APP_STRIPE_API_PK;
@@ -73,11 +73,14 @@ export const Billing = () => {
         }
     }, [pathname, checkoutRedirectFailedMessage, billingError]);
 
-    const createOnSelect = (plan: Plan) => {
+    const createOnSelect = (plan: PlanType) => {
         return async () => {
             setLoading(true);
             createOrUpdateSubscription({
-                variables: { organization_id: organization_id, plan },
+                variables: {
+                    organization_id: organization_id,
+                    plan_type: plan,
+                },
             }).then((r) => {
                 if (!r.data?.createOrUpdateSubscription) {
                     message.success('Billing change applied!', 5);
@@ -131,27 +134,27 @@ export const Billing = () => {
                         <>
                             <BillingPlanCard
                                 current={
-                                    billingData?.billingDetails ===
+                                    billingData?.billingDetails.plan.type ===
                                     basicPlan.planName
                                 }
                                 billingPlan={basicPlan}
-                                onSelect={createOnSelect(Plan.Basic)}
+                                onSelect={createOnSelect(PlanType.Basic)}
                             ></BillingPlanCard>
                             <BillingPlanCard
                                 current={
-                                    billingData?.billingDetails ===
+                                    billingData?.billingDetails.plan.type ===
                                     startupPlan.planName
                                 }
                                 billingPlan={startupPlan}
-                                onSelect={createOnSelect(Plan.Startup)}
+                                onSelect={createOnSelect(PlanType.Startup)}
                             ></BillingPlanCard>
                             <BillingPlanCard
                                 current={
-                                    billingData?.billingDetails ===
+                                    billingData?.billingDetails.plan.type ===
                                     enterprisePlan.planName
                                 }
                                 billingPlan={enterprisePlan}
-                                onSelect={createOnSelect(Plan.Enterprise)}
+                                onSelect={createOnSelect(PlanType.Enterprise)}
                             ></BillingPlanCard>
                         </>
                     )}

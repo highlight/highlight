@@ -56,6 +56,11 @@ type ComplexityRoot struct {
 		Name  func(childComplexity int) int
 	}
 
+	BillingDetails struct {
+		Meter func(childComplexity int) int
+		Plan  func(childComplexity int) int
+	}
+
 	DateRange struct {
 		EndDate   func(childComplexity int) int
 		StartDate func(childComplexity int) int
@@ -142,7 +147,7 @@ type ComplexityRoot struct {
 		AddAdminToOrganization         func(childComplexity int, organizationID int, inviteID string) int
 		AddSlackIntegrationToWorkspace func(childComplexity int, organizationID int, code string) int
 		CreateErrorSegment             func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
-		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, plan model.Plan) int
+		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
 		CreateOrganization             func(childComplexity int, name string) int
 		CreateSegment                  func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
 		DeleteErrorSegment             func(childComplexity int, segmentID int) int
@@ -163,6 +168,11 @@ type ComplexityRoot struct {
 		Name         func(childComplexity int) int
 		TrialEndDate func(childComplexity int) int
 		VerboseID    func(childComplexity int) int
+	}
+
+	Plan struct {
+		Quota func(childComplexity int) int
+		Type  func(childComplexity int) int
 	}
 
 	Query struct {
@@ -276,7 +286,7 @@ type MutationResolver interface {
 	EditErrorSegment(ctx context.Context, id int, organizationID int, params model.ErrorSearchParamsInput) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
-	CreateOrUpdateSubscription(ctx context.Context, organizationID int, plan model.Plan) (*string, error)
+	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -288,7 +298,7 @@ type QueryResolver interface {
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParamsInput) (*model1.SessionResults, error)
-	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
+	BillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
 	ErrorFieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.ErrorField, error)
@@ -341,6 +351,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.Name(childComplexity), true
+
+	case "BillingDetails.meter":
+		if e.complexity.BillingDetails.Meter == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.Meter(childComplexity), true
+
+	case "BillingDetails.plan":
+		if e.complexity.BillingDetails.Plan == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.Plan(childComplexity), true
 
 	case "DateRange.end_date":
 		if e.complexity.DateRange.EndDate == nil {
@@ -731,7 +755,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateOrUpdateSubscription(childComplexity, args["organization_id"].(int), args["plan"].(model.Plan)), true
+		return e.complexity.Mutation.CreateOrUpdateSubscription(childComplexity, args["organization_id"].(int), args["plan_type"].(model.PlanType)), true
 
 	case "Mutation.createOrganization":
 		if e.complexity.Mutation.CreateOrganization == nil {
@@ -911,6 +935,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Organization.VerboseID(childComplexity), true
+
+	case "Plan.quota":
+		if e.complexity.Plan.Quota == nil {
+			break
+		}
+
+		return e.complexity.Plan.Quota(childComplexity), true
+
+	case "Plan.type":
+		if e.complexity.Plan.Type == nil {
+			break
+		}
+
+		return e.complexity.Plan.Type(childComplexity), true
 
 	case "Query.admin":
 		if e.complexity.Query.Admin == nil {
@@ -1497,6 +1535,23 @@ type Session {
     field_group: String
 }
 
+type BillingDetails {
+    plan: Plan!
+    meter: Int!
+}
+
+type Plan {
+    type: PlanType!
+    quota: Int!
+}
+
+enum PlanType {
+    None
+    Basic
+    Startup
+    Enterprise
+}
+
 type RecordingSettings {
     id: ID!
     organization_id: ID!
@@ -1539,7 +1594,7 @@ type ErrorObject {
 }
 
 type ErrorField {
-    organization_id: Int!
+    organization_id: Int
     name: String!
     value: String!
 }
@@ -1687,7 +1742,7 @@ type Query {
         count: Int!
         params: SearchParamsInput
     ): SessionResults
-    billingDetails(organization_id: ID!): Plan!
+    billingDetails(organization_id: ID!): BillingDetails!
     # gets all the organizations of a user
     field_suggestionBETA(
         organization_id: ID!
@@ -1712,12 +1767,6 @@ type Query {
     recording_settings(organization_id: ID!): RecordingSettings
 }
 
-enum Plan {
-    None
-    Basic
-    Startup
-    Enterprise
-}
 
 type Mutation {
     createOrganization(name: String!): Organization
@@ -1756,7 +1805,7 @@ type Mutation {
     ): RecordingSettings
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
-    createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
+    createOrUpdateSubscription(organization_id: ID!, plan_type: PlanType!): String
 }
 `, BuiltIn: false},
 }
@@ -1859,15 +1908,15 @@ func (ec *executionContext) field_Mutation_createOrUpdateSubscription_args(ctx c
 		}
 	}
 	args["organization_id"] = arg0
-	var arg1 model.Plan
-	if tmp, ok := rawArgs["plan"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("plan"))
-		arg1, err = ec.unmarshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx, tmp)
+	var arg1 model.PlanType
+	if tmp, ok := rawArgs["plan_type"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("plan_type"))
+		arg1, err = ec.unmarshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["plan"] = arg1
+	args["plan_type"] = arg1
 	return args, nil
 }
 
@@ -2641,6 +2690,74 @@ func (ec *executionContext) _Admin_email(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _BillingDetails_plan(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "BillingDetails",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Plan, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Plan)
+	fc.Result = res
+	return ec.marshalNPlan2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BillingDetails_meter(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "BillingDetails",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Meter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _DateRange_start_date(ctx context.Context, field graphql.CollectedField, obj *model1.DateRange) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2727,14 +2844,11 @@ func (ec *executionContext) _ErrorField_organization_id(ctx context.Context, fie
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorField_name(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorField) (ret graphql.Marshaler) {
@@ -4826,7 +4940,7 @@ func (ec *executionContext) _Mutation_createOrUpdateSubscription(ctx context.Con
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateOrUpdateSubscription(rctx, args["organization_id"].(int), args["plan"].(model.Plan))
+		return ec.resolvers.Mutation().CreateOrUpdateSubscription(rctx, args["organization_id"].(int), args["plan_type"].(model.PlanType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5002,6 +5116,74 @@ func (ec *executionContext) _Organization_trial_end_date(ctx context.Context, fi
 	res := resTmp.(*time.Time)
 	fc.Result = res
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Plan_type(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Plan",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.PlanType)
+	fc.Result = res
+	return ec.marshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Plan_quota(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Plan",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Quota, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_session(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5382,9 +5564,9 @@ func (ec *executionContext) _Query_billingDetails(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.Plan)
+	res := resTmp.(*model.BillingDetails)
 	fc.Result = res
-	return ec.marshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNBillingDetails2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_field_suggestionBETA(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -8403,6 +8585,38 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var billingDetailsImplementors = []string{"BillingDetails"}
+
+func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.SelectionSet, obj *model.BillingDetails) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, billingDetailsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BillingDetails")
+		case "plan":
+			out.Values[i] = ec._BillingDetails_plan(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "meter":
+			out.Values[i] = ec._BillingDetails_meter(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var dateRangeImplementors = []string{"DateRange"}
 
 func (ec *executionContext) _DateRange(ctx context.Context, sel ast.SelectionSet, obj *model1.DateRange) graphql.Marshaler {
@@ -8442,9 +8656,6 @@ func (ec *executionContext) _ErrorField(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = graphql.MarshalString("ErrorField")
 		case "organization_id":
 			out.Values[i] = ec._ErrorField_organization_id(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "name":
 			out.Values[i] = ec._ErrorField_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -8957,6 +9168,38 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._Organization_billing_email(ctx, field, obj)
 		case "trial_end_date":
 			out.Values[i] = ec._Organization_trial_end_date(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var planImplementors = []string{"Plan"}
+
+func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj *model.Plan) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, planImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Plan")
+		case "type":
+			out.Values[i] = ec._Plan_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "quota":
+			out.Values[i] = ec._Plan_quota(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9771,6 +10014,20 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNBillingDetails2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v model.BillingDetails) graphql.Marshaler {
+	return ec._BillingDetails(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBillingDetails2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v *model.BillingDetails) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._BillingDetails(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
@@ -9946,13 +10203,23 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, v interface{}) (model.Plan, error) {
-	var res model.Plan
+func (ec *executionContext) marshalNPlan2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Plan(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, v interface{}) (model.PlanType, error) {
+	var res model.PlanType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v model.Plan) graphql.Marshaler {
+func (ec *executionContext) marshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, sel ast.SelectionSet, v model.PlanType) graphql.Marshaler {
 	return v
 }
 

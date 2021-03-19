@@ -39,25 +39,25 @@ func profile(msg string, fid int, t time.Time) time.Time {
 	return time.Now()
 }
 
-func FromPriceID(priceID string) modelInputs.Plan {
+func FromPriceID(priceID string) modelInputs.PlanType {
 	switch priceID {
 	case os.Getenv("BASIC_PLAN_PRICE_ID"):
-		return modelInputs.PlanBasic
+		return modelInputs.PlanTypeBasic
 	case os.Getenv("STARTUP_PLAN_PRICE_ID"):
-		return modelInputs.PlanStartup
+		return modelInputs.PlanTypeStartup
 	case os.Getenv("ENTERPRISE_PLAN_PRICE_ID"):
-		return modelInputs.PlanEnterprise
+		return modelInputs.PlanTypeEnterprise
 	}
-	return modelInputs.PlanNone
+	return modelInputs.PlanTypeNone
 }
 
-func ToPriceID(plan modelInputs.Plan) string {
+func ToPriceID(plan modelInputs.PlanType) string {
 	switch plan {
-	case modelInputs.PlanBasic:
+	case modelInputs.PlanTypeBasic:
 		return os.Getenv("BASIC_PLAN_PRICE_ID")
-	case modelInputs.PlanStartup:
+	case modelInputs.PlanTypeStartup:
 		return os.Getenv("STARTUP_PLAN_PRICE_ID")
-	case modelInputs.PlanEnterprise:
+	case modelInputs.PlanTypeEnterprise:
 		return os.Getenv("ENTERPRISE_PLAN_PRICE_ID")
 	}
 	return ""

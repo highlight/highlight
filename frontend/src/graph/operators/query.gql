@@ -95,7 +95,13 @@ query GetOrganization($id: ID!) {
 }
 
 query GetBillingDetails($organization_id: ID!) {
-    billingDetails(organization_id: $organization_id)
+    billingDetails(organization_id: $organization_id) {
+        plan {
+            type
+            quota
+        }
+        meter
+    }
 }
 
 query GetErrorGroup(

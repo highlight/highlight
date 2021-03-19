@@ -12,7 +12,7 @@ export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
 
 export type CreateOrUpdateSubscriptionMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
-    plan: Types.Plan;
+    plan_type: Types.PlanType;
 }>;
 
 export type CreateOrUpdateSubscriptionMutation = {
@@ -341,10 +341,12 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
 
-export type GetBillingDetailsQuery = { __typename?: 'Query' } & Pick<
-    Types.Query,
-    'billingDetails'
->;
+export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
+    billingDetails: { __typename?: 'BillingDetails' } & Pick<
+        Types.BillingDetails,
+        'meter'
+    > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
+};
 
 export type GetErrorGroupQueryVariables = Types.Exact<{
     id: Types.Scalars['ID'];

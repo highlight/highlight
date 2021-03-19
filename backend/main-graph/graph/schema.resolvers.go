@@ -422,7 +422,7 @@ func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizati
 	return rec, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, plan modelInputs.Plan) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -452,7 +452,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	}
 	// If there's a single subscription on the user and a single price item on the subscription
 	if len(c.Subscriptions.Data) == 1 && len(c.Subscriptions.Data[0].Items.Data) == 1 {
-		plan := ToPriceID(plan)
+		plan := ToPriceID(planType)
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
 			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
@@ -482,7 +482,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
-					Plan: stripe.String(ToPriceID(plan)),
+					Plan: stripe.String(ToPriceID(planType)),
 				},
 			},
 		},
@@ -866,29 +866,39 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	return sessionList, nil
 }
 
-func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) (modelInputs.Plan, error) {
-	none := modelInputs.PlanNone
+func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) (*modelInputs.BillingDetails, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
-		return none, e.Wrap(err, "admin not found in org")
+		return nil, e.Wrap(err, "admin not found in org")
 	}
+	// TODO: Make sure this never errors.
 	if org.StripeCustomerID == nil {
-		return none, nil
+		return nil, e.Wrap(err, "org has no customer id")
 	}
 	params := &stripe.CustomerParams{}
+	priceID := ""
 	params.AddExpand("subscriptions")
 	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
-	if err != nil {
-		return none, e.Wrap(err, "couldn't retrieve customer")
+	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
+		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
-	if len(c.Subscriptions.Data) == 0 {
-		return none, nil
+	planType := FromPriceID(priceID)
+	// TODO: Set the meter based on the DB value
+	year, month, _ := time.Now().Date()
+	var meter int
+	if err := r.DB.Debug().Model(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
+		return nil, e.Wrap(err, "error querying for session meter")
 	}
-	if len(c.Subscriptions.Data[0].Items.Data) == 0 {
-		return none, nil
+	// queryString += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
+	/// db query to get meter
+	details := &modelInputs.BillingDetails{
+		Plan: &modelInputs.Plan{
+			Type:  planType,
+			Quota: TypeToQuota(planType),
+		},
+		Meter: meter,
 	}
-	plan := FromPriceID(c.Subscriptions.Data[0].Items.Data[0].Plan.ID)
-	return plan, nil
+	return details, nil
 }
 
 func (r *queryResolver) FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model.Field, error) {
@@ -1070,3 +1080,24 @@ type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func TypeToQuota(planType modelInputs.PlanType) int {
+	switch planType {
+	case modelInputs.PlanTypeNone:
+		return 10
+	case modelInputs.PlanTypeBasic:
+		return 10
+	case modelInputs.PlanTypeStartup:
+		return 10
+	case modelInputs.PlanTypeEnterprise:
+		return 10
+	default:
+		return 5
+	}
+}
