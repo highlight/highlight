@@ -23,8 +23,11 @@
     "editor.suggest.insertMode": "replace",
     "gitlens.codeLens.scopes": [
       "document"
-    ]
+    ],
   },
   "editor.hover.enabled": true,
-  "editor.colorDecorators": true
+  "editor.colorDecorators": true,
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
