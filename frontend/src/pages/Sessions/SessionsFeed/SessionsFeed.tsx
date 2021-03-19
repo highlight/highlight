@@ -88,6 +88,12 @@ export const SessionFeed = () => {
         },
     });
 
+    const showLiveSessionsCount =
+        !unprocessedSessionsLoading &&
+        segment_id !== LIVE_SEGMENT_ID &&
+        unprocessedSessionsCount?.UnprocessedSessionsCount &&
+        unprocessedSessionsCount.UnprocessedSessionsCount >= 0;
+
     return (
         <>
             <div className={styles.fixedContent}>
@@ -100,26 +106,22 @@ export const SessionFeed = () => {
                     <div
                         className={styles.resultCount}
                     >{`${data.totalCount} sessions`}</div>
-                    {!unprocessedSessionsLoading &&
-                        segment_id !== LIVE_SEGMENT_ID && (
-                            <Tooltip
-                                title="The number of live sessions"
-                                arrowPointAtCenter
+                    {showLiveSessionsCount && (
+                        <Tooltip
+                            title="The number of live sessions"
+                            arrowPointAtCenter
+                        >
+                            <Link
+                                className={styles.unprocessedSessionsCountLink}
+                                to={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
                             >
-                                <Link
-                                    className={
-                                        styles.unprocessedSessionsCountLink
-                                    }
-                                    to={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
-                                >
-                                    <ActivityIcon isActive />
-                                    {
-                                        unprocessedSessionsCount
-                                            ?.UnprocessedSessions?.totalCount
-                                    }
-                                </Link>
-                            </Tooltip>
-                        )}
+                                <ActivityIcon isActive />
+                                {
+                                    unprocessedSessionsCount?.UnprocessedSessionsCount
+                                }
+                            </Link>
+                        </Tooltip>
+                    )}
                 </div>
             </div>
             <div className={styles.feedContent}>

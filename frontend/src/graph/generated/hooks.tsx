@@ -1927,9 +1927,7 @@ export type IsIntegratedQueryResult = Apollo.QueryResult<
 >;
 export const UnprocessedSessionsCountDocument = gql`
     query UnprocessedSessionsCount($organization_id: ID!) {
-        UnprocessedSessions(organization_id: $organization_id) {
-            totalCount
-        }
+        UnprocessedSessionsCount(organization_id: $organization_id)
     }
 `;
 
@@ -1980,80 +1978,4 @@ export type UnprocessedSessionsCountLazyQueryHookResult = ReturnType<
 export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
     Types.UnprocessedSessionsCountQuery,
     Types.UnprocessedSessionsCountQueryVariables
->;
-export const UnprocessedSessionsDocument = gql`
-    query UnprocessedSessions($organization_id: ID!) {
-        UnprocessedSessions(organization_id: $organization_id) {
-            sessions {
-                id
-                user_id
-                identifier
-                os_name
-                os_version
-                browser_name
-                browser_version
-                city
-                state
-                postal
-                created_at
-                length
-                viewed
-                fields {
-                    name
-                    value
-                    type
-                }
-            }
-            totalCount
-        }
-    }
-`;
-
-/**
- * __useUnprocessedSessionsQuery__
- *
- * To run a query within a React component, call `useUnprocessedSessionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useUnprocessedSessionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useUnprocessedSessionsQuery({
- *   variables: {
- *      organization_id: // value for 'organization_id'
- *   },
- * });
- */
-export function useUnprocessedSessionsQuery(
-    baseOptions: Apollo.QueryHookOptions<
-        Types.UnprocessedSessionsQuery,
-        Types.UnprocessedSessionsQueryVariables
-    >
-) {
-    return Apollo.useQuery<
-        Types.UnprocessedSessionsQuery,
-        Types.UnprocessedSessionsQueryVariables
-    >(UnprocessedSessionsDocument, baseOptions);
-}
-export function useUnprocessedSessionsLazyQuery(
-    baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.UnprocessedSessionsQuery,
-        Types.UnprocessedSessionsQueryVariables
-    >
-) {
-    return Apollo.useLazyQuery<
-        Types.UnprocessedSessionsQuery,
-        Types.UnprocessedSessionsQueryVariables
-    >(UnprocessedSessionsDocument, baseOptions);
-}
-export type UnprocessedSessionsQueryHookResult = ReturnType<
-    typeof useUnprocessedSessionsQuery
->;
-export type UnprocessedSessionsLazyQueryHookResult = ReturnType<
-    typeof useUnprocessedSessionsLazyQuery
->;
-export type UnprocessedSessionsQueryResult = Apollo.QueryResult<
-    Types.UnprocessedSessionsQuery,
-    Types.UnprocessedSessionsQueryVariables
 >;

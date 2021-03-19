@@ -166,26 +166,26 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Admin                func(childComplexity int) int
-		Admins               func(childComplexity int, organizationID int) int
-		BillingDetails       func(childComplexity int, organizationID int) int
-		ErrorFieldSuggestion func(childComplexity int, organizationID int, name string, query string) int
-		ErrorGroup           func(childComplexity int, id int) int
-		ErrorGroups          func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
-		ErrorSegments        func(childComplexity int, organizationID int) int
-		Events               func(childComplexity int, sessionID int) int
-		FieldSuggestionBeta  func(childComplexity int, organizationID int, name string, query string) int
-		IsIntegrated         func(childComplexity int, organizationID int) int
-		Messages             func(childComplexity int, sessionID int) int
-		Organization         func(childComplexity int, id int) int
-		Organizations        func(childComplexity int) int
-		PropertySuggestion   func(childComplexity int, organizationID int, query string, typeArg string) int
-		RecordingSettings    func(childComplexity int, organizationID int) int
-		Resources            func(childComplexity int, sessionID int) int
-		Segments             func(childComplexity int, organizationID int) int
-		Session              func(childComplexity int, id int) int
-		SessionsBeta         func(childComplexity int, organizationID int, count int, processed bool, params *model.SearchParamsInput) int
-		UnprocessedSessions  func(childComplexity int, organizationID int) int
+		Admin                    func(childComplexity int) int
+		Admins                   func(childComplexity int, organizationID int) int
+		BillingDetails           func(childComplexity int, organizationID int) int
+		ErrorFieldSuggestion     func(childComplexity int, organizationID int, name string, query string) int
+		ErrorGroup               func(childComplexity int, id int) int
+		ErrorGroups              func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
+		ErrorSegments            func(childComplexity int, organizationID int) int
+		Events                   func(childComplexity int, sessionID int) int
+		FieldSuggestionBeta      func(childComplexity int, organizationID int, name string, query string) int
+		IsIntegrated             func(childComplexity int, organizationID int) int
+		Messages                 func(childComplexity int, sessionID int) int
+		Organization             func(childComplexity int, id int) int
+		Organizations            func(childComplexity int) int
+		PropertySuggestion       func(childComplexity int, organizationID int, query string, typeArg string) int
+		RecordingSettings        func(childComplexity int, organizationID int) int
+		Resources                func(childComplexity int, sessionID int) int
+		Segments                 func(childComplexity int, organizationID int) int
+		Session                  func(childComplexity int, id int) int
+		SessionsBeta             func(childComplexity int, organizationID int, count int, processed bool, params *model.SearchParamsInput) int
+		UnprocessedSessionsCount func(childComplexity int, organizationID int) int
 	}
 
 	RecordingSettings struct {
@@ -288,7 +288,7 @@ type QueryResolver interface {
 	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
-	UnprocessedSessions(ctx context.Context, organizationID int) (*model1.SessionResults, error)
+	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error)
 	SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
@@ -1132,17 +1132,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.SessionsBeta(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput)), true
 
-	case "Query.UnprocessedSessions":
-		if e.complexity.Query.UnprocessedSessions == nil {
+	case "Query.UnprocessedSessionsCount":
+		if e.complexity.Query.UnprocessedSessionsCount == nil {
 			break
 		}
 
-		args, err := ec.field_Query_UnprocessedSessions_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_UnprocessedSessionsCount_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.UnprocessedSessions(childComplexity, args["organization_id"].(int)), true
+		return e.complexity.Query.UnprocessedSessionsCount(childComplexity, args["organization_id"].(int)), true
 
 	case "RecordingSettings.details":
 		if e.complexity.RecordingSettings.Details == nil {
@@ -1695,7 +1695,7 @@ type Query {
     resources(session_id: ID!): [Any]
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
-    UnprocessedSessions(organization_id: ID!): SessionResults
+    UnprocessedSessionsCount(organization_id: ID!): Int
     sessionsBETA(
         organization_id: ID!
         count: Int!
@@ -2169,7 +2169,7 @@ func (ec *executionContext) field_Mutation_sendAdminInvite_args(ctx context.Cont
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_UnprocessedSessions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_UnprocessedSessionsCount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -5357,7 +5357,7 @@ func (ec *executionContext) _Query_isIntegrated(ctx context.Context, field graph
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_UnprocessedSessions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_UnprocessedSessionsCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5373,7 +5373,7 @@ func (ec *executionContext) _Query_UnprocessedSessions(ctx context.Context, fiel
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_UnprocessedSessions_args(ctx, rawArgs)
+	args, err := ec.field_Query_UnprocessedSessionsCount_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -5381,7 +5381,7 @@ func (ec *executionContext) _Query_UnprocessedSessions(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UnprocessedSessions(rctx, args["organization_id"].(int))
+		return ec.resolvers.Query().UnprocessedSessionsCount(rctx, args["organization_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5390,9 +5390,9 @@ func (ec *executionContext) _Query_UnprocessedSessions(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model1.SessionResults)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOSessionResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -9155,7 +9155,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_isIntegrated(ctx, field)
 				return res
 			})
-		case "UnprocessedSessions":
+		case "UnprocessedSessionsCount":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -9163,7 +9163,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_UnprocessedSessions(ctx, field)
+				res = ec._Query_UnprocessedSessionsCount(ctx, field)
 				return res
 			})
 		case "sessionsBETA":

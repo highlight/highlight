@@ -275,32 +275,5 @@ query IsIntegrated($organization_id: ID!) {
 }
 
 query UnprocessedSessionsCount($organization_id: ID!) {
-    UnprocessedSessions(organization_id: $organization_id) {
-        totalCount
-    }
-}
-query UnprocessedSessions($organization_id: ID!) {
-    UnprocessedSessions(organization_id: $organization_id) {
-        sessions {
-            id
-            user_id
-            identifier
-            os_name
-            os_version
-            browser_name
-            browser_version
-            city
-            state
-            postal
-            created_at
-            length
-            viewed
-            fields {
-                name
-                value
-                type
-            }
-        }
-        totalCount
-    }
+    UnprocessedSessionsCount(organization_id: $organization_id)
 }
