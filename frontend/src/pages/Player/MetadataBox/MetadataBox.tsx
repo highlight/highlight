@@ -1,11 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Skeleton, Tag } from 'antd';
+import { Skeleton } from 'antd';
 import { Avatar } from '../../../components/Avatar/Avatar';
 
 import styles from './MetadataBox.module.scss';
 import { DemoContext } from '../../../DemoContext';
 import { useGetSessionQuery } from '../../../graph/generated/hooks';
+import { Field } from '../../../components/Field/Field';
 
 type Field = {
     type: string;
@@ -69,23 +70,12 @@ export const MetadataBox = () => {
                             <div className={styles.tagDiv}>
                                 <div className={styles.tagWrapper}>
                                     {parsedFields?.map((f, i) => (
-                                        <Tag
+                                        <Field
                                             key={i.toString()}
-                                            color="#F2EEFB"
-                                            style={{
-                                                marginTop: '3px',
-                                            }}
-                                        >
-                                            <span
-                                                style={{
-                                                    color: 'black',
-                                                    fontWeight: 300,
-                                                }}
-                                                className={styles.tagEllipsis}
-                                            >
-                                                {f.name}:&nbsp;{f.value}
-                                            </span>
-                                        </Tag>
+                                            color={'normal'}
+                                            k={f.name}
+                                            v={f.value}
+                                        ></Field>
                                     ))}
                                 </div>
                             </div>

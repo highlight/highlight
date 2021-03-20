@@ -3,6 +3,7 @@ export const errorLogCell: string;
 export const errorLogItem: string;
 export const errorLogOverflow: string;
 export const errorLogsTitle: string;
+export const errorLogWrapper: string;
 export const errorPage: string;
 export const errorPageWrapper: string;
 export const eventText: string;

@@ -1,0 +1,19 @@
+.modalWrapper {
+    border-radius: 8px;
+    border-color: #eaeaea;
+    background-color: white;
+    width: 60vh;
+    padding: 20px;
+    z-index: 1200;
+}
+
+.buttonBody {
+    width: 100%;
+    height: 100%;
+    padding-top: 100px;
+    display: grid;
+    grid-template-columns: auto 300px minmax(200px, 700px) 300px auto;
+    gap: 0px 0px;
+    grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
+    column-gap: 30px;
+}

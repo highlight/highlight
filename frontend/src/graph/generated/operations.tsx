@@ -270,6 +270,7 @@ export type SendAdminInviteMutation = { __typename?: 'Mutation' } & Pick<
 export type GetSessionsBetaQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
+    processed: Types.Scalars['Boolean'];
     params?: Types.Maybe<Types.SearchParamsInput>;
 }>;
 
@@ -654,4 +655,13 @@ export type IsIntegratedQueryVariables = Types.Exact<{
 export type IsIntegratedQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'isIntegrated'
+>;
+
+export type UnprocessedSessionsCountQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'unprocessedSessionsCount'
 >;

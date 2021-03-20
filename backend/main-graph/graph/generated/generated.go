@@ -168,25 +168,26 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Admin                func(childComplexity int) int
-		Admins               func(childComplexity int, organizationID int) int
-		BillingDetails       func(childComplexity int, organizationID int) int
-		ErrorFieldSuggestion func(childComplexity int, organizationID int, name string, query string) int
-		ErrorGroup           func(childComplexity int, id int) int
-		ErrorGroups          func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
-		ErrorSegments        func(childComplexity int, organizationID int) int
-		Events               func(childComplexity int, sessionID int) int
-		FieldSuggestionBeta  func(childComplexity int, organizationID int, name string, query string) int
-		IsIntegrated         func(childComplexity int, organizationID int) int
-		Messages             func(childComplexity int, sessionID int) int
-		Organization         func(childComplexity int, id int) int
-		Organizations        func(childComplexity int) int
-		PropertySuggestion   func(childComplexity int, organizationID int, query string, typeArg string) int
-		RecordingSettings    func(childComplexity int, organizationID int) int
-		Resources            func(childComplexity int, sessionID int) int
-		Segments             func(childComplexity int, organizationID int) int
-		Session              func(childComplexity int, id int) int
-		SessionsBeta         func(childComplexity int, organizationID int, count int, params *model.SearchParamsInput) int
+		Admin                    func(childComplexity int) int
+		Admins                   func(childComplexity int, organizationID int) int
+		BillingDetails           func(childComplexity int, organizationID int) int
+		ErrorFieldSuggestion     func(childComplexity int, organizationID int, name string, query string) int
+		ErrorGroup               func(childComplexity int, id int) int
+		ErrorGroups              func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
+		ErrorSegments            func(childComplexity int, organizationID int) int
+		Events                   func(childComplexity int, sessionID int) int
+		FieldSuggestionBeta      func(childComplexity int, organizationID int, name string, query string) int
+		IsIntegrated             func(childComplexity int, organizationID int) int
+		Messages                 func(childComplexity int, sessionID int) int
+		Organization             func(childComplexity int, id int) int
+		Organizations            func(childComplexity int) int
+		PropertySuggestion       func(childComplexity int, organizationID int, query string, typeArg string) int
+		RecordingSettings        func(childComplexity int, organizationID int) int
+		Resources                func(childComplexity int, sessionID int) int
+		Segments                 func(childComplexity int, organizationID int) int
+		Session                  func(childComplexity int, id int) int
+		SessionsBeta             func(childComplexity int, organizationID int, count int, processed bool, params *model.SearchParamsInput) int
+		UnprocessedSessionsCount func(childComplexity int, organizationID int) int
 	}
 
 	RecordingSettings struct {
@@ -290,7 +291,8 @@ type QueryResolver interface {
 	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
-	SessionsBeta(ctx context.Context, organizationID int, count int, params *model.SearchParamsInput) (*model1.SessionResults, error)
+	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error)
+	SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
@@ -1150,7 +1152,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SessionsBeta(childComplexity, args["organization_id"].(int), args["count"].(int), args["params"].(*model.SearchParamsInput)), true
+		return e.complexity.Query.SessionsBeta(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput)), true
+
+	case "Query.unprocessedSessionsCount":
+		if e.complexity.Query.UnprocessedSessionsCount == nil {
+			break
+		}
+
+		args, err := ec.field_Query_unprocessedSessionsCount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UnprocessedSessionsCount(childComplexity, args["organization_id"].(int)), true
 
 	case "RecordingSettings.details":
 		if e.complexity.RecordingSettings.Details == nil {
@@ -1593,7 +1607,6 @@ type ErrorTrace {
     column_number: Int
 }
 
-
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
@@ -1705,9 +1718,11 @@ type Query {
     resources(session_id: ID!): [Any]
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
+    unprocessedSessionsCount(organization_id: ID!): Int
     sessionsBETA(
         organization_id: ID!
         count: Int!
+        processed: Boolean!
         params: SearchParamsInput
     ): SessionResults
     billingDetails(organization_id: ID!): Plan!
@@ -1750,7 +1765,11 @@ type Mutation {
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-    addSlackIntegrationToWorkspace(organization_id: ID!, code: String!, redirect_path: String!): Boolean
+    addSlackIntegrationToWorkspace(
+        organization_id: ID!
+        code: String!
+        redirect_path: String!
+    ): Boolean
     createSegment(
         organization_id: ID!
         name: String!
@@ -2546,15 +2565,39 @@ func (ec *executionContext) field_Query_sessionsBETA_args(ctx context.Context, r
 		}
 	}
 	args["count"] = arg1
-	var arg2 *model.SearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
-		arg2, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+	var arg2 bool
+	if tmp, ok := rawArgs["processed"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("processed"))
+		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg2
+	args["processed"] = arg2
+	var arg3 *model.SearchParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		arg3, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_unprocessedSessionsCount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
 	return args, nil
 }
 
@@ -5431,6 +5474,44 @@ func (ec *executionContext) _Query_isIntegrated(ctx context.Context, field graph
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_unprocessedSessionsCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_unprocessedSessionsCount_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UnprocessedSessionsCount(rctx, args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int)
+	fc.Result = res
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5455,7 +5536,7 @@ func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsBeta(rctx, args["organization_id"].(int), args["count"].(int), args["params"].(*model.SearchParamsInput))
+		return ec.resolvers.Query().SessionsBeta(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6976,9 +7057,9 @@ func (ec *executionContext) _Session_viewed(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Session_field_group(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
@@ -9193,6 +9274,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_isIntegrated(ctx, field)
+				return res
+			})
+		case "unprocessedSessionsCount":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_unprocessedSessionsCount(ctx, field)
 				return res
 			})
 		case "sessionsBETA":
