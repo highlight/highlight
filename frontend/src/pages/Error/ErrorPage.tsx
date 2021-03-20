@@ -22,10 +22,14 @@ import moment from 'moment';
 import { frequencyTimeData } from '../../util/errorCalculations';
 import classNames from 'classnames';
 import { Tooltip } from 'antd';
+import { Link } from 'react-router-dom';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
     const { setOpenSidebar } = useContext(SidebarContext);
+    const { organization_id } = useParams<{
+        organization_id: string;
+    }>();
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
     });
@@ -191,12 +195,7 @@ export const ErrorPage = () => {
                     <div className={styles.section}>
                         <div className={styles.collapsible}>
                             <div className={styles.triggerWrapper}>
-                                <div
-                                    className={classNames(
-                                        styles.errorLogsTitle,
-                                        styles.errorLogItem
-                                    )}
-                                >
+                                <div className={styles.errorLogsTitle}>
                                     <span>Error ID</span>
                                     <span>Session ID</span>
                                     <span>Visited URL</span>
@@ -205,43 +204,56 @@ export const ErrorPage = () => {
                                     <span>Timestamp</span>
                                 </div>
                             </div>
-                            {data?.error_group?.metadata_log
-                                .slice(
-                                    Math.max(
-                                        data?.error_group?.metadata_log.length -
-                                            6,
-                                        0
+                            <div className={styles.errorLogWrapper}>
+                                {data?.error_group?.metadata_log
+                                    .slice(
+                                        Math.max(
+                                            data?.error_group?.metadata_log
+                                                .length - 20,
+                                            0
+                                        )
                                     )
-                                )
-                                .reverse()
-                                .map((e, i) => (
-                                    <div
-                                        key={i}
-                                        className={classNames(
-                                            styles.subSection,
-                                            styles.errorLogItem
-                                        )}
-                                    >
-                                        <span>{e?.error_id}</span>
-                                        <span>{e?.session_id}</span>
-                                        <span className={styles.errorLogCell}>
-                                            <span
-                                                className={
-                                                    styles.errorLogOverflow
-                                                }
+                                    .reverse()
+                                    .map((e, i) => (
+                                        <Link
+                                            to={`/${organization_id}/sessions/${e?.session_id}`}
+                                            key={i}
+                                        >
+                                            <div
+                                                key={i}
+                                                className={classNames(
+                                                    styles.subSection,
+                                                    styles.errorLogItem
+                                                )}
                                             >
-                                                {e?.visited_url}
-                                            </span>
-                                        </span>
-                                        <span>{e?.browser}</span>
-                                        <span>{e?.os}</span>
-                                        <span>
-                                            {moment(e?.timestamp).format(
-                                                'D MMMM YYYY, HH:mm:ss'
-                                            )}
-                                        </span>
-                                    </div>
-                                ))}
+                                                <span>{e?.error_id}</span>
+                                                <span>{e?.session_id}</span>
+                                                <div
+                                                    className={
+                                                        styles.errorLogCell
+                                                    }
+                                                >
+                                                    <span
+                                                        className={
+                                                            styles.errorLogOverflow
+                                                        }
+                                                    >
+                                                        {e?.visited_url}
+                                                    </span>
+                                                </div>
+                                                <span>{e?.browser}</span>
+                                                <span>{e?.os}</span>
+                                                <span>
+                                                    {moment(
+                                                        e?.timestamp
+                                                    ).format(
+                                                        'D MMMM YYYY, HH:mm:ss'
+                                                    )}
+                                                </span>
+                                            </div>
+                                        </Link>
+                                    ))}
+                            </div>
                         </div>
                     </div>
                 </div>
