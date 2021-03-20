@@ -15,10 +15,15 @@ import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
 import { DemoContext } from '../../DemoContext';
 import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
+import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 
 export const Sidebar = () => {
+    const { organization_id } = useParams<{ organization_id: string }>();
     const { openSidebar } = useContext(SidebarContext);
     const { pathname } = useLocation();
+    const { data, loading: loadingBillingDetails } = useGetBillingDetailsQuery({
+        variables: { organization_id },
+    });
 
     return (
         <>
@@ -70,10 +75,14 @@ export const Sidebar = () => {
                 </SidebarItem>
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
-                        {/* TODO: Integrate with billing plan. */}
-                        {false && pathname.includes('settings') && (
-                            <CurrentUsageCard currentUsage={500} limit={1500} />
-                        )}
+                        {!loadingBillingDetails &&
+                            data?.billingDetails.meter &&
+                            data?.billingDetails.plan.quota && (
+                                <CurrentUsageCard
+                                    currentUsage={data?.billingDetails.meter}
+                                    limit={data?.billingDetails.plan.quota}
+                                />
+                            )}
                         <Link
                             to={{
                                 pathname:

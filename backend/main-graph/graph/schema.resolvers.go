@@ -15,6 +15,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -883,14 +884,11 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
 	planType := FromPriceID(priceID)
-	// TODO: Set the meter based on the DB value
 	year, month, _ := time.Now().Date()
 	var meter int
 	if err := r.DB.Debug().Model(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
 		return nil, e.Wrap(err, "error querying for session meter")
 	}
-	// queryString += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
-	/// db query to get meter
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  planType,
@@ -898,6 +896,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 		},
 		Meter: meter,
 	}
+	pp.Println(details)
 	return details, nil
 }
 
@@ -1087,17 +1086,3 @@ type sessionResolver struct{ *Resolver }
 //  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
 //    it when you're done.
 //  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func TypeToQuota(planType modelInputs.PlanType) int {
-	switch planType {
-	case modelInputs.PlanTypeNone:
-		return 10
-	case modelInputs.PlanTypeBasic:
-		return 10
-	case modelInputs.PlanTypeStartup:
-		return 10
-	case modelInputs.PlanTypeEnterprise:
-		return 10
-	default:
-		return 5
-	}
-}

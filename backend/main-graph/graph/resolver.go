@@ -39,6 +39,21 @@ func profile(msg string, fid int, t time.Time) time.Time {
 	return time.Now()
 }
 
+func TypeToQuota(planType modelInputs.PlanType) int {
+	switch planType {
+	case modelInputs.PlanTypeNone:
+		return 1000
+	case modelInputs.PlanTypeBasic:
+		return 20000
+	case modelInputs.PlanTypeStartup:
+		return 80000
+	case modelInputs.PlanTypeEnterprise:
+		return 300000
+	default:
+		return 1000
+	}
+}
+
 func FromPriceID(priceID string) modelInputs.PlanType {
 	switch priceID {
 	case os.Getenv("BASIC_PLAN_PRICE_ID"):
