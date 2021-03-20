@@ -26,7 +26,7 @@ export const OrgRouter = () => {
     const [trialTimeRemaining, setTrialTimeRemaining] = useState<
         Duration | undefined
     >(undefined);
-    const { loading, error, data } = useGetOrganizationQuery({
+    const { error, data } = useGetOrganizationQuery({
         variables: { id: organization_id },
     });
 
@@ -58,7 +58,7 @@ export const OrgRouter = () => {
     if (error) {
         return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
     }
-    if (integratedLoading || loading || !data?.organization) {
+    if (integratedLoading || !data?.organization) {
         return <LoadingPage />;
     }
     return (

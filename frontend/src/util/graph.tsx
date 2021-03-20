@@ -1,5 +1,6 @@
 import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { persistCache, LocalStorageWrapper } from 'apollo3-cache-persist';
 
 import * as firebase from 'firebase/app';
 import 'firebase/auth';
@@ -18,9 +19,17 @@ const authLink = setContext((_, { headers }) => {
     });
 });
 
+const cache = new InMemoryCache();
+
+// await before instantiating ApolloClient, else queries might run before the cache is persisted
+persistCache({
+    cache,
+    storage: new LocalStorageWrapper(window.localStorage),
+});
+
 export const client = new ApolloClient({
     link: authLink.concat(httpLink),
-    cache: new InMemoryCache(),
+    cache,
     assumeImmutableResults: true,
     connectToDevTools:
         process.env.REACT_APP_ENVIRONMENT === 'dev' ? true : false,

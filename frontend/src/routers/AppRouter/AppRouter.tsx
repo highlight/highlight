@@ -16,17 +16,13 @@ import { useGetOrganizationsQuery } from '../../graph/generated/hooks';
 import { Home } from '../../pages/Home/Home';
 
 export const AppRouter = () => {
-    const {
-        loading: o_loading,
-        error: o_error,
-        data: o_data,
-    } = useGetOrganizationsQuery();
+    const { error: o_error, data: o_data } = useGetOrganizationsQuery();
 
     if (o_error) {
         return <p>{'App error: ' + JSON.stringify(o_error)}</p>;
     }
 
-    if (o_error || o_loading) {
+    if (o_error) {
         return <LoadingPage />;
     }
 
