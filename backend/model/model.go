@@ -290,7 +290,7 @@ type ErrorGroup struct {
 	Event          string
 	Type           string
 	Trace          string
-	Resolved       bool
+	Resolved       *bool `json:"resolved"`
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup     *string

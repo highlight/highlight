@@ -100,7 +100,9 @@ export const ResolvedErrorSwitch = () => {
                         searchParams.hide_resolved,
                 })}
             >
-                <span className={inputStyles.switchSpan}>Hide resolved</span>
+                <span className={inputStyles.switchSpan}>
+                    Hide resolved errors
+                </span>
             </div>
         </div>
     );

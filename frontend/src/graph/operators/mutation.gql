@@ -27,7 +27,11 @@ mutation AddAdminToOrganization($organization_id: ID!, $invite_id: String!) {
     )
 }
 
-mutation AddSlackIntegrationToWorkspace($organization_id: ID!, $code: String!, $redirect_path: String!) {
+mutation AddSlackIntegrationToWorkspace(
+    $organization_id: ID!
+    $code: String!
+    $redirect_path: String!
+) {
     addSlackIntegrationToWorkspace(
         organization_id: $organization_id
         code: $code
@@ -101,7 +105,11 @@ mutation EditErrorSegment(
     $id: ID!
     $params: ErrorSearchParamsInput!
 ) {
-    editErrorSegment(organization_id: $organization_id, id: $id, params: $params)
+    editErrorSegment(
+        organization_id: $organization_id
+        id: $id
+        params: $params
+    )
 }
 
 mutation CreateErrorSegment(

@@ -42,6 +42,7 @@ export const ErrorFeed = () => {
         totalCount: -1,
     });
     const { searchParams } = useContext(ErrorSearchContext);
+    console.log(data);
 
     const { loading, fetchMore } = useGetErrorGroupsQuery({
         variables: {
