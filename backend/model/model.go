@@ -271,6 +271,7 @@ type ErrorObject struct {
 	Model
 	OrganizationID int
 	SessionID      int
+	ErrorGroupID   int
 	Event          string
 	Type           string
 	URL            string
