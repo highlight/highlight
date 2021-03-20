@@ -60,6 +60,7 @@ type ErrorObject {
     id: ID!
     organization_id: Int!
     session_id: Int!
+    error_group_id: Int!
     event: String!
     type: String!
     url: String!
