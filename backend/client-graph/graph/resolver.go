@@ -259,7 +259,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	return nil
 }
 
-func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, user_identifier string) error {
+func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, session_id int, user_identifier string, url string) error {
 	organization := &model.Organization{}
 	if organization.SlackWebhookURL == nil || group == nil {
 		return nil
@@ -273,16 +273,18 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, us
 		shortEvent = group.Event[:50] + "..."
 	}
 	errorLink := fmt.Sprintf("<https://app.highlight.run/%d/errors/%d/>", org_id, group.ID)
+	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", org_id, session_id)
 	msg := slack.WebhookMessage{
 		Text: group.Event,
 		Blocks: &slack.Blocks{
 			BlockSet: []slack.Block{
-				slack.NewDividerBlock(),
 				slack.NewSectionBlock(
-					slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error:*\n"+shortEvent+"\n"+errorLink, false, false),
+					slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error:*\n\n"+shortEvent+"\n"+errorLink, false, false),
 					[]*slack.TextBlockObject{
 						slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", org_id), false, false),
 						slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+user_identifier, false, false),
+						slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false),
+						slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+url, false, false),
 					},
 					nil,
 				),
