@@ -83,6 +83,7 @@
     flex-direction: row;
     width: 100%;
     padding: 15px 12px 15px 12px;
+    border-bottom: 1px solid #e4e8eb;
 }
 
 .iconWrapper {
@@ -138,12 +139,29 @@
 
 .errorLogsTitle {
     font-weight: 400;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 80px 80px 2fr 1fr 1fr 2fr;
+
+    span {
+        padding: 0px 4px;
+    }
+}
+
+.errorLogWrapper {
+    max-height: 400px;
+    overflow: auto;
 }
 
 .errorLogItem {
     width: 100%;
     display: grid;
     grid-template-columns: 80px 80px 2fr 1fr 1fr 2fr;
+    color: $text-light;
+
+    &:hover {
+        background-color: #f2eefb;
+    }
 
     span {
         white-space: nowrap;

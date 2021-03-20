@@ -24,6 +24,8 @@ import (
 var (
 	DB     *gorm.DB
 	HashID *hashids.HashID
+	F      bool = false
+	T      bool = true
 )
 
 func init() {
@@ -155,14 +157,14 @@ type Session struct {
 	Language       string `json:"language"`
 	EventsObjects  []EventsObject
 	// Tells us if the session has been parsed by a worker.
-	Processed bool `json:"processed"`
+	Processed *bool `json:"processed"`
 	// The length of a session.
 	Length           int64      `json:"length"`
 	Fields           []*Field   `json:"fields" gorm:"many2many:session_fields;"`
 	UserObject       JSONB      `json:"user_object" sql:"type:jsonb"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
 	// Custom properties
-	Viewed     bool    `json:"viewed"`
+	Viewed     *bool   `json:"viewed"`
 	FieldGroup *string `json:"field_group"`
 }
 

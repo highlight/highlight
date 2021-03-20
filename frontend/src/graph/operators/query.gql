@@ -38,11 +38,13 @@ mutation SendAdminInvite($organization_id: ID!, $email: String!) {
 query GetSessionsBETA(
     $organization_id: ID!
     $count: Int!
+    $processed: Boolean!
     $params: SearchParamsInput
 ) {
     sessionsBETA(
         organization_id: $organization_id
         count: $count
+        processed: $processed
         params: $params
     ) {
         sessions {
@@ -98,9 +100,7 @@ query GetBillingDetails($organization_id: ID!) {
     billingDetails(organization_id: $organization_id)
 }
 
-query GetErrorGroup(
-    $id: ID!
-) {
+query GetErrorGroup($id: ID!) {
     error_group(id: $id) {
         id
         type
@@ -133,8 +133,8 @@ query GetErrorGroups(
     $params: ErrorSearchParamsInput
 ) {
     error_groups(
-        organization_id: $organization_id,
-        count: $count,
+        organization_id: $organization_id
+        count: $count
         params: $params
     ) {
         error_groups {
@@ -239,8 +239,8 @@ query GetSegments($organization_id: ID!) {
                 end_date
             }
             length_range {
-              min
-              max
+                min
+                max
             }
             os
             browser
@@ -272,4 +272,8 @@ query GetErrorSegments($organization_id: ID!) {
 
 query IsIntegrated($organization_id: ID!) {
     isIntegrated(organization_id: $organization_id)
+}
+
+query UnprocessedSessionsCount($organization_id: ID!) {
+    unprocessedSessionsCount(organization_id: $organization_id)
 }

@@ -128,7 +128,6 @@
     display: flex;
     flex-flow: row wrap;
     overflow: hidden;
-    height: 22px;
 }
 
 .sessionTextWrapper {
@@ -201,15 +200,17 @@
 
 .resultCount {
     margin: 0px -3px;
-    padding: 8px 5px 16px 5px;
-    color: #a8a8a8;
+    width: 100%;
     background: linear-gradient(
         to top,
         rgba(255, 255, 255, 0),
         rgba(255, 255, 255, 1) 30%
     );
-    width: 100%;
     z-index: 10;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 5px 16px 5px;
+    color: #a8a8a8;
 }
 
 .sessionCard {
