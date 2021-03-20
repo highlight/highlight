@@ -81,6 +81,7 @@ export type ErrorObject = {
     id: Scalars['ID'];
     organization_id: Scalars['Int'];
     session_id: Scalars['Int'];
+    error_group_id: Scalars['Int'];
     event: Scalars['String'];
     type: Scalars['String'];
     url: Scalars['String'];
