@@ -11,8 +11,8 @@ import (
 	e "github.com/pkg/errors"
 )
 
-func ClientMiddleWare(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func ClientMiddleWare(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, _ := redis.Store.Get(r, "highlight-session")
 		// If the session is new (or empty), create a brand new user.
 		if session.IsNew || session.Values["uid"] == nil {
@@ -54,6 +54,7 @@ func ClientMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 		ctx = context.WithValue(ctx, "ip", IPAddress)
 		ctx = context.WithValue(ctx, "userAgent", UserAgent)
 		ctx = context.WithValue(ctx, "acceptLanguage", AcceptLanguage)
-		next(w, r.WithContext(ctx))
-	}
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
+	})
 }

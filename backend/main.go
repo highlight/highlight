@@ -15,7 +15,7 @@ import (
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
 
-	ha "github.com/99designs/gqlgen/handler"
+	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	cgraph "github.com/jay-khatri/fullstory/backend/client-graph/graph"
 	cgenerated "github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
@@ -84,6 +84,7 @@ func main() {
 		StripeClient: stripeClient,
 	}
 	r := chi.NewMux()
+	// Common middlewares for both the client/main graphs.
 	r.Use(handlers.CompressHandler)
 	r.Use(func(h http.Handler) http.Handler {
 		return handlers.LoggingHandler(os.Stdout, h)
@@ -93,16 +94,27 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
-	r.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
-		mgenerated.Config{
-			Resolvers: main,
-		}))))
-	r.Handle("/client", cgraph.ClientMiddleWare(ha.GraphQL(cgenerated.NewExecutableSchema(
-		cgenerated.Config{
-			Resolvers: &cgraph.Resolver{
-				DB: db,
-			},
-		}))))
+	// Maingraph logic
+	r.Route("/main", func(r chi.Router) {
+		r.Use(mgraph.AdminMiddleWare)
+		mainServer := ghandler.NewDefaultServer(mgenerated.NewExecutableSchema(
+			mgenerated.Config{
+				Resolvers: main,
+			}),
+		)
+		r.Handle("/", mainServer)
+	})
+	// Clientgraph logic
+	r.Route("/client", func(r chi.Router) {
+		r.Use(cgraph.ClientMiddleWare)
+		clientServer := ghandler.NewDefaultServer(cgenerated.NewExecutableSchema(
+			cgenerated.Config{
+				Resolvers: &cgraph.Resolver{
+					DB: db,
+				},
+			}))
+		r.Handle("/", clientServer)
+	})
 	w := &worker.Worker{R: main}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
 	if rt := *runtime; rt == "dev" {
