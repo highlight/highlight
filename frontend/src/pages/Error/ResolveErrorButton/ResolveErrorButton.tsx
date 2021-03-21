@@ -2,14 +2,15 @@ import React from 'react';
 import { useMarkErrorGroupAsResolvedMutation } from '../../../graph/generated/hooks';
 import commonStyles from '../../../Common.module.scss';
 import { useParams } from 'react-router-dom';
+import { CircularSpinner } from '../../../components/Loading/Loading';
+import { message } from 'antd';
 
-export const ResolveErrorButton: React.FC<{ resolved: boolean }> = ({
-    resolved,
-}) => {
+export const ResolveErrorButton: React.FC<{
+    resolved: boolean;
+    loading: boolean;
+}> = ({ resolved, loading }) => {
     const { error_id } = useParams<{ error_id: string }>();
-    const [markErrorGroupAsResolved] = useMarkErrorGroupAsResolvedMutation({
-        refetchQueries: ['GetErrorGroup'],
-    });
+    const [markErrorGroupAsResolved] = useMarkErrorGroupAsResolvedMutation();
     return (
         <button
             onClick={() => {
@@ -18,7 +19,13 @@ export const ResolveErrorButton: React.FC<{ resolved: boolean }> = ({
                         id: error_id,
                         resolved: !resolved,
                     },
-                });
+                })
+                    .then(() => {
+                        message.success('Updated error status!', 3);
+                    })
+                    .catch(() => {
+                        message.error('Error updating error status!', 3);
+                    });
             }}
             className={
                 resolved
@@ -26,7 +33,13 @@ export const ResolveErrorButton: React.FC<{ resolved: boolean }> = ({
                     : commonStyles.submitButton
             }
         >
-            {resolved ? 'Unresolve error' : 'Resolve error'}
+            {loading ? (
+                <CircularSpinner style={{ fontSize: 18, color: 'white' }} />
+            ) : resolved ? (
+                'Mark as Unresolved'
+            ) : (
+                'Mark as Resolved'
+            )}
         </button>
     );
 };

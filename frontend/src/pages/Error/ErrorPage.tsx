@@ -41,7 +41,6 @@ export const ErrorPage = () => {
     const [errorActivityCount, setErrorActivityCount] = useState(20);
 
     useEffect(() => {
-        console.log(data);
         const eventText = data?.error_group?.event[0];
         let title = '';
         // Try to get the text in the form Text: ....
@@ -264,19 +263,10 @@ export const ErrorPage = () => {
                 <div className={styles.errorPageRight}>
                     <div className={styles.errorPageRightContent}>
                         <div className={styles.fieldWrapper}>
-                            {loading ? (
-                                <Skeleton
-                                    duration={1}
-                                    count={1}
-                                    style={{ width: 280 }}
-                                />
-                            ) : (
-                                <ResolveErrorButton
-                                    resolved={
-                                        data?.error_group?.resolved || false
-                                    }
-                                />
-                            )}
+                            <ResolveErrorButton
+                                resolved={data?.error_group?.resolved || false}
+                                loading={loading}
+                            />
                         </div>
                         <div className={styles.subTitle}>
                             {loading ? (
