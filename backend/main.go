@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/DataDog/datadog-go/statsd"
+	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
-	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/rs/cors"
@@ -73,7 +73,6 @@ func main() {
 
 	rd.SetupRedisStore()
 	db := model.SetupDB()
-	mux := http.NewServeMux()
 
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
@@ -84,36 +83,37 @@ func main() {
 		MailClient:   sendgrid.NewSendClient(sendgridKey),
 		StripeClient: stripeClient,
 	}
-
-	mux.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
+	r := chi.NewMux()
+	r.Use(handlers.CompressHandler)
+	r.Use(func(h http.Handler) http.Handler {
+		return handlers.LoggingHandler(os.Stdout, h)
+	})
+	r.Use(cors.New(cors.Options{
+		AllowOriginRequestFunc: validateOrigin,
+		AllowCredentials:       true,
+		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
+	}).Handler)
+	r.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
 		mgenerated.Config{
 			Resolvers: main,
 		}))))
-	mux.Handle("/client", cgraph.ClientMiddleWare(ha.GraphQL(cgenerated.NewExecutableSchema(
+	r.Handle("/client", cgraph.ClientMiddleWare(ha.GraphQL(cgenerated.NewExecutableSchema(
 		cgenerated.Config{
 			Resolvers: &cgraph.Resolver{
 				DB: db,
 			},
 		}))))
-
-	handler := cors.New(cors.Options{
-		AllowOriginRequestFunc: validateOrigin,
-		AllowCredentials:       true,
-		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
-	}).Handler(mux)
-
-	loggedRouter := handlers.LoggingHandler(os.Stdout, hnynethttp.WrapHandler(handler))
 	w := &worker.Worker{R: main}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
 	if rt := *runtime; rt == "dev" {
 		go func() {
 			w.Start()
 		}()
-		log.Fatal(http.ListenAndServe(":"+port, handlers.CompressHandler(loggedRouter)))
+		log.Fatal(http.ListenAndServe(":"+port, r))
 	} else if rt == "worker" {
 		w.Start()
 	} else if rt == "server" {
-		log.Fatal(http.ListenAndServe(":"+port, handlers.CompressHandler(loggedRouter)))
+		log.Fatal(http.ListenAndServe(":"+port, r))
 	}
 	log.Errorf("invalid runtime")
 }
