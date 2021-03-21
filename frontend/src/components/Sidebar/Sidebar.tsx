@@ -15,6 +15,7 @@ import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
 import { DemoContext } from '../../DemoContext';
 import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
+import { Tooltip } from 'antd';
 
 export const Sidebar = () => {
     const { openSidebar } = useContext(SidebarContext);
@@ -105,27 +106,27 @@ const StaticSidebar = () => {
         <>
             <div className={styles.staticSidebarWrapper}>
                 <MiniWorkspaceIcon />
-                <MiniSidebarItem route="sessions">
+                <MiniSidebarItem route="sessions" text="Sessions">
                     <SessionsIcon className={styles.icon} />
                 </MiniSidebarItem>
-                <MiniSidebarItem route="errors">
+                <MiniSidebarItem route="errors" text="Errors">
                     <ErrorsIcon
                         className={classNames(styles.icon, styles.rotated)}
                     />
                 </MiniSidebarItem>
                 <div className={styles.settingsDivider} />
-                <MiniSidebarItem route="setup">
+                <MiniSidebarItem route="setup" text="Setup">
                     <SetupIcon
                         className={classNames(styles.icon, styles.rotated)}
                     />
                 </MiniSidebarItem>
-                <MiniSidebarItem route="settings">
+                <MiniSidebarItem route="settings" text="Workspace">
                     <WorkspaceIcon className={styles.icon} />
                 </MiniSidebarItem>
-                <MiniSidebarItem route="team">
+                <MiniSidebarItem route="team" text="Team">
                     <TeamIcon className={styles.icon} />
                 </MiniSidebarItem>
-                <MiniSidebarItem route="billing">
+                <MiniSidebarItem route="billing" text="Billing">
                     <CreditCardIcon className={styles.icon} />
                 </MiniSidebarItem>
             </div>
@@ -162,7 +163,8 @@ const SidebarItem: React.FC<{
 
 const MiniSidebarItem: React.FC<{
     route: string;
-}> = ({ route, children }) => {
+    text: string;
+}> = ({ route, text, children }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { pathname } = useLocation();
     const page = pathname.split('/')[2] ?? '';
@@ -172,14 +174,16 @@ const MiniSidebarItem: React.FC<{
             className={styles.miniRow}
             to={demo ? '/' : `/${organization_id}/${route}`}
         >
-            <div
-                className={classNames([
-                    styles.miniSidebarIconWrapper,
-                    page.includes(route) && styles.selected,
-                ])}
-            >
-                {children}
-            </div>
+            <Tooltip title={text} placement="right" align={{ offset: [16, 0] }}>
+                <div
+                    className={classNames([
+                        styles.miniSidebarIconWrapper,
+                        page.includes(route) && styles.selected,
+                    ])}
+                >
+                    {children}
+                </div>
+            </Tooltip>
         </Link>
     );
 };
