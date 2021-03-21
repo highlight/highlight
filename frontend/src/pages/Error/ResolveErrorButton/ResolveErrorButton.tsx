@@ -32,6 +32,7 @@ export const ResolveErrorButton: React.FC<{
                     ? commonStyles.secondaryButton
                     : commonStyles.submitButton
             }
+            style={{ outline: 'none' }}
         >
             {loading ? (
                 <CircularSpinner style={{ fontSize: 18, color: 'white' }} />
