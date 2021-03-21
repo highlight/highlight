@@ -163,6 +163,7 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interfa
 			Event:          errorObj.Event,
 			Trace:          frameString,
 			Type:           errorObj.Type,
+			Resolved:       &model.F,
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
 			return nil, e.Wrap(err, "Error creating new error group")

@@ -189,6 +189,22 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int) (*mo
 	return session, nil
 }
 
+func (r *mutationResolver) MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model.ErrorGroup, error) {
+	_, err := r.isAdminErrorGroupOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not errorGroup owner")
+	}
+	errorGroup := &model.ErrorGroup{}
+	res := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: id}}).First(&errorGroup)
+	if err := res.Update(&model.ErrorGroup{
+		Resolved: resolved,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing errorGroup resolved status")
+	}
+
+	return errorGroup, nil
+}
+
 func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*bool, error) {
 	if err := r.DB.Delete(&model.Organization{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting organization")
@@ -547,8 +563,8 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 
 	errorGroups := []model.ErrorGroup{}
 
-	queryString := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at
-	FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, array_agg(t.error_field_id) fieldIds
+	queryString := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved
+	FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved, array_agg(t.error_field_id) fieldIds
 	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -570,9 +586,8 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		queryString += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
 	}
 
-	//error_groups not tracked on viewed or not yet
-	if viewed := params.HideViewed; viewed != nil && *viewed && false {
-		queryString += "AND (viewed = false) "
+	if resolved := params.HideResolved; resolved != nil && *resolved {
+		queryString += "AND (resolved = false) "
 	}
 
 	if params.Event != nil {

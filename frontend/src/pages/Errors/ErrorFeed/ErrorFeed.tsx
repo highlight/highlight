@@ -42,6 +42,7 @@ export const ErrorFeed = () => {
         totalCount: -1,
     });
     const { searchParams } = useContext(ErrorSearchContext);
+    console.log(data);
 
     const { loading, fetchMore } = useGetErrorGroupsQuery({
         variables: {
@@ -226,7 +227,15 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                 <></>
                             )}
                         </div>
-                        <div className={styles.readMarkerContainer}></div>
+                        <div className={styles.readMarkerContainer}>
+                            {errorGroup?.resolved ? (
+                                <></>
+                            ) : (
+                                <Tooltip title="Unresolved Error">
+                                    <div className={styles.readMarker}></div>
+                                </Tooltip>
+                            )}
+                        </div>
                     </div>
                 </div>
                 <div

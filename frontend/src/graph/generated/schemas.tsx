@@ -107,6 +107,7 @@ export type ErrorGroup = {
     trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
+    resolved?: Maybe<Scalars['Boolean']>;
 };
 
 export type ErrorMetadata = {
@@ -161,7 +162,7 @@ export type ErrorSearchParamsInput = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
-    hide_viewed?: Maybe<Scalars['Boolean']>;
+    hide_resolved?: Maybe<Scalars['Boolean']>;
     event?: Maybe<Scalars['String']>;
 };
 
@@ -171,7 +172,7 @@ export type ErrorSearchParams = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
-    hide_viewed?: Maybe<Scalars['Boolean']>;
+    hide_resolved?: Maybe<Scalars['Boolean']>;
     event?: Maybe<Scalars['String']>;
 };
 
@@ -351,6 +352,7 @@ export type Mutation = {
     createOrganization?: Maybe<Organization>;
     editOrganization?: Maybe<Organization>;
     markSessionAsViewed?: Maybe<Session>;
+    markErrorGroupAsResolved?: Maybe<ErrorGroup>;
     deleteOrganization?: Maybe<Scalars['Boolean']>;
     sendAdminInvite?: Maybe<Scalars['String']>;
     addAdminToOrganization?: Maybe<Scalars['ID']>;
@@ -378,6 +380,11 @@ export type MutationEditOrganizationArgs = {
 
 export type MutationMarkSessionAsViewedArgs = {
     id: Scalars['ID'];
+};
+
+export type MutationMarkErrorGroupAsResolvedArgs = {
+    id: Scalars['ID'];
+    resolved?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationDeleteOrganizationArgs = {
