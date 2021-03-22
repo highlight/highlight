@@ -83,7 +83,7 @@ func (w *Worker) Start() {
 		time.Sleep(1 * time.Second)
 		thirtySecondsAgo := time.Now().Add(-30 * time.Second)
 		sessions := []*model.Session{}
-		if err := w.R.DB.Where("payload_updated_at < ? AND processed = ?", thirtySecondsAgo, false).Find(&sessions).Error; err != nil {
+		if err := w.R.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", thirtySecondsAgo, false).Find(&sessions).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			continue
 		}
