@@ -77,6 +77,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		BrowserName:    deviceDetails.BrowserName,
 		BrowserVersion: deviceDetails.BrowserVersion,
 		Language:       acceptLanguageString,
+		Processed:      &model.F,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
@@ -233,11 +234,6 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			Browser:        sessionObj.BrowserName,
 			Trace:          &traceString,
 		}
-		// TODO: We need to do a batch insert which is supported by the new gorm lib.
-		if err := r.DB.Create(errorToInsert).Error; err != nil {
-			log.Errorf("Error performing error insert for error: %v", v.Event)
-			continue
-		}
 
 		//create error fields array
 		metaFields := []*model.ErrorField{}
@@ -251,10 +247,17 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			continue
 		}
 		if organizationID == 1 {
-			if err := r.SendSlackErrorMessage(group, organizationID, sessionObj.Identifier); err != nil {
+			if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL); err != nil {
 				log.Errorf("Error sending slack error message: %v", err)
 				continue
 			}
+		}
+
+		// TODO: We need to do a batch insert which is supported by the new gorm lib.
+		errorToInsert.ErrorGroupID = group.ID
+		if err := r.DB.Create(errorToInsert).Error; err != nil {
+			log.Errorf("Error performing error insert for error: %v", v.Event)
+			continue
 		}
 	}
 	now := time.Now()

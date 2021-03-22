@@ -182,7 +182,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int) (*mo
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session)
 	if err := res.Update(&model.Session{
-		Viewed: true,
+		Viewed: &model.T,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
@@ -190,12 +190,27 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int) (*mo
 	return session, nil
 }
 
+func (r *mutationResolver) MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model.ErrorGroup, error) {
+	_, err := r.isAdminErrorGroupOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not errorGroup owner")
+	}
+	errorGroup := &model.ErrorGroup{}
+	res := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: id}}).First(&errorGroup)
+	if err := res.Update(&model.ErrorGroup{
+		Resolved: resolved,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing errorGroup resolved status")
+	}
+
+	return errorGroup, nil
+}
+
 func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*bool, error) {
 	if err := r.DB.Delete(&model.Organization{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting organization")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error) {
@@ -289,8 +304,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
@@ -342,16 +356,14 @@ func (r *mutationResolver) EditSegment(ctx context.Context, id int, organization
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing new recording settings")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*bool, error) {
 	if err := r.DB.Delete(&model.Segment{Model: model.Model{ID: segmentID}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting segment")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) CreateErrorSegment(ctx context.Context, organizationID int, name string, params modelInputs.ErrorSearchParamsInput) (*model.ErrorSegment, error) {
@@ -393,16 +405,14 @@ func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, organiz
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing new recording settings")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error) {
 	if err := r.DB.Delete(&model.ErrorSegment{Model: model.Model{ID: segmentID}}).Error; err != nil {
 		return nil, e.Wrap(err, "error deleting segment")
 	}
-	t := true
-	return &t, nil
+	return &model.T, nil
 }
 
 func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model.RecordingSettings, error) {
@@ -554,8 +564,8 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 
 	errorGroups := []model.ErrorGroup{}
 
-	queryString := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at
-	FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, array_agg(t.error_field_id) fieldIds
+	queryString := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved
+	FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved, array_agg(t.error_field_id) fieldIds
 	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -577,9 +587,8 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		queryString += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
 	}
 
-	//error_groups not tracked on viewed or not yet
-	if viewed := params.HideViewed; viewed != nil && *viewed && false {
-		queryString += "AND (viewed = false) "
+	if resolved := params.HideResolved; resolved != nil && *resolved {
+		queryString += "AND (resolved = false) "
 	}
 
 	if params.Event != nil {
@@ -668,14 +677,26 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
-	f, t := false, true
 	if len(sessions) > 0 {
-		return &t, nil
+		return &model.T, nil
 	}
-	return &f, nil
+	return &model.F, nil
 }
 
-func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var count int
+	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, Processed: &model.F}).Count(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
+	}
+
+	return &count, nil
+}
+
+func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -769,7 +790,9 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
-	queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+	if processed {
+		queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
 			queryString += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min*60000)
@@ -780,7 +803,8 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 			}
 		}
 	}
-	queryString += "AND (processed = true) "
+
+	queryString += "AND (processed = " + strconv.FormatBool(processed) + ") "
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
@@ -1080,10 +1104,3 @@ type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.

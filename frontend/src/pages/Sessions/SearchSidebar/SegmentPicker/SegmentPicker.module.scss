@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .segmentPickerMenu {
     box-shadow: none;
     min-width: 200px;
@@ -118,4 +120,31 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.liveSessionsSegment {
+    display: flex;
+    align-items: center;
+}
+
+.liveSessionsCount {
+    display: flex;
+    gap: $size-xSmall;
+    margin-left: $size-xSmall;
+
+    background: #5629c6;
+    color: #ffffff;
+    padding: 0 5px;
+    font-size: 10px;
+    height: 20px;
+    min-width: 20px;
+    border-radius: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    line-height: normal;
+}
+
+.liveSessionsCountInactive {
+    opacity: 0.5;
 }

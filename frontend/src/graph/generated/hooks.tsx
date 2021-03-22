@@ -105,6 +105,56 @@ export type CreateOrUpdateSubscriptionMutationOptions = Apollo.BaseMutationOptio
     Types.CreateOrUpdateSubscriptionMutation,
     Types.CreateOrUpdateSubscriptionMutationVariables
 >;
+export const MarkErrorGroupAsResolvedDocument = gql`
+    mutation markErrorGroupAsResolved($id: ID!, $resolved: Boolean!) {
+        markErrorGroupAsResolved(id: $id, resolved: $resolved) {
+            id
+            resolved
+        }
+    }
+`;
+export type MarkErrorGroupAsResolvedMutationFn = Apollo.MutationFunction<
+    Types.MarkErrorGroupAsResolvedMutation,
+    Types.MarkErrorGroupAsResolvedMutationVariables
+>;
+
+/**
+ * __useMarkErrorGroupAsResolvedMutation__
+ *
+ * To run a mutation, you first call `useMarkErrorGroupAsResolvedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkErrorGroupAsResolvedMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markErrorGroupAsResolvedMutation, { data, loading, error }] = useMarkErrorGroupAsResolvedMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      resolved: // value for 'resolved'
+ *   },
+ * });
+ */
+export function useMarkErrorGroupAsResolvedMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.MarkErrorGroupAsResolvedMutation,
+        Types.MarkErrorGroupAsResolvedMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.MarkErrorGroupAsResolvedMutation,
+        Types.MarkErrorGroupAsResolvedMutationVariables
+    >(MarkErrorGroupAsResolvedDocument, baseOptions);
+}
+export type MarkErrorGroupAsResolvedMutationHookResult = ReturnType<
+    typeof useMarkErrorGroupAsResolvedMutation
+>;
+export type MarkErrorGroupAsResolvedMutationResult = Apollo.MutationResult<Types.MarkErrorGroupAsResolvedMutation>;
+export type MarkErrorGroupAsResolvedMutationOptions = Apollo.BaseMutationOptions<
+    Types.MarkErrorGroupAsResolvedMutation,
+    Types.MarkErrorGroupAsResolvedMutationVariables
+>;
 export const SendEmailSignupDocument = gql`
     mutation SendEmailSignup($email: String!) {
         emailSignup(email: $email)
@@ -614,7 +664,7 @@ export const CreateErrorSegmentDocument = gql`
                 os
                 browser
                 visited_url
-                hide_viewed
+                hide_resolved
             }
         }
     }
@@ -890,11 +940,13 @@ export const GetSessionsBetaDocument = gql`
     query GetSessionsBETA(
         $organization_id: ID!
         $count: Int!
+        $processed: Boolean!
         $params: SearchParamsInput
     ) {
         sessionsBETA(
             organization_id: $organization_id
             count: $count
+            processed: $processed
             params: $params
         ) {
             sessions {
@@ -936,6 +988,7 @@ export const GetSessionsBetaDocument = gql`
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      count: // value for 'count'
+ *      processed: // value for 'processed'
  *      params: // value for 'params'
  *   },
  * });
@@ -1210,6 +1263,7 @@ export const GetErrorGroupDocument = gql`
             type
             organization_id
             event
+            resolved
             trace {
                 file_name
                 line_number
@@ -1295,6 +1349,7 @@ export const GetErrorGroupsDocument = gql`
                 id
                 type
                 event
+                resolved
                 trace {
                     file_name
                     line_number
@@ -1822,7 +1877,7 @@ export const GetErrorSegmentsDocument = gql`
                 os
                 browser
                 visited_url
-                hide_viewed
+                hide_resolved
                 event
             }
         }
@@ -1930,4 +1985,58 @@ export type IsIntegratedLazyQueryHookResult = ReturnType<
 export type IsIntegratedQueryResult = Apollo.QueryResult<
     Types.IsIntegratedQuery,
     Types.IsIntegratedQueryVariables
+>;
+export const UnprocessedSessionsCountDocument = gql`
+    query UnprocessedSessionsCount($organization_id: ID!) {
+        unprocessedSessionsCount(organization_id: $organization_id)
+    }
+`;
+
+/**
+ * __useUnprocessedSessionsCountQuery__
+ *
+ * To run a query within a React component, call `useUnprocessedSessionsCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useUnprocessedSessionsCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useUnprocessedSessionsCountQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useUnprocessedSessionsCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >(UnprocessedSessionsCountDocument, baseOptions);
+}
+export function useUnprocessedSessionsCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.UnprocessedSessionsCountQuery,
+        Types.UnprocessedSessionsCountQueryVariables
+    >(UnprocessedSessionsCountDocument, baseOptions);
+}
+export type UnprocessedSessionsCountQueryHookResult = ReturnType<
+    typeof useUnprocessedSessionsCountQuery
+>;
+export type UnprocessedSessionsCountLazyQueryHookResult = ReturnType<
+    typeof useUnprocessedSessionsCountLazyQuery
+>;
+export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
+    Types.UnprocessedSessionsCountQuery,
+    Types.UnprocessedSessionsCountQueryVariables
 >;

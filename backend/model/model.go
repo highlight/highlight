@@ -24,6 +24,8 @@ import (
 var (
 	DB     *gorm.DB
 	HashID *hashids.HashID
+	F      bool = false
+	T      bool = true
 )
 
 func init() {
@@ -155,14 +157,14 @@ type Session struct {
 	Language       string `json:"language"`
 	EventsObjects  []EventsObject
 	// Tells us if the session has been parsed by a worker.
-	Processed bool `json:"processed"`
+	Processed *bool `json:"processed"`
 	// The length of a session.
 	Length           int64      `json:"length"`
 	Fields           []*Field   `json:"fields" gorm:"many2many:session_fields;"`
 	UserObject       JSONB      `json:"user_object" sql:"type:jsonb"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
 	// Custom properties
-	Viewed     bool    `json:"viewed"`
+	Viewed     *bool   `json:"viewed"`
 	FieldGroup *string `json:"field_group"`
 }
 
@@ -253,12 +255,12 @@ type ErrorResults struct {
 }
 
 type ErrorSearchParams struct {
-	DateRange  *DateRange `json:"date_range"`
-	Browser    *string    `json:"browser"`
-	OS         *string    `json:"os"`
-	VisitedURL *string    `json:"visited_url"`
-	HideViewed bool       `json:"hide_viewed"`
-	Event      *string    `json:"event"`
+	DateRange    *DateRange `json:"date_range"`
+	Browser      *string    `json:"browser"`
+	OS           *string    `json:"os"`
+	VisitedURL   *string    `json:"visited_url"`
+	HideResolved bool       `json:"hide_resolved"`
+	Event        *string    `json:"event"`
 }
 type ErrorSegment struct {
 	Model
@@ -271,6 +273,7 @@ type ErrorObject struct {
 	Model
 	OrganizationID int
 	SessionID      int
+	ErrorGroupID   int
 	Event          string
 	Type           string
 	URL            string
@@ -288,6 +291,7 @@ type ErrorGroup struct {
 	Event          string
 	Type           string
 	Trace          string
+	Resolved       *bool `json:"resolved"`
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup     *string

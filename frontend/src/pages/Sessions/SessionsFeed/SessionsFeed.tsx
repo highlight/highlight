@@ -21,9 +21,15 @@ import {
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import { Field } from '../../../components/Field/Field';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
+import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
+
+const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
 export const SessionFeed = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { organization_id, segment_id } = useParams<{
+        organization_id: string;
+        segment_id: string;
+    }>();
     const [count, setCount] = useState(10);
     const { data: billingData } = useGetBillingDetailsQuery({
         variables: { organization_id },
@@ -47,7 +53,9 @@ export const SessionFeed = () => {
             params: searchParams,
             count: count + 10,
             organization_id,
+            processed: segment_id !== LIVE_SEGMENT_ID,
         },
+        pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
             if (response.sessionsBETA) {
                 setData(response.sessionsBETA);
@@ -72,6 +80,7 @@ export const SessionFeed = () => {
                     params: searchParams,
                     count,
                     organization_id,
+                    processed: false,
                 },
             });
         },
@@ -137,7 +146,10 @@ export const SessionFeed = () => {
 };
 
 const SessionCard = ({ session }: { session: Maybe<Session> }) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { organization_id, segment_id } = useParams<{
+        organization_id: string;
+        segment_id: string;
+    }>();
     const [hovered, setHovered] = useState(false);
     const created = new Date(session?.created_at);
     return (
@@ -201,9 +213,11 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                         </div>
                         <div className={styles.sessionTextSection}>
                             <div className={styles.topText}>
-                                {MillisToMinutesAndSecondsVerbose(
-                                    session?.length || 0
-                                ) || '30 min 20 sec'}
+                                {segment_id === LIVE_SEGMENT_ID
+                                    ? 'In Progress'
+                                    : MillisToMinutesAndSecondsVerbose(
+                                          session?.length || 0
+                                      ) || '30 min 20 sec'}
                             </div>
                             <div className={styles.middleText}>
                                 {created.toLocaleString('en-us', {

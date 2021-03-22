@@ -77,6 +77,7 @@ type ErrorObject {
     id: ID!
     organization_id: Int!
     session_id: Int!
+    error_group_id: Int!
     event: String!
     type: String!
     url: String!
@@ -100,6 +101,7 @@ type ErrorGroup {
     trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
+    resolved: Boolean
 }
 
 type ErrorMetadata {
@@ -117,7 +119,6 @@ type ErrorTrace {
     function_name: String
     column_number: Int
 }
-
 
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
@@ -154,7 +155,7 @@ input ErrorSearchParamsInput {
     os: String
     browser: String
     visited_url: String
-    hide_viewed: Boolean
+    hide_resolved: Boolean
     event: String
 }
 
@@ -163,7 +164,7 @@ type ErrorSearchParams {
     os: String
     browser: String
     visited_url: String
-    hide_viewed: Boolean
+    hide_resolved: Boolean
     event: String
 }
 
@@ -230,9 +231,11 @@ type Query {
     resources(session_id: ID!): [Any]
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
+    unprocessedSessionsCount(organization_id: ID!): Int
     sessionsBETA(
         organization_id: ID!
         count: Int!
+        processed: Boolean!
         params: SearchParamsInput
     ): SessionResults
     billingDetails(organization_id: ID!): BillingDetails!
@@ -265,10 +268,15 @@ type Mutation {
     createOrganization(name: String!): Organization
     editOrganization(id: ID!, name: String, billing_email: String): Organization
     markSessionAsViewed(id: ID!): Session
+    markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
-    addSlackIntegrationToWorkspace(organization_id: ID!, code: String!, redirect_path: String!): Boolean
+    addSlackIntegrationToWorkspace(
+        organization_id: ID!
+        code: String!
+        redirect_path: String!
+    ): Boolean
     createSegment(
         organization_id: ID!
         name: String!

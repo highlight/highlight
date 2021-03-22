@@ -5,8 +5,21 @@ mutation MarkSessionAsViewed($id: ID!) {
     }
 }
 
-mutation CreateOrUpdateSubscription($organization_id: ID!, $plan_type: PlanType!) {
-    createOrUpdateSubscription(organization_id: $organization_id, plan_type: $plan_type)
+mutation CreateOrUpdateSubscription(
+    $organization_id: ID!
+    $plan_type: PlanType!
+) {
+    createOrUpdateSubscription(
+        organization_id: $organization_id
+        plan_type: $plan_type
+    )
+}
+
+mutation markErrorGroupAsResolved($id: ID!, $resolved: Boolean!) {
+    markErrorGroupAsResolved(id: $id, resolved: $resolved) {
+        id
+        resolved
+    }
 }
 
 mutation SendEmailSignup($email: String!) {
@@ -20,7 +33,11 @@ mutation AddAdminToOrganization($organization_id: ID!, $invite_id: String!) {
     )
 }
 
-mutation AddSlackIntegrationToWorkspace($organization_id: ID!, $code: String!, $redirect_path: String!) {
+mutation AddSlackIntegrationToWorkspace(
+    $organization_id: ID!
+    $code: String!
+    $redirect_path: String!
+) {
     addSlackIntegrationToWorkspace(
         organization_id: $organization_id
         code: $code
@@ -94,7 +111,11 @@ mutation EditErrorSegment(
     $id: ID!
     $params: ErrorSearchParamsInput!
 ) {
-    editErrorSegment(organization_id: $organization_id, id: $id, params: $params)
+    editErrorSegment(
+        organization_id: $organization_id
+        id: $id
+        params: $params
+    )
 }
 
 mutation CreateErrorSegment(
@@ -117,7 +138,7 @@ mutation CreateErrorSegment(
             os
             browser
             visited_url
-            hide_viewed
+            hide_resolved
         }
     }
 }

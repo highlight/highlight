@@ -2,9 +2,21 @@
 
 .errorPageWrapper {
     width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: row;
+}
+
+.errorPageLeft {
+    flex: 1;
+    min-width: 700px;
+}
+
+.errorPageRight {
+    padding-left: 40px;
+    width: 300px;
+}
+
+.errorPageRightContent {
+    position: sticky;
+    top: 120px;
 }
 
 .title {
@@ -21,9 +33,8 @@
 
 .errorPage {
     margin: 120px 80px 80px 80px;
-    width: 1000px;
-    min-width: 1000px;
     word-break: break-word;
+    display: inline-flex;
 }
 
 .eventText {
@@ -128,6 +139,10 @@
     color: #808080;
 }
 
+.errorLogDivider {
+    border-bottom: 1px solid #e4e8eb;
+}
+
 .errorLogCell {
     display: flex;
 }
@@ -138,12 +153,32 @@
 
 .errorLogsTitle {
     font-weight: 400;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 80px 80px 2fr 1fr 1fr 2fr;
+
+    span {
+        padding: 0px 4px;
+    }
+}
+
+.errorLogWrapper {
+    max-height: 400px;
+    overflow: auto;
 }
 
 .errorLogItem {
     width: 100%;
     display: grid;
     grid-template-columns: 80px 80px 2fr 1fr 1fr 2fr;
+    color: $text-light;
+    border-bottom: 1px solid #e4e8eb;
+    font-weight: 200;
+    padding: 10px;
+
+    &:hover {
+        background-color: #f2eefb;
+    }
 
     span {
         white-space: nowrap;
@@ -151,4 +186,9 @@
         text-overflow: ellipsis;
         padding: 0px 6px;
     }
+}
+
+.errorLogButton {
+    max-width: 240px;
+    margin: 10px auto;
 }

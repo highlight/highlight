@@ -19,6 +19,20 @@ export type CreateOrUpdateSubscriptionMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
 
+export type MarkErrorGroupAsResolvedMutationVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+    resolved: Types.Scalars['Boolean'];
+}>;
+
+export type MarkErrorGroupAsResolvedMutation = { __typename?: 'Mutation' } & {
+    markErrorGroupAsResolved?: Types.Maybe<
+        { __typename?: 'ErrorGroup' } & Pick<
+            Types.ErrorGroup,
+            'id' | 'resolved'
+        >
+    >;
+};
+
 export type SendEmailSignupMutationVariables = Types.Exact<{
     email: Types.Scalars['String'];
 }>;
@@ -170,7 +184,7 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
         > & {
                 params: { __typename?: 'ErrorSearchParams' } & Pick<
                     Types.ErrorSearchParams,
-                    'os' | 'browser' | 'visited_url' | 'hide_viewed'
+                    'os' | 'browser' | 'visited_url' | 'hide_resolved'
                 > & {
                         date_range?: Types.Maybe<
                             { __typename?: 'DateRange' } & Pick<
@@ -256,6 +270,7 @@ export type SendAdminInviteMutation = { __typename?: 'Mutation' } & Pick<
 export type GetSessionsBetaQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
+    processed: Types.Scalars['Boolean'];
     params?: Types.Maybe<Types.SearchParamsInput>;
 }>;
 
@@ -357,7 +372,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
-            'id' | 'type' | 'organization_id' | 'event'
+            'id' | 'type' | 'organization_id' | 'event' | 'resolved'
         > & {
                 trace: Array<
                     Types.Maybe<
@@ -413,7 +428,7 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                     Types.Maybe<
                         { __typename?: 'ErrorGroup' } & Pick<
                             Types.ErrorGroup,
-                            'id' | 'type' | 'event'
+                            'id' | 'type' | 'event' | 'resolved'
                         > & {
                                 trace: Array<
                                     Types.Maybe<
@@ -619,7 +634,7 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
                             | 'os'
                             | 'browser'
                             | 'visited_url'
-                            | 'hide_viewed'
+                            | 'hide_resolved'
                             | 'event'
                         > & {
                                 date_range?: Types.Maybe<
@@ -642,4 +657,13 @@ export type IsIntegratedQueryVariables = Types.Exact<{
 export type IsIntegratedQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'isIntegrated'
+>;
+
+export type UnprocessedSessionsCountQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'unprocessedSessionsCount'
 >;
