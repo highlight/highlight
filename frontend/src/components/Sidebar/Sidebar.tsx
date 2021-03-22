@@ -20,7 +20,6 @@ import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { openSidebar } = useContext(SidebarContext);
-    const { pathname } = useLocation();
     const { data, loading: loadingBillingDetails } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
