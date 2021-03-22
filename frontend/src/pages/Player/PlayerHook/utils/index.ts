@@ -92,7 +92,7 @@ export const useSetPlayerTimestampFromSearchParam = (
             if (searchParamsObject.get('ts')) {
                 const ts = parseInt(searchParamsObject.get('ts') as string, 10);
 
-                if (ts <= sessionDuration) {
+                if (ts > 0 || ts <= sessionDuration) {
                     setTime(ts);
                 }
                 history.replace(`${location.pathname}`);
