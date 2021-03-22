@@ -6,7 +6,6 @@ type Session {
     id: ID!
     user_id: ID!
     organization_id: ID!
-    shouldPushData: booelan!
 }
 
 input ErrorObjectInput {

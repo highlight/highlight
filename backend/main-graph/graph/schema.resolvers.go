@@ -15,7 +15,6 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -896,7 +895,6 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	// TODO: Make sure this never errors.
 	if org.StripeCustomerID == nil {
 		return nil, e.Wrap(err, "org has no customer id")
 	}
@@ -918,10 +916,8 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 			Type:  planType,
 			Quota: TypeToQuota(planType),
 		},
-		Meter: 290000,
+		Meter: meter,
 	}
-	pp.Println(organizationID)
-	pp.Println(details)
 	return details, nil
 }
 
