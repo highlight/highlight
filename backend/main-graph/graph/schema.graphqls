@@ -211,6 +211,7 @@ type Query {
     ): ErrorResults
     error_group(id: ID!): ErrorGroup
     messages(session_id: ID!): [Any]
+    errors(session_id: ID!): [ErrorObject]
     resources(session_id: ID!): [Any]
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
