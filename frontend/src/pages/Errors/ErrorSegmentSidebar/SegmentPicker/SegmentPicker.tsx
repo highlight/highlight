@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import {
     ErrorSearchContext,
     ErrorSearchParams,
@@ -27,20 +27,30 @@ export const ErrorSegmentPicker = () => {
     const currentSegment = data?.error_segments?.find(
         (s) => s?.id === segment_id
     );
+    const history = useHistory();
 
     useEffect(() => {
-        if (currentSegment) {
-            const newParams: any = { ...currentSegment.params };
-            const parsed: ErrorSearchParams = gqlSanitize(newParams);
-            setSegmentName(currentSegment.name);
-            setSearchParams(parsed);
-            setExistingParams(parsed);
-        } else {
-            setSegmentName(null);
-            setExistingParams({});
-            setSearchParams({});
+        if (segment_id) {
+            if (currentSegment) {
+                const newParams: any = { ...currentSegment.params };
+                const parsed: ErrorSearchParams = gqlSanitize(newParams);
+                setSegmentName(currentSegment.name);
+                setSearchParams(parsed);
+                setExistingParams(parsed);
+            } else {
+                // Redirect home since the segment doesn't exist anymore.
+                history.replace(`/${organization_id}/errors`);
+            }
         }
-    }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
+    }, [
+        currentSegment,
+        setSegmentName,
+        setSearchParams,
+        setExistingParams,
+        history,
+        organization_id,
+        segment_id,
+    ]);
 
     return (
         <div className={styles.segmentPickerMenu}>

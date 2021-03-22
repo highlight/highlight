@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import Skeleton from 'react-loading-skeleton';
@@ -27,6 +27,7 @@ export const SegmentPicker = () => {
     const { loading, data } = useGetSegmentsQuery({
         variables: { organization_id },
     });
+    const history = useHistory();
     const {
         data: unprocessedSessionsCount,
         loading: unprocessedSessionsLoading,
@@ -37,22 +38,30 @@ export const SegmentPicker = () => {
     const currentSegment = data?.segments?.find((s) => s?.id === segment_id);
 
     useEffect(() => {
-        if (currentSegment) {
-            const newParams: any = { ...currentSegment.params };
-            const parsed: SearchParams = gqlSanitize(newParams);
-            setSegmentName(currentSegment.name);
-            setSearchParams(parsed);
-            setExistingParams(parsed);
-        } else {
-            setSegmentName(null);
-            const empty = {
-                user_properties: [],
-                identified: false,
-            };
-            setExistingParams(empty);
-            setSearchParams(empty);
+        if (segment_id) {
+            if (segment_id === LIVE_SEGMENT_ID) {
+                return;
+            }
+            if (currentSegment) {
+                const newParams: any = { ...currentSegment.params };
+                const parsed: SearchParams = gqlSanitize(newParams);
+                setSegmentName(currentSegment.name);
+                setSearchParams(parsed);
+                setExistingParams(parsed);
+            } else {
+                // Redirect home since the segment doesn't exist anymore.
+                history.replace(`/${organization_id}/sessions`);
+            }
         }
-    }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
+    }, [
+        currentSegment,
+        setSegmentName,
+        setSearchParams,
+        setExistingParams,
+        segment_id,
+        history,
+        organization_id,
+    ]);
 
     return (
         <div className={styles.segmentPickerMenu}>
