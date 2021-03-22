@@ -145,6 +145,8 @@
 
 .errorLogCell {
     display: flex;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .errorLogOverflow {
