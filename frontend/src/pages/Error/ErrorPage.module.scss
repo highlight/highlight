@@ -12,6 +12,7 @@
 .errorPageRight {
     padding-left: 40px;
     width: 300px;
+    min-width: 300px;
 }
 
 .errorPageRightContent {
@@ -34,7 +35,7 @@
 .errorPage {
     margin: 120px 80px 80px 80px;
     word-break: break-word;
-    display: inline-flex;
+    display: flex;
 }
 
 .eventText {
