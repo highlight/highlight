@@ -167,6 +167,19 @@ query GetResources($session_id: ID!) {
     resources(session_id: $session_id)
 }
 
+query GetErrors($session_id: ID!) {
+    errors(session_id: $session_id) {
+        error_group_id
+        event
+        type
+        url
+        source
+        line_number
+        column_number
+        trace
+    }
+}
+
 query GetFieldSuggestion(
     $organization_id: ID!
     $name: String!

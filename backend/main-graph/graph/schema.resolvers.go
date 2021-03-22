@@ -634,6 +634,17 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 	return allEvents["messages"], nil
 }
 
+func (r *queryResolver) Errors(ctx context.Context, sessionID int) ([]*model.ErrorObject, error) {
+	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	errorsObj := []*model.ErrorObject{}
+	if res := r.DB.Order("created_at desc").Where(&model.ErrorObject{SessionID: sessionID}).Find(&errorsObj); res.Error != nil {
+		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
+	}
+	return errorsObj, nil
+}
+
 func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interface{}, error) {
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
