@@ -2,6 +2,8 @@ import {
     playerMetaData,
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
+import { useCallback } from 'react';
+import { useHistory, useLocation } from 'react-router';
 import { ParsedSessionInterval } from '../../ReplayerContext';
 
 const INACTIVE_THRESHOLD = 0.02;
@@ -72,4 +74,34 @@ const getIntervalWithPercentages = (
             endPercent: currTime / totalDuration,
         };
     });
+};
+
+/**
+ * Sets the player's time based on the query parameter ts.
+ */
+export const useSetPlayerTimestampFromSearchParam = (
+    setTime: (newTime: number) => void
+) => {
+    const history = useHistory();
+    const location = useLocation();
+
+    const setPlayerTimestamp = useCallback(
+        (sessionDuration: number) => {
+            const searchParamsObject = new URLSearchParams(location.search);
+
+            if (searchParamsObject.get('ts')) {
+                const ts = parseInt(searchParamsObject.get('ts') as string, 10);
+
+                if (ts <= sessionDuration) {
+                    setTime(ts);
+                }
+                history.replace(`${location.pathname}`);
+            }
+        },
+        [history, location.pathname, location.search, setTime]
+    );
+
+    return {
+        setPlayerTimestamp,
+    };
 };
