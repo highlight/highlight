@@ -65,19 +65,20 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	acceptLanguageString := ctx.Value("acceptLanguage").(string)
 
 	session := &model.Session{
-		UserID:         user.ID,
-		OrganizationID: organizationID,
-		City:           location.City,
-		State:          location.State,
-		Postal:         location.Postal,
-		Latitude:       location.Latitude.(float64),
-		Longitude:      location.Longitude.(float64),
-		OSName:         deviceDetails.OSName,
-		OSVersion:      deviceDetails.OSVersion,
-		BrowserName:    deviceDetails.BrowserName,
-		BrowserVersion: deviceDetails.BrowserVersion,
-		Language:       acceptLanguageString,
-		Processed:      &model.F,
+		UserID:           user.ID,
+		OrganizationID:   organizationID,
+		City:             location.City,
+		State:            location.State,
+		Postal:           location.Postal,
+		Latitude:         location.Latitude.(float64),
+		Longitude:        location.Longitude.(float64),
+		OSName:           deviceDetails.OSName,
+		OSVersion:        deviceDetails.OSVersion,
+		BrowserName:      deviceDetails.BrowserName,
+		BrowserVersion:   deviceDetails.BrowserVersion,
+		Language:         acceptLanguageString,
+		Processed:        &model.F,
+		PayloadUpdatedAt: time.Now(),
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
