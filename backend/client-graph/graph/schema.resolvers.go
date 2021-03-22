@@ -63,7 +63,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 
 	// Get the language from the request header
 	acceptLanguageString := ctx.Value("acceptLanguage").(string)
-
+	n := time.Now()
 	session := &model.Session{
 		UserID:           user.ID,
 		OrganizationID:   organizationID,
@@ -78,7 +78,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		BrowserVersion:   deviceDetails.BrowserVersion,
 		Language:         acceptLanguageString,
 		Processed:        &model.F,
-		PayloadUpdatedAt: time.Now(),
+		PayloadUpdatedAt: &n,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
