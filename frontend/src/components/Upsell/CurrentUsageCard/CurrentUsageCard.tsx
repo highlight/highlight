@@ -16,7 +16,7 @@ export const CurrentUsageCard: React.FC<CurrentUsageCardProps> = ({
     return (
         <section className={styles.container}>
             <h3 className={styles.header}>
-                <Link to={`/${organization_id}/billing`}>Upgrade&nbsp;</Link>to
+                <Link to={`/${organization_id}/billing`}>Upgrade </Link>to
                 increase your limit!
             </h3>
             <p className={styles.description}>
