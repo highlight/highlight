@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { useGetErrorsQuery } from '../../../../../graph/generated/hooks';
 import { DevToolsSelect } from '../Option/Option';
