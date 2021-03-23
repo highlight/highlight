@@ -474,6 +474,30 @@ export type GetResourcesQuery = { __typename?: 'Query' } & Pick<
     'resources'
 >;
 
+export type GetErrorsQueryVariables = Types.Exact<{
+    session_id: Types.Scalars['ID'];
+}>;
+
+export type GetErrorsQuery = { __typename?: 'Query' } & {
+    errors?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorObject' } & Pick<
+                    Types.ErrorObject,
+                    | 'error_group_id'
+                    | 'event'
+                    | 'type'
+                    | 'url'
+                    | 'source'
+                    | 'line_number'
+                    | 'column_number'
+                    | 'trace'
+                >
+            >
+        >
+    >;
+};
+
 export type GetFieldSuggestionQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];

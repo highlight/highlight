@@ -1514,6 +1514,67 @@ export type GetResourcesQueryResult = Apollo.QueryResult<
     Types.GetResourcesQuery,
     Types.GetResourcesQueryVariables
 >;
+export const GetErrorsDocument = gql`
+    query GetErrors($session_id: ID!) {
+        errors(session_id: $session_id) {
+            error_group_id
+            event
+            type
+            url
+            source
+            line_number
+            column_number
+            trace
+        }
+    }
+`;
+
+/**
+ * __useGetErrorsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorsQuery({
+ *   variables: {
+ *      session_id: // value for 'session_id'
+ *   },
+ * });
+ */
+export function useGetErrorsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorsQuery,
+        Types.GetErrorsQueryVariables
+    >
+) {
+    return Apollo.useQuery<Types.GetErrorsQuery, Types.GetErrorsQueryVariables>(
+        GetErrorsDocument,
+        baseOptions
+    );
+}
+export function useGetErrorsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorsQuery,
+        Types.GetErrorsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorsQuery,
+        Types.GetErrorsQueryVariables
+    >(GetErrorsDocument, baseOptions);
+}
+export type GetErrorsQueryHookResult = ReturnType<typeof useGetErrorsQuery>;
+export type GetErrorsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorsLazyQuery
+>;
+export type GetErrorsQueryResult = Apollo.QueryResult<
+    Types.GetErrorsQuery,
+    Types.GetErrorsQueryVariables
+>;
 export const GetFieldSuggestionDocument = gql`
     query GetFieldSuggestion(
         $organization_id: ID!
