@@ -12,10 +12,14 @@ import {
 } from '../ReplayerContext';
 import { getSessionIntervals } from './utils';
 
+const urlSearchParams = new URLSearchParams(window.location.search);
 /**
  * The number of events to add to Replayer in a frame.
  */
-const EVENTS_CHUNK_SIZE = 25;
+const EVENTS_CHUNK_SIZE = parseInt(
+    urlSearchParams.get('chunkSize') || '100000',
+    10
+);
 
 export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     const { session_id } = useParams<{ session_id: string }>();
@@ -45,6 +49,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     // Handle data in playback mode.
     useEffect(() => {
         if (eventsData?.events?.length ?? 0 > 1) {
+            console.time('LoadingEvents');
             setState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
@@ -93,6 +98,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                     setSessionIntervals(sessionIntervals);
                     setSessionEndTime(replayer.getMetaData().totalTime);
                     setState(ReplayerState.LoadedAndUntouched);
+                    console.timeEnd('LoadingEvents');
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
                 }
