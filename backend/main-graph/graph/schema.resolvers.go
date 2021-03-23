@@ -908,7 +908,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	if org.StripeCustomerID == nil {
-		return nil, e.Wrap(err, "org has no customer id")
+		return nil, e.New("org has no customer id")
 	}
 	params := &stripe.CustomerParams{}
 	priceID := ""

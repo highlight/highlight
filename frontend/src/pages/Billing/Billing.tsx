@@ -69,7 +69,7 @@ export const Billing = () => {
             message.error(checkoutRedirectFailedMessage, 5);
         }
         if (billingError) {
-            message.error(checkoutRedirectFailedMessage, 5);
+            message.error(billingError.message, 5);
         }
     }, [pathname, checkoutRedirectFailedMessage, billingError]);
 
