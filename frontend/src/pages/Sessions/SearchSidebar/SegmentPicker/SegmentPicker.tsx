@@ -12,7 +12,7 @@ import {
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
 import { Tooltip } from 'antd';
-import { EmptySearchParams } from '../../SessionsPage';
+import { EmptySessionsSearchParams } from '../../SessionsPage';
 import _ from 'lodash';
 
 export const LIVE_SEGMENT_ID = 'live';
@@ -48,7 +48,10 @@ export const SegmentPicker = () => {
                 if (
                     history.location.state &&
                     // history.location.state is empty when the user first loads the app and the route is deep-linked to a segment.
-                    !_.isEqual(history.location.state, EmptySearchParams)
+                    !_.isEqual(
+                        history.location.state,
+                        EmptySessionsSearchParams
+                    )
                 ) {
                     const parsed: SearchParams = gqlSanitize(
                         history.location.state
@@ -89,7 +92,7 @@ export const SegmentPicker = () => {
                     <Link
                         to={{
                             pathname: `/${organization_id}/sessions`,
-                            state: EmptySearchParams,
+                            state: EmptySessionsSearchParams,
                         }}
                         key={'sessions'}
                     >

@@ -11,6 +11,9 @@ import styles from './SegmentPicker.module.scss';
 import { useGetErrorSegmentsQuery } from '../../../../graph/generated/hooks';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
+import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
+import _ from 'lodash';
+import { EmptyErrorsSearchParams } from '../../ErrorsPage';
 
 export const ErrorSegmentPicker = () => {
     const { setSearchParams, setSegmentName, setExistingParams } = useContext(
@@ -27,16 +30,29 @@ export const ErrorSegmentPicker = () => {
     const currentSegment = data?.error_segments?.find(
         (s) => s?.id === segment_id
     );
-    const history = useHistory();
+    const history = useHistory<ErrorSearchParams>();
 
     useEffect(() => {
         if (segment_id) {
             if (currentSegment) {
-                const newParams: any = { ...currentSegment.params };
-                const parsed: ErrorSearchParams = gqlSanitize(newParams);
+                if (
+                    history.location.state &&
+                    // history.location.state is empty when the user first loads the app and the route is deep-linked to a segment.
+                    !_.isEqual(history.location.state, EmptyErrorsSearchParams)
+                ) {
+                    const parsed: ErrorSearchParams = gqlSanitize(
+                        history.location.state
+                    );
+                    setSearchParams(parsed);
+                    setExistingParams(parsed);
+                } else {
+                    const parsed: ErrorSearchParams = gqlSanitize({
+                        ...currentSegment.params,
+                    });
+                    setSearchParams(parsed);
+                    setExistingParams(parsed);
+                }
                 setSegmentName(currentSegment.name);
-                setSearchParams(parsed);
-                setExistingParams(parsed);
             } else {
                 // Redirect home since the segment doesn't exist anymore.
                 history.replace(`/${organization_id}/errors`);
@@ -60,7 +76,13 @@ export const ErrorSegmentPicker = () => {
                 </div>
             ) : (
                 <div className={styles.segmentPickerInner}>
-                    <Link to={`/${organization_id}/errors`} key={'errors'}>
+                    <Link
+                        to={{
+                            pathname: `/${organization_id}/errors`,
+                            state: EmptySessionsSearchParams,
+                        }}
+                        key={'errors'}
+                    >
                         <div className={styles.segmentItem}>
                             <div
                                 className={classNames(
@@ -77,7 +99,10 @@ export const ErrorSegmentPicker = () => {
                     </Link>
                     {data?.error_segments?.map((s) => (
                         <Link
-                            to={`/${organization_id}/errors/segment/${s?.id}`}
+                            to={{
+                                pathname: `/${organization_id}/errors/segment/${s?.id}`,
+                                state: s?.params,
+                            }}
                             key={s?.id}
                         >
                             <div className={styles.segmentItem}>

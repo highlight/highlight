@@ -12,6 +12,11 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { FeedNavigation } from '../Sessions/SearchSidebar/FeedNavigation/FeedNavigation';
 import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
 
+export const EmptyErrorsSearchParams = {
+    user_properties: [],
+    identified: false,
+};
+
 export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
@@ -19,7 +24,7 @@ export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
         {}
     );
     const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
-        cachedParams || { user_properties: [], identified: false }
+        cachedParams || EmptyErrorsSearchParams
     );
     const [existingParams, setExistingParams] = useState<ErrorSearchParams>({});
     const { setOpenSidebar } = useContext(SidebarContext);

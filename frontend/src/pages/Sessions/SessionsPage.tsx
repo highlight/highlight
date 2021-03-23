@@ -16,7 +16,7 @@ import { useParams } from 'react-router-dom';
 /**
  * The initial search parameters. This is used when the user has not specified any search parameters.
  */
-export const EmptySearchParams: SearchParams = {
+export const EmptySessionsSearchParams: SearchParams = {
     user_properties: [],
     identified: false,
 };
@@ -29,13 +29,13 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<SearchParams>(
         `cachedParams-${segmentName || 'no-selected-segment'}`,
-        EmptySearchParams
+        EmptySessionsSearchParams
     );
     const [searchParams, setSearchParams] = useState<SearchParams>(
         cachedParams || { user_properties: [], identified: false }
     );
     const [existingParams, setExistingParams] = useState<SearchParams>(
-        EmptySearchParams
+        EmptySessionsSearchParams
     );
     const { setOpenSidebar } = useContext(SidebarContext);
     const history = useHistory();
