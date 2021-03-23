@@ -36,6 +36,35 @@
     fill: #5629c6;
 }
 
+.trashIcon {
+    color: #808080;
+    fill: #808080;
+    margin-bottom: 2px;
+}
+
+.segmentAction {
+    background-color: #f2eefb;
+    border: 0;
+    display: none;
+    position: absolute;
+    padding: 0px 6px;
+    width: 30px;
+    height: 30px;
+    right: 5px;
+    margin: auto;
+    border-radius: 5px;
+    align-items: center;
+
+    &:hover {
+        cursor: pointer;
+
+        .trashIcon {
+            color: black;
+            fill: black;
+        }
+    }
+}
+
 .dropdownHandler {
     cursor: pointer;
     width: 100%;
@@ -89,12 +118,17 @@
     padding-left: 15px;
     cursor: pointer;
     display: flex;
+    position: relative;
     align-items: center;
     width: 100%;
 }
 
 .segmentItem:hover {
     background-color: #f2eefb;
+
+    .segmentAction {
+        display: flex;
+    }
 }
 
 .segmentText {
@@ -118,4 +152,26 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.modalWrapper {
+    border-radius: 8px;
+    border-color: #eaeaea;
+    background-color: white;
+    width: 60vh;
+    padding: 20px;
+    padding-bottom: 10px;
+    z-index: 1200;
+}
+
+.modalTitle {
+    font-size: 23px;
+    font-weight: 400;
+    margin-bottom: 10px;
+}
+
+.modalSubTitle {
+    font-size: 14px;
+    font-weight: 300;
+    margin-bottom: 20px;
 }

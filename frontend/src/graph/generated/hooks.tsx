@@ -453,6 +453,52 @@ export type DeleteOrganizationMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteOrganizationMutation,
     Types.DeleteOrganizationMutationVariables
 >;
+export const DeleteSegmentDocument = gql`
+    mutation DeleteSegment($segment_id: ID!) {
+        deleteSegment(segment_id: $segment_id)
+    }
+`;
+export type DeleteSegmentMutationFn = Apollo.MutationFunction<
+    Types.DeleteSegmentMutation,
+    Types.DeleteSegmentMutationVariables
+>;
+
+/**
+ * __useDeleteSegmentMutation__
+ *
+ * To run a mutation, you first call `useDeleteSegmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteSegmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteSegmentMutation, { data, loading, error }] = useDeleteSegmentMutation({
+ *   variables: {
+ *      segment_id: // value for 'segment_id'
+ *   },
+ * });
+ */
+export function useDeleteSegmentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteSegmentMutation,
+        Types.DeleteSegmentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteSegmentMutation,
+        Types.DeleteSegmentMutationVariables
+    >(DeleteSegmentDocument, baseOptions);
+}
+export type DeleteSegmentMutationHookResult = ReturnType<
+    typeof useDeleteSegmentMutation
+>;
+export type DeleteSegmentMutationResult = Apollo.MutationResult<Types.DeleteSegmentMutation>;
+export type DeleteSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteSegmentMutation,
+    Types.DeleteSegmentMutationVariables
+>;
 export const EditSegmentDocument = gql`
     mutation EditSegment(
         $organization_id: ID!
@@ -583,6 +629,52 @@ export type CreateSegmentMutationResult = Apollo.MutationResult<Types.CreateSegm
 export type CreateSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateSegmentMutation,
     Types.CreateSegmentMutationVariables
+>;
+export const DeleteErrorSegmentDocument = gql`
+    mutation DeleteErrorSegment($segment_id: ID!) {
+        deleteErrorSegment(segment_id: $segment_id)
+    }
+`;
+export type DeleteErrorSegmentMutationFn = Apollo.MutationFunction<
+    Types.DeleteErrorSegmentMutation,
+    Types.DeleteErrorSegmentMutationVariables
+>;
+
+/**
+ * __useDeleteErrorSegmentMutation__
+ *
+ * To run a mutation, you first call `useDeleteErrorSegmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteErrorSegmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteErrorSegmentMutation, { data, loading, error }] = useDeleteErrorSegmentMutation({
+ *   variables: {
+ *      segment_id: // value for 'segment_id'
+ *   },
+ * });
+ */
+export function useDeleteErrorSegmentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteErrorSegmentMutation,
+        Types.DeleteErrorSegmentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteErrorSegmentMutation,
+        Types.DeleteErrorSegmentMutationVariables
+    >(DeleteErrorSegmentDocument, baseOptions);
+}
+export type DeleteErrorSegmentMutationHookResult = ReturnType<
+    typeof useDeleteErrorSegmentMutation
+>;
+export type DeleteErrorSegmentMutationResult = Apollo.MutationResult<Types.DeleteErrorSegmentMutation>;
+export type DeleteErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteErrorSegmentMutation,
+    Types.DeleteErrorSegmentMutationVariables
 >;
 export const EditErrorSegmentDocument = gql`
     mutation EditErrorSegment(

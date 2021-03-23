@@ -57,6 +57,10 @@ mutation DeleteOrganization($id: ID!) {
     deleteOrganization(id: $id)
 }
 
+mutation DeleteSegment($segment_id: ID!) {
+    deleteSegment(segment_id: $segment_id)
+}
+
 mutation EditSegment(
     $organization_id: ID!
     $id: ID!
@@ -98,6 +102,10 @@ mutation CreateSegment(
             hide_viewed
         }
     }
+}
+
+mutation DeleteErrorSegment($segment_id: ID!) {
+    deleteErrorSegment(segment_id: $segment_id)
 }
 
 mutation EditErrorSegment(
