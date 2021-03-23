@@ -3,7 +3,7 @@
 .sessionLevelBarContainer {
     background: $primary-background-color;
     padding: $size-xSmall $size-xLarge;
-    border-bottom: 1px solid $border-light-gray;
+    border: 1px solid $border-light-gray;
     display: flex;
     flex-wrap: wrap;
     gap: $size-xSmall;
