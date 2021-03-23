@@ -52,6 +52,59 @@ export type MarkSessionAsViewedMutationOptions = Apollo.BaseMutationOptions<
     Types.MarkSessionAsViewedMutation,
     Types.MarkSessionAsViewedMutationVariables
 >;
+export const CreateOrUpdateSubscriptionDocument = gql`
+    mutation CreateOrUpdateSubscription(
+        $organization_id: ID!
+        $plan_type: PlanType!
+    ) {
+        createOrUpdateSubscription(
+            organization_id: $organization_id
+            plan_type: $plan_type
+        )
+    }
+`;
+export type CreateOrUpdateSubscriptionMutationFn = Apollo.MutationFunction<
+    Types.CreateOrUpdateSubscriptionMutation,
+    Types.CreateOrUpdateSubscriptionMutationVariables
+>;
+
+/**
+ * __useCreateOrUpdateSubscriptionMutation__
+ *
+ * To run a mutation, you first call `useCreateOrUpdateSubscriptionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateOrUpdateSubscriptionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createOrUpdateSubscriptionMutation, { data, loading, error }] = useCreateOrUpdateSubscriptionMutation({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      plan_type: // value for 'plan_type'
+ *   },
+ * });
+ */
+export function useCreateOrUpdateSubscriptionMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateOrUpdateSubscriptionMutation,
+        Types.CreateOrUpdateSubscriptionMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateOrUpdateSubscriptionMutation,
+        Types.CreateOrUpdateSubscriptionMutationVariables
+    >(CreateOrUpdateSubscriptionDocument, baseOptions);
+}
+export type CreateOrUpdateSubscriptionMutationHookResult = ReturnType<
+    typeof useCreateOrUpdateSubscriptionMutation
+>;
+export type CreateOrUpdateSubscriptionMutationResult = Apollo.MutationResult<Types.CreateOrUpdateSubscriptionMutation>;
+export type CreateOrUpdateSubscriptionMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateOrUpdateSubscriptionMutation,
+    Types.CreateOrUpdateSubscriptionMutationVariables
+>;
 export const MarkErrorGroupAsResolvedDocument = gql`
     mutation markErrorGroupAsResolved($id: ID!, $resolved: Boolean!) {
         markErrorGroupAsResolved(id: $id, resolved: $resolved) {
@@ -101,56 +154,6 @@ export type MarkErrorGroupAsResolvedMutationResult = Apollo.MutationResult<Types
 export type MarkErrorGroupAsResolvedMutationOptions = Apollo.BaseMutationOptions<
     Types.MarkErrorGroupAsResolvedMutation,
     Types.MarkErrorGroupAsResolvedMutationVariables
->;
-export const CreateOrUpdateSubscriptionDocument = gql`
-    mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {
-        createOrUpdateSubscription(
-            organization_id: $organization_id
-            plan: $plan
-        )
-    }
-`;
-export type CreateOrUpdateSubscriptionMutationFn = Apollo.MutationFunction<
-    Types.CreateOrUpdateSubscriptionMutation,
-    Types.CreateOrUpdateSubscriptionMutationVariables
->;
-
-/**
- * __useCreateOrUpdateSubscriptionMutation__
- *
- * To run a mutation, you first call `useCreateOrUpdateSubscriptionMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateOrUpdateSubscriptionMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createOrUpdateSubscriptionMutation, { data, loading, error }] = useCreateOrUpdateSubscriptionMutation({
- *   variables: {
- *      organization_id: // value for 'organization_id'
- *      plan: // value for 'plan'
- *   },
- * });
- */
-export function useCreateOrUpdateSubscriptionMutation(
-    baseOptions?: Apollo.MutationHookOptions<
-        Types.CreateOrUpdateSubscriptionMutation,
-        Types.CreateOrUpdateSubscriptionMutationVariables
-    >
-) {
-    return Apollo.useMutation<
-        Types.CreateOrUpdateSubscriptionMutation,
-        Types.CreateOrUpdateSubscriptionMutationVariables
-    >(CreateOrUpdateSubscriptionDocument, baseOptions);
-}
-export type CreateOrUpdateSubscriptionMutationHookResult = ReturnType<
-    typeof useCreateOrUpdateSubscriptionMutation
->;
-export type CreateOrUpdateSubscriptionMutationResult = Apollo.MutationResult<Types.CreateOrUpdateSubscriptionMutation>;
-export type CreateOrUpdateSubscriptionMutationOptions = Apollo.BaseMutationOptions<
-    Types.CreateOrUpdateSubscriptionMutation,
-    Types.CreateOrUpdateSubscriptionMutationVariables
 >;
 export const SendEmailSignupDocument = gql`
     mutation SendEmailSignup($email: String!) {
@@ -1195,7 +1198,13 @@ export type GetOrganizationQueryResult = Apollo.QueryResult<
 >;
 export const GetBillingDetailsDocument = gql`
     query GetBillingDetails($organization_id: ID!) {
-        billingDetails(organization_id: $organization_id)
+        billingDetails(organization_id: $organization_id) {
+            plan {
+                type
+                quota
+            }
+            meter
+        }
     }
 `;
 

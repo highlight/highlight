@@ -1,5 +1,6 @@
 import { Progress } from 'antd';
 import React from 'react';
+import { Link, useParams } from 'react-router-dom';
 import styles from './CurrentUsageCard.module.scss';
 
 export interface CurrentUsageCardProps {
@@ -11,12 +12,16 @@ export const CurrentUsageCard: React.FC<CurrentUsageCardProps> = ({
     currentUsage,
     limit,
 }) => {
+    const { organization_id } = useParams<{ organization_id: string }>();
     return (
         <section className={styles.container}>
-            <h3 className={styles.header}>Upgrade to increase your limit!</h3>
+            <h3 className={styles.header}>
+                <Link to={`/${organization_id}/billing`}>Upgrade </Link>to
+                increase your limit!
+            </h3>
             <p className={styles.description}>
-                This workspace has used {currentUsage} of its {limit} sessions
-                limit ({((currentUsage / limit) * 100).toFixed(0)}%).
+                This workspace has used {currentUsage} of its {limit} monthly
+                sessions limit ({((currentUsage / limit) * 100).toFixed(0)}%).
             </p>
             <Progress
                 percent={Math.floor((currentUsage / limit) * 100)}

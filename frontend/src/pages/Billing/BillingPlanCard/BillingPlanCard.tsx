@@ -40,8 +40,8 @@ export const BillingPlanCard = ({
                 type="submit"
                 className={
                     current
-                        ? commonStyles.secondaryButton
-                        : commonStyles.submitButton
+                        ? commonStyles.submitButton
+                        : commonStyles.secondaryButton
                 }
                 disabled={current}
                 onClick={onSelect}

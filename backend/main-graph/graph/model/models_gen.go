@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+type BillingDetails struct {
+	Plan  *Plan `json:"plan"`
+	Meter int   `json:"meter"`
+}
+
 type DateRangeInput struct {
 	StartDate *time.Time `json:"start_date"`
 	EndDate   *time.Time `json:"end_date"`
@@ -44,6 +49,11 @@ type LengthRangeInput struct {
 	Max *int `json:"max"`
 }
 
+type Plan struct {
+	Type  PlanType `json:"type"`
+	Quota int      `json:"quota"`
+}
+
 type SearchParamsInput struct {
 	UserProperties     []*UserPropertyInput `json:"user_properties"`
 	ExcludedProperties []*UserPropertyInput `json:"excluded_properties"`
@@ -63,47 +73,47 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
-type Plan string
+type PlanType string
 
 const (
-	PlanNone       Plan = "None"
-	PlanBasic      Plan = "Basic"
-	PlanStartup    Plan = "Startup"
-	PlanEnterprise Plan = "Enterprise"
+	PlanTypeNone       PlanType = "None"
+	PlanTypeBasic      PlanType = "Basic"
+	PlanTypeStartup    PlanType = "Startup"
+	PlanTypeEnterprise PlanType = "Enterprise"
 )
 
-var AllPlan = []Plan{
-	PlanNone,
-	PlanBasic,
-	PlanStartup,
-	PlanEnterprise,
+var AllPlanType = []PlanType{
+	PlanTypeNone,
+	PlanTypeBasic,
+	PlanTypeStartup,
+	PlanTypeEnterprise,
 }
 
-func (e Plan) IsValid() bool {
+func (e PlanType) IsValid() bool {
 	switch e {
-	case PlanNone, PlanBasic, PlanStartup, PlanEnterprise:
+	case PlanTypeNone, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise:
 		return true
 	}
 	return false
 }
 
-func (e Plan) String() string {
+func (e PlanType) String() string {
 	return string(e)
 }
 
-func (e *Plan) UnmarshalGQL(v interface{}) error {
+func (e *PlanType) UnmarshalGQL(v interface{}) error {
 	str, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("enums must be strings")
 	}
 
-	*e = Plan(str)
+	*e = PlanType(str)
 	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid Plan", str)
+		return fmt.Errorf("%s is not a valid PlanType", str)
 	}
 	return nil
 }
 
-func (e Plan) MarshalGQL(w io.Writer) {
+func (e PlanType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
