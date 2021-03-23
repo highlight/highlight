@@ -1,0 +1,38 @@
+@import 'src/static/shared.scss';
+
+.errorCard {
+    display: block;
+    border: 1px solid $alert-300;
+    border-radius: $button-border-radius;
+    margin: $size-small $size-xSmall;
+    background-color: $alert-200;
+    padding: $size-medium $size-xLarge $size-small $size-large;
+    color: $alert-400;
+    font-size: 12px;
+    cursor: pointer;
+
+    &:hover {
+        color: $alert-400;
+    }
+
+    h4 {
+        color: $alert-400;
+        font-size: 14px;
+    }
+
+    h4,
+    p {
+        margin: 0;
+    }
+}
+
+.header {
+    display: flex;
+    gap: $size-small;
+    margin-bottom: $size-xSmall;
+    align-items: baseline;
+}
+
+.description {
+    white-space: break-spaces;
+}

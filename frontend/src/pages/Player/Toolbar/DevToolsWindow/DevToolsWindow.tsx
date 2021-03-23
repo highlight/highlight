@@ -8,6 +8,7 @@ import {
 } from '../DevToolsContext/DevToolsContext';
 
 import styles from './DevToolsWindow.module.scss';
+import ErrorsPage from './ErrorsPage/ErrorsPage';
 
 export const DevToolsWindow = ({
     time,
@@ -20,6 +21,8 @@ export const DevToolsWindow = ({
 
     const getPage = (tab: DevToolTabs) => {
         switch (tab) {
+            case DevToolTabs.Errors:
+                return <ErrorsPage />;
             case DevToolTabs.Network:
                 return <ResourcePage startTime={startTime} time={time} />;
             case DevToolTabs.Console:
