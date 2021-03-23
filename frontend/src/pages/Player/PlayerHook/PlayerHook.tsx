@@ -17,7 +17,7 @@ const urlSearchParams = new URLSearchParams(window.location.search);
  * The number of events to add to Replayer in a frame.
  */
 const EVENTS_CHUNK_SIZE = parseInt(
-    urlSearchParams.get('chunkSize') || '25',
+    urlSearchParams.get('chunkSize') || '100000',
     10
 );
 
