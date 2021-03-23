@@ -498,6 +498,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 	}
+	checkoutSessionParams.AddExtra("allow_promotion_codes", "true")
 
 	stripeSession, err := r.StripeClient.CheckoutSessions.New(checkoutSessionParams)
 	if err != nil {
@@ -919,7 +920,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	planType := FromPriceID(priceID)
 	year, month, _ := time.Now().Date()
 	var meter int
-	if err := r.DB.Debug().Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
+	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
 		return nil, e.Wrap(err, "error querying for session meter")
 	}
 	details := &modelInputs.BillingDetails{
