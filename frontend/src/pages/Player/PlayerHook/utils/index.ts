@@ -91,10 +91,10 @@ export const useSetPlayerTimestampFromSearchParam = (
             const searchParamsObject = new URLSearchParams(location.search);
 
             if (searchParamsObject.get('ts')) {
-                const timestampMinutes = parseFloat(
+                const timestampSeconds = parseFloat(
                     searchParamsObject.get('ts') as string
                 );
-                const timestampMilliseconds = timestampMinutes * 1000 * 60;
+                const timestampMilliseconds = timestampSeconds * 1000;
 
                 if (
                     timestampMilliseconds > 0 ||
