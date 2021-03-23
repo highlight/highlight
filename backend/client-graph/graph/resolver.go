@@ -170,6 +170,10 @@ func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interfa
 		}
 		errorGroup = newErrorGroup
 	}
+	errorObj.ErrorGroupID = errorGroup.ID
+	if err := r.DB.Create(errorObj).Error; err != nil {
+		return nil, e.Wrap(err, "Error performing error insert for error")
+	}
 
 	var newMetadataLog []ErrorMetaData
 	if errorGroup.MetadataLog != nil {

@@ -253,13 +253,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				continue
 			}
 		}
-
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.
-		errorToInsert.ErrorGroupID = group.ID
-		if err := r.DB.Create(errorToInsert).Error; err != nil {
-			log.Errorf("Error performing error insert for error: %v", v.Event)
-			continue
-		}
 	}
 	now := time.Now()
 	res = r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
