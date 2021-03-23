@@ -20,8 +20,8 @@ export const CurrentUsageCard: React.FC<CurrentUsageCardProps> = ({
                 increase your limit!
             </h3>
             <p className={styles.description}>
-                This workspace has used {currentUsage} of its {limit} sessions
-                limit ({((currentUsage / limit) * 100).toFixed(0)}%).
+                This workspace has used {currentUsage} of its {limit} monthly
+                sessions limit ({((currentUsage / limit) * 100).toFixed(0)}%).
             </p>
             <Progress
                 percent={Math.floor((currentUsage / limit) * 100)}
