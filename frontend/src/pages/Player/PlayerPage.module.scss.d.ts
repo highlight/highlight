@@ -8,6 +8,7 @@ export const headerLink: string;
 export const loadingWrapper: string;
 export const playerBody: string;
 export const playerLeftSection: string;
+export const playerLeftTopSection: string;
 export const playerPageBody: string;
 export const playerRightSection: string;
 export const progressBar: string;

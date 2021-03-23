@@ -10,7 +10,10 @@ import {
     ReplayerContextInterface,
     ReplayerState,
 } from '../ReplayerContext';
-import { getSessionIntervals } from './utils';
+import {
+    getSessionIntervals,
+    useSetPlayerTimestampFromSearchParam,
+} from './utils';
 
 const urlSearchParams = new URLSearchParams(window.location.search);
 /**
@@ -33,6 +36,9 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     const [sessionIntervals, setSessionIntervals] = useState<
         Array<ParsedSessionInterval>
     >([]);
+    const { setPlayerTimestamp } = useSetPlayerTimestampFromSearchParam(
+        setTime
+    );
 
     const { demo } = useContext(DemoContext);
 
@@ -99,6 +105,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                     setSessionEndTime(replayer.getMetaData().totalTime);
                     setState(ReplayerState.LoadedAndUntouched);
                     console.timeEnd('LoadingEvents');
+                    setPlayerTimestamp(replayer.getMetaData().totalTime);
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
                 }
@@ -110,7 +117,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                 cancelAnimationFrame(timerId);
             };
         }
-    }, [events, events.length, replayer]);
+    }, [events, events.length, replayer, setPlayerTimestamp]);
 
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {

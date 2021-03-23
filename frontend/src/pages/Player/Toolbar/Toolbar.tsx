@@ -65,7 +65,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
             state === ReplayerState.LoadedAndUntouched
         ) {
             setTimeout(() => {
-                play(0);
+                play(time);
             }, 100);
         }
     }, [autoPlayVideo, replayer, time, play, state]);

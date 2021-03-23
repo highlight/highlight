@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .signinWrapper {
     height: 100%;
     width: 100%;
@@ -173,4 +175,12 @@
 .skeletonContainer {
     padding-left: 30px;
     padding-right: 30px;
+}
+
+.playerLeftTopSection {
+    display: flex;
+    gap: $size-xSmall;
+    padding: $size-xSmall $size-small;
+    align-items: center;
+    justify-content: space-between;
 }
