@@ -141,7 +141,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	return nil
 }
 
-func (r *Resolver) UpdateErrorGroup(errorObj model.ErrorObject, frames []interface{}, fields []*model.ErrorField) (*model.ErrorGroup, error) {
+func (r *Resolver) UpdateErrorGroup(errorObj *model.ErrorObject, frames []interface{}, fields []*model.ErrorField) (*model.ErrorGroup, error) {
 	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
 		return nil, e.Wrap(err, "Error marshalling first frame")
@@ -266,12 +266,12 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 
 func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, session_id int, user_identifier string, url string) error {
 	organization := &model.Organization{}
-	if organization.SlackWebhookURL == nil || group == nil {
-		return nil
-	}
 	res := r.DB.Where("id = ?", org_id).First(&organization)
 	if err := res.Error; err != nil {
 		return e.Wrap(err, "error messaging organization")
+	}
+	if organization.SlackWebhookURL == nil || group == nil {
+		return nil
 	}
 	shortEvent := group.Event
 	if len(group.Event) > 50 {
