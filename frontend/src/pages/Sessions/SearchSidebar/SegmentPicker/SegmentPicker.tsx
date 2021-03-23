@@ -12,6 +12,8 @@ import {
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
 import { Tooltip } from 'antd';
+import { EmptySearchParams } from '../../SessionsPage';
+import _ from 'lodash';
 
 export const LIVE_SEGMENT_ID = 'live';
 
@@ -27,7 +29,7 @@ export const SegmentPicker = () => {
     const { loading, data } = useGetSegmentsQuery({
         variables: { organization_id },
     });
-    const history = useHistory();
+    const history = useHistory<SearchParams>();
     const {
         data: unprocessedSessionsCount,
         loading: unprocessedSessionsLoading,
@@ -43,11 +45,24 @@ export const SegmentPicker = () => {
                 return;
             }
             if (currentSegment) {
-                const newParams: any = { ...currentSegment.params };
-                const parsed: SearchParams = gqlSanitize(newParams);
+                if (
+                    history.location.state &&
+                    // history.location.state is empty when the user first loads the app and the route is deep-linked to a segment.
+                    !_.isEqual(history.location.state, EmptySearchParams)
+                ) {
+                    const parsed: SearchParams = gqlSanitize(
+                        history.location.state
+                    );
+                    setSearchParams(parsed);
+                    setExistingParams(parsed);
+                } else {
+                    const parsed: SearchParams = gqlSanitize({
+                        ...currentSegment.params,
+                    });
+                    setSearchParams(parsed);
+                    setExistingParams(parsed);
+                }
                 setSegmentName(currentSegment.name);
-                setSearchParams(parsed);
-                setExistingParams(parsed);
             } else {
                 // Redirect home since the segment doesn't exist anymore.
                 history.replace(`/${organization_id}/sessions`);
@@ -71,7 +86,13 @@ export const SegmentPicker = () => {
                 </div>
             ) : (
                 <div className={styles.segmentPickerInner}>
-                    <Link to={`/${organization_id}/sessions`} key={'sessions'}>
+                    <Link
+                        to={{
+                            pathname: `/${organization_id}/sessions`,
+                            state: EmptySearchParams,
+                        }}
+                        key={'sessions'}
+                    >
                         <div className={styles.segmentItem}>
                             <div
                                 className={classNames(
@@ -128,7 +149,10 @@ export const SegmentPicker = () => {
                     </Link>
                     {data?.segments?.map((s) => (
                         <Link
-                            to={`/${organization_id}/sessions/segment/${s?.id}`}
+                            to={{
+                                pathname: `/${organization_id}/sessions/segment/${s?.id}`,
+                                state: s?.params,
+                            }}
                             key={s?.id}
                         >
                             <div className={styles.segmentItem}>
