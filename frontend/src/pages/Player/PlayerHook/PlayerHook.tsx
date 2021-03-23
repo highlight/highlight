@@ -49,6 +49,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     // Handle data in playback mode.
     useEffect(() => {
         if (eventsData?.events?.length ?? 0 > 1) {
+            console.time('LoadingEvents');
             setState(ReplayerState.Loading);
             // Add an id field to each event so it can be referenced.
             const newEvents: HighlightEvent[] = toHighlightEvents(
@@ -97,6 +98,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                     setSessionIntervals(sessionIntervals);
                     setSessionEndTime(replayer.getMetaData().totalTime);
                     setState(ReplayerState.LoadedAndUntouched);
+                    console.timeEnd('LoadingEvents');
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
                 }
