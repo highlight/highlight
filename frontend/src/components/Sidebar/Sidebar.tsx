@@ -76,13 +76,15 @@ export const Sidebar = () => {
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
                         {!loadingBillingDetails &&
-                            data?.billingDetails.meter &&
-                            data?.billingDetails.plan.quota && (
-                                <CurrentUsageCard
-                                    currentUsage={data?.billingDetails.meter}
-                                    limit={data?.billingDetails.plan.quota}
-                                />
-                            )}
+                        data?.billingDetails.meter !== undefined &&
+                        data?.billingDetails.plan.quota !== undefined ? (
+                            <CurrentUsageCard
+                                currentUsage={data?.billingDetails.meter}
+                                limit={data?.billingDetails.plan.quota}
+                            />
+                        ) : (
+                            <></>
+                        )}
                         <Link
                             to={{
                                 pathname:
