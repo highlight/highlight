@@ -77,7 +77,8 @@ const getIntervalWithPercentages = (
 };
 
 /**
- * Sets the player's time based on the query parameter ts.
+ *
+ * @param setTime Sets the new time in milliseconds.
  */
 export const useSetPlayerTimestampFromSearchParam = (
     setTime: (newTime: number) => void
@@ -86,14 +87,20 @@ export const useSetPlayerTimestampFromSearchParam = (
     const location = useLocation();
 
     const setPlayerTimestamp = useCallback(
-        (sessionDuration: number) => {
+        (sessionDurationMilliseconds: number) => {
             const searchParamsObject = new URLSearchParams(location.search);
 
             if (searchParamsObject.get('ts')) {
-                const ts = parseInt(searchParamsObject.get('ts') as string, 10);
+                const timestampMinutes = parseFloat(
+                    searchParamsObject.get('ts') as string
+                );
+                const timestampMilliseconds = timestampMinutes * 1000 * 60;
 
-                if (ts > 0 || ts <= sessionDuration) {
-                    setTime(ts);
+                if (
+                    timestampMilliseconds > 0 ||
+                    timestampMilliseconds <= sessionDurationMilliseconds
+                ) {
+                    setTime(timestampMilliseconds);
                 }
                 history.replace(`${location.pathname}`);
             }
@@ -102,6 +109,9 @@ export const useSetPlayerTimestampFromSearchParam = (
     );
 
     return {
+        /**
+         * Sets the player's time based on the search parameter "ts".
+         */
         setPlayerTimestamp,
     };
 };
