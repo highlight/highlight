@@ -907,13 +907,14 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	if org.StripeCustomerID == nil {
-		return nil, e.New("org has no customer id")
+	customerID := ""
+	if org.StripeCustomerID != nil {
+		customerID = *org.StripeCustomerID
 	}
 	params := &stripe.CustomerParams{}
 	priceID := ""
 	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
+	c, err := r.StripeClient.Customers.Get(customerID, params)
 	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
 		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
