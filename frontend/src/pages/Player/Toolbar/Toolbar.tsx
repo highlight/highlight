@@ -4,7 +4,10 @@ import { useLocalStorage } from '@rehooks/local-storage';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import { SettingsMenu } from './SettingsMenu/SettingsMenu';
-import { OpenDevToolsContext } from './DevToolsContext/DevToolsContext';
+import {
+    DevToolsContextProvider,
+    DevToolTabs,
+} from './DevToolsContext/DevToolsContext';
 import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
@@ -42,6 +45,10 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
         'highlightMenuAutoPlayVideo',
         false
+    );
+    const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
+        'highlightSelectedDevtoolTabs',
+        DevToolTabs.Errors
     );
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
@@ -149,17 +156,19 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
 
     return (
         <>
-            <OpenDevToolsContext.Provider
+            <DevToolsContextProvider
                 value={{
                     openDevTools,
                     setOpenDevTools,
+                    selectedTab: selectedDevToolsTab,
+                    setSelectedTab: setSelectedDevToolsTab,
                 }}
             >
                 <DevToolsWindow
                     time={(replayer?.getMetaData().startTime ?? 0) + time}
                     startTime={replayer?.getMetaData().startTime ?? 0}
                 />
-            </OpenDevToolsContext.Provider>
+            </DevToolsContextProvider>
             <div className={styles.playerRail}>
                 <div
                     className={styles.sliderRail}
