@@ -118,8 +118,12 @@
 .segmentItemWrapper {
     position: relative;
 
-    &:hover .segmentAction {
-        display: flex;
+    &:hover {
+        background-color: #f2eefb;
+
+        .segmentAction {
+            display: flex;
+        }
     }
 }
 
