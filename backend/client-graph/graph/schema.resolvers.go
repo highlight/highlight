@@ -242,7 +242,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "os_name", Value: sessionObj.OSName})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
-		group, err := r.UpdateErrorGroup(*errorToInsert, v.Trace, metaFields)
+		group, err := r.HandleErrorAndGroup(errorToInsert, v.Trace, metaFields)
 		if err != nil {
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
@@ -253,13 +253,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				continue
 			}
 		}
-
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.
-		errorToInsert.ErrorGroupID = group.ID
-		if err := r.DB.Create(errorToInsert).Error; err != nil {
-			log.Errorf("Error performing error insert for error: %v", v.Event)
-			continue
-		}
 	}
 	now := time.Now()
 	res = r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
