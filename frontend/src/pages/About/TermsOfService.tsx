@@ -2,11 +2,11 @@ import React from 'react';
 import styles from './About.module.scss';
 
 const TermsOfService = () => {
-    console.log('hi');
     return (
         <div className={styles.termsPage}>
             <p className={styles.termsText}>
-                {`TERMS OF SERVICE
+                {`
+TERMS OF SERVICE
  
  Last updated: 11/04/2020
   

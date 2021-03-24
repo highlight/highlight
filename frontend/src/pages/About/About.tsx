@@ -5,7 +5,7 @@ import { Switch } from 'react-router-dom';
 export const About = () => {
     return (
         <Switch>
-            <Suspense fallback={<div>loading...</div>}>
+            <Suspense fallback={<></>}>
                 <Route
                     path="/about/privacy"
                     component={lazy(() => import('./Privacy'))}
