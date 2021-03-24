@@ -131,64 +131,73 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
                     </div>
                 ) : (
                     <div className={styles.segmentPickerInner}>
-                        <Link
-                            to={`/${organization_id}/sessions`}
-                            key={'sessions'}
-                        >
-                            <div className={styles.segmentItem}>
-                                <div
-                                    className={classNames(
-                                        styles.segmentText,
-                                        (currentSegment || segment_id) &&
-                                            styles.segmentUnselected
-                                    )}
-                                >
-                                    All Sessions
-                                </div>
-                                {!currentSegment && !segment_id && (
-                                    <CheckIcon className={styles.checkIcon} />
-                                )}
-                            </div>
-                        </Link>
-                        <Link
-                            to={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
-                            key={'live-sessions'}
-                        >
-                            <div className={styles.segmentItem}>
-                                <div
-                                    className={classNames(
-                                        styles.segmentText,
-                                        styles.liveSessionsSegment,
-                                        {
-                                            [styles.segmentUnselected]:
-                                                segment_id !== LIVE_SEGMENT_ID,
-                                        }
-                                    )}
-                                >
-                                    Live Sessions
-                                    {!unprocessedSessionsLoading && (
-                                        <Tooltip title="The number of live sessions">
-                                            <div
-                                                className={classNames(
-                                                    styles.liveSessionsCount,
-                                                    {
-                                                        [styles.liveSessionsCountInactive]:
-                                                            segment_id !==
-                                                            LIVE_SEGMENT_ID,
-                                                    }
-                                                )}
-                                            >
-                                                {unprocessedSessionsCount?.unprocessedSessionsCount ??
-                                                    0}
-                                            </div>
-                                        </Tooltip>
+                        <div className={styles.segmentItemWrapper}>
+                            <Link
+                                to={`/${organization_id}/sessions`}
+                                key={'sessions'}
+                            >
+                                <div className={styles.segmentItem}>
+                                    <div
+                                        className={classNames(
+                                            styles.segmentText,
+                                            (currentSegment || segment_id) &&
+                                                styles.segmentUnselected
+                                        )}
+                                    >
+                                        All Sessions
+                                    </div>
+                                    {!currentSegment && !segment_id && (
+                                        <CheckIcon
+                                            className={styles.checkIcon}
+                                        />
                                     )}
                                 </div>
-                                {LIVE_SEGMENT_ID === segment_id && (
-                                    <CheckIcon className={styles.checkIcon} />
-                                )}
-                            </div>
-                        </Link>
+                            </Link>
+                        </div>
+                        <div className={styles.segmentItemWrapper}>
+                            <Link
+                                to={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
+                                key={'live-sessions'}
+                            >
+                                <div className={styles.segmentItem}>
+                                    <div
+                                        className={classNames(
+                                            styles.segmentText,
+                                            styles.liveSessionsSegment,
+                                            {
+                                                [styles.segmentUnselected]:
+                                                    segment_id !==
+                                                    LIVE_SEGMENT_ID,
+                                            }
+                                        )}
+                                    >
+                                        Live Sessions
+                                        {!unprocessedSessionsLoading && (
+                                            <Tooltip title="The number of live sessions">
+                                                <div
+                                                    className={classNames(
+                                                        styles.liveSessionsCount,
+                                                        {
+                                                            [styles.liveSessionsCountInactive]:
+                                                                segment_id !==
+                                                                LIVE_SEGMENT_ID,
+                                                        }
+                                                    )}
+                                                >
+                                                    {unprocessedSessionsCount?.unprocessedSessionsCount ??
+                                                        0}
+                                                </div>
+                                            </Tooltip>
+                                        )}
+                                    </div>
+                                    {LIVE_SEGMENT_ID === segment_id && (
+                                        <CheckIcon
+                                            className={styles.checkIcon}
+                                        />
+                                    )}
+                                </div>
+                            </Link>
+                        </div>
                         {data?.segments?.map((s) => (
                             <div
                                 className={styles.segmentItemWrapper}

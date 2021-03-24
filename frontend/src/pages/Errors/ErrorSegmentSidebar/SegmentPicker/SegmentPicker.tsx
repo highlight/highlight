@@ -123,22 +123,29 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
                     </div>
                 ) : (
                     <div className={styles.segmentPickerInner}>
-                        <Link to={`/${organization_id}/errors`} key={'errors'}>
-                            <div className={styles.segmentItem}>
-                                <div
-                                    className={classNames(
-                                        styles.segmentText,
-                                        currentSegment &&
-                                            styles.segmentUnselected
+                        <div className={styles.segmentItemWrapper}>
+                            <Link
+                                to={`/${organization_id}/errors`}
+                                key={'errors'}
+                            >
+                                <div className={styles.segmentItem}>
+                                    <div
+                                        className={classNames(
+                                            styles.segmentText,
+                                            currentSegment &&
+                                                styles.segmentUnselected
+                                        )}
+                                    >
+                                        All Errors
+                                    </div>
+                                    {!currentSegment && (
+                                        <CheckIcon
+                                            className={styles.checkIcon}
+                                        />
                                     )}
-                                >
-                                    All Errors
                                 </div>
-                                {!currentSegment && (
-                                    <CheckIcon className={styles.checkIcon} />
-                                )}
-                            </div>
-                        </Link>
+                            </Link>
+                        </div>
                         {data?.error_segments?.map((s) => (
                             <div
                                 className={styles.segmentItemWrapper}
