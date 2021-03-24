@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useHistory, useParams } from 'react-router';
 import { Field } from '../../components/Field/Field';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
@@ -39,6 +39,9 @@ export const ErrorPage = () => {
     const [eventLineExpand, setEventLineExpand] = useState(false);
     const [showExpandButton, setShowExpandButton] = useState(true);
     const [errorActivityCount, setErrorActivityCount] = useState(20);
+    const history = useHistory<{
+        hideResolvedErrorsSearchParameter: boolean;
+    }>();
 
     useEffect(() => {
         const eventText = data?.error_group?.event[0];
@@ -266,6 +269,10 @@ export const ErrorPage = () => {
                             <ResolveErrorButton
                                 resolved={data?.error_group?.resolved || false}
                                 loading={loading}
+                                hideResolvedErrorsSearchParameter={
+                                    history.location.state
+                                        .hideResolvedErrorsSearchParameter
+                                }
                             />
                         </div>
                         <div className={styles.subTitle}>
