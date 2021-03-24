@@ -1,5 +1,5 @@
 import React, { useContext, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import {
     ErrorSearchContext,
     ErrorSearchParams,
@@ -11,6 +11,8 @@ import styles from './SegmentPicker.module.scss';
 import { useGetErrorSegmentsQuery } from '../../../../graph/generated/hooks';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
+import _ from 'lodash';
+import { EmptyErrorsSearchParams } from '../../ErrorsPage';
 
 export const ErrorSegmentPicker = () => {
     const { setSearchParams, setSegmentName, setExistingParams } = useContext(
@@ -27,20 +29,46 @@ export const ErrorSegmentPicker = () => {
     const currentSegment = data?.error_segments?.find(
         (s) => s?.id === segment_id
     );
+    const history = useHistory<ErrorSearchParams>();
 
     useEffect(() => {
-        if (currentSegment) {
-            const newParams: any = { ...currentSegment.params };
-            const parsed: ErrorSearchParams = gqlSanitize(newParams);
-            setSegmentName(currentSegment.name);
-            setSearchParams(parsed);
-            setExistingParams(parsed);
+        if (segment_id) {
+            if (currentSegment) {
+                if (
+                    history.location.state &&
+                    // history.location.state is empty when the user first loads the app and the route is deep-linked to a segment.
+                    !_.isEqual(history.location.state, EmptyErrorsSearchParams)
+                ) {
+                    const parsed: ErrorSearchParams = gqlSanitize(
+                        history.location.state
+                    );
+                    setSearchParams(parsed);
+                    setExistingParams(parsed);
+                } else {
+                    const parsed: ErrorSearchParams = gqlSanitize({
+                        ...currentSegment.params,
+                    });
+                    setSearchParams(parsed);
+                    setExistingParams(parsed);
+                }
+                setSegmentName(currentSegment.name);
+            } else {
+                // Redirect home since the segment doesn't exist anymore.
+                history.replace(`/${organization_id}/errors`);
+            }
         } else {
-            setSegmentName(null);
-            setExistingParams({});
-            setSearchParams({});
+            setSearchParams(EmptyErrorsSearchParams);
+            setExistingParams(EmptyErrorsSearchParams);
         }
-    }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
+    }, [
+        currentSegment,
+        setSegmentName,
+        setSearchParams,
+        setExistingParams,
+        history,
+        organization_id,
+        segment_id,
+    ]);
 
     return (
         <div className={styles.segmentPickerMenu}>
@@ -50,7 +78,13 @@ export const ErrorSegmentPicker = () => {
                 </div>
             ) : (
                 <div className={styles.segmentPickerInner}>
-                    <Link to={`/${organization_id}/errors`} key={'errors'}>
+                    <Link
+                        to={{
+                            pathname: `/${organization_id}/errors`,
+                            state: EmptyErrorsSearchParams,
+                        }}
+                        key={'errors'}
+                    >
                         <div className={styles.segmentItem}>
                             <div
                                 className={classNames(
@@ -67,7 +101,10 @@ export const ErrorSegmentPicker = () => {
                     </Link>
                     {data?.error_segments?.map((s) => (
                         <Link
-                            to={`/${organization_id}/errors/segment/${s?.id}`}
+                            to={{
+                                pathname: `/${organization_id}/errors/segment/${s?.id}`,
+                                state: s?.params,
+                            }}
                             key={s?.id}
                         >
                             <div className={styles.segmentItem}>
