@@ -88,7 +88,10 @@ export const Sidebar = () => {
                         <Link to={'/about/terms'} className={styles.bottomLink}>
                             Terms of Service
                         </Link>
-                        <Link className={styles.bottomLink} to={'/privacy'}>
+                        <Link
+                            className={styles.bottomLink}
+                            to={'/about/privacy'}
+                        >
                             Privacy Policy
                         </Link>
                     </div>
