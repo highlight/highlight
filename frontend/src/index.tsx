@@ -20,6 +20,7 @@ const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
     debug: { clientInteractions: true, domRecording: true },
     manualStart: true,
+    isStrictPrivacy: false,
 };
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
