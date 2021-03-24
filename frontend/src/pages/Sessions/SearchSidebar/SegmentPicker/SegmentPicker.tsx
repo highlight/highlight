@@ -148,6 +148,12 @@ export const SegmentPicker = () => {
                             'Delete Segment'
                         )}
                     </button>
+                    <button
+                        className={commonStyles.secondaryButton}
+                        onClick={() => setDeleteClicked(false)}
+                    >
+                        Cancel
+                    </button>
                 </div>
             </Modal>
             <div className={styles.segmentPickerMenu}>
