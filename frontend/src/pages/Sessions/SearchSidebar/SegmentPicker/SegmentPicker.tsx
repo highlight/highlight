@@ -50,7 +50,19 @@ export const SegmentPicker = () => {
         id?: string;
     } | null>();
     const [deleteSegment] = useDeleteSegmentMutation({
-        refetchQueries: ['GetSegments'],
+        update(cache) {
+            cache.modify({
+                fields: {
+                    segments(existingSegments, { readField }) {
+                        return existingSegments.filter(
+                            (existingSegment: any) =>
+                                readField('id', existingSegment) !==
+                                segmentToDelete?.id
+                        );
+                    },
+                },
+            });
+        },
     });
 
     useEffect(() => {

@@ -46,7 +46,19 @@ export const ErrorSegmentPicker = () => {
         id?: string;
     } | null>();
     const [deleteSegment] = useDeleteErrorSegmentMutation({
-        refetchQueries: ['GetErrorSegments'],
+        update(cache) {
+            cache.modify({
+                fields: {
+                    error_segments(existingSegments, { readField }) {
+                        return existingSegments.filter(
+                            (existingSegment: any) =>
+                                readField('id', existingSegment) !==
+                                segmentToDelete?.id
+                        );
+                    },
+                },
+            });
+        },
     });
 
     useEffect(() => {
