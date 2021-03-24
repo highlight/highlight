@@ -86,22 +86,12 @@ export const Sidebar = () => {
                             <></>
                         )}
                         <Link
-                            to={{
-                                pathname:
-                                    'https://www.highlight.run/terms-of-service',
-                            }}
+                            to={'/about/terms-of-service'}
                             className={styles.bottomLink}
-                            target="_blank"
                         >
                             Terms of Service
                         </Link>
-                        <Link
-                            className={styles.bottomLink}
-                            to={{
-                                pathname: 'https://www.highlight.run/privacy',
-                            }}
-                            target="_blank"
-                        >
+                        <Link className={styles.bottomLink} to={'/privacy'}>
                             Privacy Policy
                         </Link>
                     </div>

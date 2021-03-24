@@ -8,5 +8,32 @@
 
 .careersText {
     width: 400px;
+    white-space: pre-line;
+    max-width: 90%;
+}
+
+.privacyPage {
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.privacyText {
+    width: 800px;
+    white-space: pre-line;
+    max-width: 90%;
+}
+
+.termsPage {
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.termsText {
+    width: 800px;
+    white-space: pre-line;
     max-width: 90%;
 }
