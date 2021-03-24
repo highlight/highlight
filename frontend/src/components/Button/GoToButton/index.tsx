@@ -3,13 +3,20 @@ import styles from './index.module.scss';
 import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
 import classNames from 'classnames';
 
-const GoToButton = (props: React.HTMLAttributes<HTMLButtonElement>) => {
+interface GoToButtonComponentProps {
+    label?: string;
+}
+
+type GoToButtonProps = GoToButtonComponentProps &
+    React.HTMLAttributes<HTMLButtonElement>;
+
+const GoToButton = ({ label = 'Goto', ...props }: GoToButtonProps) => {
     return (
         <button
             {...props}
             className={classNames(styles.goToButton, props.className)}
         >
-            Goto <ReferrerIcon className={styles.icon} />
+            {label} <ReferrerIcon className={styles.icon} />
         </button>
     );
 };

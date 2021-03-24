@@ -45,6 +45,7 @@ const ErrorCard = ({ error, index }: Props) => {
                             `/${organization_id}/errors/${error.error_group_id}`
                         );
                     }}
+                    label="More"
                 />
             </div>
         </div>
