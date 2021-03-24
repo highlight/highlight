@@ -48,7 +48,7 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
         id?: string;
     } | null>();
     const [deleteSegment] = useDeleteErrorSegmentMutation({
-        refetchQueries: ['GetSegments'],
+        refetchQueries: ['GetErrorSegments'],
     });
 
     useEffect(() => {
@@ -95,7 +95,11 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
                                 .then(() => {
                                     message.success('Deleted Segment!', 5);
                                     setDeleteClicked(false);
-                                    history.push(`/${organization_id}/errors`);
+                                    if (segment_id === segmentToDelete?.id) {
+                                        history.push(
+                                            `/${organization_id}/errors`
+                                        );
+                                    }
                                 })
                                 .catch(() => {
                                     message.error('Error deleting segment!', 5);
@@ -136,38 +140,40 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
                             </div>
                         </Link>
                         {data?.error_segments?.map((s) => (
-                            <Link
-                                to={`/${organization_id}/errors/segment/${s?.id}`}
+                            <div
+                                className={styles.segmentItemWrapper}
                                 key={s?.id}
                             >
-                                <div className={styles.segmentItem}>
-                                    <div
-                                        className={classNames(
-                                            styles.segmentText,
-                                            s?.id != currentSegment?.id &&
-                                                styles.segmentUnselected
+                                <Link
+                                    to={`/${organization_id}/errors/segment/${s?.id}`}
+                                >
+                                    <div className={styles.segmentItem}>
+                                        <div
+                                            className={classNames(
+                                                styles.segmentText,
+                                                s?.id != currentSegment?.id &&
+                                                    styles.segmentUnselected
+                                            )}
+                                        >
+                                            {s?.name}
+                                        </div>
+                                        {s?.id === currentSegment?.id && (
+                                            <CheckIcon
+                                                className={styles.checkIcon}
+                                            />
                                         )}
-                                    >
-                                        {s?.name}
                                     </div>
-                                    {s?.id === currentSegment?.id && (
-                                        <CheckIcon
-                                            className={styles.checkIcon}
-                                        />
-                                    )}
-                                    <button
-                                        className={styles.segmentAction}
-                                        onClick={() => {
-                                            setDeleteClicked(true);
-                                            setSegmentToDelete(s);
-                                        }}
-                                    >
-                                        <TrashIcon
-                                            className={styles.trashIcon}
-                                        />
-                                    </button>
-                                </div>
-                            </Link>
+                                </Link>
+                                <button
+                                    className={styles.segmentAction}
+                                    onClick={() => {
+                                        setDeleteClicked(true);
+                                        setSegmentToDelete(s);
+                                    }}
+                                >
+                                    <TrashIcon className={styles.trashIcon} />
+                                </button>
+                            </div>
                         ))}
                     </div>
                 )}

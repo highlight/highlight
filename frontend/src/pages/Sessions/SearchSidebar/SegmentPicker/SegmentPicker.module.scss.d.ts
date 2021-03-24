@@ -12,6 +12,7 @@ export const noSegmentsText: string;
 export const plusIcon: string;
 export const segmentAction: string;
 export const segmentItem: string;
+export const segmentItemWrapper: string;
 export const segmentNameText: string;
 export const segmentPickerInner: string;
 export const segmentPickerMenu: string;

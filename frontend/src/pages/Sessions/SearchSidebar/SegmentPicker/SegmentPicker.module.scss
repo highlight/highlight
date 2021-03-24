@@ -14,7 +14,7 @@
     min-width: 220px;
     color: black;
 
-    a:last-child .segmentItem {
+    .segmentItemWrapper:last-child .segmentItem {
         border-bottom: 0px;
     }
 }
@@ -53,6 +53,8 @@
     width: 30px;
     height: 30px;
     right: 5px;
+    top: 0;
+    bottom: 0;
     margin: auto;
     border-radius: 5px;
     align-items: center;
@@ -113,6 +115,14 @@
     color: #808080;
 }
 
+.segmentItemWrapper {
+    position: relative;
+
+    &:hover .segmentAction {
+        display: flex;
+    }
+}
+
 .segmentItem {
     border-bottom: 1px solid #eaeaea;
     padding: 10px;
@@ -120,17 +130,12 @@
     padding-left: 15px;
     cursor: pointer;
     display: flex;
-    position: relative;
     align-items: center;
     width: 100%;
 }
 
 .segmentItem:hover {
     background-color: #f2eefb;
-
-    .segmentAction {
-        display: flex;
-    }
 }
 
 .segmentText {
