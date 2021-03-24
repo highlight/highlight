@@ -29,7 +29,9 @@ export const Home: React.FC = ({ children }) => {
                                         >
                                             Documentation
                                         </Link>
-                                        <Link to={'/careers'}>Careers</Link>
+                                        <Link to={'/about/careers'}>
+                                            Careers
+                                        </Link>
                                         <a href="https://app.highlight.run">
                                             Sign In
                                         </a>
@@ -57,7 +59,7 @@ export const Home: React.FC = ({ children }) => {
                                     Documentation
                                 </Link>
                                 <Link
-                                    to={'/careers'}
+                                    to={'/about/careers'}
                                     className={styles.navLink}
                                 >
                                     Careers

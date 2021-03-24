@@ -1,7 +1,7 @@
 import React from 'react';
-import styles from './Careers.module.scss';
+import styles from './About.module.scss';
 
-export const Careers = () => (
+const Privacy = () => (
     <div className={styles.careersPage}>
         <p className={styles.careersText}>
             Highlight is hiring engineers. We're well funded, growing, and have
@@ -10,3 +10,5 @@ export const Careers = () => (
         </p>
     </div>
 );
+
+export default Privacy;
