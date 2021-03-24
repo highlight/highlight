@@ -14,7 +14,11 @@ export const About = () => {
                     path="/about/terms"
                     component={lazy(() => import('./TermsOfService'))}
                 />
-                <Route path="/" component={lazy(() => import('./Careers'))} />
+                <Route
+                    path={['/about/careers', '/']}
+                    exact
+                    component={lazy(() => import('./Careers'))}
+                />
             </Suspense>
         </Switch>
     );
