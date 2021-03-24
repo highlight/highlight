@@ -94,7 +94,7 @@ export const Home: React.FC = ({ children }) => {
                 <footer className={styles.securityNav}>
                     <div className={styles.securityWrapper}>
                         <Link
-                            to={'/about/terms-of-service'}
+                            to={'/about/terms'}
                             className={styles.securityLink}
                         >
                             Terms of service
