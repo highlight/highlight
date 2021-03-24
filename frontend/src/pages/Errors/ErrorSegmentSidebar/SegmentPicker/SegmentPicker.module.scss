@@ -12,7 +12,7 @@
     min-width: 220px;
     color: black;
 
-    a:last-child .segmentItem {
+    .segmentItemWrapper:last-child .segmentItem {
         border-bottom: 0px;
     }
 }
@@ -34,6 +34,37 @@
     width: 15px;
     color: #5629c6;
     fill: #5629c6;
+}
+
+.trashIcon {
+    color: #808080;
+    fill: #808080;
+    margin-bottom: 2px;
+}
+
+.segmentAction {
+    background-color: #f2eefb;
+    border: 0;
+    display: none;
+    position: absolute;
+    padding: 0px 6px;
+    width: 30px;
+    height: 30px;
+    right: 5px;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    border-radius: 5px;
+    align-items: center;
+
+    &:hover {
+        cursor: pointer;
+
+        .trashIcon {
+            color: black;
+            fill: black;
+        }
+    }
 }
 
 .dropdownHandler {
@@ -82,6 +113,18 @@
     color: #808080;
 }
 
+.segmentItemWrapper {
+    position: relative;
+
+    &:hover {
+        background-color: #f2eefb;
+
+        .segmentAction {
+            display: flex;
+        }
+    }
+}
+
 .segmentItem {
     border-bottom: 1px solid #eaeaea;
     padding: 10px;
@@ -91,10 +134,6 @@
     display: flex;
     align-items: center;
     width: 100%;
-}
-
-.segmentItem:hover {
-    background-color: #f2eefb;
 }
 
 .segmentText {
@@ -118,4 +157,26 @@
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.modalWrapper {
+    border-radius: 8px;
+    border-color: #eaeaea;
+    background-color: white;
+    width: 60vh;
+    padding: 20px;
+    padding-bottom: 10px;
+    z-index: 1200;
+}
+
+.modalTitle {
+    font-size: 23px;
+    font-weight: 400;
+    margin-bottom: 10px;
+}
+
+.modalSubTitle {
+    font-size: 14px;
+    font-weight: 300;
+    margin-bottom: 20px;
 }
