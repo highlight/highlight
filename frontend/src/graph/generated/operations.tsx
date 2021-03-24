@@ -486,6 +486,7 @@ export type GetErrorsQuery = { __typename?: 'Query' } & {
             Types.Maybe<
                 { __typename?: 'ErrorObject' } & Pick<
                     Types.ErrorObject,
+                    | 'id'
                     | 'error_group_id'
                     | 'event'
                     | 'type'

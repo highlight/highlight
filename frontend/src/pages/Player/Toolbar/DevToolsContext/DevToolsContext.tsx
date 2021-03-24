@@ -1,15 +1,19 @@
-import React from 'react';
+import { createContext } from '../../../../util/context/context';
 
-export const OpenDevToolsContext = React.createContext({
-    openDevTools: true,
-    /* eslint-disable */
-    setOpenDevTools: (val: boolean) => {},
-    /* eslint-enable */
-});
+export enum DevToolTabs {
+    Console,
+    Network,
+    Errors,
+}
 
-export const IsConsoleContext = React.createContext({
-    isConsole: true,
-    /* eslint-disable */
-    setIsConsole: (val: boolean) => {},
-    /* eslint-enable */
-});
+interface DevToolsContext {
+    openDevTools: boolean;
+    setOpenDevTools: (val: boolean) => void;
+    selectedTab: DevToolTabs;
+    setSelectedTab: (tab: DevToolTabs) => void;
+}
+
+export const [
+    useDevToolsContext,
+    DevToolsContextProvider,
+] = createContext<DevToolsContext>();

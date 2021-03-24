@@ -1,0 +1,39 @@
+@import 'src/static/shared.scss';
+
+.errorCard {
+    display: flex;
+    border-bottom: 1px solid $border-light-gray;
+    background-color: $primary-background-color;
+    padding: $size-medium $size-medium $size-small $size-large;
+    color: $text-primary;
+    font-size: 12px;
+
+    h4 {
+        color: $alert-400;
+        font-size: 14px;
+    }
+
+    h4,
+    p {
+        margin: 0;
+    }
+
+    &:hover .goToButton {
+        visibility: visible;
+    }
+}
+
+.header {
+    display: flex;
+    gap: $size-small;
+    margin-bottom: $size-xSmall;
+    align-items: baseline;
+}
+
+.description {
+    white-space: break-spaces;
+}
+
+.goToButton {
+    visibility: hidden;
+}

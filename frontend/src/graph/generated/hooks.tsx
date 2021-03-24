@@ -1526,6 +1526,7 @@ export type GetResourcesQueryResult = Apollo.QueryResult<
 export const GetErrorsDocument = gql`
     query GetErrors($session_id: ID!) {
         errors(session_id: $session_id) {
+            id
             error_group_id
             event
             type

@@ -138,7 +138,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         );
                     })}
                 </div>
-                <DevToolsSelect isConsole={true} />
+                <DevToolsSelect />
             </div>
             <div className={styles.consoleStreamWrapper} id="logStreamWrapper">
                 {loading ? (

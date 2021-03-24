@@ -149,7 +149,7 @@ export const ResourcePage = ({
                         );
                     })}
                 </div>
-                <DevToolsSelect isConsole={false} />
+                <DevToolsSelect />
             </div>
             <div className={styles.networkTableWrapper}>
                 {loading ? (
