@@ -9,7 +9,10 @@ import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import { Tooltip } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
-import { useGetSessionsBetaQuery } from '../../../graph/generated/hooks';
+import {
+    useGetBillingDetailsQuery,
+    useGetSessionsBetaQuery,
+} from '../../../graph/generated/hooks';
 import {
     Maybe,
     Session,
@@ -28,6 +31,15 @@ export const SessionFeed = () => {
         segment_id: string;
     }>();
     const [count, setCount] = useState(10);
+    const { data: billingData } = useGetBillingDetailsQuery({
+        variables: { organization_id },
+    });
+
+    /** Show upsell when the current usage is 80% of the organization's plan. */
+    const upsell =
+        (billingData?.billingDetails.meter ?? 0) /
+            (billingData?.billingDetails.plan.quota ?? 1) >=
+        0.8;
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const [data, setData] = useState<SessionResults>({
@@ -51,9 +63,6 @@ export const SessionFeed = () => {
             setShowLoadingSkeleton(false);
         },
     });
-
-    // TODO: Replace hardcoded value with reading from the plan type.
-    const hasReachedSessionsLimit = false;
 
     useEffect(() => {
         setShowLoadingSkeleton(true);
@@ -107,9 +116,7 @@ export const SessionFeed = () => {
                                 <SearchEmptyState item={'sessions'} />
                             ) : (
                                 <>
-                                    {hasReachedSessionsLimit && (
-                                        <LimitedSessionCard />
-                                    )}
+                                    {upsell && <LimitedSessionCard />}
                                     {data.sessions.map((u) => {
                                         return (
                                             <SessionCard

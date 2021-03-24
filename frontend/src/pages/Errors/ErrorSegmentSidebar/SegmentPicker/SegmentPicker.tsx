@@ -1,10 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {
-    Link,
-    RouteComponentProps,
-    useParams,
-    withRouter,
-} from 'react-router-dom';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import {
     ErrorSearchContext,
     ErrorSearchParams,
@@ -23,10 +18,12 @@ import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
 import { message, Modal } from 'antd';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
+import _ from 'lodash';
+import { EmptyErrorsSearchParams } from '../../ErrorsPage';
 
 const NO_SEGMENT = 'none';
 
-const Picker: React.FC<RouteComponentProps> = ({ history }) => {
+export const ErrorSegmentPicker = () => {
     const { setSearchParams, setSegmentName, setExistingParams } = useContext(
         ErrorSearchContext
     );
@@ -41,6 +38,7 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
     const currentSegment = data?.error_segments?.find(
         (s) => s?.id === segment_id
     );
+    const history = useHistory<ErrorSearchParams>();
 
     const [deleteClicked, setDeleteClicked] = useState(false);
     const [segmentToDelete, setSegmentToDelete] = useState<{
@@ -52,18 +50,43 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
     });
 
     useEffect(() => {
-        if (currentSegment) {
-            const newParams: any = { ...currentSegment.params };
-            const parsed: ErrorSearchParams = gqlSanitize(newParams);
-            setSegmentName(currentSegment.name);
-            setSearchParams(parsed);
-            setExistingParams(parsed);
+        if (segment_id) {
+            if (currentSegment) {
+                if (
+                    history.location.state &&
+                    // history.location.state is empty when the user first loads the app and the route is deep-linked to a segment.
+                    !_.isEqual(history.location.state, EmptyErrorsSearchParams)
+                ) {
+                    const parsed: ErrorSearchParams = gqlSanitize(
+                        history.location.state
+                    );
+                    setSearchParams(parsed);
+                    setExistingParams(parsed);
+                } else {
+                    const parsed: ErrorSearchParams = gqlSanitize({
+                        ...currentSegment.params,
+                    });
+                    setSearchParams(parsed);
+                    setExistingParams(parsed);
+                }
+                setSegmentName(currentSegment.name);
+            } else {
+                // Redirect home since the segment doesn't exist anymore.
+                history.replace(`/${organization_id}/errors`);
+            }
         } else {
-            setSegmentName(null);
-            setExistingParams({});
-            setSearchParams({});
+            setSearchParams(EmptyErrorsSearchParams);
+            setExistingParams(EmptyErrorsSearchParams);
         }
-    }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
+    }, [
+        currentSegment,
+        setSegmentName,
+        setSearchParams,
+        setExistingParams,
+        history,
+        organization_id,
+        segment_id,
+    ]);
 
     return (
         <>
@@ -125,7 +148,10 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
                     <div className={styles.segmentPickerInner}>
                         <div className={styles.segmentItemWrapper}>
                             <Link
-                                to={`/${organization_id}/errors`}
+                                to={{
+                                    pathname: `/${organization_id}/errors`,
+                                    state: EmptyErrorsSearchParams,
+                                }}
                                 key={'errors'}
                             >
                                 <div className={styles.segmentItem}>
@@ -152,7 +178,10 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
                                 key={s?.id}
                             >
                                 <Link
-                                    to={`/${organization_id}/errors/segment/${s?.id}`}
+                                    to={{
+                                        pathname: `/${organization_id}/errors/segment/${s?.id}`,
+                                        state: s?.params,
+                                    }}
                                 >
                                     <div className={styles.segmentItem}>
                                         <div
@@ -188,5 +217,3 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
         </>
     );
 };
-
-export const ErrorSegmentPicker = withRouter(Picker);

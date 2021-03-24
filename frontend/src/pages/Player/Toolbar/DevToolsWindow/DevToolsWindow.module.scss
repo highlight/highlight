@@ -5,6 +5,8 @@
     width: 100%;
     height: 34vh;
     border-top: 1px solid $border-light-gray;
+    display: flex;
+    flex-direction: column;
 }
 
 .emptySection {

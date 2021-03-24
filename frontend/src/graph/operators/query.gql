@@ -97,7 +97,13 @@ query GetOrganization($id: ID!) {
 }
 
 query GetBillingDetails($organization_id: ID!) {
-    billingDetails(organization_id: $organization_id)
+    billingDetails(organization_id: $organization_id) {
+        plan {
+            type
+            quota
+        }
+        meter
+    }
 }
 
 query GetErrorGroup($id: ID!) {
@@ -169,6 +175,7 @@ query GetResources($session_id: ID!) {
 
 query GetErrors($session_id: ID!) {
     errors(session_id: $session_id) {
+        id
         error_group_id
         event
         type

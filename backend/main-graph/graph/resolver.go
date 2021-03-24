@@ -39,25 +39,40 @@ func profile(msg string, fid int, t time.Time) time.Time {
 	return time.Now()
 }
 
-func FromPriceID(priceID string) modelInputs.Plan {
-	switch priceID {
-	case os.Getenv("BASIC_PLAN_PRICE_ID"):
-		return modelInputs.PlanBasic
-	case os.Getenv("STARTUP_PLAN_PRICE_ID"):
-		return modelInputs.PlanStartup
-	case os.Getenv("ENTERPRISE_PLAN_PRICE_ID"):
-		return modelInputs.PlanEnterprise
+func TypeToQuota(planType modelInputs.PlanType) int {
+	switch planType {
+	case modelInputs.PlanTypeNone:
+		return 1000
+	case modelInputs.PlanTypeBasic:
+		return 20000
+	case modelInputs.PlanTypeStartup:
+		return 80000
+	case modelInputs.PlanTypeEnterprise:
+		return 300000
+	default:
+		return 1000
 	}
-	return modelInputs.PlanNone
 }
 
-func ToPriceID(plan modelInputs.Plan) string {
+func FromPriceID(priceID string) modelInputs.PlanType {
+	switch priceID {
+	case os.Getenv("BASIC_PLAN_PRICE_ID"):
+		return modelInputs.PlanTypeBasic
+	case os.Getenv("STARTUP_PLAN_PRICE_ID"):
+		return modelInputs.PlanTypeStartup
+	case os.Getenv("ENTERPRISE_PLAN_PRICE_ID"):
+		return modelInputs.PlanTypeEnterprise
+	}
+	return modelInputs.PlanTypeNone
+}
+
+func ToPriceID(plan modelInputs.PlanType) string {
 	switch plan {
-	case modelInputs.PlanBasic:
+	case modelInputs.PlanTypeBasic:
 		return os.Getenv("BASIC_PLAN_PRICE_ID")
-	case modelInputs.PlanStartup:
+	case modelInputs.PlanTypeStartup:
 		return os.Getenv("STARTUP_PLAN_PRICE_ID")
-	case modelInputs.PlanEnterprise:
+	case modelInputs.PlanTypeEnterprise:
 		return os.Getenv("ENTERPRISE_PLAN_PRICE_ID")
 	}
 	return ""

@@ -10,6 +10,15 @@ export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type CreateOrUpdateSubscriptionMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    plan_type: Types.PlanType;
+}>;
+
+export type CreateOrUpdateSubscriptionMutation = {
+    __typename?: 'Mutation';
+} & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
+
 export type MarkErrorGroupAsResolvedMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
     resolved: Types.Scalars['Boolean'];
@@ -23,15 +32,6 @@ export type MarkErrorGroupAsResolvedMutation = { __typename?: 'Mutation' } & {
         >
     >;
 };
-
-export type CreateOrUpdateSubscriptionMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
-    plan: Types.Plan;
-}>;
-
-export type CreateOrUpdateSubscriptionMutation = {
-    __typename?: 'Mutation';
-} & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
 
 export type SendEmailSignupMutationVariables = Types.Exact<{
     email: Types.Scalars['String'];
@@ -375,10 +375,12 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
 
-export type GetBillingDetailsQuery = { __typename?: 'Query' } & Pick<
-    Types.Query,
-    'billingDetails'
->;
+export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
+    billingDetails: { __typename?: 'BillingDetails' } & Pick<
+        Types.BillingDetails,
+        'meter'
+    > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
+};
 
 export type GetErrorGroupQueryVariables = Types.Exact<{
     id: Types.Scalars['ID'];
@@ -502,6 +504,7 @@ export type GetErrorsQuery = { __typename?: 'Query' } & {
             Types.Maybe<
                 { __typename?: 'ErrorObject' } & Pick<
                     Types.ErrorObject,
+                    | 'id'
                     | 'error_group_id'
                     | 'event'
                     | 'type'

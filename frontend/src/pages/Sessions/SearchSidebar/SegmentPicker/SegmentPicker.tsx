@@ -1,10 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import {
-    Link,
-    RouteComponentProps,
-    useParams,
-    withRouter,
-} from 'react-router-dom';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
@@ -21,11 +16,13 @@ import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
 import { message, Modal, Tooltip } from 'antd';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
+import { EmptySessionsSearchParams } from '../../SessionsPage';
+import _ from 'lodash';
 
 export const LIVE_SEGMENT_ID = 'live';
 const NO_SEGMENT = 'none';
 
-const Picker: React.FC<RouteComponentProps> = ({ history }) => {
+export const SegmentPicker = () => {
     const { setSearchParams, setSegmentName, setExistingParams } = useContext(
         SearchContext
     );
@@ -37,6 +34,7 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
     const { loading, data } = useGetSegmentsQuery({
         variables: { organization_id },
     });
+    const history = useHistory<SearchParams>();
     const {
         data: unprocessedSessionsCount,
         loading: unprocessedSessionsLoading,
@@ -56,22 +54,49 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
     });
 
     useEffect(() => {
-        if (currentSegment) {
-            const newParams: any = { ...currentSegment.params };
-            const parsed: SearchParams = gqlSanitize(newParams);
-            setSegmentName(currentSegment.name);
-            setSearchParams(parsed);
-            setExistingParams(parsed);
+        if (segment_id) {
+            if (segment_id === LIVE_SEGMENT_ID) {
+                return;
+            }
+            if (currentSegment) {
+                if (
+                    history.location.state &&
+                    // history.location.state is empty when the user first loads the app and the route is deep-linked to a segment.
+                    !_.isEqual(
+                        history.location.state,
+                        EmptySessionsSearchParams
+                    )
+                ) {
+                    const parsed: SearchParams = gqlSanitize(
+                        history.location.state
+                    );
+                    setSearchParams(parsed);
+                    setExistingParams(parsed);
+                } else {
+                    const parsed: SearchParams = gqlSanitize({
+                        ...currentSegment.params,
+                    });
+                    setSearchParams(parsed);
+                    setExistingParams(parsed);
+                }
+                setSegmentName(currentSegment.name);
+            } else {
+                // Redirect home since the segment doesn't exist anymore.
+                history.replace(`/${organization_id}/sessions`);
+            }
         } else {
-            setSegmentName(null);
-            const empty = {
-                user_properties: [],
-                identified: false,
-            };
-            setExistingParams(empty);
-            setSearchParams(empty);
+            setSearchParams(EmptySessionsSearchParams);
+            setExistingParams(EmptySessionsSearchParams);
         }
-    }, [currentSegment, setSegmentName, setSearchParams, setExistingParams]);
+    }, [
+        currentSegment,
+        setSegmentName,
+        setSearchParams,
+        setExistingParams,
+        segment_id,
+        history,
+        organization_id,
+    ]);
 
     return (
         <>
@@ -103,6 +128,7 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
                                 .then(() => {
                                     message.success('Deleted Segment!', 5);
                                     setDeleteClicked(false);
+                                    setSegmentToDelete({});
                                     if (segment_id === segmentToDelete?.id) {
                                         history.push(
                                             `/${organization_id}/sessions`
@@ -133,7 +159,10 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
                     <div className={styles.segmentPickerInner}>
                         <div className={styles.segmentItemWrapper}>
                             <Link
-                                to={`/${organization_id}/sessions`}
+                                to={{
+                                    pathname: `/${organization_id}/sessions`,
+                                    state: EmptySessionsSearchParams,
+                                }}
                                 key={'sessions'}
                             >
                                 <div className={styles.segmentItem}>
@@ -204,7 +233,10 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
                                 key={s?.id}
                             >
                                 <Link
-                                    to={`/${organization_id}/sessions/segment/${s?.id}`}
+                                    to={{
+                                        pathname: `/${organization_id}/sessions/segment/${s?.id}`,
+                                        state: s?.params,
+                                    }}
                                 >
                                     <div className={styles.segmentItem}>
                                         <div
@@ -240,5 +272,3 @@ const Picker: React.FC<RouteComponentProps> = ({ history }) => {
         </>
     );
 };
-
-export const SegmentPicker = withRouter(Picker);
