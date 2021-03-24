@@ -11,7 +11,6 @@ import styles from './SegmentPicker.module.scss';
 import { useGetErrorSegmentsQuery } from '../../../../graph/generated/hooks';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
-import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import _ from 'lodash';
 import { EmptyErrorsSearchParams } from '../../ErrorsPage';
 
@@ -57,6 +56,9 @@ export const ErrorSegmentPicker = () => {
                 // Redirect home since the segment doesn't exist anymore.
                 history.replace(`/${organization_id}/errors`);
             }
+        } else {
+            setSearchParams(EmptyErrorsSearchParams);
+            setExistingParams(EmptyErrorsSearchParams);
         }
     }, [
         currentSegment,
@@ -79,7 +81,7 @@ export const ErrorSegmentPicker = () => {
                     <Link
                         to={{
                             pathname: `/${organization_id}/errors`,
-                            state: EmptySessionsSearchParams,
+                            state: EmptyErrorsSearchParams,
                         }}
                         key={'errors'}
                     >

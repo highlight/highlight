@@ -70,6 +70,9 @@ export const SegmentPicker = () => {
                 // Redirect home since the segment doesn't exist anymore.
                 history.replace(`/${organization_id}/sessions`);
             }
+        } else {
+            setSearchParams(EmptySessionsSearchParams);
+            setExistingParams(EmptySessionsSearchParams);
         }
     }, [
         currentSegment,

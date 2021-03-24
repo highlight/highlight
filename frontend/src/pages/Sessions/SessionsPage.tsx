@@ -12,13 +12,23 @@ import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { FeedNavigation } from './SearchSidebar/FeedNavigation/FeedNavigation';
 import { useHistory } from 'react-router';
 import { useParams } from 'react-router-dom';
+import { Complete } from '../../util/types';
 
 /**
  * The initial search parameters. This is used when the user has not specified any search parameters.
  */
-export const EmptySessionsSearchParams: SearchParams = {
+export const EmptySessionsSearchParams: Complete<SearchParams> = {
     user_properties: [],
     identified: false,
+    browser: undefined,
+    date_range: undefined,
+    excluded_properties: [],
+    hide_viewed: false,
+    length_range: undefined,
+    os: undefined,
+    referrer: undefined,
+    track_properties: [],
+    visited_url: undefined,
 };
 
 export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
