@@ -12,6 +12,7 @@ import inputStyles from './InputStyles.module.scss';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import { ContainsLabel } from './SearchInputUtil';
 import { useGetTrackSuggestionQuery } from '../../../graph/generated/hooks';
+import { PropertyOption } from '../../../components/Option/Option';
 
 export const TrackPropertyInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -82,6 +83,7 @@ export const TrackPropertyInput = () => {
                             <UserIcon fill="#808080" />
                         </div>
                     ),
+                    Option: (props) => <PropertyOption {...props} />,
                     IndicatorSeparator: () => null,
                 }}
                 formatCreateLabel={ContainsLabel}

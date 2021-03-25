@@ -2,6 +2,7 @@
 
 .errorCard {
     display: flex;
+    justify-content: space-between;
     border-bottom: 1px solid $border-light-gray;
     background-color: $primary-background-color;
     padding: $size-medium $size-medium $size-small $size-large;
@@ -11,6 +12,7 @@
     h4 {
         color: $alert-400;
         font-size: 14px;
+        font-weight: 400;
     }
 
     h4,
