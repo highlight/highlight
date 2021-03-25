@@ -7,7 +7,7 @@ import React, {
     useCallback,
 } from 'react';
 import { useQueryParam, BooleanParam } from 'use-query-params';
-import { useHistory, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { Replayer, EventType } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
@@ -43,37 +43,12 @@ export const Player = () => {
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
-    const history = useHistory<{ hideViewed?: boolean }>();
 
     useEffect(() => {
         if (session_id) {
-            markSessionAsViewed({
-                variables: { id: session_id },
-                update(cache) {
-                    // Updates Apollo Client's cache to remove the session. We remove it if the user is filtering by hide_viewed=true so when they navigate back to the SessionFeed, the session will not be shown.
-                    if (history.location.state.hideViewed) {
-                        cache.modify({
-                            fields: {
-                                sessionsBETA(
-                                    existingSessionsRef,
-                                    { readField }
-                                ) {
-                                    return {
-                                        ...existingSessionsRef,
-                                        sessions: existingSessionsRef.sessions.filter(
-                                            (sessionRef: any) =>
-                                                session_id !==
-                                                readField('id', sessionRef)
-                                        ),
-                                    };
-                                },
-                            },
-                        });
-                    }
-                },
-            });
+            markSessionAsViewed({ variables: { id: session_id } });
         }
-    }, [session_id, markSessionAsViewed, history.location.state.hideViewed]);
+    }, [session_id, markSessionAsViewed]);
 
     useEffect(() => {
         setOpenSidebar(false);

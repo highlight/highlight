@@ -152,16 +152,9 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
     }>();
     const [hovered, setHovered] = useState(false);
     const created = new Date(session?.created_at);
-    const { searchParams } = useContext(SearchContext);
-
     return (
         <Link
-            to={{
-                pathname: `/${organization_id}/sessions/${session?.id}`,
-                state: {
-                    hideViewed: searchParams.hide_viewed,
-                },
-            }}
+            to={`/${organization_id}/sessions/${session?.id}`}
             key={session?.id}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}

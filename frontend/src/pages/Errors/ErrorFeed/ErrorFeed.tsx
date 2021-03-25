@@ -135,7 +135,6 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     const [errorDates, setErrorDates] = useState<Array<number>>(
         Array(6).fill(0)
     );
-    const { searchParams } = useContext(ErrorSearchContext);
 
     useEffect(() => {
         setErrorDates(frequencyTimeData(errorGroup, 6));
@@ -143,13 +142,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
 
     return (
         <Link
-            to={{
-                pathname: `/${organization_id}/errors/${errorGroup?.id}`,
-                state: {
-                    hideResolvedErrorsSearchParameter:
-                        searchParams.hide_resolved,
-                },
-            }}
+            to={`/${organization_id}/errors/${errorGroup?.id}`}
             key={errorGroup?.id}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
