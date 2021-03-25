@@ -36,7 +36,8 @@ const ErrorsPage = () => {
     }, [history.location.state?.errorCardIndex]);
 
     /** Only errors recorded after this feature was released will have the timestamp. */
-    const hasTimestamp = !loading && errors.every((error) => !!error.timestamp);
+    const hasTimestamp =
+        !loading && errors?.every((error) => !!error.timestamp);
 
     return (
         <>
