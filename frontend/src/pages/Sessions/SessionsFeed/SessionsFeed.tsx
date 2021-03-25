@@ -28,7 +28,6 @@ import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmp
 import { Field } from '../../../components/Field/Field';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
 import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
-import { sessionsBody } from '../SessionsPage.module.scss';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
