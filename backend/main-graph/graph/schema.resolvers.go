@@ -646,7 +646,7 @@ func (r *queryResolver) Errors(ctx context.Context, sessionID int) ([]*model.Err
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	errorsObj := []*model.ErrorObject{}
-	if res := r.DB.Order("created_at desc").Where(&model.ErrorObject{SessionID: sessionID}).Find(&errorsObj); res.Error != nil {
+	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: sessionID}).Find(&errorsObj); res.Error != nil {
 		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
 	}
 	return errorsObj, nil
