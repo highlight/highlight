@@ -46,3 +46,9 @@
 .goToButton {
     visibility: hidden;
 }
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: $size-xSmall;
+}

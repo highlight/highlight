@@ -47,7 +47,7 @@ const ErrorCard = ({ error, index, state }: Props) => {
                     </p>
                 </div>
             </div>
-            <div>
+            <div className={styles.actions}>
                 <GoToButton
                     className={styles.goToButton}
                     onClick={() => {
