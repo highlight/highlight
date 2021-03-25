@@ -19,7 +19,7 @@ export type HighlightOptions = {
      * // Text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
      * @see {@link https://docs.highlight.run/docs/privacy} for more information.
      */
-    isStrictPrivacy?: boolean;
+    enableStrictPrivacy?: boolean;
 };
 
 const HighlightWarning = (context: string, msg: any) => {
@@ -71,7 +71,7 @@ export const H: HighlightPublicInterface = {
                     disableNetworkRecording: options?.disableNetworkRecording,
                     disableConsoleRecording: options?.disableConsoleRecording,
                     enableSegmentIntegration: options?.enableSegmentIntegration,
-                    isStrictPrivacy: options?.isStrictPrivacy || false,
+                    enableStrictPrivacy: options?.enableStrictPrivacy || false,
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);
