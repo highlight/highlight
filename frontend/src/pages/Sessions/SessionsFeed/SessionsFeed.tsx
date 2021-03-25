@@ -94,7 +94,7 @@ export const SessionFeed = () => {
 
     const filteredSessions = useMemo(() => {
         if (loading) {
-            return [];
+            return data.sessions;
         }
         if (searchParams.hide_viewed) {
             return data.sessions.filter((session) => !session?.viewed);
