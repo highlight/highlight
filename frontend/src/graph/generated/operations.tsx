@@ -514,6 +514,7 @@ export type GetErrorsQuery = { __typename?: 'Query' } & {
                     | 'line_number'
                     | 'column_number'
                     | 'trace'
+                    | 'timestamp'
                 >
             >
         >

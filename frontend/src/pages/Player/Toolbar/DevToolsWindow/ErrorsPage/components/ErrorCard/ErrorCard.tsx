@@ -29,7 +29,7 @@ const ErrorCard = ({ error, index }: Props) => {
                 </div>
                 <div>
                     <p className={styles.description}>
-                        {JSON.parse(error.event)[0]}
+                        {JSON.parse(error.event)[0].toString()}
                     </p>
                 </div>
             </div>

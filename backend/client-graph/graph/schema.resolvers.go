@@ -12,7 +12,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	parse "github.com/jay-khatri/fullstory/backend/event-parse"
+	"github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -235,6 +235,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			OS:             sessionObj.OSName,
 			Browser:        sessionObj.BrowserName,
 			Trace:          &traceString,
+			Timestamp:      v.Timestamp,
 		}
 
 		//create error fields array

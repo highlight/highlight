@@ -85,6 +85,7 @@ type ErrorObject {
     line_number: Int
     column_number: Int
     trace: [Any]
+    timestamp: Time
 }
 
 type ErrorField {

@@ -1628,6 +1628,7 @@ export const GetErrorsDocument = gql`
             line_number
             column_number
             trace
+            timestamp
         }
     }
 `;

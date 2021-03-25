@@ -294,6 +294,7 @@ export class Highlight {
                                 ? c.trace[0].columnNumber
                                 : 0,
                             trace: c.trace,
+                            timestamp: new Date().toISOString(),
                         });
                     highlightThis.messages.push(c);
                 });

@@ -15,6 +15,8 @@ export type ErrorMessage = {
     lineNumber: number;
     columnNumber: number;
     trace: StackTrace.StackFrame[];
+    /** The Unix Time of when the error was thrown. */
+    timestamp: string;
 };
 
 export type NetworkResourceContent = {
