@@ -81,7 +81,9 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	filtered := []*modelInputs.ErrorMetadata{}
 	for _, log := range ret {
 		if log.ErrorID != nil && log.SessionID != nil && log.Timestamp != nil {
-			filtered = append(filtered, log)
+			if *log.ErrorID != 0 && *log.SessionID != 0 && !log.Timestamp.IsZero() {
+				filtered = append(filtered, log)
+			}
 		}
 	}
 	return filtered, nil
