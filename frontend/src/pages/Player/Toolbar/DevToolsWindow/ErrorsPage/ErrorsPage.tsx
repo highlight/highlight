@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { useGetErrorsQuery } from '../../../../../graph/generated/hooks';
 import { DevToolsSelect } from '../Option/Option';
@@ -9,15 +9,13 @@ import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard';
 import { ErrorObject } from '../../../../../graph/generated/schemas';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import Skeleton from 'react-loading-skeleton';
-import ReplayerContext from '../../../ReplayerContext';
 
 export interface ErrorsPageHistoryState {
     errorCardIndex: number;
 }
 
 const ErrorsPage = () => {
-    const [lastActiveErrorIndex, setLastActiveErrorIndex] = useState(-1);
-    const { time } = useContext(ReplayerContext);
+    const lastActiveErrorIndex = -1;
     const { session_id } = useParams<{ session_id: string }>();
     const { loading, data } = useGetErrorsQuery({ variables: { session_id } });
     const virtuoso = useRef<VirtuosoHandle>(null);
