@@ -1,0 +1,32 @@
+@import 'src/static/shared.scss';
+
+.urlBarWrapper {
+    background-color: #f9f9f9;
+    min-width: 400px;
+    font-size: 12px;
+    @include rounded-border;
+    padding: 1px 8px 1px 8px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.searchIcon {
+    height: 12px;
+    width: 12px;
+    margin-right: 6px;
+}
+
+.urlLink {
+    color: black;
+}
+
+.urlLink:hover {
+    color: $highlight-purple;
+}
+
+.copyIcon {
+    margin-left: auto;
+    cursor: pointer;
+    color: grey;
+}
