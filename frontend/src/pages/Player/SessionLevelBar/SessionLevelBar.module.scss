@@ -5,7 +5,6 @@
     padding: 6px $size-xLarge;
     border: 1px solid $border-light-gray;
     display: flex;
-    flex-wrap: wrap;
     gap: $size-xSmall;
     align-items: center;
     justify-content: space-between;
@@ -13,6 +12,7 @@
     flex-grow: 1;
     height: 42px;
     max-height: 42px;
+    overflow-x: auto;
 }
 
 .skeletonContainer {
