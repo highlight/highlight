@@ -78,7 +78,13 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	if err := json.Unmarshal([]byte(*obj.MetadataLog), &ret); err != nil {
 		return nil, e.Wrap(err, "error unmarshaling error metadata")
 	}
-	return ret, nil
+	filtered := []*modelInputs.ErrorMetadata{}
+	for _, log := range ret {
+		if log.ErrorID != nil && log.SessionID != nil && log.Timestamp != nil {
+			filtered = append(filtered, log)
+		}
+	}
+	return filtered, nil
 }
 
 func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {

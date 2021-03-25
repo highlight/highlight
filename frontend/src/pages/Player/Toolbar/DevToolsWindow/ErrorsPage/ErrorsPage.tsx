@@ -48,6 +48,10 @@ const ErrorsPage = () => {
                             height={150}
                         />
                     </div>
+                ) : !errors.length ? (
+                    <div className={devStyles.emptySection}>
+                        No errors for this section.
+                    </div>
                 ) : (
                     <Virtuoso
                         ref={virtuoso}
