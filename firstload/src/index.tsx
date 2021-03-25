@@ -13,6 +13,13 @@ export type HighlightOptions = {
     disableNetworkRecording?: boolean;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
+    /**
+     * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
+     * @example
+     * // Text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
+     * @see {@link https://docs.highlight.run/docs/privacy} for more information.
+     */
+    enableStrictPrivacy?: boolean;
 };
 
 const HighlightWarning = (context: string, msg: any) => {
@@ -64,6 +71,7 @@ export const H: HighlightPublicInterface = {
                     disableNetworkRecording: options?.disableNetworkRecording,
                     disableConsoleRecording: options?.disableConsoleRecording,
                     enableSegmentIntegration: options?.enableSegmentIntegration,
+                    enableStrictPrivacy: options?.enableStrictPrivacy || false,
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);
