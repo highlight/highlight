@@ -134,6 +134,20 @@ export class Highlight {
         );
     }
 
+    async pushCustomError(message: string) {
+        const result = await StackTrace.get();
+        const frames = result.slice(1);
+        this.errors.push({
+            event: message,
+            type: 'custom',
+            url: window.location.href,
+            source: frames[0].fileName ?? '',
+            lineNumber: frames[0].lineNumber ?? 0,
+            columnNumber: frames[0].columnNumber ?? 0,
+            trace: frames,
+        });
+    }
+
     async addProperties(properties_obj = {}, typeArg?: PropertyType) {
         // Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
         if (typeArg?.type === 'session') {
