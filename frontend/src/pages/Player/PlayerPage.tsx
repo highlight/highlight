@@ -46,7 +46,9 @@ export const Player = () => {
 
     useEffect(() => {
         if (session_id) {
-            markSessionAsViewed({ variables: { id: session_id } });
+            markSessionAsViewed({
+                variables: { id: session_id, viewed: true },
+            });
         }
     }, [session_id, markSessionAsViewed]);
 

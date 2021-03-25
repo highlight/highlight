@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 
 export const MarkSessionAsViewedDocument = gql`
-    mutation MarkSessionAsViewed($id: ID!) {
-        markSessionAsViewed(id: $id) {
+    mutation MarkSessionAsViewed($id: ID!, $viewed: Boolean!) {
+        markSessionAsViewed(id: $id, viewed: $viewed) {
             id
             viewed
         }
@@ -30,6 +30,7 @@ export type MarkSessionAsViewedMutationFn = Apollo.MutationFunction<
  * const [markSessionAsViewedMutation, { data, loading, error }] = useMarkSessionAsViewedMutation({
  *   variables: {
  *      id: // value for 'id'
+ *      viewed: // value for 'viewed'
  *   },
  * });
  */
