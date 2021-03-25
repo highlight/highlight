@@ -169,6 +169,12 @@ export const ErrorPage = () => {
                                 </div>
                                 <div className={styles.errorLogWrapper}>
                                     {data?.error_group?.metadata_log
+                                        .filter(
+                                            (e) =>
+                                                e?.error_id != 0 &&
+                                                e?.session_id != 0 &&
+                                                e?.timestamp != null
+                                        )
                                         .slice(
                                             Math.max(
                                                 data?.error_group?.metadata_log
