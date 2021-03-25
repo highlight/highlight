@@ -86,15 +86,17 @@ export const PropertyOption = (
         data: { name, value, label },
     } = props;
     return (
-        <components.Option {...props}>
-            <div className={styles.propertyWrapper}>
-                <SearchMatch
-                    className={styles.propertyLabel}
-                    selectProps={props.selectProps.inputValue || ''}
-                    label={name ? value : label}
-                />
-                {name && <span className={styles.propertyTag}>{name}</span>}
-            </div>
-        </components.Option>
+        <div title={label}>
+            <components.Option {...props}>
+                <div className={styles.propertyWrapper}>
+                    <SearchMatch
+                        className={styles.propertyLabel}
+                        selectProps={props.selectProps.inputValue || ''}
+                        label={name ? value : label}
+                    />
+                    {name && <span className={styles.propertyTag}>{name}</span>}
+                </div>
+            </components.Option>
+        </div>
     );
 };
