@@ -264,11 +264,10 @@ type Query {
     recording_settings(organization_id: ID!): RecordingSettings
 }
 
-
 type Mutation {
     createOrganization(name: String!): Organization
     editOrganization(id: ID!, name: String, billing_email: String): Organization
-    markSessionAsViewed(id: ID!): Session
+    markSessionAsViewed(id: ID!, viewed: Boolean): Session
     markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
@@ -307,5 +306,8 @@ type Mutation {
     ): RecordingSettings
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
-    createOrUpdateSubscription(organization_id: ID!, plan_type: PlanType!): String
+    createOrUpdateSubscription(
+        organization_id: ID!
+        plan_type: PlanType!
+    ): String
 }

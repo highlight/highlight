@@ -397,6 +397,7 @@ export type MutationEditOrganizationArgs = {
 
 export type MutationMarkSessionAsViewedArgs = {
     id: Scalars['ID'];
+    viewed?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationMarkErrorGroupAsResolvedArgs = {
