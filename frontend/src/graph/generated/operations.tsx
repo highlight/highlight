@@ -2,6 +2,7 @@ import * as Types from './schemas';
 
 export type MarkSessionAsViewedMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
+    viewed: Types.Scalars['Boolean'];
 }>;
 
 export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
