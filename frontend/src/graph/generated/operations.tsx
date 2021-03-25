@@ -99,6 +99,15 @@ export type DeleteOrganizationMutation = { __typename?: 'Mutation' } & Pick<
     'deleteOrganization'
 >;
 
+export type DeleteSegmentMutationVariables = Types.Exact<{
+    segment_id: Types.Scalars['ID'];
+}>;
+
+export type DeleteSegmentMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'deleteSegment'
+>;
+
 export type EditSegmentMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     id: Types.Scalars['ID'];
@@ -158,6 +167,15 @@ export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
             }
     >;
 };
+
+export type DeleteErrorSegmentMutationVariables = Types.Exact<{
+    segment_id: Types.Scalars['ID'];
+}>;
+
+export type DeleteErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'deleteErrorSegment'
+>;
 
 export type EditErrorSegmentMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];

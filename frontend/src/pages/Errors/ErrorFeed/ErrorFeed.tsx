@@ -1,4 +1,10 @@
-import React, { RefObject, useContext, useEffect, useState } from 'react';
+import React, {
+    RefObject,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styles from './ErrorFeed.module.scss';
 import Skeleton from 'react-loading-skeleton';
@@ -75,6 +81,18 @@ export const ErrorFeed = () => {
         },
     });
 
+    const filteredErrorGroups = useMemo(() => {
+        if (loading) {
+            return [];
+        }
+        if (searchParams.hide_resolved) {
+            return data.error_groups.filter(
+                (errorGroup) => !errorGroup?.resolved
+            );
+        }
+        return data.error_groups;
+    }, [data.error_groups, loading, searchParams.hide_resolved]);
+
     return (
         <>
             <div className={styles.fixedContent}>
@@ -104,7 +122,7 @@ export const ErrorFeed = () => {
                             {!data.error_groups.length ? (
                                 <SearchEmptyState item={'errors'} />
                             ) : (
-                                data.error_groups?.map(
+                                filteredErrorGroups?.map(
                                     (u: Maybe<ErrorGroup>, ind: number) => (
                                         <ErrorCard errorGroup={u} key={ind} />
                                     )

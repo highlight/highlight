@@ -1,4 +1,10 @@
-import React, { RefObject, useContext, useEffect, useState } from 'react';
+import React, {
+    RefObject,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { SearchContext } from '../SearchContext/SearchContext';
 import styles from './SessionsFeed.module.scss';
@@ -86,6 +92,16 @@ export const SessionFeed = () => {
         },
     });
 
+    const filteredSessions = useMemo(() => {
+        if (loading) {
+            return [];
+        }
+        if (searchParams.hide_viewed) {
+            return data.sessions.filter((session) => !session?.viewed);
+        }
+        return data.sessions;
+    }, [data.sessions, loading, searchParams.hide_viewed]);
+
     return (
         <>
             <div className={styles.fixedContent}>
@@ -117,7 +133,7 @@ export const SessionFeed = () => {
                             ) : (
                                 <>
                                     {upsell && <LimitedSessionCard />}
-                                    {data.sessions.map((u) => {
+                                    {filteredSessions.map((u) => {
                                         return (
                                             <SessionCard
                                                 session={u}
