@@ -23,6 +23,13 @@
     &:hover .goToButton {
         visibility: visible;
     }
+
+    &.inactive {
+        h4,
+        p {
+            color: $gray;
+        }
+    }
 }
 
 .header {
