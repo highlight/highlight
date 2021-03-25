@@ -1,20 +1,11 @@
 import React, { useState } from 'react';
 import styles from './CurrentUrlBar.module.scss';
 import { ReactComponent as SearchIcon } from '../../../../static/search.svg';
-import { searchIcon } from '../../../Sessions/SessionsPage.module.scss';
 import { FaCopy } from 'react-icons/fa';
 import { message } from 'antd';
 
 export const CurrentUrlBar = ({ url }: { url: string }) => {
     const [hover, setHover] = useState(false);
-    //     <SessionToken
-    //     icon={<URLIcon />}
-    //     tooltipTitle="The current URL the user is on."
-    // >
-    //     <a href={currentUrl} target="_blank" rel="noreferrer">
-    //         {currentUrl}
-    //     </a>
-    // </SessionToken>
     return (
         <div
             className={styles.urlBarWrapper}
