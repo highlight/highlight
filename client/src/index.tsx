@@ -5,7 +5,6 @@ import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient, gql } from 'graphql-request';
 import { Sdk, getSdk } from './graph/generated/operations';
-import StackTrace from 'stacktrace-js';
 
 import {
     ConsoleMessage,
@@ -136,7 +135,6 @@ export class Highlight {
     }
 
     async pushCustomError(message: string) {
-        console.log('hello');
         const result = await StackTrace.get();
         const frames = result.slice(1);
         this.errors.push({
