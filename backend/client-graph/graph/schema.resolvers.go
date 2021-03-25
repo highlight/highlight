@@ -14,6 +14,7 @@ import (
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
 	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -248,6 +249,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
 		}
+		pp.Println(errorToInsert.URL)
 		if !strings.Contains(errorToInsert.URL, "localhost") {
 			if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL); err != nil {
 				log.Errorf("Error sending slack error message: %v", err)
