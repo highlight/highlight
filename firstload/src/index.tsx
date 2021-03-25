@@ -141,13 +141,14 @@ export const H: HighlightPublicInterface = {
         try {
             if (highlight_obj && highlight_obj.ready) {
                 func();
+            } else {
+                var interval = setInterval(function () {
+                    if (highlight_obj && highlight_obj.ready) {
+                        clearInterval(interval);
+                        func();
+                    }
+                }, 200);
             }
-            var interval = setInterval(function () {
-                if (highlight_obj && highlight_obj.ready) {
-                    clearInterval(interval);
-                    func();
-                }
-            }, 200);
         } catch (e) {
             HighlightWarning('onHighlightReady', e);
         }
