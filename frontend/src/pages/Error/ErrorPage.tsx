@@ -41,32 +41,11 @@ export const ErrorPage = () => {
     const [errorActivityCount, setErrorActivityCount] = useState(20);
 
     useEffect(() => {
-        const eventText = data?.error_group?.event[0];
-        let title = '';
-        // Try to get the text in the form Text: ....
-        const splitOnColon = eventText?.split(':') ?? [];
-        if (
-            splitOnColon.length &&
-            (!splitOnColon[0].includes(' ') ||
-                splitOnColon[0].toLowerCase().includes('error'))
-        ) {
-            title = splitOnColon[0];
-            setTitle(title);
-            return;
-        }
-        // Try to get text in the form "'Something' Error" in the event.
-        const split = eventText?.split(' ') ?? [];
-        let prev = '';
-        for (let i = 0; i < split?.length; i++) {
-            const curr = split[i];
-            if (curr.toLowerCase().includes('error')) {
-                title = (prev ? prev + ' ' : '') + curr;
-                setTitle(title);
-                return;
-            }
-            prev = curr;
-        }
-        setTitle(data?.error_group?.event.join() ?? '');
+        setTitle(
+            getHeaderFromError(
+                (data?.error_group?.event as Array<string>) ?? []
+            )
+        );
     }, [data]);
 
     useEffect(() => {
@@ -442,4 +421,31 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
             </div>
         </div>
     );
+};
+
+const getHeaderFromError = (errorMsg: Array<string>): string => {
+    const eventText = errorMsg[0];
+    let title = '';
+    // Try to get the text in the form Text: ....
+    const splitOnColon = eventText?.split(':') ?? [];
+    if (
+        splitOnColon.length &&
+        (!splitOnColon[0].includes(' ') ||
+            splitOnColon[0].toLowerCase().includes('error'))
+    ) {
+        return splitOnColon[0];
+    }
+    // Try to get text in the form "'Something' Error" in the event.
+    const split = eventText?.split(' ') ?? [];
+    let prev = '';
+    for (let i = 0; i < split?.length; i++) {
+        const curr = split[i];
+        if (curr.toLowerCase().includes('error')) {
+            title = (prev ? prev + ' ' : '') + curr;
+            return title;
+        }
+        prev = curr;
+    }
+
+    return errorMsg.join() ?? '';
 };
