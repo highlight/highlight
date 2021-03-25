@@ -44,7 +44,7 @@ export type HighlightClassOptions = {
     disableNetworkRecording?: boolean;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
-    isStrictPrivacy?: boolean;
+    enableStrictPrivacy?: boolean;
 };
 
 type PropertyType = {
@@ -73,7 +73,7 @@ export class Highlight {
     disableNetworkRecording: boolean | undefined;
     disableConsoleRecording: boolean | undefined;
     enableSegmentIntegration: boolean | undefined;
-    isStrictPrivacy: boolean;
+    enableStrictPrivacy: boolean;
     debugOptions: DebugOptions;
 
     constructor(options: HighlightClassOptions) {
@@ -88,7 +88,7 @@ export class Highlight {
         this.disableNetworkRecording = options.disableNetworkRecording;
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
-        this.isStrictPrivacy = options.isStrictPrivacy || false;
+        this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
         const backend = options?.backendUrl
             ? options.backendUrl
@@ -227,7 +227,7 @@ export class Highlight {
                 ignoreClass: 'highlight-ignore',
                 blockClass: 'highlight-block',
                 emit,
-                isStrictPrivacy: this.isStrictPrivacy,
+                enableStrictPrivacy: this.enableStrictPrivacy,
             });
             addCustomEvent('Viewport', {
                 height: window.innerHeight,
