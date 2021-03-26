@@ -83,7 +83,7 @@ export const ErrorFeed = () => {
 
     const filteredErrorGroups = useMemo(() => {
         if (loading) {
-            return [];
+            return data.error_groups;
         }
         if (searchParams.hide_resolved) {
             return data.error_groups.filter(
