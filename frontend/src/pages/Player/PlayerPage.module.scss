@@ -170,6 +170,10 @@
     overflow: auto;
     display: grid;
     grid-template-columns: 1fr 350px;
+
+    &.noRightPanel {
+        grid-template-columns: 1fr;
+    }
 }
 
 .skeletonContainer {

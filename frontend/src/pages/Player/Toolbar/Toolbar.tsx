@@ -50,6 +50,10 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         'highlightSelectedDevtoolTabs',
         DevToolTabs.Errors
     );
+    const [showRightPanel, setShowRightPanel] = useLocalStorage(
+        'highlightMenuShowRightPanel',
+        true
+    );
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const isPaused =
@@ -343,6 +347,10 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         autoPlayVideo={autoPlayVideo}
                         onAutoPlayVideoChange={() => {
                             setAutoPlayVideo(!autoPlayVideo);
+                        }}
+                        showRightPanel={showRightPanel}
+                        onShowRightPanelChange={() => {
+                            setShowRightPanel(!showRightPanel);
                         }}
                     />
                 </div>

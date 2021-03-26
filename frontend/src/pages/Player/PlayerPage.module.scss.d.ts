@@ -6,6 +6,7 @@ export const eventStreamContainer: string;
 export const header: string;
 export const headerLink: string;
 export const loadingWrapper: string;
+export const noRightPanel: string;
 export const playerBody: string;
 export const playerLeftSection: string;
 export const playerLeftTopSection: string;
