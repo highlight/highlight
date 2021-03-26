@@ -87,10 +87,7 @@ export const useSetPlayerTimestampFromSearchParam = (
     const location = useLocation();
 
     const setPlayerTimestamp = useCallback(
-        (
-            sessionDurationMilliseconds: number,
-            sessionStartTimeMilliseconds: number
-        ) => {
+        (sessionDurationMilliseconds: number) => {
             const searchParamsObject = new URLSearchParams(location.search);
 
             if (searchParamsObject.get('ts')) {
@@ -105,18 +102,8 @@ export const useSetPlayerTimestampFromSearchParam = (
                 ) {
                     setTime(timestampMilliseconds);
                 }
-            } else if (searchParamsObject.get('errorTs')) {
-                const timestampMilliseconds = parseInt(
-                    searchParamsObject.get('errorTs')!,
-                    10
-                );
-                const delta =
-                    timestampMilliseconds - sessionStartTimeMilliseconds;
-                if (delta >= 0 || delta <= sessionDurationMilliseconds) {
-                    setTime(delta);
-                }
+                history.replace(`${location.pathname}`);
             }
-            history.replace(`${location.pathname}`);
         },
         [history, location.pathname, location.search, setTime]
     );

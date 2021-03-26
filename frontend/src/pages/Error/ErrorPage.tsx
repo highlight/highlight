@@ -180,15 +180,7 @@ export const ErrorPage = () => {
                                         .reverse()
                                         .map((e, i) => (
                                             <Link
-                                                to={`/${organization_id}/sessions/${
-                                                    e?.session_id
-                                                }${
-                                                    e?.timestamp
-                                                        ? `?errorTs=${new Date(
-                                                              e.timestamp
-                                                          ).getTime()}`
-                                                        : ''
-                                                }`}
+                                                to={`/${organization_id}/sessions/${e?.session_id}`}
                                                 key={i}
                                             >
                                                 <div

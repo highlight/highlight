@@ -43,7 +43,7 @@ const ErrorCard = ({ error, index, state }: Props) => {
                 </div>
                 <div>
                     <p className={styles.description}>
-                        {getErrorDescription(error)}
+                        {JSON.parse(error.event)[0].toString()}
                     </p>
                 </div>
             </div>
@@ -88,20 +88,3 @@ const ErrorCard = ({ error, index, state }: Props) => {
 };
 
 export default ErrorCard;
-
-const getErrorDescription = (errorObject: ErrorObject) => {
-    if (!errorObject.event) {
-        return '';
-    }
-    const parsedEvent = JSON.parse(errorObject.event);
-    console.log({ parsedEvent });
-
-    if (Array.isArray(parsedEvent) && parsedEvent.length > 0) {
-        if (parsedEvent[0].message) {
-            return parsedEvent[0].message;
-        }
-        return parsedEvent[0].toString();
-    }
-
-    return parsedEvent.toString();
-};
