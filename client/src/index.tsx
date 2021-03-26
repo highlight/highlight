@@ -146,6 +146,7 @@ export class Highlight {
             lineNumber: frames[0].lineNumber ?? 0,
             columnNumber: frames[0].columnNumber ?? 0,
             trace: frames,
+            timestamp: new Date().toISOString(),
         });
     }
 
