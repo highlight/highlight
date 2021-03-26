@@ -161,7 +161,7 @@ type ComplexityRoot struct {
 		EditSegment                    func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
 		EmailSignup                    func(childComplexity int, email string) int
 		MarkErrorGroupAsResolved       func(childComplexity int, id int, resolved *bool) int
-		MarkSessionAsViewed            func(childComplexity int, id int) int
+		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
 		SendAdminInvite                func(childComplexity int, organizationID int, email string) int
 	}
 
@@ -278,7 +278,7 @@ type ErrorSegmentResolver interface {
 type MutationResolver interface {
 	CreateOrganization(ctx context.Context, name string) (*model1.Organization, error)
 	EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Organization, error)
-	MarkSessionAsViewed(ctx context.Context, id int) (*model1.Session, error)
+	MarkSessionAsViewed(ctx context.Context, id int, viewed *bool) (*model1.Session, error)
 	MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model1.ErrorGroup, error)
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
@@ -921,7 +921,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.MarkSessionAsViewed(childComplexity, args["id"].(int)), true
+		return e.complexity.Mutation.MarkSessionAsViewed(childComplexity, args["id"].(int), args["viewed"].(*bool)), true
 
 	case "Mutation.sendAdminInvite":
 		if e.complexity.Mutation.SendAdminInvite == nil {
@@ -1829,11 +1829,10 @@ type Query {
     recording_settings(organization_id: ID!): RecordingSettings
 }
 
-
 type Mutation {
     createOrganization(name: String!): Organization
     editOrganization(id: ID!, name: String, billing_email: String): Organization
-    markSessionAsViewed(id: ID!): Session
+    markSessionAsViewed(id: ID!, viewed: Boolean): Session
     markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
@@ -1872,7 +1871,10 @@ type Mutation {
     ): RecordingSettings
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
-    createOrUpdateSubscription(organization_id: ID!, plan_type: PlanType!): String
+    createOrUpdateSubscription(
+        organization_id: ID!
+        plan_type: PlanType!
+    ): String
 }
 `, BuiltIn: false},
 }
@@ -2263,6 +2265,15 @@ func (ec *executionContext) field_Mutation_markSessionAsViewed_args(ctx context.
 		}
 	}
 	args["id"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["viewed"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("viewed"))
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["viewed"] = arg1
 	return args, nil
 }
 
@@ -4647,7 +4658,7 @@ func (ec *executionContext) _Mutation_markSessionAsViewed(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkSessionAsViewed(rctx, args["id"].(int))
+		return ec.resolvers.Mutation().MarkSessionAsViewed(rctx, args["id"].(int), args["viewed"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

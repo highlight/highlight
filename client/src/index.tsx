@@ -5,6 +5,7 @@ import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient, gql } from 'graphql-request';
 import { Sdk, getSdk } from './graph/generated/operations';
+import StackTrace from 'stacktrace-js';
 
 import {
     ConsoleMessage,
@@ -44,6 +45,7 @@ export type HighlightClassOptions = {
     disableNetworkRecording?: boolean;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
+    enableStrictPrivacy?: boolean;
 };
 
 type PropertyType = {
@@ -72,6 +74,7 @@ export class Highlight {
     disableNetworkRecording: boolean | undefined;
     disableConsoleRecording: boolean | undefined;
     enableSegmentIntegration: boolean | undefined;
+    enableStrictPrivacy: boolean;
     debugOptions: DebugOptions;
 
     constructor(options: HighlightClassOptions) {
@@ -86,6 +89,7 @@ export class Highlight {
         this.disableNetworkRecording = options.disableNetworkRecording;
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
+        this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
         const backend = options?.backendUrl
             ? options.backendUrl
@@ -129,6 +133,20 @@ export class Highlight {
                 user_object
             )} @ ${process.env.BACKEND_URI}`
         );
+    }
+
+    async pushCustomError(message: string) {
+        const result = await StackTrace.get();
+        const frames = result.slice(1);
+        this.errors.push({
+            event: message,
+            type: 'custom',
+            url: window.location.href,
+            source: frames[0].fileName ?? '',
+            lineNumber: frames[0].lineNumber ?? 0,
+            columnNumber: frames[0].columnNumber ?? 0,
+            trace: frames,
+        });
     }
 
     async addProperties(properties_obj = {}, typeArg?: PropertyType) {
@@ -224,6 +242,7 @@ export class Highlight {
                 ignoreClass: 'highlight-ignore',
                 blockClass: 'highlight-block',
                 emit,
+                enableStrictPrivacy: this.enableStrictPrivacy,
             });
             addCustomEvent('Viewport', {
                 height: window.innerHeight,

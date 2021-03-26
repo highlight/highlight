@@ -13,6 +13,13 @@ export type HighlightOptions = {
     disableNetworkRecording?: boolean;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
+    /**
+     * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
+     * @example
+     * // Text will be randomized. Instead of seeing "Hello World" in a recording, you will see "1fds1 j59a0".
+     * @see {@link https://docs.highlight.run/docs/privacy} for more information.
+     */
+    enableStrictPrivacy?: boolean;
 };
 
 const HighlightWarning = (context: string, msg: any) => {
@@ -23,6 +30,7 @@ type HighlightPublicInterface = {
     init: (orgID: number | string, debug?: HighlightOptions) => void;
     identify: (identify: string, obj: any) => void;
     track: (event: string, obj: any) => void;
+    error: (message: string) => void;
     getSessionURL: () => Promise<string>;
     start: () => void;
     onHighlightReady: (func: () => void) => void;
@@ -64,6 +72,7 @@ export const H: HighlightPublicInterface = {
                     disableNetworkRecording: options?.disableNetworkRecording,
                     disableConsoleRecording: options?.disableConsoleRecording,
                     enableSegmentIntegration: options?.enableSegmentIntegration,
+                    enableStrictPrivacy: options?.enableStrictPrivacy || false,
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);
@@ -71,6 +80,13 @@ export const H: HighlightPublicInterface = {
             });
         } catch (e) {
             HighlightWarning('init', e);
+        }
+    },
+    error: (message: string) => {
+        try {
+            H.onHighlightReady(() => highlight_obj.pushCustomError(message));
+        } catch (e) {
+            HighlightWarning('error', e);
         }
     },
     track: (event: string, obj: any) => {
@@ -125,13 +141,14 @@ export const H: HighlightPublicInterface = {
         try {
             if (highlight_obj && highlight_obj.ready) {
                 func();
+            } else {
+                var interval = setInterval(function () {
+                    if (highlight_obj && highlight_obj.ready) {
+                        clearInterval(interval);
+                        func();
+                    }
+                }, 200);
             }
-            var interval = setInterval(function () {
-                if (highlight_obj && highlight_obj.ready) {
-                    clearInterval(interval);
-                    func();
-                }
-            }, 200);
         } catch (e) {
             HighlightWarning('onHighlightReady', e);
         }

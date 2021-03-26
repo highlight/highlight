@@ -78,7 +78,13 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	if err := json.Unmarshal([]byte(*obj.MetadataLog), &ret); err != nil {
 		return nil, e.Wrap(err, "error unmarshaling error metadata")
 	}
-	return ret, nil
+	filtered := []*modelInputs.ErrorMetadata{}
+	for _, log := range ret {
+		if log.ErrorID != nil && log.SessionID != nil && log.Timestamp != nil {
+			filtered = append(filtered, log)
+		}
+	}
+	return filtered, nil
 }
 
 func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {
@@ -173,7 +179,7 @@ func (r *mutationResolver) EditOrganization(ctx context.Context, id int, name *s
 	return org, nil
 }
 
-func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int) (*model.Session, error) {
+func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int, viewed *bool) (*model.Session, error) {
 	_, err := r.isAdminSessionOwner(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -181,7 +187,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int) (*mo
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session)
 	if err := res.Update(&model.Session{
-		Viewed: &model.T,
+		Viewed: viewed,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}

@@ -1,5 +1,5 @@
-mutation MarkSessionAsViewed($id: ID!) {
-    markSessionAsViewed(id: $id) {
+mutation MarkSessionAsViewed($id: ID!, $viewed: Boolean!) {
+    markSessionAsViewed(id: $id, viewed: $viewed) {
         id
         viewed
     }
