@@ -17,7 +17,6 @@ export const Buttons = () => {
                 <button
                     className={commonStyles.submitButton}
                     onClick={() => {
-                        console.log('hi');
                         H.error('error is being thrown yo!');
                     }}
                 >
