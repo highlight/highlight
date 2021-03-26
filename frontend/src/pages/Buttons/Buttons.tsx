@@ -1,6 +1,7 @@
 import React from 'react';
 import styles from './Buttons.module.scss';
 import commonStyles from '../../Common.module.scss';
+import { H } from 'highlight.run';
 export const Buttons = () => {
     return (
         <div className={styles.buttonBody}>
@@ -12,6 +13,14 @@ export const Buttons = () => {
                     }}
                 >
                     Throw an Error
+                </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        H.error('error is being thrown yo!');
+                    }}
+                >
+                    Throw a custom Error
                 </button>
             </div>
         </div>

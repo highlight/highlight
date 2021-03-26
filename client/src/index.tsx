@@ -5,6 +5,7 @@ import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient, gql } from 'graphql-request';
 import { Sdk, getSdk } from './graph/generated/operations';
+import StackTrace from 'stacktrace-js';
 
 import {
     ConsoleMessage,
