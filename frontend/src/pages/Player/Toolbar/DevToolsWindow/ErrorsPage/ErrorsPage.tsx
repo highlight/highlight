@@ -45,7 +45,6 @@ const ErrorsPage = () => {
                         <Skeleton
                             count={2}
                             style={{ height: 25, marginBottom: 11 }}
-                            height={150}
                         />
                     </div>
                 ) : !errors.length ? (

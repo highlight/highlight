@@ -8,11 +8,10 @@
     min-width: 0;
     gap: $size-xSmall;
     color: $text-primary;
+    flex-shrink: 0;
 
     > p {
         margin: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
         white-space: nowrap;
     }
 

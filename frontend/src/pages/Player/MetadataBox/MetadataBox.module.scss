@@ -19,6 +19,8 @@
 
 .skeletonWrapper {
     width: 350px;
+    display: flex;
+    flex-direction: row;
     padding: 10px 30px 0 30px;
 }
 
@@ -42,6 +44,7 @@
     font-weight: 400;
     width: 100%;
     margin-bottom: 5px;
+    padding-right: 25px;
 }
 
 .userText {
