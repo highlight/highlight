@@ -59,6 +59,7 @@
         "react-loading-skeleton": "^2.1.1",
         "react-resize-aware": "^3.0.1",
         "react-resize-detector": "^5.2.0",
+        "react-resize-panel-ts": "^0.0.5",
         "react-router-dom": "^5.2.0",
         "react-scripts": "4.0.0",
         "react-select": "^3.1.1",
