@@ -16,15 +16,19 @@ export const SettingsMenu = ({
     onOpenDevToolsChange,
     onAutoPlayVideoChange,
     onSpeedChange,
+    onShowRightPanelChange,
+    showRightPanel,
 }: {
     skipInactive: boolean;
     openDevTools: boolean;
     autoPlayVideo: boolean;
     speed: number;
+    showRightPanel: boolean;
     onSkipInactiveChange: () => void;
     onOpenDevToolsChange: () => void;
     onAutoPlayVideoChange: () => void;
     onSpeedChange: (s: number) => void;
+    onShowRightPanelChange: () => void;
 }) => {
     const [openSpeedMenu, setOpenSpeedMenu] = useState(false);
     const [visible, setVisible] = useState(false);
@@ -97,6 +101,14 @@ export const SettingsMenu = ({
                                     />
                                 </div>
                                 <div className={toolbarStyles.dropdownSection}>
+                                    <span>Right Panel</span>
+                                    <Switch
+                                        checked={showRightPanel}
+                                        className={styles.switchStyle}
+                                        onChange={onShowRightPanelChange}
+                                    />
+                                </div>
+                                <div className={toolbarStyles.dropdownSection}>
                                     <span>Skip Inactive</span>
                                     <Switch
                                         checked={skipInactive}
@@ -149,7 +161,7 @@ export const SettingsMenu = ({
             visible={visible}
         >
             <button
-                onClick={() => setVisible(true)}
+                onClick={() => setVisible((previousValue) => !previousValue)}
                 className={styles.settingsStyleWrapper}
             >
                 <FaCog fill="black" className={styles.settingsStyle} />

@@ -41,7 +41,7 @@ const ErrorsPage = () => {
 
     return (
         <>
-            <div className={classNames(devStyles.topBar, styles.topBar)}>
+            <div className={classNames(devStyles.topBar)} id={styles.topBar}>
                 <DevToolsSelect />
             </div>
             <div className={styles.errorList}>

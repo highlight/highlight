@@ -1,4 +1,5 @@
 import React from 'react';
+import ResizePanel from 'react-resize-panel-ts';
 
 import { ConsolePage } from './ConsolePage/ConsolePage';
 import { ResourcePage } from './ResourcePage/ResourcePage';
@@ -35,5 +36,14 @@ export const DevToolsWindow = ({
         return null;
     }
 
-    return <div className={styles.devToolsWrapper}>{getPage(selectedTab)}</div>;
+    return (
+        <ResizePanel
+            direction="n"
+            containerClass={styles.resizeContainer}
+            handleClass={styles.resizeHandle}
+            borderClass={styles.resizeBorder}
+        >
+            <div className={styles.devToolsWrapper}>{getPage(selectedTab)}</div>
+        </ResizePanel>
+    );
 };

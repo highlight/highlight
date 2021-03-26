@@ -27,6 +27,8 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
 import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
 import ShareButton from './ShareButton/ShareButton';
+import useLocalStorage from '@rehooks/local-storage';
+import classNames from 'classnames';
 
 export const Player = () => {
     const { session_id } = useParams<{ session_id: string }>();
@@ -43,6 +45,10 @@ export const Player = () => {
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
+    const [showRightPanel] = useLocalStorage(
+        'highlightMenuShowRightPanel',
+        true
+    );
 
     useEffect(() => {
         if (session_id) {
@@ -104,7 +110,11 @@ export const Player = () => {
 
     return (
         <ReplayerContext.Provider value={player}>
-            <div className={styles.playerBody}>
+            <div
+                className={classNames(styles.playerBody, {
+                    [styles.noRightPanel]: !showRightPanel,
+                })}
+            >
                 <div className={styles.playerLeftSection}>
                     <div className={styles.playerLeftTopSection}>
                         <SessionLevelBar />
@@ -140,10 +150,12 @@ export const Player = () => {
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
                 </div>
-                <div className={styles.playerRightSection}>
-                    <MetadataBox />
-                    <EventStream />
-                </div>
+                {showRightPanel && (
+                    <div className={styles.playerRightSection}>
+                        <MetadataBox />
+                        <EventStream />
+                    </div>
+                )}
             </div>
         </ReplayerContext.Provider>
     );
