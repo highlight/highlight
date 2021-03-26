@@ -105,7 +105,10 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                     setSessionEndTime(replayer.getMetaData().totalTime);
                     setState(ReplayerState.LoadedAndUntouched);
                     console.timeEnd('LoadingEvents');
-                    setPlayerTimestamp(replayer.getMetaData().totalTime);
+                    setPlayerTimestamp(
+                        replayer.getMetaData().totalTime,
+                        replayer.getMetaData().startTime
+                    );
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
                 }
