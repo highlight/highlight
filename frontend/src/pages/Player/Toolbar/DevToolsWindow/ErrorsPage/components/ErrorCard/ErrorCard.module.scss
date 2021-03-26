@@ -23,6 +23,13 @@
     &:hover .goToButton {
         visibility: visible;
     }
+
+    &.inactive {
+        h4,
+        p {
+            color: $gray;
+        }
+    }
 }
 
 .header {
@@ -38,4 +45,10 @@
 
 .goToButton {
     visibility: hidden;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: $size-xSmall;
 }

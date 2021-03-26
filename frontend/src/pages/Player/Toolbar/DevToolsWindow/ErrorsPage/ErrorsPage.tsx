@@ -5,7 +5,7 @@ import { DevToolsSelect } from '../Option/Option';
 import devStyles from '../DevToolsWindow.module.scss';
 import styles from './ErrorsPage.module.scss';
 import classNames from 'classnames';
-import ErrorCard from './components/ErrorCard/ErrorCard';
+import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard';
 import { ErrorObject } from '../../../../../graph/generated/schemas';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import Skeleton from 'react-loading-skeleton';
@@ -15,6 +15,7 @@ export interface ErrorsPageHistoryState {
 }
 
 const ErrorsPage = () => {
+    const lastActiveErrorIndex = -1;
     const { session_id } = useParams<{ session_id: string }>();
     const { loading, data } = useGetErrorsQuery({ variables: { session_id } });
     const virtuoso = useRef<VirtuosoHandle>(null);
@@ -33,6 +34,10 @@ const ErrorsPage = () => {
             );
         }
     }, [history.location.state?.errorCardIndex]);
+
+    /** Only errors recorded after this feature was released will have the timestamp. */
+    const hasTimestamp =
+        !loading && errors?.every((error) => !!error.timestamp);
 
     return (
         <>
@@ -61,6 +66,13 @@ const ErrorsPage = () => {
                                 key={error?.id}
                                 error={error as ErrorObject}
                                 index={index}
+                                state={
+                                    hasTimestamp
+                                        ? index === lastActiveErrorIndex
+                                            ? ErrorCardState.Active
+                                            : ErrorCardState.Inactive
+                                        : ErrorCardState.Unknown
+                                }
                             />
                         )}
                     />

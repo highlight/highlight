@@ -184,6 +184,7 @@ query GetErrors($session_id: ID!) {
         line_number
         column_number
         trace
+        timestamp
     }
 }
 

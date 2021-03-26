@@ -101,6 +101,7 @@ type ComplexityRoot struct {
 		OrganizationID func(childComplexity int) int
 		SessionID      func(childComplexity int) int
 		Source         func(childComplexity int) int
+		Timestamp      func(childComplexity int) int
 		Trace          func(childComplexity int) int
 		Type           func(childComplexity int) int
 		URL            func(childComplexity int) int
@@ -562,6 +563,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorObject.Source(childComplexity), true
+
+	case "ErrorObject.timestamp":
+		if e.complexity.ErrorObject.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.Timestamp(childComplexity), true
 
 	case "ErrorObject.trace":
 		if e.complexity.ErrorObject.Trace == nil {
@@ -1650,6 +1658,7 @@ type ErrorObject {
     line_number: Int
     column_number: Int
     trace: [Any]
+    timestamp: Time
 }
 
 type ErrorField {
@@ -3881,6 +3890,37 @@ func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphq
 	res := resTmp.([]interface{})
 	fc.Result = res
 	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorObject_timestamp(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ErrorObject",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorResults_error_groups(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
@@ -9195,6 +9235,8 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 				res = ec._ErrorObject_trace(ctx, field, obj)
 				return res
 			})
+		case "timestamp":
+			out.Values[i] = ec._ErrorObject_timestamp(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

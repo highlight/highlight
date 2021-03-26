@@ -280,7 +280,8 @@ type ErrorObject struct {
 	ColumnNumber   int
 	OS             string
 	Browser        string
-	Trace          *string `json:"trace"`
+	Trace          *string   `json:"trace"`
+	Timestamp      time.Time `json:"timestamp"`
 }
 
 type ErrorGroup struct {

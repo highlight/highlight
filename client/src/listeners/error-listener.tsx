@@ -21,6 +21,7 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
                         ? result[0].columnNumber
                         : 0,
                     trace: result,
+                    timestamp: new Date().toISOString(),
                 });
             });
         }

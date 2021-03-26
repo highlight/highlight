@@ -1,24 +1,38 @@
-import React from 'react';
+import classNames from 'classnames';
+import React, { useContext } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import GoToButton from '../../../../../../../components/Button/GoToButton';
 import { ErrorObject } from '../../../../../../../graph/generated/schemas';
+import ReplayerContext from '../../../../../ReplayerContext';
 import { ErrorsPageHistoryState } from '../../ErrorsPage';
 import styles from './ErrorCard.module.scss';
 
+export enum ErrorCardState {
+    Unknown,
+    Active,
+    Inactive,
+}
 interface Props {
     error: ErrorObject;
     /** The index of this error card relative to the other error cards. */
     index: number;
+    state: ErrorCardState;
 }
 
-const ErrorCard = ({ error, index }: Props) => {
+const ErrorCard = ({ error, index, state }: Props) => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
     const history = useHistory<ErrorsPageHistoryState>();
+    const { replayer, setTime } = useContext(ReplayerContext);
 
     return (
-        <div key={error.id} className={styles.errorCard}>
+        <div
+            key={error.id}
+            className={classNames(styles.errorCard, {
+                [styles.inactive]: state === ErrorCardState.Inactive,
+            })}
+        >
             <div>
                 <div className={styles.header}>
                     <h4>{error.type}</h4>
@@ -29,11 +43,11 @@ const ErrorCard = ({ error, index }: Props) => {
                 </div>
                 <div>
                     <p className={styles.description}>
-                        {JSON.parse(error.event)[0]}
+                        {JSON.parse(error.event)[0].toString()}
                     </p>
                 </div>
             </div>
-            <div>
+            <div className={styles.actions}>
                 <GoToButton
                     className={styles.goToButton}
                     onClick={() => {
@@ -47,6 +61,27 @@ const ErrorCard = ({ error, index }: Props) => {
                     }}
                     label="More"
                 />
+                {error.timestamp && (
+                    <GoToButton
+                        className={styles.goToButton}
+                        onClick={() => {
+                            const dateTimeErrorCreated = new Date(
+                                error.timestamp
+                            );
+                            const startTime = replayer?.getMetaData().startTime;
+                            if (startTime) {
+                                const dateTimeSessionStart = new Date(
+                                    startTime
+                                );
+                                const deltaMilliseconds =
+                                    dateTimeErrorCreated.getTime() -
+                                    dateTimeSessionStart.getTime();
+                                setTime(deltaMilliseconds);
+                            }
+                        }}
+                        label="Goto"
+                    />
+                )}
             </div>
         </div>
     );

@@ -1,6 +1,7 @@
 # CLIENT GRAPH
 
 scalar Any
+scalar Time
 
 type Session {
     id: ID!
@@ -16,6 +17,7 @@ input ErrorObjectInput {
     lineNumber: Int!
     columnNumber: Int!
     trace: [Any]!
+    timestamp: Time!
 }
 
 input ReplayEventsInput {
