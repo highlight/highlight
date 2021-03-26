@@ -72,9 +72,7 @@ export const MetadataBox = () => {
                             </>
                         )}
                     </div>
-                    {!parsedFields?.length || loading ? (
-                        <></>
-                    ) : (
+                    {!(!parsedFields?.length || loading) && (
                         <div className={styles.tagDiv}>
                             <div className={styles.tagWrapper}>
                                 {parsedFields?.map((f, i) => (
@@ -110,13 +108,19 @@ export const MetadataBox = () => {
                                         : ''}
                                 </div>
                                 <div className={styles.userText}>
-                                    {created.toUTCString()}
+                                    {created.toLocaleString('en-us', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        timeZoneName: 'short',
+                                    })}
                                 </div>
                                 {data?.session?.browser_name && (
                                     <div className={styles.userText}>
-                                        {data?.session.os_name},&nbsp;
-                                        {data?.session.browser_name}
-                                        &nbsp;-&nbsp;
+                                        {data?.session.os_name},{' '}
+                                        {data?.session.browser_name} -{' '}
                                         {data?.session.browser_version}
                                     </div>
                                 )}
@@ -125,7 +129,6 @@ export const MetadataBox = () => {
                     </div>
                 </div>
             </>
-            {/* )} */}
         </div>
     );
 };

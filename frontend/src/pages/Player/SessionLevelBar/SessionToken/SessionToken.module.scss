@@ -8,6 +8,7 @@
     min-width: 0;
     gap: $size-xSmall;
     color: $text-primary;
+    flex-shrink: 0;
 
     > p {
         margin: 0;

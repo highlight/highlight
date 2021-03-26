@@ -8,7 +8,12 @@
     padding: 1px 8px 1px 8px;
     height: 100%;
     display: flex;
+    flex-wrap: nowrap;
     align-items: center;
+
+    &:hover .copyIcon {
+        visibility: visible;
+    }
 }
 
 .searchIcon {
@@ -26,6 +31,7 @@
 }
 
 .copyIcon {
+    visibility: hidden;
     margin-left: auto;
     cursor: pointer;
     color: grey;
