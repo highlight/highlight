@@ -149,7 +149,7 @@ export const SettingsMenu = ({
             visible={visible}
         >
             <button
-                onClick={() => setVisible(true)}
+                onClick={() => setVisible((previousValue) => !previousValue)}
                 className={styles.settingsStyleWrapper}
             >
                 <FaCog fill="black" className={styles.settingsStyle} />
