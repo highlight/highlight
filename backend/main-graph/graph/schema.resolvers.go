@@ -84,7 +84,7 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 			filtered = append(filtered, log)
 		}
 	}
-	return ret, nil
+	return filtered, nil
 }
 
 func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {
