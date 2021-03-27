@@ -94,7 +94,6 @@ const getErrorDescription = (errorObject: ErrorObject) => {
         return '';
     }
     const parsedEvent = JSON.parse(errorObject.event);
-    console.log({ parsedEvent });
 
     if (Array.isArray(parsedEvent) && parsedEvent.length > 0) {
         if (parsedEvent[0].message) {
