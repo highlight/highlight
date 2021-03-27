@@ -76,6 +76,8 @@ const getIntervalWithPercentages = (
     });
 };
 
+/** This is used to set the player time back X milliseconds so the user can see how the error was thrown. Without this the player would be set to when the error was thrown and they wouldn't see why it was thrown. */
+const ERROR_TIMESTAMP_LOOK_BACK_MILLISECONDS = 5000;
 /**
  *
  * @param setTime Sets the new time in milliseconds.
@@ -113,7 +115,12 @@ export const useSetPlayerTimestampFromSearchParam = (
                 const delta =
                     timestampMilliseconds - sessionStartTimeMilliseconds;
                 if (delta >= 0 || delta <= sessionDurationMilliseconds) {
-                    setTime(delta);
+                    // Clamp the time to 0.
+                    const newTime = Math.max(
+                        0,
+                        delta - ERROR_TIMESTAMP_LOOK_BACK_MILLISECONDS
+                    );
+                    setTime(newTime);
                 }
             }
             history.replace(`${location.pathname}`);
