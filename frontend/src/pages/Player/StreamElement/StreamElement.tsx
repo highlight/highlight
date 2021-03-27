@@ -49,10 +49,11 @@ export const StreamElement = ({
             <div
                 className={classNames(styles.streamElement, {
                     [styles.currentStreamElement]: isCurrent,
+                    [styles.selectedStreamElement]: selected,
                 })}
                 style={{
                     backgroundColor:
-                        hover && !selected
+                        hover && !selected && !isCurrent
                             ? '#efefef7d'
                             : isCurrent
                             ? '#5629c6'
