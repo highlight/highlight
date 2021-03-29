@@ -25,6 +25,7 @@ import classNames from 'classnames';
 import { Tooltip } from 'antd';
 import { Link } from 'react-router-dom';
 import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
+import { PlayerSearchParameters } from '../Player/PlayerHook/utils';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -184,7 +185,7 @@ export const ErrorPage = () => {
                                                     e?.session_id
                                                 }${
                                                     e?.timestamp
-                                                        ? `?errorId=${e.error_id}`
+                                                        ? `?${PlayerSearchParameters.errorId}=${e.error_id}`
                                                         : ''
                                                 }`}
                                                 key={i}

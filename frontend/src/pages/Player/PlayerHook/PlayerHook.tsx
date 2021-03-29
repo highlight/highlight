@@ -31,6 +31,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
+    const [, setSelectedErrorId] = useState<string | undefined>(undefined);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
     const [time, setTime] = useState<number>(0);
@@ -112,7 +113,9 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                     console.timeEnd('LoadingEvents');
                     setPlayerTimestamp(
                         replayer.getMetaData().totalTime,
-                        replayer.getMetaData().startTime
+                        replayer.getMetaData().startTime,
+                        errors,
+                        setSelectedErrorId
                     );
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
@@ -125,7 +128,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                 cancelAnimationFrame(timerId);
             };
         }
-    }, [events, events.length, replayer, setPlayerTimestamp]);
+    }, [errors, events, events.length, replayer, setPlayerTimestamp]);
 
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {

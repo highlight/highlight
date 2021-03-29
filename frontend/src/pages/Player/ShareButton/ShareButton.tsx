@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import PrimaryButton from '../../../components/Button/PrimaryButton/PrimaryButton';
 import ReplayerContext from '../ReplayerContext';
 import { message } from 'antd';
+import { PlayerSearchParameters } from '../PlayerHook/utils';
 
 const ShareButton = () => {
     const { time } = useContext(ReplayerContext);
@@ -11,7 +12,10 @@ const ShareButton = () => {
      */
     const onGetLinkWithTimestamp = () => {
         const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('ts', (time / 1000).toString());
+        currentUrl.searchParams.set(
+            PlayerSearchParameters.ts,
+            (time / 1000).toString()
+        );
 
         message.success('Copied link!');
         navigator.clipboard.writeText(currentUrl.href);
