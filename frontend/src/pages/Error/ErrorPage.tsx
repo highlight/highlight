@@ -184,9 +184,7 @@ export const ErrorPage = () => {
                                                     e?.session_id
                                                 }${
                                                     e?.timestamp
-                                                        ? `?errorTs=${new Date(
-                                                              e.timestamp
-                                                          ).getTime()}`
+                                                        ? `?errorId=${e.error_id}`
                                                         : ''
                                                 }`}
                                                 key={i}
