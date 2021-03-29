@@ -22,5 +22,7 @@ jobs:
               run: cd frontend && yarn install
             - name: Runs linting
               run: cd frontend && yarn lint
+            - name: Run Tests
+              run: cd frontend && yarn test
             - name: Build Bundle
               run: cd frontend && CI=true yarn build

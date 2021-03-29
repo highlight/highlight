@@ -9,12 +9,14 @@ export type ConsoleMessage = {
 
 export type ErrorMessage = {
     event: string;
-    type: 'console.error' | 'window.onerror';
+    type: 'console.error' | 'window.onerror' | 'custom';
     url: string;
     source: string;
     lineNumber: number;
     columnNumber: number;
     trace: StackTrace.StackFrame[];
+    /** The Unix Time of when the error was thrown. */
+    timestamp: string;
 };
 
 export type NetworkResourceContent = {

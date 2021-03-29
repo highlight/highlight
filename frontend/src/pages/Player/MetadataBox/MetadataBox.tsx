@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Skeleton } from 'antd';
 import { Avatar } from '../../../components/Avatar/Avatar';
 
 import styles from './MetadataBox.module.scss';
 import { DemoContext } from '../../../DemoContext';
 import { useGetSessionQuery } from '../../../graph/generated/hooks';
 import { Field } from '../../../components/Field/Field';
+import Skeleton from 'react-loading-skeleton';
 
 type Field = {
     type: string;
@@ -18,7 +18,7 @@ export const MetadataBox = () => {
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
 
-    const { loading, error, data } = useGetSessionQuery({
+    const { loading, data } = useGetSessionQuery({
         variables: {
             id: demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id,
         },
@@ -43,71 +43,92 @@ export const MetadataBox = () => {
     }, [data]);
     return (
         <div className={styles.locationBox}>
-            {loading ? (
-                <div className={styles.skeletonWrapper}>
-                    <Skeleton active paragraph={{ rows: 2 }} />
-                </div>
-            ) : error ? (
-                <p>{error?.toString()}</p>
-            ) : (
-                <>
-                    <div className={styles.userAvatarWrapper}>
+            <>
+                <div className={styles.userAvatarWrapper}>
+                    {loading ? (
+                        <Skeleton circle={true} height={60} width={60} />
+                    ) : (
                         <Avatar
                             style={{ width: 75 }}
                             seed={data?.session?.identifier ?? ''}
                         />
-                    </div>
-                    <div className={styles.userContentWrapper}>
-                        <div className={styles.headerWrapper}>
-                            <div>User#{data?.session?.user_id}</div>
-                            {data?.session?.identifier && (
-                                <div className={styles.userIdSubHeader}>
-                                    {data?.session?.identifier}
-                                </div>
-                            )}
-                        </div>
-                        {parsedFields?.length > 0 ? (
-                            <div className={styles.tagDiv}>
-                                <div className={styles.tagWrapper}>
-                                    {parsedFields?.map((f, i) => (
-                                        <Field
-                                            key={i.toString()}
-                                            color={'normal'}
-                                            k={f.name}
-                                            v={f.value}
-                                        ></Field>
-                                    ))}
-                                </div>
-                            </div>
+                    )}
+                </div>
+                <div className={styles.userContentWrapper}>
+                    <div className={styles.headerWrapper}>
+                        {loading ? (
+                            <Skeleton
+                                count={2}
+                                style={{ height: 20, marginBottom: 5 }}
+                            />
                         ) : (
-                            <></>
+                            <>
+                                <div>User#{data?.session?.user_id}</div>
+                                {data?.session?.identifier && (
+                                    <div className={styles.userIdSubHeader}>
+                                        {data?.session?.identifier}
+                                    </div>
+                                )}
+                            </>
                         )}
-                        <div className={styles.userInfoWrapper}>
-                            <div className={styles.userText}>
-                                {data?.session?.city
-                                    ? data.session.city + ', '
-                                    : ''}
-                                {data?.session?.state
-                                    ? data.session.state + ' '
-                                    : ''}
-                                {data?.session?.postal
-                                    ? data.session.postal
-                                    : ''}
-                            </div>
-                            <div className={styles.userText}>
-                                {created.toUTCString()}
-                            </div>
-                            {data?.session?.browser_name && (
-                                <div className={styles.userText}>
-                                    {data?.session.os_name},&nbsp;
-                                    {data?.session.browser_name}&nbsp;-&nbsp;
-                                    {data?.session.browser_version}
-                                </div>
-                            )}
-                        </div>
                     </div>
-                </>
-            )}
+                    {!(!parsedFields?.length || loading) && (
+                        <div className={styles.tagDiv}>
+                            <div className={styles.tagWrapper}>
+                                {parsedFields?.map((f, i) => (
+                                    <Field
+                                        key={i.toString()}
+                                        color={'normal'}
+                                        k={f.name}
+                                        v={f.value}
+                                    ></Field>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    <div className={styles.userInfoWrapper}>
+                        {loading ? (
+                            <>
+                                <Skeleton
+                                    count={3}
+                                    style={{ height: 15, marginBottom: 5 }}
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <div className={styles.userText}>
+                                    {data?.session?.city
+                                        ? data.session.city + ', '
+                                        : ''}
+                                    {data?.session?.state
+                                        ? data.session.state + ' '
+                                        : ''}
+                                    {data?.session?.postal
+                                        ? data.session.postal
+                                        : ''}
+                                </div>
+                                <div className={styles.userText}>
+                                    {created.toLocaleString('en-us', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        timeZoneName: 'short',
+                                    })}
+                                </div>
+                                {data?.session?.browser_name && (
+                                    <div className={styles.userText}>
+                                        {data?.session.os_name},{' '}
+                                        {data?.session.browser_name} -{' '}
+                                        {data?.session.browser_version}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+            </>
         </div>
     );
 };

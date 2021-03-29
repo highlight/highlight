@@ -1,4 +1,10 @@
-import React, { RefObject, useContext, useEffect, useState } from 'react';
+import React, {
+    RefObject,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+} from 'react';
 import { Link, useParams } from 'react-router-dom';
 import styles from './ErrorFeed.module.scss';
 import Skeleton from 'react-loading-skeleton';
@@ -42,6 +48,7 @@ export const ErrorFeed = () => {
         totalCount: -1,
     });
     const { searchParams } = useContext(ErrorSearchContext);
+    console.log(data);
 
     const { loading, fetchMore } = useGetErrorGroupsQuery({
         variables: {
@@ -74,6 +81,18 @@ export const ErrorFeed = () => {
         },
     });
 
+    const filteredErrorGroups = useMemo(() => {
+        if (loading) {
+            return data.error_groups;
+        }
+        if (searchParams.hide_resolved) {
+            return data.error_groups.filter(
+                (errorGroup) => !errorGroup?.resolved
+            );
+        }
+        return data.error_groups;
+    }, [data.error_groups, loading, searchParams.hide_resolved]);
+
     return (
         <>
             <div className={styles.fixedContent}>
@@ -103,7 +122,7 @@ export const ErrorFeed = () => {
                             {!data.error_groups.length ? (
                                 <SearchEmptyState item={'errors'} />
                             ) : (
-                                data.error_groups?.map(
+                                filteredErrorGroups?.map(
                                     (u: Maybe<ErrorGroup>, ind: number) => (
                                         <ErrorCard errorGroup={u} key={ind} />
                                     )
@@ -226,7 +245,15 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                 <></>
                             )}
                         </div>
-                        <div className={styles.readMarkerContainer}></div>
+                        <div className={styles.readMarkerContainer}>
+                            {errorGroup?.resolved ? (
+                                <></>
+                            ) : (
+                                <Tooltip title="Unresolved Error">
+                                    <div className={styles.readMarker}></div>
+                                </Tooltip>
+                            )}
+                        </div>
                     </div>
                 </div>
                 <div

@@ -7,6 +7,11 @@ $text-primary-inverted: #ffffff;
 $text-label: #959595;
 $gray: #b2b2b2;
 
+// Alert
+$alert-200: #ffe0e0;
+$alert-300: #f2b4b4;
+$alert-400: #ff0000;
+
 // borders
 $button-border-radius: 5px;
 $border-light-gray: #eaeaea;
@@ -25,6 +30,8 @@ $size-xxSmall: 4px;
 
 // buttons
 $disabled-button: #bfbfbf;
+$button-primary-hover: #5327be;
+$button-primary-active: #401f94;
 
 // mixins
 @mixin rounded-border {

@@ -97,7 +97,13 @@ query GetOrganization($id: ID!) {
 }
 
 query GetBillingDetails($organization_id: ID!) {
-    billingDetails(organization_id: $organization_id)
+    billingDetails(organization_id: $organization_id) {
+        plan {
+            type
+            quota
+        }
+        meter
+    }
 }
 
 query GetErrorGroup($id: ID!) {
@@ -106,6 +112,7 @@ query GetErrorGroup($id: ID!) {
         type
         organization_id
         event
+        resolved
         trace {
             file_name
             line_number
@@ -141,6 +148,7 @@ query GetErrorGroups(
             id
             type
             event
+            resolved
             trace {
                 file_name
                 line_number
@@ -165,6 +173,21 @@ query GetResources($session_id: ID!) {
     resources(session_id: $session_id)
 }
 
+query GetErrors($session_id: ID!) {
+    errors(session_id: $session_id) {
+        id
+        error_group_id
+        event
+        type
+        url
+        source
+        line_number
+        column_number
+        trace
+        timestamp
+    }
+}
+
 query GetFieldSuggestion(
     $organization_id: ID!
     $name: String!
@@ -177,6 +200,13 @@ query GetFieldSuggestion(
     ) {
         name
         value
+    }
+}
+
+query GetOrganizationSuggestion($query: String!) {
+    organizationSuggestion(query: $query) {
+        id
+        name
     }
 }
 
@@ -264,7 +294,7 @@ query GetErrorSegments($organization_id: ID!) {
             os
             browser
             visited_url
-            hide_viewed
+            hide_resolved
             event
         }
     }

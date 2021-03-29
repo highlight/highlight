@@ -39,36 +39,58 @@ func profile(msg string, fid int, t time.Time) time.Time {
 	return time.Now()
 }
 
-func FromPriceID(priceID string) modelInputs.Plan {
-	switch priceID {
-	case os.Getenv("BASIC_PLAN_PRICE_ID"):
-		return modelInputs.PlanBasic
-	case os.Getenv("STARTUP_PLAN_PRICE_ID"):
-		return modelInputs.PlanStartup
-	case os.Getenv("ENTERPRISE_PLAN_PRICE_ID"):
-		return modelInputs.PlanEnterprise
+func TypeToQuota(planType modelInputs.PlanType) int {
+	switch planType {
+	case modelInputs.PlanTypeNone:
+		return 1000
+	case modelInputs.PlanTypeBasic:
+		return 20000
+	case modelInputs.PlanTypeStartup:
+		return 80000
+	case modelInputs.PlanTypeEnterprise:
+		return 300000
+	default:
+		return 1000
 	}
-	return modelInputs.PlanNone
 }
 
-func ToPriceID(plan modelInputs.Plan) string {
+func FromPriceID(priceID string) modelInputs.PlanType {
+	switch priceID {
+	case os.Getenv("BASIC_PLAN_PRICE_ID"):
+		return modelInputs.PlanTypeBasic
+	case os.Getenv("STARTUP_PLAN_PRICE_ID"):
+		return modelInputs.PlanTypeStartup
+	case os.Getenv("ENTERPRISE_PLAN_PRICE_ID"):
+		return modelInputs.PlanTypeEnterprise
+	}
+	return modelInputs.PlanTypeNone
+}
+
+func ToPriceID(plan modelInputs.PlanType) string {
 	switch plan {
-	case modelInputs.PlanBasic:
+	case modelInputs.PlanTypeBasic:
 		return os.Getenv("BASIC_PLAN_PRICE_ID")
-	case modelInputs.PlanStartup:
+	case modelInputs.PlanTypeStartup:
 		return os.Getenv("STARTUP_PLAN_PRICE_ID")
-	case modelInputs.PlanEnterprise:
+	case modelInputs.PlanTypeEnterprise:
 		return os.Getenv("ENTERPRISE_PLAN_PRICE_ID")
 	}
 	return ""
 }
 
+func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
+	uid := fmt.Sprintf("%v", ctx.Value("uid"))
+	// If the user is engineering@..., we whitelist.
+	if uid == WhitelistedUID {
+		return true
+	}
+	return false
+}
+
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
-	uid := fmt.Sprintf("%v", ctx.Value("uid"))
-	// If the user is me (jaykhatrimail@gmail.com) or is the getmosaic.io account, whitelist.
-	if uid == WhitelistedUID {
+	if r.isWhitelistedAccount(ctx) {
 		org := &model.Organization{}
 		res := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org)
 		if err := res.Error; err != nil || res.RecordNotFound() {
@@ -152,8 +174,8 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 		VisitedURL: params.VisitedURL,
 		Event:      params.Event,
 	}
-	if params.HideViewed != nil {
-		modelParams.HideViewed = *params.HideViewed
+	if params.HideResolved != nil {
+		modelParams.HideResolved = *params.HideResolved
 	}
 	if params.DateRange != nil {
 		modelParams.DateRange = &model.DateRange{}

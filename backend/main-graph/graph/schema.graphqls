@@ -28,6 +28,23 @@ type Session {
     field_group: String
 }
 
+type BillingDetails {
+    plan: Plan!
+    meter: Int!
+}
+
+type Plan {
+    type: PlanType!
+    quota: Int!
+}
+
+enum PlanType {
+    None
+    Basic
+    Startup
+    Enterprise
+}
+
 type RecordingSettings {
     id: ID!
     organization_id: ID!
@@ -68,6 +85,7 @@ type ErrorObject {
     line_number: Int
     column_number: Int
     trace: [Any]
+    timestamp: Time
 }
 
 type ErrorField {
@@ -84,6 +102,7 @@ type ErrorGroup {
     trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
+    resolved: Boolean
 }
 
 type ErrorMetadata {
@@ -137,7 +156,7 @@ input ErrorSearchParamsInput {
     os: String
     browser: String
     visited_url: String
-    hide_viewed: Boolean
+    hide_resolved: Boolean
     event: String
 }
 
@@ -146,7 +165,7 @@ type ErrorSearchParams {
     os: String
     browser: String
     visited_url: String
-    hide_viewed: Boolean
+    hide_resolved: Boolean
     event: String
 }
 
@@ -210,6 +229,7 @@ type Query {
     ): ErrorResults
     error_group(id: ID!): ErrorGroup
     messages(session_id: ID!): [Any]
+    errors(session_id: ID!): [ErrorObject]
     resources(session_id: ID!): [Any]
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
@@ -220,7 +240,7 @@ type Query {
         processed: Boolean!
         params: SearchParamsInput
     ): SessionResults
-    billingDetails(organization_id: ID!): Plan!
+    billingDetails(organization_id: ID!): BillingDetails!
     # gets all the organizations of a user
     field_suggestionBETA(
         organization_id: ID!
@@ -238,6 +258,7 @@ type Query {
         query: String!
     ): [ErrorField]
     organizations: [Organization]
+    organizationSuggestion(query: String!): [Organization]
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]
@@ -245,17 +266,11 @@ type Query {
     recording_settings(organization_id: ID!): RecordingSettings
 }
 
-enum Plan {
-    None
-    Basic
-    Startup
-    Enterprise
-}
-
 type Mutation {
     createOrganization(name: String!): Organization
     editOrganization(id: ID!, name: String, billing_email: String): Organization
-    markSessionAsViewed(id: ID!): Session
+    markSessionAsViewed(id: ID!, viewed: Boolean): Session
+    markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
@@ -293,5 +308,8 @@ type Mutation {
     ): RecordingSettings
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
-    createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
+    createOrUpdateSubscription(
+        organization_id: ID!
+        plan_type: PlanType!
+    ): String
 }

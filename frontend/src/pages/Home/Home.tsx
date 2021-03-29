@@ -29,7 +29,9 @@ export const Home: React.FC = ({ children }) => {
                                         >
                                             Documentation
                                         </Link>
-                                        <Link to={'/careers'}>Careers</Link>
+                                        <Link to={'/about/careers'}>
+                                            Careers
+                                        </Link>
                                         <a href="https://app.highlight.run">
                                             Sign In
                                         </a>
@@ -57,7 +59,7 @@ export const Home: React.FC = ({ children }) => {
                                     Documentation
                                 </Link>
                                 <Link
-                                    to={'/careers'}
+                                    to={'/about/careers'}
                                     className={styles.navLink}
                                 >
                                     Careers
@@ -92,20 +94,13 @@ export const Home: React.FC = ({ children }) => {
                 <footer className={styles.securityNav}>
                     <div className={styles.securityWrapper}>
                         <Link
-                            to={{
-                                pathname:
-                                    'https://www.highlight.run/terms-of-service ',
-                            }}
-                            target="_blank"
+                            to={'/about/terms'}
                             className={styles.securityLink}
                         >
                             Terms of service
                         </Link>
                         <Link
-                            to={{
-                                pathname: 'https://www.highlight.run/privacy',
-                            }}
-                            target="_blank"
+                            to={'/about/privacy'}
                             className={styles.securityLink}
                         >
                             Privacy Policy

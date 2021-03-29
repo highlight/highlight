@@ -5,7 +5,7 @@ export type ErrorSearchParams = {
     os?: string;
     browser?: string;
     visited_url?: string;
-    hide_viewed?: boolean;
+    hide_resolved?: boolean;
     event?: string;
 };
 

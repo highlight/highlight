@@ -3,8 +3,10 @@
 .devToolsWrapper {
     background-color: white;
     width: 100%;
-    height: 34vh;
+    height: 100%;
     border-top: 1px solid $border-light-gray;
+    display: flex;
+    flex-direction: column;
 }
 
 .emptySection {
@@ -85,4 +87,31 @@
     height: 45px;
     border-bottom: 1px solid #eaeaea;
     overflow-y: auto;
+}
+
+.resizeContainer {
+    max-height: 50vh;
+    height: 34vh;
+    min-height: 45px;
+}
+
+.resizeHandle {
+    display: none;
+}
+
+.resizeBorder {
+    background: $border-light-gray;
+    width: 100%;
+    height: 10px;
+    cursor: ns-resize;
+    opacity: 0;
+    transition: opacity ease-in-out 0.2s;
+    transform: translateY(2.5px);
+    // Fitts' Law, we're making the hit target larger than what it looks visually to make it easier to hit.
+    background-clip: content-box;
+    padding: 3px 0;
+
+    &:hover {
+        opacity: 1;
+    }
 }

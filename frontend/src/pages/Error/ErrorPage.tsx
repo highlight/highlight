@@ -16,6 +16,7 @@ import {
 import LinesEllipsis from 'react-lines-ellipsis';
 
 import styles from './ErrorPage.module.scss';
+import commonStyles from '../../Common.module.scss';
 import Skeleton from 'react-loading-skeleton';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import moment from 'moment';
@@ -23,6 +24,7 @@ import { frequencyTimeData } from '../../util/errorCalculations';
 import classNames from 'classnames';
 import { Tooltip } from 'antd';
 import { Link } from 'react-router-dom';
+import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -36,34 +38,14 @@ export const ErrorPage = () => {
     const [title, setTitle] = useState<string | undefined>(undefined);
     const [eventLineExpand, setEventLineExpand] = useState(false);
     const [showExpandButton, setShowExpandButton] = useState(true);
+    const [errorActivityCount, setErrorActivityCount] = useState(20);
 
     useEffect(() => {
-        const eventText = data?.error_group?.event[0];
-        let title = '';
-        // Try to get the text in the form Text: ....
-        const splitOnColon = eventText?.split(':') ?? [];
-        if (
-            splitOnColon.length &&
-            (!splitOnColon[0].includes(' ') ||
-                splitOnColon[0].toLowerCase().includes('error'))
-        ) {
-            title = splitOnColon[0];
-            setTitle(title);
-            return;
-        }
-        // Try to get text in the form "'Something' Error" in the event.
-        const split = eventText?.split(' ') ?? [];
-        let prev = '';
-        for (let i = 0; i < split?.length; i++) {
-            const curr = split[i];
-            if (curr.toLowerCase().includes('error')) {
-                title = (prev ? prev + ' ' : '') + curr;
-                setTitle(title);
-                return;
-            }
-            prev = curr;
-        }
-        setTitle(data?.error_group?.event.join() ?? '');
+        setTitle(
+            getHeaderFromError(
+                (data?.error_group?.event as Array<string>) ?? []
+            )
+        );
     }, [data]);
 
     useEffect(() => {
@@ -73,187 +55,228 @@ export const ErrorPage = () => {
     return (
         <div className={styles.errorPageWrapper}>
             <div className={styles.errorPage}>
-                <div className={styles.titleWrapper}>
-                    {loading ? (
-                        <Skeleton count={1} style={{ width: 300 }} />
-                    ) : (
-                        <>
-                            <div className={styles.title}>{title}</div>
-                            <Field
-                                k={'mechanism'}
-                                v={data?.error_group?.type || 'window.onerror'}
-                                color={'warning'}
+                <div className={styles.errorPageLeft}>
+                    <div className={styles.titleWrapper}>
+                        {loading ? (
+                            <Skeleton count={1} style={{ width: 300 }} />
+                        ) : (
+                            <>
+                                <div className={styles.title}>{title}</div>
+                                <Field
+                                    k={'mechanism'}
+                                    v={
+                                        data?.error_group?.type ||
+                                        'window.onerror'
+                                    }
+                                    color={'warning'}
+                                />
+                            </>
+                        )}
+                    </div>
+                    <div className={styles.eventText}>
+                        {loading ? (
+                            <Skeleton
+                                count={2}
+                                style={{ height: 20, marginBottom: 10 }}
                             />
-                        </>
-                    )}
-                </div>
-                <div className={styles.eventText}>
-                    {loading ? (
-                        <Skeleton
-                            count={2}
-                            style={{ height: 20, marginBottom: 10 }}
-                        />
-                    ) : (
-                        <>
-                            <LinesEllipsis
-                                text={data?.error_group?.event.join() ?? ''}
-                                maxLine={
-                                    eventLineExpand
-                                        ? Number.MAX_SAFE_INTEGER
-                                        : 2
-                                }
-                                style={{ display: 'inline' }}
-                                onReflow={(c) => {
-                                    setShowExpandButton(
-                                        !(
-                                            c.text ===
-                                            data?.error_group?.event.join()
-                                        )
-                                    );
-                                }}
+                        ) : (
+                            <>
+                                <LinesEllipsis
+                                    text={data?.error_group?.event.join() ?? ''}
+                                    maxLine={
+                                        eventLineExpand
+                                            ? Number.MAX_SAFE_INTEGER
+                                            : 2
+                                    }
+                                    style={{ display: 'inline' }}
+                                    onReflow={(c) => {
+                                        setShowExpandButton(
+                                            !(
+                                                c.text ===
+                                                data?.error_group?.event.join()
+                                            )
+                                        );
+                                    }}
+                                />
+                                {showExpandButton && (
+                                    <span
+                                        className={styles.expandButton}
+                                        onClick={() => setEventLineExpand(true)}
+                                    >
+                                        {' '}
+                                        show more
+                                    </span>
+                                )}
+                            </>
+                        )}
+                    </div>
+                    <div className={styles.subTitle}>
+                        {loading ? (
+                            <Skeleton
+                                duration={1}
+                                count={1}
+                                style={{ width: 300 }}
                             />
-                            {showExpandButton && (
-                                <span
-                                    className={styles.expandButton}
-                                    onClick={() => setEventLineExpand(true)}
+                        ) : (
+                            'Stack Trace'
+                        )}
+                    </div>
+                    <div className={styles.fieldWrapper}>
+                        {data?.error_group?.trace.map((e, i) => (
+                            <StackSection
+                                key={i}
+                                fileName={e?.file_name ?? ''}
+                                functionName={e?.function_name ?? ''}
+                                lineNumber={e?.line_number ?? 0}
+                                columnNumber={e?.column_number ?? 0}
+                            />
+                        ))}
+                    </div>
+                    <div className={styles.subTitle}>
+                        {loading ? (
+                            <Skeleton
+                                duration={1}
+                                count={1}
+                                style={{ width: 300 }}
+                            />
+                        ) : (
+                            'Error Frequency'
+                        )}
+                    </div>
+                    <div className={styles.fieldWrapper}>
+                        <ErrorFrequencyGraph errorGroup={data?.error_group} />
+                    </div>
+                    <div
+                        className={styles.fieldWrapper}
+                        style={{ paddingBottom: '40px' }}
+                    >
+                        <div className={styles.section}>
+                            <div className={styles.collapsible}>
+                                <div
+                                    className={classNames(
+                                        styles.triggerWrapper,
+                                        styles.errorLogDivider
+                                    )}
                                 >
-                                    {' '}
-                                    show more
-                                </span>
-                            )}
-                        </>
-                    )}
-                </div>
-                <div className={styles.subTitle}>
-                    {loading ? (
-                        <Skeleton count={1} style={{ width: 300 }} />
-                    ) : (
-                        'Context / Fields'
-                    )}
-                </div>
-                <div className={styles.fieldWrapper}>
-                    {loading ? (
-                        <Skeleton
-                            count={2}
-                            style={{ height: 20, marginBottom: 10 }}
-                        />
-                    ) : (
-                        <>
-                            {data?.error_group?.field_group?.map(
-                                (e, i) =>
-                                    e?.name != 'visited_url' && (
-                                        <Field
-                                            key={i}
-                                            k={e?.name ?? ''}
-                                            v={e?.value.toLowerCase() ?? ''}
-                                        />
-                                    )
-                            )}
-                        </>
-                    )}
-                </div>
-                <div className={styles.subTitle}>
-                    {loading ? (
-                        <Skeleton
-                            duration={1}
-                            count={1}
-                            style={{ width: 300 }}
-                        />
-                    ) : (
-                        'Stack Trace'
-                    )}
-                </div>
-                <div className={styles.fieldWrapper}>
-                    {data?.error_group?.trace.map((e, i) => (
-                        <StackSection
-                            key={i}
-                            fileName={e?.file_name ?? ''}
-                            functionName={e?.function_name ?? ''}
-                            lineNumber={e?.line_number ?? 0}
-                            columnNumber={e?.column_number ?? 0}
-                        />
-                    ))}
-                </div>
-                <div className={styles.subTitle}>
-                    {loading ? (
-                        <Skeleton
-                            duration={1}
-                            count={1}
-                            style={{ width: 300 }}
-                        />
-                    ) : (
-                        'Error Frequency'
-                    )}
-                </div>
-                <div className={styles.fieldWrapper}>
-                    <ErrorFrequencyGraph errorGroup={data?.error_group} />
-                </div>
-                <div
-                    className={styles.fieldWrapper}
-                    style={{ paddingBottom: '40px' }}
-                >
-                    <div className={styles.section}>
-                        <div className={styles.collapsible}>
-                            <div className={styles.triggerWrapper}>
-                                <div className={styles.errorLogsTitle}>
-                                    <span>Error ID</span>
-                                    <span>Session ID</span>
-                                    <span>Visited URL</span>
-                                    <span>Browser</span>
-                                    <span>OS</span>
-                                    <span>Timestamp</span>
+                                    <div className={styles.errorLogsTitle}>
+                                        <span>Error ID</span>
+                                        <span>Session ID</span>
+                                        <span>Visited URL</span>
+                                        <span>Browser</span>
+                                        <span>OS</span>
+                                        <span>Timestamp</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className={styles.errorLogWrapper}>
-                                {data?.error_group?.metadata_log
-                                    .slice(
-                                        Math.max(
-                                            data?.error_group?.metadata_log
-                                                .length - 20,
-                                            0
+                                <div className={styles.errorLogWrapper}>
+                                    {data?.error_group?.metadata_log
+                                        .slice(
+                                            Math.max(
+                                                data?.error_group?.metadata_log
+                                                    .length -
+                                                    errorActivityCount,
+                                                0
+                                            )
                                         )
-                                    )
-                                    .reverse()
-                                    .map((e, i) => (
-                                        <Link
-                                            to={`/${organization_id}/sessions/${e?.session_id}`}
-                                            key={i}
-                                        >
-                                            <div
+                                        .reverse()
+                                        .map((e, i) => (
+                                            <Link
+                                                to={`/${organization_id}/sessions/${e?.session_id}`}
                                                 key={i}
-                                                className={classNames(
-                                                    styles.subSection,
-                                                    styles.errorLogItem
-                                                )}
                                             >
-                                                <span>{e?.error_id}</span>
-                                                <span>{e?.session_id}</span>
                                                 <div
+                                                    key={i}
                                                     className={
-                                                        styles.errorLogCell
+                                                        styles.errorLogItem
                                                     }
                                                 >
-                                                    <span
+                                                    <span>{e?.error_id}</span>
+                                                    <span>{e?.session_id}</span>
+                                                    <div
                                                         className={
-                                                            styles.errorLogOverflow
+                                                            styles.errorLogCell
                                                         }
                                                     >
-                                                        {e?.visited_url}
+                                                        <span
+                                                            className={
+                                                                styles.errorLogOverflow
+                                                            }
+                                                        >
+                                                            {e?.visited_url}
+                                                        </span>
+                                                    </div>
+                                                    <span>{e?.browser}</span>
+                                                    <span>{e?.os}</span>
+                                                    <span>
+                                                        {moment(
+                                                            e?.timestamp
+                                                        ).format(
+                                                            'D MMMM YYYY, HH:mm:ss'
+                                                        )}
                                                     </span>
                                                 </div>
-                                                <span>{e?.browser}</span>
-                                                <span>{e?.os}</span>
-                                                <span>
-                                                    {moment(
-                                                        e?.timestamp
-                                                    ).format(
-                                                        'D MMMM YYYY, HH:mm:ss'
-                                                    )}
-                                                </span>
-                                            </div>
-                                        </Link>
-                                    ))}
+                                            </Link>
+                                        ))}
+                                    {data?.error_group?.metadata_log.length &&
+                                        errorActivityCount <
+                                            data?.error_group?.metadata_log
+                                                .length && (
+                                            <button
+                                                onClick={() =>
+                                                    setErrorActivityCount(
+                                                        errorActivityCount + 20
+                                                    )
+                                                }
+                                                className={classNames(
+                                                    commonStyles.secondaryButton,
+                                                    styles.errorLogButton
+                                                )}
+                                            >
+                                                Show more...
+                                            </button>
+                                        )}
+                                </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div className={styles.errorPageRight}>
+                    <div className={styles.errorPageRightContent}>
+                        <div className={styles.fieldWrapper}>
+                            <ResolveErrorButton
+                                resolved={data?.error_group?.resolved || false}
+                                loading={loading}
+                            />
+                        </div>
+                        <div className={styles.subTitle}>
+                            {loading ? (
+                                <Skeleton count={1} style={{ width: 280 }} />
+                            ) : (
+                                'Context / Fields'
+                            )}
+                        </div>
+                        <div className={styles.fieldWrapper}>
+                            {loading ? (
+                                <Skeleton
+                                    count={2}
+                                    style={{ height: 20, marginBottom: 10 }}
+                                />
+                            ) : (
+                                <>
+                                    {data?.error_group?.field_group?.map(
+                                        (e, i) =>
+                                            e?.name != 'visited_url' && (
+                                                <Field
+                                                    key={i}
+                                                    k={e?.name ?? ''}
+                                                    v={
+                                                        e?.value.toLowerCase() ??
+                                                        ''
+                                                    }
+                                                />
+                                            )
+                                    )}
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -398,4 +421,31 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
             </div>
         </div>
     );
+};
+
+const getHeaderFromError = (errorMsg: Array<string>): string => {
+    const eventText = errorMsg[0];
+    let title = '';
+    // Try to get the text in the form Text: ....
+    const splitOnColon = eventText?.split(':') ?? [];
+    if (
+        splitOnColon.length &&
+        (!splitOnColon[0].includes(' ') ||
+            splitOnColon[0].toLowerCase().includes('error'))
+    ) {
+        return splitOnColon[0];
+    }
+    // Try to get text in the form "'Something' Error" in the event.
+    const split = eventText?.split(' ') ?? [];
+    let prev = '';
+    for (let i = 0; i < split?.length; i++) {
+        const curr = split[i];
+        if (curr.toLowerCase().includes('error')) {
+            title = (prev ? prev + ' ' : '') + curr;
+            return title;
+        }
+        prev = curr;
+    }
+
+    return errorMsg.join() ?? '';
 };

@@ -51,24 +51,24 @@ export const StreamElement = ({
                     [styles.currentStreamElement]: isCurrent,
                     [styles.selectedStreamElement]: selected,
                 })}
+                style={{
+                    backgroundColor:
+                        hover && !selected && !isCurrent
+                            ? '#efefef7d'
+                            : isCurrent
+                            ? '#5629c6'
+                            : 'white',
+                }}
                 key={e.identifier}
                 id={e.identifier}
+                onClick={() => setSelected(!selected)}
             >
                 <div className={styles.headerRow}>
-                    <div
-                        onClick={() => setSelected(!selected)}
-                        className={styles.iconWrapper}
-                    >
+                    <div className={styles.iconWrapper}>
                         {selected ? (
                             <DownIcon
                                 className={classNames(styles.directionIcon, {
                                     [styles.selectedIcon]: selected,
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
-                        ) : hover ? (
-                            <DownIcon
-                                className={classNames(styles.directionIcon, {
                                     [styles.currentIcon]: isCurrent,
                                 })}
                             />

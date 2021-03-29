@@ -1,13 +1,15 @@
-import React, { useContext, useState } from 'react';
+import React from 'react';
+import ResizePanel from 'react-resize-panel-ts';
 
 import { ConsolePage } from './ConsolePage/ConsolePage';
 import { ResourcePage } from './ResourcePage/ResourcePage';
 import {
-    IsConsoleContext,
-    OpenDevToolsContext,
+    DevToolTabs,
+    useDevToolsContext,
 } from '../DevToolsContext/DevToolsContext';
 
 import styles from './DevToolsWindow.module.scss';
+import ErrorsPage from './ErrorsPage/ErrorsPage';
 
 export const DevToolsWindow = ({
     time,
@@ -16,21 +18,32 @@ export const DevToolsWindow = ({
     time: number;
     startTime: number;
 }) => {
-    const { openDevTools } = useContext(OpenDevToolsContext);
-    const [isConsole, setIsConsole] = useState(true);
+    const { openDevTools, selectedTab } = useDevToolsContext();
+
+    const getPage = (tab: DevToolTabs) => {
+        switch (tab) {
+            case DevToolTabs.Errors:
+                return <ErrorsPage />;
+            case DevToolTabs.Network:
+                return <ResourcePage startTime={startTime} time={time} />;
+            case DevToolTabs.Console:
+            default:
+                return <ConsolePage time={time} />;
+        }
+    };
+
+    if (!openDevTools) {
+        return null;
+    }
+
     return (
-        <IsConsoleContext.Provider value={{ isConsole, setIsConsole }}>
-            {openDevTools ? (
-                <div className={styles.devToolsWrapper}>
-                    {isConsole ? (
-                        <ConsolePage time={time} />
-                    ) : (
-                        <ResourcePage startTime={startTime} time={time} />
-                    )}
-                </div>
-            ) : (
-                <></>
-            )}
-        </IsConsoleContext.Provider>
+        <ResizePanel
+            direction="n"
+            containerClass={styles.resizeContainer}
+            handleClass={styles.resizeHandle}
+            borderClass={styles.resizeBorder}
+        >
+            <div className={styles.devToolsWrapper}>{getPage(selectedTab)}</div>
+        </ResizePanel>
     );
 };

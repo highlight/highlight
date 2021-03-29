@@ -11,6 +11,16 @@ import { useLocalStorage } from '@rehooks/local-storage';
 import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { FeedNavigation } from '../Sessions/SearchSidebar/FeedNavigation/FeedNavigation';
 import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
+import { Complete } from '../../util/types';
+
+export const EmptyErrorsSearchParams: Complete<ErrorSearchParams> = {
+    browser: undefined,
+    date_range: undefined,
+    event: undefined,
+    hide_resolved: false,
+    os: undefined,
+    visited_url: undefined,
+};
 
 export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
@@ -19,7 +29,7 @@ export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
         {}
     );
     const [searchParams, setSearchParams] = useState<ErrorSearchParams>(
-        cachedParams || { user_properties: [], identified: false }
+        cachedParams || EmptyErrorsSearchParams
     );
     const [existingParams, setExistingParams] = useState<ErrorSearchParams>({});
     const { setOpenSidebar } = useContext(SidebarContext);

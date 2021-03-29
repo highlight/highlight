@@ -13,13 +13,14 @@ import { DemoContext } from './DemoContext';
 import { H, HighlightOptions } from 'highlight.run';
 import { DemoRouter } from './DemoRouter';
 import { SkeletonTheme } from 'react-loading-skeleton';
-import { Careers } from './pages/Careers/Careers';
 import { QueryParamProvider } from 'use-query-params';
+import { About } from './pages/About/About';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
     debug: { clientInteractions: true, domRecording: true },
     manualStart: true,
+    enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
 };
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
@@ -40,8 +41,8 @@ const App = () => {
                 <SkeletonTheme color={'#F5F5F5'} highlightColor={'#FCFCFC'}>
                     <Router>
                         <Switch>
-                            <Route path="/careers">
-                                <Careers />
+                            <Route path="/about">
+                                <About />
                             </Route>
                             <Route path="/demo" exact>
                                 <DemoContext.Provider value={{ demo: true }}>

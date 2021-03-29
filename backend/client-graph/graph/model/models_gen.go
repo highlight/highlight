@@ -2,6 +2,10 @@
 
 package model
 
+import (
+	"time"
+)
+
 type ErrorObjectInput struct {
 	Event        string        `json:"event"`
 	Type         string        `json:"type"`
@@ -10,6 +14,7 @@ type ErrorObjectInput struct {
 	LineNumber   int           `json:"lineNumber"`
 	ColumnNumber int           `json:"columnNumber"`
 	Trace        []interface{} `json:"trace"`
+	Timestamp    time.Time     `json:"timestamp"`
 }
 
 type ReplayEventsInput struct {

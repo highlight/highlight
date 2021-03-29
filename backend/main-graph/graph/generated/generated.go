@@ -56,6 +56,11 @@ type ComplexityRoot struct {
 		Name  func(childComplexity int) int
 	}
 
+	BillingDetails struct {
+		Meter func(childComplexity int) int
+		Plan  func(childComplexity int) int
+	}
+
 	DateRange struct {
 		EndDate   func(childComplexity int) int
 		StartDate func(childComplexity int) int
@@ -73,6 +78,7 @@ type ComplexityRoot struct {
 		ID             func(childComplexity int) int
 		MetadataLog    func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
+		Resolved       func(childComplexity int) int
 		Trace          func(childComplexity int) int
 		Type           func(childComplexity int) int
 	}
@@ -95,6 +101,7 @@ type ComplexityRoot struct {
 		OrganizationID func(childComplexity int) int
 		SessionID      func(childComplexity int) int
 		Source         func(childComplexity int) int
+		Timestamp      func(childComplexity int) int
 		Trace          func(childComplexity int) int
 		Type           func(childComplexity int) int
 		URL            func(childComplexity int) int
@@ -106,12 +113,12 @@ type ComplexityRoot struct {
 	}
 
 	ErrorSearchParams struct {
-		Browser    func(childComplexity int) int
-		DateRange  func(childComplexity int) int
-		Event      func(childComplexity int) int
-		HideViewed func(childComplexity int) int
-		OS         func(childComplexity int) int
-		VisitedURL func(childComplexity int) int
+		Browser      func(childComplexity int) int
+		DateRange    func(childComplexity int) int
+		Event        func(childComplexity int) int
+		HideResolved func(childComplexity int) int
+		OS           func(childComplexity int) int
+		VisitedURL   func(childComplexity int) int
 	}
 
 	ErrorSegment struct {
@@ -143,7 +150,7 @@ type ComplexityRoot struct {
 		AddAdminToOrganization         func(childComplexity int, organizationID int, inviteID string) int
 		AddSlackIntegrationToWorkspace func(childComplexity int, organizationID int, code string, redirectPath string) int
 		CreateErrorSegment             func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
-		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, plan model.Plan) int
+		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
 		CreateOrganization             func(childComplexity int, name string) int
 		CreateSegment                  func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
 		DeleteErrorSegment             func(childComplexity int, segmentID int) int
@@ -154,7 +161,8 @@ type ComplexityRoot struct {
 		EditRecordingSettings          func(childComplexity int, organizationID int, details *string) int
 		EditSegment                    func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
 		EmailSignup                    func(childComplexity int, email string) int
-		MarkSessionAsViewed            func(childComplexity int, id int) int
+		MarkErrorGroupAsResolved       func(childComplexity int, id int, resolved *bool) int
+		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
 		SendAdminInvite                func(childComplexity int, organizationID int, email string) int
 	}
 
@@ -166,6 +174,11 @@ type ComplexityRoot struct {
 		VerboseID    func(childComplexity int) int
 	}
 
+	Plan struct {
+		Quota func(childComplexity int) int
+		Type  func(childComplexity int) int
+	}
+
 	Query struct {
 		Admin                    func(childComplexity int) int
 		Admins                   func(childComplexity int, organizationID int) int
@@ -174,11 +187,13 @@ type ComplexityRoot struct {
 		ErrorGroup               func(childComplexity int, id int) int
 		ErrorGroups              func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
 		ErrorSegments            func(childComplexity int, organizationID int) int
+		Errors                   func(childComplexity int, sessionID int) int
 		Events                   func(childComplexity int, sessionID int) int
 		FieldSuggestionBeta      func(childComplexity int, organizationID int, name string, query string) int
 		IsIntegrated             func(childComplexity int, organizationID int) int
 		Messages                 func(childComplexity int, sessionID int) int
 		Organization             func(childComplexity int, id int) int
+		OrganizationSuggestion   func(childComplexity int, query string) int
 		Organizations            func(childComplexity int) int
 		PropertySuggestion       func(childComplexity int, organizationID int, query string, typeArg string) int
 		RecordingSettings        func(childComplexity int, organizationID int) int
@@ -265,7 +280,8 @@ type ErrorSegmentResolver interface {
 type MutationResolver interface {
 	CreateOrganization(ctx context.Context, name string) (*model1.Organization, error)
 	EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Organization, error)
-	MarkSessionAsViewed(ctx context.Context, id int) (*model1.Session, error)
+	MarkSessionAsViewed(ctx context.Context, id int, viewed *bool) (*model1.Session, error)
+	MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model1.ErrorGroup, error)
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
@@ -278,7 +294,7 @@ type MutationResolver interface {
 	EditErrorSegment(ctx context.Context, id int, organizationID int, params model.ErrorSearchParamsInput) (*bool, error)
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
-	CreateOrUpdateSubscription(ctx context.Context, organizationID int, plan model.Plan) (*string, error)
+	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -286,16 +302,18 @@ type QueryResolver interface {
 	ErrorGroups(ctx context.Context, organizationID int, count int, params *model.ErrorSearchParamsInput) (*model1.ErrorResults, error)
 	ErrorGroup(ctx context.Context, id int) (*model1.ErrorGroup, error)
 	Messages(ctx context.Context, sessionID int) ([]interface{}, error)
+	Errors(ctx context.Context, sessionID int) ([]*model1.ErrorObject, error)
 	Resources(ctx context.Context, sessionID int) ([]interface{}, error)
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error)
 	SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
-	BillingDetails(ctx context.Context, organizationID int) (model.Plan, error)
+	BillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
 	ErrorFieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.ErrorField, error)
 	Organizations(ctx context.Context) ([]*model1.Organization, error)
+	OrganizationSuggestion(ctx context.Context, query string) ([]*model1.Organization, error)
 	Organization(ctx context.Context, id int) (*model1.Organization, error)
 	Admin(ctx context.Context) (*model1.Admin, error)
 	Segments(ctx context.Context, organizationID int) ([]*model1.Segment, error)
@@ -344,6 +362,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.Name(childComplexity), true
+
+	case "BillingDetails.meter":
+		if e.complexity.BillingDetails.Meter == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.Meter(childComplexity), true
+
+	case "BillingDetails.plan":
+		if e.complexity.BillingDetails.Plan == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.Plan(childComplexity), true
 
 	case "DateRange.end_date":
 		if e.complexity.DateRange.EndDate == nil {
@@ -414,6 +446,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.OrganizationID(childComplexity), true
+
+	case "ErrorGroup.resolved":
+		if e.complexity.ErrorGroup.Resolved == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.Resolved(childComplexity), true
 
 	case "ErrorGroup.trace":
 		if e.complexity.ErrorGroup.Trace == nil {
@@ -527,6 +566,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.Source(childComplexity), true
 
+	case "ErrorObject.timestamp":
+		if e.complexity.ErrorObject.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.Timestamp(childComplexity), true
+
 	case "ErrorObject.trace":
 		if e.complexity.ErrorObject.Trace == nil {
 			break
@@ -583,12 +629,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorSearchParams.Event(childComplexity), true
 
-	case "ErrorSearchParams.hide_viewed":
-		if e.complexity.ErrorSearchParams.HideViewed == nil {
+	case "ErrorSearchParams.hide_resolved":
+		if e.complexity.ErrorSearchParams.HideResolved == nil {
 			break
 		}
 
-		return e.complexity.ErrorSearchParams.HideViewed(childComplexity), true
+		return e.complexity.ErrorSearchParams.HideResolved(childComplexity), true
 
 	case "ErrorSearchParams.os":
 		if e.complexity.ErrorSearchParams.OS == nil {
@@ -741,7 +787,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateOrUpdateSubscription(childComplexity, args["organization_id"].(int), args["plan"].(model.Plan)), true
+		return e.complexity.Mutation.CreateOrUpdateSubscription(childComplexity, args["organization_id"].(int), args["plan_type"].(model.PlanType)), true
 
 	case "Mutation.createOrganization":
 		if e.complexity.Mutation.CreateOrganization == nil {
@@ -863,6 +909,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.EmailSignup(childComplexity, args["email"].(string)), true
 
+	case "Mutation.markErrorGroupAsResolved":
+		if e.complexity.Mutation.MarkErrorGroupAsResolved == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_markErrorGroupAsResolved_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MarkErrorGroupAsResolved(childComplexity, args["id"].(int), args["resolved"].(*bool)), true
+
 	case "Mutation.markSessionAsViewed":
 		if e.complexity.Mutation.MarkSessionAsViewed == nil {
 			break
@@ -873,7 +931,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.MarkSessionAsViewed(childComplexity, args["id"].(int)), true
+		return e.complexity.Mutation.MarkSessionAsViewed(childComplexity, args["id"].(int), args["viewed"].(*bool)), true
 
 	case "Mutation.sendAdminInvite":
 		if e.complexity.Mutation.SendAdminInvite == nil {
@@ -921,6 +979,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Organization.VerboseID(childComplexity), true
+
+	case "Plan.quota":
+		if e.complexity.Plan.Quota == nil {
+			break
+		}
+
+		return e.complexity.Plan.Quota(childComplexity), true
+
+	case "Plan.type":
+		if e.complexity.Plan.Type == nil {
+			break
+		}
+
+		return e.complexity.Plan.Type(childComplexity), true
 
 	case "Query.admin":
 		if e.complexity.Query.Admin == nil {
@@ -1001,6 +1073,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ErrorSegments(childComplexity, args["organization_id"].(int)), true
 
+	case "Query.errors":
+		if e.complexity.Query.Errors == nil {
+			break
+		}
+
+		args, err := ec.field_Query_errors_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Errors(childComplexity, args["session_id"].(int)), true
+
 	case "Query.events":
 		if e.complexity.Query.Events == nil {
 			break
@@ -1060,6 +1144,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Organization(childComplexity, args["id"].(int)), true
+
+	case "Query.organizationSuggestion":
+		if e.complexity.Query.OrganizationSuggestion == nil {
+			break
+		}
+
+		args, err := ec.field_Query_organizationSuggestion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.OrganizationSuggestion(childComplexity, args["query"].(string)), true
 
 	case "Query.organizations":
 		if e.complexity.Query.Organizations == nil {
@@ -1519,6 +1615,23 @@ type Session {
     field_group: String
 }
 
+type BillingDetails {
+    plan: Plan!
+    meter: Int!
+}
+
+type Plan {
+    type: PlanType!
+    quota: Int!
+}
+
+enum PlanType {
+    None
+    Basic
+    Startup
+    Enterprise
+}
+
 type RecordingSettings {
     id: ID!
     organization_id: ID!
@@ -1559,6 +1672,7 @@ type ErrorObject {
     line_number: Int
     column_number: Int
     trace: [Any]
+    timestamp: Time
 }
 
 type ErrorField {
@@ -1575,6 +1689,7 @@ type ErrorGroup {
     trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
+    resolved: Boolean
 }
 
 type ErrorMetadata {
@@ -1628,7 +1743,7 @@ input ErrorSearchParamsInput {
     os: String
     browser: String
     visited_url: String
-    hide_viewed: Boolean
+    hide_resolved: Boolean
     event: String
 }
 
@@ -1637,7 +1752,7 @@ type ErrorSearchParams {
     os: String
     browser: String
     visited_url: String
-    hide_viewed: Boolean
+    hide_resolved: Boolean
     event: String
 }
 
@@ -1701,6 +1816,7 @@ type Query {
     ): ErrorResults
     error_group(id: ID!): ErrorGroup
     messages(session_id: ID!): [Any]
+    errors(session_id: ID!): [ErrorObject]
     resources(session_id: ID!): [Any]
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
@@ -1711,7 +1827,7 @@ type Query {
         processed: Boolean!
         params: SearchParamsInput
     ): SessionResults
-    billingDetails(organization_id: ID!): Plan!
+    billingDetails(organization_id: ID!): BillingDetails!
     # gets all the organizations of a user
     field_suggestionBETA(
         organization_id: ID!
@@ -1729,6 +1845,7 @@ type Query {
         query: String!
     ): [ErrorField]
     organizations: [Organization]
+    organizationSuggestion(query: String!): [Organization]
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]
@@ -1736,17 +1853,11 @@ type Query {
     recording_settings(organization_id: ID!): RecordingSettings
 }
 
-enum Plan {
-    None
-    Basic
-    Startup
-    Enterprise
-}
-
 type Mutation {
     createOrganization(name: String!): Organization
     editOrganization(id: ID!, name: String, billing_email: String): Organization
-    markSessionAsViewed(id: ID!): Session
+    markSessionAsViewed(id: ID!, viewed: Boolean): Session
+    markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
@@ -1784,7 +1895,10 @@ type Mutation {
     ): RecordingSettings
     # If this endpoint returns a checkout_id, we initiate a stripe checkout.
     # Otherwise, we simply update the subscription.
-    createOrUpdateSubscription(organization_id: ID!, plan: Plan!): String
+    createOrUpdateSubscription(
+        organization_id: ID!
+        plan_type: PlanType!
+    ): String
 }
 `, BuiltIn: false},
 }
@@ -1896,15 +2010,15 @@ func (ec *executionContext) field_Mutation_createOrUpdateSubscription_args(ctx c
 		}
 	}
 	args["organization_id"] = arg0
-	var arg1 model.Plan
-	if tmp, ok := rawArgs["plan"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("plan"))
-		arg1, err = ec.unmarshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx, tmp)
+	var arg1 model.PlanType
+	if tmp, ok := rawArgs["plan_type"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("plan_type"))
+		arg1, err = ec.unmarshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["plan"] = arg1
+	args["plan_type"] = arg1
 	return args, nil
 }
 
@@ -2139,6 +2253,30 @@ func (ec *executionContext) field_Mutation_emailSignup_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_markErrorGroupAsResolved_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["resolved"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolved"))
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["resolved"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_markSessionAsViewed_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2151,6 +2289,15 @@ func (ec *executionContext) field_Mutation_markSessionAsViewed_args(ctx context.
 		}
 	}
 	args["id"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["viewed"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("viewed"))
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["viewed"] = arg1
 	return args, nil
 }
 
@@ -2319,6 +2466,21 @@ func (ec *executionContext) field_Query_error_segments_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_errors_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["session_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2394,6 +2556,21 @@ func (ec *executionContext) field_Query_messages_args(ctx context.Context, rawAr
 		}
 	}
 	args["session_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_organizationSuggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg0
 	return args, nil
 }
 
@@ -2703,6 +2880,76 @@ func (ec *executionContext) _Admin_email(ctx context.Context, field graphql.Coll
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BillingDetails_plan(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Plan, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Plan)
+	fc.Result = res
+	return ec.marshalNPlan2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BillingDetails_meter(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Meter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _DateRange_start_date(ctx context.Context, field graphql.CollectedField, obj *model1.DateRange) (ret graphql.Marshaler) {
@@ -3111,6 +3358,38 @@ func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field g
 	res := resTmp.([]*model1.ErrorField)
 	fc.Result = res
 	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorGroup_resolved(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Resolved, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorMetadata_error_id(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
@@ -3678,6 +3957,38 @@ func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphq
 	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ErrorObject_timestamp(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Timestamp, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ErrorResults_error_groups(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -3876,7 +4187,7 @@ func (ec *executionContext) _ErrorSearchParams_visited_url(ctx context.Context, 
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorSearchParams_hide_viewed(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorSearchParams_hide_resolved(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -3894,7 +4205,7 @@ func (ec *executionContext) _ErrorSearchParams_hide_viewed(ctx context.Context, 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.HideViewed, nil
+		return obj.HideResolved, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4477,7 +4788,7 @@ func (ec *executionContext) _Mutation_markSessionAsViewed(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkSessionAsViewed(rctx, args["id"].(int))
+		return ec.resolvers.Mutation().MarkSessionAsViewed(rctx, args["id"].(int), args["viewed"].(*bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4489,6 +4800,45 @@ func (ec *executionContext) _Mutation_markSessionAsViewed(ctx context.Context, f
 	res := resTmp.(*model1.Session)
 	fc.Result = res
 	return ec.marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_markErrorGroupAsResolved(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_markErrorGroupAsResolved_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().MarkErrorGroupAsResolved(rctx, args["id"].(int), args["resolved"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorGroup)
+	fc.Result = res
+	return ec.marshalOErrorGroup2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4987,7 +5337,7 @@ func (ec *executionContext) _Mutation_createOrUpdateSubscription(ctx context.Con
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateOrUpdateSubscription(rctx, args["organization_id"].(int), args["plan"].(model.Plan))
+		return ec.resolvers.Mutation().CreateOrUpdateSubscription(rctx, args["organization_id"].(int), args["plan_type"].(model.PlanType))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5168,6 +5518,76 @@ func (ec *executionContext) _Organization_trial_end_date(ctx context.Context, fi
 	res := resTmp.(*time.Time)
 	fc.Result = res
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Plan_type(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Type, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.PlanType)
+	fc.Result = res
+	return ec.marshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Plan_quota(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Plan",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Quota, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_session(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5363,6 +5783,45 @@ func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.C
 	res := resTmp.([]interface{})
 	fc.Result = res
 	return ec.marshalOAny2ᚕinterface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_errors(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_errors_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Errors(rctx, args["session_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.ErrorObject)
+	fc.Result = res
+	return ec.marshalOErrorObject2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_resources(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5597,9 +6056,9 @@ func (ec *executionContext) _Query_billingDetails(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(model.Plan)
+	res := resTmp.(*model.BillingDetails)
 	fc.Result = res
-	return ec.marshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNBillingDetails2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_field_suggestionBETA(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5738,6 +6197,45 @@ func (ec *executionContext) _Query_organizations(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().Organizations(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.Organization)
+	fc.Result = res
+	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_organizationSuggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_organizationSuggestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().OrganizationSuggestion(rctx, args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8477,11 +8975,11 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 			if err != nil {
 				return it, err
 			}
-		case "hide_viewed":
+		case "hide_resolved":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hide_viewed"))
-			it.HideViewed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hide_resolved"))
+			it.HideResolved, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -8700,6 +9198,38 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var billingDetailsImplementors = []string{"BillingDetails"}
+
+func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.SelectionSet, obj *model.BillingDetails) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, billingDetailsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("BillingDetails")
+		case "plan":
+			out.Values[i] = ec._BillingDetails_plan(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "meter":
+			out.Values[i] = ec._BillingDetails_meter(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var dateRangeImplementors = []string{"DateRange"}
 
 func (ec *executionContext) _DateRange(ctx context.Context, sel ast.SelectionSet, obj *model1.DateRange) graphql.Marshaler {
@@ -8839,6 +9369,8 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				res = ec._ErrorGroup_field_group(ctx, field, obj)
 				return res
 			})
+		case "resolved":
+			out.Values[i] = ec._ErrorGroup_resolved(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8947,6 +9479,8 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 				res = ec._ErrorObject_trace(ctx, field, obj)
 				return res
 			})
+		case "timestamp":
+			out.Values[i] = ec._ErrorObject_timestamp(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9009,8 +9543,8 @@ func (ec *executionContext) _ErrorSearchParams(ctx context.Context, sel ast.Sele
 			out.Values[i] = ec._ErrorSearchParams_browser(ctx, field, obj)
 		case "visited_url":
 			out.Values[i] = ec._ErrorSearchParams_visited_url(ctx, field, obj)
-		case "hide_viewed":
-			out.Values[i] = ec._ErrorSearchParams_hide_viewed(ctx, field, obj)
+		case "hide_resolved":
+			out.Values[i] = ec._ErrorSearchParams_hide_resolved(ctx, field, obj)
 		case "event":
 			out.Values[i] = ec._ErrorSearchParams_event(ctx, field, obj)
 		default:
@@ -9186,6 +9720,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_editOrganization(ctx, field)
 		case "markSessionAsViewed":
 			out.Values[i] = ec._Mutation_markSessionAsViewed(ctx, field)
+		case "markErrorGroupAsResolved":
+			out.Values[i] = ec._Mutation_markErrorGroupAsResolved(ctx, field)
 		case "deleteOrganization":
 			out.Values[i] = ec._Mutation_deleteOrganization(ctx, field)
 		case "sendAdminInvite":
@@ -9267,6 +9803,38 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 	return out
 }
 
+var planImplementors = []string{"Plan"}
+
+func (ec *executionContext) _Plan(ctx context.Context, sel ast.SelectionSet, obj *model.Plan) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, planImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Plan")
+		case "type":
+			out.Values[i] = ec._Plan_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "quota":
+			out.Values[i] = ec._Plan_quota(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var queryImplementors = []string{"Query"}
 
 func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -9335,6 +9903,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_messages(ctx, field)
+				return res
+			})
+		case "errors":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_errors(ctx, field)
 				return res
 			})
 		case "resources":
@@ -9448,6 +10027,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_organizations(ctx, field)
+				return res
+			})
+		case "organizationSuggestion":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_organizationSuggestion(ctx, field)
 				return res
 			})
 		case "organization":
@@ -10081,6 +10671,20 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
+func (ec *executionContext) marshalNBillingDetails2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v model.BillingDetails) graphql.Marshaler {
+	return ec._BillingDetails(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNBillingDetails2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v *model.BillingDetails) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._BillingDetails(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -10256,13 +10860,23 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, v interface{}) (model.Plan, error) {
-	var res model.Plan
+func (ec *executionContext) marshalNPlan2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Plan(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, v interface{}) (model.PlanType, error) {
+	var res model.PlanType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPlan2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v model.Plan) graphql.Marshaler {
+func (ec *executionContext) marshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, sel ast.SelectionSet, v model.PlanType) graphql.Marshaler {
 	return v
 }
 
@@ -10817,6 +11431,53 @@ func (ec *executionContext) marshalOErrorMetadata2ᚖgithubᚗcomᚋjayᚑkhatri
 		return graphql.Null
 	}
 	return ec._ErrorMetadata(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOErrorObject2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorObject) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOErrorObject2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOErrorObject2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorObject) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ErrorObject(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOErrorResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorResults(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorResults) graphql.Marshaler {

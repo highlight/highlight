@@ -16,7 +16,6 @@ import (
 	"github.com/speps/go-hashids"
 	"gorm.io/gorm/clause"
 
-	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -69,7 +68,6 @@ type Organization struct {
 	Name             *string
 	StripeCustomerID *string
 	BillingEmail     *string
-	Plan             modelInputs.Plan
 	Secret           *string `json:"-"`
 	Users            []User
 	Admins           []Admin `gorm:"many2many:organization_admins;"`
@@ -255,12 +253,12 @@ type ErrorResults struct {
 }
 
 type ErrorSearchParams struct {
-	DateRange  *DateRange `json:"date_range"`
-	Browser    *string    `json:"browser"`
-	OS         *string    `json:"os"`
-	VisitedURL *string    `json:"visited_url"`
-	HideViewed bool       `json:"hide_viewed"`
-	Event      *string    `json:"event"`
+	DateRange    *DateRange `json:"date_range"`
+	Browser      *string    `json:"browser"`
+	OS           *string    `json:"os"`
+	VisitedURL   *string    `json:"visited_url"`
+	HideResolved bool       `json:"hide_resolved"`
+	Event        *string    `json:"event"`
 }
 type ErrorSegment struct {
 	Model
@@ -282,7 +280,8 @@ type ErrorObject struct {
 	ColumnNumber   int
 	OS             string
 	Browser        string
-	Trace          *string `json:"trace"`
+	Trace          *string   `json:"trace"`
+	Timestamp      time.Time `json:"timestamp"`
 }
 
 type ErrorGroup struct {
@@ -291,6 +290,7 @@ type ErrorGroup struct {
 	Event          string
 	Type           string
 	Trace          string
+	Resolved       *bool `json:"resolved"`
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup     *string

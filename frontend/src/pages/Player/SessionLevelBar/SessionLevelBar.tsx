@@ -1,14 +1,14 @@
 import React, { useContext, useEffect, useState } from 'react';
 import styles from './SessionLevelBar.module.scss';
 import SessionToken from './SessionToken/SessionToken';
-import { ReactComponent as BrowserIcon } from '../../../static/browser.svg';
-import { ReactComponent as URLIcon } from '../../../static/link.svg';
+import { ReactComponent as LayoutIcon } from '../../../static/layout.svg';
 import ActivityIcon from './ActivityIcon/ActivityIcon';
 import ReplayerContext, { ReplayerState } from '../ReplayerContext';
 import { ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 import { findFirstEventOfType } from './utils/utils';
 import Skeleton from 'react-loading-skeleton';
+import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
 
 interface Viewport {
     height: number;
@@ -17,7 +17,7 @@ interface Viewport {
 
 const SessionLevelBar = () => {
     const { replayer, state, events } = useContext(ReplayerContext);
-    const [currentUrl, setCurrentUrl] = useState<string | null>(null);
+    const [currentUrl, setCurrentUrl] = useState<string | undefined>(undefined);
     const [isTabActive, setIsTabActive] = useState<boolean>(true);
     const [viewport, setViewport] = useState<Viewport | null>(null);
 
@@ -51,23 +51,29 @@ const SessionLevelBar = () => {
 
     // Finds the first relevant events.
     useEffect(() => {
-        if (events.length > 0 && !currentUrl && !viewport) {
+        if (!events.length) return;
+        if (!currentUrl && !viewport) {
             const firstNavigateEvent = findFirstEventOfType(events, [
                 'Navigate',
                 'Reload',
             ]) as customEvent<string>;
 
-            setCurrentUrl(firstNavigateEvent?.data.payload || currentUrl);
+            setCurrentUrl(firstNavigateEvent?.data.payload || 'unknown.url');
 
             const firstViewportEvent = findFirstEventOfType(events, [
                 'Viewport',
             ]) as customEvent<Viewport>;
 
-            setViewport(firstViewportEvent?.data.payload);
+            setViewport(
+                firstViewportEvent?.data.payload || { height: 0, width: 0 }
+            );
         }
     }, [currentUrl, events, viewport]);
 
-    const isLoading = state === ReplayerState.Loading && !events.length;
+    const isLoading =
+        (state === ReplayerState.Loading && !events.length) ||
+        !viewport ||
+        !currentUrl;
 
     return (
         <div className={styles.sessionLevelBarContainer}>
@@ -77,28 +83,13 @@ const SessionLevelBar = () => {
                 </div>
             ) : (
                 <>
-                    {viewport && (
-                        <SessionToken
-                            icon={<BrowserIcon />}
-                            tooltipTitle="The user's current viewport size in pixels."
-                        >
-                            {viewport.height} x {viewport.width}
-                        </SessionToken>
-                    )}
-                    {currentUrl && (
-                        <SessionToken
-                            icon={<URLIcon />}
-                            tooltipTitle="The current URL the user is on."
-                        >
-                            <a
-                                href={currentUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                {currentUrl}
-                            </a>
-                        </SessionToken>
-                    )}
+                    <SessionToken
+                        icon={<LayoutIcon />}
+                        tooltipTitle="The user's current viewport size in pixels."
+                    >
+                        {viewport?.height} x {viewport?.width}
+                    </SessionToken>
+                    <CurrentUrlBar url={currentUrl ?? ''} />
                     <SessionToken
                         icon={<ActivityIcon isActive={isTabActive} />}
                         tooltipTitle="Indicates whether the user has this page as the active tab. If the user is on a different tab or window then the session will be inactive."

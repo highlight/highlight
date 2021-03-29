@@ -44,6 +44,25 @@ export type Session = {
     field_group?: Maybe<Scalars['String']>;
 };
 
+export type BillingDetails = {
+    __typename?: 'BillingDetails';
+    plan: Plan;
+    meter: Scalars['Int'];
+};
+
+export type Plan = {
+    __typename?: 'Plan';
+    type: PlanType;
+    quota: Scalars['Int'];
+};
+
+export enum PlanType {
+    None = 'None',
+    Basic = 'Basic',
+    Startup = 'Startup',
+    Enterprise = 'Enterprise',
+}
+
 export type RecordingSettings = {
     __typename?: 'RecordingSettings';
     id: Scalars['ID'];
@@ -89,6 +108,7 @@ export type ErrorObject = {
     line_number?: Maybe<Scalars['Int']>;
     column_number?: Maybe<Scalars['Int']>;
     trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    timestamp?: Maybe<Scalars['Time']>;
 };
 
 export type ErrorField = {
@@ -107,6 +127,7 @@ export type ErrorGroup = {
     trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
+    resolved?: Maybe<Scalars['Boolean']>;
 };
 
 export type ErrorMetadata = {
@@ -161,7 +182,7 @@ export type ErrorSearchParamsInput = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
-    hide_viewed?: Maybe<Scalars['Boolean']>;
+    hide_resolved?: Maybe<Scalars['Boolean']>;
     event?: Maybe<Scalars['String']>;
 };
 
@@ -171,7 +192,7 @@ export type ErrorSearchParams = {
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
-    hide_viewed?: Maybe<Scalars['Boolean']>;
+    hide_resolved?: Maybe<Scalars['Boolean']>;
     event?: Maybe<Scalars['String']>;
 };
 
@@ -239,16 +260,18 @@ export type Query = {
     error_groups?: Maybe<ErrorResults>;
     error_group?: Maybe<ErrorGroup>;
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int']>;
     sessionsBETA?: Maybe<SessionResults>;
-    billingDetails: Plan;
+    billingDetails: BillingDetails;
     field_suggestionBETA?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
+    organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
@@ -275,6 +298,10 @@ export type QueryError_GroupArgs = {
 };
 
 export type QueryMessagesArgs = {
+    session_id: Scalars['ID'];
+};
+
+export type QueryErrorsArgs = {
     session_id: Scalars['ID'];
 };
 
@@ -323,6 +350,10 @@ export type QueryError_Field_SuggestionArgs = {
     query: Scalars['String'];
 };
 
+export type QueryOrganizationSuggestionArgs = {
+    query: Scalars['String'];
+};
+
 export type QueryOrganizationArgs = {
     id: Scalars['ID'];
 };
@@ -339,18 +370,12 @@ export type QueryRecording_SettingsArgs = {
     organization_id: Scalars['ID'];
 };
 
-export enum Plan {
-    None = 'None',
-    Basic = 'Basic',
-    Startup = 'Startup',
-    Enterprise = 'Enterprise',
-}
-
 export type Mutation = {
     __typename?: 'Mutation';
     createOrganization?: Maybe<Organization>;
     editOrganization?: Maybe<Organization>;
     markSessionAsViewed?: Maybe<Session>;
+    markErrorGroupAsResolved?: Maybe<ErrorGroup>;
     deleteOrganization?: Maybe<Scalars['Boolean']>;
     sendAdminInvite?: Maybe<Scalars['String']>;
     addAdminToOrganization?: Maybe<Scalars['ID']>;
@@ -378,6 +403,12 @@ export type MutationEditOrganizationArgs = {
 
 export type MutationMarkSessionAsViewedArgs = {
     id: Scalars['ID'];
+    viewed?: Maybe<Scalars['Boolean']>;
+};
+
+export type MutationMarkErrorGroupAsResolvedArgs = {
+    id: Scalars['ID'];
+    resolved?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationDeleteOrganizationArgs = {
@@ -443,5 +474,5 @@ export type MutationEditRecordingSettingsArgs = {
 
 export type MutationCreateOrUpdateSubscriptionArgs = {
     organization_id: Scalars['ID'];
-    plan: Plan;
+    plan_type: PlanType;
 };

@@ -78,7 +78,13 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	if err := json.Unmarshal([]byte(*obj.MetadataLog), &ret); err != nil {
 		return nil, e.Wrap(err, "error unmarshaling error metadata")
 	}
-	return ret, nil
+	filtered := []*modelInputs.ErrorMetadata{}
+	for _, log := range ret {
+		if log.ErrorID != nil && log.SessionID != nil && log.Timestamp != nil {
+			filtered = append(filtered, log)
+		}
+	}
+	return filtered, nil
 }
 
 func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGroup) ([]*model.ErrorField, error) {
@@ -173,7 +179,7 @@ func (r *mutationResolver) EditOrganization(ctx context.Context, id int, name *s
 	return org, nil
 }
 
-func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int) (*model.Session, error) {
+func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int, viewed *bool) (*model.Session, error) {
 	_, err := r.isAdminSessionOwner(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -181,12 +187,28 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int) (*mo
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session)
 	if err := res.Update(&model.Session{
-		Viewed: &model.T,
+		Viewed: viewed,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
 	}
 
 	return session, nil
+}
+
+func (r *mutationResolver) MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model.ErrorGroup, error) {
+	_, err := r.isAdminErrorGroupOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not errorGroup owner")
+	}
+	errorGroup := &model.ErrorGroup{}
+	res := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: id}}).First(&errorGroup)
+	if err := res.Update(&model.ErrorGroup{
+		Resolved: resolved,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing errorGroup resolved status")
+	}
+
+	return errorGroup, nil
 }
 
 func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*bool, error) {
@@ -416,7 +438,7 @@ func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizati
 	return rec, nil
 }
 
-func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, plan modelInputs.Plan) (*string, error) {
+func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -446,7 +468,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	}
 	// If there's a single subscription on the user and a single price item on the subscription
 	if len(c.Subscriptions.Data) == 1 && len(c.Subscriptions.Data[0].Items.Data) == 1 {
-		plan := ToPriceID(plan)
+		plan := ToPriceID(planType)
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
 			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
@@ -476,12 +498,13 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
-					Plan: stripe.String(ToPriceID(plan)),
+					Plan: stripe.String(ToPriceID(planType)),
 				},
 			},
 		},
 		Mode: stripe.String(string(stripe.CheckoutSessionModeSubscription)),
 	}
+	checkoutSessionParams.AddExtra("allow_promotion_codes", "true")
 
 	stripeSession, err := r.StripeClient.CheckoutSessions.New(checkoutSessionParams)
 	if err != nil {
@@ -547,8 +570,8 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 
 	errorGroups := []model.ErrorGroup{}
 
-	queryString := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at
-	FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, array_agg(t.error_field_id) fieldIds
+	queryString := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved
+	FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved, array_agg(t.error_field_id) fieldIds
 	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -570,9 +593,8 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		queryString += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
 	}
 
-	//error_groups not tracked on viewed or not yet
-	if viewed := params.HideViewed; viewed != nil && *viewed && false {
-		queryString += "AND (viewed = false) "
+	if resolved := params.HideResolved; resolved != nil && *resolved {
+		queryString += "AND (resolved = false) "
 	}
 
 	if params.Event != nil {
@@ -617,6 +639,17 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 		allEvents["messages"] = append(subMessage["messages"], allEvents["messages"]...)
 	}
 	return allEvents["messages"], nil
+}
+
+func (r *queryResolver) Errors(ctx context.Context, sessionID int) ([]*model.ErrorObject, error) {
+	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	errorsObj := []*model.ErrorObject{}
+	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: sessionID}).Find(&errorsObj); res.Error != nil {
+		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
+	}
+	return errorsObj, nil
 }
 
 func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interface{}, error) {
@@ -875,29 +908,36 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	return sessionList, nil
 }
 
-func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) (modelInputs.Plan, error) {
-	none := modelInputs.PlanNone
+func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) (*modelInputs.BillingDetails, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
-		return none, e.Wrap(err, "admin not found in org")
+		return nil, e.Wrap(err, "admin not found in org")
 	}
-	if org.StripeCustomerID == nil {
-		return none, nil
+	customerID := ""
+	if org.StripeCustomerID != nil {
+		customerID = *org.StripeCustomerID
 	}
 	params := &stripe.CustomerParams{}
+	priceID := ""
 	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(*org.StripeCustomerID, params)
-	if err != nil {
-		return none, e.Wrap(err, "couldn't retrieve customer")
+	c, err := r.StripeClient.Customers.Get(customerID, params)
+	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
+		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
-	if len(c.Subscriptions.Data) == 0 {
-		return none, nil
+	planType := FromPriceID(priceID)
+	year, month, _ := time.Now().Date()
+	var meter int
+	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
+		return nil, e.Wrap(err, "error querying for session meter")
 	}
-	if len(c.Subscriptions.Data[0].Items.Data) == 0 {
-		return none, nil
+	details := &modelInputs.BillingDetails{
+		Plan: &modelInputs.Plan{
+			Type:  planType,
+			Quota: TypeToQuota(planType),
+		},
+		Meter: meter,
 	}
-	plan := FromPriceID(c.Subscriptions.Data[0].Items.Data[0].Plan.ID)
-	return plan, nil
+	return details, nil
 }
 
 func (r *queryResolver) FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model.Field, error) {
@@ -957,6 +997,16 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 	orgs := []*model.Organization{}
 	if err := r.DB.Model(&admin).Association("Organizations").Find(&orgs).Error; err != nil {
 		return nil, e.Wrap(err, "error getting associated organizations")
+	}
+	return orgs, nil
+}
+
+func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
+	orgs := []*model.Organization{}
+	if r.isWhitelistedAccount(ctx) {
+		if err := r.DB.Debug().Model(&model.Organization{}).Where("name ILIKE ?", "%"+query+"%").Find(&orgs).Error; err != nil {
+			return nil, e.Wrap(err, "error getting associated organizations")
+		}
 	}
 	return orgs, nil
 }

@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
@@ -63,21 +64,22 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 
 	// Get the language from the request header
 	acceptLanguageString := ctx.Value("acceptLanguage").(string)
-
+	n := time.Now()
 	session := &model.Session{
-		UserID:         user.ID,
-		OrganizationID: organizationID,
-		City:           location.City,
-		State:          location.State,
-		Postal:         location.Postal,
-		Latitude:       location.Latitude.(float64),
-		Longitude:      location.Longitude.(float64),
-		OSName:         deviceDetails.OSName,
-		OSVersion:      deviceDetails.OSVersion,
-		BrowserName:    deviceDetails.BrowserName,
-		BrowserVersion: deviceDetails.BrowserVersion,
-		Language:       acceptLanguageString,
-		Processed:      &model.F,
+		UserID:           user.ID,
+		OrganizationID:   organizationID,
+		City:             location.City,
+		State:            location.State,
+		Postal:           location.Postal,
+		Latitude:         location.Latitude.(float64),
+		Longitude:        location.Longitude.(float64),
+		OSName:           deviceDetails.OSName,
+		OSVersion:        deviceDetails.OSVersion,
+		BrowserName:      deviceDetails.BrowserName,
+		BrowserVersion:   deviceDetails.BrowserVersion,
+		Language:         acceptLanguageString,
+		Processed:        &model.F,
+		PayloadUpdatedAt: &n,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
@@ -233,6 +235,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			OS:             sessionObj.OSName,
 			Browser:        sessionObj.BrowserName,
 			Trace:          &traceString,
+			Timestamp:      v.Timestamp,
 		}
 
 		//create error fields array
@@ -241,24 +244,19 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "os_name", Value: sessionObj.OSName})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
-		group, err := r.UpdateErrorGroup(*errorToInsert, v.Trace, metaFields)
+		group, err := r.HandleErrorAndGroup(errorToInsert, v.Trace, metaFields)
 		if err != nil {
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
 		}
-		if organizationID == 1 {
+		// Send a slack message if we're not on localhost.
+		if !strings.Contains(errorToInsert.URL, "localhost") {
 			if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL); err != nil {
 				log.Errorf("Error sending slack error message: %v", err)
 				continue
 			}
 		}
-
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.
-		errorToInsert.ErrorGroupID = group.ID
-		if err := r.DB.Create(errorToInsert).Error; err != nil {
-			log.Errorf("Error performing error insert for error: %v", v.Event)
-			continue
-		}
 	}
 	now := time.Now()
 	res = r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})

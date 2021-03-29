@@ -4,8 +4,8 @@ import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 
 export const MarkSessionAsViewedDocument = gql`
-    mutation MarkSessionAsViewed($id: ID!) {
-        markSessionAsViewed(id: $id) {
+    mutation MarkSessionAsViewed($id: ID!, $viewed: Boolean!) {
+        markSessionAsViewed(id: $id, viewed: $viewed) {
             id
             viewed
         }
@@ -30,6 +30,7 @@ export type MarkSessionAsViewedMutationFn = Apollo.MutationFunction<
  * const [markSessionAsViewedMutation, { data, loading, error }] = useMarkSessionAsViewedMutation({
  *   variables: {
  *      id: // value for 'id'
+ *      viewed: // value for 'viewed'
  *   },
  * });
  */
@@ -53,10 +54,13 @@ export type MarkSessionAsViewedMutationOptions = Apollo.BaseMutationOptions<
     Types.MarkSessionAsViewedMutationVariables
 >;
 export const CreateOrUpdateSubscriptionDocument = gql`
-    mutation CreateOrUpdateSubscription($organization_id: ID!, $plan: Plan!) {
+    mutation CreateOrUpdateSubscription(
+        $organization_id: ID!
+        $plan_type: PlanType!
+    ) {
         createOrUpdateSubscription(
             organization_id: $organization_id
-            plan: $plan
+            plan_type: $plan_type
         )
     }
 `;
@@ -79,7 +83,7 @@ export type CreateOrUpdateSubscriptionMutationFn = Apollo.MutationFunction<
  * const [createOrUpdateSubscriptionMutation, { data, loading, error }] = useCreateOrUpdateSubscriptionMutation({
  *   variables: {
  *      organization_id: // value for 'organization_id'
- *      plan: // value for 'plan'
+ *      plan_type: // value for 'plan_type'
  *   },
  * });
  */
@@ -101,6 +105,56 @@ export type CreateOrUpdateSubscriptionMutationResult = Apollo.MutationResult<Typ
 export type CreateOrUpdateSubscriptionMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateOrUpdateSubscriptionMutation,
     Types.CreateOrUpdateSubscriptionMutationVariables
+>;
+export const MarkErrorGroupAsResolvedDocument = gql`
+    mutation markErrorGroupAsResolved($id: ID!, $resolved: Boolean!) {
+        markErrorGroupAsResolved(id: $id, resolved: $resolved) {
+            id
+            resolved
+        }
+    }
+`;
+export type MarkErrorGroupAsResolvedMutationFn = Apollo.MutationFunction<
+    Types.MarkErrorGroupAsResolvedMutation,
+    Types.MarkErrorGroupAsResolvedMutationVariables
+>;
+
+/**
+ * __useMarkErrorGroupAsResolvedMutation__
+ *
+ * To run a mutation, you first call `useMarkErrorGroupAsResolvedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkErrorGroupAsResolvedMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markErrorGroupAsResolvedMutation, { data, loading, error }] = useMarkErrorGroupAsResolvedMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      resolved: // value for 'resolved'
+ *   },
+ * });
+ */
+export function useMarkErrorGroupAsResolvedMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.MarkErrorGroupAsResolvedMutation,
+        Types.MarkErrorGroupAsResolvedMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.MarkErrorGroupAsResolvedMutation,
+        Types.MarkErrorGroupAsResolvedMutationVariables
+    >(MarkErrorGroupAsResolvedDocument, baseOptions);
+}
+export type MarkErrorGroupAsResolvedMutationHookResult = ReturnType<
+    typeof useMarkErrorGroupAsResolvedMutation
+>;
+export type MarkErrorGroupAsResolvedMutationResult = Apollo.MutationResult<Types.MarkErrorGroupAsResolvedMutation>;
+export type MarkErrorGroupAsResolvedMutationOptions = Apollo.BaseMutationOptions<
+    Types.MarkErrorGroupAsResolvedMutation,
+    Types.MarkErrorGroupAsResolvedMutationVariables
 >;
 export const SendEmailSignupDocument = gql`
     mutation SendEmailSignup($email: String!) {
@@ -403,6 +457,52 @@ export type DeleteOrganizationMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteOrganizationMutation,
     Types.DeleteOrganizationMutationVariables
 >;
+export const DeleteSegmentDocument = gql`
+    mutation DeleteSegment($segment_id: ID!) {
+        deleteSegment(segment_id: $segment_id)
+    }
+`;
+export type DeleteSegmentMutationFn = Apollo.MutationFunction<
+    Types.DeleteSegmentMutation,
+    Types.DeleteSegmentMutationVariables
+>;
+
+/**
+ * __useDeleteSegmentMutation__
+ *
+ * To run a mutation, you first call `useDeleteSegmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteSegmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteSegmentMutation, { data, loading, error }] = useDeleteSegmentMutation({
+ *   variables: {
+ *      segment_id: // value for 'segment_id'
+ *   },
+ * });
+ */
+export function useDeleteSegmentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteSegmentMutation,
+        Types.DeleteSegmentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteSegmentMutation,
+        Types.DeleteSegmentMutationVariables
+    >(DeleteSegmentDocument, baseOptions);
+}
+export type DeleteSegmentMutationHookResult = ReturnType<
+    typeof useDeleteSegmentMutation
+>;
+export type DeleteSegmentMutationResult = Apollo.MutationResult<Types.DeleteSegmentMutation>;
+export type DeleteSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteSegmentMutation,
+    Types.DeleteSegmentMutationVariables
+>;
 export const EditSegmentDocument = gql`
     mutation EditSegment(
         $organization_id: ID!
@@ -534,6 +634,52 @@ export type CreateSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateSegmentMutation,
     Types.CreateSegmentMutationVariables
 >;
+export const DeleteErrorSegmentDocument = gql`
+    mutation DeleteErrorSegment($segment_id: ID!) {
+        deleteErrorSegment(segment_id: $segment_id)
+    }
+`;
+export type DeleteErrorSegmentMutationFn = Apollo.MutationFunction<
+    Types.DeleteErrorSegmentMutation,
+    Types.DeleteErrorSegmentMutationVariables
+>;
+
+/**
+ * __useDeleteErrorSegmentMutation__
+ *
+ * To run a mutation, you first call `useDeleteErrorSegmentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteErrorSegmentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteErrorSegmentMutation, { data, loading, error }] = useDeleteErrorSegmentMutation({
+ *   variables: {
+ *      segment_id: // value for 'segment_id'
+ *   },
+ * });
+ */
+export function useDeleteErrorSegmentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteErrorSegmentMutation,
+        Types.DeleteErrorSegmentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteErrorSegmentMutation,
+        Types.DeleteErrorSegmentMutationVariables
+    >(DeleteErrorSegmentDocument, baseOptions);
+}
+export type DeleteErrorSegmentMutationHookResult = ReturnType<
+    typeof useDeleteErrorSegmentMutation
+>;
+export type DeleteErrorSegmentMutationResult = Apollo.MutationResult<Types.DeleteErrorSegmentMutation>;
+export type DeleteErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteErrorSegmentMutation,
+    Types.DeleteErrorSegmentMutationVariables
+>;
 export const EditErrorSegmentDocument = gql`
     mutation EditErrorSegment(
         $organization_id: ID!
@@ -611,7 +757,7 @@ export const CreateErrorSegmentDocument = gql`
                 os
                 browser
                 visited_url
-                hide_viewed
+                hide_resolved
             }
         }
     }
@@ -1145,7 +1291,13 @@ export type GetOrganizationQueryResult = Apollo.QueryResult<
 >;
 export const GetBillingDetailsDocument = gql`
     query GetBillingDetails($organization_id: ID!) {
-        billingDetails(organization_id: $organization_id)
+        billingDetails(organization_id: $organization_id) {
+            plan {
+                type
+                quota
+            }
+            meter
+        }
     }
 `;
 
@@ -1204,6 +1356,7 @@ export const GetErrorGroupDocument = gql`
             type
             organization_id
             event
+            resolved
             trace {
                 file_name
                 line_number
@@ -1289,6 +1442,7 @@ export const GetErrorGroupsDocument = gql`
                 id
                 type
                 event
+                resolved
                 trace {
                     file_name
                     line_number
@@ -1462,6 +1616,69 @@ export type GetResourcesQueryResult = Apollo.QueryResult<
     Types.GetResourcesQuery,
     Types.GetResourcesQueryVariables
 >;
+export const GetErrorsDocument = gql`
+    query GetErrors($session_id: ID!) {
+        errors(session_id: $session_id) {
+            id
+            error_group_id
+            event
+            type
+            url
+            source
+            line_number
+            column_number
+            trace
+            timestamp
+        }
+    }
+`;
+
+/**
+ * __useGetErrorsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorsQuery({
+ *   variables: {
+ *      session_id: // value for 'session_id'
+ *   },
+ * });
+ */
+export function useGetErrorsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorsQuery,
+        Types.GetErrorsQueryVariables
+    >
+) {
+    return Apollo.useQuery<Types.GetErrorsQuery, Types.GetErrorsQueryVariables>(
+        GetErrorsDocument,
+        baseOptions
+    );
+}
+export function useGetErrorsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorsQuery,
+        Types.GetErrorsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorsQuery,
+        Types.GetErrorsQueryVariables
+    >(GetErrorsDocument, baseOptions);
+}
+export type GetErrorsQueryHookResult = ReturnType<typeof useGetErrorsQuery>;
+export type GetErrorsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorsLazyQuery
+>;
+export type GetErrorsQueryResult = Apollo.QueryResult<
+    Types.GetErrorsQuery,
+    Types.GetErrorsQueryVariables
+>;
 export const GetFieldSuggestionDocument = gql`
     query GetFieldSuggestion(
         $organization_id: ID!
@@ -1528,6 +1745,63 @@ export type GetFieldSuggestionLazyQueryHookResult = ReturnType<
 export type GetFieldSuggestionQueryResult = Apollo.QueryResult<
     Types.GetFieldSuggestionQuery,
     Types.GetFieldSuggestionQueryVariables
+>;
+export const GetOrganizationSuggestionDocument = gql`
+    query GetOrganizationSuggestion($query: String!) {
+        organizationSuggestion(query: $query) {
+            id
+            name
+        }
+    }
+`;
+
+/**
+ * __useGetOrganizationSuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationSuggestionQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetOrganizationSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetOrganizationSuggestionQuery,
+        Types.GetOrganizationSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetOrganizationSuggestionQuery,
+        Types.GetOrganizationSuggestionQueryVariables
+    >(GetOrganizationSuggestionDocument, baseOptions);
+}
+export function useGetOrganizationSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetOrganizationSuggestionQuery,
+        Types.GetOrganizationSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetOrganizationSuggestionQuery,
+        Types.GetOrganizationSuggestionQueryVariables
+    >(GetOrganizationSuggestionDocument, baseOptions);
+}
+export type GetOrganizationSuggestionQueryHookResult = ReturnType<
+    typeof useGetOrganizationSuggestionQuery
+>;
+export type GetOrganizationSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetOrganizationSuggestionLazyQuery
+>;
+export type GetOrganizationSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetOrganizationSuggestionQuery,
+    Types.GetOrganizationSuggestionQueryVariables
 >;
 export const GetErrorFieldSuggestionDocument = gql`
     query GetErrorFieldSuggestion(
@@ -1816,7 +2090,7 @@ export const GetErrorSegmentsDocument = gql`
                 os
                 browser
                 visited_url
-                hide_viewed
+                hide_resolved
                 event
             }
         }

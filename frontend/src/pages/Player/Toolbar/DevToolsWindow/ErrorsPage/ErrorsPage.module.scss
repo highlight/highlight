@@ -1,0 +1,13 @@
+@import 'src/static/shared.scss';
+
+#topBar {
+    grid-template-columns: 1fr;
+}
+
+.errorList {
+    flex-grow: 1;
+}
+
+.skeleton {
+    margin: $size-small $size-xSmall;
+}

@@ -11,6 +11,8 @@ import {
 } from '../../Sessions/SearchInputs/SearchInputUtil';
 import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
 import { SearchMatchOption } from '../../../components/Option/Option';
+import { Switch } from 'antd';
+import classNames from 'classnames';
 
 export const EventInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -74,6 +76,34 @@ export const EventInput = () => {
                 formatCreateLabel={ContainsLabel}
                 createOptionPosition={'first'}
             />
+        </div>
+    );
+};
+
+export const ResolvedErrorSwitch = () => {
+    const { searchParams, setSearchParams } = useContext(ErrorSearchContext);
+
+    return (
+        <div className={inputStyles.switchRow}>
+            <Switch
+                checked={searchParams.hide_resolved}
+                onChange={(val: boolean) => {
+                    setSearchParams((params) => ({
+                        ...params,
+                        hide_resolved: val,
+                    }));
+                }}
+            />
+            <div
+                className={classNames(inputStyles.switchText, {
+                    [inputStyles.switchTextSelected]:
+                        searchParams.hide_resolved,
+                })}
+            >
+                <span className={inputStyles.switchSpan}>
+                    Hide resolved errors
+                </span>
+            </div>
         </div>
     );
 };

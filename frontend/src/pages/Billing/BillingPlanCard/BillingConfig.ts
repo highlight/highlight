@@ -17,7 +17,7 @@ export const basicPlan: BillingPlan = {
 
 export const startupPlan: BillingPlan = {
     planName: 'Startup',
-    monthlyPrice: '300',
+    monthlyPrice: '250',
     advertisedFeatures: [
         '80,000 sessions /month',
         'Unlimited dev tools access',

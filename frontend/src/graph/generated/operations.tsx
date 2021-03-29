@@ -2,6 +2,7 @@ import * as Types from './schemas';
 
 export type MarkSessionAsViewedMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
+    viewed: Types.Scalars['Boolean'];
 }>;
 
 export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
@@ -12,12 +13,26 @@ export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
 
 export type CreateOrUpdateSubscriptionMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
-    plan: Types.Plan;
+    plan_type: Types.PlanType;
 }>;
 
 export type CreateOrUpdateSubscriptionMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
+
+export type MarkErrorGroupAsResolvedMutationVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+    resolved: Types.Scalars['Boolean'];
+}>;
+
+export type MarkErrorGroupAsResolvedMutation = { __typename?: 'Mutation' } & {
+    markErrorGroupAsResolved?: Types.Maybe<
+        { __typename?: 'ErrorGroup' } & Pick<
+            Types.ErrorGroup,
+            'id' | 'resolved'
+        >
+    >;
+};
 
 export type SendEmailSignupMutationVariables = Types.Exact<{
     email: Types.Scalars['String'];
@@ -85,6 +100,15 @@ export type DeleteOrganizationMutation = { __typename?: 'Mutation' } & Pick<
     'deleteOrganization'
 >;
 
+export type DeleteSegmentMutationVariables = Types.Exact<{
+    segment_id: Types.Scalars['ID'];
+}>;
+
+export type DeleteSegmentMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'deleteSegment'
+>;
+
 export type EditSegmentMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     id: Types.Scalars['ID'];
@@ -145,6 +169,15 @@ export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type DeleteErrorSegmentMutationVariables = Types.Exact<{
+    segment_id: Types.Scalars['ID'];
+}>;
+
+export type DeleteErrorSegmentMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'deleteErrorSegment'
+>;
+
 export type EditErrorSegmentMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     id: Types.Scalars['ID'];
@@ -170,7 +203,7 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
         > & {
                 params: { __typename?: 'ErrorSearchParams' } & Pick<
                     Types.ErrorSearchParams,
-                    'os' | 'browser' | 'visited_url' | 'hide_viewed'
+                    'os' | 'browser' | 'visited_url' | 'hide_resolved'
                 > & {
                         date_range?: Types.Maybe<
                             { __typename?: 'DateRange' } & Pick<
@@ -343,10 +376,12 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
 
-export type GetBillingDetailsQuery = { __typename?: 'Query' } & Pick<
-    Types.Query,
-    'billingDetails'
->;
+export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
+    billingDetails: { __typename?: 'BillingDetails' } & Pick<
+        Types.BillingDetails,
+        'meter'
+    > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
+};
 
 export type GetErrorGroupQueryVariables = Types.Exact<{
     id: Types.Scalars['ID'];
@@ -356,7 +391,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
-            'id' | 'type' | 'organization_id' | 'event'
+            'id' | 'type' | 'organization_id' | 'event' | 'resolved'
         > & {
                 trace: Array<
                     Types.Maybe<
@@ -412,7 +447,7 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                     Types.Maybe<
                         { __typename?: 'ErrorGroup' } & Pick<
                             Types.ErrorGroup,
-                            'id' | 'type' | 'event'
+                            'id' | 'type' | 'event' | 'resolved'
                         > & {
                                 trace: Array<
                                     Types.Maybe<
@@ -460,6 +495,32 @@ export type GetResourcesQuery = { __typename?: 'Query' } & Pick<
     'resources'
 >;
 
+export type GetErrorsQueryVariables = Types.Exact<{
+    session_id: Types.Scalars['ID'];
+}>;
+
+export type GetErrorsQuery = { __typename?: 'Query' } & {
+    errors?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorObject' } & Pick<
+                    Types.ErrorObject,
+                    | 'id'
+                    | 'error_group_id'
+                    | 'event'
+                    | 'type'
+                    | 'url'
+                    | 'source'
+                    | 'line_number'
+                    | 'column_number'
+                    | 'trace'
+                    | 'timestamp'
+                >
+            >
+        >
+    >;
+};
+
 export type GetFieldSuggestionQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];
@@ -471,6 +532,23 @@ export type GetFieldSuggestionQuery = { __typename?: 'Query' } & {
         Array<
             Types.Maybe<
                 { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+            >
+        >
+    >;
+};
+
+export type GetOrganizationSuggestionQueryVariables = Types.Exact<{
+    query: Types.Scalars['String'];
+}>;
+
+export type GetOrganizationSuggestionQuery = { __typename?: 'Query' } & {
+    organizationSuggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Organization' } & Pick<
+                    Types.Organization,
+                    'id' | 'name'
+                >
             >
         >
     >;
@@ -618,7 +696,7 @@ export type GetErrorSegmentsQuery = { __typename?: 'Query' } & {
                             | 'os'
                             | 'browser'
                             | 'visited_url'
-                            | 'hide_viewed'
+                            | 'hide_resolved'
                             | 'event'
                         > & {
                                 date_range?: Types.Maybe<

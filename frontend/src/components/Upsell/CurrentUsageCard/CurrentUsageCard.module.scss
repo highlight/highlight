@@ -1,10 +1,10 @@
 @import 'src/static/shared.scss';
 
 .container {
-    padding: $size-large $size-medium;
+    padding: $size-medium $size-medium;
     border: 1px solid $border-light-gray;
     border-radius: 8px;
-    margin-bottom: $size-large;
+    margin-bottom: $size-medium;
 }
 
 .header {
