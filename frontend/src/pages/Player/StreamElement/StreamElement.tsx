@@ -52,7 +52,12 @@ export const StreamElement = ({
                     [styles.selectedStreamElement]: selected,
                 })}
                 style={{
-                    backgroundColor: hover && !selected ? '#efefef7d' : 'white',
+                    backgroundColor:
+                        hover && !selected && !isCurrent
+                            ? '#efefef7d'
+                            : isCurrent
+                            ? '#5629c6'
+                            : 'white',
                 }}
                 key={e.identifier}
                 id={e.identifier}
