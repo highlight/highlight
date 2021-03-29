@@ -57,7 +57,7 @@ export const SessionFeed = () => {
     });
     const { searchParams } = useContext(SearchContext);
 
-    const { loading, fetchMore } = useGetSessionsBetaQuery({
+    const { loading, fetchMore, data: sessionData } = useGetSessionsBetaQuery({
         variables: {
             params: searchParams,
             count: count + 10,
@@ -76,6 +76,12 @@ export const SessionFeed = () => {
     useEffect(() => {
         setShowLoadingSkeleton(true);
     }, [searchParams]);
+
+    useEffect(() => {
+        if (sessionData?.sessionsBETA) {
+            setData(sessionData.sessionsBETA);
+        }
+    }, [sessionData]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)

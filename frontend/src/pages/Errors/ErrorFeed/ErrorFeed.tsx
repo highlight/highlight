@@ -54,7 +54,7 @@ export const ErrorFeed = () => {
     });
     const { searchParams } = useContext(ErrorSearchContext);
 
-    const { loading, fetchMore } = useGetErrorGroupsQuery({
+    const { loading, fetchMore, data: errorData } = useGetErrorGroupsQuery({
         variables: {
             organization_id,
             count: count + 10,
@@ -67,6 +67,12 @@ export const ErrorFeed = () => {
             setShowLoadingSkeleton(false);
         },
     });
+
+    useEffect(() => {
+        if (errorData?.error_groups) {
+            setData(gqlSanitize(errorData.error_groups));
+        }
+    }, [errorData]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
