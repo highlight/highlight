@@ -537,6 +537,23 @@ export type GetFieldSuggestionQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetOrganizationSuggestionQueryVariables = Types.Exact<{
+    query: Types.Scalars['String'];
+}>;
+
+export type GetOrganizationSuggestionQuery = { __typename?: 'Query' } & {
+    organizationSuggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Organization' } & Pick<
+                    Types.Organization,
+                    'id' | 'name'
+                >
+            >
+        >
+    >;
+};
+
 export type GetErrorFieldSuggestionQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     name: Types.Scalars['String'];

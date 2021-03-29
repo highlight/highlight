@@ -6,6 +6,11 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+.atom-overlay {
+    color: blue;
+    z-index: 1000;
+}
+
 a {
     color: #5629c6;
 }

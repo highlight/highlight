@@ -1001,6 +1001,16 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 	return orgs, nil
 }
 
+func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
+	orgs := []*model.Organization{}
+	if r.isWhitelistedAccount(ctx) {
+		if err := r.DB.Debug().Model(&model.Organization{}).Where("name ILIKE ?", "%"+query+"%").Find(&orgs).Error; err != nil {
+			return nil, e.Wrap(err, "error getting associated organizations")
+		}
+	}
+	return orgs, nil
+}
+
 func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
 	org, err := r.isAdminInOrganization(ctx, id)
 	if err != nil {
