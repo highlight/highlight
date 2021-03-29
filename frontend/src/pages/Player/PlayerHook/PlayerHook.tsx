@@ -3,6 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { DemoContext } from '../../../DemoContext';
 import { useGetEventsQuery } from '../../../graph/generated/hooks';
+import { ErrorObject } from '../../../graph/generated/schemas';
 import { HighlightEvent } from '../HighlightEvent';
 
 import {
@@ -29,6 +30,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
 
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
+    const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
     const [time, setTime] = useState<number>(0);
@@ -71,6 +73,9 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             // Allows users to interact with the DOM in the player.
             r.enableInteract();
             setEvents(newEvents);
+            if (eventsData?.errors) {
+                setErrors(eventsData.errors as ErrorObject[]);
+            }
             setReplayer(r);
         }
     }, [eventsData]);
@@ -185,6 +190,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
         events,
         play,
         pause,
+        errors,
     };
 };
 
