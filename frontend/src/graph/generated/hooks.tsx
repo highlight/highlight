@@ -2,7 +2,20 @@ import * as Types from './operations';
 
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
-
+export const ErrorFieldsFragmentDoc = gql`
+    fragment errorFields on ErrorObject {
+        id
+        error_group_id
+        event
+        type
+        url
+        source
+        line_number
+        column_number
+        trace
+        timestamp
+    }
+`;
 export const MarkSessionAsViewedDocument = gql`
     mutation MarkSessionAsViewed($id: ID!, $viewed: Boolean!) {
         markSessionAsViewed(id: $id, viewed: $viewed) {
@@ -808,7 +821,11 @@ export type CreateErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
 export const GetEventsDocument = gql`
     query GetEvents($session_id: ID!) {
         events(session_id: $session_id)
+        errors(session_id: $session_id) {
+            ...errorFields
+        }
     }
+    ${ErrorFieldsFragmentDoc}
 `;
 
 /**
@@ -1619,18 +1636,10 @@ export type GetResourcesQueryResult = Apollo.QueryResult<
 export const GetErrorsDocument = gql`
     query GetErrors($session_id: ID!) {
         errors(session_id: $session_id) {
-            id
-            error_group_id
-            event
-            type
-            url
-            source
-            line_number
-            column_number
-            trace
-            timestamp
+            ...errorFields
         }
     }
+    ${ErrorFieldsFragmentDoc}
 `;
 
 /**

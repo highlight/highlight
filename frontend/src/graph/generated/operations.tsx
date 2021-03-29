@@ -223,7 +223,15 @@ export type GetEventsQueryVariables = Types.Exact<{
 export type GetEventsQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'events'
->;
+> & {
+        errors?: Types.Maybe<
+            Array<
+                Types.Maybe<
+                    { __typename?: 'ErrorObject' } & ErrorFieldsFragment
+                >
+            >
+        >;
+    };
 
 export type GetSessionQueryVariables = Types.Exact<{
     id: Types.Scalars['ID'];
@@ -501,25 +509,23 @@ export type GetErrorsQueryVariables = Types.Exact<{
 
 export type GetErrorsQuery = { __typename?: 'Query' } & {
     errors?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'ErrorObject' } & Pick<
-                    Types.ErrorObject,
-                    | 'id'
-                    | 'error_group_id'
-                    | 'event'
-                    | 'type'
-                    | 'url'
-                    | 'source'
-                    | 'line_number'
-                    | 'column_number'
-                    | 'trace'
-                    | 'timestamp'
-                >
-            >
-        >
+        Array<Types.Maybe<{ __typename?: 'ErrorObject' } & ErrorFieldsFragment>>
     >;
 };
+
+export type ErrorFieldsFragment = { __typename?: 'ErrorObject' } & Pick<
+    Types.ErrorObject,
+    | 'id'
+    | 'error_group_id'
+    | 'event'
+    | 'type'
+    | 'url'
+    | 'source'
+    | 'line_number'
+    | 'column_number'
+    | 'trace'
+    | 'timestamp'
+>;
 
 export type GetFieldSuggestionQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
