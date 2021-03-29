@@ -271,6 +271,7 @@ export type Query = {
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
+    organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
@@ -346,6 +347,10 @@ export type QueryProperty_SuggestionArgs = {
 export type QueryError_Field_SuggestionArgs = {
     organization_id: Scalars['ID'];
     name: Scalars['String'];
+    query: Scalars['String'];
+};
+
+export type QueryOrganizationSuggestionArgs = {
     query: Scalars['String'];
 };
 

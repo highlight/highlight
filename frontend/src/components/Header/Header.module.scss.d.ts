@@ -1,4 +1,5 @@
 export const bannerSvg: string;
+export const commandPaletteOverlay: string;
 export const hamburger: string;
 export const header: string;
 export const headerContent: string;

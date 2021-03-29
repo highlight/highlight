@@ -15,5 +15,6 @@ export const antSwitchChecked: string;
 export const antTooltipArrowContent: string;
 export const antTooltipInner: string;
 export const antTooltipOpen: string;
+export const atomOverlay: string;
 export const blob: string;
 export const cssFoqpf7: string;

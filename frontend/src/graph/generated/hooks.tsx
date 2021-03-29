@@ -1746,6 +1746,63 @@ export type GetFieldSuggestionQueryResult = Apollo.QueryResult<
     Types.GetFieldSuggestionQuery,
     Types.GetFieldSuggestionQueryVariables
 >;
+export const GetOrganizationSuggestionDocument = gql`
+    query GetOrganizationSuggestion($query: String!) {
+        organizationSuggestion(query: $query) {
+            id
+            name
+        }
+    }
+`;
+
+/**
+ * __useGetOrganizationSuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetOrganizationSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOrganizationSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOrganizationSuggestionQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetOrganizationSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetOrganizationSuggestionQuery,
+        Types.GetOrganizationSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetOrganizationSuggestionQuery,
+        Types.GetOrganizationSuggestionQueryVariables
+    >(GetOrganizationSuggestionDocument, baseOptions);
+}
+export function useGetOrganizationSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetOrganizationSuggestionQuery,
+        Types.GetOrganizationSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetOrganizationSuggestionQuery,
+        Types.GetOrganizationSuggestionQueryVariables
+    >(GetOrganizationSuggestionDocument, baseOptions);
+}
+export type GetOrganizationSuggestionQueryHookResult = ReturnType<
+    typeof useGetOrganizationSuggestionQuery
+>;
+export type GetOrganizationSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetOrganizationSuggestionLazyQuery
+>;
+export type GetOrganizationSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetOrganizationSuggestionQuery,
+    Types.GetOrganizationSuggestionQueryVariables
+>;
 export const GetErrorFieldSuggestionDocument = gql`
     query GetErrorFieldSuggestion(
         $organization_id: ID!

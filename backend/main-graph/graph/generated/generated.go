@@ -193,6 +193,7 @@ type ComplexityRoot struct {
 		IsIntegrated             func(childComplexity int, organizationID int) int
 		Messages                 func(childComplexity int, sessionID int) int
 		Organization             func(childComplexity int, id int) int
+		OrganizationSuggestion   func(childComplexity int, query string) int
 		Organizations            func(childComplexity int) int
 		PropertySuggestion       func(childComplexity int, organizationID int, query string, typeArg string) int
 		RecordingSettings        func(childComplexity int, organizationID int) int
@@ -312,6 +313,7 @@ type QueryResolver interface {
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
 	ErrorFieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.ErrorField, error)
 	Organizations(ctx context.Context) ([]*model1.Organization, error)
+	OrganizationSuggestion(ctx context.Context, query string) ([]*model1.Organization, error)
 	Organization(ctx context.Context, id int) (*model1.Organization, error)
 	Admin(ctx context.Context) (*model1.Admin, error)
 	Segments(ctx context.Context, organizationID int) ([]*model1.Segment, error)
@@ -1143,6 +1145,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Organization(childComplexity, args["id"].(int)), true
 
+	case "Query.organizationSuggestion":
+		if e.complexity.Query.OrganizationSuggestion == nil {
+			break
+		}
+
+		args, err := ec.field_Query_organizationSuggestion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.OrganizationSuggestion(childComplexity, args["query"].(string)), true
+
 	case "Query.organizations":
 		if e.complexity.Query.Organizations == nil {
 			break
@@ -1831,6 +1845,7 @@ type Query {
         query: String!
     ): [ErrorField]
     organizations: [Organization]
+    organizationSuggestion(query: String!): [Organization]
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]
@@ -2541,6 +2556,21 @@ func (ec *executionContext) field_Query_messages_args(ctx context.Context, rawAr
 		}
 	}
 	args["session_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_organizationSuggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("query"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg0
 	return args, nil
 }
 
@@ -6070,6 +6100,44 @@ func (ec *executionContext) _Query_organizations(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().Organizations(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.Organization)
+	fc.Result = res
+	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_organizationSuggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_organizationSuggestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().OrganizationSuggestion(rctx, args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9783,6 +9851,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_organizations(ctx, field)
+				return res
+			})
+		case "organizationSuggestion":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_organizationSuggestion(ctx, field)
 				return res
 			})
 		case "organization":

@@ -4,7 +4,7 @@ import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { Link, withRouter } from 'react-router-dom';
 import { useParams, RouteComponentProps } from 'react-router-dom';
 import { UserDropdown } from './UserDropdown/UserDropdown';
-import * as Mousetrap from 'mousetrap';
+// import * as Mousetrap from 'mousetrap';
 
 import styles from './Header.module.scss';
 import { DemoContext } from '../../DemoContext';
@@ -12,6 +12,7 @@ import { SidebarContext } from '../Sidebar/SidebarContext';
 import classNames from 'classnames/bind';
 import { Duration } from '../../util/time';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
+import { CommandBar } from './CommandBar/CommandBar';
 
 type HeaderProps = {
     trialTimeRemaining?: Duration;
@@ -26,23 +27,24 @@ const Head: React.FunctionComponent<RouteComponentProps & HeaderProps> = ({
     const { setOpenSidebar, openSidebar } = useContext(SidebarContext);
     const { trialTimeRemaining } = props;
 
-    useEffect(() => {
-        const keys = ['command+k', 'ctrl+k'];
-        const method = () => {
-            history.push(`/${organization_id}/sessions`);
-        };
+    // useEffect(() => {
+    //     const keys = ['command+k', 'ctrl+k'];
+    //     const method = () => {
+    //         history.push(`/${organization_id}/sessions`);
+    //     };
 
-        // @ts-ignore
-        Mousetrap.bind(keys, method);
+    //     // @ts-ignore
+    //     Mousetrap.bind(keys, method);
 
-        return () => {
-            // @ts-ignore
-            Mousetrap.unbind(keys, method);
-        };
-    }, [history, organization_id]);
+    //     return () => {
+    //         // @ts-ignore
+    //         Mousetrap.unbind(keys, method);
+    //     };
+    // }, [history, organization_id]);
 
     return (
         <>
+            <CommandBar />
             <div className={styles.header}>
                 {trialTimeRemaining && (
                     <TrialBanner timeRemaining={trialTimeRemaining} />

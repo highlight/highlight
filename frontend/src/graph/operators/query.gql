@@ -203,6 +203,13 @@ query GetFieldSuggestion(
     }
 }
 
+query GetOrganizationSuggestion($query: String!) {
+    organizationSuggestion(query: $query) {
+        id
+        name
+    }
+}
+
 query GetErrorFieldSuggestion(
     $organization_id: ID!
     $name: String!

@@ -258,6 +258,7 @@ type Query {
         query: String!
     ): [ErrorField]
     organizations: [Organization]
+    organizationSuggestion(query: String!): [Organization]
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]

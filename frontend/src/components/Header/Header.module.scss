@@ -17,6 +17,15 @@
     width: 24px;
 }
 
+.commandPaletteOverlay {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background-color: rgba(0, 0, 0, 0.75);
+}
+
 .headerContent {
     display: flex;
     flex-grow: 1;
