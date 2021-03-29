@@ -15,7 +15,6 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -1005,7 +1004,6 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
 	orgs := []*model.Organization{}
 	if r.isWhitelistedAccount(ctx) {
-		pp.Println("query", query)
 		if err := r.DB.Debug().Model(&model.Organization{}).Where("name ILIKE ?", "%"+query+"%").Find(&orgs).Error; err != nil {
 			return nil, e.Wrap(err, "error getting associated organizations")
 		}
