@@ -4,7 +4,6 @@ import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { UserDropdown } from './UserDropdown/UserDropdown';
-// import * as Mousetrap from 'mousetrap';
 
 import styles from './Header.module.scss';
 import { DemoContext } from '../../DemoContext';
