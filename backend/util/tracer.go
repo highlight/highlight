@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/k0kubun/pp"
 	"github.com/vektah/gqlparser/v2/ast"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -97,6 +96,7 @@ func (Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandle
 	// NOTE: This gets called for the first time at the highest level. Creates the 'tracing' value, calls the next handler
 	// and returns the response.
 	span := tracer.StartSpan("graphql.operation", tracer.ResourceName(rc.Operation.Name))
+	span.SetTag("backend", "main-graph")
 	defer span.Finish()
 
 	td := &TracingExtension{
@@ -112,7 +112,6 @@ func (Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHandle
 			Duration:    rc.Stats.Validation.End.Sub(rc.Stats.Validation.Start),
 		},
 	}
-	pp.Printf("started trace for: %v\n", rc.Operation.Name)
 
 	graphql.RegisterExtension(ctx, "tracing", td)
 	resp := next(ctx)
