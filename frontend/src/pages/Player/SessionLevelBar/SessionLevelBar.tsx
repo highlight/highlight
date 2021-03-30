@@ -18,7 +18,6 @@ interface Viewport {
 const SessionLevelBar = () => {
     const { replayer, state, events } = useContext(ReplayerContext);
     const [currentUrl, setCurrentUrl] = useState<string | undefined>(undefined);
-    const [isTabActive, setIsTabActive] = useState<boolean>(true);
     const [viewport, setViewport] = useState<Viewport | null>(null);
 
     // Subscribes to the Replayer for relevant events.
@@ -30,9 +29,6 @@ const SessionLevelBar = () => {
                     case 'Navigate':
                     case 'Reload':
                         setCurrentUrl(event.data.payload);
-                        return;
-                    case 'Tab':
-                        setIsTabActive(event.data.payload === 'Active');
                         return;
                     case 'Viewport': {
                         const viewportObject = (event.data
@@ -90,12 +86,6 @@ const SessionLevelBar = () => {
                         {viewport?.height} x {viewport?.width}
                     </SessionToken>
                     <CurrentUrlBar url={currentUrl ?? ''} />
-                    <SessionToken
-                        icon={<ActivityIcon isActive={isTabActive} />}
-                        tooltipTitle="Indicates whether the user has this page as the active tab. If the user is on a different tab or window then the session will be inactive."
-                    >
-                        {isTabActive ? 'Active' : 'Inactive'}
-                    </SessionToken>
                 </>
             )}
         </div>

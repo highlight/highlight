@@ -12,7 +12,6 @@ import {
     ErrorMessage,
     NetworkResourceContent,
 } from '../../frontend/src/util/shared-types';
-import { TabStateListener } from './listeners/tab-state-listener';
 import { ViewportResizeListener } from './listeners/viewport-resize-listener';
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
 import { ClickListener } from './listeners/click-listener/click-listener';
@@ -316,9 +315,6 @@ export class Highlight {
                 });
             }
             ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
-            TabStateListener((tabIsActive: string) => {
-                addCustomEvent<string>('Tab', tabIsActive);
-            });
             ViewportResizeListener((viewport) => {
                 addCustomEvent('Viewport', viewport);
             });
