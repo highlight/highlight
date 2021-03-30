@@ -80,7 +80,7 @@ func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGr
 	}
 	filtered := []*modelInputs.ErrorMetadata{}
 	for _, log := range ret {
-		if log.ErrorID != nil && log.SessionID != nil && log.Timestamp != nil {
+		if log.ErrorID != 0 && log.SessionID != 0 && !log.Timestamp.IsZero() {
 			filtered = append(filtered, log)
 		}
 	}
@@ -997,6 +997,16 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 	orgs := []*model.Organization{}
 	if err := r.DB.Model(&admin).Association("Organizations").Find(&orgs).Error; err != nil {
 		return nil, e.Wrap(err, "error getting associated organizations")
+	}
+	return orgs, nil
+}
+
+func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
+	orgs := []*model.Organization{}
+	if r.isWhitelistedAccount(ctx) {
+		if err := r.DB.Debug().Model(&model.Organization{}).Where("name ILIKE ?", "%"+query+"%").Find(&orgs).Error; err != nil {
+			return nil, e.Wrap(err, "error getting associated organizations")
+		}
 	}
 	return orgs, nil
 }

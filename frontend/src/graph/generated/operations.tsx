@@ -302,44 +302,40 @@ export type GetSessionsBetaQueryVariables = Types.Exact<{
 }>;
 
 export type GetSessionsBetaQuery = { __typename?: 'Query' } & {
-    sessionsBETA?: Types.Maybe<
-        { __typename?: 'SessionResults' } & Pick<
-            Types.SessionResults,
-            'totalCount'
-        > & {
-                sessions: Array<
-                    Types.Maybe<
-                        { __typename?: 'Session' } & Pick<
-                            Types.Session,
-                            | 'id'
-                            | 'user_id'
-                            | 'identifier'
-                            | 'os_name'
-                            | 'os_version'
-                            | 'browser_name'
-                            | 'browser_version'
-                            | 'city'
-                            | 'state'
-                            | 'postal'
-                            | 'created_at'
-                            | 'length'
-                            | 'viewed'
-                        > & {
-                                fields?: Types.Maybe<
-                                    Array<
-                                        Types.Maybe<
-                                            { __typename?: 'Field' } & Pick<
-                                                Types.Field,
-                                                'name' | 'value' | 'type'
-                                            >
-                                        >
+    sessionsBETA: { __typename?: 'SessionResults' } & Pick<
+        Types.SessionResults,
+        'totalCount'
+    > & {
+            sessions: Array<
+                { __typename?: 'Session' } & Pick<
+                    Types.Session,
+                    | 'id'
+                    | 'user_id'
+                    | 'identifier'
+                    | 'os_name'
+                    | 'os_version'
+                    | 'browser_name'
+                    | 'browser_version'
+                    | 'city'
+                    | 'state'
+                    | 'postal'
+                    | 'created_at'
+                    | 'length'
+                    | 'viewed'
+                > & {
+                        fields?: Types.Maybe<
+                            Array<
+                                Types.Maybe<
+                                    { __typename?: 'Field' } & Pick<
+                                        Types.Field,
+                                        'name' | 'value' | 'type'
                                     >
-                                >;
-                            }
-                    >
-                >;
-            }
-    >;
+                                >
+                            >
+                        >;
+                    }
+            >;
+        };
 };
 
 export type GetOrganizationsQueryVariables = Types.Exact<{
@@ -452,34 +448,30 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
             'totalCount'
         > & {
                 error_groups: Array<
-                    Types.Maybe<
-                        { __typename?: 'ErrorGroup' } & Pick<
-                            Types.ErrorGroup,
-                            'id' | 'type' | 'event' | 'resolved'
-                        > & {
-                                trace: Array<
-                                    Types.Maybe<
-                                        { __typename?: 'ErrorTrace' } & Pick<
-                                            Types.ErrorTrace,
-                                            | 'file_name'
-                                            | 'line_number'
-                                            | 'function_name'
-                                            | 'column_number'
-                                        >
+                    { __typename?: 'ErrorGroup' } & Pick<
+                        Types.ErrorGroup,
+                        'id' | 'type' | 'event' | 'resolved'
+                    > & {
+                            trace: Array<
+                                Types.Maybe<
+                                    { __typename?: 'ErrorTrace' } & Pick<
+                                        Types.ErrorTrace,
+                                        | 'file_name'
+                                        | 'line_number'
+                                        | 'function_name'
+                                        | 'column_number'
                                     >
-                                >;
-                                metadata_log: Array<
-                                    Types.Maybe<
-                                        { __typename?: 'ErrorMetadata' } & Pick<
-                                            Types.ErrorMetadata,
-                                            | 'error_id'
-                                            | 'session_id'
-                                            | 'timestamp'
-                                        >
+                                >
+                            >;
+                            metadata_log: Array<
+                                Types.Maybe<
+                                    { __typename?: 'ErrorMetadata' } & Pick<
+                                        Types.ErrorMetadata,
+                                        'error_id' | 'session_id' | 'timestamp'
                                     >
-                                >;
-                            }
-                    >
+                                >
+                            >;
+                        }
                 >;
             }
     >;
@@ -538,6 +530,23 @@ export type GetFieldSuggestionQuery = { __typename?: 'Query' } & {
         Array<
             Types.Maybe<
                 { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+            >
+        >
+    >;
+};
+
+export type GetOrganizationSuggestionQueryVariables = Types.Exact<{
+    query: Types.Scalars['String'];
+}>;
+
+export type GetOrganizationSuggestionQuery = { __typename?: 'Query' } & {
+    organizationSuggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Organization' } & Pick<
+                    Types.Organization,
+                    'id' | 'name'
+                >
             >
         >
     >;
