@@ -213,7 +213,9 @@ type EventRenderDetails = {
     payload?: string;
 };
 
-const getEventRenderDetails = (e: HighlightEvent): EventRenderDetails => {
+export const getEventRenderDetails = (
+    e: HighlightEvent
+): EventRenderDetails => {
     const details: EventRenderDetails = {};
     if (e.type === EventType.Custom) {
         details.title = e.data.tag;

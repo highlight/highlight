@@ -5,6 +5,7 @@ import {
 import { useCallback } from 'react';
 import { useHistory, useLocation } from 'react-router';
 import { ErrorObject } from '../../../../graph/generated/schemas';
+import { HighlightEvent } from '../../HighlightEvent';
 import { ParsedSessionInterval } from '../../ReplayerContext';
 
 const INACTIVE_THRESHOLD = 0.02;
@@ -167,15 +168,71 @@ export const addErrorsToSessionIntervals = (
         .filter((error) => !!error.timestamp)
         .sort((a, b) => b.timestamp - a.timestamp);
 
+    const groupedErrors = assignEventToSessionInterval(
+        sessionIntervals,
+        errorsWithTimestamps,
+        sessionStartTime
+    );
+
+    return sessionIntervals.map((sessionInterval, index) => ({
+        ...sessionInterval,
+        errors: groupedErrors[index],
+    }));
+};
+
+/** These are the type of custom events that will show up as annotations on the timeline. */
+const CustomEventsForTimeline = ['Click', 'Focus', 'Reload', 'Navigate'];
+const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline);
+
+export const EventsForTimeline = [...CustomEventsForTimeline, 'Errors'];
+
+/**
+ * Adds error events based on the interval that the error was thrown.
+ */
+export const addEventsToSessionIntervals = (
+    sessionIntervals: ParsedSessionInterval[],
+    events: HighlightEvent[],
+    sessionStartTime: number
+): ParsedSessionInterval[] => {
+    const eventsToAddToTimeline = events.filter((event) => {
+        if (event.type === 5) {
+            const data = event.data as any;
+            return CustomEventsForTimelineSet.has(data.tag);
+        }
+        return false;
+    });
+
+    const groupedEvents = assignEventToSessionInterval(
+        sessionIntervals,
+        eventsToAddToTimeline,
+        sessionStartTime
+    );
+
+    return sessionIntervals.map((sessionInterval, index) => ({
+        ...sessionInterval,
+        sessionEvents: groupedEvents[index] as HighlightEvent[],
+    }));
+};
+
+type ParsedEvent = ErrorObject | HighlightEvent;
+
+const assignEventToSessionInterval = (
+    sessionIntervals: ParsedSessionInterval[],
+    events: ParsedEvent[],
+    sessionStartTime: number
+) => {
     let errorsIndex = 0;
     let sessionIntervalIndex = 0;
     let currentSessionInterval = sessionIntervals[sessionIntervalIndex];
+    const response: any[] = Array.from(
+        Array(sessionIntervals.length)
+    ).map(() => []);
 
     while (
-        errorsIndex < errorsWithTimestamps.length &&
+        errorsIndex < events.length &&
         sessionIntervalIndex < sessionIntervals.length
     ) {
-        const error = errorsWithTimestamps[errorsIndex];
+        const error = events[errorsIndex];
         const relativeTimestamp =
             new Date(error.timestamp).getTime() - sessionStartTime;
 
@@ -185,7 +242,7 @@ export const addErrorsToSessionIntervals = (
         ) {
             const relativeTime =
                 relativeTimestamp - currentSessionInterval.startTime;
-            currentSessionInterval.errors.push({
+            response[sessionIntervalIndex].push({
                 ...error,
                 relativeIntervalPercentage:
                     (relativeTime / currentSessionInterval.duration) * 100,
@@ -197,5 +254,5 @@ export const addErrorsToSessionIntervals = (
         }
     }
 
-    return sessionIntervals;
+    return response;
 };

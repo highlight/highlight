@@ -13,6 +13,7 @@ import {
 } from '../ReplayerContext';
 import {
     addErrorsToSessionIntervals,
+    addEventsToSessionIntervals,
     getSessionIntervals,
     useSetPlayerTimestampFromSearchParam,
 } from './utils';
@@ -109,9 +110,13 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                         replayer.getMetaData()
                     );
                     setSessionIntervals(
-                        addErrorsToSessionIntervals(
-                            sessionIntervals,
-                            errors,
+                        addEventsToSessionIntervals(
+                            addErrorsToSessionIntervals(
+                                sessionIntervals,
+                                errors,
+                                replayer.getMetaData().startTime
+                            ),
+                            events,
                             replayer.getMetaData().startTime
                         )
                     );

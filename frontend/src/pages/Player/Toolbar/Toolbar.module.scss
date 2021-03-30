@@ -263,20 +263,20 @@
     box-sizing: content-box;
     padding: 8px 0;
     width: 100%;
+    top: -$size-large;
 
     --annotation-scale: 0.1;
 
     .annotation {
         position: absolute;
         z-index: 21;
-        height: calc(1.25px * (1 / var(--annotation-scale)));
-        width: calc(0.25px * (1 / var(--annotation-scale)));
-        background-color: rgba(255, 1, 1, 0.5);
+        height: calc(0.75px * (1 / var(--annotation-scale)));
+        width: calc(0.75px * (1 / var(--annotation-scale)));
+        background-color: var(--color-red);
+        opacity: 0.1;
         border: 1px solid white;
-        cursor: pointer;
-        transition: transform 0.2s ease-in-out,
-            background-color 0.2s ease-in-out;
-        border-radius: 3px;
+        transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+        border-radius: 50%;
         box-sizing: content-box;
         padding: 0;
         outline: none;
@@ -285,9 +285,26 @@
 
         &:hover,
         &:focus {
-            background-color: rgba(255, 1, 1, 0.8);
-            transform: scale(2.5, 3.5);
+            opacity: 1;
+            transform: scale(2, 2);
             z-index: 25;
         }
     }
+}
+
+.tooltipContent {
+    width: 100%;
+    overflow-wrap: anywhere;
+}
+
+.tooltipHeader {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.popoverContent {
+    width: 100%;
+    overflow: hidden;
 }
