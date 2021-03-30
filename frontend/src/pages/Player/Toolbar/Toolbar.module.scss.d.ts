@@ -4,6 +4,7 @@ export const button: string;
 export const dropdownInner: string;
 export const dropdownMenu: string;
 export const dropdownSection: string;
+export const grow: string;
 export const icon: string;
 export const inactiveIcon: string;
 export const inactiveText: string;
