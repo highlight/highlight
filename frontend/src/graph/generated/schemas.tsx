@@ -132,9 +132,9 @@ export type ErrorGroup = {
 
 export type ErrorMetadata = {
     __typename?: 'ErrorMetadata';
-    error_id?: Maybe<Scalars['Int']>;
-    session_id?: Maybe<Scalars['Int']>;
-    timestamp?: Maybe<Scalars['Time']>;
+    error_id: Scalars['Int'];
+    session_id: Scalars['Int'];
+    timestamp: Scalars['Time'];
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
