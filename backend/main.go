@@ -7,15 +7,17 @@ import (
 	"strings"
 
 	"github.com/DataDog/datadog-go/statsd"
+	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
-	"github.com/honeycombio/beeline-go/wrappers/hnynethttp"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/fullstory/backend/util"
 	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
-	ha "github.com/99designs/gqlgen/handler"
+	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	cgraph "github.com/jay-khatri/fullstory/backend/client-graph/graph"
 	cgenerated "github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
@@ -27,8 +29,10 @@ import (
 )
 
 var (
+	env            = os.Getenv("ENVIRONMENT")
 	frontendURL    = os.Getenv("FRONTEND_URI")
-	statsdHost     = os.Getenv("STATSD_HOST")
+	statsdHost     = os.Getenv("DD_STATSD_HOST")
+	apmHost        = os.Getenv("DD_APM_HOST")
 	landingURL     = os.Getenv("LANDING_PAGE_URI")
 	sendgridKey    = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey   = os.Getenv("STRIPE_API_KEY")
@@ -71,9 +75,13 @@ func main() {
 		return
 	}
 
+	if env == "prod" {
+		tracer.Start(tracer.WithAgentAddr(apmHost))
+		defer tracer.Stop()
+	}
+
 	rd.SetupRedisStore()
 	db := model.SetupDB()
-	mux := http.NewServeMux()
 
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
@@ -84,36 +92,50 @@ func main() {
 		MailClient:   sendgrid.NewSendClient(sendgridKey),
 		StripeClient: stripeClient,
 	}
-
-	mux.Handle("/main", mgraph.AdminMiddleWare(ha.GraphQL(mgenerated.NewExecutableSchema(
-		mgenerated.Config{
-			Resolvers: main,
-		}))))
-	mux.Handle("/client", cgraph.ClientMiddleWare(ha.GraphQL(cgenerated.NewExecutableSchema(
-		cgenerated.Config{
-			Resolvers: &cgraph.Resolver{
-				DB: db,
-			},
-		}))))
-
-	handler := cors.New(cors.Options{
+	r := chi.NewMux()
+	// Common middlewares for both the client/main graphs.
+	r.Use(handlers.CompressHandler)
+	r.Use(func(h http.Handler) http.Handler {
+		return handlers.LoggingHandler(os.Stdout, h)
+	})
+	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
-	}).Handler(mux)
-
-	loggedRouter := handlers.LoggingHandler(os.Stdout, hnynethttp.WrapHandler(handler))
+	}).Handler)
+	// Maingraph logic
+	r.Route("/main", func(r chi.Router) {
+		r.Use(mgraph.AdminMiddleWare)
+		mainServer := ghandler.NewDefaultServer(mgenerated.NewExecutableSchema(
+			mgenerated.Config{
+				Resolvers: main,
+			}),
+		)
+		mainServer.Use(util.Tracer{})
+		r.Handle("/", mainServer)
+	})
+	// Clientgraph logic
+	r.Route("/client", func(r chi.Router) {
+		r.Use(cgraph.ClientMiddleWare)
+		clientServer := ghandler.NewDefaultServer(cgenerated.NewExecutableSchema(
+			cgenerated.Config{
+				Resolvers: &cgraph.Resolver{
+					DB: db,
+				},
+			}))
+		r.Handle("/", clientServer)
+	})
 	w := &worker.Worker{R: main}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
 	if rt := *runtime; rt == "dev" {
 		go func() {
 			w.Start()
 		}()
-		log.Fatal(http.ListenAndServe(":"+port, handlers.CompressHandler(loggedRouter)))
+		log.Fatal(http.ListenAndServe(":"+port, r))
 	} else if rt == "worker" {
 		w.Start()
 	} else if rt == "server" {
-		log.Fatal(http.ListenAndServe(":"+port, handlers.CompressHandler(loggedRouter)))
+		log.Fatal(http.ListenAndServe(":"+port, r))
 	}
 	log.Errorf("invalid runtime")
 }

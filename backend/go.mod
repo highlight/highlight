@@ -6,11 +6,12 @@ require (
 	cloud.google.com/go/firestore v1.3.0 // indirect
 	cloud.google.com/go/storage v1.11.0 // indirect
 	firebase.google.com/go v3.13.0+incompatible
-	github.com/99designs/gqlgen v0.12.2
+	github.com/99designs/gqlgen v0.13.0
 	github.com/DataDog/datadog-go v4.4.0+incompatible
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
+	github.com/go-chi/chi v3.3.2+incompatible
 	github.com/go-redis/redis/v7 v7.4.0
 	github.com/go-test/deep v1.0.4
 	github.com/gorilla/handlers v1.5.1
@@ -22,6 +23,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mssola/user_agent v0.5.2
+	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.7.0
 	github.com/rs/xid v1.2.1
@@ -31,9 +33,11 @@ require (
 	github.com/slack-go/slack v0.6.6
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stripe/stripe-go v70.15.0+incompatible
-	github.com/vektah/gqlparser/v2 v2.0.1
+	github.com/vektah/gqlparser v1.3.1 // indirect
+	github.com/vektah/gqlparser/v2 v2.1.0
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
 	google.golang.org/api v0.31.0
+	gopkg.in/DataDog/dd-trace-go.v1 v1.29.2
 	gopkg.in/boj/redistore.v1 v1.0.0-20160128113310-fc113767cd6b
 	gorm.io/gorm v1.20.10
 )

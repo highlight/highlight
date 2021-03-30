@@ -1,3 +1,4 @@
+export const actionIcon: string;
 export const avatarWrapper: string;
 export const blueTitle: string;
 export const bottomText: string;
@@ -22,7 +23,9 @@ export const regSubTitle: string;
 export const regTitle: string;
 export const resultCount: string;
 export const sessionCard: string;
+export const sessionCardAction: string;
 export const sessionCardContentWrapper: string;
+export const sessionCardWrapper: string;
 export const sessionTextSection: string;
 export const sessionTextSectionWrapper: string;
 export const sessionTextWrapper: string;

@@ -78,12 +78,19 @@ func ToPriceID(plan modelInputs.PlanType) string {
 	return ""
 }
 
+func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
+	uid := fmt.Sprintf("%v", ctx.Value("uid"))
+	// If the user is engineering@..., we whitelist.
+	if uid == WhitelistedUID {
+		return true
+	}
+	return false
+}
+
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
-	uid := fmt.Sprintf("%v", ctx.Value("uid"))
-	// If the user is me (jaykhatrimail@gmail.com) or is the getmosaic.io account, whitelist.
-	if uid == WhitelistedUID {
+	if r.isWhitelistedAccount(ctx) {
 		org := &model.Organization{}
 		res := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org)
 		if err := res.Error; err != nil || res.RecordNotFound() {
