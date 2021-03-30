@@ -17,6 +17,8 @@ import ReplayerContext, {
 } from '../ReplayerContext';
 import classNames from 'classnames';
 import Skeleton from 'react-loading-skeleton';
+import { Popover } from 'antd';
+import { Link, useParams } from 'react-router-dom';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -372,6 +374,9 @@ const SessionSegment = ({
     time: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
+    const { organization_id } = useParams<{
+        organization_id: string;
+    }>();
     const playedColor = interval.active ? '#5629c6' : '#808080';
     const unplayedColor = interval.active ? '#EEE7FF' : '#d2d2d2';
     const isPercentInInterval = (
@@ -390,6 +395,40 @@ const SessionSegment = ({
                 }%`,
             }}
         >
+            <div
+                className={styles.annotationsContainer}
+                style={{
+                    width: `${
+                        (interval.endPercent - interval.startPercent) * 100
+                    }%`,
+                }}
+            >
+                {interval.errors.map((error) => (
+                    <Popover
+                        key={error.id}
+                        content={
+                            <>
+                                {error.source}
+                                <div>
+                                    <Link
+                                        to={`/${organization_id}/errors/${error.error_group_id}`}
+                                    >
+                                        More info
+                                    </Link>
+                                </div>
+                            </>
+                        }
+                        title={error.type}
+                    >
+                        <button
+                            className={styles.annotation}
+                            style={{
+                                left: `${error.relativeIntervalPercentage}%`,
+                            }}
+                        ></button>
+                    </Popover>
+                ))}
+            </div>
             <div
                 className={styles.sliderPopover}
                 style={{

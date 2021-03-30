@@ -12,9 +12,17 @@ export enum ReplayerState {
     Paused,
 }
 
+export interface ParsedErrorObject extends ErrorObject {
+    /**
+     * The percentage of where this error is thrown in the interval.
+     * @example An interval from t=0 to t=5. An error thrown at t=1. The relativeIntervalPercentage would be 20%.
+     */
+    relativeIntervalPercentage?: number;
+}
 export interface ParsedSessionInterval extends SessionInterval {
     startPercent: number;
     endPercent: number;
+    errors: ParsedErrorObject[];
 }
 
 export interface ReplayerContextInterface {

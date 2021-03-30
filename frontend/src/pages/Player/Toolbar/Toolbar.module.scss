@@ -26,11 +26,12 @@
 }
 
 .sliderSegment {
-    display: inline-block;
+    display: inline-flex;
     height: 4px;
     background: none;
     padding: 0 0 0 1px;
     outline: none;
+    align-items: center;
 }
 
 .segmentHover {
@@ -252,4 +253,41 @@
 .icon {
     height: 18px;
     width: 18px;
+}
+
+.annotationsContainer {
+    position: absolute;
+    height: 10px;
+    display: flex;
+    align-items: center;
+    box-sizing: content-box;
+    padding: 8px 0;
+    width: 100%;
+
+    --annotation-scale: 0.1;
+
+    .annotation {
+        position: absolute;
+        z-index: 21;
+        height: calc(1.25px * (1 / var(--annotation-scale)));
+        width: calc(0.25px * (1 / var(--annotation-scale)));
+        background-color: rgba(255, 1, 1, 0.5);
+        border: 1px solid white;
+        cursor: pointer;
+        transition: transform 0.2s ease-in-out,
+            background-color 0.2s ease-in-out;
+        border-radius: 3px;
+        box-sizing: content-box;
+        padding: 0;
+        outline: none;
+        flex-shrink: 0;
+        flex-grow: 0;
+
+        &:hover,
+        &:focus {
+            background-color: rgba(255, 1, 1, 0.8);
+            transform: scale(2.5, 3.5);
+            z-index: 25;
+        }
+    }
 }

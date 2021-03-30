@@ -30,6 +30,7 @@ export const getSessionIntervals = (
                 startPercent: 0,
                 endTime: metadata.totalTime,
                 startTime: 0,
+                errors: [],
             },
         ];
     }
@@ -45,7 +46,7 @@ export const getSessionIntervals = (
 const getIntervalWithPercentages = (
     metadata: playerMetaData,
     allIntervals: SessionInterval[]
-) => {
+): ParsedSessionInterval[] => {
     const intervals = allIntervals.map((e) => ({
         ...e,
         startTime: e.startTime - metadata.startTime,
@@ -73,6 +74,7 @@ const getIntervalWithPercentages = (
             ...e,
             startPercent: prevTime / totalDuration,
             endPercent: currTime / totalDuration,
+            errors: [],
         };
     });
 };
@@ -151,4 +153,49 @@ export const useSetPlayerTimestampFromSearchParam = (
          */
         setPlayerTimestamp,
     };
+};
+
+/**
+ * Adds error events based on the interval that the error was thrown.
+ */
+export const addErrorsToSessionIntervals = (
+    sessionIntervals: ParsedSessionInterval[],
+    errors: ErrorObject[],
+    sessionStartTime: number
+): ParsedSessionInterval[] => {
+    const errorsWithTimestamps = errors
+        .filter((error) => !!error.timestamp)
+        .sort((a, b) => b.timestamp - a.timestamp);
+
+    let errorsIndex = 0;
+    let sessionIntervalIndex = 0;
+    let currentSessionInterval = sessionIntervals[sessionIntervalIndex];
+
+    while (
+        errorsIndex < errorsWithTimestamps.length &&
+        sessionIntervalIndex < sessionIntervals.length
+    ) {
+        const error = errorsWithTimestamps[errorsIndex];
+        const relativeTimestamp =
+            new Date(error.timestamp).getTime() - sessionStartTime;
+
+        if (
+            relativeTimestamp >= currentSessionInterval.startTime &&
+            relativeTimestamp <= currentSessionInterval.endTime
+        ) {
+            const relativeTime =
+                relativeTimestamp - currentSessionInterval.startTime;
+            currentSessionInterval.errors.push({
+                ...error,
+                relativeIntervalPercentage:
+                    (relativeTime / currentSessionInterval.duration) * 100,
+            });
+            errorsIndex++;
+        } else {
+            sessionIntervalIndex++;
+            currentSessionInterval = sessionIntervals[sessionIntervalIndex];
+        }
+    }
+
+    return sessionIntervals;
 };
