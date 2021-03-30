@@ -216,11 +216,11 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
-export type GetEventsQueryVariables = Types.Exact<{
+export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_id: Types.Scalars['ID'];
 }>;
 
-export type GetEventsQuery = { __typename?: 'Query' } & Pick<
+export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'events'
 > & {

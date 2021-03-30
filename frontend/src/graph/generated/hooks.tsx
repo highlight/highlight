@@ -818,8 +818,8 @@ export type CreateErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorSegmentMutation,
     Types.CreateErrorSegmentMutationVariables
 >;
-export const GetEventsDocument = gql`
-    query GetEvents($session_id: ID!) {
+export const GetSessionPayloadDocument = gql`
+    query GetSessionPayload($session_id: ID!) {
         events(session_id: $session_id)
         errors(session_id: $session_id) {
             ...errorFields
@@ -829,50 +829,52 @@ export const GetEventsDocument = gql`
 `;
 
 /**
- * __useGetEventsQuery__
+ * __useGetSessionPayloadQuery__
  *
- * To run a query within a React component, call `useGetEventsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetEventsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetSessionPayloadQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionPayloadQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetEventsQuery({
+ * const { data, loading, error } = useGetSessionPayloadQuery({
  *   variables: {
  *      session_id: // value for 'session_id'
  *   },
  * });
  */
-export function useGetEventsQuery(
+export function useGetSessionPayloadQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetEventsQuery,
-        Types.GetEventsQueryVariables
+        Types.GetSessionPayloadQuery,
+        Types.GetSessionPayloadQueryVariables
     >
 ) {
-    return Apollo.useQuery<Types.GetEventsQuery, Types.GetEventsQueryVariables>(
-        GetEventsDocument,
-        baseOptions
-    );
+    return Apollo.useQuery<
+        Types.GetSessionPayloadQuery,
+        Types.GetSessionPayloadQueryVariables
+    >(GetSessionPayloadDocument, baseOptions);
 }
-export function useGetEventsLazyQuery(
+export function useGetSessionPayloadLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetEventsQuery,
-        Types.GetEventsQueryVariables
+        Types.GetSessionPayloadQuery,
+        Types.GetSessionPayloadQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetEventsQuery,
-        Types.GetEventsQueryVariables
-    >(GetEventsDocument, baseOptions);
+        Types.GetSessionPayloadQuery,
+        Types.GetSessionPayloadQueryVariables
+    >(GetSessionPayloadDocument, baseOptions);
 }
-export type GetEventsQueryHookResult = ReturnType<typeof useGetEventsQuery>;
-export type GetEventsLazyQueryHookResult = ReturnType<
-    typeof useGetEventsLazyQuery
+export type GetSessionPayloadQueryHookResult = ReturnType<
+    typeof useGetSessionPayloadQuery
 >;
-export type GetEventsQueryResult = Apollo.QueryResult<
-    Types.GetEventsQuery,
-    Types.GetEventsQueryVariables
+export type GetSessionPayloadLazyQueryHookResult = ReturnType<
+    typeof useGetSessionPayloadLazyQuery
+>;
+export type GetSessionPayloadQueryResult = Apollo.QueryResult<
+    Types.GetSessionPayloadQuery,
+    Types.GetSessionPayloadQueryVariables
 >;
 export const GetSessionDocument = gql`
     query GetSession($id: ID!) {

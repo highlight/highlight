@@ -2,7 +2,7 @@ import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { DemoContext } from '../../../DemoContext';
-import { useGetEventsQuery } from '../../../graph/generated/hooks';
+import { useGetSessionPayloadQuery } from '../../../graph/generated/hooks';
 import { ErrorObject } from '../../../graph/generated/schemas';
 import { HighlightEvent } from '../HighlightEvent';
 
@@ -45,7 +45,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
 
     const { demo } = useContext(DemoContext);
 
-    const { data: eventsData } = useGetEventsQuery({
+    const { data: eventsData } = useGetSessionPayloadQuery({
         variables: {
             session_id: demo
                 ? process.env.REACT_APP_DEMO_SESSION ?? ''
