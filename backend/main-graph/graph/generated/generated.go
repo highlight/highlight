@@ -1797,12 +1797,12 @@ type Admin {
 }
 
 type SessionResults {
-    sessions: [Session]!
+    sessions: [Session!]!
     totalCount: Int!
 }
 
 type ErrorResults {
-    error_groups: [ErrorGroup]!
+    error_groups: [ErrorGroup!]!
     totalCount: Int!
 }
 
@@ -4030,7 +4030,7 @@ func (ec *executionContext) _ErrorResults_error_groups(ctx context.Context, fiel
 	}
 	res := resTmp.([]model1.ErrorGroup)
 	fc.Result = res
-	return ec.marshalNErrorGroup2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
+	return ec.marshalNErrorGroup2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroupᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorResults_totalCount(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
@@ -7688,7 +7688,7 @@ func (ec *executionContext) _SessionResults_sessions(ctx context.Context, field 
 	}
 	res := resTmp.([]model1.Session)
 	fc.Result = res
-	return ec.marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+	return ec.marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionResults_totalCount(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
@@ -10718,7 +10718,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNErrorGroup2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v []model1.ErrorGroup) graphql.Marshaler {
+func (ec *executionContext) marshalNErrorGroup2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v model1.ErrorGroup) graphql.Marshaler {
+	return ec._ErrorGroup(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNErrorGroup2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []model1.ErrorGroup) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -10742,7 +10746,7 @@ func (ec *executionContext) marshalNErrorGroup2ᚕgithubᚗcomᚋjayᚑkhatriᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOErrorGroup2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, sel, v[i])
+			ret[i] = ec.marshalNErrorGroup2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -10917,7 +10921,11 @@ func (ec *executionContext) unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkha
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v []model1.Session) graphql.Marshaler {
+func (ec *executionContext) marshalNSession2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model1.Session) graphql.Marshaler {
+	return ec._Session(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []model1.Session) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -10941,7 +10949,7 @@ func (ec *executionContext) marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋful
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOSession2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, sel, v[i])
+			ret[i] = ec.marshalNSession2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -11448,10 +11456,6 @@ func (ec *executionContext) marshalOErrorField2ᚖgithubᚗcomᚋjayᚑkhatriᚋ
 	return ec._ErrorField(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOErrorGroup2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v model1.ErrorGroup) graphql.Marshaler {
-	return ec._ErrorGroup(ctx, sel, &v)
-}
-
 func (ec *executionContext) marshalOErrorGroup2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorGroup) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -11799,10 +11803,6 @@ func (ec *executionContext) marshalOSegment2ᚖgithubᚗcomᚋjayᚑkhatriᚋful
 		return graphql.Null
 	}
 	return ec._Segment(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOSession2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model1.Session) graphql.Marshaler {
-	return ec._Session(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model1.Session) graphql.Marshaler {

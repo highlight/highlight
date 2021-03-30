@@ -210,12 +210,12 @@ type Admin {
 }
 
 type SessionResults {
-    sessions: [Session]!
+    sessions: [Session!]!
     totalCount: Int!
 }
 
 type ErrorResults {
-    error_groups: [ErrorGroup]!
+    error_groups: [ErrorGroup!]!
     totalCount: Int!
 }
 
@@ -239,7 +239,7 @@ type Query {
         count: Int!
         processed: Boolean!
         params: SearchParamsInput
-    ): SessionResults
+    ): SessionResults!
     billingDetails(organization_id: ID!): BillingDetails!
     # gets all the organizations of a user
     field_suggestionBETA(

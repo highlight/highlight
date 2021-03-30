@@ -11,8 +11,8 @@
 .readMarkerContainer {
     display: flex;
     align-items: center;
-    width: auto;
     margin-left: 6px;
+    width: 8px;
 }
 
 .readMarker {
@@ -212,6 +212,49 @@
     justify-content: space-between;
     padding: 8px 5px 16px 5px;
     color: #a8a8a8;
+}
+
+.sessionCardWrapper {
+    position: relative;
+
+    &:hover {
+        .sessionCardAction {
+            display: flex;
+        }
+    }
+}
+
+.sessionCardAction {
+    background-color: white;
+    border: 0;
+    display: none;
+    position: absolute;
+    padding: 0px 6px;
+    width: 30px;
+    height: 30px;
+    right: 8px;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    border-radius: 5px;
+    align-items: center;
+
+    &:hover {
+        cursor: pointer;
+        background-color: #eaeaea;
+
+        .actionIcon {
+            color: black;
+            fill: black;
+            stroke: black;
+        }
+    }
+}
+
+.actionIcon {
+    stroke: #808080;
+    color: #808080;
+    fill: #808080;
 }
 
 .sessionCard {
