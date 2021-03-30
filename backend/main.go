@@ -120,7 +120,8 @@ func main() {
 		clientServer := ghandler.NewDefaultServer(cgenerated.NewExecutableSchema(
 			cgenerated.Config{
 				Resolvers: &cgraph.Resolver{
-					DB: db,
+					DB:           db,
+					StripeClient: stripeClient,
 				},
 			}))
 		r.Handle("/", clientServer)

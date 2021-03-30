@@ -55,6 +55,7 @@ type Organization {
     id: ID!
     verbose_id: String!
     name: String!
+    plan: String
     billing_email: String
     trial_end_date: Time
 }

@@ -440,23 +440,14 @@ func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizati
 
 func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
+	planString := planType.String()
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
 	// For older workspaces, if there's no customer ID, we create a StripeCustomer obj.
 	if org.StripeCustomerID == nil {
-		params := &stripe.CustomerParams{}
-		c, err := r.StripeClient.Customers.New(params)
-		if err != nil {
-			return nil, e.Wrap(err, "error creating stripe customer")
-		}
-		if err := r.DB.Model(org).Updates(&model.Organization{
-			StripeCustomerID: &c.ID,
-		}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating org fields")
-		}
-		org.StripeCustomerID = &c.ID
+		return nil, e.New("no stripe customer id")
 	}
 
 	// Check if there's already a subscription on the user. If there is, we do an update and return early.
@@ -483,6 +474,12 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
+		if err := r.DB.Model(org).Updates(&model.Organization{
+			Plan: &planString,
+		}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating org fields")
+		}
+		org.Plan = &planString
 		ret := ""
 		return &ret, nil
 	}

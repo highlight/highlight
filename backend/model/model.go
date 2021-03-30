@@ -67,6 +67,7 @@ type Organization struct {
 	Model
 	Name             *string
 	StripeCustomerID *string
+	Plan             *string
 	BillingEmail     *string
 	Secret           *string `json:"-"`
 	Users            []User

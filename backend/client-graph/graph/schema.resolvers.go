@@ -26,6 +26,10 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		return nil, e.Wrap(err, "org doesn't exist")
 	}
 
+	if check, err := r.ValidatePlan(organizationID); !check || err != nil {
+		return nil, e.Wrap(err, "org session quota reached")
+	}
+
 	uid, ok := ctx.Value("uid").(int)
 	if !ok {
 		return nil, e.New("error unwrapping uid in context")
