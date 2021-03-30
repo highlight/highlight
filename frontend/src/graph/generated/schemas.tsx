@@ -75,6 +75,7 @@ export type Organization = {
     id: Scalars['ID'];
     verbose_id: Scalars['String'];
     name: Scalars['String'];
+    plan?: Maybe<Scalars['String']>;
     billing_email?: Maybe<Scalars['String']>;
     trial_end_date?: Maybe<Scalars['Time']>;
 };
