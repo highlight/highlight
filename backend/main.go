@@ -29,6 +29,7 @@ import (
 )
 
 var (
+	env            = os.Getenv("ENVIRONMENT")
 	frontendURL    = os.Getenv("FRONTEND_URI")
 	statsdHost     = os.Getenv("STATSD_HOST")
 	landingURL     = os.Getenv("LANDING_PAGE_URI")
@@ -72,8 +73,11 @@ func main() {
 		log.Fatalf("error connecting to statsd: %v", err)
 		return
 	}
-	tracer.Start(tracer.WithAgentAddr(statsdHost))
-	defer tracer.Stop()
+
+	if env == "prod" {
+		tracer.Start(tracer.WithAgentAddr(statsdHost))
+		defer tracer.Stop()
+	}
 
 	rd.SetupRedisStore()
 	db := model.SetupDB()
