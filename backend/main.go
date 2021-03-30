@@ -31,7 +31,8 @@ import (
 var (
 	env            = os.Getenv("ENVIRONMENT")
 	frontendURL    = os.Getenv("FRONTEND_URI")
-	statsdHost     = os.Getenv("STATSD_HOST")
+	statsdHost     = os.Getenv("DD_STATSD_HOST")
+	apmHost        = os.Getenv("DD_APM_HOST")
 	landingURL     = os.Getenv("LANDING_PAGE_URI")
 	sendgridKey    = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey   = os.Getenv("STRIPE_API_KEY")
@@ -75,7 +76,7 @@ func main() {
 	}
 
 	if env == "prod" {
-		tracer.Start(tracer.WithAgentAddr(statsdHost))
+		tracer.Start(tracer.WithAgentAddr(apmHost))
 		defer tracer.Stop()
 	}
 
