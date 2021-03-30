@@ -162,8 +162,9 @@ type Session struct {
 	UserObject       JSONB      `json:"user_object" sql:"type:jsonb"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
 	// Custom properties
-	Viewed     *bool   `json:"viewed"`
-	FieldGroup *string `json:"field_group"`
+	Viewed              *bool   `json:"viewed"`
+	FieldGroup          *string `json:"field_group"`
+	EnableStrictPrivacy *bool   `json:"enable_strict_privacy"`
 }
 
 type Field struct {

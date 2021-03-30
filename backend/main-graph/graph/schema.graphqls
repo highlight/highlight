@@ -26,6 +26,7 @@ type Session {
     fields: [Field]
     viewed: Boolean
     field_group: String
+    enable_strict_privacy: Boolean
 }
 
 type BillingDetails {

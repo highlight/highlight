@@ -213,6 +213,7 @@ export class Highlight {
             } else {
                 const gr = await this.graphqlSDK.initializeSession({
                     organization_verbose_id: this.organizationID,
+                    enable_strict_privacy: this.enableStrictPrivacy,
                 });
                 this.sessionID = parseInt(gr?.initializeSession?.id || '0');
                 const organization_id = gr?.initializeSession?.organization_id;
