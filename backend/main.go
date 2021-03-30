@@ -10,10 +10,12 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/fullstory/backend/util"
 	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	cgraph "github.com/jay-khatri/fullstory/backend/client-graph/graph"
@@ -70,6 +72,8 @@ func main() {
 		log.Fatalf("error connecting to statsd: %v", err)
 		return
 	}
+	tracer.Start(tracer.WithAgentAddr(statsdHost))
+	defer tracer.Stop()
 
 	rd.SetupRedisStore()
 	db := model.SetupDB()
@@ -102,6 +106,7 @@ func main() {
 				Resolvers: main,
 			}),
 		)
+		mainServer.Use(util.Tracer{})
 		r.Handle("/", mainServer)
 	})
 	// Clientgraph logic
