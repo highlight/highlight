@@ -79,10 +79,11 @@
         "written-number": "^0.9.1"
     },
     "scripts": {
-        "start": "doppler run -- react-scripts start",
+        "start": "doppler run -- craco start",
         "styles": " tsm src -w",
         "gql": "graphql-codegen --config --watch codegen.yml",
         "build": "react-scripts build",
+        "analyze": "source-map-explorer 'build/static/js/*.js'",
         "test": "react-scripts test",
         "eject": "react-scripts eject",
         "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}' && yarn lint:es",
@@ -104,6 +105,7 @@
         ]
     },
     "devDependencies": {
+        "@craco/craco": "^6.1.1",
         "@graphql-codegen/cli": "^1.20.1",
         "@graphql-codegen/import-types-preset": "^1.18.1",
         "@graphql-codegen/typescript": "^1.20.2",
@@ -114,11 +116,13 @@
         "@types/validator": "^13.1.3",
         "@typescript-eslint/eslint-plugin": "^4.15.1",
         "@typescript-eslint/parser": "^4.15.1",
+        "craco-antd": "^1.19.0",
         "eslint-config-prettier": "^7.2.0",
         "eslint-plugin-prettier": "^3.3.1",
         "eslint-plugin-react": "^7.22.0",
         "eslint-plugin-react-hooks": "^4.2.0",
         "prettier": "^2.2.1",
+        "source-map-explorer": "^2.5.2",
         "typed-scss-modules": "^3.4.0"
     },
     "resolutions": {
