@@ -495,16 +495,6 @@ export type GetResourcesQuery = { __typename?: 'Query' } & Pick<
     'resources'
 >;
 
-export type GetErrorsQueryVariables = Types.Exact<{
-    session_id: Types.Scalars['ID'];
-}>;
-
-export type GetErrorsQuery = { __typename?: 'Query' } & {
-    errors?: Types.Maybe<
-        Array<Types.Maybe<{ __typename?: 'ErrorObject' } & ErrorFieldsFragment>>
-    >;
-};
-
 export type ErrorFieldsFragment = { __typename?: 'ErrorObject' } & Pick<
     Types.ErrorObject,
     | 'id'

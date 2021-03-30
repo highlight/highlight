@@ -176,12 +176,6 @@ query GetResources($session_id: ID!) {
     resources(session_id: $session_id)
 }
 
-query GetErrors($session_id: ID!) {
-    errors(session_id: $session_id) {
-        ...errorFields
-    }
-}
-
 fragment errorFields on ErrorObject {
     id
     error_group_id
