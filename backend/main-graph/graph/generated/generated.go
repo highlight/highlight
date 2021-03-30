@@ -1913,7 +1913,7 @@ func (ec *executionContext) field_Mutation_addAdminToOrganization_args(ctx conte
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -1922,7 +1922,7 @@ func (ec *executionContext) field_Mutation_addAdminToOrganization_args(ctx conte
 	args["organization_id"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["invite_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("invite_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("invite_id"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -1937,7 +1937,7 @@ func (ec *executionContext) field_Mutation_addSlackIntegrationToWorkspace_args(c
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -1946,7 +1946,7 @@ func (ec *executionContext) field_Mutation_addSlackIntegrationToWorkspace_args(c
 	args["organization_id"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["code"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("code"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("code"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -1955,7 +1955,7 @@ func (ec *executionContext) field_Mutation_addSlackIntegrationToWorkspace_args(c
 	args["code"] = arg1
 	var arg2 string
 	if tmp, ok := rawArgs["redirect_path"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("redirect_path"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("redirect_path"))
 		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -1970,7 +1970,7 @@ func (ec *executionContext) field_Mutation_createErrorSegment_args(ctx context.C
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -1979,7 +1979,7 @@ func (ec *executionContext) field_Mutation_createErrorSegment_args(ctx context.C
 	args["organization_id"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -1988,7 +1988,7 @@ func (ec *executionContext) field_Mutation_createErrorSegment_args(ctx context.C
 	args["name"] = arg1
 	var arg2 model.ErrorSearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
 		arg2, err = ec.unmarshalNErrorSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2003,7 +2003,7 @@ func (ec *executionContext) field_Mutation_createOrUpdateSubscription_args(ctx c
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2012,7 +2012,7 @@ func (ec *executionContext) field_Mutation_createOrUpdateSubscription_args(ctx c
 	args["organization_id"] = arg0
 	var arg1 model.PlanType
 	if tmp, ok := rawArgs["plan_type"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("plan_type"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("plan_type"))
 		arg1, err = ec.unmarshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2027,7 +2027,7 @@ func (ec *executionContext) field_Mutation_createOrganization_args(ctx context.C
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2042,7 +2042,7 @@ func (ec *executionContext) field_Mutation_createSegment_args(ctx context.Contex
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2051,7 +2051,7 @@ func (ec *executionContext) field_Mutation_createSegment_args(ctx context.Contex
 	args["organization_id"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2060,7 +2060,7 @@ func (ec *executionContext) field_Mutation_createSegment_args(ctx context.Contex
 	args["name"] = arg1
 	var arg2 model.SearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
 		arg2, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2075,7 +2075,7 @@ func (ec *executionContext) field_Mutation_deleteErrorSegment_args(ctx context.C
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["segment_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("segment_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("segment_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2090,7 +2090,7 @@ func (ec *executionContext) field_Mutation_deleteOrganization_args(ctx context.C
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2105,7 +2105,7 @@ func (ec *executionContext) field_Mutation_deleteSegment_args(ctx context.Contex
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["segment_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("segment_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("segment_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2120,7 +2120,7 @@ func (ec *executionContext) field_Mutation_editErrorSegment_args(ctx context.Con
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2129,7 +2129,7 @@ func (ec *executionContext) field_Mutation_editErrorSegment_args(ctx context.Con
 	args["id"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2138,7 +2138,7 @@ func (ec *executionContext) field_Mutation_editErrorSegment_args(ctx context.Con
 	args["organization_id"] = arg1
 	var arg2 model.ErrorSearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
 		arg2, err = ec.unmarshalNErrorSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2153,7 +2153,7 @@ func (ec *executionContext) field_Mutation_editOrganization_args(ctx context.Con
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2162,7 +2162,7 @@ func (ec *executionContext) field_Mutation_editOrganization_args(ctx context.Con
 	args["id"] = arg0
 	var arg1 *string
 	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2171,7 +2171,7 @@ func (ec *executionContext) field_Mutation_editOrganization_args(ctx context.Con
 	args["name"] = arg1
 	var arg2 *string
 	if tmp, ok := rawArgs["billing_email"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("billing_email"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("billing_email"))
 		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2186,7 +2186,7 @@ func (ec *executionContext) field_Mutation_editRecordingSettings_args(ctx contex
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2195,7 +2195,7 @@ func (ec *executionContext) field_Mutation_editRecordingSettings_args(ctx contex
 	args["organization_id"] = arg0
 	var arg1 *string
 	if tmp, ok := rawArgs["details"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("details"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("details"))
 		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2210,7 +2210,7 @@ func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context,
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2219,7 +2219,7 @@ func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context,
 	args["id"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2228,7 +2228,7 @@ func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context,
 	args["organization_id"] = arg1
 	var arg2 model.SearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
 		arg2, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2243,7 +2243,7 @@ func (ec *executionContext) field_Mutation_emailSignup_args(ctx context.Context,
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["email"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("email"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2258,7 +2258,7 @@ func (ec *executionContext) field_Mutation_markErrorGroupAsResolved_args(ctx con
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2267,7 +2267,7 @@ func (ec *executionContext) field_Mutation_markErrorGroupAsResolved_args(ctx con
 	args["id"] = arg0
 	var arg1 *bool
 	if tmp, ok := rawArgs["resolved"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("resolved"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolved"))
 		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2282,7 +2282,7 @@ func (ec *executionContext) field_Mutation_markSessionAsViewed_args(ctx context.
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2291,7 +2291,7 @@ func (ec *executionContext) field_Mutation_markSessionAsViewed_args(ctx context.
 	args["id"] = arg0
 	var arg1 *bool
 	if tmp, ok := rawArgs["viewed"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("viewed"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("viewed"))
 		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2306,7 +2306,7 @@ func (ec *executionContext) field_Mutation_sendAdminInvite_args(ctx context.Cont
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2315,7 +2315,7 @@ func (ec *executionContext) field_Mutation_sendAdminInvite_args(ctx context.Cont
 	args["organization_id"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["email"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("email"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("email"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2330,7 +2330,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2345,7 +2345,7 @@ func (ec *executionContext) field_Query_admins_args(ctx context.Context, rawArgs
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2360,7 +2360,7 @@ func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context,
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2375,7 +2375,7 @@ func (ec *executionContext) field_Query_error_field_suggestion_args(ctx context.
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2384,7 +2384,7 @@ func (ec *executionContext) field_Query_error_field_suggestion_args(ctx context.
 	args["organization_id"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2393,7 +2393,7 @@ func (ec *executionContext) field_Query_error_field_suggestion_args(ctx context.
 	args["name"] = arg1
 	var arg2 string
 	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("query"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
 		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2408,7 +2408,7 @@ func (ec *executionContext) field_Query_error_group_args(ctx context.Context, ra
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2423,7 +2423,7 @@ func (ec *executionContext) field_Query_error_groups_args(ctx context.Context, r
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2432,7 +2432,7 @@ func (ec *executionContext) field_Query_error_groups_args(ctx context.Context, r
 	args["organization_id"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["count"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("count"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
 		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2441,7 +2441,7 @@ func (ec *executionContext) field_Query_error_groups_args(ctx context.Context, r
 	args["count"] = arg1
 	var arg2 *model.ErrorSearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
 		arg2, err = ec.unmarshalOErrorSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2456,7 +2456,7 @@ func (ec *executionContext) field_Query_error_segments_args(ctx context.Context,
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2471,7 +2471,7 @@ func (ec *executionContext) field_Query_errors_args(ctx context.Context, rawArgs
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2486,7 +2486,7 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2501,7 +2501,7 @@ func (ec *executionContext) field_Query_field_suggestionBETA_args(ctx context.Co
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2510,7 +2510,7 @@ func (ec *executionContext) field_Query_field_suggestionBETA_args(ctx context.Co
 	args["organization_id"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["name"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2519,7 +2519,7 @@ func (ec *executionContext) field_Query_field_suggestionBETA_args(ctx context.Co
 	args["name"] = arg1
 	var arg2 string
 	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("query"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
 		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2534,7 +2534,7 @@ func (ec *executionContext) field_Query_isIntegrated_args(ctx context.Context, r
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2549,7 +2549,7 @@ func (ec *executionContext) field_Query_messages_args(ctx context.Context, rawAr
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2564,7 +2564,7 @@ func (ec *executionContext) field_Query_organizationSuggestion_args(ctx context.
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("query"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
 		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2579,7 +2579,7 @@ func (ec *executionContext) field_Query_organization_args(ctx context.Context, r
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2594,7 +2594,7 @@ func (ec *executionContext) field_Query_property_suggestion_args(ctx context.Con
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2603,7 +2603,7 @@ func (ec *executionContext) field_Query_property_suggestion_args(ctx context.Con
 	args["organization_id"] = arg0
 	var arg1 string
 	if tmp, ok := rawArgs["query"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("query"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2612,7 +2612,7 @@ func (ec *executionContext) field_Query_property_suggestion_args(ctx context.Con
 	args["query"] = arg1
 	var arg2 string
 	if tmp, ok := rawArgs["type"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("type"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
 		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2627,7 +2627,7 @@ func (ec *executionContext) field_Query_recording_settings_args(ctx context.Cont
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2642,7 +2642,7 @@ func (ec *executionContext) field_Query_resources_args(ctx context.Context, rawA
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["session_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("session_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2657,7 +2657,7 @@ func (ec *executionContext) field_Query_segments_args(ctx context.Context, rawAr
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2672,7 +2672,7 @@ func (ec *executionContext) field_Query_session_args(ctx context.Context, rawArg
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2687,7 +2687,7 @@ func (ec *executionContext) field_Query_sessionsBETA_args(ctx context.Context, r
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2696,7 +2696,7 @@ func (ec *executionContext) field_Query_sessionsBETA_args(ctx context.Context, r
 	args["organization_id"] = arg0
 	var arg1 int
 	if tmp, ok := rawArgs["count"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("count"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count"))
 		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2705,7 +2705,7 @@ func (ec *executionContext) field_Query_sessionsBETA_args(ctx context.Context, r
 	args["count"] = arg1
 	var arg2 bool
 	if tmp, ok := rawArgs["processed"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("processed"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("processed"))
 		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2714,7 +2714,7 @@ func (ec *executionContext) field_Query_sessionsBETA_args(ctx context.Context, r
 	args["processed"] = arg2
 	var arg3 *model.SearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("params"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
 		arg3, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2729,7 +2729,7 @@ func (ec *executionContext) field_Query_unprocessedSessionsCount_args(ctx contex
 	args := map[string]interface{}{}
 	var arg0 int
 	if tmp, ok := rawArgs["organization_id"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("organization_id"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2744,7 +2744,7 @@ func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, ra
 	args := map[string]interface{}{}
 	var arg0 bool
 	if tmp, ok := rawArgs["includeDeprecated"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("includeDeprecated"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
 		arg0, err = ec.unmarshalOBoolean2bool(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2759,7 +2759,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 	args := map[string]interface{}{}
 	var arg0 bool
 	if tmp, ok := rawArgs["includeDeprecated"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("includeDeprecated"))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("includeDeprecated"))
 		arg0, err = ec.unmarshalOBoolean2bool(ctx, tmp)
 		if err != nil {
 			return nil, err
@@ -2785,10 +2785,11 @@ func (ec *executionContext) _Admin_id(ctx context.Context, field graphql.Collect
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Admin",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -2819,10 +2820,11 @@ func (ec *executionContext) _Admin_name(ctx context.Context, field graphql.Colle
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Admin",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -2853,10 +2855,11 @@ func (ec *executionContext) _Admin_email(ctx context.Context, field graphql.Coll
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Admin",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Admin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -2887,10 +2890,11 @@ func (ec *executionContext) _BillingDetails_plan(ctx context.Context, field grap
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "BillingDetails",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "BillingDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -2921,10 +2925,11 @@ func (ec *executionContext) _BillingDetails_meter(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "BillingDetails",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "BillingDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -2955,10 +2960,11 @@ func (ec *executionContext) _DateRange_start_date(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "DateRange",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "DateRange",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -2986,10 +2992,11 @@ func (ec *executionContext) _DateRange_end_date(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "DateRange",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "DateRange",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3017,10 +3024,11 @@ func (ec *executionContext) _ErrorField_organization_id(ctx context.Context, fie
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorField",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorField",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3048,10 +3056,11 @@ func (ec *executionContext) _ErrorField_name(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorField",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorField",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3082,10 +3091,11 @@ func (ec *executionContext) _ErrorField_value(ctx context.Context, field graphql
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorField",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorField",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3116,10 +3126,11 @@ func (ec *executionContext) _ErrorGroup_id(ctx context.Context, field graphql.Co
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorGroup",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3150,10 +3161,11 @@ func (ec *executionContext) _ErrorGroup_organization_id(ctx context.Context, fie
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorGroup",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3184,10 +3196,11 @@ func (ec *executionContext) _ErrorGroup_type(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorGroup",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3218,10 +3231,11 @@ func (ec *executionContext) _ErrorGroup_event(ctx context.Context, field graphql
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorGroup",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3252,10 +3266,11 @@ func (ec *executionContext) _ErrorGroup_trace(ctx context.Context, field graphql
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorGroup",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3286,10 +3301,11 @@ func (ec *executionContext) _ErrorGroup_metadata_log(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorGroup",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3320,10 +3336,11 @@ func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field g
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorGroup",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3351,10 +3368,11 @@ func (ec *executionContext) _ErrorGroup_resolved(ctx context.Context, field grap
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorGroup",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3382,10 +3400,11 @@ func (ec *executionContext) _ErrorMetadata_error_id(ctx context.Context, field g
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorMetadata",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3413,10 +3432,11 @@ func (ec *executionContext) _ErrorMetadata_session_id(ctx context.Context, field
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorMetadata",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3444,10 +3464,11 @@ func (ec *executionContext) _ErrorMetadata_timestamp(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorMetadata",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3475,10 +3496,11 @@ func (ec *executionContext) _ErrorMetadata_os(ctx context.Context, field graphql
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorMetadata",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3506,10 +3528,11 @@ func (ec *executionContext) _ErrorMetadata_browser(ctx context.Context, field gr
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorMetadata",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3537,10 +3560,11 @@ func (ec *executionContext) _ErrorMetadata_visited_url(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorMetadata",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3568,10 +3592,11 @@ func (ec *executionContext) _ErrorObject_id(ctx context.Context, field graphql.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3602,10 +3627,11 @@ func (ec *executionContext) _ErrorObject_organization_id(ctx context.Context, fi
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3636,10 +3662,11 @@ func (ec *executionContext) _ErrorObject_session_id(ctx context.Context, field g
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3670,10 +3697,11 @@ func (ec *executionContext) _ErrorObject_error_group_id(ctx context.Context, fie
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3704,10 +3732,11 @@ func (ec *executionContext) _ErrorObject_event(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3738,10 +3767,11 @@ func (ec *executionContext) _ErrorObject_type(ctx context.Context, field graphql
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3772,10 +3802,11 @@ func (ec *executionContext) _ErrorObject_url(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3806,10 +3837,11 @@ func (ec *executionContext) _ErrorObject_source(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3837,10 +3869,11 @@ func (ec *executionContext) _ErrorObject_line_number(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3868,10 +3901,11 @@ func (ec *executionContext) _ErrorObject_column_number(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3899,10 +3933,11 @@ func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3930,10 +3965,11 @@ func (ec *executionContext) _ErrorObject_timestamp(ctx context.Context, field gr
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorObject",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3961,10 +3997,11 @@ func (ec *executionContext) _ErrorResults_error_groups(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorResults",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorResults",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -3995,10 +4032,11 @@ func (ec *executionContext) _ErrorResults_totalCount(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorResults",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorResults",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4029,10 +4067,11 @@ func (ec *executionContext) _ErrorSearchParams_date_range(ctx context.Context, f
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorSearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorSearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4060,10 +4099,11 @@ func (ec *executionContext) _ErrorSearchParams_os(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorSearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorSearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4091,10 +4131,11 @@ func (ec *executionContext) _ErrorSearchParams_browser(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorSearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorSearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4122,10 +4163,11 @@ func (ec *executionContext) _ErrorSearchParams_visited_url(ctx context.Context, 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorSearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorSearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4153,10 +4195,11 @@ func (ec *executionContext) _ErrorSearchParams_hide_resolved(ctx context.Context
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorSearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorSearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4184,10 +4227,11 @@ func (ec *executionContext) _ErrorSearchParams_event(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorSearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorSearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4215,10 +4259,11 @@ func (ec *executionContext) _ErrorSegment_id(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorSegment",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorSegment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4249,10 +4294,11 @@ func (ec *executionContext) _ErrorSegment_name(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorSegment",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorSegment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4283,10 +4329,11 @@ func (ec *executionContext) _ErrorSegment_params(ctx context.Context, field grap
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorSegment",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "ErrorSegment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4317,10 +4364,11 @@ func (ec *executionContext) _ErrorSegment_organization_id(ctx context.Context, f
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorSegment",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorSegment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4351,10 +4399,11 @@ func (ec *executionContext) _ErrorTrace_file_name(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorTrace",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4382,10 +4431,11 @@ func (ec *executionContext) _ErrorTrace_line_number(ctx context.Context, field g
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorTrace",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4413,10 +4463,11 @@ func (ec *executionContext) _ErrorTrace_function_name(ctx context.Context, field
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorTrace",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4444,10 +4495,11 @@ func (ec *executionContext) _ErrorTrace_column_number(ctx context.Context, field
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "ErrorTrace",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "ErrorTrace",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4475,10 +4527,11 @@ func (ec *executionContext) _Field_name(ctx context.Context, field graphql.Colle
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Field",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Field",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4509,10 +4562,11 @@ func (ec *executionContext) _Field_value(ctx context.Context, field graphql.Coll
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Field",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Field",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4543,10 +4597,11 @@ func (ec *executionContext) _Field_type(ctx context.Context, field graphql.Colle
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Field",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Field",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4574,10 +4629,11 @@ func (ec *executionContext) _LengthRange_min(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "LengthRange",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "LengthRange",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4605,10 +4661,11 @@ func (ec *executionContext) _LengthRange_max(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "LengthRange",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "LengthRange",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4636,10 +4693,11 @@ func (ec *executionContext) _Mutation_createOrganization(ctx context.Context, fi
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4674,10 +4732,11 @@ func (ec *executionContext) _Mutation_editOrganization(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4712,10 +4771,11 @@ func (ec *executionContext) _Mutation_markSessionAsViewed(ctx context.Context, f
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4750,10 +4810,11 @@ func (ec *executionContext) _Mutation_markErrorGroupAsResolved(ctx context.Conte
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4788,10 +4849,11 @@ func (ec *executionContext) _Mutation_deleteOrganization(ctx context.Context, fi
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4826,10 +4888,11 @@ func (ec *executionContext) _Mutation_sendAdminInvite(ctx context.Context, field
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4864,10 +4927,11 @@ func (ec *executionContext) _Mutation_addAdminToOrganization(ctx context.Context
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4902,10 +4966,11 @@ func (ec *executionContext) _Mutation_addSlackIntegrationToWorkspace(ctx context
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4940,10 +5005,11 @@ func (ec *executionContext) _Mutation_createSegment(ctx context.Context, field g
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -4978,10 +5044,11 @@ func (ec *executionContext) _Mutation_emailSignup(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5019,10 +5086,11 @@ func (ec *executionContext) _Mutation_editSegment(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5057,10 +5125,11 @@ func (ec *executionContext) _Mutation_deleteSegment(ctx context.Context, field g
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5095,10 +5164,11 @@ func (ec *executionContext) _Mutation_createErrorSegment(ctx context.Context, fi
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5133,10 +5203,11 @@ func (ec *executionContext) _Mutation_editErrorSegment(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5171,10 +5242,11 @@ func (ec *executionContext) _Mutation_deleteErrorSegment(ctx context.Context, fi
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5209,10 +5281,11 @@ func (ec *executionContext) _Mutation_editRecordingSettings(ctx context.Context,
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5247,10 +5320,11 @@ func (ec *executionContext) _Mutation_createOrUpdateSubscription(ctx context.Con
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5285,10 +5359,11 @@ func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Organization",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5319,10 +5394,11 @@ func (ec *executionContext) _Organization_verbose_id(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Organization",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5353,10 +5429,11 @@ func (ec *executionContext) _Organization_name(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Organization",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5387,10 +5464,11 @@ func (ec *executionContext) _Organization_billing_email(ctx context.Context, fie
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Organization",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5418,10 +5496,11 @@ func (ec *executionContext) _Organization_trial_end_date(ctx context.Context, fi
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Organization",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5449,10 +5528,11 @@ func (ec *executionContext) _Plan_type(ctx context.Context, field graphql.Collec
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Plan",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Plan",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5483,10 +5563,11 @@ func (ec *executionContext) _Plan_quota(ctx context.Context, field graphql.Colle
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Plan",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Plan",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5517,10 +5598,11 @@ func (ec *executionContext) _Query_session(ctx context.Context, field graphql.Co
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5555,10 +5637,11 @@ func (ec *executionContext) _Query_events(ctx context.Context, field graphql.Col
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5593,10 +5676,11 @@ func (ec *executionContext) _Query_error_groups(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5631,10 +5715,11 @@ func (ec *executionContext) _Query_error_group(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5669,10 +5754,11 @@ func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5707,10 +5793,11 @@ func (ec *executionContext) _Query_errors(ctx context.Context, field graphql.Col
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5745,10 +5832,11 @@ func (ec *executionContext) _Query_resources(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5783,10 +5871,11 @@ func (ec *executionContext) _Query_admins(ctx context.Context, field graphql.Col
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5821,10 +5910,11 @@ func (ec *executionContext) _Query_isIntegrated(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5859,10 +5949,11 @@ func (ec *executionContext) _Query_unprocessedSessionsCount(ctx context.Context,
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5897,10 +5988,11 @@ func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5935,10 +6027,11 @@ func (ec *executionContext) _Query_billingDetails(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -5976,10 +6069,11 @@ func (ec *executionContext) _Query_field_suggestionBETA(ctx context.Context, fie
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6014,10 +6108,11 @@ func (ec *executionContext) _Query_property_suggestion(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6052,10 +6147,11 @@ func (ec *executionContext) _Query_error_field_suggestion(ctx context.Context, f
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6090,10 +6186,11 @@ func (ec *executionContext) _Query_organizations(ctx context.Context, field grap
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6121,10 +6218,11 @@ func (ec *executionContext) _Query_organizationSuggestion(ctx context.Context, f
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6159,10 +6257,11 @@ func (ec *executionContext) _Query_organization(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6197,10 +6296,11 @@ func (ec *executionContext) _Query_admin(ctx context.Context, field graphql.Coll
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6228,10 +6328,11 @@ func (ec *executionContext) _Query_segments(ctx context.Context, field graphql.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6266,10 +6367,11 @@ func (ec *executionContext) _Query_error_segments(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6304,10 +6406,11 @@ func (ec *executionContext) _Query_recording_settings(ctx context.Context, field
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6342,10 +6445,11 @@ func (ec *executionContext) _Query___type(ctx context.Context, field graphql.Col
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6380,10 +6484,11 @@ func (ec *executionContext) _Query___schema(ctx context.Context, field graphql.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6411,10 +6516,11 @@ func (ec *executionContext) _RecordingSettings_id(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "RecordingSettings",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "RecordingSettings",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6445,10 +6551,11 @@ func (ec *executionContext) _RecordingSettings_organization_id(ctx context.Conte
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "RecordingSettings",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "RecordingSettings",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6479,10 +6586,11 @@ func (ec *executionContext) _RecordingSettings_details(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "RecordingSettings",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "RecordingSettings",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6513,10 +6621,11 @@ func (ec *executionContext) _SearchParams_user_properties(ctx context.Context, f
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6544,10 +6653,11 @@ func (ec *executionContext) _SearchParams_excluded_properties(ctx context.Contex
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6575,10 +6685,11 @@ func (ec *executionContext) _SearchParams_track_properties(ctx context.Context, 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6606,10 +6717,11 @@ func (ec *executionContext) _SearchParams_date_range(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6637,10 +6749,11 @@ func (ec *executionContext) _SearchParams_length_range(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6668,10 +6781,11 @@ func (ec *executionContext) _SearchParams_os(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6699,10 +6813,11 @@ func (ec *executionContext) _SearchParams_browser(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6730,10 +6845,11 @@ func (ec *executionContext) _SearchParams_visited_url(ctx context.Context, field
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6761,10 +6877,11 @@ func (ec *executionContext) _SearchParams_referrer(ctx context.Context, field gr
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6792,10 +6909,11 @@ func (ec *executionContext) _SearchParams_identified(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6823,10 +6941,11 @@ func (ec *executionContext) _SearchParams_hide_viewed(ctx context.Context, field
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SearchParams",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SearchParams",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6854,10 +6973,11 @@ func (ec *executionContext) _Segment_id(ctx context.Context, field graphql.Colle
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Segment",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Segment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6888,10 +7008,11 @@ func (ec *executionContext) _Segment_name(ctx context.Context, field graphql.Col
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Segment",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Segment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6922,10 +7043,11 @@ func (ec *executionContext) _Segment_params(ctx context.Context, field graphql.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Segment",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Segment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6956,10 +7078,11 @@ func (ec *executionContext) _Segment_organization_id(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Segment",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Segment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -6990,10 +7113,11 @@ func (ec *executionContext) _Session_id(ctx context.Context, field graphql.Colle
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7024,10 +7148,11 @@ func (ec *executionContext) _Session_user_id(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7058,10 +7183,11 @@ func (ec *executionContext) _Session_os_name(ctx context.Context, field graphql.
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7092,10 +7218,11 @@ func (ec *executionContext) _Session_os_version(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7126,10 +7253,11 @@ func (ec *executionContext) _Session_browser_name(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7160,10 +7288,11 @@ func (ec *executionContext) _Session_browser_version(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7194,10 +7323,11 @@ func (ec *executionContext) _Session_city(ctx context.Context, field graphql.Col
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7228,10 +7358,11 @@ func (ec *executionContext) _Session_state(ctx context.Context, field graphql.Co
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7262,10 +7393,11 @@ func (ec *executionContext) _Session_postal(ctx context.Context, field graphql.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7296,10 +7428,11 @@ func (ec *executionContext) _Session_identifier(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7330,10 +7463,11 @@ func (ec *executionContext) _Session_created_at(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7361,10 +7495,11 @@ func (ec *executionContext) _Session_length(ctx context.Context, field graphql.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7392,10 +7527,11 @@ func (ec *executionContext) _Session_user_object(ctx context.Context, field grap
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7423,10 +7559,11 @@ func (ec *executionContext) _Session_fields(ctx context.Context, field graphql.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7454,10 +7591,11 @@ func (ec *executionContext) _Session_viewed(ctx context.Context, field graphql.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7485,10 +7623,11 @@ func (ec *executionContext) _Session_field_group(ctx context.Context, field grap
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "Session",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7516,10 +7655,11 @@ func (ec *executionContext) _SessionResults_sessions(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SessionResults",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SessionResults",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7550,10 +7690,11 @@ func (ec *executionContext) _SessionResults_totalCount(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "SessionResults",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "SessionResults",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7584,10 +7725,11 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "User",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "User",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7618,10 +7760,11 @@ func (ec *executionContext) _UserProperty_name(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "UserProperty",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "UserProperty",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7652,10 +7795,11 @@ func (ec *executionContext) _UserProperty_value(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "UserProperty",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "UserProperty",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7686,10 +7830,11 @@ func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Directive",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__Directive",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7720,10 +7865,11 @@ func (ec *executionContext) ___Directive_description(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Directive",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__Directive",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7751,10 +7897,11 @@ func (ec *executionContext) ___Directive_locations(ctx context.Context, field gr
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Directive",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__Directive",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7785,10 +7932,11 @@ func (ec *executionContext) ___Directive_args(ctx context.Context, field graphql
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Directive",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__Directive",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7819,10 +7967,11 @@ func (ec *executionContext) ___EnumValue_name(ctx context.Context, field graphql
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__EnumValue",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__EnumValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7853,10 +8002,11 @@ func (ec *executionContext) ___EnumValue_description(ctx context.Context, field 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__EnumValue",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__EnumValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7884,10 +8034,11 @@ func (ec *executionContext) ___EnumValue_isDeprecated(ctx context.Context, field
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__EnumValue",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__EnumValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7918,10 +8069,11 @@ func (ec *executionContext) ___EnumValue_deprecationReason(ctx context.Context, 
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__EnumValue",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__EnumValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7949,10 +8101,11 @@ func (ec *executionContext) ___Field_name(ctx context.Context, field graphql.Col
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Field",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__Field",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -7983,10 +8136,11 @@ func (ec *executionContext) ___Field_description(ctx context.Context, field grap
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Field",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__Field",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8014,10 +8168,11 @@ func (ec *executionContext) ___Field_args(ctx context.Context, field graphql.Col
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Field",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__Field",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8048,10 +8203,11 @@ func (ec *executionContext) ___Field_type(ctx context.Context, field graphql.Col
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Field",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__Field",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8082,10 +8238,11 @@ func (ec *executionContext) ___Field_isDeprecated(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Field",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Field",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8116,10 +8273,11 @@ func (ec *executionContext) ___Field_deprecationReason(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Field",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Field",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8147,10 +8305,11 @@ func (ec *executionContext) ___InputValue_name(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__InputValue",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__InputValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8181,10 +8340,11 @@ func (ec *executionContext) ___InputValue_description(ctx context.Context, field
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__InputValue",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__InputValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8212,10 +8372,11 @@ func (ec *executionContext) ___InputValue_type(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__InputValue",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__InputValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8246,10 +8407,11 @@ func (ec *executionContext) ___InputValue_defaultValue(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__InputValue",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
+		Object:     "__InputValue",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8277,10 +8439,11 @@ func (ec *executionContext) ___Schema_types(ctx context.Context, field graphql.C
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Schema",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Schema",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8311,10 +8474,11 @@ func (ec *executionContext) ___Schema_queryType(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Schema",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Schema",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8345,10 +8509,11 @@ func (ec *executionContext) ___Schema_mutationType(ctx context.Context, field gr
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Schema",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Schema",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8376,10 +8541,11 @@ func (ec *executionContext) ___Schema_subscriptionType(ctx context.Context, fiel
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Schema",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Schema",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8407,10 +8573,11 @@ func (ec *executionContext) ___Schema_directives(ctx context.Context, field grap
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Schema",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Schema",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8441,10 +8608,11 @@ func (ec *executionContext) ___Type_kind(ctx context.Context, field graphql.Coll
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Type",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Type",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8475,10 +8643,11 @@ func (ec *executionContext) ___Type_name(ctx context.Context, field graphql.Coll
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Type",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Type",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8506,10 +8675,11 @@ func (ec *executionContext) ___Type_description(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Type",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Type",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8537,10 +8707,11 @@ func (ec *executionContext) ___Type_fields(ctx context.Context, field graphql.Co
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Type",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Type",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8575,10 +8746,11 @@ func (ec *executionContext) ___Type_interfaces(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Type",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Type",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8606,10 +8778,11 @@ func (ec *executionContext) ___Type_possibleTypes(ctx context.Context, field gra
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Type",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Type",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8637,10 +8810,11 @@ func (ec *executionContext) ___Type_enumValues(ctx context.Context, field graphq
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Type",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Type",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8675,10 +8849,11 @@ func (ec *executionContext) ___Type_inputFields(ctx context.Context, field graph
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Type",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Type",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8706,10 +8881,11 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 		}
 	}()
 	fc := &graphql.FieldContext{
-		Object:   "__Type",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
+		Object:     "__Type",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
@@ -8742,7 +8918,7 @@ func (ec *executionContext) unmarshalInputDateRangeInput(ctx context.Context, ob
 		case "start_date":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("start_date"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("start_date"))
 			it.StartDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
@@ -8750,7 +8926,7 @@ func (ec *executionContext) unmarshalInputDateRangeInput(ctx context.Context, ob
 		case "end_date":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("end_date"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("end_date"))
 			it.EndDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
@@ -8770,7 +8946,7 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 		case "date_range":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("date_range"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
 			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
 			if err != nil {
 				return it, err
@@ -8778,7 +8954,7 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 		case "os":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("os"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("os"))
 			it.Os, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
@@ -8786,7 +8962,7 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 		case "browser":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("browser"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("browser"))
 			it.Browser, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
@@ -8794,7 +8970,7 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 		case "visited_url":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("visited_url"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("visited_url"))
 			it.VisitedURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
@@ -8802,7 +8978,7 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 		case "hide_resolved":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("hide_resolved"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hide_resolved"))
 			it.HideResolved, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
@@ -8810,7 +8986,7 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 		case "event":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("event"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("event"))
 			it.Event, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
@@ -8830,7 +9006,7 @@ func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, 
 		case "min":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("min"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("min"))
 			it.Min, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
@@ -8838,7 +9014,7 @@ func (ec *executionContext) unmarshalInputLengthRangeInput(ctx context.Context, 
 		case "max":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("max"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("max"))
 			it.Max, err = ec.unmarshalOInt2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
@@ -8858,7 +9034,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 		case "user_properties":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("user_properties"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_properties"))
 			it.UserProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
 			if err != nil {
 				return it, err
@@ -8866,7 +9042,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 		case "excluded_properties":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("excluded_properties"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excluded_properties"))
 			it.ExcludedProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
 			if err != nil {
 				return it, err
@@ -8874,7 +9050,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 		case "track_properties":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("track_properties"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("track_properties"))
 			it.TrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
 			if err != nil {
 				return it, err
@@ -8882,7 +9058,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 		case "date_range":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("date_range"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
 			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
 			if err != nil {
 				return it, err
@@ -8890,7 +9066,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 		case "length_range":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("length_range"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("length_range"))
 			it.LengthRange, err = ec.unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐLengthRangeInput(ctx, v)
 			if err != nil {
 				return it, err
@@ -8898,7 +9074,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 		case "os":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("os"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("os"))
 			it.Os, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
@@ -8906,7 +9082,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 		case "browser":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("browser"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("browser"))
 			it.Browser, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
@@ -8914,7 +9090,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 		case "visited_url":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("visited_url"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("visited_url"))
 			it.VisitedURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
@@ -8922,7 +9098,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 		case "referrer":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("referrer"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("referrer"))
 			it.Referrer, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
@@ -8930,7 +9106,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 		case "identified":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("identified"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("identified"))
 			it.Identified, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
@@ -8938,7 +9114,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 		case "hide_viewed":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("hide_viewed"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hide_viewed"))
 			it.HideViewed, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
@@ -8958,7 +9134,7 @@ func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context,
 		case "name":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("name"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
 			it.Name, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
@@ -8966,7 +9142,7 @@ func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context,
 		case "value":
 			var err error
 
-			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("value"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
 			it.Value, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
@@ -10511,7 +10687,7 @@ func (ec *executionContext) marshalNBillingDetails2ᚖgithubᚗcomᚋjayᚑkhatr
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
@@ -10614,7 +10790,7 @@ func (ec *executionContext) marshalNErrorSearchParams2ᚖgithubᚗcomᚋjayᚑkh
 
 func (ec *executionContext) unmarshalNErrorSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx context.Context, v interface{}) (model.ErrorSearchParamsInput, error) {
 	res, err := ec.unmarshalInputErrorSearchParamsInput(ctx, v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorTrace) graphql.Marshaler {
@@ -10656,7 +10832,7 @@ func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋjayᚑkhatri
 
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalIntID(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
@@ -10671,7 +10847,7 @@ func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.Selectio
 
 func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
@@ -10697,7 +10873,7 @@ func (ec *executionContext) marshalNPlan2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullst
 func (ec *executionContext) unmarshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, v interface{}) (model.PlanType, error) {
 	var res model.PlanType
 	err := res.UnmarshalGQL(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, sel ast.SelectionSet, v model.PlanType) graphql.Marshaler {
@@ -10720,7 +10896,7 @@ func (ec *executionContext) marshalNSearchParams2ᚖgithubᚗcomᚋjayᚑkhatri�
 
 func (ec *executionContext) unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx context.Context, v interface{}) (model.SearchParamsInput, error) {
 	res, err := ec.unmarshalInputSearchParamsInput(ctx, v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v []model1.Session) graphql.Marshaler {
@@ -10762,7 +10938,7 @@ func (ec *executionContext) marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋful
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
@@ -10787,10 +10963,10 @@ func (ec *executionContext) unmarshalNString2ᚕᚖstring(ctx context.Context, v
 	var err error
 	res := make([]*string, len(vSlice))
 	for i := range vSlice {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
 		res[i], err = ec.unmarshalOString2ᚖstring(ctx, vSlice[i])
 		if err != nil {
-			return nil, graphql.WrapErrorWithInputPath(ctx, err)
+			return nil, err
 		}
 	}
 	return res, nil
@@ -10807,7 +10983,7 @@ func (ec *executionContext) marshalNString2ᚕᚖstring(ctx context.Context, sel
 
 func (ec *executionContext) unmarshalNString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
 	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
@@ -10869,7 +11045,7 @@ func (ec *executionContext) marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgq
 
 func (ec *executionContext) unmarshalN__DirectiveLocation2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__DirectiveLocation2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
@@ -10894,10 +11070,10 @@ func (ec *executionContext) unmarshalN__DirectiveLocation2ᚕstringᚄ(ctx conte
 	var err error
 	res := make([]string, len(vSlice))
 	for i := range vSlice {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
 		res[i], err = ec.unmarshalN__DirectiveLocation2string(ctx, vSlice[i])
 		if err != nil {
-			return nil, graphql.WrapErrorWithInputPath(ctx, err)
+			return nil, err
 		}
 	}
 	return res, nil
@@ -11042,7 +11218,7 @@ func (ec *executionContext) marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 
 func (ec *executionContext) unmarshalN__TypeKind2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
@@ -11107,7 +11283,7 @@ func (ec *executionContext) unmarshalOAny2interface(ctx context.Context, v inter
 		return nil, nil
 	}
 	res, err := graphql.UnmarshalAny(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOAny2interface(ctx context.Context, sel ast.SelectionSet, v interface{}) graphql.Marshaler {
@@ -11132,10 +11308,10 @@ func (ec *executionContext) unmarshalOAny2ᚕinterface(ctx context.Context, v in
 	var err error
 	res := make([]interface{}, len(vSlice))
 	for i := range vSlice {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
 		res[i], err = ec.unmarshalOAny2interface(ctx, vSlice[i])
 		if err != nil {
-			return nil, graphql.WrapErrorWithInputPath(ctx, err)
+			return nil, err
 		}
 	}
 	return res, nil
@@ -11155,7 +11331,7 @@ func (ec *executionContext) marshalOAny2ᚕinterface(ctx context.Context, sel as
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
@@ -11167,7 +11343,7 @@ func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v int
 		return nil, nil
 	}
 	res, err := graphql.UnmarshalBoolean(v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast.SelectionSet, v *bool) graphql.Marshaler {
@@ -11189,7 +11365,7 @@ func (ec *executionContext) unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkha
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputDateRangeInput(ctx, v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOErrorField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorField(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorField) graphql.Marshaler {
@@ -11316,7 +11492,7 @@ func (ec *executionContext) unmarshalOErrorSearchParamsInput2ᚖgithubᚗcomᚋj
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputErrorSearchParamsInput(ctx, v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOErrorSegment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorSegment(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorSegment) graphql.Marshaler {
@@ -11425,7 +11601,7 @@ func (ec *executionContext) unmarshalOID2ᚖint(ctx context.Context, v interface
 		return nil, nil
 	}
 	res, err := graphql.UnmarshalIntID(v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
@@ -11437,7 +11613,7 @@ func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.Selec
 
 func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}) (int, error) {
 	res, err := graphql.UnmarshalInt(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
@@ -11446,7 +11622,7 @@ func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.Selecti
 
 func (ec *executionContext) unmarshalOInt2int64(ctx context.Context, v interface{}) (int64, error) {
 	res, err := graphql.UnmarshalInt64(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOInt2int64(ctx context.Context, sel ast.SelectionSet, v int64) graphql.Marshaler {
@@ -11458,7 +11634,7 @@ func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interfac
 		return nil, nil
 	}
 	res, err := graphql.UnmarshalInt(v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
@@ -11480,7 +11656,7 @@ func (ec *executionContext) unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋjayᚑk
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputLengthRangeInput(ctx, v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOOrganization2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v []*model1.Organization) graphql.Marshaler {
@@ -11542,7 +11718,7 @@ func (ec *executionContext) unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑ
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputSearchParamsInput(ctx, v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOSegment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSegment(ctx context.Context, sel ast.SelectionSet, v []*model1.Segment) graphql.Marshaler {
@@ -11612,7 +11788,7 @@ func (ec *executionContext) marshalOSessionResults2ᚖgithubᚗcomᚋjayᚑkhatr
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
@@ -11624,7 +11800,7 @@ func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v in
 		return nil, nil
 	}
 	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
@@ -11636,7 +11812,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 
 func (ec *executionContext) unmarshalOTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
 	res, err := graphql.UnmarshalTime(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
@@ -11648,7 +11824,7 @@ func (ec *executionContext) unmarshalOTime2ᚖtimeᚐTime(ctx context.Context, v
 		return nil, nil
 	}
 	res, err := graphql.UnmarshalTime(v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
@@ -11720,10 +11896,10 @@ func (ec *executionContext) unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjay
 	var err error
 	res := make([]*model.UserPropertyInput, len(vSlice))
 	for i := range vSlice {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
 		res[i], err = ec.unmarshalOUserPropertyInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, vSlice[i])
 		if err != nil {
-			return nil, graphql.WrapErrorWithInputPath(ctx, err)
+			return nil, err
 		}
 	}
 	return res, nil
@@ -11734,7 +11910,7 @@ func (ec *executionContext) unmarshalOUserPropertyInput2ᚖgithubᚗcomᚋjayᚑ
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputUserPropertyInput(ctx, v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

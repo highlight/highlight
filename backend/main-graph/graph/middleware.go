@@ -38,8 +38,8 @@ func SetupAuthClient() {
 	}
 }
 
-func AdminMiddleWare(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func AdminMiddleWare(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// If we're on a demo domain, we have some special logic.
 		var uid string
 		if r.Header.Get(DemoHeader) != "true" {
@@ -52,6 +52,7 @@ func AdminMiddleWare(next http.HandlerFunc) http.HandlerFunc {
 			uid = t.UID
 		}
 		ctx := context.WithValue(r.Context(), "uid", uid)
-		next(w, r.WithContext(ctx))
-	}
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
+	})
 }
