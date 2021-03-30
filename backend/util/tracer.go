@@ -1,5 +1,7 @@
 package util
 
+// This is taken from: https://github.com/99designs/gqlgen/blob/master/graphql/handler/apollotracing/tracer.go
+
 import (
 	"context"
 	"sync"
