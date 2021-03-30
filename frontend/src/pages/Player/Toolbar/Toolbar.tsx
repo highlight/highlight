@@ -461,7 +461,6 @@ const SessionSegment = ({
                                                 getEventRenderDetails(event)
                                                     .title || ''
                                             )})`,
-                                            opacity: '0.25',
                                         }}
                                     ></div>
                                 </Popover>
