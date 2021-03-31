@@ -243,7 +243,7 @@ export class Highlight {
                 ignoreClass: 'highlight-ignore',
                 blockClass: 'highlight-block',
                 emit,
-                enableStrictPrivacy: this.enableStrictPrivacy,
+                //enableStrictPrivacy: this.enableStrictPrivacy,
             });
             addCustomEvent('Viewport', {
                 height: window.innerHeight,

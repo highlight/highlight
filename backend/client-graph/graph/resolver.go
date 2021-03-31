@@ -13,7 +13,6 @@ import (
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	"github.com/slack-go/slack"
-	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/client"
 )
 
@@ -69,7 +68,7 @@ type FieldData struct {
 	Value string
 }
 
-func (r *Resolver) ValidatePlan(org_id int) (bool, error) {
+func (r *Resolver) CheckQuota(org_id int) (bool, error) {
 	org := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org)
 	if err := res.Error; err != nil || res.RecordNotFound() {
@@ -81,14 +80,7 @@ func (r *Resolver) ValidatePlan(org_id int) (bool, error) {
 		if org.StripeCustomerID != nil {
 			customerID = *org.StripeCustomerID
 		}
-		params := &stripe.CustomerParams{}
-		priceID := ""
-		params.AddExpand("subscriptions")
-		c, err := r.StripeClient.Customers.Get(customerID, params)
-		if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
-			priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
-		}
-		planType := util.FromPriceID(priceID).String()
+		planType := util.GetOrgPlanString(r.StripeClient, customerID)
 		if err := r.DB.Model(org).Updates(&model.Organization{
 			Plan: &planType,
 		}).Error; err != nil {

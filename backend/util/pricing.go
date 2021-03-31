@@ -2,6 +2,9 @@ package util
 
 import (
 	"os"
+
+	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/client"
 )
 
 type PlanType string
@@ -15,6 +18,18 @@ const (
 
 func (e PlanType) String() string {
 	return string(e)
+}
+
+func GetOrgPlanString(stripeClient *client.API, customerID string) string {
+	params := &stripe.CustomerParams{}
+	priceID := ""
+	params.AddExpand("subscriptions")
+	c, err := stripeClient.Customers.Get(customerID, params)
+	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
+		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
+	}
+	planType := FromPriceID(priceID).String()
+	return planType
 }
 
 func TypeToQuota(planType PlanType) int {
