@@ -117,8 +117,8 @@ const SessionLevelBar = () => {
                         }
                     >
                         {data?.session?.enable_strict_privacy
-                            ? 'Strict Privacy Enabled'
-                            : 'Strict Privacy Disabled'}
+                            ? 'Privacy Enabled'
+                            : 'Privacy Disabled'}
                     </SessionToken>
                 </>
             )}
