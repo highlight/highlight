@@ -63,7 +63,7 @@ const ErrorsPage = () => {
                         itemContent={(index, error) => (
                             <ErrorCard
                                 key={error?.id}
-                                error={error as ErrorObject}
+                                error={error}
                                 index={index}
                                 state={
                                     hasTimestamp
