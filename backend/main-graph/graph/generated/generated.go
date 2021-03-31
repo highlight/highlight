@@ -329,11 +329,6 @@ type SegmentResolver interface {
 }
 type SessionResolver interface {
 	UserObject(ctx context.Context, obj *model1.Session) (interface{}, error)
-
-	Viewed(ctx context.Context, obj *model1.Session) (*bool, error)
-	Starred(ctx context.Context, obj *model1.Session) (*bool, error)
-	FieldGroup(ctx context.Context, obj *model1.Session) (*string, error)
-	EnableStrictPrivacy(ctx context.Context, obj *model1.Session) (*bool, error)
 }
 
 type executableSchema struct {
@@ -7717,14 +7712,14 @@ func (ec *executionContext) _Session_viewed(ctx context.Context, field graphql.C
 		Object:     "Session",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Session().Viewed(rctx, obj)
+		return obj.Viewed, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7749,14 +7744,14 @@ func (ec *executionContext) _Session_starred(ctx context.Context, field graphql.
 		Object:     "Session",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Session().Starred(rctx, obj)
+		return obj.Starred, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7781,14 +7776,14 @@ func (ec *executionContext) _Session_field_group(ctx context.Context, field grap
 		Object:     "Session",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Session().FieldGroup(rctx, obj)
+		return obj.FieldGroup, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7813,14 +7808,14 @@ func (ec *executionContext) _Session_enable_strict_privacy(ctx context.Context, 
 		Object:     "Session",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Session().EnableStrictPrivacy(rctx, obj)
+		return obj.EnableStrictPrivacy, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10522,49 +10517,13 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 		case "fields":
 			out.Values[i] = ec._Session_fields(ctx, field, obj)
 		case "viewed":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Session_viewed(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._Session_viewed(ctx, field, obj)
 		case "starred":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Session_starred(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._Session_starred(ctx, field, obj)
 		case "field_group":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Session_field_group(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._Session_field_group(ctx, field, obj)
 		case "enable_strict_privacy":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Session_enable_strict_privacy(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._Session_enable_strict_privacy(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
