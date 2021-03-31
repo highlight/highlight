@@ -21,6 +21,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) ([]*string, error) {
@@ -546,10 +547,13 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
+	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.eventsObjectsQuery"))
 	eventObjs := []*model.EventsObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
+	eventsQuerySpan.Finish()
+	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("parse.eventsObjects"))
 	allEvents := make(map[string][]interface{})
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
@@ -558,6 +562,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		}
 		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
 	}
+	eventsParseSpan.Finish()
 	return allEvents["events"], nil
 }
 
@@ -661,6 +666,8 @@ func (r *queryResolver) Errors(ctx context.Context, sessionID int) ([]*model.Err
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
+	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorObjectsQuery"))
+	defer eventsQuerySpan.Finish()
 	errorsObj := []*model.ErrorObject{}
 	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: sessionID}).Find(&errorsObj); res.Error != nil {
 		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
@@ -729,7 +736,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	return &count, nil
 }
 
-func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, processed bool, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -742,6 +749,7 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	visitedQuery := r.DB.Model(&model.Field{})
 	referrerQuery := r.DB.Model(&model.Field{})
 
+	fieldsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.fieldsQuery"))
 	for _, prop := range params.UserProperties {
 		if prop.Name == "contains" {
 			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
@@ -812,6 +820,9 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 			return nil, e.Wrap(err, "error querying initial set of excluded sessions fields")
 		}
 	}
+
+	fieldsSpan.Finish()
+	sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsQuery"))
 
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
@@ -917,6 +928,8 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 		return nil, e.Wrap(err, "error querying filtered sessions")
 	}
 
+	sessionsSpan.Finish()
+
 	if len(queriedSessions) < count {
 		count = len(queriedSessions)
 	}
@@ -959,7 +972,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	return details, nil
 }
 
-func (r *queryResolver) FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model.Field, error) {
+func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model.Field, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}

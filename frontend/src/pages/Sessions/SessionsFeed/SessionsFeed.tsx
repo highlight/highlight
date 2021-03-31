@@ -22,7 +22,7 @@ import { message, Tooltip } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 import {
     useGetBillingDetailsQuery,
-    useGetSessionsBetaQuery,
+    useGetSessionsQuery,
     useMarkSessionAsStarredMutation,
     useMarkSessionAsViewedMutation,
 } from '../../../graph/generated/hooks';
@@ -64,7 +64,7 @@ export const SessionFeed = () => {
     });
     const { searchParams } = useContext(SearchContext);
 
-    const { loading, fetchMore, data: sessionData } = useGetSessionsBetaQuery({
+    const { loading, fetchMore, data: sessionData } = useGetSessionsQuery({
         variables: {
             params: searchParams,
             count: count + 10,
@@ -74,8 +74,8 @@ export const SessionFeed = () => {
         },
         pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
-            if (response.sessionsBETA) {
-                setData(response.sessionsBETA);
+            if (response.sessions) {
+                setData(response.sessions);
             }
             setShowLoadingSkeleton(false);
         },
@@ -86,8 +86,8 @@ export const SessionFeed = () => {
     }, [searchParams]);
 
     useEffect(() => {
-        if (sessionData?.sessionsBETA) {
-            setData(sessionData.sessionsBETA);
+        if (sessionData?.sessions) {
+            setData(sessionData.sessions);
         }
     }, [sessionData]);
 
