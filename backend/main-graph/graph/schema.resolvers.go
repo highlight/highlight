@@ -531,10 +531,13 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
+	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.eventsObjectsQuery"))
 	eventObjs := []*model.EventsObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.EventsObject{SessionID: sessionID}).Find(&eventObjs); res.Error != nil {
 		return nil, fmt.Errorf("error reading from events: %v", res.Error)
 	}
+	eventsQuerySpan.Finish()
+	eventsParseSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("parse.eventsObjects"))
 	allEvents := make(map[string][]interface{})
 	for _, eventObj := range eventObjs {
 		subEvents := make(map[string][]interface{})
@@ -543,6 +546,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		}
 		allEvents["events"] = append(subEvents["events"], allEvents["events"]...)
 	}
+	eventsParseSpan.Finish()
 	return allEvents["events"], nil
 }
 
@@ -646,6 +650,8 @@ func (r *queryResolver) Errors(ctx context.Context, sessionID int) ([]*model.Err
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
+	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorObjectsQuery"))
+	defer eventsQuerySpan.Finish()
 	errorsObj := []*model.ErrorObject{}
 	if res := r.DB.Order("created_at asc").Where(&model.ErrorObject{SessionID: sessionID}).Find(&errorsObj); res.Error != nil {
 		return nil, fmt.Errorf("error reading from errors: %v", res.Error)
@@ -728,7 +734,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	visitedQuery := r.DB.Model(&model.Field{})
 	referrerQuery := r.DB.Model(&model.Field{})
 
-	fieldsSpan, _ := tracer.StartSpanFromContext(ctx, "field.resolver", tracer.ResourceName("Fields DB Query"))
+	fieldsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.fieldsQuery"))
 	for _, prop := range params.UserProperties {
 		if prop.Name == "contains" {
 			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
@@ -801,7 +807,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	fieldsSpan.Finish()
-	sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "field.resolver", tracer.ResourceName("Sessions DB Query"))
+	sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsQuery"))
 
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
