@@ -45,10 +45,15 @@
     }
 }
 
+.checkboxGroup {
+    width: 100%;
+}
+
 .checkboxesContainer {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: $size-xSmall;
+    justify-items: center;
 }
 
 .circle {

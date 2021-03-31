@@ -50,6 +50,7 @@ const TimelineAnnotationsSettings = () => {
                     <Checkbox.Group
                         defaultValue={selectedEventTypes}
                         onChange={onSelectChangeHandler}
+                        className={styles.checkboxGroup}
                     >
                         <div className={styles.checkboxesContainer}>
                             {checkboxOptions.map(({ label, value }) => (

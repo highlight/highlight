@@ -1,5 +1,6 @@
 export const button: string;
 export const checkboxesContainer: string;
+export const checkboxGroup: string;
 export const checkBoxLabel: string;
 export const circle: string;
 export const eventType: string;
