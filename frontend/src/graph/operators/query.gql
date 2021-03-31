@@ -1,4 +1,4 @@
-query GetEvents($session_id: ID!) {
+query GetSessionPayload($session_id: ID!) {
     events(session_id: $session_id)
     errors(session_id: $session_id) {
         ...errorFields
@@ -38,13 +38,13 @@ mutation SendAdminInvite($organization_id: ID!, $email: String!) {
     sendAdminInvite(organization_id: $organization_id, email: $email)
 }
 
-query GetSessionsBETA(
+query GetSessions(
     $organization_id: ID!
     $count: Int!
     $processed: Boolean!
     $params: SearchParamsInput
 ) {
-    sessionsBETA(
+    sessions(
         organization_id: $organization_id
         count: $count
         processed: $processed
@@ -176,10 +176,17 @@ query GetResources($session_id: ID!) {
     resources(session_id: $session_id)
 }
 
-query GetErrors($session_id: ID!) {
-    errors(session_id: $session_id) {
-        ...errorFields
-    }
+fragment errorFields on ErrorObject {
+    id
+    error_group_id
+    event
+    type
+    url
+    source
+    line_number
+    column_number
+    trace
+    timestamp
 }
 
 fragment errorFields on ErrorObject {
@@ -200,7 +207,7 @@ query GetFieldSuggestion(
     $name: String!
     $query: String!
 ) {
-    field_suggestionBETA(
+    field_suggestion(
         organization_id: $organization_id
         name: $name
         query: $query
