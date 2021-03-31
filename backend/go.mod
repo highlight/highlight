@@ -14,6 +14,7 @@ require (
 	github.com/go-chi/chi v3.3.2+incompatible
 	github.com/go-redis/redis/v7 v7.4.0
 	github.com/go-test/deep v1.0.4
+	github.com/google/martian/v3 v3.0.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/honeycombio/beeline-go v0.11.0
