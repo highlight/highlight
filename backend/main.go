@@ -138,5 +138,6 @@ func main() {
 	} else if rt == "server" {
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	}
+
 	log.Errorf("invalid runtime")
 }
