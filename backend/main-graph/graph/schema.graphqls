@@ -234,7 +234,7 @@ type Query {
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int
-    sessionsBETA(
+    sessions(
         organization_id: ID!
         count: Int!
         processed: Boolean!
@@ -242,7 +242,7 @@ type Query {
     ): SessionResults!
     billingDetails(organization_id: ID!): BillingDetails!
     # gets all the organizations of a user
-    field_suggestionBETA(
+    field_suggestion(
         organization_id: ID!
         name: String!
         query: String!
