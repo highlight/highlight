@@ -17,13 +17,13 @@ import ReplayerContext, {
 } from '../ReplayerContext';
 import classNames from 'classnames';
 import Skeleton from 'react-loading-skeleton';
-import { Popover } from 'antd';
 import { Link, useParams } from 'react-router-dom';
 import { getEventRenderDetails } from '../StreamElement/StreamElement';
 import StreamElementPayload from '../StreamElement/StreamElementPayload';
 import { getHeaderFromError } from '../../Error/ErrorPage';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { EventsForTimeline } from '../PlayerHook/utils';
+import Popover from '../../../components/Popover/Popover';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -435,7 +435,6 @@ const SessionSegment = ({
                             return (
                                 <Popover
                                     key={event.identifier}
-                                    overlayStyle={{ maxWidth: 200 }}
                                     content={
                                         <div className={styles.tooltipContent}>
                                             <StreamElementPayload
@@ -481,7 +480,6 @@ const SessionSegment = ({
                             {interval.errors.map((error) => (
                                 <Popover
                                     key={error.id}
-                                    overlayStyle={{ maxWidth: 200 }}
                                     content={
                                         <div className={styles.popoverContent}>
                                             {error.source}

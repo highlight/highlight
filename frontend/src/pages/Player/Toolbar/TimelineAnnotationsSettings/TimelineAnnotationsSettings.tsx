@@ -1,7 +1,8 @@
 import useLocalStorage from '@rehooks/local-storage';
-import { Checkbox, Popover, CheckboxOptionType } from 'antd';
+import { Checkbox, CheckboxOptionType } from 'antd';
 import React from 'react';
 import TransparentButton from '../../../../components/Button/TransparentButton/TransparentButton';
+import Popover from '../../../../components/Popover/Popover';
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import { getAnnotationColor } from '../Toolbar';
 import styles from './TimelineAnnotationsSettings.module.scss';
@@ -62,7 +63,6 @@ const TimelineAnnotationsSettings = () => {
                     </Checkbox.Group>
                 </div>
             }
-            overlayStyle={{ maxWidth: `300px` }}
         >
             <TransparentButton className={styles.button}>
                 <div className={styles.eventTypesContainer}>
