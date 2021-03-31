@@ -1048,14 +1048,14 @@ export type SendAdminInviteMutationOptions = Apollo.BaseMutationOptions<
     Types.SendAdminInviteMutation,
     Types.SendAdminInviteMutationVariables
 >;
-export const GetSessionsBetaDocument = gql`
-    query GetSessionsBETA(
+export const GetSessionsDocument = gql`
+    query GetSessions(
         $organization_id: ID!
         $count: Int!
         $processed: Boolean!
         $params: SearchParamsInput
     ) {
-        sessionsBETA(
+        sessions(
             organization_id: $organization_id
             count: $count
             processed: $processed
@@ -1087,16 +1087,16 @@ export const GetSessionsBetaDocument = gql`
 `;
 
 /**
- * __useGetSessionsBetaQuery__
+ * __useGetSessionsQuery__
  *
- * To run a query within a React component, call `useGetSessionsBetaQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetSessionsBetaQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetSessionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetSessionsBetaQuery({
+ * const { data, loading, error } = useGetSessionsQuery({
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      count: // value for 'count'
@@ -1105,37 +1105,35 @@ export const GetSessionsBetaDocument = gql`
  *   },
  * });
  */
-export function useGetSessionsBetaQuery(
+export function useGetSessionsQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetSessionsBetaQuery,
-        Types.GetSessionsBetaQueryVariables
+        Types.GetSessionsQuery,
+        Types.GetSessionsQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetSessionsBetaQuery,
-        Types.GetSessionsBetaQueryVariables
-    >(GetSessionsBetaDocument, baseOptions);
+        Types.GetSessionsQuery,
+        Types.GetSessionsQueryVariables
+    >(GetSessionsDocument, baseOptions);
 }
-export function useGetSessionsBetaLazyQuery(
+export function useGetSessionsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetSessionsBetaQuery,
-        Types.GetSessionsBetaQueryVariables
+        Types.GetSessionsQuery,
+        Types.GetSessionsQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetSessionsBetaQuery,
-        Types.GetSessionsBetaQueryVariables
-    >(GetSessionsBetaDocument, baseOptions);
+        Types.GetSessionsQuery,
+        Types.GetSessionsQueryVariables
+    >(GetSessionsDocument, baseOptions);
 }
-export type GetSessionsBetaQueryHookResult = ReturnType<
-    typeof useGetSessionsBetaQuery
+export type GetSessionsQueryHookResult = ReturnType<typeof useGetSessionsQuery>;
+export type GetSessionsLazyQueryHookResult = ReturnType<
+    typeof useGetSessionsLazyQuery
 >;
-export type GetSessionsBetaLazyQueryHookResult = ReturnType<
-    typeof useGetSessionsBetaLazyQuery
->;
-export type GetSessionsBetaQueryResult = Apollo.QueryResult<
-    Types.GetSessionsBetaQuery,
-    Types.GetSessionsBetaQueryVariables
+export type GetSessionsQueryResult = Apollo.QueryResult<
+    Types.GetSessionsQuery,
+    Types.GetSessionsQueryVariables
 >;
 export const GetOrganizationsDocument = gql`
     query GetOrganizations {
@@ -1641,7 +1639,7 @@ export const GetFieldSuggestionDocument = gql`
         $name: String!
         $query: String!
     ) {
-        field_suggestionBETA(
+        field_suggestion(
             organization_id: $organization_id
             name: $name
             query: $query
