@@ -26,7 +26,7 @@ export const VisitedUrlInput = () => {
             query: input,
             name: 'visited-url',
         });
-        const suggestions = (fetched?.data?.field_suggestionBETA ?? [])
+        const suggestions = (fetched?.data?.field_suggestion ?? [])
             .map((e) => e?.value)
             .filter((v, i, a) => a.indexOf(v) === i)
             .map((f) => {
@@ -92,7 +92,7 @@ export const ReferrerInput = () => {
             query: input,
             name: 'referrer',
         });
-        const suggestions = (fetched?.data?.field_suggestionBETA ?? [])
+        const suggestions = (fetched?.data?.field_suggestion ?? [])
             ?.map((e) => e?.value)
             .filter((v, i, a) => a.indexOf(v) === i)
             .map((f) => {

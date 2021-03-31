@@ -2,7 +2,8 @@ import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { DemoContext } from '../../../DemoContext';
-import { useGetEventsQuery } from '../../../graph/generated/hooks';
+import { useGetSessionPayloadQuery } from '../../../graph/generated/hooks';
+import { ErrorObject } from '../../../graph/generated/schemas';
 import { HighlightEvent } from '../HighlightEvent';
 
 import {
@@ -29,6 +30,8 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
 
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
+    const [errors, setErrors] = useState<ErrorObject[]>([]);
+    const [, setSelectedErrorId] = useState<string | undefined>(undefined);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
     const [time, setTime] = useState<number>(0);
@@ -42,7 +45,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
 
     const { demo } = useContext(DemoContext);
 
-    const { data: eventsData } = useGetEventsQuery({
+    const { data: eventsData } = useGetSessionPayloadQuery({
         variables: {
             session_id: demo
                 ? process.env.REACT_APP_DEMO_SESSION ?? ''
@@ -71,6 +74,9 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             // Allows users to interact with the DOM in the player.
             r.enableInteract();
             setEvents(newEvents);
+            if (eventsData?.errors) {
+                setErrors(eventsData.errors as ErrorObject[]);
+            }
             setReplayer(r);
         }
     }, [eventsData]);
@@ -105,7 +111,12 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                     setSessionEndTime(replayer.getMetaData().totalTime);
                     setState(ReplayerState.LoadedAndUntouched);
                     console.timeEnd('LoadingEvents');
-                    setPlayerTimestamp(replayer.getMetaData().totalTime);
+                    setPlayerTimestamp(
+                        replayer.getMetaData().totalTime,
+                        replayer.getMetaData().startTime,
+                        errors,
+                        setSelectedErrorId
+                    );
                 } else {
                     timerId = requestAnimationFrame(addEventsWorker);
                 }
@@ -117,7 +128,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                 cancelAnimationFrame(timerId);
             };
         }
-    }, [events, events.length, replayer, setPlayerTimestamp]);
+    }, [errors, events, events.length, replayer, setPlayerTimestamp]);
 
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {
@@ -182,6 +193,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
         events,
         play,
         pause,
+        errors,
     };
 };
 

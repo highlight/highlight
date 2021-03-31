@@ -2,6 +2,7 @@ import { createContext } from 'react';
 import { Replayer } from '@highlight-run/rrweb';
 import { SessionInterval } from '@highlight-run/rrweb/dist/types';
 import { HighlightEvent } from '../HighlightEvent';
+import { ErrorObject } from '../../../graph/generated/schemas';
 
 export enum ReplayerState {
     Loading,
@@ -28,6 +29,7 @@ export interface ReplayerContextInterface {
     pause: (time?: number) => void;
     setScale: React.Dispatch<React.SetStateAction<number>>;
     events: Array<HighlightEvent>;
+    errors: ErrorObject[];
     sessionIntervals: Array<ParsedSessionInterval>;
 }
 
@@ -42,6 +44,7 @@ export const defaultValue: ReplayerContextInterface = {
     play: (_) => {},
     pause: (_) => {},
     events: [],
+    errors: [],
     sessionIntervals: [],
 };
 /* eslint-enable */

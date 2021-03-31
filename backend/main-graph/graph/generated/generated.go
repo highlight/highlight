@@ -189,7 +189,7 @@ type ComplexityRoot struct {
 		ErrorSegments            func(childComplexity int, organizationID int) int
 		Errors                   func(childComplexity int, sessionID int) int
 		Events                   func(childComplexity int, sessionID int) int
-		FieldSuggestionBeta      func(childComplexity int, organizationID int, name string, query string) int
+		FieldSuggestion          func(childComplexity int, organizationID int, name string, query string) int
 		IsIntegrated             func(childComplexity int, organizationID int) int
 		Messages                 func(childComplexity int, sessionID int) int
 		Organization             func(childComplexity int, id int) int
@@ -200,7 +200,7 @@ type ComplexityRoot struct {
 		Resources                func(childComplexity int, sessionID int) int
 		Segments                 func(childComplexity int, organizationID int) int
 		Session                  func(childComplexity int, id int) int
-		SessionsBeta             func(childComplexity int, organizationID int, count int, processed bool, params *model.SearchParamsInput) int
+		Sessions                 func(childComplexity int, organizationID int, count int, processed bool, params *model.SearchParamsInput) int
 		UnprocessedSessionsCount func(childComplexity int, organizationID int) int
 	}
 
@@ -308,9 +308,9 @@ type QueryResolver interface {
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error)
-	SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
+	Sessions(ctx context.Context, organizationID int, count int, processed bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
-	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
+	FieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
 	ErrorFieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.ErrorField, error)
 	Organizations(ctx context.Context) ([]*model1.Organization, error)
@@ -1098,17 +1098,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Events(childComplexity, args["session_id"].(int)), true
 
-	case "Query.field_suggestionBETA":
-		if e.complexity.Query.FieldSuggestionBeta == nil {
+	case "Query.field_suggestion":
+		if e.complexity.Query.FieldSuggestion == nil {
 			break
 		}
 
-		args, err := ec.field_Query_field_suggestionBETA_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_field_suggestion_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.FieldSuggestionBeta(childComplexity, args["organization_id"].(int), args["name"].(string), args["query"].(string)), true
+		return e.complexity.Query.FieldSuggestion(childComplexity, args["organization_id"].(int), args["name"].(string), args["query"].(string)), true
 
 	case "Query.isIntegrated":
 		if e.complexity.Query.IsIntegrated == nil {
@@ -1225,17 +1225,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Session(childComplexity, args["id"].(int)), true
 
-	case "Query.sessionsBETA":
-		if e.complexity.Query.SessionsBeta == nil {
+	case "Query.sessions":
+		if e.complexity.Query.Sessions == nil {
 			break
 		}
 
-		args, err := ec.field_Query_sessionsBETA_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_sessions_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.SessionsBeta(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput)), true
+		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput)), true
 
 	case "Query.unprocessedSessionsCount":
 		if e.complexity.Query.UnprocessedSessionsCount == nil {
@@ -1830,7 +1830,7 @@ type Query {
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int
-    sessionsBETA(
+    sessions(
         organization_id: ID!
         count: Int!
         processed: Boolean!
@@ -1838,7 +1838,7 @@ type Query {
     ): SessionResults!
     billingDetails(organization_id: ID!): BillingDetails!
     # gets all the organizations of a user
-    field_suggestionBETA(
+    field_suggestion(
         organization_id: ID!
         name: String!
         query: String!
@@ -2505,7 +2505,7 @@ func (ec *executionContext) field_Query_events_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_field_suggestionBETA_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_field_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -2691,7 +2691,7 @@ func (ec *executionContext) field_Query_session_args(ctx context.Context, rawArg
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_sessionsBETA_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -5998,7 +5998,7 @@ func (ec *executionContext) _Query_unprocessedSessionsCount(ctx context.Context,
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6015,7 +6015,7 @@ func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graph
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_sessionsBETA_args(ctx, rawArgs)
+	args, err := ec.field_Query_sessions_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -6023,7 +6023,7 @@ func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsBeta(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput))
+		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6082,7 +6082,7 @@ func (ec *executionContext) _Query_billingDetails(ctx context.Context, field gra
 	return ec.marshalNBillingDetails2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_field_suggestionBETA(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6099,7 +6099,7 @@ func (ec *executionContext) _Query_field_suggestionBETA(ctx context.Context, fie
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_field_suggestionBETA_args(ctx, rawArgs)
+	args, err := ec.field_Query_field_suggestion_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -6107,7 +6107,7 @@ func (ec *executionContext) _Query_field_suggestionBETA(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FieldSuggestionBeta(rctx, args["organization_id"].(int), args["name"].(string), args["query"].(string))
+		return ec.resolvers.Query().FieldSuggestion(rctx, args["organization_id"].(int), args["name"].(string), args["query"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10022,7 +10022,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_unprocessedSessionsCount(ctx, field)
 				return res
 			})
-		case "sessionsBETA":
+		case "sessions":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -10030,7 +10030,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_sessionsBETA(ctx, field)
+				res = ec._Query_sessions(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -10050,7 +10050,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "field_suggestionBETA":
+		case "field_suggestion":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -10058,7 +10058,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_field_suggestionBETA(ctx, field)
+				res = ec._Query_field_suggestion(ctx, field)
 				return res
 			})
 		case "property_suggestion":
