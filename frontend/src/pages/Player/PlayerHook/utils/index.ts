@@ -6,7 +6,12 @@ import { useCallback } from 'react';
 import { useHistory, useLocation } from 'react-router';
 import { ErrorObject } from '../../../../graph/generated/schemas';
 import { HighlightEvent } from '../../HighlightEvent';
-import { ParsedSessionInterval } from '../../ReplayerContext';
+import {
+    ParsedErrorObject,
+    ParsedEvent,
+    ParsedHighlightEvent,
+    ParsedSessionInterval,
+} from '../../ReplayerContext';
 
 const INACTIVE_THRESHOLD = 0.02;
 
@@ -32,6 +37,7 @@ export const getSessionIntervals = (
                 endTime: metadata.totalTime,
                 startTime: 0,
                 errors: [],
+                sessionEvents: [],
             },
         ];
     }
@@ -76,6 +82,7 @@ const getIntervalWithPercentages = (
             startPercent: prevTime / totalDuration,
             endPercent: currTime / totalDuration,
             errors: [],
+            sessionEvents: [],
         };
     });
 };
@@ -176,7 +183,7 @@ export const addErrorsToSessionIntervals = (
 
     return sessionIntervals.map((sessionInterval, index) => ({
         ...sessionInterval,
-        errors: groupedErrors[index],
+        errors: groupedErrors[index] as ParsedErrorObject[],
     }));
 };
 
@@ -210,31 +217,34 @@ export const addEventsToSessionIntervals = (
 
     return sessionIntervals.map((sessionInterval, index) => ({
         ...sessionInterval,
-        sessionEvents: groupedEvents[index] as HighlightEvent[],
+        sessionEvents: groupedEvents[index] as ParsedHighlightEvent[],
     }));
 };
 
-type ParsedEvent = ErrorObject | HighlightEvent;
+type ParsableEvent = ErrorObject | HighlightEvent;
 
+/**
+ * Adds events to the session interval that the event occurred in.
+ */
 const assignEventToSessionInterval = (
     sessionIntervals: ParsedSessionInterval[],
-    events: ParsedEvent[],
+    events: ParsableEvent[],
     sessionStartTime: number
 ) => {
-    let errorsIndex = 0;
+    let eventIndex = 0;
     let sessionIntervalIndex = 0;
     let currentSessionInterval = sessionIntervals[sessionIntervalIndex];
-    const response: any[] = Array.from(
+    const response: ParsedEvent[][] = Array.from(
         Array(sessionIntervals.length)
     ).map(() => []);
 
     while (
-        errorsIndex < events.length &&
+        eventIndex < events.length &&
         sessionIntervalIndex < sessionIntervals.length
     ) {
-        const error = events[errorsIndex];
+        const event = events[eventIndex];
         const relativeTimestamp =
-            new Date(error.timestamp).getTime() - sessionStartTime;
+            new Date(event.timestamp).getTime() - sessionStartTime;
 
         if (
             relativeTimestamp >= currentSessionInterval.startTime &&
@@ -243,11 +253,12 @@ const assignEventToSessionInterval = (
             const relativeTime =
                 relativeTimestamp - currentSessionInterval.startTime;
             response[sessionIntervalIndex].push({
-                ...error,
+                ...event,
+                // Calculate at the percentage of time where the event occurred in the session.
                 relativeIntervalPercentage:
                     (relativeTime / currentSessionInterval.duration) * 100,
             });
-            errorsIndex++;
+            eventIndex++;
         } else {
             sessionIntervalIndex++;
             currentSessionInterval = sessionIntervals[sessionIntervalIndex];
