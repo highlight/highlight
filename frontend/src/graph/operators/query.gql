@@ -39,12 +39,14 @@ query GetSessionsBETA(
     $organization_id: ID!
     $count: Int!
     $processed: Boolean!
+    $starred: Boolean!
     $params: SearchParamsInput
 ) {
     sessionsBETA(
         organization_id: $organization_id
         count: $count
         processed: $processed
+        starred: $starred
         params: $params
     ) {
         sessions {
@@ -61,6 +63,7 @@ query GetSessionsBETA(
             created_at
             length
             viewed
+            starred
             fields {
                 name
                 value

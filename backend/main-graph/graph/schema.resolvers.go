@@ -195,6 +195,22 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int, view
 	return session, nil
 }
 
+func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, id int, starred *bool) (*model.Session, error) {
+	_, err := r.isAdminSessionOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	session := &model.Session{}
+	res := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session)
+	if err := res.Update(&model.Session{
+		Starred: starred,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing session as starred")
+	}
+
+	return session, nil
+}
+
 func (r *mutationResolver) MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model.ErrorGroup, error) {
 	_, err := r.isAdminErrorGroupOwner(ctx, id)
 	if err != nil {
@@ -713,7 +729,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	return &count, nil
 }
 
-func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -800,15 +816,18 @@ func (r *queryResolver) SessionsBeta(ctx context.Context, organizationID int, co
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
-	queryString := `SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,
+	queryString := `SELECT id, user_id, organization_id, processed, starred, os_name, os_version, browser_name,
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed
-	FROM (SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,
+	FROM (SELECT id, user_id, organization_id, processed, starred, os_name, os_version, browser_name,
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
 	if processed {
 		queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+	}
+	if starred {
+		queryString += "AND (starred = true) "
 	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {

@@ -41,6 +41,7 @@ export type Session = {
     user_object?: Maybe<Scalars['Any']>;
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
+    starred?: Maybe<Scalars['Boolean']>;
     field_group?: Maybe<Scalars['String']>;
 };
 
@@ -325,6 +326,7 @@ export type QuerySessionsBetaArgs = {
     organization_id: Scalars['ID'];
     count: Scalars['Int'];
     processed: Scalars['Boolean'];
+    starred: Scalars['Boolean'];
     params?: Maybe<SearchParamsInput>;
 };
 
@@ -375,6 +377,7 @@ export type Mutation = {
     createOrganization?: Maybe<Organization>;
     editOrganization?: Maybe<Organization>;
     markSessionAsViewed?: Maybe<Session>;
+    markSessionAsStarred?: Maybe<Session>;
     markErrorGroupAsResolved?: Maybe<ErrorGroup>;
     deleteOrganization?: Maybe<Scalars['Boolean']>;
     sendAdminInvite?: Maybe<Scalars['String']>;
@@ -404,6 +407,11 @@ export type MutationEditOrganizationArgs = {
 export type MutationMarkSessionAsViewedArgs = {
     id: Scalars['ID'];
     viewed?: Maybe<Scalars['Boolean']>;
+};
+
+export type MutationMarkSessionAsStarredArgs = {
+    id: Scalars['ID'];
+    starred?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationMarkErrorGroupAsResolvedArgs = {

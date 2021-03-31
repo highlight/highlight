@@ -10,7 +10,9 @@ export type Scalars = {
   Int: number;
   Float: number;
   Any: any;
+  Time: any;
 };
+
 
 
 export type Session = {
@@ -28,6 +30,7 @@ export type ErrorObjectInput = {
   lineNumber: Scalars['Int'];
   columnNumber: Scalars['Int'];
   trace: Array<Maybe<Scalars['Any']>>;
+  timestamp: Scalars['Time'];
 };
 
 export type ReplayEventsInput = {

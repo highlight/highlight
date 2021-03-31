@@ -162,6 +162,7 @@ type ComplexityRoot struct {
 		EditSegment                    func(childComplexity int, id int, organizationID int, params model.SearchParamsInput) int
 		EmailSignup                    func(childComplexity int, email string) int
 		MarkErrorGroupAsResolved       func(childComplexity int, id int, resolved *bool) int
+		MarkSessionAsStarred           func(childComplexity int, id int, starred *bool) int
 		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
 		SendAdminInvite                func(childComplexity int, organizationID int, email string) int
 	}
@@ -200,7 +201,7 @@ type ComplexityRoot struct {
 		Resources                func(childComplexity int, sessionID int) int
 		Segments                 func(childComplexity int, organizationID int) int
 		Session                  func(childComplexity int, id int) int
-		SessionsBeta             func(childComplexity int, organizationID int, count int, processed bool, params *model.SearchParamsInput) int
+		SessionsBeta             func(childComplexity int, organizationID int, count int, processed bool, starred bool, params *model.SearchParamsInput) int
 		UnprocessedSessionsCount func(childComplexity int, organizationID int) int
 	}
 
@@ -244,6 +245,7 @@ type ComplexityRoot struct {
 		OSName         func(childComplexity int) int
 		OSVersion      func(childComplexity int) int
 		Postal         func(childComplexity int) int
+		Starred        func(childComplexity int) int
 		State          func(childComplexity int) int
 		UserID         func(childComplexity int) int
 		UserObject     func(childComplexity int) int
@@ -281,6 +283,7 @@ type MutationResolver interface {
 	CreateOrganization(ctx context.Context, name string) (*model1.Organization, error)
 	EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model1.Organization, error)
 	MarkSessionAsViewed(ctx context.Context, id int, viewed *bool) (*model1.Session, error)
+	MarkSessionAsStarred(ctx context.Context, id int, starred *bool) (*model1.Session, error)
 	MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model1.ErrorGroup, error)
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
@@ -307,7 +310,7 @@ type QueryResolver interface {
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error)
-	SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
+	SessionsBeta(ctx context.Context, organizationID int, count int, processed bool, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
 	FieldSuggestionBeta(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
@@ -921,6 +924,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.MarkErrorGroupAsResolved(childComplexity, args["id"].(int), args["resolved"].(*bool)), true
 
+	case "Mutation.markSessionAsStarred":
+		if e.complexity.Mutation.MarkSessionAsStarred == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_markSessionAsStarred_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.MarkSessionAsStarred(childComplexity, args["id"].(int), args["starred"].(*bool)), true
+
 	case "Mutation.markSessionAsViewed":
 		if e.complexity.Mutation.MarkSessionAsViewed == nil {
 			break
@@ -1234,7 +1249,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SessionsBeta(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput)), true
+		return e.complexity.Query.SessionsBeta(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["params"].(*model.SearchParamsInput)), true
 
 	case "Query.unprocessedSessionsCount":
 		if e.complexity.Query.UnprocessedSessionsCount == nil {
@@ -1458,6 +1473,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Postal(childComplexity), true
 
+	case "Session.starred":
+		if e.complexity.Session.Starred == nil {
+			break
+		}
+
+		return e.complexity.Session.Starred(childComplexity), true
+
 	case "Session.state":
 		if e.complexity.Session.State == nil {
 			break
@@ -1612,6 +1634,7 @@ type Session {
     user_object: Any
     fields: [Field]
     viewed: Boolean
+    starred: Boolean
     field_group: String
 }
 
@@ -1825,8 +1848,9 @@ type Query {
         organization_id: ID!
         count: Int!
         processed: Boolean!
+        starred: Boolean!
         params: SearchParamsInput
-    ): SessionResults
+    ): SessionResults!
     billingDetails(organization_id: ID!): BillingDetails!
     # gets all the organizations of a user
     field_suggestionBETA(
@@ -1857,6 +1881,7 @@ type Mutation {
     createOrganization(name: String!): Organization
     editOrganization(id: ID!, name: String, billing_email: String): Organization
     markSessionAsViewed(id: ID!, viewed: Boolean): Session
+    markSessionAsStarred(id: ID!, starred: Boolean): Session
     markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
@@ -2274,6 +2299,30 @@ func (ec *executionContext) field_Mutation_markErrorGroupAsResolved_args(ctx con
 		}
 	}
 	args["resolved"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_markSessionAsStarred_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["starred"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("starred"))
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["starred"] = arg1
 	return args, nil
 }
 
@@ -2712,15 +2761,24 @@ func (ec *executionContext) field_Query_sessionsBETA_args(ctx context.Context, r
 		}
 	}
 	args["processed"] = arg2
-	var arg3 *model.SearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg3, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+	var arg3 bool
+	if tmp, ok := rawArgs["starred"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("starred"))
+		arg3, err = ec.unmarshalNBoolean2bool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg3
+	args["starred"] = arg3
+	var arg4 *model.SearchParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg4, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg4
 	return args, nil
 }
 
@@ -4811,6 +4869,45 @@ func (ec *executionContext) _Mutation_markSessionAsViewed(ctx context.Context, f
 	return ec.marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_markSessionAsStarred(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_markSessionAsStarred_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().MarkSessionAsStarred(rctx, args["id"].(int), args["starred"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.Session)
+	fc.Result = res
+	return ec.marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_markErrorGroupAsResolved(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6014,18 +6111,21 @@ func (ec *executionContext) _Query_sessionsBETA(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SessionsBeta(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput))
+		return ec.resolvers.Query().SessionsBeta(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["params"].(*model.SearchParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*model1.SessionResults)
 	fc.Result = res
-	return ec.marshalOSessionResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx, field.Selections, res)
+	return ec.marshalNSessionResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_billingDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -7611,6 +7711,38 @@ func (ec *executionContext) _Session_viewed(ctx context.Context, field graphql.C
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Viewed, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_starred(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Starred, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9738,6 +9870,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_editOrganization(ctx, field)
 		case "markSessionAsViewed":
 			out.Values[i] = ec._Mutation_markSessionAsViewed(ctx, field)
+		case "markSessionAsStarred":
+			out.Values[i] = ec._Mutation_markSessionAsStarred(ctx, field)
 		case "markErrorGroupAsResolved":
 			out.Values[i] = ec._Mutation_markErrorGroupAsResolved(ctx, field)
 		case "deleteOrganization":
@@ -9987,6 +10121,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_sessionsBETA(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "billingDetails":
@@ -10340,6 +10477,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_fields(ctx, field, obj)
 		case "viewed":
 			out.Values[i] = ec._Session_viewed(ctx, field, obj)
+		case "starred":
+			out.Values[i] = ec._Session_starred(ctx, field, obj)
 		case "field_group":
 			out.Values[i] = ec._Session_field_group(ctx, field, obj)
 		default:
@@ -10962,6 +11101,20 @@ func (ec *executionContext) marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋful
 	return ret
 }
 
+func (ec *executionContext) marshalNSessionResults2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx context.Context, sel ast.SelectionSet, v model1.SessionResults) graphql.Marshaler {
+	return ec._SessionResults(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSessionResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx context.Context, sel ast.SelectionSet, v *model1.SessionResults) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._SessionResults(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalString(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -11030,7 +11183,7 @@ func (ec *executionContext) marshalNString2ᚖstring(ctx context.Context, sel as
 
 func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
 	res, err := graphql.UnmarshalTime(v)
-	return res, graphql.WrapErrorWithInputPath(ctx, err)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
@@ -11810,13 +11963,6 @@ func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋful
 		return graphql.Null
 	}
 	return ec._Session(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOSessionResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx context.Context, sel ast.SelectionSet, v *model1.SessionResults) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._SessionResults(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

@@ -53,6 +53,56 @@ export type MarkSessionAsViewedMutationOptions = Apollo.BaseMutationOptions<
     Types.MarkSessionAsViewedMutation,
     Types.MarkSessionAsViewedMutationVariables
 >;
+export const MarkSessionAsStarredDocument = gql`
+    mutation MarkSessionAsStarred($id: ID!, $starred: Boolean!) {
+        markSessionAsStarred(id: $id, starred: $starred) {
+            id
+            starred
+        }
+    }
+`;
+export type MarkSessionAsStarredMutationFn = Apollo.MutationFunction<
+    Types.MarkSessionAsStarredMutation,
+    Types.MarkSessionAsStarredMutationVariables
+>;
+
+/**
+ * __useMarkSessionAsStarredMutation__
+ *
+ * To run a mutation, you first call `useMarkSessionAsStarredMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkSessionAsStarredMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [markSessionAsStarredMutation, { data, loading, error }] = useMarkSessionAsStarredMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      starred: // value for 'starred'
+ *   },
+ * });
+ */
+export function useMarkSessionAsStarredMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.MarkSessionAsStarredMutation,
+        Types.MarkSessionAsStarredMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.MarkSessionAsStarredMutation,
+        Types.MarkSessionAsStarredMutationVariables
+    >(MarkSessionAsStarredDocument, baseOptions);
+}
+export type MarkSessionAsStarredMutationHookResult = ReturnType<
+    typeof useMarkSessionAsStarredMutation
+>;
+export type MarkSessionAsStarredMutationResult = Apollo.MutationResult<Types.MarkSessionAsStarredMutation>;
+export type MarkSessionAsStarredMutationOptions = Apollo.BaseMutationOptions<
+    Types.MarkSessionAsStarredMutation,
+    Types.MarkSessionAsStarredMutationVariables
+>;
 export const CreateOrUpdateSubscriptionDocument = gql`
     mutation CreateOrUpdateSubscription(
         $organization_id: ID!
@@ -1034,12 +1084,14 @@ export const GetSessionsBetaDocument = gql`
         $organization_id: ID!
         $count: Int!
         $processed: Boolean!
+        $starred: Boolean!
         $params: SearchParamsInput
     ) {
         sessionsBETA(
             organization_id: $organization_id
             count: $count
             processed: $processed
+            starred: $starred
             params: $params
         ) {
             sessions {
@@ -1056,6 +1108,7 @@ export const GetSessionsBetaDocument = gql`
                 created_at
                 length
                 viewed
+                starred
                 fields {
                     name
                     value
@@ -1082,6 +1135,7 @@ export const GetSessionsBetaDocument = gql`
  *      organization_id: // value for 'organization_id'
  *      count: // value for 'count'
  *      processed: // value for 'processed'
+ *      starred: // value for 'starred'
  *      params: // value for 'params'
  *   },
  * });

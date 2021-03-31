@@ -20,6 +20,7 @@ import { EmptySessionsSearchParams } from '../../SessionsPage';
 import _ from 'lodash';
 
 export const LIVE_SEGMENT_ID = 'live';
+export const STARRED_SEGMENT_ID = 'star';
 const NO_SEGMENT = 'none';
 
 export const SegmentPicker = () => {
