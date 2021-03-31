@@ -1,6 +1,6 @@
 package util
 
-// This is taken from: https://github.com/99designs/gqlgen/blob/master/graphql/handler/apollotracing/tracer.go
+// This schema/arch is taken from: https://github.com/99designs/gqlgen/blob/master/graphql/handler/apollotracing/tracer.go
 
 import (
 	"context"
@@ -9,37 +9,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-type Tracer structit(
-	Tracer struct {
-	}
-
-	// TracingExtension struct {
-	// 	mu         sync.Mutex
-	// 	Version    int           `json:"version"`
-	// 	StartTime  time.Time     `json:"startTime"`
-	// 	EndTime    time.Time     `json:"endTime"`
-	// 	Duration   time.Duration `json:"duration"`
-	// 	Parsing    Span          `json:"parsing"`
-	// 	Validation Span          `json:"validation"`
-	// 	Execution  struct {
-	// 		Resolvers []*ResolverExecution `json:"resolvers"`
-	// 	} `json:"execution"`
-	// }
-
-	// Span struct {
-	// 	StartOffset time.Duration `json:"startOffset"`
-	// 	Duration    time.Duration `json:"duration"`
-	// }
-
-	// ResolverExecution struct {
-	// 	Path        ast.Path      `json:"path"`
-	// 	ParentType  string        `json:"parentType"`
-	// 	FieldName   string        `json:"fieldName"`
-	// 	ReturnType  string        `json:"returnType"`
-	// 	StartOffset time.Duration `json:"startOffset"`
-	// 	Duration    time.Duration `json:"duration"`
-	// }
-)
+type Tracer struct{}
 
 var _ interface {
 	graphql.HandlerExtension
