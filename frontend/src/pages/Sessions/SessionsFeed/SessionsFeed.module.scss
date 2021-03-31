@@ -6,6 +6,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 .readMarkerContainer {
@@ -218,24 +219,31 @@
     position: relative;
 
     &:hover {
-        .sessionCardAction {
+        .sessionCardActionWrapper {
             display: flex;
         }
     }
 }
 
+.sessionCardActionWrapper {
+    display: none;
+    background-color: white;
+    flex-direction: column;
+    justify-content: center;
+    position: absolute;
+    top: 2px;
+    right: 8px;
+    bottom: 2px;
+}
+
 .sessionCardAction {
     background-color: white;
     border: 0;
-    display: none;
-    position: absolute;
     padding: 0px 6px;
     width: 30px;
     height: 30px;
-    right: 8px;
-    top: 0;
-    bottom: 0;
-    margin: auto;
+    margin: 4px 0;
+    display: flex;
     border-radius: 5px;
     align-items: center;
 
@@ -255,6 +263,18 @@
     stroke: #808080;
     color: #808080;
     fill: #808080;
+}
+
+.starredIcon {
+    stroke: #ffd82c;
+    color: #ffd82c;
+    fill: #ffd82c;
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+    width: 15px;
 }
 
 .sessionCard {

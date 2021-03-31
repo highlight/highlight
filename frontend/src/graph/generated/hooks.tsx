@@ -921,6 +921,7 @@ export const GetSessionDocument = gql`
             created_at
             user_object
             identifier
+            starred
             fields {
                 name
                 value
