@@ -25,6 +25,7 @@ import classNames from 'classnames';
 import { Tooltip } from 'antd';
 import { Link } from 'react-router-dom';
 import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
+import { PlayerSearchParameters } from '../Player/PlayerHook/utils';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -180,7 +181,13 @@ export const ErrorPage = () => {
                                         .reverse()
                                         .map((e, i) => (
                                             <Link
-                                                to={`/${organization_id}/sessions/${e?.session_id}`}
+                                                to={`/${organization_id}/sessions/${
+                                                    e?.session_id
+                                                }${
+                                                    e?.timestamp
+                                                        ? `?${PlayerSearchParameters.errorId}=${e.error_id}`
+                                                        : ''
+                                                }`}
                                                 key={i}
                                             >
                                                 <div
