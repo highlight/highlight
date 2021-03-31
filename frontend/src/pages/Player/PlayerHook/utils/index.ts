@@ -188,7 +188,14 @@ export const addErrorsToSessionIntervals = (
 };
 
 /** These are the type of custom events that will show up as annotations on the timeline. */
-const CustomEventsForTimeline = ['Click', 'Focus', 'Reload', 'Navigate'];
+const CustomEventsForTimeline = [
+    'Click',
+    'Focus',
+    'Reload',
+    'Navigate',
+    'Segment',
+    'Track',
+];
 const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline);
 
 export const EventsForTimeline = [...CustomEventsForTimeline, 'Errors'];
