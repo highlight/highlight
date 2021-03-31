@@ -154,7 +154,7 @@ export const StreamElement = ({
                         >
                             <span className={styles.codeBlock}>
                                 {/* Removes the starting and ending quotes */}
-                                {JSON.stringify(details.payload).replaceAll(
+                                {JSON.stringify(details.payload)?.replaceAll(
                                     /^\"|\"$/g,
                                     ''
                                 )}
