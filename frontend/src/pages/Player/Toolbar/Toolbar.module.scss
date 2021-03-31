@@ -270,8 +270,8 @@
     .annotation {
         position: absolute;
         z-index: 21;
-        height: calc(0.75px * (1 / var(--annotation-scale)));
-        width: calc(0.75px * (1 / var(--annotation-scale)));
+        height: calc(1px * (1 / var(--annotation-scale)));
+        width: calc(1px * (1 / var(--annotation-scale)));
         background-color: var(--color-red);
         opacity: 0.5;
         border: 1px solid white;
