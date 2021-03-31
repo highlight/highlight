@@ -201,11 +201,7 @@ type ComplexityRoot struct {
 		Resources                func(childComplexity int, sessionID int) int
 		Segments                 func(childComplexity int, organizationID int) int
 		Session                  func(childComplexity int, id int) int
-<<<<<<< HEAD
-		SessionsBeta             func(childComplexity int, organizationID int, count int, processed bool, starred bool, params *model.SearchParamsInput) int
-=======
-		Sessions                 func(childComplexity int, organizationID int, count int, processed bool, params *model.SearchParamsInput) int
->>>>>>> a934f466ab39ebcd10ca2497bc43b93422c51e00
+		Sessions                 func(childComplexity int, organizationID int, count int, processed bool, starred bool, params *model.SearchParamsInput) int
 		UnprocessedSessionsCount func(childComplexity int, organizationID int) int
 	}
 
@@ -314,7 +310,7 @@ type QueryResolver interface {
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error)
-	Sessions(ctx context.Context, organizationID int, count int, processed bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
+	Sessions(ctx context.Context, organizationID int, count int, processed bool, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
@@ -1253,11 +1249,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-<<<<<<< HEAD
-		return e.complexity.Query.SessionsBeta(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["params"].(*model.SearchParamsInput)), true
-=======
-		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput)), true
->>>>>>> a934f466ab39ebcd10ca2497bc43b93422c51e00
+		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["params"].(*model.SearchParamsInput)), true
 
 	case "Query.unprocessedSessionsCount":
 		if e.complexity.Query.UnprocessedSessionsCount == nil {
@@ -6119,11 +6111,7 @@ func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-<<<<<<< HEAD
-		return ec.resolvers.Query().SessionsBeta(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["params"].(*model.SearchParamsInput))
-=======
-		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["params"].(*model.SearchParamsInput))
->>>>>>> a934f466ab39ebcd10ca2497bc43b93422c51e00
+		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["params"].(*model.SearchParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10132,11 +10120,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-<<<<<<< HEAD
-				res = ec._Query_sessionsBETA(ctx, field)
-=======
 				res = ec._Query_sessions(ctx, field)
->>>>>>> a934f466ab39ebcd10ca2497bc43b93422c51e00
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
