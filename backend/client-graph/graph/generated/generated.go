@@ -48,7 +48,7 @@ type ComplexityRoot struct {
 		AddSessionProperties func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		AddTrackProperties   func(childComplexity int, sessionID int, propertiesObject interface{}) int
 		IdentifySession      func(childComplexity int, sessionID int, userIdentifier string, userObject interface{}) int
-		InitializeSession    func(childComplexity int, organizationVerboseID string) int
+		InitializeSession    func(childComplexity int, organizationVerboseID string, enableStrictPrivacy bool) int
 		PushPayload          func(childComplexity int, sessionID int, events model.ReplayEventsInput, messages string, resources string, errors []*model.ErrorObjectInput) int
 	}
 
@@ -64,7 +64,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	InitializeSession(ctx context.Context, organizationVerboseID string) (*model1.Session, error)
+	InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool) (*model1.Session, error)
 	IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error)
 	AddTrackProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
 	AddSessionProperties(ctx context.Context, sessionID int, propertiesObject interface{}) (*int, error)
@@ -135,7 +135,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.InitializeSession(childComplexity, args["organization_verbose_id"].(string)), true
+		return e.complexity.Mutation.InitializeSession(childComplexity, args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool)), true
 
 	case "Mutation.pushPayload":
 		if e.complexity.Mutation.PushPayload == nil {
@@ -273,7 +273,10 @@ input ReplayEventsInput {
 }
 
 type Mutation {
-    initializeSession(organization_verbose_id: String!): Session
+    initializeSession(
+        organization_verbose_id: String!
+        enable_strict_privacy: Boolean!
+    ): Session
     identifySession(
         session_id: ID!
         user_identifier: String!
@@ -394,6 +397,15 @@ func (ec *executionContext) field_Mutation_initializeSession_args(ctx context.Co
 		}
 	}
 	args["organization_verbose_id"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["enable_strict_privacy"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enable_strict_privacy"))
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["enable_strict_privacy"] = arg1
 	return args, nil
 }
 
@@ -541,7 +553,7 @@ func (ec *executionContext) _Mutation_initializeSession(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().InitializeSession(rctx, args["organization_verbose_id"].(string))
+		return ec.resolvers.Mutation().InitializeSession(rctx, args["organization_verbose_id"].(string), args["enable_strict_privacy"].(bool))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

@@ -16,7 +16,9 @@ export type Scalars = {
   Int: number;
   Float: number;
   Any: any;
+  Time: any;
 };
+
 
 
 export type Session = {
@@ -34,6 +36,7 @@ export type ErrorObjectInput = {
   lineNumber: Scalars['Int'];
   columnNumber: Scalars['Int'];
   trace: Array<Maybe<Scalars['Any']>>;
+  timestamp: Scalars['Time'];
 };
 
 export type ReplayEventsInput = {
@@ -52,6 +55,7 @@ export type Mutation = {
 
 export type MutationInitializeSessionArgs = {
   organization_verbose_id: Scalars['String'];
+  enable_strict_privacy: Scalars['Boolean'];
 };
 
 
@@ -142,6 +146,7 @@ export type AddTrackPropertiesMutation = (
 
 export type InitializeSessionMutationVariables = Types.Exact<{
   organization_verbose_id: Types.Scalars['String'];
+  enable_strict_privacy: Types.Scalars['Boolean'];
 }>;
 
 
@@ -201,8 +206,11 @@ export const AddTrackPropertiesDocument = gql`
 }
     `;
 export const InitializeSessionDocument = gql`
-    mutation initializeSession($organization_verbose_id: String!) {
-  initializeSession(organization_verbose_id: $organization_verbose_id) {
+    mutation initializeSession($organization_verbose_id: String!, $enable_strict_privacy: Boolean!) {
+  initializeSession(
+    organization_verbose_id: $organization_verbose_id
+    enable_strict_privacy: $enable_strict_privacy
+  ) {
     id
     user_id
     organization_id

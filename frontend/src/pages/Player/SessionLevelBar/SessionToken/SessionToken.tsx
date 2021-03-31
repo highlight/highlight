@@ -5,7 +5,7 @@ import { Tooltip } from 'antd';
 
 interface Props {
     icon: React.ReactNode;
-    tooltipTitle: string;
+    tooltipTitle: React.ReactNode;
 }
 
 function SessionToken({
@@ -19,6 +19,7 @@ function SessionToken({
                 title={tooltipTitle}
                 arrowPointAtCenter
                 placement="bottomRight"
+                overlayClassName={styles.tooltip}
             >
                 <div className={styles.iconContainer}>{icon}</div>
             </Tooltip>

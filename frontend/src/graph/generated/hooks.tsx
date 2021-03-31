@@ -890,6 +890,7 @@ export const GetSessionDocument = gql`
             created_at
             user_object
             identifier
+            enable_strict_privacy
             fields {
                 name
                 value
