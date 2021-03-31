@@ -189,19 +189,6 @@ fragment errorFields on ErrorObject {
     timestamp
 }
 
-fragment errorFields on ErrorObject {
-    id
-    error_group_id
-    event
-    type
-    url
-    source
-    line_number
-    column_number
-    trace
-    timestamp
-}
-
 query GetFieldSuggestion(
     $organization_id: ID!
     $name: String!
