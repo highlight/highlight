@@ -13,6 +13,7 @@
     > p {
         margin: 0;
         white-space: nowrap;
+        line-height: normal;
     }
 
     a {
@@ -29,4 +30,11 @@
 
 .iconContainer {
     display: flex;
+}
+
+.tooltip {
+    a {
+        color: $text-primary-inverted;
+        text-decoration: underline;
+    }
 }

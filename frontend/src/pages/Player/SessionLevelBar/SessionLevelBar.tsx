@@ -2,13 +2,16 @@ import React, { useContext, useEffect, useState } from 'react';
 import styles from './SessionLevelBar.module.scss';
 import SessionToken from './SessionToken/SessionToken';
 import { ReactComponent as LayoutIcon } from '../../../static/layout.svg';
-import ActivityIcon from './ActivityIcon/ActivityIcon';
 import ReplayerContext, { ReplayerState } from '../ReplayerContext';
 import { ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
 import { findFirstEventOfType } from './utils/utils';
 import Skeleton from 'react-loading-skeleton';
 import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
+import { useParams } from 'react-router-dom';
+import { DemoContext } from '../../../DemoContext';
+import { useGetSessionQuery } from '../../../graph/generated/hooks';
+import { BiLockAlt, BiLockOpenAlt } from 'react-icons/bi';
 
 interface Viewport {
     height: number;
@@ -18,8 +21,16 @@ interface Viewport {
 const SessionLevelBar = () => {
     const { replayer, state, events } = useContext(ReplayerContext);
     const [currentUrl, setCurrentUrl] = useState<string | undefined>(undefined);
-    const [isTabActive, setIsTabActive] = useState<boolean>(true);
     const [viewport, setViewport] = useState<Viewport | null>(null);
+    const { session_id } = useParams<{ session_id: string }>();
+    const { demo } = useContext(DemoContext);
+
+    const { loading: sessionQueryLoading, data } = useGetSessionQuery({
+        variables: {
+            id: demo ? process.env.REACT_APP_DEMO_SESSION ?? '0' : session_id,
+        },
+        context: { headers: { 'Highlight-Demo': demo } },
+    });
 
     // Subscribes to the Replayer for relevant events.
     useEffect(() => {
@@ -30,9 +41,6 @@ const SessionLevelBar = () => {
                     case 'Navigate':
                     case 'Reload':
                         setCurrentUrl(event.data.payload);
-                        return;
-                    case 'Tab':
-                        setIsTabActive(event.data.payload === 'Active');
                         return;
                     case 'Viewport': {
                         const viewportObject = (event.data
@@ -73,7 +81,8 @@ const SessionLevelBar = () => {
     const isLoading =
         (state === ReplayerState.Loading && !events.length) ||
         !viewport ||
-        !currentUrl;
+        !currentUrl ||
+        sessionQueryLoading;
 
     return (
         <div className={styles.sessionLevelBarContainer}>
@@ -91,10 +100,31 @@ const SessionLevelBar = () => {
                     </SessionToken>
                     <CurrentUrlBar url={currentUrl ?? ''} />
                     <SessionToken
-                        icon={<ActivityIcon isActive={isTabActive} />}
-                        tooltipTitle="Indicates whether the user has this page as the active tab. If the user is on a different tab or window then the session will be inactive."
+                        icon={
+                            data?.session?.enable_strict_privacy ? (
+                                <BiLockAlt size="14px" />
+                            ) : (
+                                <BiLockOpenAlt size="14px" />
+                            )
+                        }
+                        tooltipTitle={
+                            <>
+                                {data?.session?.enable_strict_privacy
+                                    ? 'Text and images in this session are obfuscated.'
+                                    : 'This session is recording all content on the page.'}{' '}
+                                <a
+                                    href="https://docs.highlight.run/docs/privacy#overview"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    Learn more about Strict Privacy Mode.
+                                </a>
+                            </>
+                        }
                     >
-                        {isTabActive ? 'Active' : 'Inactive'}
+                        {data?.session?.enable_strict_privacy
+                            ? 'Privacy Enabled'
+                            : 'Privacy Disabled'}
                     </SessionToken>
                 </>
             )}
