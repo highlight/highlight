@@ -721,7 +721,6 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, processed bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
-
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
