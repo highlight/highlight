@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
-import { useGetErrorsQuery } from '../../../../../graph/generated/hooks';
+import React, { useContext, useEffect, useRef } from 'react';
+import { useHistory } from 'react-router-dom';
 import { DevToolsSelect } from '../Option/Option';
 import devStyles from '../DevToolsWindow.module.scss';
 import styles from './ErrorsPage.module.scss';
@@ -9,6 +8,7 @@ import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard';
 import { ErrorObject } from '../../../../../graph/generated/schemas';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import Skeleton from 'react-loading-skeleton';
+import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 
 export interface ErrorsPageHistoryState {
     errorCardIndex: number;
@@ -16,12 +16,11 @@ export interface ErrorsPageHistoryState {
 
 const ErrorsPage = () => {
     const lastActiveErrorIndex = -1;
-    const { session_id } = useParams<{ session_id: string }>();
-    const { loading, data } = useGetErrorsQuery({ variables: { session_id } });
     const virtuoso = useRef<VirtuosoHandle>(null);
     const history = useHistory<ErrorsPageHistoryState>();
+    const { errors, state } = useContext(ReplayerContext);
 
-    const errors = data?.errors as ErrorObject[];
+    const loading = state === ReplayerState.Loading;
 
     // Scrolls to the error card the user originally clicked on. This only happens if the user clicked on an error card from the player page which navigates them to the error page. From there there navigate back using the browser's back navigation.
     useEffect(() => {

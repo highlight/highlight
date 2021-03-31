@@ -111,7 +111,7 @@ func main() {
 				Resolvers: main,
 			}),
 		)
-		mainServer.Use(util.Tracer{})
+		mainServer.Use(util.NewTracer("main-graph"))
 		r.Handle("/", mainServer)
 	})
 	// Clientgraph logic
@@ -124,6 +124,7 @@ func main() {
 					StripeClient: stripeClient,
 				},
 			}))
+		clientServer.Use(util.NewTracer("client-graph"))
 		r.Handle("/", clientServer)
 	})
 	w := &worker.Worker{R: main}
@@ -138,5 +139,6 @@ func main() {
 	} else if rt == "server" {
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	}
+
 	log.Errorf("invalid runtime")
 }

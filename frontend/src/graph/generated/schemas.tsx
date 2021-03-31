@@ -266,9 +266,9 @@ export type Query = {
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int']>;
-    sessionsBETA: SessionResults;
+    sessions: SessionResults;
     billingDetails: BillingDetails;
-    field_suggestionBETA?: Maybe<Array<Maybe<Field>>>;
+    field_suggestion?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
@@ -322,7 +322,7 @@ export type QueryUnprocessedSessionsCountArgs = {
     organization_id: Scalars['ID'];
 };
 
-export type QuerySessionsBetaArgs = {
+export type QuerySessionsArgs = {
     organization_id: Scalars['ID'];
     count: Scalars['Int'];
     processed: Scalars['Boolean'];
@@ -333,7 +333,7 @@ export type QueryBillingDetailsArgs = {
     organization_id: Scalars['ID'];
 };
 
-export type QueryField_SuggestionBetaArgs = {
+export type QueryField_SuggestionArgs = {
     organization_id: Scalars['ID'];
     name: Scalars['String'];
     query: Scalars['String'];

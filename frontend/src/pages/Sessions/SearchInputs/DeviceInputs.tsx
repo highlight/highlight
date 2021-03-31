@@ -24,7 +24,7 @@ export const OperatingSystemInput = () => {
             query: input,
             name: 'os_name',
         });
-        const suggestions = (fetched?.data?.field_suggestionBETA ?? [])
+        const suggestions = (fetched?.data?.field_suggestion ?? [])
             ?.map((e) => e?.value)
             .filter((v, i, a) => a.indexOf(v) === i)
             .map((f) => {
@@ -82,7 +82,7 @@ export const BrowserInput = () => {
             name: 'browser_name',
         });
         const suggestions =
-            fetched?.data.field_suggestionBETA
+            fetched?.data.field_suggestion
                 ?.map((e) => e?.value)
                 .filter((v, i, a) => a.indexOf(v) === i)
                 .map((f) => {

@@ -4,6 +4,7 @@ import {
 } from '@highlight-run/rrweb/dist/types';
 import { useCallback } from 'react';
 import { useHistory, useLocation } from 'react-router';
+import { ErrorObject } from '../../../../graph/generated/schemas';
 import { ParsedSessionInterval } from '../../ReplayerContext';
 
 const INACTIVE_THRESHOLD = 0.02;
@@ -76,6 +77,16 @@ const getIntervalWithPercentages = (
     });
 };
 
+/** This is used to set the player time back X milliseconds so the user can see how the error was thrown. Without this the player would be set to when the error was thrown and they wouldn't see why it was thrown. */
+const ERROR_TIMESTAMP_LOOK_BACK_MILLISECONDS = 5000;
+
+export enum PlayerSearchParameters {
+    /** The time in the player in seconds. */
+    ts = 'ts',
+    /** The error ID for an error in the current session. The player's time will be set to the lookback period before the error's timestamp. */
+    errorId = 'errorId',
+}
+
 /**
  *
  * @param setTime Sets the new time in milliseconds.
@@ -87,12 +98,19 @@ export const useSetPlayerTimestampFromSearchParam = (
     const location = useLocation();
 
     const setPlayerTimestamp = useCallback(
-        (sessionDurationMilliseconds: number) => {
+        (
+            sessionDurationMilliseconds: number,
+            sessionStartTimeMilliseconds: number,
+            errors: ErrorObject[],
+            setSelectedErrorId: React.Dispatch<
+                React.SetStateAction<string | undefined>
+            >
+        ) => {
             const searchParamsObject = new URLSearchParams(location.search);
 
-            if (searchParamsObject.get('ts')) {
+            if (searchParamsObject.get(PlayerSearchParameters.ts)) {
                 const timestampSeconds = parseFloat(
-                    searchParamsObject.get('ts') as string
+                    searchParamsObject.get(PlayerSearchParameters.ts) as string
                 );
                 const timestampMilliseconds = timestampSeconds * 1000;
 
@@ -102,8 +120,27 @@ export const useSetPlayerTimestampFromSearchParam = (
                 ) {
                     setTime(timestampMilliseconds);
                 }
-                history.replace(`${location.pathname}`);
+            } else if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
+                const errorId = searchParamsObject.get(
+                    PlayerSearchParameters.errorId
+                )!;
+                const error = errors.find((e) => e.id === errorId);
+                if (error && error.timestamp) {
+                    const delta =
+                        new Date(error.timestamp).getTime() -
+                        sessionStartTimeMilliseconds;
+                    if (delta >= 0 || delta <= sessionDurationMilliseconds) {
+                        // Clamp the time to 0.
+                        const newTime = Math.max(
+                            0,
+                            delta - ERROR_TIMESTAMP_LOOK_BACK_MILLISECONDS
+                        );
+                        setTime(newTime);
+                        setSelectedErrorId(errorId);
+                    }
+                }
             }
+            history.replace(`${location.pathname}`);
         },
         [history, location.pathname, location.search, setTime]
     );
