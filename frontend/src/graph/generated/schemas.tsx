@@ -132,9 +132,9 @@ export type ErrorGroup = {
 
 export type ErrorMetadata = {
     __typename?: 'ErrorMetadata';
-    error_id?: Maybe<Scalars['Int']>;
-    session_id?: Maybe<Scalars['Int']>;
-    timestamp?: Maybe<Scalars['Time']>;
+    error_id: Scalars['Int'];
+    session_id: Scalars['Int'];
+    timestamp: Scalars['Time'];
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
@@ -243,13 +243,13 @@ export type Admin = {
 
 export type SessionResults = {
     __typename?: 'SessionResults';
-    sessions: Array<Maybe<Session>>;
+    sessions: Array<Session>;
     totalCount: Scalars['Int'];
 };
 
 export type ErrorResults = {
     __typename?: 'ErrorResults';
-    error_groups: Array<Maybe<ErrorGroup>>;
+    error_groups: Array<ErrorGroup>;
     totalCount: Scalars['Int'];
 };
 
@@ -265,7 +265,7 @@ export type Query = {
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int']>;
-    sessionsBETA?: Maybe<SessionResults>;
+    sessionsBETA: SessionResults;
     billingDetails: BillingDetails;
     field_suggestionBETA?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;

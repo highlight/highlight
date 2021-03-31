@@ -12,12 +12,15 @@ import Skeleton from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
 import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
+import { ReactComponent as ViewedIcon } from '../../../static/viewed.svg';
+import { ReactComponent as UnviewedIcon } from '../../../static/unviewed.svg';
 import { Avatar } from '../../../components/Avatar/Avatar';
-import { Tooltip } from 'antd';
+import { message, Tooltip } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 import {
     useGetBillingDetailsQuery,
     useGetSessionsBetaQuery,
+    useMarkSessionAsViewedMutation,
 } from '../../../graph/generated/hooks';
 import {
     Maybe,
@@ -54,7 +57,7 @@ export const SessionFeed = () => {
     });
     const { searchParams } = useContext(SearchContext);
 
-    const { loading, fetchMore } = useGetSessionsBetaQuery({
+    const { loading, fetchMore, data: sessionData } = useGetSessionsBetaQuery({
         variables: {
             params: searchParams,
             count: count + 10,
@@ -73,6 +76,12 @@ export const SessionFeed = () => {
     useEffect(() => {
         setShowLoadingSkeleton(true);
     }, [searchParams]);
+
+    useEffect(() => {
+        if (sessionData?.sessionsBETA) {
+            setData(sessionData.sessionsBETA);
+        }
+    }, [sessionData]);
 
     const infiniteRef = useInfiniteScroll({
         checkInterval: 1200, // frequency to check (1.2s)
@@ -168,124 +177,156 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
     }>();
     const [hovered, setHovered] = useState(false);
     const created = new Date(session?.created_at);
+    const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
+
     return (
-        <Link
-            to={`/${organization_id}/sessions/${session?.id}`}
+        <div
+            className={styles.sessionCardWrapper}
             key={session?.id}
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
-            <div className={styles.sessionCard}>
-                <div
-                    className={classNames(
-                        styles.hoverBorderLeft,
-                        hovered && styles.hoverBorderOn
-                    )}
-                />
-                <div className={styles.sessionCardContentWrapper}>
-                    <div className={styles.avatarWrapper}>
-                        <Avatar
-                            seed={
-                                (session?.identifier
-                                    ? session?.identifier
-                                    : session?.user_id.toString()) ?? ''
-                            }
-                            style={{ height: 60, width: 60 }}
-                        />
-                    </div>
-                    <div className={styles.sessionTextSectionWrapper}>
-                        <div className={styles.sessionTextSection}>
-                            <div
-                                className={styles.topText}
-                            >{`User#${session?.user_id}`}</div>
-                            <div
-                                className={classNames(
-                                    styles.middleText,
-                                    'highlight-block'
-                                )}
-                            >
-                                {session?.identifier}
-                            </div>
-                            <div className={styles.tagWrapper}>
-                                {session?.fields
-                                    ?.filter(
-                                        (f) =>
-                                            f?.type === 'user' &&
-                                            f?.name !== 'identifier' &&
-                                            f?.value.length
-                                    )
-                                    .map(
-                                        (f) =>
-                                            f && (
-                                                <Field
-                                                    color={'normal'}
-                                                    key={f.value}
-                                                    k={f.name}
-                                                    v={f.value}
-                                                />
-                                            )
+            <Link to={`/${organization_id}/sessions/${session?.id}`}>
+                <div className={styles.sessionCard}>
+                    <div
+                        className={classNames(
+                            styles.hoverBorderLeft,
+                            hovered && styles.hoverBorderOn
+                        )}
+                    />
+                    <div className={styles.sessionCardContentWrapper}>
+                        <div className={styles.avatarWrapper}>
+                            <Avatar
+                                seed={
+                                    (session?.identifier
+                                        ? session?.identifier
+                                        : session?.user_id.toString()) ?? ''
+                                }
+                                style={{ height: 60, width: 60 }}
+                            />
+                        </div>
+                        <div className={styles.sessionTextSectionWrapper}>
+                            <div className={styles.sessionTextSection}>
+                                <div
+                                    className={styles.topText}
+                                >{`User#${session?.user_id}`}</div>
+                                <div
+                                    className={classNames(
+                                        styles.middleText,
+                                        'highlight-block'
                                     )}
+                                >
+                                    {session?.identifier}
+                                </div>
+                                <div className={styles.tagWrapper}>
+                                    {session?.fields
+                                        ?.filter(
+                                            (f) =>
+                                                f?.type === 'user' &&
+                                                f?.name !== 'identifier' &&
+                                                f?.value.length
+                                        )
+                                        .map(
+                                            (f) =>
+                                                f && (
+                                                    <Field
+                                                        color={'normal'}
+                                                        key={f.value}
+                                                        k={f.name}
+                                                        v={f.value}
+                                                    />
+                                                )
+                                        )}
+                                </div>
                             </div>
-                        </div>
-                        <div className={styles.sessionTextSection}>
-                            <div className={styles.topText}>
-                                {segment_id === LIVE_SEGMENT_ID
-                                    ? 'In Progress'
-                                    : MillisToMinutesAndSecondsVerbose(
-                                          session?.length || 0
-                                      ) || '30 min 20 sec'}
+                            <div className={styles.sessionTextSection}>
+                                <div className={styles.topText}>
+                                    {segment_id === LIVE_SEGMENT_ID
+                                        ? 'In Progress'
+                                        : MillisToMinutesAndSecondsVerbose(
+                                              session?.length || 0
+                                          ) || '30 min 20 sec'}
+                                </div>
+                                <div className={styles.middleText}>
+                                    {created.toLocaleString('en-us', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric',
+                                    })}
+                                </div>
+                                <div className={styles.bottomText}>
+                                    {created.toLocaleString('en-us', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        timeZoneName: 'short',
+                                    })}
+                                </div>
                             </div>
-                            <div className={styles.middleText}>
-                                {created.toLocaleString('en-us', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                })}
+                            <div className={styles.sessionTextSection}>
+                                <div className={styles.topText}>
+                                    {session?.browser_name}
+                                    {session?.browser_version &&
+                                        ' / ' + session?.browser_version}
+                                </div>
+                                <div className={styles.middleText}>
+                                    {session?.os_name}
+                                    {session?.os_version &&
+                                        ' / ' + session?.os_version}
+                                </div>
+                                <div className={styles.bottomText}>
+                                    {session?.city}
+                                    {session?.state && ', ' + session?.state}
+                                    &nbsp;
+                                    {session?.postal}
+                                </div>
                             </div>
-                            <div className={styles.bottomText}>
-                                {created.toLocaleString('en-us', {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                    timeZoneName: 'short',
-                                })}
-                            </div>
-                        </div>
-                        <div className={styles.sessionTextSection}>
-                            <div className={styles.topText}>
-                                {session?.browser_name}
-                                {session?.browser_version &&
-                                    ' / ' + session?.browser_version}
-                            </div>
-                            <div className={styles.middleText}>
-                                {session?.os_name}
-                                {session?.os_version &&
-                                    ' / ' + session?.os_version}
-                            </div>
-                            <div className={styles.bottomText}>
-                                {session?.city}
-                                {session?.state && ', ' + session?.state}
-                                &nbsp;
-                                {session?.postal}
-                            </div>
-                        </div>
-                        <div className={styles.readMarkerContainer}>
-                            {session?.viewed ? (
-                                <></>
-                            ) : (
-                                <Tooltip title="Unread Session">
+                            <div className={styles.readMarkerContainer}>
+                                {session?.viewed ? (
+                                    <></>
+                                ) : (
                                     <div className={styles.readMarker}></div>
-                                </Tooltip>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
+                    <div
+                        className={classNames(
+                            styles.hoverBorderRight,
+                            hovered && styles.hoverBorderOn
+                        )}
+                    />
                 </div>
-                <div
-                    className={classNames(
-                        styles.hoverBorderRight,
-                        hovered && styles.hoverBorderOn
+            </Link>
+            <Tooltip
+                title={session?.viewed ? 'Mark as Unviewed' : 'Mark as Viewed'}
+            >
+                <button
+                    className={styles.sessionCardAction}
+                    onClick={() => {
+                        markSessionAsViewed({
+                            variables: {
+                                id: session?.id || '',
+                                viewed: !session?.viewed,
+                            },
+                        })
+                            .then(() => {
+                                message.success('Updated session status!', 3);
+                            })
+                            .catch(() => {
+                                message.error(
+                                    'Error updating session status!',
+                                    3
+                                );
+                            });
+                    }}
+                >
+                    {session?.viewed ? (
+                        <UnviewedIcon className={styles.actionIcon} />
+                    ) : (
+                        <ViewedIcon className={styles.actionIcon} />
                     )}
-                />
-            </div>
-        </Link>
+                </button>
+            </Tooltip>
+        </div>
     );
 };

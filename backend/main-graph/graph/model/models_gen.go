@@ -20,12 +20,12 @@ type DateRangeInput struct {
 }
 
 type ErrorMetadata struct {
-	ErrorID    *int       `json:"error_id"`
-	SessionID  *int       `json:"session_id"`
-	Timestamp  *time.Time `json:"timestamp"`
-	Os         *string    `json:"os"`
-	Browser    *string    `json:"browser"`
-	VisitedURL *string    `json:"visited_url"`
+	ErrorID    int       `json:"error_id"`
+	SessionID  int       `json:"session_id"`
+	Timestamp  time.Time `json:"timestamp"`
+	Os         *string   `json:"os"`
+	Browser    *string   `json:"browser"`
+	VisitedURL *string   `json:"visited_url"`
 }
 
 type ErrorSearchParamsInput struct {
