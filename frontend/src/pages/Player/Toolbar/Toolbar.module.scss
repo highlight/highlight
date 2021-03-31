@@ -273,7 +273,7 @@
         height: calc(0.75px * (1 / var(--annotation-scale)));
         width: calc(0.75px * (1 / var(--annotation-scale)));
         background-color: var(--color-red);
-        opacity: 0.2;
+        opacity: 0.5;
         border: 1px solid white;
         transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
         border-radius: 50%;
@@ -317,12 +317,12 @@
     }
 
     50% {
-        opacity: 0.8;
+        opacity: 1;
         transform: scale(1.5);
     }
 
     100% {
-        opacity: 0.2;
+        opacity: 0.5;
         transform: scale(1);
     }
 }
