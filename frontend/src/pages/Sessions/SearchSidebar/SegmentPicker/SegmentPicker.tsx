@@ -3,6 +3,7 @@ import { Link, useHistory, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
+import { ReactComponent as FilledStarIcon } from '../../../../static/star-filled.svg';
 import Skeleton from 'react-loading-skeleton';
 
 import commonStyles from '../../../../Common.module.scss';
@@ -20,7 +21,7 @@ import { EmptySessionsSearchParams } from '../../SessionsPage';
 import _ from 'lodash';
 
 export const LIVE_SEGMENT_ID = 'live';
-export const STARRED_SEGMENT_ID = 'star';
+export const STARRED_SEGMENT_ID = 'starred';
 const NO_SEGMENT = 'none';
 
 export const SegmentPicker = () => {
@@ -239,6 +240,36 @@ export const SegmentPicker = () => {
                                         )}
                                     </div>
                                     {LIVE_SEGMENT_ID === segment_id && (
+                                        <CheckIcon
+                                            className={styles.checkIcon}
+                                        />
+                                    )}
+                                </div>
+                            </Link>
+                        </div>
+                        <div className={styles.segmentItemWrapper}>
+                            <Link
+                                to={`/${organization_id}/sessions/segment/${STARRED_SEGMENT_ID}`}
+                                key={'live-sessions'}
+                            >
+                                <div className={styles.segmentItem}>
+                                    <div
+                                        className={classNames(
+                                            styles.segmentText,
+                                            styles.liveSessionsSegment,
+                                            {
+                                                [styles.segmentUnselected]:
+                                                    segment_id !==
+                                                    STARRED_SEGMENT_ID,
+                                            }
+                                        )}
+                                    >
+                                        Starred Sessions
+                                        <FilledStarIcon
+                                            className={styles.starIcon}
+                                        />
+                                    </div>
+                                    {STARRED_SEGMENT_ID === segment_id && (
                                         <CheckIcon
                                             className={styles.checkIcon}
                                         />
