@@ -3,9 +3,6 @@
 package model
 
 import (
-	"fmt"
-	"io"
-	"strconv"
 	"time"
 )
 
@@ -22,49 +19,4 @@ type ErrorObjectInput struct {
 
 type ReplayEventsInput struct {
 	Events []interface{} `json:"events"`
-}
-
-type PlanType string
-
-const (
-	PlanTypeNone       PlanType = "None"
-	PlanTypeBasic      PlanType = "Basic"
-	PlanTypeStartup    PlanType = "Startup"
-	PlanTypeEnterprise PlanType = "Enterprise"
-)
-
-var AllPlanType = []PlanType{
-	PlanTypeNone,
-	PlanTypeBasic,
-	PlanTypeStartup,
-	PlanTypeEnterprise,
-}
-
-func (e PlanType) IsValid() bool {
-	switch e {
-	case PlanTypeNone, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise:
-		return true
-	}
-	return false
-}
-
-func (e PlanType) String() string {
-	return string(e)
-}
-
-func (e *PlanType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = PlanType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid PlanType", str)
-	}
-	return nil
-}
-
-func (e PlanType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
 }

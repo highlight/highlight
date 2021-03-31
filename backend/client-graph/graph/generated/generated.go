@@ -251,13 +251,6 @@ var sources = []*ast.Source{
 scalar Any
 scalar Time
 
-enum PlanType {
-    None
-    Basic
-    Startup
-    Enterprise
-}
-
 type Session {
     id: ID!
     user_id: ID!
