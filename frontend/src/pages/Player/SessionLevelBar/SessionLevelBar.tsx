@@ -11,7 +11,7 @@ import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
 import { useParams } from 'react-router-dom';
 import { DemoContext } from '../../../DemoContext';
 import { useGetSessionQuery } from '../../../graph/generated/hooks';
-import { FaGlasses } from 'react-icons/fa';
+import { BiLockAlt, BiLockOpenAlt } from 'react-icons/bi';
 
 interface Viewport {
     height: number;
@@ -100,7 +100,13 @@ const SessionLevelBar = () => {
                     </SessionToken>
                     <CurrentUrlBar url={currentUrl ?? ''} />
                     <SessionToken
-                        icon={<FaGlasses size="14px" />}
+                        icon={
+                            data?.session?.enable_strict_privacy ? (
+                                <BiLockAlt size="14px" />
+                            ) : (
+                                <BiLockOpenAlt size="14px" />
+                            )
+                        }
                         tooltipTitle={
                             <>
                                 {data?.session?.enable_strict_privacy
