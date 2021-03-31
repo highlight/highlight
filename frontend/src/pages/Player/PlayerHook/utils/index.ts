@@ -120,6 +120,7 @@ export const useSetPlayerTimestampFromSearchParam = (
                 ) {
                     setTime(timestampMilliseconds);
                 }
+                searchParamsObject.delete(PlayerSearchParameters.ts);
             } else if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
                 const errorId = searchParamsObject.get(
                     PlayerSearchParameters.errorId
@@ -139,8 +140,16 @@ export const useSetPlayerTimestampFromSearchParam = (
                         setSelectedErrorId(errorId);
                     }
                 }
+                searchParamsObject.delete(PlayerSearchParameters.errorId);
             }
-            history.replace(`${location.pathname}`);
+            const remainingSearchParams = searchParamsObject.toString();
+            history.replace(
+                `${location.pathname}${
+                    remainingSearchParams !== ''
+                        ? `?${remainingSearchParams}`
+                        : ''
+                }`
+            );
         },
         [history, location.pathname, location.search, setTime]
     );
