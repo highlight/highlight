@@ -1133,6 +1133,22 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+func (r *sessionResolver) Viewed(ctx context.Context, obj *model.Session) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *sessionResolver) Starred(ctx context.Context, obj *model.Session) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *sessionResolver) FieldGroup(ctx context.Context, obj *model.Session) (*string, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *sessionResolver) EnableStrictPrivacy(ctx context.Context, obj *model.Session) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 // ErrorGroup returns generated.ErrorGroupResolver implementation.
 func (r *Resolver) ErrorGroup() generated.ErrorGroupResolver { return &errorGroupResolver{r} }
 
