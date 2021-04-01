@@ -249,7 +249,7 @@ export const SegmentPicker = () => {
                         <div className={styles.segmentItemWrapper}>
                             <Link
                                 to={`/${organization_id}/sessions/segment/${STARRED_SEGMENT_ID}`}
-                                key={'live-sessions'}
+                                key={'starred-sessions'}
                             >
                                 <div className={styles.segmentItem}>
                                     <div
