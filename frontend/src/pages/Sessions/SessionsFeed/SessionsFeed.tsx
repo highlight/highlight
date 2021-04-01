@@ -30,7 +30,10 @@ import {
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import { Field } from '../../../components/Field/Field';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
-import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
+import {
+    LIVE_SEGMENT_ID,
+    STARRED_SEGMENT_ID,
+} from '../SearchSidebar/SegmentPicker/SegmentPicker';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
@@ -63,6 +66,7 @@ export const SessionFeed = () => {
             count: count + 10,
             organization_id,
             processed: segment_id !== LIVE_SEGMENT_ID,
+            starred: segment_id === STARRED_SEGMENT_ID,
         },
         pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {

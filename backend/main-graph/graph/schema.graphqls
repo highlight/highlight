@@ -25,6 +25,7 @@ type Session {
     user_object: Any
     fields: [Field]
     viewed: Boolean
+    starred: Boolean
     field_group: String
     enable_strict_privacy: Boolean
 }
@@ -239,6 +240,7 @@ type Query {
         organization_id: ID!
         count: Int!
         processed: Boolean!
+        starred: Boolean!
         params: SearchParamsInput
     ): SessionResults!
     billingDetails(organization_id: ID!): BillingDetails!
@@ -271,6 +273,7 @@ type Mutation {
     createOrganization(name: String!): Organization
     editOrganization(id: ID!, name: String, billing_email: String): Organization
     markSessionAsViewed(id: ID!, viewed: Boolean): Session
+    markSessionAsStarred(id: ID!, starred: Boolean): Session
     markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(organization_id: ID!, email: String!): String
