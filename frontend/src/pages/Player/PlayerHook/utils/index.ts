@@ -13,6 +13,7 @@ import {
     ParsedErrorObject,
     ParsedEvent,
     ParsedHighlightEvent,
+    ParsedSessionComment,
     ParsedSessionInterval,
 } from '../../ReplayerContext';
 
@@ -41,6 +42,7 @@ export const getSessionIntervals = (
                 startTime: 0,
                 errors: [],
                 sessionEvents: [],
+                comments: [],
             },
         ];
     }
@@ -86,6 +88,7 @@ const getIntervalWithPercentages = (
             endPercent: currTime / totalDuration,
             errors: [],
             sessionEvents: [],
+            comments: [],
         };
     });
 };
@@ -241,7 +244,24 @@ export const addEventsToSessionIntervals = (
     }));
 };
 
-type ParsableEvent = ErrorObject | HighlightEvent;
+export const addCommentsToSessionIntervals = (
+    sessionIntervals: ParsedSessionInterval[],
+    comments: SessionComment[],
+    sessionStartTime: number
+): ParsedSessionInterval[] => {
+    const groupedComments = assignEventToSessionInterval(
+        sessionIntervals,
+        comments,
+        sessionStartTime
+    );
+
+    return sessionIntervals.map((sessionInterval, index) => ({
+        ...sessionInterval,
+        comments: groupedComments[index] as ParsedSessionComment[],
+    }));
+};
+
+type ParsableEvent = ErrorObject | HighlightEvent | SessionComment;
 
 /**
  * Adds events to the session interval that the event occurred in.

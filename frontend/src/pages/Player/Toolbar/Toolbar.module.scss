@@ -326,3 +326,13 @@
         transform: scale(1);
     }
 }
+
+.commentUpdatedTime {
+    color: $text-label;
+    font-weight: 200;
+}
+
+.commentHeader {
+    display: flex;
+    gap: $size-xSmall;
+}

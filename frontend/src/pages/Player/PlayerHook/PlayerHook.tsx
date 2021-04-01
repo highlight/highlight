@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { DemoContext } from '../../../DemoContext';
 import { useGetSessionPayloadQuery } from '../../../graph/generated/hooks';
-import { ErrorObject } from '../../../graph/generated/schemas';
+import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
 import { HighlightEvent } from '../HighlightEvent';
 
 import {
@@ -12,6 +12,7 @@ import {
     ReplayerState,
 } from '../ReplayerContext';
 import {
+    addCommentsToSessionIntervals,
     addErrorsToSessionIntervals,
     addEventsToSessionIntervals,
     getSessionIntervals,
@@ -32,6 +33,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
 
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
+    const [comments, setComments] = useState<SessionComment[]>([]);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
@@ -79,6 +81,9 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             if (eventsData?.errors) {
                 setErrors(eventsData.errors as ErrorObject[]);
             }
+            if (eventsData?.session_comments) {
+                setComments(eventsData.session_comments as SessionComment[]);
+            }
             setReplayer(r);
         }
     }, [eventsData]);
@@ -110,13 +115,17 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                         replayer.getMetaData()
                     );
                     setSessionIntervals(
-                        addEventsToSessionIntervals(
-                            addErrorsToSessionIntervals(
-                                sessionIntervals,
-                                errors,
+                        addCommentsToSessionIntervals(
+                            addEventsToSessionIntervals(
+                                addErrorsToSessionIntervals(
+                                    sessionIntervals,
+                                    errors,
+                                    replayer.getMetaData().startTime
+                                ),
+                                events,
                                 replayer.getMetaData().startTime
                             ),
-                            events,
+                            comments,
                             replayer.getMetaData().startTime
                         )
                     );

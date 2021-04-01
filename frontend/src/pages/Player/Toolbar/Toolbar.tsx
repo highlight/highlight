@@ -24,6 +24,7 @@ import { getHeaderFromError } from '../../Error/ErrorPage';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { EventsForTimeline } from '../PlayerHook/utils';
 import Popover from '../../../components/Popover/Popover';
+import moment from 'moment';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -511,6 +512,60 @@ const SessionSegment = ({
                             ))}
                         </div>
                     )}
+                    {selectedTimelineAnnotationTypes.includes('Comments') && (
+                        <div
+                            className={styles.annotationsContainer}
+                            style={{
+                                width: `${
+                                    (interval.endPercent -
+                                        interval.startPercent) *
+                                    100
+                                }%`,
+                            }}
+                        >
+                            {interval.comments.map((comment) => (
+                                <Popover
+                                    key={comment.id}
+                                    content={
+                                        <div className={styles.popoverContent}>
+                                            {comment.text}
+                                        </div>
+                                    }
+                                    title={
+                                        <div
+                                            className={classNames(
+                                                styles.tooltipHeader,
+                                                styles.commentHeader
+                                            )}
+                                        >
+                                            {comment.author.name ||
+                                                comment.author.email}
+                                            <span
+                                                className={
+                                                    styles.commentUpdatedTime
+                                                }
+                                            >
+                                                {moment(
+                                                    comment.updated_at
+                                                ).fromNow()}
+                                            </span>
+                                        </div>
+                                    }
+                                >
+                                    <div
+                                        tabIndex={1}
+                                        className={styles.annotation}
+                                        style={{
+                                            left: `${comment.relativeIntervalPercentage}%`,
+                                            backgroundColor: `var(${getAnnotationColor(
+                                                'Comments'
+                                            )})`,
+                                        }}
+                                    ></div>
+                                </Popover>
+                            ))}
+                        </div>
+                    )}
                 </>
             )}
             <div
@@ -577,7 +632,7 @@ const TimelineAnnotationColors: { [key: string]: string } = {
     Errors: '--color-red',
     Segment: '--color-orange',
     Track: '--color-blue-light',
-    Comments: '--color-gray-200',
+    Comments: '--color-green-dark',
 };
 
 export function getAnnotationColor(str: string): string {
