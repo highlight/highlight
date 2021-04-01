@@ -430,7 +430,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
     );
 };
 
-const getHeaderFromError = (errorMsg: Array<string>): string => {
+export const getHeaderFromError = (errorMsg: Array<string>): string => {
     const eventText = errorMsg[0];
     let title = '';
     // Try to get the text in the form Text: ....

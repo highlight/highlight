@@ -43,6 +43,7 @@ export type Session = {
     viewed?: Maybe<Scalars['Boolean']>;
     starred?: Maybe<Scalars['Boolean']>;
     field_group?: Maybe<Scalars['String']>;
+    enable_strict_privacy?: Maybe<Scalars['Boolean']>;
 };
 
 export type BillingDetails = {

@@ -18,7 +18,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string) (*model.Session, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool) (*model.Session, error) {
 	organizationID := model.FromVerboseID(organizationVerboseID)
 	organization := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization)
@@ -66,20 +66,21 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	acceptLanguageString := ctx.Value("acceptLanguage").(string)
 	n := time.Now()
 	session := &model.Session{
-		UserID:           user.ID,
-		OrganizationID:   organizationID,
-		City:             location.City,
-		State:            location.State,
-		Postal:           location.Postal,
-		Latitude:         location.Latitude.(float64),
-		Longitude:        location.Longitude.(float64),
-		OSName:           deviceDetails.OSName,
-		OSVersion:        deviceDetails.OSVersion,
-		BrowserName:      deviceDetails.BrowserName,
-		BrowserVersion:   deviceDetails.BrowserVersion,
-		Language:         acceptLanguageString,
-		Processed:        &model.F,
-		PayloadUpdatedAt: &n,
+		UserID:              user.ID,
+		OrganizationID:      organizationID,
+		City:                location.City,
+		State:               location.State,
+		Postal:              location.Postal,
+		Latitude:            location.Latitude.(float64),
+		Longitude:           location.Longitude.(float64),
+		OSName:              deviceDetails.OSName,
+		OSVersion:           deviceDetails.OSVersion,
+		BrowserName:         deviceDetails.BrowserName,
+		BrowserVersion:      deviceDetails.BrowserVersion,
+		Language:            acceptLanguageString,
+		Processed:           &model.F,
+		PayloadUpdatedAt:    &n,
+		EnableStrictPrivacy: &enableStrictPrivacy,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {

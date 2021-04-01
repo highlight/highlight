@@ -27,6 +27,7 @@ type Session {
     viewed: Boolean
     starred: Boolean
     field_group: String
+    enable_strict_privacy: Boolean
 }
 
 type BillingDetails {

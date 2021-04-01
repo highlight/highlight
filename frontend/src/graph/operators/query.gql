@@ -19,6 +19,7 @@ query GetSession($id: ID!) {
         user_object
         identifier
         starred
+        enable_strict_privacy
         fields {
             name
             value
