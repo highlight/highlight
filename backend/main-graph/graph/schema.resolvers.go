@@ -807,8 +807,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	for _, prop := range params.ExcludedProperties {
 		if prop.Name == "contains" {
-			notFieldQuery = notFieldQuery.Or("name = 'identifier' AND value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-			notFieldQuery = notFieldQuery.Or("name = 'name' AND value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
 		} else {
 			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
 		}
