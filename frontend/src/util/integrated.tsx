@@ -8,7 +8,9 @@ export const useIntegrated = (
         variables: { organization_id: organization_id.toString() },
         fetchPolicy: 'cache-and-network',
     });
-    const [integrated, setIntegrated] = useState<boolean>(false);
+    const [integrated, setIntegrated] = useState<boolean | undefined>(
+        undefined
+    );
     const [loading, setLoading] = useState<boolean>(true);
     const integratedRaw = data?.isIntegrated;
 
@@ -28,7 +30,7 @@ export const useIntegrated = (
 
     useEffect(() => {
         if (integratedRaw !== undefined) {
-            setIntegrated(integratedRaw || false);
+            setIntegrated(integratedRaw?.valueOf());
         }
     }, [integratedRaw]);
 
@@ -40,5 +42,5 @@ export const useIntegrated = (
         }
     }, [integrated]);
 
-    return { integrated, loading };
+    return { integrated: integrated || false, loading };
 };
