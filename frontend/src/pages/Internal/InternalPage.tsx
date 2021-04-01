@@ -1,6 +1,8 @@
-import React, { ReactElement } from 'react';
+import React, { ReactElement, useState } from 'react';
 
 function InternalPage(): ReactElement {
+    const [value, setValue] = useState('foobar');
+
     return (
         <div
             style={{
@@ -18,7 +20,15 @@ function InternalPage(): ReactElement {
             </label>
             <label>
                 Password with a value attribute
-                <input type="password" name="" id="" value="foobar" />
+                <input
+                    type="password"
+                    name=""
+                    id=""
+                    value={value}
+                    onChange={(e) => {
+                        setValue(e.target.value);
+                    }}
+                />
             </label>
         </div>
     );
