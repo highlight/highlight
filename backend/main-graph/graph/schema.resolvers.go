@@ -531,6 +531,23 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string) (*model.SessionComment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	sessionComment := &model.SessionComment{
+		AdminId:   adminID,
+		SessionId: sessionID,
+		Timestamp: sessionTimestamp,
+		Text:      text,
+	}
+	if err := r.DB.Create(sessionComment).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session comment")
+	}
+	return sessionComment, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	if _, err := r.isAdminSessionOwner(ctx, id); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -1204,3 +1221,13 @@ type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *sessionCommentResolver) Timestamp(ctx context.Context, obj *model.SessionComment) (int, error) {
+	panic(fmt.Errorf("not implemented"))
+}

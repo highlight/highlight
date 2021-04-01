@@ -310,7 +310,7 @@ type SessionComment struct {
 	Model
 	AdminId   int
 	SessionId int
-	Timestamp time.Time
+	Timestamp int
 	Text      string
 }
 

@@ -230,7 +230,7 @@ type ErrorResults {
 
 type SessionComment {
     id: ID!
-    timestamp: Time!
+    timestamp: Int!
     created_at: Time!
     updated_at: Time!
     author: SanitizedAdmin!
@@ -333,4 +333,11 @@ type Mutation {
         organization_id: ID!
         plan_type: PlanType!
     ): String
+    createSessionComment(
+        organization_id: ID!
+        admin_id: ID!
+        session_id: ID!
+        session_timestamp: Int!
+        text: String!
+    ): SessionComment
 }
