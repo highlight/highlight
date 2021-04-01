@@ -12,23 +12,27 @@ export const SettingsMenu = ({
     openDevTools,
     autoPlayVideo,
     speed,
+    enableDOMInteractions,
     onSkipInactiveChange,
     onOpenDevToolsChange,
     onAutoPlayVideoChange,
     onSpeedChange,
     onShowRightPanelChange,
+    onEnableDOMInteractions,
     showRightPanel,
 }: {
     skipInactive: boolean;
     openDevTools: boolean;
     autoPlayVideo: boolean;
     speed: number;
+    enableDOMInteractions: boolean;
     showRightPanel: boolean;
     onSkipInactiveChange: () => void;
     onOpenDevToolsChange: () => void;
     onAutoPlayVideoChange: () => void;
     onSpeedChange: (s: number) => void;
     onShowRightPanelChange: () => void;
+    onEnableDOMInteractions: () => void;
 }) => {
     const [openSpeedMenu, setOpenSpeedMenu] = useState(false);
     const [visible, setVisible] = useState(false);
@@ -122,6 +126,14 @@ export const SettingsMenu = ({
                                         checked={autoPlayVideo}
                                         className={styles.switchStyle}
                                         onChange={onAutoPlayVideoChange}
+                                    />
+                                </div>
+                                <div className={toolbarStyles.dropdownSection}>
+                                    <span>DOM Interactions</span>
+                                    <Switch
+                                        checked={enableDOMInteractions}
+                                        className={styles.switchStyle}
+                                        onChange={onEnableDOMInteractions}
                                     />
                                 </div>
                                 <div

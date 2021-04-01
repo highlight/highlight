@@ -54,6 +54,10 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         'highlightMenuAutoPlayVideo',
         false
     );
+    const [enableDOMInteractions, setEnableDOMInteractions] = useLocalStorage(
+        'highlightMenuEnableDOMInteractions',
+        false
+    );
     const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
         'highlightSelectedDevtoolTabs',
         DevToolTabs.Errors
@@ -74,6 +78,16 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     useEffect(() => {
         onResize();
     }, [openDevTools, onResize]);
+
+    useEffect(() => {
+        if (replayer) {
+            if (enableDOMInteractions) {
+                replayer.enableInteract();
+            } else {
+                replayer.disableInteract();
+            }
+        }
+    }, [enableDOMInteractions, replayer]);
 
     useEffect(() => {
         replayer?.setConfig({ skipInactive, speed });
@@ -363,6 +377,10 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         showRightPanel={showRightPanel}
                         onShowRightPanelChange={() => {
                             setShowRightPanel(!showRightPanel);
+                        }}
+                        enableDOMInteractions={enableDOMInteractions}
+                        onEnableDOMInteractions={() => {
+                            setEnableDOMInteractions(!enableDOMInteractions);
                         }}
                     />
                 </div>
