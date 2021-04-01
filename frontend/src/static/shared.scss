@@ -1,11 +1,30 @@
+:root {
+    --color-purple-light: #bb6bd9;
+    --color-purple: #5629c6;
+    --color-blue-light: #56ccf2;
+    --color-blue: #2d9cdb;
+    --color-blue-dark: #2f80ed;
+    --color-green-light: #6fcf97;
+    --color-green: #27ae60;
+    --color-green-dark: #219653;
+    --color-yellow: #f2c94c;
+    --color-orange: #f2994a;
+    --color-red: #eb5757;
+    --color-gray-200: #f2f2f2;
+    --color-gray-300: #e0e0e0;
+    --color-gray-400: #bdbdbd;
+    --color-gray-500: #828282;
+    --color-gray-600: #4f4f4f;
+}
+
 // colors
-$highlight-purple: #5629c6;
+$highlight-purple: var(--color-purple);
 $highlight-purple-light: #eee7ff;
 $text-primary: #000000;
 $text-light: rgba(0, 0, 0, 0.85);
 $text-primary-inverted: #ffffff;
 $text-label: #959595;
-$gray: #b2b2b2;
+$gray: var(--color-gray-400);
 
 // Alert
 $alert-200: #ffe0e0;
@@ -32,6 +51,10 @@ $size-xxSmall: 4px;
 $disabled-button: #bfbfbf;
 $button-primary-hover: #5327be;
 $button-primary-active: #401f94;
+
+$button-transparent-resting: transparent;
+$button-transparent-hover: rgba(239, 239, 239, 0.49);
+$button-transparent-active: var(--color-gray-300);
 
 // mixins
 @mixin rounded-border {

@@ -49,6 +49,7 @@ export type Mutation = {
 
 export type MutationInitializeSessionArgs = {
   organization_verbose_id: Scalars['String'];
+  enable_strict_privacy: Scalars['Boolean'];
 };
 
 

@@ -12,7 +12,6 @@ import {
     ErrorMessage,
     NetworkResourceContent,
 } from '../../frontend/src/util/shared-types';
-import { TabStateListener } from './listeners/tab-state-listener';
 import { ViewportResizeListener } from './listeners/viewport-resize-listener';
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
 import { ClickListener } from './listeners/click-listener/click-listener';
@@ -214,6 +213,7 @@ export class Highlight {
             } else {
                 const gr = await this.graphqlSDK.initializeSession({
                     organization_verbose_id: this.organizationID,
+                    enable_strict_privacy: this.enableStrictPrivacy,
                 });
                 this.sessionID = parseInt(gr?.initializeSession?.id || '0');
                 const organization_id = gr?.initializeSession?.organization_id;
@@ -316,9 +316,6 @@ export class Highlight {
                 });
             }
             ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
-            TabStateListener((tabIsActive: string) => {
-                addCustomEvent<string>('Tab', tabIsActive);
-            });
             ViewportResizeListener((viewport) => {
                 addCustomEvent('Viewport', viewport);
             });

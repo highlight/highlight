@@ -233,23 +233,24 @@ type ComplexityRoot struct {
 	}
 
 	Session struct {
-		BrowserName    func(childComplexity int) int
-		BrowserVersion func(childComplexity int) int
-		City           func(childComplexity int) int
-		CreatedAt      func(childComplexity int) int
-		FieldGroup     func(childComplexity int) int
-		Fields         func(childComplexity int) int
-		ID             func(childComplexity int) int
-		Identifier     func(childComplexity int) int
-		Length         func(childComplexity int) int
-		OSName         func(childComplexity int) int
-		OSVersion      func(childComplexity int) int
-		Postal         func(childComplexity int) int
-		Starred        func(childComplexity int) int
-		State          func(childComplexity int) int
-		UserID         func(childComplexity int) int
-		UserObject     func(childComplexity int) int
-		Viewed         func(childComplexity int) int
+		BrowserName         func(childComplexity int) int
+		BrowserVersion      func(childComplexity int) int
+		City                func(childComplexity int) int
+		CreatedAt           func(childComplexity int) int
+		EnableStrictPrivacy func(childComplexity int) int
+		FieldGroup          func(childComplexity int) int
+		Fields              func(childComplexity int) int
+		ID                  func(childComplexity int) int
+		Identifier          func(childComplexity int) int
+		Length              func(childComplexity int) int
+		OSName              func(childComplexity int) int
+		OSVersion           func(childComplexity int) int
+		Postal              func(childComplexity int) int
+		Starred             func(childComplexity int) int
+		State               func(childComplexity int) int
+		UserID              func(childComplexity int) int
+		UserObject          func(childComplexity int) int
+		Viewed              func(childComplexity int) int
 	}
 
 	SessionResults struct {
@@ -1417,6 +1418,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.CreatedAt(childComplexity), true
 
+	case "Session.enable_strict_privacy":
+		if e.complexity.Session.EnableStrictPrivacy == nil {
+			break
+		}
+
+		return e.complexity.Session.EnableStrictPrivacy(childComplexity), true
+
 	case "Session.field_group":
 		if e.complexity.Session.FieldGroup == nil {
 			break
@@ -1636,6 +1644,7 @@ type Session {
     viewed: Boolean
     starred: Boolean
     field_group: String
+    enable_strict_privacy: Boolean
 }
 
 type BillingDetails {
@@ -7788,6 +7797,38 @@ func (ec *executionContext) _Session_field_group(ctx context.Context, field grap
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_enable_strict_privacy(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EnableStrictPrivacy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionResults_sessions(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -10481,6 +10522,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_starred(ctx, field, obj)
 		case "field_group":
 			out.Values[i] = ec._Session_field_group(ctx, field, obj)
+		case "enable_strict_privacy":
+			out.Values[i] = ec._Session_enable_strict_privacy(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

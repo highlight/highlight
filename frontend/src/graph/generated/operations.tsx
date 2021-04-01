@@ -264,6 +264,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'user_object'
             | 'identifier'
             | 'starred'
+            | 'enable_strict_privacy'
         > & {
                 fields?: Types.Maybe<
                     Array<
