@@ -1,0 +1,22 @@
+@import 'src/static/shared.scss';
+
+.transparentButton {
+    border: none;
+    color: $text-primary;
+    padding: $size-xSmall $size-xLarge;
+    font-size: 14px;
+    border-radius: $button-border-radius;
+    outline: none;
+    font-weight: 300;
+    cursor: pointer;
+    line-height: initial;
+    background-color: $button-transparent-resting;
+
+    &:hover {
+        background-color: $button-transparent-hover;
+    }
+
+    &:active {
+        background-color: $button-transparent-active;
+    }
+}

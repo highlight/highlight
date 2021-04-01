@@ -11,6 +11,17 @@ export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type MarkSessionAsStarredMutationVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+    starred: Types.Scalars['Boolean'];
+}>;
+
+export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
+    markSessionAsStarred?: Types.Maybe<
+        { __typename?: 'Session' } & Pick<Types.Session, 'id' | 'starred'>
+    >;
+};
+
 export type CreateOrUpdateSubscriptionMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     plan_type: Types.PlanType;
@@ -252,6 +263,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'created_at'
             | 'user_object'
             | 'identifier'
+            | 'starred'
             | 'enable_strict_privacy'
         > & {
                 fields?: Types.Maybe<
@@ -299,6 +311,7 @@ export type GetSessionsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
     processed: Types.Scalars['Boolean'];
+    starred: Types.Scalars['Boolean'];
     params?: Types.Maybe<Types.SearchParamsInput>;
 }>;
 
@@ -323,6 +336,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'created_at'
                     | 'length'
                     | 'viewed'
+                    | 'starred'
                 > & {
                         fields?: Types.Maybe<
                             Array<

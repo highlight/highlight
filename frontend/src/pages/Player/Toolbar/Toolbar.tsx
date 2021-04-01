@@ -20,6 +20,13 @@ import ReplayerContext, {
 } from '../ReplayerContext';
 import classNames from 'classnames';
 import Skeleton from 'react-loading-skeleton';
+import { Link, useParams } from 'react-router-dom';
+import { getEventRenderDetails } from '../StreamElement/StreamElement';
+import StreamElementPayload from '../StreamElement/StreamElementPayload';
+import { getHeaderFromError } from '../../Error/ErrorPage';
+import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
+import { EventsForTimeline } from '../PlayerHook/utils';
+import Popover from '../../../components/Popover/Popover';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -57,6 +64,9 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         'highlightMenuShowRightPanel',
         true
     );
+    const [] = useLocalStorage('highlightTimelineAnnotationTypes', [
+        ...EventsForTimeline,
+    ]);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const isPaused =
@@ -336,6 +346,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>
+                    <TimelineAnnotationsSettings />
                     <SettingsMenu
                         skipInactive={skipInactive}
                         onSkipInactiveChange={() =>
@@ -378,6 +389,15 @@ const SessionSegment = ({
     time: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
+    const { organization_id } = useParams<{
+        organization_id: string;
+    }>();
+    const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
+    const [
+        selectedTimelineAnnotationTypes,
+    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
+        ...EventsForTimeline,
+    ]);
     const playedColor = interval.active ? '#5629c6' : '#808080';
     const unplayedColor = interval.active ? '#EEE7FF' : '#d2d2d2';
     const currentRawPercent =
@@ -398,6 +418,109 @@ const SessionSegment = ({
                 }%`,
             }}
         >
+            {!openDevTools && (
+                <>
+                    <div
+                        className={styles.annotationsContainer}
+                        style={{
+                            width: `${
+                                (interval.endPercent - interval.startPercent) *
+                                100
+                            }%`,
+                        }}
+                    >
+                        {interval.sessionEvents?.map((event) => {
+                            const details = getEventRenderDetails(event);
+
+                            if (
+                                !selectedTimelineAnnotationTypes.includes(
+                                    details.title || ''
+                                )
+                            ) {
+                                return null;
+                            }
+
+                            return (
+                                <Popover
+                                    key={event.identifier}
+                                    content={
+                                        <div className={styles.tooltipContent}>
+                                            <StreamElementPayload
+                                                payload={
+                                                    typeof details.payload ===
+                                                    'object'
+                                                        ? JSON.stringify(
+                                                              details.payload
+                                                          )
+                                                        : details.payload
+                                                }
+                                            />
+                                        </div>
+                                    }
+                                    title={details.title}
+                                >
+                                    <div
+                                        tabIndex={1}
+                                        className={styles.annotation}
+                                        style={{
+                                            left: `${event.relativeIntervalPercentage}%`,
+                                            backgroundColor: `var(${getAnnotationColor(
+                                                getEventRenderDetails(event)
+                                                    .title || ''
+                                            )})`,
+                                        }}
+                                    ></div>
+                                </Popover>
+                            );
+                        })}
+                    </div>
+                    {selectedTimelineAnnotationTypes.includes('Errors') && (
+                        <div
+                            className={styles.annotationsContainer}
+                            style={{
+                                width: `${
+                                    (interval.endPercent -
+                                        interval.startPercent) *
+                                    100
+                                }%`,
+                            }}
+                        >
+                            {interval.errors.map((error) => (
+                                <Popover
+                                    key={error.id}
+                                    content={
+                                        <div className={styles.popoverContent}>
+                                            {error.source}
+                                            <div>
+                                                <Link
+                                                    to={`/${organization_id}/errors/${error.error_group_id}`}
+                                                >
+                                                    More info
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    }
+                                    title={
+                                        <div className={styles.tooltipHeader}>
+                                            {getHeaderFromError(
+                                                JSON.parse(error.event)
+                                            )}
+                                        </div>
+                                    }
+                                >
+                                    <div
+                                        tabIndex={1}
+                                        className={styles.annotation}
+                                        style={{
+                                            left: `${error.relativeIntervalPercentage}%`,
+                                        }}
+                                    ></div>
+                                </Popover>
+                            ))}
+                        </div>
+                    )}
+                </>
+            )}
             <div
                 className={styles.sliderPopover}
                 style={{
@@ -446,3 +569,22 @@ const SessionSegment = ({
         </div>
     );
 };
+
+const TimelineAnnotationColors: { [key: string]: string } = {
+    Default: '--color-purple',
+    Click: '--color-purple-light',
+    Focus: '--color-blue',
+    Reload: '--color-green-light',
+    Navigate: '--color-yellow',
+    Errors: '--color-red',
+    Segment: '--color-orange',
+    Track: '--color-blue-light',
+};
+
+export function getAnnotationColor(str: string): string {
+    if (str in TimelineAnnotationColors) {
+        return TimelineAnnotationColors[str];
+    }
+
+    return TimelineAnnotationColors['Default'];
+}

@@ -1,0 +1,71 @@
+@import 'src/static/shared.scss';
+
+.button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    width: 145px;
+    padding: $size-xSmall $size-medium;
+}
+
+.eventTypesContainer {
+    position: relative;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+.eventType {
+    height: 14px;
+    width: 14px;
+    margin-left: -$size-xSmall;
+    border: 0.5px solid var(--color-gray-300);
+    border-radius: 50%;
+    animation: grow 0.5s forwards;
+}
+
+.label {
+    margin-left: $size-xxSmall;
+    color: $text-label;
+}
+
+@keyframes grow {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.5);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.checkboxGroup {
+    width: 100%;
+}
+
+.checkboxesContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $size-xSmall;
+    justify-items: center;
+}
+
+.circle {
+    height: $size-small;
+    width: $size-small;
+    border-radius: 50%;
+}
+
+.checkBoxLabel {
+    display: inline-flex;
+    align-items: center;
+    gap: $size-xSmall;
+    width: 85px;
+    justify-content: space-between;
+}

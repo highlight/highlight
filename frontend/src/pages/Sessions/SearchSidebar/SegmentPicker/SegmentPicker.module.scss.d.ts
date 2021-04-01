@@ -18,4 +18,5 @@ export const segmentPickerInner: string;
 export const segmentPickerMenu: string;
 export const segmentText: string;
 export const segmentUnselected: string;
+export const starIcon: string;
 export const trashIcon: string;

@@ -12,6 +12,8 @@ import {
     ReplayerState,
 } from '../ReplayerContext';
 import {
+    addErrorsToSessionIntervals,
+    addEventsToSessionIntervals,
     getSessionIntervals,
     useSetPlayerTimestampFromSearchParam,
 } from './utils';
@@ -107,7 +109,17 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                         '[Highlight] Session Metadata:',
                         replayer.getMetaData()
                     );
-                    setSessionIntervals(sessionIntervals);
+                    setSessionIntervals(
+                        addEventsToSessionIntervals(
+                            addErrorsToSessionIntervals(
+                                sessionIntervals,
+                                errors,
+                                replayer.getMetaData().startTime
+                            ),
+                            events,
+                            replayer.getMetaData().startTime
+                        )
+                    );
                     setSessionEndTime(replayer.getMetaData().totalTime);
                     setState(ReplayerState.LoadedAndUntouched);
                     console.timeEnd('LoadingEvents');
