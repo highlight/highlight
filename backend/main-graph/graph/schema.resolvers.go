@@ -711,13 +711,13 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	sessions := []*model.Session{}
+	var count int
 	err := r.DB.Where(
-		&model.Session{OrganizationID: organizationID}).Find(&sessions).Error
+		&model.Session{OrganizationID: organizationID}).Count(&count).Error
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
-	if len(sessions) > 0 {
+	if count > 0 {
 		return &model.T, nil
 	}
 	return &model.F, nil
