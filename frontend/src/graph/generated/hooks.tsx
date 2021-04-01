@@ -874,6 +874,18 @@ export const GetSessionPayloadDocument = gql`
         errors(session_id: $session_id) {
             ...errorFields
         }
+        session_comments(session_id: $session_id) {
+            id
+            session_timestamp
+            created_at
+            updated_at
+            text
+            author {
+                id
+                name
+                email
+            }
+        }
     }
     ${ErrorFieldsFragmentDoc}
 `;

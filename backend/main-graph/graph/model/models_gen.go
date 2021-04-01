@@ -54,6 +54,12 @@ type Plan struct {
 	Quota int      `json:"quota"`
 }
 
+type SanitizedAdmin struct {
+	ID    int     `json:"id"`
+	Name  *string `json:"name"`
+	Email string  `json:"email"`
+}
+
 type SearchParamsInput struct {
 	UserProperties     []*UserPropertyInput `json:"user_properties"`
 	ExcludedProperties []*UserPropertyInput `json:"excluded_properties"`

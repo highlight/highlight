@@ -242,6 +242,23 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
                 >
             >
         >;
+        session_comments: Array<
+            Types.Maybe<
+                { __typename?: 'SessionComment' } & Pick<
+                    Types.SessionComment,
+                    | 'id'
+                    | 'session_timestamp'
+                    | 'created_at'
+                    | 'updated_at'
+                    | 'text'
+                > & {
+                        author: { __typename?: 'SanitizedAdmin' } & Pick<
+                            Types.SanitizedAdmin,
+                            'id' | 'name' | 'email'
+                        >;
+                    }
+            >
+        >;
     };
 
 export type GetSessionQueryVariables = Types.Exact<{
