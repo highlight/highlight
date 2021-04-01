@@ -577,6 +577,7 @@ const TimelineAnnotationColors: { [key: string]: string } = {
     Errors: '--color-red',
     Segment: '--color-orange',
     Track: '--color-blue-light',
+    Comments: '--color-gray-200',
 };
 
 export function getAnnotationColor(str: string): string {

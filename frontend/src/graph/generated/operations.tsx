@@ -246,11 +246,7 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
             Types.Maybe<
                 { __typename?: 'SessionComment' } & Pick<
                     Types.SessionComment,
-                    | 'id'
-                    | 'session_timestamp'
-                    | 'created_at'
-                    | 'updated_at'
-                    | 'text'
+                    'id' | 'timestamp' | 'created_at' | 'updated_at' | 'text'
                 > & {
                         author: { __typename?: 'SanitizedAdmin' } & Pick<
                             Types.SanitizedAdmin,

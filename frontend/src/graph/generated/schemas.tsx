@@ -265,7 +265,7 @@ export type ErrorResults = {
 export type SessionComment = {
     __typename?: 'SessionComment';
     id: Scalars['ID'];
-    session_timestamp: Scalars['Time'];
+    timestamp: Scalars['Time'];
     created_at: Scalars['Time'];
     updated_at: Scalars['Time'];
     author: SanitizedAdmin;

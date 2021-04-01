@@ -230,7 +230,7 @@ type ErrorResults {
 
 type SessionComment {
     id: ID!
-    session_timestamp: Time!
+    timestamp: Time!
     created_at: Time!
     updated_at: Time!
     author: SanitizedAdmin!

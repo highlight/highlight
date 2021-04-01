@@ -4,7 +4,10 @@ import {
 } from '@highlight-run/rrweb/dist/types';
 import { useCallback } from 'react';
 import { useHistory, useLocation } from 'react-router';
-import { ErrorObject } from '../../../../graph/generated/schemas';
+import {
+    ErrorObject,
+    SessionComment,
+} from '../../../../graph/generated/schemas';
 import { HighlightEvent } from '../../HighlightEvent';
 import {
     ParsedErrorObject,
@@ -204,6 +207,7 @@ const CustomEventsForTimeline = [
     'Navigate',
     'Segment',
     'Track',
+    'Comments',
 ];
 const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline);
 

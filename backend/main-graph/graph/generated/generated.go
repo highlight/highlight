@@ -262,12 +262,12 @@ type ComplexityRoot struct {
 	}
 
 	SessionComment struct {
-		Author           func(childComplexity int) int
-		CreatedAt        func(childComplexity int) int
-		ID               func(childComplexity int) int
-		SessionTimestamp func(childComplexity int) int
-		Text             func(childComplexity int) int
-		UpdatedAt        func(childComplexity int) int
+		Author    func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Text      func(childComplexity int) int
+		Timestamp func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
 	}
 
 	SessionResults struct {
@@ -1591,19 +1591,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionComment.ID(childComplexity), true
 
-	case "SessionComment.session_timestamp":
-		if e.complexity.SessionComment.SessionTimestamp == nil {
-			break
-		}
-
-		return e.complexity.SessionComment.SessionTimestamp(childComplexity), true
-
 	case "SessionComment.text":
 		if e.complexity.SessionComment.Text == nil {
 			break
 		}
 
 		return e.complexity.SessionComment.Text(childComplexity), true
+
+	case "SessionComment.timestamp":
+		if e.complexity.SessionComment.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.SessionComment.Timestamp(childComplexity), true
 
 	case "SessionComment.updated_at":
 		if e.complexity.SessionComment.UpdatedAt == nil {
@@ -1924,6 +1924,7 @@ type Admin {
     email: String!
 }
 
+# A subset of Admin. This type will contain fields that are allowed to be exposed to other users.
 type SanitizedAdmin {
     id: ID!
     name: String
@@ -1942,7 +1943,7 @@ type ErrorResults {
 
 type SessionComment {
     id: ID!
-    session_timestamp: Time!
+    timestamp: Time!
     created_at: Time!
     updated_at: Time!
     author: SanitizedAdmin!
@@ -8135,7 +8136,7 @@ func (ec *executionContext) _SessionComment_id(ctx context.Context, field graphq
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SessionComment_session_timestamp(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
+func (ec *executionContext) _SessionComment_timestamp(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -8153,7 +8154,7 @@ func (ec *executionContext) _SessionComment_session_timestamp(ctx context.Contex
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.SessionTimestamp, nil
+		return obj.Timestamp, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11080,8 +11081,8 @@ func (ec *executionContext) _SessionComment(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "session_timestamp":
-			out.Values[i] = ec._SessionComment_session_timestamp(ctx, field, obj)
+		case "timestamp":
+			out.Values[i] = ec._SessionComment_timestamp(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}

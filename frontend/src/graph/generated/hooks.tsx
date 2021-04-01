@@ -876,7 +876,7 @@ export const GetSessionPayloadDocument = gql`
         }
         session_comments(session_id: $session_id) {
             id
-            session_timestamp
+            timestamp
             created_at
             updated_at
             text

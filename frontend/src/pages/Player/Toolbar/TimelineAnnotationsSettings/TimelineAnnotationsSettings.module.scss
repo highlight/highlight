@@ -60,12 +60,13 @@
     height: $size-small;
     width: $size-small;
     border-radius: 50%;
+    border: 0.5px solid var(--color-gray-300);
 }
 
 .checkBoxLabel {
     display: inline-flex;
     align-items: center;
     gap: $size-xSmall;
-    width: 85px;
+    width: 90px;
     justify-content: space-between;
 }
