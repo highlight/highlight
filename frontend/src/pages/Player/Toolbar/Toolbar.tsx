@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { FaUndoAlt, FaPlay, FaPause, FaRedoAlt } from 'react-icons/fa';
 import { useLocalStorage } from '@rehooks/local-storage';
-import { MillisToMinutesAndSeconds } from '../../../util/time';
+import {
+    MillisToMinutesAndSeconds,
+    MillisToMinutesAndSecondsVerbose,
+} from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import { SettingsMenu } from './SettingsMenu/SettingsMenu';
 import {
@@ -138,6 +141,9 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 sliderPercent < interval.endPercent &&
                 sliderPercent >= interval.startPercent
             ) {
+                if (!interval.active) {
+                    return interval.endTime;
+                }
                 const segmentPercent =
                     (sliderPercent - interval.startPercent) /
                     (interval.endPercent - interval.startPercent);
@@ -147,6 +153,15 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
             }
         }
         return newTime;
+    };
+
+    const isSliderActive = (time: number) => {
+        for (const interval of sessionIntervals) {
+            if (time <= interval.endTime && time > interval.startTime) {
+                return interval.active;
+            }
+        }
+        return true;
     };
 
     /**
@@ -225,7 +240,14 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         }}
                     >
                         <div className={styles.indicatorParent}>
-                            <div className={styles.indicator} />
+                            <div
+                                className={styles.indicator}
+                                style={{
+                                    display: isSliderActive(time)
+                                        ? 'block'
+                                        : 'none',
+                                }}
+                            />
                         </div>
                     </Draggable>
                 </button>
@@ -374,6 +396,8 @@ const SessionSegment = ({
 }) => {
     const playedColor = interval.active ? '#5629c6' : '#808080';
     const unplayedColor = interval.active ? '#EEE7FF' : '#d2d2d2';
+    const currentRawPercent =
+        (time - interval.startTime) / (interval.endTime - interval.startTime);
     const isPercentInInterval = (
         sliderPercent: number,
         interval: ParsedSessionInterval
@@ -407,9 +431,11 @@ const SessionSegment = ({
             >
                 <div>{interval.active ? 'Active' : 'Inactive'}</div>
                 <div className={styles.sliderPopoverTime}>
-                    {MillisToMinutesAndSeconds(
-                        getSliderTime(sliderClientX / wrapperWidth)
-                    )}
+                    {interval.active
+                        ? MillisToMinutesAndSeconds(
+                              getSliderTime(sliderClientX / wrapperWidth)
+                          )
+                        : MillisToMinutesAndSecondsVerbose(interval.duration)}
                 </div>
             </div>
             <div
@@ -420,27 +446,26 @@ const SessionSegment = ({
                         : ''
                 )}
                 style={{
-                    background: `linear-gradient(to right,${playedColor} 0%, ${playedColor} ${
-                        Math.min(
-                            Math.max(
-                                (time - interval.startTime) /
-                                    (interval.endTime - interval.startTime),
-                                0
-                            ),
-                            1
-                        ) * 100
-                    }%, ${unplayedColor} ${
-                        Math.min(
-                            Math.max(
-                                (time - interval.startTime) /
-                                    (interval.endTime - interval.startTime),
-                                0
-                            ),
-                            1
-                        ) * 100
-                    }%)`,
+                    backgroundColor: unplayedColor,
                 }}
-            ></div>
+            >
+                <div
+                    className={
+                        !interval.active &&
+                        currentRawPercent >= 0 &&
+                        currentRawPercent <= 1
+                            ? styles.filledSlider
+                            : ''
+                    }
+                    style={{
+                        backgroundColor: playedColor,
+                        height: '100%',
+                        width: `${
+                            Math.min(Math.max(currentRawPercent, 0), 1) * 100
+                        }%`,
+                    }}
+                ></div>
+            </div>
         </div>
     );
 };

@@ -44,6 +44,10 @@
     transition: all 0.2s ease-in-out;
 }
 
+.filledSlider {
+    transition: all 2s ease;
+}
+
 .sliderPopover {
     position: absolute;
     z-index: 1000;
