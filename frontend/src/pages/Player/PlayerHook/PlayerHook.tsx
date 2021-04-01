@@ -75,8 +75,6 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             r.on(ReplayerEvents.Finish, () => {
                 setState(ReplayerState.Paused);
             });
-            // Allows users to interact with the DOM in the player.
-            r.enableInteract();
             setEvents(newEvents);
             if (eventsData?.errors) {
                 setErrors(eventsData.errors as ErrorObject[]);
