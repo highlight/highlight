@@ -155,15 +155,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         return newTime;
     };
 
-    const isSliderActive = (time: number) => {
-        for (const interval of sessionIntervals) {
-            if (time <= interval.endTime && time > interval.startTime) {
-                return interval.active;
-            }
-        }
-        return true;
-    };
-
     /**
      * The time to skip along the timeline. Used to skip X time back or forwards.
      */
@@ -240,14 +231,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         }}
                     >
                         <div className={styles.indicatorParent}>
-                            <div
-                                className={styles.indicator}
-                                style={{
-                                    display: isSliderActive(time)
-                                        ? 'block'
-                                        : 'none',
-                                }}
-                            />
+                            <div className={styles.indicator} />
                         </div>
                     </Draggable>
                 </button>
@@ -450,13 +434,6 @@ const SessionSegment = ({
                 }}
             >
                 <div
-                    className={
-                        !interval.active &&
-                        currentRawPercent >= 0 &&
-                        currentRawPercent <= 1
-                            ? styles.filledSlider
-                            : ''
-                    }
                     style={{
                         backgroundColor: playedColor,
                         height: '100%',
