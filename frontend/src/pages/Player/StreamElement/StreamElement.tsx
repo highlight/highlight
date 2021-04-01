@@ -164,8 +164,8 @@ export const StreamElement = ({
                 </div>
                 {selected ? (
                     <>
-                        <div className={styles.codeBlockWrapperVerbose}>
-                            {debug ? (
+                        {debug ? (
+                            <div className={styles.codeBlockWrapperVerbose}>
                                 <ReactJson
                                     style={{ wordBreak: 'break-word' }}
                                     name={null}
@@ -173,16 +173,16 @@ export const StreamElement = ({
                                     src={e.data}
                                     iconStyle="circle"
                                 />
-                            ) : (
-                                <StreamElementPayload
-                                    payload={
-                                        typeof details.payload === 'object'
-                                            ? JSON.stringify(details.payload)
-                                            : details.payload
-                                    }
-                                />
-                            )}
-                        </div>
+                            </div>
+                        ) : (
+                            <StreamElementPayload
+                                payload={
+                                    typeof details.payload === 'object'
+                                        ? JSON.stringify(details.payload)
+                                        : details.payload
+                                }
+                            />
+                        )}
                         <GoToButton
                             className={styles.goToButton}
                             onClick={(e) => {
@@ -217,7 +217,9 @@ type EventRenderDetails = {
     payload?: string;
 };
 
-const getEventRenderDetails = (e: HighlightEvent): EventRenderDetails => {
+export const getEventRenderDetails = (
+    e: HighlightEvent
+): EventRenderDetails => {
     const details: EventRenderDetails = {};
     if (e.type === EventType.Custom) {
         details.title = e.data.tag;
