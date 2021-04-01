@@ -19,6 +19,8 @@ export const useIntegrated = (
         const timer = setInterval(() => {
             if (!integrated) {
                 query();
+            } else {
+                clearInterval(timer);
             }
         }, 5000);
         return () => {
