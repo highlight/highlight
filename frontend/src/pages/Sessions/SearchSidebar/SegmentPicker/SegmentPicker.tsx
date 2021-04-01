@@ -3,7 +3,6 @@ import { Link, useHistory, useParams } from 'react-router-dom';
 import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
-import { ReactComponent as FilledStarIcon } from '../../../../static/star-filled.svg';
 import Skeleton from 'react-loading-skeleton';
 
 import commonStyles from '../../../../Common.module.scss';
@@ -265,9 +264,6 @@ export const SegmentPicker = () => {
                                         )}
                                     >
                                         Starred Sessions
-                                        <FilledStarIcon
-                                            className={styles.starIcon}
-                                        />
                                     </div>
                                     {STARRED_SEGMENT_ID === segment_id && (
                                         <CheckIcon
