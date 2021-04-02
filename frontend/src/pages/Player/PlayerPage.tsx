@@ -29,9 +29,14 @@ import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
 import ShareButton from './ShareButton/ShareButton';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
+import { Dropdown, Menu, Modal } from 'antd';
+import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
+import ModalBody from '../../components/ModalBody/ModalBody';
 
 export const Player = () => {
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_id } = useParams<{
+        session_id: string;
+    }>();
     const [resizeListener, sizes] = useResizeAware();
     const player = usePlayer({
         refId: 'player',
@@ -41,6 +46,7 @@ export const Player = () => {
         scale: replayerScale,
         setScale,
         replayer,
+        time,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
@@ -49,6 +55,7 @@ export const Player = () => {
         'highlightMenuShowRightPanel',
         true
     );
+    const [showAddCommentEntry, setShowAddCommentEntry] = useState(false);
 
     useEffect(() => {
         if (session_id) {
@@ -120,32 +127,52 @@ export const Player = () => {
                         <SessionLevelBar />
                         <ShareButton />
                     </div>
-                    <div className={styles.rrwebPlayerSection}>
-                        <div
-                            className={styles.rrwebPlayerWrapper}
-                            ref={playerWrapperRef}
-                        >
-                            {resizeListener}
+                    <Dropdown
+                        overlay={
+                            <Menu>
+                                <Menu.Item
+                                    key="1"
+                                    onClick={() => {
+                                        setShowAddCommentEntry(true);
+                                    }}
+                                >
+                                    Add a comment
+                                </Menu.Item>
+                                <Menu.Item key="2">
+                                    Copy URL at current time
+                                </Menu.Item>
+                            </Menu>
+                        }
+                        trigger={['contextMenu']}
+                    >
+                        <div className={styles.rrwebPlayerSection}>
                             <div
-                                style={{
-                                    visibility: isReplayerReady
-                                        ? 'visible'
-                                        : 'hidden',
-                                }}
-                                className={styles.rrwebPlayerDiv}
-                                id="player"
-                            />
-                            {!isReplayerReady ? (
-                                <PlayerSkeleton
-                                    height={
-                                        playerWrapperRef.current?.clientHeight
-                                    }
+                                className={styles.rrwebPlayerWrapper}
+                                ref={playerWrapperRef}
+                            >
+                                {resizeListener}
+                                <div
+                                    style={{
+                                        visibility: isReplayerReady
+                                            ? 'visible'
+                                            : 'hidden',
+                                    }}
+                                    className={styles.rrwebPlayerDiv}
+                                    id="player"
                                 />
-                            ) : (
-                                <></>
-                            )}
+                                {!isReplayerReady ? (
+                                    <PlayerSkeleton
+                                        height={
+                                            playerWrapperRef.current
+                                                ?.clientHeight
+                                        }
+                                    />
+                                ) : (
+                                    <></>
+                                )}
+                            </div>
                         </div>
-                    </div>
+                    </Dropdown>
                     <Toolbar
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
@@ -156,6 +183,23 @@ export const Player = () => {
                         <EventStream />
                     </div>
                 )}
+                <Modal
+                    visible={showAddCommentEntry}
+                    onCancel={() => {
+                        setShowAddCommentEntry(false);
+                    }}
+                    footer={null}
+                    centered
+                >
+                    <ModalBody>
+                        <NewCommentEntry
+                            currentTime={Math.floor(time)}
+                            onCloseHandler={() => {
+                                setShowAddCommentEntry(false);
+                            }}
+                        />
+                    </ModalBody>
+                </Modal>
             </div>
         </ReplayerContext.Provider>
     );
