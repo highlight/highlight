@@ -29,7 +29,6 @@ export const timeSection: string;
 export const toolbarLeftSection: string;
 export const toolbarRightSection: string;
 export const toolbarSection: string;
-export const tooltipContent: string;
-export const tooltipHeader: string;
+export const popoverHeader: string;
 export const undoSection: string;
 export const verticalDivider: string;
