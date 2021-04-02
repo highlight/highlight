@@ -35,8 +35,8 @@
 }
 
 .copyIcon {
-    visibility: hidden;
     margin-left: auto;
     cursor: pointer;
     color: grey;
+    transition: opacity 0.2s ease-in-out;
 }

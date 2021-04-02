@@ -293,12 +293,7 @@
     }
 }
 
-.tooltipContent {
-    width: 100%;
-    overflow-wrap: anywhere;
-}
-
-.tooltipHeader {
+.popoverHeader {
     width: 100%;
     overflow: hidden;
     white-space: nowrap;
@@ -306,7 +301,9 @@
 }
 
 .popoverContent {
-    width: 100%;
+    width: 240px;
+    overflow-wrap: anywhere;
+    text-overflow: ellipsis;
     overflow: hidden;
 }
 

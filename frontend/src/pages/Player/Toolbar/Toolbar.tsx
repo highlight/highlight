@@ -436,7 +436,7 @@ const SessionSegment = ({
                                 <Popover
                                     key={event.identifier}
                                     content={
-                                        <div className={styles.tooltipContent}>
+                                        <div className={styles.popoverContent}>
                                             <StreamElementPayload
                                                 payload={
                                                     typeof details.payload ===
@@ -499,7 +499,7 @@ const SessionSegment = ({
                                         }
                                         title={
                                             <div
-                                                className={styles.tooltipHeader}
+                                                className={styles.popoverHeader}
                                             >
                                                 {getHeaderFromError(
                                                     error.event
