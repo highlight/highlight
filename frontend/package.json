@@ -5,6 +5,7 @@
     "dependencies": {
         "@apollo/client": "^3.1.4",
         "@apollo/react-hooks": "^4.0.0",
+        "@craco/craco": "^6.1.1",
         "@dicebear/avatars": "^4.2.5",
         "@dicebear/avatars-avataaars-sprites": "^4.2.5",
         "@highlight-run/rrweb": "^0.10.3",
@@ -29,6 +30,7 @@
         "@types/react-select": "^3.0.28",
         "antd": "^4.6.3",
         "classnames": "^2.2.6",
+        "craco-antd": "^1.19.0",
         "firebase": "^7.19.1",
         "fs.realpath": "^1.0.0",
         "fuzzy": "^0.1.3",
