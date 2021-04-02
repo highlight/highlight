@@ -16,7 +16,6 @@ import { ReactComponent as ViewedIcon } from '../../../static/viewed.svg';
 import { ReactComponent as UnviewedIcon } from '../../../static/unviewed.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
-import { ReactComponent as UnstarIcon } from '../../../static/unstar.svg';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import { message, Tooltip } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
@@ -209,6 +208,39 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
+            {(session?.starred || hovered) && (
+                <Tooltip title={session?.starred ? 'Unstar' : 'Star'}>
+                    <div
+                        className={styles.starredIconWrapper}
+                        onClick={() => {
+                            markSessionAsStarred({
+                                variables: {
+                                    id: session?.id || '',
+                                    starred: !session?.starred,
+                                },
+                            })
+                                .then(() => {
+                                    message.success(
+                                        'Updated session status!',
+                                        3
+                                    );
+                                })
+                                .catch(() => {
+                                    message.error(
+                                        'Error updating session status!',
+                                        3
+                                    );
+                                });
+                        }}
+                    >
+                        {session?.starred ? (
+                            <FilledStarIcon className={styles.starredIcon} />
+                        ) : (
+                            <StarIcon className={styles.actionIcon} />
+                        )}
+                    </div>
+                </Tooltip>
+            )}
             <Link to={`/${organization_id}/sessions/${session?.id}`}>
                 <div className={styles.sessionCard}>
                     <div
@@ -227,11 +259,6 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                 }
                                 style={{ height: 60, width: 60 }}
                             />
-                            {session?.starred && (
-                                <FilledStarIcon
-                                    className={styles.starredIcon}
-                                />
-                            )}
                         </div>
                         <div className={styles.sessionTextSectionWrapper}>
                             <div className={styles.sessionTextSection}>
@@ -325,74 +352,36 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                     />
                 </div>
             </Link>
-            <div className={styles.sessionCardActionWrapper}>
-                <Tooltip title={session?.starred ? 'Unstar' : 'Star'}>
-                    <button
-                        className={styles.sessionCardAction}
-                        onClick={() => {
-                            markSessionAsStarred({
-                                variables: {
-                                    id: session?.id || '',
-                                    starred: !session?.starred,
-                                },
+            <Tooltip
+                title={session?.viewed ? 'Mark as Unviewed' : 'Mark as Viewed'}
+            >
+                <button
+                    className={styles.sessionCardAction}
+                    onClick={() => {
+                        markSessionAsViewed({
+                            variables: {
+                                id: session?.id || '',
+                                viewed: !session?.viewed,
+                            },
+                        })
+                            .then(() => {
+                                message.success('Updated session status!', 3);
                             })
-                                .then(() => {
-                                    message.success(
-                                        'Updated session status!',
-                                        3
-                                    );
-                                })
-                                .catch(() => {
-                                    message.error(
-                                        'Error updating session status!',
-                                        3
-                                    );
-                                });
-                        }}
-                    >
-                        {session?.starred ? (
-                            <UnstarIcon className={styles.actionIcon} />
-                        ) : (
-                            <StarIcon className={styles.actionIcon} />
-                        )}
-                    </button>
-                </Tooltip>
-                <Tooltip
-                    title={
-                        session?.viewed ? 'Mark as Unviewed' : 'Mark as Viewed'
-                    }
+                            .catch(() => {
+                                message.error(
+                                    'Error updating session status!',
+                                    3
+                                );
+                            });
+                    }}
                 >
-                    <button
-                        className={styles.sessionCardAction}
-                        onClick={() => {
-                            markSessionAsViewed({
-                                variables: {
-                                    id: session?.id || '',
-                                    viewed: !session?.viewed,
-                                },
-                            })
-                                .then(() => {
-                                    message.success(
-                                        'Updated session status!',
-                                        3
-                                    );
-                                })
-                                .catch(() => {
-                                    message.error(
-                                        'Error updating session status!',
-                                        3
-                                    );
-                                });
-                        }}
-                    >
-                        {session?.viewed ? (
-                            <UnviewedIcon className={styles.actionIcon} />
-                        ) : (
-                            <ViewedIcon className={styles.actionIcon} />
-                        )}
-                    </button>
-                </Tooltip>
-            </div>
+                    {session?.viewed ? (
+                        <UnviewedIcon className={styles.actionIcon} />
+                    ) : (
+                        <ViewedIcon className={styles.actionIcon} />
+                    )}
+                </button>
+            </Tooltip>
         </div>
     );
 };
