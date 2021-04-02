@@ -111,7 +111,9 @@ export const MetadataBox = () => {
                             />
                         ) : (
                             <>
-                                <div>{data?.session?.identifier}</div>
+                                <div className={styles.userIdHeader}>
+                                    {data?.session?.identifier}
+                                </div>
                                 {data?.session?.user_id && (
                                     <div className={styles.userIdSubHeader}>
                                         User#{data?.session?.user_id}

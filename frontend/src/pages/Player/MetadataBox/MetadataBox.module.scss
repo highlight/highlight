@@ -45,7 +45,7 @@
     font-weight: 400;
     width: 100%;
     margin-bottom: 5px;
-    padding-right: 25px;
+    padding-right: 40px;
 }
 
 .userText {
@@ -53,6 +53,12 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     display: block;
+    overflow: hidden;
+}
+
+.userIdHeader {
+    white-space: nowrap;
+    text-overflow: ellipsis;
     overflow: hidden;
 }
 

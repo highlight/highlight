@@ -11,6 +11,7 @@ export const tagWrapper: string;
 export const unstarredIcon: string;
 export const userAvatarWrapper: string;
 export const userContentWrapper: string;
+export const userIdHeader: string;
 export const userIdSubHeader: string;
 export const userInfoWrapper: string;
 export const userProfile: string;
