@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/google/martian/v3/log"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -38,13 +37,10 @@ func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (inte
 	fieldSpan, ctx := tracer.StartSpanFromContext(ctx, "operation.field", tracer.ResourceName(fc.Field.Name))
 	fieldSpan.SetTag("field.type", fc.Field.Definition.Type.String())
 
-	b, err := json.MarshalIndent(rc.Args, "", "")
-	if err != nil {
-		log.Errorf("woops")
-	}
-	bs := string(b)
-	if len(bs) <= 1000 {
-		fieldSpan.SetTag("field.arguments", bs)
+	if b, err := json.MarshalIndent(rc.Args, "", ""); err == nil {
+		if bs := string(b); len(bs) <= 1000 {
+			fieldSpan.SetTag("field.arguments", bs)
+		}
 	}
 
 	start := graphql.Now()
