@@ -103,7 +103,7 @@ export type ErrorObject = {
     organization_id: Scalars['Int'];
     session_id: Scalars['Int'];
     error_group_id: Scalars['Int'];
-    event: Scalars['String'];
+    event: Array<Maybe<Scalars['String']>>;
     type: Scalars['String'];
     url: Scalars['String'];
     source?: Maybe<Scalars['String']>;
