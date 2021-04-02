@@ -12,6 +12,7 @@ import {
     useCreateErrorSegmentMutation,
     useEditErrorSegmentMutation,
 } from '../../../../graph/generated/hooks';
+import ModalBody from '../../../../components/ModalBody/ModalBody';
 
 type Inputs = {
     name: string;
@@ -79,7 +80,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                 style={{ display: 'flex' }}
                 footer={null}
             >
-                <div className={styles.modalWrapper}>
+                <ModalBody className={styles.modalWrapper}>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className={styles.modalTitle}>
                             Create a Segment
@@ -109,7 +110,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                             )}
                         </button>
                     </form>
-                </div>
+                </ModalBody>
             </Modal>
             {/* If the params have changed for the current segment, offer to update it. */}
             {paramsIsDifferent && segmentName ? (
