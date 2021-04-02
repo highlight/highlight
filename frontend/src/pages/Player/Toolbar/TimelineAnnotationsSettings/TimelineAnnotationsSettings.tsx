@@ -42,7 +42,7 @@ const TimelineAnnotationsSettings = () => {
         <Popover
             trigger="click"
             content={
-                <div>
+                <div className={styles.contentWrapper}>
                     <p>
                         Timeline annotations are the circles above the timeline.
                         You can configure what types of events are drawn as
