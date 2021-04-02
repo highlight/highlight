@@ -32,7 +32,6 @@ export interface ParsedSessionInterval extends SessionInterval {
     endPercent: number;
     errors: ParsedErrorObject[];
     sessionEvents: ParsedHighlightEvent[];
-    comments: ParsedSessionComment[];
 }
 
 export interface ReplayerContextInterface {
@@ -49,6 +48,7 @@ export interface ReplayerContextInterface {
     events: Array<HighlightEvent>;
     errors: ErrorObject[];
     sessionIntervals: Array<ParsedSessionInterval>;
+    sessionCommentIntervals: SessionComment[][];
 }
 
 /* eslint-disable */
@@ -64,6 +64,7 @@ export const defaultValue: ReplayerContextInterface = {
     events: [],
     errors: [],
     sessionIntervals: [],
+    sessionCommentIntervals: [[]],
 };
 /* eslint-enable */
 

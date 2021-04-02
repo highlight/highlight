@@ -117,6 +117,33 @@ mutation CreateSegment(
     }
 }
 
+mutation CreateSessionComment(
+    $organization_id: ID!
+    $admin_id: ID!
+    $session_id: ID!
+    $session_timestamp: Int!
+    $text: String!
+) {
+    createSessionComment(
+        organization_id: $organization_id
+        admin_id: $admin_id
+        session_id: $session_id
+        session_timestamp: $session_timestamp
+        text: $text
+    ) {
+        id
+        timestamp
+        created_at
+        updated_at
+        author {
+            id
+            name
+            email
+        }
+        text
+    }
+}
+
 mutation DeleteErrorSegment($segment_id: ID!) {
     deleteErrorSegment(segment_id: $segment_id)
 }

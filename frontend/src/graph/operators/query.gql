@@ -3,18 +3,6 @@ query GetSessionPayload($session_id: ID!) {
     errors(session_id: $session_id) {
         ...errorFields
     }
-    session_comments(session_id: $session_id) {
-        id
-        timestamp
-        created_at
-        updated_at
-        text
-        author {
-            id
-            name
-            email
-        }
-    }
 }
 
 query GetSession($id: ID!) {
@@ -45,6 +33,21 @@ query GetAdmins($organization_id: ID!) {
         id
         name
         email
+    }
+}
+
+query GetSessionComments($session_id: ID!) {
+    session_comments(session_id: $session_id) {
+        id
+        timestamp
+        created_at
+        updated_at
+        text
+        author {
+            id
+            name
+            email
+        }
     }
 }
 

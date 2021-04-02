@@ -42,7 +42,6 @@ export const getSessionIntervals = (
                 startTime: 0,
                 errors: [],
                 sessionEvents: [],
-                comments: [],
             },
         ];
     }
@@ -244,21 +243,20 @@ export const addEventsToSessionIntervals = (
     }));
 };
 
-export const addCommentsToSessionIntervals = (
+/**
+ * Returns the comments that are in the respective interval bins. If a comment is in the ith index, then it shows up in the ith session interval.
+ */
+export const getCommentsInSessionIntervals = (
     sessionIntervals: ParsedSessionInterval[],
     comments: SessionComment[],
     sessionStartTime: number
-): ParsedSessionInterval[] => {
-    const groupedComments = assignEventToSessionInterval(
+): ParsedSessionComment[][] => {
+    return assignEventToSessionInterval(
         sessionIntervals,
         comments,
-        sessionStartTime
-    );
-
-    return sessionIntervals.map((sessionInterval, index) => ({
-        ...sessionInterval,
-        comments: groupedComments[index] as ParsedSessionComment[],
-    }));
+        sessionStartTime,
+        true
+    ) as ParsedSessionComment[][];
 };
 
 type ParsableEvent = ErrorObject | HighlightEvent | SessionComment;
@@ -269,7 +267,9 @@ type ParsableEvent = ErrorObject | HighlightEvent | SessionComment;
 const assignEventToSessionInterval = (
     sessionIntervals: ParsedSessionInterval[],
     events: ParsableEvent[],
-    sessionStartTime: number
+    sessionStartTime: number,
+    /** Whether the timestamp in events global time or already relative to the session. */
+    relativeTime = false
 ) => {
     let eventIndex = 0;
     let sessionIntervalIndex = 0;
@@ -283,8 +283,9 @@ const assignEventToSessionInterval = (
         sessionIntervalIndex < sessionIntervals.length
     ) {
         const event = events[eventIndex];
-        const relativeTimestamp =
-            new Date(event.timestamp).getTime() - sessionStartTime;
+        const relativeTimestamp = relativeTime
+            ? event.timestamp
+            : new Date(event.timestamp).getTime() - sessionStartTime;
 
         if (
             relativeTimestamp >= currentSessionInterval.startTime &&

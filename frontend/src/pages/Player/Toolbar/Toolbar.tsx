@@ -12,6 +12,7 @@ import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
 import ReplayerContext, {
+    ParsedSessionComment,
     ParsedSessionInterval,
     ReplayerState,
 } from '../ReplayerContext';
@@ -35,6 +36,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         play,
         pause,
         sessionIntervals,
+        sessionCommentIntervals,
     } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
@@ -212,6 +214,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         <SessionSegment
                             key={ind}
                             interval={e}
+                            comments={sessionCommentIntervals[ind]}
                             sliderClientX={sliderClientX}
                             wrapperWidth={wrapperWidth}
                             time={time}
@@ -391,12 +394,14 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
 
 const SessionSegment = ({
     interval,
+    comments,
     sliderClientX,
     wrapperWidth,
     time,
     getSliderTime,
 }: {
     interval: ParsedSessionInterval;
+    comments: ParsedSessionComment[];
     sliderClientX: number;
     wrapperWidth: number;
     time: number;
@@ -541,7 +546,7 @@ const SessionSegment = ({
                                 }%`,
                             }}
                         >
-                            {interval.comments.map((comment) => (
+                            {comments?.map((comment) => (
                                 <Popover
                                     key={comment.id}
                                     content={

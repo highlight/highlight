@@ -265,7 +265,7 @@ export type ErrorResults = {
 export type SessionComment = {
     __typename?: 'SessionComment';
     id: Scalars['ID'];
-    timestamp: Scalars['Time'];
+    timestamp: Scalars['Int'];
     created_at: Scalars['Time'];
     updated_at: Scalars['Time'];
     author: SanitizedAdmin;
@@ -415,6 +415,7 @@ export type Mutation = {
     deleteErrorSegment?: Maybe<Scalars['Boolean']>;
     editRecordingSettings?: Maybe<RecordingSettings>;
     createOrUpdateSubscription?: Maybe<Scalars['String']>;
+    createSessionComment?: Maybe<SessionComment>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -506,4 +507,12 @@ export type MutationEditRecordingSettingsArgs = {
 export type MutationCreateOrUpdateSubscriptionArgs = {
     organization_id: Scalars['ID'];
     plan_type: PlanType;
+};
+
+export type MutationCreateSessionCommentArgs = {
+    organization_id: Scalars['ID'];
+    admin_id: Scalars['ID'];
+    session_id: Scalars['ID'];
+    session_timestamp: Scalars['Int'];
+    text: Scalars['String'];
 };

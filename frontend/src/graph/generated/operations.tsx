@@ -180,6 +180,28 @@ export type CreateSegmentMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type CreateSessionCommentMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    admin_id: Types.Scalars['ID'];
+    session_id: Types.Scalars['ID'];
+    session_timestamp: Types.Scalars['Int'];
+    text: Types.Scalars['String'];
+}>;
+
+export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
+    createSessionComment?: Types.Maybe<
+        { __typename?: 'SessionComment' } & Pick<
+            Types.SessionComment,
+            'id' | 'timestamp' | 'created_at' | 'updated_at' | 'text'
+        > & {
+                author: { __typename?: 'SanitizedAdmin' } & Pick<
+                    Types.SanitizedAdmin,
+                    'id' | 'name' | 'email'
+                >;
+            }
+    >;
+};
+
 export type DeleteErrorSegmentMutationVariables = Types.Exact<{
     segment_id: Types.Scalars['ID'];
 }>;
@@ -242,19 +264,6 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
                 >
             >
         >;
-        session_comments: Array<
-            Types.Maybe<
-                { __typename?: 'SessionComment' } & Pick<
-                    Types.SessionComment,
-                    'id' | 'timestamp' | 'created_at' | 'updated_at' | 'text'
-                > & {
-                        author: { __typename?: 'SanitizedAdmin' } & Pick<
-                            Types.SanitizedAdmin,
-                            'id' | 'name' | 'email'
-                        >;
-                    }
-            >
-        >;
     };
 
 export type GetSessionQueryVariables = Types.Exact<{
@@ -306,6 +315,26 @@ export type GetAdminsQuery = { __typename?: 'Query' } & {
                     'id' | 'name' | 'email'
                 >
             >
+        >
+    >;
+};
+
+export type GetSessionCommentsQueryVariables = Types.Exact<{
+    session_id: Types.Scalars['ID'];
+}>;
+
+export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
+    session_comments: Array<
+        Types.Maybe<
+            { __typename?: 'SessionComment' } & Pick<
+                Types.SessionComment,
+                'id' | 'timestamp' | 'created_at' | 'updated_at' | 'text'
+            > & {
+                    author: { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email'
+                    >;
+                }
         >
     >;
 };
