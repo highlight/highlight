@@ -89,18 +89,10 @@ const ErrorCard = ({ error, index, state }: Props) => {
 
 export default ErrorCard;
 
-const getErrorDescription = (errorObject: ErrorObject) => {
-    if (!errorObject.event) {
+const getErrorDescription = (errorObject: ErrorObject): string => {
+    const parsedEvent = errorObject.event;
+    if (!parsedEvent) {
         return '';
     }
-    const parsedEvent = JSON.parse(errorObject.event);
-
-    if (Array.isArray(parsedEvent) && parsedEvent.length > 0) {
-        if (parsedEvent[0].message) {
-            return parsedEvent[0].message;
-        }
-        return parsedEvent[0].toString();
-    }
-
-    return parsedEvent.toString();
+    return (parsedEvent[0] as string) ?? '';
 };

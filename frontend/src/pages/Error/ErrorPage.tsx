@@ -42,11 +42,7 @@ export const ErrorPage = () => {
     const [errorActivityCount, setErrorActivityCount] = useState(20);
 
     useEffect(() => {
-        setTitle(
-            getHeaderFromError(
-                (data?.error_group?.event as Array<string>) ?? []
-            )
-        );
+        setTitle(getHeaderFromError(data?.error_group?.event ?? []));
     }, [data]);
 
     useEffect(() => {
@@ -430,7 +426,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
     );
 };
 
-export const getHeaderFromError = (errorMsg: Array<string>): string => {
+export const getHeaderFromError = (errorMsg: Maybe<string>[]): string => {
     const eventText = errorMsg[0];
     let title = '';
     // Try to get the text in the form Text: ....

@@ -478,7 +478,6 @@ const SessionSegment = ({
                             }}
                         >
                             {interval.errors.map((error) => {
-                                console.log(error);
                                 return (
                                     <Popover
                                         key={error.id}
@@ -502,9 +501,9 @@ const SessionSegment = ({
                                             <div
                                                 className={styles.tooltipHeader}
                                             >
-                                                {/* {getHeaderFromError(
-                                                    JSON.parse(error.event)
-                                                )} */}
+                                                {getHeaderFromError(
+                                                    error.event
+                                                )}
                                             </div>
                                         }
                                     >
