@@ -330,9 +330,16 @@
 .commentUpdatedTime {
     color: $text-label;
     font-weight: 200;
+    flex-shrink: 0;
 }
 
 .commentHeader {
     display: flex;
     gap: $size-xSmall;
+}
+
+.commentAuthor {
+    flex-grow: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

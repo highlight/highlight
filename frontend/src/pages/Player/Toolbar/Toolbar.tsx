@@ -561,8 +561,12 @@ const SessionSegment = ({
                                                 styles.commentHeader
                                             )}
                                         >
-                                            {comment.author.name ||
-                                                comment.author.email}
+                                            <span
+                                                className={styles.commentAuthor}
+                                            >
+                                                {comment.author.name ||
+                                                    comment.author.email}
+                                            </span>
                                             <span
                                                 className={
                                                     styles.commentUpdatedTime

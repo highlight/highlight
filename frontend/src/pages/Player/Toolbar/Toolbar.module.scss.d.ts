@@ -1,6 +1,7 @@
 export const annotation: string;
 export const annotationsContainer: string;
 export const button: string;
+export const commentAuthor: string;
 export const commentHeader: string;
 export const commentUpdatedTime: string;
 export const dropdownInner: string;
