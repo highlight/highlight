@@ -219,31 +219,24 @@
     position: relative;
 
     &:hover {
-        .sessionCardActionWrapper {
+        .sessionCardAction {
             display: flex;
         }
     }
 }
 
-.sessionCardActionWrapper {
-    display: none;
-    background-color: white;
-    flex-direction: column;
-    justify-content: center;
-    position: absolute;
-    top: 2px;
-    right: 8px;
-    bottom: 2px;
-}
-
 .sessionCardAction {
     background-color: white;
     border: 0;
+    display: none;
+    position: absolute;
     padding: 0px 6px;
     width: 30px;
     height: 30px;
-    margin: 4px 0;
-    display: flex;
+    right: 8px;
+    top: 0;
+    bottom: 0;
+    margin: auto;
     border-radius: 5px;
     align-items: center;
 
@@ -265,16 +258,33 @@
     fill: #808080;
 }
 
+.starredIconWrapper {
+    position: absolute;
+    margin: auto;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    padding: 6px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    z-index: 5;
+
+    &:hover {
+        cursor: pointer;
+
+        .actionIcon {
+            color: black;
+            fill: black;
+            stroke: black;
+        }
+    }
+}
+
 .starredIcon {
     stroke: #ffd82c;
     color: #ffd82c;
     fill: #ffd82c;
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    margin: auto;
-    width: 15px;
 }
 
 .sessionCard {
