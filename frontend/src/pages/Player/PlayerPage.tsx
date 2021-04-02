@@ -47,6 +47,7 @@ export const Player = () => {
         setScale,
         replayer,
         time,
+        pause,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
@@ -120,6 +121,7 @@ export const Player = () => {
     })[] = [
         {
             onClick: () => {
+                pause();
                 setShowAddCommentEntry(true);
             },
             label: 'Add a comment',
