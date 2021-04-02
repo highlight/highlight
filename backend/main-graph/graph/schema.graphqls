@@ -80,7 +80,7 @@ type ErrorObject {
     organization_id: Int!
     session_id: Int!
     error_group_id: Int!
-    event: String!
+    event: [String]!
     type: String!
     url: String!
     source: String

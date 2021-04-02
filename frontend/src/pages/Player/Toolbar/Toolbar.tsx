@@ -477,38 +477,47 @@ const SessionSegment = ({
                                 }%`,
                             }}
                         >
-                            {interval.errors.map((error) => (
-                                <Popover
-                                    key={error.id}
-                                    content={
-                                        <div className={styles.popoverContent}>
-                                            {error.source}
-                                            <div>
-                                                <Link
-                                                    to={`/${organization_id}/errors/${error.error_group_id}`}
-                                                >
-                                                    More info
-                                                </Link>
+                            {interval.errors.map((error) => {
+                                console.log(error);
+                                return (
+                                    <Popover
+                                        key={error.id}
+                                        content={
+                                            <div
+                                                className={
+                                                    styles.popoverContent
+                                                }
+                                            >
+                                                {error.source}
+                                                <div>
+                                                    <Link
+                                                        to={`/${organization_id}/errors/${error.error_group_id}`}
+                                                    >
+                                                        More info
+                                                    </Link>
+                                                </div>
                                             </div>
-                                        </div>
-                                    }
-                                    title={
-                                        <div className={styles.tooltipHeader}>
-                                            {getHeaderFromError(
-                                                JSON.parse(error.event)
-                                            )}
-                                        </div>
-                                    }
-                                >
-                                    <div
-                                        tabIndex={1}
-                                        className={styles.annotation}
-                                        style={{
-                                            left: `${error.relativeIntervalPercentage}%`,
-                                        }}
-                                    ></div>
-                                </Popover>
-                            ))}
+                                        }
+                                        title={
+                                            <div
+                                                className={styles.tooltipHeader}
+                                            >
+                                                {/* {getHeaderFromError(
+                                                    JSON.parse(error.event)
+                                                )} */}
+                                            </div>
+                                        }
+                                    >
+                                        <div
+                                            tabIndex={1}
+                                            className={styles.annotation}
+                                            style={{
+                                                left: `${error.relativeIntervalPercentage}%`,
+                                            }}
+                                        ></div>
+                                    </Popover>
+                                );
+                            })}
                         </div>
                     )}
                 </>

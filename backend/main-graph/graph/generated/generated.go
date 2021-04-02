@@ -275,6 +275,8 @@ type ErrorGroupResolver interface {
 	FieldGroup(ctx context.Context, obj *model1.ErrorGroup) ([]*model1.ErrorField, error)
 }
 type ErrorObjectResolver interface {
+	Event(ctx context.Context, obj *model1.ErrorObject) ([]*string, error)
+
 	Trace(ctx context.Context, obj *model1.ErrorObject) ([]interface{}, error)
 }
 type ErrorSegmentResolver interface {
@@ -1697,7 +1699,7 @@ type ErrorObject {
     organization_id: Int!
     session_id: Int!
     error_group_id: Int!
-    event: String!
+    event: [String]!
     type: String!
     url: String!
     source: String
@@ -3811,14 +3813,14 @@ func (ec *executionContext) _ErrorObject_event(ctx context.Context, field graphq
 		Object:     "ErrorObject",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Event, nil
+		return ec.resolvers.ErrorObject().Event(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3830,9 +3832,9 @@ func (ec *executionContext) _ErrorObject_event(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.([]*string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorObject_type(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
@@ -9639,10 +9641,19 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "event":
-			out.Values[i] = ec._ErrorObject_event(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorObject_event(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "type":
 			out.Values[i] = ec._ErrorObject_type(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

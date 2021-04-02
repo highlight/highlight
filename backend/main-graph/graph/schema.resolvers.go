@@ -15,6 +15,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/fullstory/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -25,27 +26,7 @@ import (
 )
 
 func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) ([]*string, error) {
-	if obj.Trace == "" {
-		return nil, nil
-	}
-	var eventInterface interface{}
-	if err := json.Unmarshal([]byte(obj.Event), &eventInterface); err != nil {
-		return nil, nil
-	}
-	// the event interface is either in the form 'string' or '[]string':
-	if val, ok := eventInterface.(string); ok {
-		return []*string{&val}, nil
-	}
-	if val, ok := eventInterface.([]interface{}); ok {
-		ret := []*string{}
-		for _, v := range val {
-			if s, ok := v.(string); ok {
-				ret = append(ret, &s)
-			}
-		}
-		return ret, nil
-	}
-	return nil, nil
+	return util.JsonStringToStringArray(obj.Event), nil
 }
 
 func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
@@ -106,6 +87,10 @@ func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGro
 		parsedFields = append(parsedFields, f)
 	}
 	return parsedFields, nil
+}
+
+func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject) ([]*string, error) {
+	return util.JsonStringToStringArray(obj.Event), nil
 }
 
 func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
