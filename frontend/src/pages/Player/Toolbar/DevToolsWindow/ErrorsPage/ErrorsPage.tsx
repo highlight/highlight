@@ -9,6 +9,9 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import Skeleton from 'react-loading-skeleton';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import { findLastActiveEventIndex } from './utils/utils';
+import { Modal } from 'antd';
+import { ErrorObject } from '../../../../../graph/generated/schemas';
+import ErrorModal from './components/ErrorModal/ErrorModal';
 
 export interface ErrorsPageHistoryState {
     errorCardIndex: number;
@@ -22,6 +25,9 @@ const ErrorsPage = () => {
     );
     const history = useHistory<ErrorsPageHistoryState>();
     const { errors, state, time, replayer } = useContext(ReplayerContext);
+    const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
+        undefined
+    );
 
     const loading = state === ReplayerState.Loading;
 
@@ -85,7 +91,6 @@ const ErrorsPage = () => {
                             <ErrorCard
                                 key={error?.id}
                                 error={error}
-                                index={index}
                                 state={
                                     hasTimestamp
                                         ? index === lastActiveErrorIndex
@@ -93,11 +98,30 @@ const ErrorsPage = () => {
                                             : ErrorCardState.Inactive
                                         : ErrorCardState.Unknown
                                 }
+                                setSelectedError={() => {
+                                    setSelectedError(error);
+                                }}
                             />
                         )}
                     />
                 )}
             </div>
+            <Modal
+                title={selectedError?.type}
+                visible={!!selectedError}
+                footer={null}
+                onCancel={() => {
+                    setSelectedError(undefined);
+                }}
+                width={'80vw'}
+            >
+                <ErrorModal
+                    error={selectedError!}
+                    onCloseHandler={() => {
+                        setSelectedError(undefined);
+                    }}
+                />
+            </Modal>
         </>
     );
 };

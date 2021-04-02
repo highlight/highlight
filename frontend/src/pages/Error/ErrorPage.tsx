@@ -16,30 +16,24 @@ import {
 import LinesEllipsis from 'react-lines-ellipsis';
 
 import styles from './ErrorPage.module.scss';
-import commonStyles from '../../Common.module.scss';
 import Skeleton from 'react-loading-skeleton';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import moment from 'moment';
 import { frequencyTimeData } from '../../util/errorCalculations';
 import classNames from 'classnames';
 import { Tooltip } from 'antd';
-import { Link } from 'react-router-dom';
 import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
-import { PlayerSearchParameters } from '../Player/PlayerHook/utils';
+import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTable';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
     const { setOpenSidebar } = useContext(SidebarContext);
-    const { organization_id } = useParams<{
-        organization_id: string;
-    }>();
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
     });
     const [title, setTitle] = useState<string | undefined>(undefined);
     const [eventLineExpand, setEventLineExpand] = useState(false);
     const [showExpandButton, setShowExpandButton] = useState(true);
-    const [errorActivityCount, setErrorActivityCount] = useState(20);
 
     useEffect(() => {
         setTitle(getHeaderFromError(data?.error_group?.event ?? []));
@@ -143,104 +137,9 @@ export const ErrorPage = () => {
                     <div className={styles.fieldWrapper}>
                         <ErrorFrequencyGraph errorGroup={data?.error_group} />
                     </div>
-                    <div
-                        className={styles.fieldWrapper}
-                        style={{ paddingBottom: '40px' }}
-                    >
-                        <div className={styles.section}>
-                            <div className={styles.collapsible}>
-                                <div
-                                    className={classNames(
-                                        styles.triggerWrapper,
-                                        styles.errorLogDivider
-                                    )}
-                                >
-                                    <div className={styles.errorLogsTitle}>
-                                        <span>Error ID</span>
-                                        <span>Session ID</span>
-                                        <span>Visited URL</span>
-                                        <span>Browser</span>
-                                        <span>OS</span>
-                                        <span>Timestamp</span>
-                                    </div>
-                                </div>
-                                <div className={styles.errorLogWrapper}>
-                                    {data?.error_group?.metadata_log
-                                        .slice(
-                                            Math.max(
-                                                data?.error_group?.metadata_log
-                                                    .length -
-                                                    errorActivityCount,
-                                                0
-                                            )
-                                        )
-                                        .reverse()
-                                        .map((e, i) => (
-                                            <Link
-                                                to={`/${organization_id}/sessions/${
-                                                    e?.session_id
-                                                }${
-                                                    e?.timestamp
-                                                        ? `?${PlayerSearchParameters.errorId}=${e.error_id}`
-                                                        : ''
-                                                }`}
-                                                key={i}
-                                            >
-                                                <div
-                                                    key={i}
-                                                    className={
-                                                        styles.errorLogItem
-                                                    }
-                                                >
-                                                    <span>{e?.error_id}</span>
-                                                    <span>{e?.session_id}</span>
-                                                    <div
-                                                        className={
-                                                            styles.errorLogCell
-                                                        }
-                                                    >
-                                                        <span
-                                                            className={
-                                                                styles.errorLogOverflow
-                                                            }
-                                                        >
-                                                            {e?.visited_url}
-                                                        </span>
-                                                    </div>
-                                                    <span>{e?.browser}</span>
-                                                    <span>{e?.os}</span>
-                                                    <span>
-                                                        {moment(
-                                                            e?.timestamp
-                                                        ).format(
-                                                            'D MMMM YYYY, HH:mm:ss'
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    {data?.error_group?.metadata_log.length &&
-                                        errorActivityCount <
-                                            data?.error_group?.metadata_log
-                                                .length && (
-                                            <button
-                                                onClick={() =>
-                                                    setErrorActivityCount(
-                                                        errorActivityCount + 20
-                                                    )
-                                                }
-                                                className={classNames(
-                                                    commonStyles.secondaryButton,
-                                                    styles.errorLogButton
-                                                )}
-                                            >
-                                                Show more...
-                                            </button>
-                                        )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {data?.error_group && (
+                        <ErrorSessionsTable errorGroup={data.error_group} />
+                    )}
                 </div>
                 <div className={styles.errorPageRight}>
                     <div className={styles.errorPageRightContent}>

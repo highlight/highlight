@@ -1,0 +1,7 @@
+@import 'src/static/shared.scss';
+
+.actionsContainer {
+    display: flex;
+    gap: $size-xSmall;
+    justify-content: flex-end;
+}
