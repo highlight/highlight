@@ -4,8 +4,10 @@ package util
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/google/martian/v3/log"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -32,8 +34,18 @@ func (t Tracer) Validate(graphql.ExecutableSchema) error {
 func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (interface{}, error) {
 	// taken from: https://docs.datadoghq.com/tracing/setup_overview/custom_instrumentation/go/#manually-creating-a-new-span
 	fc := graphql.GetFieldContext(ctx)
+	rc := graphql.GetResolverContext(ctx)
 	fieldSpan, ctx := tracer.StartSpanFromContext(ctx, "operation.field", tracer.ResourceName(fc.Field.Name))
 	fieldSpan.SetTag("field.type", fc.Field.Definition.Type.String())
+
+	b, err := json.MarshalIndent(rc.Args, "", "")
+	if err != nil {
+		log.Errorf("woops")
+	}
+	bs := string(b)
+	if len(bs) <= 1000 {
+		fieldSpan.SetTag("field.arguments", bs)
+	}
 
 	start := graphql.Now()
 	defer func() {
