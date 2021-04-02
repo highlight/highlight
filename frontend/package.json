@@ -79,11 +79,11 @@
         "written-number": "^0.9.1"
     },
     "scripts": {
-        "start": "doppler run -- react-scripts start",
+        "start": "doppler run -- craco start",
         "styles": " tsm src -w",
         "gql": "graphql-codegen --config --watch codegen.yml",
-        "build": "react-scripts build",
-        "test": "react-scripts test",
+        "build": "craco build",
+        "test": "craco test",
         "eject": "react-scripts eject",
         "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}' && yarn lint:es",
         "lint:es": "eslint --fix src/**/*.{ts,tsx}"
