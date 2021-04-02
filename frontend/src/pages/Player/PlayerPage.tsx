@@ -26,10 +26,10 @@ import { usePlayer } from './PlayerHook/PlayerHook';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
 import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
-import ShareButton from './ShareButton/ShareButton';
+import copySessionShareLinkToClipboard from './utils/utils';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
-import { Dropdown, Menu, Modal } from 'antd';
+import { Dropdown, Menu, MenuItemProps, Modal } from 'antd';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import ModalBody from '../../components/ModalBody/ModalBody';
 
@@ -115,6 +115,23 @@ export const Player = () => {
     const isReplayerReady =
         replayerState !== ReplayerState.Loading && replayerScale !== 1;
 
+    const CONTEXT_MENU_ITEMS: (Pick<MenuItemProps, 'onClick'> & {
+        label: string;
+    })[] = [
+        {
+            onClick: () => {
+                setShowAddCommentEntry(true);
+            },
+            label: 'Add a comment',
+        },
+        {
+            onClick: () => {
+                copySessionShareLinkToClipboard(time);
+            },
+            label: 'Copy URL at current time',
+        },
+    ];
+
     return (
         <ReplayerContext.Provider value={player}>
             <div
@@ -125,22 +142,18 @@ export const Player = () => {
                 <div className={styles.playerLeftSection}>
                     <div className={styles.playerLeftTopSection}>
                         <SessionLevelBar />
-                        <ShareButton />
                     </div>
                     <Dropdown
                         overlay={
                             <Menu>
-                                <Menu.Item
-                                    key="1"
-                                    onClick={() => {
-                                        setShowAddCommentEntry(true);
-                                    }}
-                                >
-                                    Add a comment
-                                </Menu.Item>
-                                <Menu.Item key="2">
-                                    Copy URL at current time
-                                </Menu.Item>
+                                {CONTEXT_MENU_ITEMS.map((item) => (
+                                    <Menu.Item
+                                        key={item.label}
+                                        onClick={item.onClick}
+                                    >
+                                        {item.label}
+                                    </Menu.Item>
+                                ))}
                             </Menu>
                         }
                         trigger={['contextMenu']}
