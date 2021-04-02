@@ -31,6 +31,7 @@
         "antd": "^4.6.3",
         "classnames": "^2.2.6",
         "craco-antd": "^1.19.0",
+        "craco-esbuild": "^0.3.1",
         "firebase": "^7.19.1",
         "fs.realpath": "^1.0.0",
         "fuzzy": "^0.1.3",
