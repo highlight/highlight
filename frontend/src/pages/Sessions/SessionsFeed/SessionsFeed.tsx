@@ -208,34 +208,39 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
-            <Tooltip title={session?.starred ? 'Unstar' : 'Star'}>
-                <div
-                    className={styles.starredIconWrapper}
-                    onClick={() => {
-                        markSessionAsStarred({
-                            variables: {
-                                id: session?.id || '',
-                                starred: !session?.starred,
-                            },
-                        })
-                            .then(() => {
-                                message.success('Updated session status!', 3);
+            {(session?.starred || hovered) && (
+                <Tooltip title={session?.starred ? 'Unstar' : 'Star'}>
+                    <div
+                        className={styles.starredIconWrapper}
+                        onClick={() => {
+                            markSessionAsStarred({
+                                variables: {
+                                    id: session?.id || '',
+                                    starred: !session?.starred,
+                                },
                             })
-                            .catch(() => {
-                                message.error(
-                                    'Error updating session status!',
-                                    3
-                                );
-                            });
-                    }}
-                >
-                    {session?.starred ? (
-                        <FilledStarIcon className={styles.starredIcon} />
-                    ) : (
-                        <StarIcon className={styles.actionIcon} />
-                    )}
-                </div>
-            </Tooltip>
+                                .then(() => {
+                                    message.success(
+                                        'Updated session status!',
+                                        3
+                                    );
+                                })
+                                .catch(() => {
+                                    message.error(
+                                        'Error updating session status!',
+                                        3
+                                    );
+                                });
+                        }}
+                    >
+                        {session?.starred ? (
+                            <FilledStarIcon className={styles.starredIcon} />
+                        ) : (
+                            <StarIcon className={styles.actionIcon} />
+                        )}
+                    </div>
+                </Tooltip>
+            )}
             <Link to={`/${organization_id}/sessions/${session?.id}`}>
                 <div className={styles.sessionCard}>
                     <div
