@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import 'antd/dist/antd.css';
+import 'antd/dist/antd.less';
 import './index.scss';
 import '@highlight-run/rrweb/dist/index.css';
 import * as serviceWorker from './serviceWorker';
