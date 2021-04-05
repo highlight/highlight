@@ -243,6 +243,13 @@ export type Admin = {
     email: Scalars['String'];
 };
 
+export type SanitizedAdmin = {
+    __typename?: 'SanitizedAdmin';
+    id: Scalars['ID'];
+    name?: Maybe<Scalars['String']>;
+    email: Scalars['String'];
+};
+
 export type SessionResults = {
     __typename?: 'SessionResults';
     sessions: Array<Session>;
@@ -255,6 +262,16 @@ export type ErrorResults = {
     totalCount: Scalars['Int'];
 };
 
+export type SessionComment = {
+    __typename?: 'SessionComment';
+    id: Scalars['ID'];
+    timestamp: Scalars['Int'];
+    created_at: Scalars['Time'];
+    updated_at: Scalars['Time'];
+    author: SanitizedAdmin;
+    text: Scalars['String'];
+};
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -264,6 +281,7 @@ export type Query = {
     messages?: Maybe<Array<Maybe<Scalars['Any']>>>;
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    session_comments: Array<Maybe<SessionComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int']>;
@@ -308,6 +326,10 @@ export type QueryErrorsArgs = {
 };
 
 export type QueryResourcesArgs = {
+    session_id: Scalars['ID'];
+};
+
+export type QuerySession_CommentsArgs = {
     session_id: Scalars['ID'];
 };
 
@@ -393,6 +415,7 @@ export type Mutation = {
     deleteErrorSegment?: Maybe<Scalars['Boolean']>;
     editRecordingSettings?: Maybe<RecordingSettings>;
     createOrUpdateSubscription?: Maybe<Scalars['String']>;
+    createSessionComment?: Maybe<SessionComment>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -484,4 +507,12 @@ export type MutationEditRecordingSettingsArgs = {
 export type MutationCreateOrUpdateSubscriptionArgs = {
     organization_id: Scalars['ID'];
     plan_type: PlanType;
+};
+
+export type MutationCreateSessionCommentArgs = {
+    organization_id: Scalars['ID'];
+    admin_id: Scalars['ID'];
+    session_id: Scalars['ID'];
+    session_timestamp: Scalars['Int'];
+    text: Scalars['String'];
 };

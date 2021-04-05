@@ -306,6 +306,14 @@ type ErrorField struct {
 	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
 }
 
+type SessionComment struct {
+	Model
+	AdminId   int
+	SessionId int
+	Timestamp int
+	Text      string
+}
+
 func SetupDB() *gorm.DB {
 	log.Println("setting up database")
 	psqlConf := fmt.Sprintf(
@@ -337,6 +345,7 @@ func SetupDB() *gorm.DB {
 		&Field{},
 		&EmailSignup{},
 		&ResourcesObject{},
+		&SessionComment{},
 	)
 	return DB
 }
