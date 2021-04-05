@@ -27,6 +27,7 @@ import { getHeaderFromError } from '../../Error/ErrorPage';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { EventsForTimeline } from '../PlayerHook/utils';
 import Popover from '../../../components/Popover/Popover';
+import TimelineAnnotation from './TimelineAnnotation/TimelineAnnotation';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -205,7 +206,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             interval={e}
                             sliderClientX={sliderClientX}
                             wrapperWidth={wrapperWidth}
-                            time={time}
                             getSliderTime={getSliderTime}
                         />
                     ))}
@@ -380,15 +380,14 @@ const SessionSegment = ({
     interval,
     sliderClientX,
     wrapperWidth,
-    time,
     getSliderTime,
 }: {
     interval: ParsedSessionInterval;
     sliderClientX: number;
     wrapperWidth: number;
-    time: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
+    const { time, pause, replayer } = useContext(ReplayerContext);
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
@@ -459,17 +458,22 @@ const SessionSegment = ({
                                     }
                                     title={details.title}
                                 >
-                                    <div
-                                        tabIndex={1}
-                                        className={styles.annotation}
-                                        style={{
-                                            left: `${event.relativeIntervalPercentage}%`,
-                                            backgroundColor: `var(${getAnnotationColor(
-                                                getEventRenderDetails(event)
-                                                    .title || ''
-                                            )})`,
+                                    <TimelineAnnotation
+                                        event={event}
+                                        colorKey={
+                                            getEventRenderDetails(event)
+                                                .title || ''
+                                        }
+                                        onClickHandler={() => {
+                                            if (replayer) {
+                                                pause(
+                                                    event.timestamp -
+                                                        replayer.getMetaData()
+                                                            .startTime
+                                                );
+                                            }
                                         }}
-                                    ></div>
+                                    />
                                 </Popover>
                             );
                         })}
@@ -515,13 +519,21 @@ const SessionSegment = ({
                                             </div>
                                         }
                                     >
-                                        <div
-                                            tabIndex={1}
-                                            className={styles.annotation}
-                                            style={{
-                                                left: `${error.relativeIntervalPercentage}%`,
+                                        <TimelineAnnotation
+                                            event={error}
+                                            colorKey="Errors"
+                                            onClickHandler={() => {
+                                                if (replayer) {
+                                                    pause(
+                                                        new Date(
+                                                            error.timestamp
+                                                        ).getTime() -
+                                                            replayer.getMetaData()
+                                                                .startTime
+                                                    );
+                                                }
                                             }}
-                                        ></div>
+                                        />
                                     </Popover>
                                 );
                             })}

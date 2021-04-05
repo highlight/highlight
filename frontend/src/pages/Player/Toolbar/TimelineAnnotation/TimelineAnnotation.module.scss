@@ -1,0 +1,44 @@
+@import 'src/static/shared.scss';
+
+.annotation {
+    --annotation-scale: 0.1;
+
+    position: absolute;
+    z-index: 21;
+    height: calc(1px * (1 / var(--annotation-scale)));
+    width: calc(1px * (1 / var(--annotation-scale)));
+    opacity: 0.5;
+    border: 1px solid white;
+    transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+    border-radius: 50%;
+    box-sizing: content-box;
+    padding: 0;
+    outline: none;
+    flex-shrink: 0;
+    flex-grow: 0;
+    animation: grow 0.5s normal;
+    cursor: pointer;
+
+    &:hover {
+        opacity: 1;
+        transform: scale(2, 2);
+        z-index: 25;
+    }
+}
+
+@keyframes grow {
+    0% {
+        opacity: 0;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.5);
+    }
+
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+}
