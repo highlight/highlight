@@ -1,11 +1,12 @@
 import React from 'react';
+import { EventsForTimeline } from '../../PlayerHook/utils';
 import { ParsedEvent } from '../../ReplayerContext';
 import { getAnnotationColor } from '../Toolbar';
 import styles from './TimelineAnnotation.module.scss';
 
 interface Props {
     event: ParsedEvent;
-    colorKey: string;
+    colorKey: typeof EventsForTimeline[number];
     onClickHandler: () => void;
 }
 

@@ -1,11 +1,33 @@
 import useLocalStorage from '@rehooks/local-storage';
-import { Checkbox, CheckboxOptionType } from 'antd';
+import { Checkbox, CheckboxOptionType, Tooltip } from 'antd';
 import React from 'react';
 import TransparentButton from '../../../../components/Button/TransparentButton/TransparentButton';
 import Popover from '../../../../components/Popover/Popover';
-import { EventsForTimeline } from '../../PlayerHook/utils';
+import {
+    EventsForTimeline,
+    EventsForTimelineKeys,
+} from '../../PlayerHook/utils';
 import { getAnnotationColor } from '../Toolbar';
 import styles from './TimelineAnnotationsSettings.module.scss';
+
+type EventTypesKeys = {
+    [key in EventsForTimelineKeys[number]]: string;
+};
+
+const EventTypeDescriptions: EventTypesKeys = {
+    Segment:
+        "Track and Identify integration with Segment.io showing you the user's identities and traits",
+    Errors:
+        "Any error that shows up in the Developer Tools' Console will be shown",
+    Focus: 'An element received either with a mouse or keyboard',
+    Navigate:
+        "The user is moving around in your application where their transitions don't require a full page reload",
+    Reload:
+        'The page was reloaded during the session by refreshing the page or opening the app again within a session window',
+    Click: "All of your user's clicks on the page",
+    Track:
+        'These are custom calls to Highlights track method for custom logging',
+};
 
 const TimelineAnnotationsSettings = () => {
     const [
@@ -20,19 +42,27 @@ const TimelineAnnotationsSettings = () => {
     };
 
     const checkboxOptions: CheckboxOptionType[] = EventsForTimeline.map(
-        (eventType) => ({
+        (eventType, index) => ({
             label: (
-                <span className={styles.checkBoxLabel}>
-                    {eventType}
-                    <div
-                        className={styles.circle}
-                        style={{
-                            backgroundColor: `var(${getAnnotationColor(
-                                eventType
-                            )})`,
-                        }}
-                    />
-                </span>
+                <Tooltip
+                    title={EventTypeDescriptions[eventType]}
+                    // We place the tooltip on the same side of the checkbox's column so the tooltip does not cover the other options.
+                    placement={index % 2 ? 'right' : 'left'}
+                    // We offset the X positioning for the checkboxes on the left column because the tooltip is calculating the width of the label without the checkbox.
+                    align={{ offset: [index % 2 ? 0 : -25, 0] }}
+                >
+                    <span className={styles.checkBoxLabel}>
+                        {eventType}
+                        <div
+                            className={styles.circle}
+                            style={{
+                                backgroundColor: `var(${getAnnotationColor(
+                                    eventType
+                                )})`,
+                            }}
+                        />
+                    </span>
+                </Tooltip>
             ),
             value: eventType,
         })
