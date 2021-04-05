@@ -43,9 +43,6 @@ const ErrorModal = ({ error, onCloseHandler }: Props) => {
                         </>
                     )}
                     <div className={styles.actionsContainer}>
-                        <PrimaryButton onClick={onCloseHandler}>
-                            Close
-                        </PrimaryButton>
                         <PrimaryButton
                             onClick={() => {
                                 history.push(
@@ -53,7 +50,7 @@ const ErrorModal = ({ error, onCloseHandler }: Props) => {
                                 );
                             }}
                         >
-                            Go to Error Page
+                            Error Page
                         </PrimaryButton>
                     </div>
                 </div>
