@@ -21,9 +21,9 @@ import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import moment from 'moment';
 import { frequencyTimeData } from '../../util/errorCalculations';
 import classNames from 'classnames';
-import { Tooltip } from 'antd';
 import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
 import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTable';
+import StackTraceSection from './components/StackTraceSection/StackTraceSection';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -113,15 +113,7 @@ export const ErrorPage = () => {
                         )}
                     </div>
                     <div className={styles.fieldWrapper}>
-                        {data?.error_group?.trace.map((e, i) => (
-                            <StackSection
-                                key={i}
-                                fileName={e?.file_name ?? ''}
-                                functionName={e?.function_name ?? ''}
-                                lineNumber={e?.line_number ?? 0}
-                                columnNumber={e?.column_number ?? 0}
-                            />
-                        ))}
+                        <StackTraceSection errorGroup={data?.error_group} />
                     </div>
                     <div className={styles.subTitle}>
                         {loading ? (
@@ -183,57 +175,6 @@ export const ErrorPage = () => {
                     </div>
                 </div>
             </div>
-        </div>
-    );
-};
-
-type StackSectionProps = {
-    fileName?: string;
-    functionName?: string;
-    lineNumber?: number;
-    columnNumber?: number;
-};
-
-export const StackSection: React.FC<StackSectionProps> = ({
-    fileName,
-    functionName,
-    lineNumber,
-    columnNumber,
-}) => {
-    const trigger = (
-        <Tooltip
-            title={`${fileName} in ${functionName} at line ${lineNumber}:${columnNumber}`}
-        >
-            <div className={styles.triggerWrapper}>
-                <div className={styles.snippetHeadingTwo}>
-                    <span
-                        className={styles.stackTraceErrorTitle}
-                        style={{ maxWidth: 300, fontWeight: 300 }}
-                    >
-                        {fileName}
-                    </span>
-                    <span style={{ fontWeight: 300, color: '#808080' }}>
-                        &nbsp;in&nbsp;
-                    </span>
-                    <span
-                        className={styles.stackTraceErrorTitle}
-                        style={{ maxWidth: 300, fontWeight: 400 }}
-                    >
-                        {functionName}
-                    </span>
-                    <span style={{ fontWeight: 300, color: '#808080' }}>
-                        &nbsp;at line&nbsp;
-                    </span>
-                    <span>
-                        {lineNumber}:{columnNumber}
-                    </span>
-                </div>
-            </div>
-        </Tooltip>
-    );
-    return (
-        <div className={styles.section}>
-            <div className={styles.collapsible}>{trigger}</div>
         </div>
     );
 };

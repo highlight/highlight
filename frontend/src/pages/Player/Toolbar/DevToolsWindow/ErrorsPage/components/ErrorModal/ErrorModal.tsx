@@ -5,7 +5,7 @@ import PrimaryButton from '../../../../../../../components/Button/PrimaryButton/
 import { LoadingBar } from '../../../../../../../components/Loading/Loading';
 import { useGetErrorGroupQuery } from '../../../../../../../graph/generated/hooks';
 import { ErrorObject } from '../../../../../../../graph/generated/schemas';
-import ErrorSessionsTable from '../../../../../../Error/components/ErrorSessionsTable/ErrorSessionsTable';
+import StackTraceSection from '../../../../../../Error/components/StackTraceSection/StackTraceSection';
 import { ErrorFrequencyGraph } from '../../../../../../Error/ErrorPage';
 import errorPageStyles from '../../../../../../Error/ErrorPage.module.scss';
 import styles from './ErrorModal.module.scss';
@@ -30,15 +30,16 @@ const ErrorModal = ({ error }: Props) => {
                     {data && (
                         <>
                             <h2 className={errorPageStyles.subTitle}>
+                                Stack Trace
+                            </h2>
+                            <StackTraceSection errorGroup={data.error_group} />
+
+                            <h2 className={errorPageStyles.subTitle}>
                                 Error Frequency
                             </h2>
                             <ErrorFrequencyGraph
                                 errorGroup={data.error_group}
                             />
-                            <h2 className={errorPageStyles.subTitle}>
-                                Related Sessions
-                            </h2>
-                            <ErrorSessionsTable errorGroup={data.error_group} />
                         </>
                     )}
                     <div className={styles.actionsContainer}>
