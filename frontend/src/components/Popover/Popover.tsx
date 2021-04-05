@@ -18,7 +18,6 @@ type PopoverProps = Pick<
 const Popover: React.FC<PopoverProps> = ({ children, title, ...props }) => {
     return (
         <AntDesignPopover
-            overlayStyle={{ maxWidth: `300px` }}
             {...props}
             content={
                 <>

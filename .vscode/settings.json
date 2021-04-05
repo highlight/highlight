@@ -25,6 +25,9 @@
       "document"
     ],
   },
+  "[less]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "editor.hover.enabled": true,
   "editor.colorDecorators": true,
   "[typescriptreact]": {

@@ -23,15 +23,16 @@ export const CurrentUrlBar = ({ url }: { url: string }) => {
                     {url}
                 </a>
             </Tooltip>
-            {hover && (
-                <FaCopy
-                    className={styles.copyIcon}
-                    onClick={() => {
-                        navigator.clipboard.writeText(url);
-                        message.success('Copied url to clipboard');
-                    }}
-                />
-            )}
+            <FaCopy
+                style={{
+                    opacity: hover ? 1 : 0,
+                }}
+                className={styles.copyIcon}
+                onClick={() => {
+                    navigator.clipboard.writeText(url);
+                    message.success('Copied url to clipboard');
+                }}
+            />
         </div>
     );
 };
