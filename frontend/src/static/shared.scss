@@ -1,4 +1,6 @@
 :root {
+    --color-purple-200: #f2eefb;
+    --color-purple-300: #bea8f1;
     --color-purple-light: #bb6bd9;
     --color-purple: #5629c6;
     --color-blue-light: #56ccf2;
@@ -15,6 +17,8 @@
     --color-gray-400: #bdbdbd;
     --color-gray-500: #828282;
     --color-gray-600: #4f4f4f;
+
+    --color-primary-background: #ffffff;
 }
 
 // colors
@@ -51,6 +55,7 @@ $size-xxSmall: 4px;
 $disabled-button: #bfbfbf;
 $button-primary-hover: #5327be;
 $button-primary-active: #401f94;
+$button-primary-disabled: #2f2549;
 
 $button-transparent-resting: transparent;
 $button-transparent-hover: rgba(239, 239, 239, 0.49);

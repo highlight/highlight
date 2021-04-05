@@ -697,6 +697,79 @@ export type CreateSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateSegmentMutation,
     Types.CreateSegmentMutationVariables
 >;
+export const CreateSessionCommentDocument = gql`
+    mutation CreateSessionComment(
+        $organization_id: ID!
+        $admin_id: ID!
+        $session_id: ID!
+        $session_timestamp: Int!
+        $text: String!
+    ) {
+        createSessionComment(
+            organization_id: $organization_id
+            admin_id: $admin_id
+            session_id: $session_id
+            session_timestamp: $session_timestamp
+            text: $text
+        ) {
+            id
+            timestamp
+            created_at
+            updated_at
+            author {
+                id
+                name
+                email
+            }
+            text
+        }
+    }
+`;
+export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
+    Types.CreateSessionCommentMutation,
+    Types.CreateSessionCommentMutationVariables
+>;
+
+/**
+ * __useCreateSessionCommentMutation__
+ *
+ * To run a mutation, you first call `useCreateSessionCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateSessionCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createSessionCommentMutation, { data, loading, error }] = useCreateSessionCommentMutation({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      admin_id: // value for 'admin_id'
+ *      session_id: // value for 'session_id'
+ *      session_timestamp: // value for 'session_timestamp'
+ *      text: // value for 'text'
+ *   },
+ * });
+ */
+export function useCreateSessionCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateSessionCommentMutation,
+        Types.CreateSessionCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateSessionCommentMutation,
+        Types.CreateSessionCommentMutationVariables
+    >(CreateSessionCommentDocument, baseOptions);
+}
+export type CreateSessionCommentMutationHookResult = ReturnType<
+    typeof useCreateSessionCommentMutation
+>;
+export type CreateSessionCommentMutationResult = Apollo.MutationResult<Types.CreateSessionCommentMutation>;
+export type CreateSessionCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateSessionCommentMutation,
+    Types.CreateSessionCommentMutationVariables
+>;
 export const DeleteErrorSegmentDocument = gql`
     mutation DeleteErrorSegment($segment_id: ID!) {
         deleteErrorSegment(segment_id: $segment_id)
@@ -1052,6 +1125,71 @@ export type GetAdminsLazyQueryHookResult = ReturnType<
 export type GetAdminsQueryResult = Apollo.QueryResult<
     Types.GetAdminsQuery,
     Types.GetAdminsQueryVariables
+>;
+export const GetSessionCommentsDocument = gql`
+    query GetSessionComments($session_id: ID!) {
+        session_comments(session_id: $session_id) {
+            id
+            timestamp
+            created_at
+            updated_at
+            text
+            author {
+                id
+                name
+                email
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetSessionCommentsQuery__
+ *
+ * To run a query within a React component, call `useGetSessionCommentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionCommentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionCommentsQuery({
+ *   variables: {
+ *      session_id: // value for 'session_id'
+ *   },
+ * });
+ */
+export function useGetSessionCommentsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >(GetSessionCommentsDocument, baseOptions);
+}
+export function useGetSessionCommentsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >(GetSessionCommentsDocument, baseOptions);
+}
+export type GetSessionCommentsQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsQuery
+>;
+export type GetSessionCommentsLazyQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsLazyQuery
+>;
+export type GetSessionCommentsQueryResult = Apollo.QueryResult<
+    Types.GetSessionCommentsQuery,
+    Types.GetSessionCommentsQueryVariables
 >;
 export const SendAdminInviteDocument = gql`
     mutation SendAdminInvite($organization_id: ID!, $email: String!) {

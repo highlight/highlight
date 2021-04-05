@@ -2,7 +2,7 @@ import { createContext } from 'react';
 import { Replayer } from '@highlight-run/rrweb';
 import { SessionInterval } from '@highlight-run/rrweb/dist/types';
 import { HighlightEvent } from '../HighlightEvent';
-import { ErrorObject } from '../../../graph/generated/schemas';
+import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
 
 export enum ReplayerState {
     Loading,
@@ -21,8 +21,12 @@ interface BaseParsedEvent {
 }
 export type ParsedErrorObject = ErrorObject & BaseParsedEvent;
 export type ParsedHighlightEvent = HighlightEvent & BaseParsedEvent;
+export type ParsedSessionComment = SessionComment & BaseParsedEvent;
 
-export type ParsedEvent = ParsedErrorObject | ParsedHighlightEvent;
+export type ParsedEvent =
+    | ParsedErrorObject
+    | ParsedHighlightEvent
+    | ParsedSessionComment;
 export interface ParsedSessionInterval extends SessionInterval {
     startPercent: number;
     endPercent: number;
@@ -44,6 +48,7 @@ export interface ReplayerContextInterface {
     events: Array<HighlightEvent>;
     errors: ErrorObject[];
     sessionIntervals: Array<ParsedSessionInterval>;
+    sessionCommentIntervals: SessionComment[][];
 }
 
 /* eslint-disable */
@@ -59,6 +64,7 @@ export const defaultValue: ReplayerContextInterface = {
     events: [],
     errors: [],
     sessionIntervals: [],
+    sessionCommentIntervals: [[]],
 };
 /* eslint-enable */
 

@@ -1,9 +1,9 @@
 @import 'src/static/shared.scss';
 
-.primaryButton {
-    border: none;
-    background-color: $highlight-purple;
-    color: $text-primary-inverted;
+.secondaryButton {
+    border: 1px solid var(--color-gray-300);
+    background-color: var(--color-primary-background);
+    color: $text-primary;
     padding: $size-xSmall $size-xLarge;
     font-size: 14px;
     border-radius: $button-border-radius;
@@ -12,17 +12,16 @@
     cursor: pointer;
     line-height: initial;
 
-    &:hover,
-    &:focus {
-        background-color: $button-primary-hover;
+    &:hover {
+        background-color: var(--color-purple-200);
     }
 
     &:active {
-        background-color: $button-primary-active;
+        background-color: var(--color-purple-300);
     }
 
     &:disabled {
         cursor: not-allowed;
-        background-color: var(--color-gray-600);
+        background-color: var(--color-gray-300);
     }
 }

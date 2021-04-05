@@ -15,6 +15,7 @@ import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
 import ReplayerContext, {
+    ParsedSessionComment,
     ParsedSessionInterval,
     ReplayerState,
 } from '../ReplayerContext';
@@ -27,6 +28,7 @@ import { getHeaderFromError } from '../../Error/ErrorPage';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { EventsForTimeline } from '../PlayerHook/utils';
 import Popover from '../../../components/Popover/Popover';
+import moment from 'moment';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -37,6 +39,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         play,
         pause,
         sessionIntervals,
+        sessionCommentIntervals,
     } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
@@ -54,6 +57,10 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     );
     const [autoPlayVideo, setAutoPlayVideo] = useLocalStorage(
         'highlightMenuAutoPlayVideo',
+        false
+    );
+    const [enableDOMInteractions, setEnableDOMInteractions] = useLocalStorage(
+        'highlightMenuEnableDOMInteractions',
         false
     );
     const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
@@ -76,6 +83,16 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     useEffect(() => {
         onResize();
     }, [openDevTools, onResize]);
+
+    useEffect(() => {
+        if (replayer) {
+            if (enableDOMInteractions) {
+                replayer.enableInteract();
+            } else {
+                replayer.disableInteract();
+            }
+        }
+    }, [enableDOMInteractions, replayer]);
 
     useEffect(() => {
         replayer?.setConfig({ skipInactive, speed });
@@ -203,6 +220,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         <SessionSegment
                             key={ind}
                             interval={e}
+                            comments={sessionCommentIntervals[ind]}
                             sliderClientX={sliderClientX}
                             wrapperWidth={wrapperWidth}
                             time={time}
@@ -369,6 +387,10 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         onShowRightPanelChange={() => {
                             setShowRightPanel(!showRightPanel);
                         }}
+                        enableDOMInteractions={enableDOMInteractions}
+                        onEnableDOMInteractions={() => {
+                            setEnableDOMInteractions(!enableDOMInteractions);
+                        }}
                     />
                 </div>
             </div>
@@ -378,12 +400,14 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
 
 const SessionSegment = ({
     interval,
+    comments,
     sliderClientX,
     wrapperWidth,
     time,
     getSliderTime,
 }: {
     interval: ParsedSessionInterval;
+    comments: ParsedSessionComment[];
     sliderClientX: number;
     wrapperWidth: number;
     time: number;
@@ -527,6 +551,64 @@ const SessionSegment = ({
                             })}
                         </div>
                     )}
+                    {selectedTimelineAnnotationTypes.includes('Comments') && (
+                        <div
+                            className={styles.annotationsContainer}
+                            style={{
+                                width: `${
+                                    (interval.endPercent -
+                                        interval.startPercent) *
+                                    100
+                                }%`,
+                            }}
+                        >
+                            {comments?.map((comment) => (
+                                <Popover
+                                    key={comment.id}
+                                    content={
+                                        <div className={styles.popoverContent}>
+                                            {comment.text}
+                                        </div>
+                                    }
+                                    title={
+                                        <div
+                                            className={classNames(
+                                                styles.tooltipHeader,
+                                                styles.commentHeader
+                                            )}
+                                        >
+                                            <span
+                                                className={styles.commentAuthor}
+                                            >
+                                                {comment.author.name ||
+                                                    comment.author.email}
+                                            </span>
+                                            <span
+                                                className={
+                                                    styles.commentUpdatedTime
+                                                }
+                                            >
+                                                {moment(
+                                                    comment.updated_at
+                                                ).fromNow()}
+                                            </span>
+                                        </div>
+                                    }
+                                >
+                                    <div
+                                        tabIndex={1}
+                                        className={styles.annotation}
+                                        style={{
+                                            left: `${comment.relativeIntervalPercentage}%`,
+                                            backgroundColor: `var(${getAnnotationColor(
+                                                'Comments'
+                                            )})`,
+                                        }}
+                                    ></div>
+                                </Popover>
+                            ))}
+                        </div>
+                    )}
                 </>
             )}
             <div
@@ -587,6 +669,7 @@ const TimelineAnnotationColors: { [key: string]: string } = {
     Errors: '--color-red',
     Segment: '--color-orange',
     Track: '--color-blue-light',
+    Comments: '--color-green-dark',
 };
 
 export function getAnnotationColor(str: string): string {

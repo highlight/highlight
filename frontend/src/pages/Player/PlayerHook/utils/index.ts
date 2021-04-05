@@ -4,12 +4,16 @@ import {
 } from '@highlight-run/rrweb/dist/types';
 import { useCallback } from 'react';
 import { useHistory, useLocation } from 'react-router';
-import { ErrorObject } from '../../../../graph/generated/schemas';
+import {
+    ErrorObject,
+    SessionComment,
+} from '../../../../graph/generated/schemas';
 import { HighlightEvent } from '../../HighlightEvent';
 import {
     ParsedErrorObject,
     ParsedEvent,
     ParsedHighlightEvent,
+    ParsedSessionComment,
     ParsedSessionInterval,
 } from '../../ReplayerContext';
 
@@ -83,6 +87,7 @@ const getIntervalWithPercentages = (
             endPercent: currTime / totalDuration,
             errors: [],
             sessionEvents: [],
+            comments: [],
         };
     });
 };
@@ -204,6 +209,7 @@ const CustomEventsForTimeline = [
     'Navigate',
     'Segment',
     'Track',
+    'Comments',
 ];
 const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline);
 
@@ -237,7 +243,23 @@ export const addEventsToSessionIntervals = (
     }));
 };
 
-type ParsableEvent = ErrorObject | HighlightEvent;
+/**
+ * Returns the comments that are in the respective interval bins. If a comment is in the ith index, then it shows up in the ith session interval.
+ */
+export const getCommentsInSessionIntervals = (
+    sessionIntervals: ParsedSessionInterval[],
+    comments: SessionComment[],
+    sessionStartTime: number
+): ParsedSessionComment[][] => {
+    return assignEventToSessionInterval(
+        sessionIntervals,
+        comments,
+        sessionStartTime,
+        true
+    ) as ParsedSessionComment[][];
+};
+
+type ParsableEvent = ErrorObject | HighlightEvent | SessionComment;
 
 /**
  * Adds events to the session interval that the event occurred in.
@@ -245,7 +267,9 @@ type ParsableEvent = ErrorObject | HighlightEvent;
 const assignEventToSessionInterval = (
     sessionIntervals: ParsedSessionInterval[],
     events: ParsableEvent[],
-    sessionStartTime: number
+    sessionStartTime: number,
+    /** Whether the timestamp in events global time or already relative to the session. */
+    relativeTime = false
 ) => {
     let eventIndex = 0;
     let sessionIntervalIndex = 0;
@@ -259,8 +283,9 @@ const assignEventToSessionInterval = (
         sessionIntervalIndex < sessionIntervals.length
     ) {
         const event = events[eventIndex];
-        const relativeTimestamp =
-            new Date(event.timestamp).getTime() - sessionStartTime;
+        const relativeTimestamp = relativeTime
+            ? event.timestamp
+            : new Date(event.timestamp).getTime() - sessionStartTime;
 
         if (
             relativeTimestamp >= currentSessionInterval.startTime &&
