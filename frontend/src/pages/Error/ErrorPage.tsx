@@ -24,6 +24,7 @@ import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
 import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTable';
 import StackTraceSection from './components/StackTraceSection/StackTraceSection';
 import ErrorDescription from './components/ErrorDescription/ErrorDescription';
+import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -31,11 +32,6 @@ export const ErrorPage = () => {
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
     });
-    const [title, setTitle] = useState<string | undefined>(undefined);
-
-    useEffect(() => {
-        setTitle(getHeaderFromError(data?.error_group?.event ?? []));
-    }, [data]);
 
     useEffect(() => {
         setOpenSidebar(false);
@@ -49,17 +45,7 @@ export const ErrorPage = () => {
                         {loading ? (
                             <Skeleton count={1} style={{ width: 300 }} />
                         ) : (
-                            <>
-                                <div className={styles.title}>{title}</div>
-                                <Field
-                                    k={'mechanism'}
-                                    v={
-                                        data?.error_group?.type ||
-                                        'window.onerror'
-                                    }
-                                    color={'warning'}
-                                />
-                            </>
+                            <ErrorTitle errorGroup={data?.error_group} />
                         )}
                     </div>
                     <div className={styles.eventText}>

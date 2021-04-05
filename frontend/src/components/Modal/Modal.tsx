@@ -5,7 +5,7 @@ import Close from '../../static/Close';
 import styles from './Modal.module.scss';
 
 type Props = Pick<ModalProps, 'width' | 'onCancel' | 'visible' | 'style'> & {
-    title: string;
+    title?: string;
 };
 
 const Modal: React.FC<Props> = ({ children, title, ...props }) => {
@@ -15,7 +15,7 @@ const Modal: React.FC<Props> = ({ children, title, ...props }) => {
             {...props}
             closeIcon={<Close height="18px" width="18px" />}
         >
-            <h1 className={styles.title}>{title}</h1>
+            {title && <h1 className={styles.title}>{title}</h1>}
             <main>{children}</main>
         </AntDesignModal>
     );

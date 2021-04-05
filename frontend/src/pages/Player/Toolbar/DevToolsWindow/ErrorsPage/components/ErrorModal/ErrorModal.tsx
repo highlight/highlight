@@ -6,6 +6,7 @@ import { LoadingBar } from '../../../../../../../components/Loading/Loading';
 import { useGetErrorGroupQuery } from '../../../../../../../graph/generated/hooks';
 import { ErrorObject } from '../../../../../../../graph/generated/schemas';
 import ErrorDescription from '../../../../../../Error/components/ErrorDescription/ErrorDescription';
+import ErrorTitle from '../../../../../../Error/components/ErrorTitle/ErrorTitle';
 import StackTraceSection from '../../../../../../Error/components/StackTraceSection/StackTraceSection';
 import { ErrorFrequencyGraph } from '../../../../../../Error/ErrorPage';
 import errorPageStyles from '../../../../../../Error/ErrorPage.module.scss';
@@ -30,6 +31,10 @@ const ErrorModal = ({ error }: Props) => {
                 <div>
                     {data && (
                         <>
+                            <div className={styles.errorTitleContainer}>
+                                <ErrorTitle errorGroup={data.error_group} />
+                            </div>
+
                             <div className={styles.errorDescriptionContainer}>
                                 <ErrorDescription
                                     errorGroup={data.error_group}
