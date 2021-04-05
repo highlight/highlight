@@ -2,16 +2,21 @@
 import { ModalProps, Modal as AntDesignModal } from 'antd';
 import React from 'react';
 import Close from '../../static/Close';
+import styles from './Modal.module.scss';
 
-type Props = Pick<
-    ModalProps,
-    'width' | 'onCancel' | 'visible' | 'title' | 'style'
->;
+type Props = Pick<ModalProps, 'width' | 'onCancel' | 'visible' | 'style'> & {
+    title: string;
+};
 
-const Modal: React.FC<Props> = ({ children, ...props }) => {
+const Modal: React.FC<Props> = ({ children, title, ...props }) => {
     return (
-        <AntDesignModal footer={null} {...props} closeIcon={<Close />}>
-            {children}
+        <AntDesignModal
+            footer={null}
+            {...props}
+            closeIcon={<Close height="18px" width="18px" />}
+        >
+            <h1 className={styles.title}>{title}</h1>
+            <main>{children}</main>
         </AntDesignModal>
     );
 };

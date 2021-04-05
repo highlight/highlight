@@ -107,7 +107,7 @@ const ErrorsPage = () => {
                 )}
             </div>
             <Modal
-                title={selectedError?.type}
+                title={selectedError?.type || ''}
                 visible={!!selectedError}
                 onCancel={() => {
                     setSelectedError(undefined);

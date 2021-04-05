@@ -104,12 +104,12 @@ export const ErrorSegmentPicker = () => {
     return (
         <>
             <Modal
+                title="Delete Segment"
                 visible={deleteClicked}
                 onCancel={() => setDeleteClicked(false)}
                 style={{ display: 'flex' }}
             >
                 <div className={styles.modalWrapper}>
-                    <div className={styles.modalTitle}>Delete Segment</div>
                     <div className={styles.modalSubTitle}>
                         {`This action is irreversible. Do you want to delete ${
                             segmentToDelete?.name

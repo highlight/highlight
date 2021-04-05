@@ -74,15 +74,13 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
     return (
         <>
             <Modal
+                title="Create a Segment"
                 visible={createClicked}
                 onCancel={() => setCreateClicked(false)}
                 style={{ display: 'flex' }}
             >
                 <div className={styles.modalWrapper}>
                     <form onSubmit={handleSubmit(onSubmit)}>
-                        <div className={styles.modalTitle}>
-                            Create a Segment
-                        </div>
                         <div className={styles.modalSubTitle}>
                             Enter the name of your segment and you'll be good to
                             go!
