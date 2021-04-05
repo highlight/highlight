@@ -13,7 +13,6 @@ import {
     YAxis,
     Cell,
 } from 'recharts';
-import LinesEllipsis from 'react-lines-ellipsis';
 
 import styles from './ErrorPage.module.scss';
 import Skeleton from 'react-loading-skeleton';
@@ -24,6 +23,7 @@ import classNames from 'classnames';
 import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
 import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTable';
 import StackTraceSection from './components/StackTraceSection/StackTraceSection';
+import ErrorDescription from './components/ErrorDescription/ErrorDescription';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -32,8 +32,6 @@ export const ErrorPage = () => {
         variables: { id: error_id },
     });
     const [title, setTitle] = useState<string | undefined>(undefined);
-    const [eventLineExpand, setEventLineExpand] = useState(false);
-    const [showExpandButton, setShowExpandButton] = useState(true);
 
     useEffect(() => {
         setTitle(getHeaderFromError(data?.error_group?.event ?? []));
@@ -71,34 +69,7 @@ export const ErrorPage = () => {
                                 style={{ height: 20, marginBottom: 10 }}
                             />
                         ) : (
-                            <>
-                                <LinesEllipsis
-                                    text={data?.error_group?.event.join() ?? ''}
-                                    maxLine={
-                                        eventLineExpand
-                                            ? Number.MAX_SAFE_INTEGER
-                                            : 2
-                                    }
-                                    style={{ display: 'inline' }}
-                                    onReflow={(c) => {
-                                        setShowExpandButton(
-                                            !(
-                                                c.text ===
-                                                data?.error_group?.event.join()
-                                            )
-                                        );
-                                    }}
-                                />
-                                {showExpandButton && (
-                                    <span
-                                        className={styles.expandButton}
-                                        onClick={() => setEventLineExpand(true)}
-                                    >
-                                        {' '}
-                                        show more
-                                    </span>
-                                )}
-                            </>
+                            <ErrorDescription errorGroup={data?.error_group} />
                         )}
                     </div>
                     <div className={styles.subTitle}>
