@@ -9,9 +9,9 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import Skeleton from 'react-loading-skeleton';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import { findLastActiveEventIndex } from './utils/utils';
-import { Modal } from 'antd';
 import { ErrorObject } from '../../../../../graph/generated/schemas';
 import ErrorModal from './components/ErrorModal/ErrorModal';
+import Modal from '../../../../../components/Modal/Modal';
 
 export interface ErrorsPageHistoryState {
     errorCardIndex: number;
@@ -109,18 +109,12 @@ const ErrorsPage = () => {
             <Modal
                 title={selectedError?.type}
                 visible={!!selectedError}
-                footer={null}
                 onCancel={() => {
                     setSelectedError(undefined);
                 }}
                 width={'80vw'}
             >
-                <ErrorModal
-                    error={selectedError!}
-                    onCloseHandler={() => {
-                        setSelectedError(undefined);
-                    }}
-                />
+                <ErrorModal error={selectedError!} />
             </Modal>
         </>
     );

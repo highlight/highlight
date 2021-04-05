@@ -12,10 +12,9 @@ import styles from './ErrorModal.module.scss';
 
 interface Props {
     error: ErrorObject;
-    onCloseHandler: () => void;
 }
 
-const ErrorModal = ({ error, onCloseHandler }: Props) => {
+const ErrorModal = ({ error }: Props) => {
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error.error_group_id.toString() },
     });

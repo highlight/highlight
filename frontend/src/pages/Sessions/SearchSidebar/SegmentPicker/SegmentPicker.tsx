@@ -14,10 +14,11 @@ import {
 } from '../../../../graph/generated/hooks';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
-import { message, Modal, Tooltip } from 'antd';
+import { message, Tooltip } from 'antd';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
 import { EmptySessionsSearchParams } from '../../SessionsPage';
 import _ from 'lodash';
+import Modal from '../../../../components/Modal/Modal';
 
 export const LIVE_SEGMENT_ID = 'live';
 export const STARRED_SEGMENT_ID = 'starred';
@@ -115,10 +116,8 @@ export const SegmentPicker = () => {
         <>
             <Modal
                 visible={deleteClicked}
-                maskClosable
                 onCancel={() => setDeleteClicked(false)}
                 style={{ display: 'flex' }}
-                footer={null}
             >
                 <div className={styles.modalWrapper}>
                     <div className={styles.modalTitle}>Delete Segment</div>
