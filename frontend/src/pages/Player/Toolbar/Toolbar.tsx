@@ -20,17 +20,14 @@ import ReplayerContext, {
 } from '../ReplayerContext';
 import classNames from 'classnames';
 import Skeleton from 'react-loading-skeleton';
-import { getEventRenderDetails } from '../StreamElement/StreamElement';
-import StreamElementPayload from '../StreamElement/StreamElementPayload';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
-import Popover from '../../../components/Popover/Popover';
 import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
 import { ErrorObject } from '../../../graph/generated/schemas';
 import Modal from '../../../components/Modal/Modal';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
-import TimelineAnnotation from './TimelineAnnotation/TimelineAnnotation';
 import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
+import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -401,7 +398,7 @@ const SessionSegment = ({
     wrapperWidth: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
-    const { time, pause, replayer } = useContext(ReplayerContext);
+    const { time } = useContext(ReplayerContext);
     const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
     const [
         selectedTimelineAnnotationTypes,
@@ -439,56 +436,12 @@ const SessionSegment = ({
                             }%`,
                         }}
                     >
-                        {interval.sessionEvents?.map((event) => {
-                            const details = getEventRenderDetails(event);
-
-                            if (
-                                !selectedTimelineAnnotationTypes.includes(
-                                    details.title || ('' as any)
-                                )
-                            ) {
-                                return null;
-                            }
-
-                            return (
-                                <Popover
-                                    key={event.identifier}
-                                    content={
-                                        <div className={styles.popoverContent}>
-                                            <StreamElementPayload
-                                                payload={
-                                                    typeof details.payload ===
-                                                    'object'
-                                                        ? JSON.stringify(
-                                                              details.payload
-                                                          )
-                                                        : details.payload
-                                                }
-                                            />
-                                        </div>
-                                    }
-                                    title={details.title}
-                                >
-                                    <TimelineAnnotation
-                                        event={event}
-                                        colorKey={
-                                            (getEventRenderDetails(event)
-                                                .title ||
-                                                '') as typeof EventsForTimeline[number]
-                                        }
-                                        onClickHandler={() => {
-                                            if (replayer) {
-                                                pause(
-                                                    event.timestamp -
-                                                        replayer.getMetaData()
-                                                            .startTime
-                                                );
-                                            }
-                                        }}
-                                    />
-                                </Popover>
-                            );
-                        })}
+                        {interval.sessionEvents?.map((event) => (
+                            <TimelineEventAnnotation
+                                event={event}
+                                key={event.identifier}
+                            />
+                        ))}
                     </div>
                     {selectedTimelineAnnotationTypes.includes('Errors') && (
                         <div
@@ -501,14 +454,12 @@ const SessionSegment = ({
                                 }%`,
                             }}
                         >
-                            {interval.errors.map((error) => {
-                                return (
-                                    <TimelineErrorAnnotation
-                                        key={error.id}
-                                        error={error}
-                                    />
-                                );
-                            })}
+                            {interval.errors.map((error) => (
+                                <TimelineErrorAnnotation
+                                    key={error.id}
+                                    error={error}
+                                />
+                            ))}
                         </div>
                     )}
                 </>
