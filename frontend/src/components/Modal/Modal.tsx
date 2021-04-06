@@ -25,9 +25,12 @@ const Modal: React.FC<Props> = ({
             closeIcon={
                 hideCloseIcon ? <Close height="18px" width="18px" /> : <></>
             }
+            className={styles.modal}
         >
             {title && <h1 className={styles.title}>{title}</h1>}
-            <main style={props.style}>{children}</main>
+            <main className={styles.modalContent} style={props.style}>
+                {children}
+            </main>
         </AntDesignModal>
     );
 };

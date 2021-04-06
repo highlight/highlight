@@ -52,6 +52,16 @@
               "Modal"
             ],
             "message": "Please use Modal from /src/components/Modal instead."
+<<<<<<< HEAD
+=======
+          },
+          {
+            "name": "antd",
+            "importNames": [
+              "Tooltip"
+            ],
+            "message": "Please use Tooltip from /src/components/Tooltip instead."
+>>>>>>> master
           }
         ]
       }

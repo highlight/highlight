@@ -142,7 +142,7 @@ type FrequencyGraphProps = {
 
 type ErrorFrequency = {
     date: string;
-    occurences: number;
+    occurrences: number;
 };
 
 export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
@@ -160,7 +160,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                 .startOf('day')
                 .subtract(29 - idx, 'days')
                 .format('D MMM YYYY'),
-            occurences: val,
+            occurrences: val,
         }));
         setTotalErrors(errorDatesCopy.reduce((acc, val) => acc + val, 0));
         setErrorDates(errorData);
@@ -200,12 +200,12 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                         }}
                         itemStyle={{ color: 'white' }}
                     />
-                    <Bar dataKey="occurences" radius={[2, 2, 0, 0]}>
+                    <Bar dataKey="occurrences" radius={[2, 2, 0, 0]}>
                         {errorDates.map((e, i) => (
                             <Cell
                                 key={i}
                                 fill={
-                                    e.occurences >
+                                    e.occurrences >
                                     Math.max(totalErrors * 0.1, 10)
                                         ? '#C62929'
                                         : '#835E00'
@@ -217,7 +217,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
             </ResponsiveContainer>
             <div className={styles.graphLabels}>
                 <div>Past 30 days</div>
-                <div>{`Total Occurences: ${totalErrors}`}</div>
+                <div>{`Total Occurrences: ${totalErrors}`}</div>
             </div>
         </div>
     );
