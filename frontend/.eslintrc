@@ -45,6 +45,13 @@
               "Popover"
             ],
             "message": "Please use Popover from /src/components/Popover instead."
+          },
+          {
+            "name": "antd",
+            "importNames": [
+              "Tooltip"
+            ],
+            "message": "Please use Tooltip from /src/components/Tooltip instead."
           }
         ]
       }

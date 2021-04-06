@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { ReactElement } from 'react';
+import Tooltip from '../../../../components/Tooltip/Tooltip';
 import styles from './SessionToken.module.scss';
-import { Tooltip } from 'antd';
 
 interface Props {
     icon: React.ReactNode;
@@ -19,7 +19,6 @@ function SessionToken({
                 title={tooltipTitle}
                 arrowPointAtCenter
                 placement="bottomRight"
-                overlayClassName={styles.tooltip}
             >
                 <div className={styles.iconContainer}>{icon}</div>
             </Tooltip>
