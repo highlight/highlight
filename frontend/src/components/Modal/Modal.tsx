@@ -17,7 +17,7 @@ const Modal: React.FC<Props> = ({ children, title, ...props }) => {
             className={styles.modal}
         >
             {title && <h1 className={styles.title}>{title}</h1>}
-            <main>{children}</main>
+            <main className={styles.modalContent}>{children}</main>
         </AntDesignModal>
     );
 };
