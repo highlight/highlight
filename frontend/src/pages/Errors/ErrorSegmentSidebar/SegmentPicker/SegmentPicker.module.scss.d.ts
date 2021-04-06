@@ -2,7 +2,6 @@ export const checkIcon: string;
 export const downIcon: string;
 export const dropdownHandler: string;
 export const modalSubTitle: string;
-export const modalTitle: string;
 export const modalWrapper: string;
 export const newSearchDiv: string;
 export const noSegmentsText: string;

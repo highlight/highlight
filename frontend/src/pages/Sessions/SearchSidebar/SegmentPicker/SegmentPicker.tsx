@@ -14,10 +14,11 @@ import {
 } from '../../../../graph/generated/hooks';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
-import { message, Modal } from 'antd';
+import { message } from 'antd';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
 import { EmptySessionsSearchParams } from '../../SessionsPage';
 import _ from 'lodash';
+import Modal from '../../../../components/Modal/Modal';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 
 export const LIVE_SEGMENT_ID = 'live';
@@ -115,14 +116,12 @@ export const SegmentPicker = () => {
     return (
         <>
             <Modal
+                title="Delete Segment"
                 visible={deleteClicked}
-                maskClosable
                 onCancel={() => setDeleteClicked(false)}
                 style={{ display: 'flex' }}
-                footer={null}
             >
                 <div className={styles.modalWrapper}>
-                    <div className={styles.modalTitle}>Delete Segment</div>
                     <div className={styles.modalSubTitle}>
                         {`This action is irreversible. Do you want to delete ${
                             segmentToDelete?.name

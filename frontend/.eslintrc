@@ -49,6 +49,13 @@
           {
             "name": "antd",
             "importNames": [
+              "Modal"
+            ],
+            "message": "Please use Modal from /src/components/Modal instead."
+          },
+          {
+            "name": "antd",
+            "importNames": [
               "Tooltip"
             ],
             "message": "Please use Tooltip from /src/components/Tooltip instead."

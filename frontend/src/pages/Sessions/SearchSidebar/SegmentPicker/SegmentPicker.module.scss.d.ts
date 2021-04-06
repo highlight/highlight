@@ -5,7 +5,6 @@ export const liveSessionsCount: string;
 export const liveSessionsCountInactive: string;
 export const liveSessionsSegment: string;
 export const modalSubTitle: string;
-export const modalTitle: string;
 export const modalWrapper: string;
 export const newSearchDiv: string;
 export const noSegmentsText: string;

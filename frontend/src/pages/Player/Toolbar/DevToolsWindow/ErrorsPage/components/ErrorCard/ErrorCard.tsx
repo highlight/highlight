@@ -1,10 +1,8 @@
 import classNames from 'classnames';
 import React, { useContext } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
 import GoToButton from '../../../../../../../components/Button/GoToButton';
 import { ErrorObject } from '../../../../../../../graph/generated/schemas';
 import ReplayerContext from '../../../../../ReplayerContext';
-import { ErrorsPageHistoryState } from '../../ErrorsPage';
 import styles from './ErrorCard.module.scss';
 
 export enum ErrorCardState {
@@ -14,16 +12,11 @@ export enum ErrorCardState {
 }
 interface Props {
     error: ErrorObject;
-    /** The index of this error card relative to the other error cards. */
-    index: number;
     state: ErrorCardState;
+    setSelectedError: () => void;
 }
 
-const ErrorCard = ({ error, index, state }: Props) => {
-    const { organization_id } = useParams<{
-        organization_id: string;
-    }>();
-    const history = useHistory<ErrorsPageHistoryState>();
+const ErrorCard = ({ error, state, setSelectedError }: Props) => {
     const { replayer, setTime } = useContext(ReplayerContext);
 
     return (
@@ -50,15 +43,7 @@ const ErrorCard = ({ error, index, state }: Props) => {
             <div className={styles.actions}>
                 <GoToButton
                     className={styles.goToButton}
-                    onClick={() => {
-                        // Sets the index so if the user navigates back to the player page, the error card they clicked on will be in view.
-                        history.replace(window.location.pathname, {
-                            errorCardIndex: index,
-                        });
-                        history.push(
-                            `/${organization_id}/errors/${error.error_group_id}`
-                        );
-                    }}
+                    onClick={setSelectedError}
                     label="More"
                 />
                 {error.timestamp && (

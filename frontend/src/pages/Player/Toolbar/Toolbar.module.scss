@@ -279,3 +279,9 @@
     text-overflow: ellipsis;
     overflow: hidden;
 }
+
+.buttonContainer {
+    padding-top: $size-medium;
+    display: flex;
+    justify-content: flex-end;
+}
