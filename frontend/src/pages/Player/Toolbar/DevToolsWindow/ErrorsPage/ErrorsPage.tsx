@@ -111,7 +111,6 @@ const ErrorsPage = () => {
                 onCancel={() => {
                     setSelectedError(undefined);
                 }}
-                width={'80vw'}
             >
                 <ErrorModal error={selectedError!} />
             </Modal>
