@@ -1,9 +1,9 @@
 import React from 'react';
 
 import styles from './IntegrationDetector.module.scss';
-import { Tooltip } from 'antd';
 import { ReactComponent as CheckIcon } from '../../../static/verify-check.svg';
 import ActivityIcon from '../../Player/SessionLevelBar/ActivityIcon/ActivityIcon';
+import Tooltip from '../../../components/Tooltip/Tooltip';
 
 export const IntegrationDetector = ({
     integrated,

@@ -16,7 +16,7 @@ import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg'
 import { DemoContext } from '../../DemoContext';
 import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
-import { Tooltip } from 'antd';
+import Tooltip from '../Tooltip/Tooltip';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();

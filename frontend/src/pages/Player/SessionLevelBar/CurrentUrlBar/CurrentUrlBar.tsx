@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import styles from './CurrentUrlBar.module.scss';
 import { ReactComponent as SearchIcon } from '../../../../static/search.svg';
 import { FaCopy } from 'react-icons/fa';
-import { message, Tooltip } from 'antd';
+import { message } from 'antd';
+import Tooltip from '../../../../components/Tooltip/Tooltip';
 
 export const CurrentUrlBar = ({ url }: { url: string }) => {
     const [hover, setHover] = useState(false);

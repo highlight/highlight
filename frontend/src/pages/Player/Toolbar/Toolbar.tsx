@@ -24,7 +24,7 @@ import { getEventRenderDetails } from '../StreamElement/StreamElement';
 import StreamElementPayload from '../StreamElement/StreamElementPayload';
 import { getHeaderFromError } from '../../Error/ErrorPage';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
-import { EventsForTimeline } from '../PlayerHook/utils';
+import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
 import Popover from '../../../components/Popover/Popover';
 import {
     ErrorModalContextProvider,
@@ -449,7 +449,7 @@ const SessionSegment = ({
 
                             if (
                                 !selectedTimelineAnnotationTypes.includes(
-                                    details.title || ''
+                                    details.title || ('' as any)
                                 )
                             ) {
                                 return null;
@@ -477,8 +477,9 @@ const SessionSegment = ({
                                     <TimelineAnnotation
                                         event={event}
                                         colorKey={
-                                            getEventRenderDetails(event)
-                                                .title || ''
+                                            (getEventRenderDetails(event)
+                                                .title ||
+                                                '') as typeof EventsForTimeline[number]
                                         }
                                         onClickHandler={() => {
                                             if (replayer) {
@@ -614,8 +615,9 @@ const SessionSegment = ({
     );
 };
 
-const TimelineAnnotationColors: { [key: string]: string } = {
-    Default: '--color-purple',
+const TimelineAnnotationColors: {
+    [key in EventsForTimelineKeys[number]]: string;
+} = {
     Click: '--color-purple-light',
     Focus: '--color-blue',
     Reload: '--color-green-light',
@@ -625,10 +627,8 @@ const TimelineAnnotationColors: { [key: string]: string } = {
     Track: '--color-blue-light',
 };
 
-export function getAnnotationColor(str: string): string {
-    if (str in TimelineAnnotationColors) {
-        return TimelineAnnotationColors[str];
-    }
-
-    return TimelineAnnotationColors['Default'];
+export function getAnnotationColor(
+    eventTypeKey: typeof EventsForTimeline[number]
+) {
+    return TimelineAnnotationColors[eventTypeKey];
 }
