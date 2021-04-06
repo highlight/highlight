@@ -89,18 +89,15 @@ export const Home: React.FC = ({ children }) => {
                 <Modal
                     visible={showVideo}
                     onCancel={() => setShowVideo(false)}
-                    style={{
-                        lineHeight: 1,
-                        height: 'max-content',
-                        width: 'max-content',
-                    }}
                     forceRender
                     modalRender={() => (
-                        <video
-                            controls
-                            src={DEMO_VIDEO_URL}
-                            style={{ maxWidth: '100%', maxHeight: '100%' }}
-                        />
+                        <div>
+                            <video
+                                controls
+                                src={DEMO_VIDEO_URL}
+                                style={{ maxWidth: '100%', maxHeight: '100%' }}
+                            />
+                        </div>
                     )}
                 ></Modal>
                 <div className={styles.landingWrapper}>
