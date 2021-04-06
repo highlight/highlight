@@ -323,3 +323,9 @@
         transform: scale(1);
     }
 }
+
+.buttonContainer {
+    padding-top: $size-medium;
+    display: flex;
+    justify-content: flex-end;
+}
