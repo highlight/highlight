@@ -95,14 +95,14 @@ export const Home: React.FC = ({ children }) => {
                         width: 'max-content',
                     }}
                     forceRender
-                    hideCloseIcon={false}
-                >
-                    <video
-                        controls
-                        src={DEMO_VIDEO_URL}
-                        style={{ height: '80vh' }}
-                    />
-                </Modal>
+                    modalRender={() => (
+                        <video
+                            controls
+                            src={DEMO_VIDEO_URL}
+                            style={{ maxWidth: '100%', maxHeight: '100%' }}
+                        />
+                    )}
+                ></Modal>
                 <div className={styles.landingWrapper}>
                     <div className={styles.landing}>
                         <h2 className={styles.header}>

@@ -6,31 +6,21 @@ import styles from './Modal.module.scss';
 
 type Props = Pick<
     ModalProps,
-    'width' | 'onCancel' | 'visible' | 'style' | 'forceRender' | 'style'
+    'width' | 'onCancel' | 'visible' | 'style' | 'forceRender' | 'modalRender'
 > & {
-    hideCloseIcon?: boolean;
     title?: string;
 };
 
-const Modal: React.FC<Props> = ({
-    children,
-    title,
-    hideCloseIcon,
-    ...props
-}) => {
+const Modal: React.FC<Props> = ({ children, title, ...props }) => {
     return (
         <AntDesignModal
             footer={null}
             {...props}
-            closeIcon={
-                hideCloseIcon ? <Close height="18px" width="18px" /> : <></>
-            }
+            closeIcon={<Close height="18px" width="18px" />}
             className={styles.modal}
         >
             {title && <h1 className={styles.title}>{title}</h1>}
-            <main className={styles.modalContent} style={props.style}>
-                {children}
-            </main>
+            <main className={styles.modalContent}>{children}</main>
         </AntDesignModal>
     );
 };
