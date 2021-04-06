@@ -9,6 +9,7 @@ export const landing: string;
 export const landingWrapper: string;
 export const logoHeader: string;
 export const logos: string;
+export const modalButton: string;
 export const nav: string;
 export const navLink: string;
 export const overlayWrapper: string;

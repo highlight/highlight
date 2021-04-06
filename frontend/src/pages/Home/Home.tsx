@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styles from './Home.module.scss';
 import { ReactComponent as Humans } from '../../static/human-image.svg';
 import { ReactComponent as Logos } from '../../static/logos.svg';
@@ -6,10 +6,12 @@ import { ReactComponent as ArrowRight } from '../../static/arrow-right.svg';
 import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { HighlightLogo } from '../../components/HighlightLogo/HighlightLogo';
 import { Link } from 'react-router-dom';
-import { Dropdown } from 'antd';
+import { Dropdown, Modal } from 'antd';
 
 export const Home: React.FC = ({ children }) => {
     const width = window.innerWidth;
+    const [demoShow, setDemoShow] = useState(true);
+
     return (
         <div className={styles.homePageWrapper}>
             <div className={styles.stylingWrapper}>
@@ -64,6 +66,14 @@ export const Home: React.FC = ({ children }) => {
                                 >
                                     Careers
                                 </Link>
+                                <button
+                                    className={styles.modalButton}
+                                    onClick={() =>
+                                        setDemoShow((d: boolean) => !d)
+                                    }
+                                >
+                                    Demo
+                                </button>
                                 <a
                                     href="https://app.highlight.run"
                                     className={styles.arrowWrapper}
@@ -75,6 +85,7 @@ export const Home: React.FC = ({ children }) => {
                         )}
                     </div>
                 </nav>
+                <Modal visible={demoShow}>hello</Modal>
                 <div className={styles.landingWrapper}>
                     <div className={styles.landing}>
                         <h2 className={styles.header}>
