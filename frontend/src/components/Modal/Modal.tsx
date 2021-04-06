@@ -14,6 +14,7 @@ const Modal: React.FC<Props> = ({ children, title, ...props }) => {
             footer={null}
             {...props}
             closeIcon={<Close height="18px" width="18px" />}
+            className={styles.modal}
         >
             {title && <h1 className={styles.title}>{title}</h1>}
             <main>{children}</main>
