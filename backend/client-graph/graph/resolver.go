@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/util"
 	"github.com/jinzhu/gorm"
@@ -68,7 +69,7 @@ type FieldData struct {
 	Value string
 }
 
-func (r *Resolver) CheckQuota(org_id int) (bool, error) {
+func (r *Resolver) CanRecordSession(org_id int) (bool, error) {
 	org := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org)
 	if err := res.Error; err != nil || res.RecordNotFound() {
@@ -89,13 +90,9 @@ func (r *Resolver) CheckQuota(org_id int) (bool, error) {
 		org.Plan = &planType
 	}
 
-	year, month, _ := time.Now().Date()
-	var meter int
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: org_id}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
-		return false, e.Wrap(err, "error querying for session meter")
-	}
+	meter := util.GetSessionCount(r, org_id)
 
-	if util.TypeToQuota(util.PlanType(*org.Plan)) >= meter {
+	if util.TypeToQuota(modelInputs.PlanType(*org.Plan)) >= meter {
 		return true, nil
 	} else {
 		return false, nil

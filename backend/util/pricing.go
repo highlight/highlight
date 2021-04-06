@@ -2,22 +2,23 @@ package util
 
 import (
 	"os"
+	"time"
 
+	"github.com/jay-khatri/fullstory/backend/client-graph/graph/resolver"
+	backend "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
+	model "github.com/jay-khatri/fullstory/backend/model"
+	e "github.com/pkg/errors"
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/client"
 )
 
-type PlanType string
-
-const (
-	PlanTypeNone       PlanType = "None"
-	PlanTypeBasic      PlanType = "Basic"
-	PlanTypeStartup    PlanType = "Startup"
-	PlanTypeEnterprise PlanType = "Enterprise"
-)
-
-func (e PlanType) String() string {
-	return string(e)
+func GetSessionCount(r *resolver.Resolver, org_id int) (int, error) {
+	year, month, _ := time.Now().Date()
+	var meter int
+	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: org_id}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
+		return 0, e.Wrap(err, "error querying for session meter")
+	}
+	return meter, nil
 }
 
 func GetOrgPlanString(stripeClient *client.API, customerID string) string {
@@ -32,40 +33,40 @@ func GetOrgPlanString(stripeClient *client.API, customerID string) string {
 	return planType
 }
 
-func TypeToQuota(planType PlanType) int {
+func TypeToQuota(planType backend.PlanType) int {
 	switch planType {
-	case PlanTypeNone:
+	case backend.PlanTypeNone:
 		return 1000
-	case PlanTypeBasic:
+	case backend.PlanTypeBasic:
 		return 20000
-	case PlanTypeStartup:
+	case backend.PlanTypeStartup:
 		return 80000
-	case PlanTypeEnterprise:
+	case backend.PlanTypeEnterprise:
 		return 300000
 	default:
 		return 1000
 	}
 }
 
-func FromPriceID(priceID string) PlanType {
+func FromPriceID(priceID string) backend.PlanType {
 	switch priceID {
 	case os.Getenv("BASIC_PLAN_PRICE_ID"):
-		return PlanTypeBasic
+		return backend.PlanTypeBasic
 	case os.Getenv("STARTUP_PLAN_PRICE_ID"):
-		return PlanTypeStartup
+		return backend.PlanTypeStartup
 	case os.Getenv("ENTERPRISE_PLAN_PRICE_ID"):
-		return PlanTypeEnterprise
+		return backend.PlanTypeEnterprise
 	}
-	return PlanTypeNone
+	return backend.PlanTypeNone
 }
 
-func ToPriceID(plan PlanType) string {
+func ToPriceID(plan backend.PlanType) string {
 	switch plan {
-	case PlanTypeBasic:
+	case backend.PlanTypeBasic:
 		return os.Getenv("BASIC_PLAN_PRICE_ID")
-	case PlanTypeStartup:
+	case backend.PlanTypeStartup:
 		return os.Getenv("STARTUP_PLAN_PRICE_ID")
-	case PlanTypeEnterprise:
+	case backend.PlanTypeEnterprise:
 		return os.Getenv("ENTERPRISE_PLAN_PRICE_ID")
 	}
 	return ""

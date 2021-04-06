@@ -461,7 +461,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	}
 	// If there's a single subscription on the user and a single price item on the subscription
 	if len(c.Subscriptions.Data) == 1 && len(c.Subscriptions.Data[0].Items.Data) == 1 {
-		plan := util.ToPriceID(util.PlanType(planType.String()))
+		plan := util.ToPriceID(planType)
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
 			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
@@ -497,7 +497,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
-					Plan: stripe.String(util.ToPriceID(util.PlanType(planType.String()))),
+					Plan: stripe.String(util.ToPriceID(planType)),
 				},
 			},
 		},
@@ -936,11 +936,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
 	planType := util.FromPriceID(priceID)
-	year, month, _ := time.Now().Date()
-	var meter int
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
-		return nil, e.Wrap(err, "error querying for session meter")
-	}
+	meter := util.GetSessionCount(r, organizationID)
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  modelInputs.PlanType(planType.String()),

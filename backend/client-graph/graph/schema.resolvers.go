@@ -26,7 +26,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		return nil, e.Wrap(err, "org doesn't exist")
 	}
 	if organizationID == 110 || organizationID == 128 {
-		if check, err := r.CheckQuota(organizationID); !check || err != nil {
+		if check, err := r.CanRecordSession(organizationID); !check || err != nil {
 			if !check && err == nil {
 				return nil, nil
 			} else {
