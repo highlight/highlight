@@ -24,7 +24,11 @@ import { getEventRenderDetails } from '../StreamElement/StreamElement';
 import StreamElementPayload from '../StreamElement/StreamElementPayload';
 import { getHeaderFromError } from '../../Error/ErrorPage';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
-import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
+import {
+    EventsForTimeline,
+    EventsForTimelineKeys,
+    PlayerSearchParameters,
+} from '../PlayerHook/utils';
 import Popover from '../../../components/Popover/Popover';
 import {
     ErrorModalContextProvider,
@@ -35,6 +39,8 @@ import PrimaryButton from '../../../components/Button/PrimaryButton/PrimaryButto
 import Modal from '../../../components/Modal/Modal';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import TimelineAnnotation from './TimelineAnnotation/TimelineAnnotation';
+import { useParams } from 'react-router';
+import { useLocation } from 'react-router-dom';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -405,6 +411,10 @@ const SessionSegment = ({
     wrapperWidth: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
+    const location = useLocation();
+    const errorId = new URLSearchParams(location.search).get(
+        PlayerSearchParameters.errorId
+    );
     const { time, pause, replayer } = useContext(ReplayerContext);
     const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
     const [
@@ -510,6 +520,7 @@ const SessionSegment = ({
                                 return (
                                     <Popover
                                         key={error.id}
+                                        defaultVisible={errorId === error.id}
                                         content={
                                             <div
                                                 className={
