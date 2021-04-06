@@ -33,12 +33,16 @@ a {
     background-color: #5629c6;
 }
 
+.ant-modal-body {
+    width: max-content !important;
+}
+
 .ant-modal {
     width: max-content !important;
 }
 
 .antd-modal-content {
-    width: max-content;
+    width: max-content !important;
 }
 
 .ant-slider-track:hover {

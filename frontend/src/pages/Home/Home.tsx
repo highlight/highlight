@@ -91,6 +91,8 @@ export const Home: React.FC = ({ children }) => {
                     onCancel={() => setShowVideo(false)}
                     style={{
                         lineHeight: 1,
+                        height: 'max-content',
+                        width: 'max-content',
                     }}
                     forceRender
                     hideCloseIcon={false}

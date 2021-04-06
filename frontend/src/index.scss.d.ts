@@ -1,6 +1,7 @@
 export const antdModalContent: string;
 export const antMessageNoticeContent: string;
 export const antModal: string;
+export const antModalBody: string;
 export const antSkeletonContent: string;
 export const antSkeletonParagraph: string;
 export const antSkeletonTitle: string;
