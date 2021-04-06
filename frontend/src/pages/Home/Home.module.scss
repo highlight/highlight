@@ -114,6 +114,26 @@
     margin-bottom: 30px;
 }
 
+.demoVideoButton {
+    color: #888888;
+    margin: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: white;
+    border: none;
+    font-weight: 300;
+    transition: 0.3s color;
+}
+
+// .videoWrapper {
+//     width: 800px;
+//     height: 500px;
+// }
+
+.demoVideoButton:hover {
+    color: $highlight-purple;
+}
+
 .navLink {
     color: #888888;
     margin: 10px;

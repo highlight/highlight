@@ -33,6 +33,14 @@ a {
     background-color: #5629c6;
 }
 
+.ant-modal {
+    width: max-content !important;
+}
+
+.antd-modal-content {
+    width: max-content;
+}
+
 .ant-slider-track:hover {
     background-color: #5629c6;
 }
