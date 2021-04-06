@@ -516,6 +516,23 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string) (*model.SessionComment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	sessionComment := &model.SessionComment{
+		AdminId:   adminID,
+		SessionId: sessionID,
+		Timestamp: sessionTimestamp,
+		Text:      text,
+	}
+	if err := r.DB.Create(sessionComment).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session comment")
+	}
+	return sessionComment, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	if _, err := r.isAdminSessionOwner(ctx, id); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -677,6 +694,18 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 		allResources["resources"] = append(subResources["resources"], allResources["resources"]...)
 	}
 	return allResources["resources"], nil
+}
+
+func (r *queryResolver) SessionComments(ctx context.Context, sessionID int) ([]*model.SessionComment, error) {
+	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+
+	sessionComments := []*model.SessionComment{}
+	if err := r.DB.Where(model.SessionComment{SessionId: sessionID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session comments for session")
+	}
+	return sessionComments, nil
 }
 
 func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*model.Admin, error) {
@@ -1117,6 +1146,31 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
+	admin := &model.Admin{}
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+		return nil, e.Wrap(err, "Error finding admin for comment")
+	}
+
+	name := ""
+	email := ""
+
+	if admin.Name != nil {
+		name = *admin.Name
+	}
+	if admin.Email != nil {
+		email = *admin.Email
+	}
+
+	sanitizedAdmin := &modelInputs.SanitizedAdmin{
+		ID:    admin.ID,
+		Name:  &name,
+		Email: email,
+	}
+
+	return sanitizedAdmin, nil
+}
+
 // ErrorGroup returns generated.ErrorGroupResolver implementation.
 func (r *Resolver) ErrorGroup() generated.ErrorGroupResolver { return &errorGroupResolver{r} }
 
@@ -1138,6 +1192,11 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
+// SessionComment returns generated.SessionCommentResolver implementation.
+func (r *Resolver) SessionComment() generated.SessionCommentResolver {
+	return &sessionCommentResolver{r}
+}
+
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
@@ -1145,3 +1204,4 @@ type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+type sessionCommentResolver struct{ *Resolver }
