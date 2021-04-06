@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React from 'react';
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import { ParsedEvent } from '../../ReplayerContext';
@@ -8,12 +9,14 @@ interface Props {
     event: ParsedEvent;
     colorKey: typeof EventsForTimeline[number];
     onClickHandler: () => void;
+    isSelected?: boolean;
 }
 
 const TimelineAnnotation = ({
     event,
     colorKey,
     onClickHandler,
+    isSelected,
     ...props
 }: Props) => {
     const baseStyles = {
@@ -24,7 +27,9 @@ const TimelineAnnotation = ({
     return (
         <button
             {...props}
-            className={styles.annotation}
+            className={classNames(styles.annotation, {
+                [styles.selected]: isSelected,
+            })}
             style={baseStyles}
             onClick={onClickHandler}
         ></button>
