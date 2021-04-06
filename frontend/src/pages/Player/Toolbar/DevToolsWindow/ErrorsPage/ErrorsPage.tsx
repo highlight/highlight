@@ -9,9 +9,7 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import Skeleton from 'react-loading-skeleton';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import { findLastActiveEventIndex } from './utils/utils';
-import { ErrorObject } from '../../../../../graph/generated/schemas';
-import ErrorModal from './components/ErrorModal/ErrorModal';
-import Modal from '../../../../../components/Modal/Modal';
+import { useErrorModalContext } from '../../ErrorModalContext/ErrorModalContext';
 
 export interface ErrorsPageHistoryState {
     errorCardIndex: number;
@@ -25,9 +23,7 @@ const ErrorsPage = () => {
     );
     const history = useHistory<ErrorsPageHistoryState>();
     const { errors, state, time, replayer } = useContext(ReplayerContext);
-    const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
-        undefined
-    );
+    const { setSelectedError } = useErrorModalContext();
 
     const loading = state === ReplayerState.Loading;
 
@@ -106,15 +102,6 @@ const ErrorsPage = () => {
                     />
                 )}
             </div>
-            <Modal
-                visible={!!selectedError}
-                onCancel={() => {
-                    setSelectedError(undefined);
-                }}
-                width={'80vw'}
-            >
-                <ErrorModal error={selectedError!} />
-            </Modal>
         </>
     );
 };
