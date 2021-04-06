@@ -22,25 +22,15 @@ import classNames from 'classnames';
 import Skeleton from 'react-loading-skeleton';
 import { getEventRenderDetails } from '../StreamElement/StreamElement';
 import StreamElementPayload from '../StreamElement/StreamElementPayload';
-import { getHeaderFromError } from '../../Error/ErrorPage';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
-import {
-    EventsForTimeline,
-    EventsForTimelineKeys,
-    PlayerSearchParameters,
-} from '../PlayerHook/utils';
+import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
 import Popover from '../../../components/Popover/Popover';
-import {
-    ErrorModalContextProvider,
-    useErrorModalContext,
-} from './ErrorModalContext/ErrorModalContext';
+import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
 import { ErrorObject } from '../../../graph/generated/schemas';
-import PrimaryButton from '../../../components/Button/PrimaryButton/PrimaryButton';
 import Modal from '../../../components/Modal/Modal';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
 import TimelineAnnotation from './TimelineAnnotation/TimelineAnnotation';
-import { useParams } from 'react-router';
-import { useLocation } from 'react-router-dom';
+import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -411,10 +401,6 @@ const SessionSegment = ({
     wrapperWidth: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
-    const location = useLocation();
-    const errorId = new URLSearchParams(location.search).get(
-        PlayerSearchParameters.errorId
-    );
     const { time, pause, replayer } = useContext(ReplayerContext);
     const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
     const [
@@ -432,7 +418,6 @@ const SessionSegment = ({
     ) =>
         sliderPercent >= interval.startPercent &&
         sliderPercent < interval.endPercent;
-    const { setSelectedError } = useErrorModalContext();
 
     return (
         <div
@@ -518,59 +503,10 @@ const SessionSegment = ({
                         >
                             {interval.errors.map((error) => {
                                 return (
-                                    <Popover
+                                    <TimelineErrorAnnotation
                                         key={error.id}
-                                        defaultVisible={errorId === error.id}
-                                        content={
-                                            <div
-                                                className={
-                                                    styles.popoverContent
-                                                }
-                                            >
-                                                {error.source}
-                                                <div
-                                                    className={
-                                                        styles.buttonContainer
-                                                    }
-                                                >
-                                                    <PrimaryButton
-                                                        onClick={() => {
-                                                            setSelectedError(
-                                                                error
-                                                            );
-                                                        }}
-                                                    >
-                                                        More info
-                                                    </PrimaryButton>
-                                                </div>
-                                            </div>
-                                        }
-                                        title={
-                                            <div
-                                                className={styles.popoverHeader}
-                                            >
-                                                {getHeaderFromError(
-                                                    error.event
-                                                )}
-                                            </div>
-                                        }
-                                    >
-                                        <TimelineAnnotation
-                                            event={error}
-                                            colorKey="Errors"
-                                            onClickHandler={() => {
-                                                if (replayer) {
-                                                    pause(
-                                                        new Date(
-                                                            error.timestamp
-                                                        ).getTime() -
-                                                            replayer.getMetaData()
-                                                                .startTime
-                                                    );
-                                                }
-                                            }}
-                                        />
-                                    </Popover>
+                                        error={error}
+                                    />
                                 );
                             })}
                         </div>
