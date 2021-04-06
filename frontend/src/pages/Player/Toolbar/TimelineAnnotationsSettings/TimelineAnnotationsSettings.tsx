@@ -1,8 +1,9 @@
 import useLocalStorage from '@rehooks/local-storage';
-import { Checkbox, CheckboxOptionType, Tooltip } from 'antd';
+import { Checkbox, CheckboxOptionType } from 'antd';
 import React from 'react';
 import TransparentButton from '../../../../components/Button/TransparentButton/TransparentButton';
 import Popover from '../../../../components/Popover/Popover';
+import Tooltip from '../../../../components/Tooltip/Tooltip';
 import {
     EventsForTimeline,
     EventsForTimelineKeys,
@@ -11,20 +12,31 @@ import { getAnnotationColor } from '../Toolbar';
 import styles from './TimelineAnnotationsSettings.module.scss';
 
 type EventTypesKeys = {
-    [key in EventsForTimelineKeys[number]]: string;
+    [key in EventsForTimelineKeys[number]]: string | React.ReactNode;
 };
 
 const EventTypeDescriptions: EventTypesKeys = {
-    Segment:
-        "Track and Identify integration with Segment.io showing you the user's identities and traits",
+    Segment: (
+        <span>
+            The client-side segment installation fired a track or identify
+            event.{' '}
+            <a
+                href="https://docs.highlight.run/docs/segment-integration"
+                target="_blank"
+                rel="noreferrer"
+            >
+                Learn more
+            </a>
+        </span>
+    ),
     Errors:
         "Any error that shows up in the Developer Tools' Console will be shown",
     Focus: 'An element received either with a mouse or keyboard',
     Navigate:
         "The user is moving around in your application where their transitions don't require a full page reload",
     Reload:
-        'The page was reloaded during the session by refreshing the page or opening the app again within a session window',
-    Click: "All of your user's clicks on the page",
+        'The page was reloaded during the session by refreshing the page or opening the app again within the same tab',
+    Click: 'A user clicked on an element on the page',
     Track:
         'These are custom calls to Highlights track method for custom logging',
 };

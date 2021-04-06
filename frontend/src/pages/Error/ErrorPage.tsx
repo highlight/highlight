@@ -22,10 +22,10 @@ import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import moment from 'moment';
 import { frequencyTimeData } from '../../util/errorCalculations';
 import classNames from 'classnames';
-import { Tooltip } from 'antd';
 import { Link } from 'react-router-dom';
 import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
 import { PlayerSearchParameters } from '../Player/PlayerHook/utils';
+import Tooltip from '../../components/Tooltip/Tooltip';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();

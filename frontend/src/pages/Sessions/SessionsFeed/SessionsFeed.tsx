@@ -17,7 +17,7 @@ import { ReactComponent as UnviewedIcon } from '../../../static/unviewed.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { Avatar } from '../../../components/Avatar/Avatar';
-import { message, Tooltip } from 'antd';
+import { message } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 import {
     useGetBillingDetailsQuery,
@@ -37,6 +37,7 @@ import {
     LIVE_SEGMENT_ID,
     STARRED_SEGMENT_ID,
 } from '../SearchSidebar/SegmentPicker/SegmentPicker';
+import Tooltip from '../../../components/Tooltip/Tooltip';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
