@@ -1,6 +1,7 @@
 import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useQueryParam, BooleanParam } from 'use-query-params';
 import { DemoContext } from '../../../DemoContext';
 import { useGetSessionPayloadQuery } from '../../../graph/generated/hooks';
 import { ErrorObject } from '../../../graph/generated/schemas';
@@ -30,6 +31,7 @@ const EVENTS_CHUNK_SIZE = parseInt(
 export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     const { session_id } = useParams<{ session_id: string }>();
 
+    const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
@@ -56,6 +58,22 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
         context: { headers: { 'Highlight-Demo': demo } },
         fetchPolicy: 'no-cache',
     });
+
+    // Downloads the events data only if the URL search parameter '?download=1' is present.
+    useEffect(() => {
+        if (download && eventsData) {
+            const a = document.createElement('a');
+            const file = new Blob([JSON.stringify(eventsData.events)], {
+                type: 'application/json',
+            });
+
+            a.href = URL.createObjectURL(file);
+            a.download = `session-${session_id}.json`;
+            a.click();
+
+            URL.revokeObjectURL(a.href);
+        }
+    }, [download, eventsData, session_id]);
 
     // Handle data in playback mode.
     useEffect(() => {
