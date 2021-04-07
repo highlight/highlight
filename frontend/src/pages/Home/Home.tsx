@@ -1,20 +1,28 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './Home.module.scss';
 import { ReactComponent as Humans } from '../../static/human-image.svg';
 import { ReactComponent as Logos } from '../../static/logos.svg';
 import { ReactComponent as ArrowRight } from '../../static/arrow-right.svg';
 import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { HighlightLogo } from '../../components/HighlightLogo/HighlightLogo';
-import { Link } from 'react-router-dom';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dropdown } from 'antd';
 import Modal from '../../components/Modal/Modal';
 
 const DEMO_VIDEO_URL =
     'https://highlight-demo-video.s3-us-west-2.amazonaws.com/v2/v2.6.mp4';
 
-export const Home: React.FC = ({ children }) => {
+const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
     const width = window.innerWidth;
+    const url = window.location.href;
     const [showVideo, setShowVideo] = useState(false);
+
+    useEffect(() => {
+        if (url.includes('demo')) {
+            setShowVideo(true);
+        }
+    }, [url]);
+
     return (
         <div className={styles.homePageWrapper}>
             <div className={styles.stylingWrapper}>
@@ -71,7 +79,9 @@ export const Home: React.FC = ({ children }) => {
                                 </Link>
                                 <button
                                     className={styles.demoVideoButton}
-                                    onClick={() => setShowVideo((v) => !v)}
+                                    onClick={() => {
+                                        setShowVideo((v) => !v);
+                                    }}
                                 >
                                     Demo
                                 </button>
@@ -137,3 +147,5 @@ export const Home: React.FC = ({ children }) => {
         </div>
     );
 };
+
+export const Home = withRouter(HomeInternal);
