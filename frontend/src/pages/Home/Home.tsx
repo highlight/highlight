@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from './Home.module.scss';
 import { ReactComponent as Humans } from '../../static/human-image.svg';
 import { ReactComponent as Logos } from '../../static/logos.svg';
@@ -16,6 +16,7 @@ const DEMO_VIDEO_URL =
 const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
     const width = window.innerWidth;
     const url = window.location.href;
+    const playerRef = useRef<any>();
     const [showVideo, setShowVideo] = useState(false);
 
     useEffect(() => {
@@ -96,12 +97,21 @@ const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
                 <Modal
                     visible={showVideo}
                     onCancel={() => {
-                        console.log('false');
                         setShowVideo(false);
+                        playerRef?.current?.getInternalPlayer().pause();
+                    }}
+                    style={{
+                        minWidth: '100%',
+                        maxWidth: '60vw',
+                        pointerEvents: 'unset',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                     }}
                     modalRender={() => (
                         <div className={styles.modalWrapper}>
                             <ReactPlayer
+                                ref={playerRef}
                                 url={DEMO_VIDEO_URL}
                                 width={'100%'}
                                 height={'100%'}
