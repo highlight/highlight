@@ -1,15 +1,34 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from './Home.module.scss';
 import { ReactComponent as Humans } from '../../static/human-image.svg';
 import { ReactComponent as Logos } from '../../static/logos.svg';
 import { ReactComponent as ArrowRight } from '../../static/arrow-right.svg';
 import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { HighlightLogo } from '../../components/HighlightLogo/HighlightLogo';
-import { Link } from 'react-router-dom';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dropdown } from 'antd';
+import ReactPlayer from 'react-player';
+import Modal from '../../components/Modal/Modal';
 
-export const Home: React.FC = ({ children }) => {
+const DEMO_VIDEO_URL =
+    'https://highlight-demo-video.s3-us-west-2.amazonaws.com/v2/v2.9.mp4';
+
+const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
     const width = window.innerWidth;
+    const url = window.location.href;
+    const playerRef = useRef<any>();
+    const [showVideo, setShowVideo] = useState(false);
+
+    useEffect(() => {
+        if (url.includes('video')) {
+            setShowVideo(true);
+        }
+    }, [url]);
+
+    useEffect(() => {
+        console.log(showVideo);
+    }, [showVideo]);
+
     return (
         <div className={styles.homePageWrapper}>
             <div className={styles.stylingWrapper}>
@@ -75,6 +94,34 @@ export const Home: React.FC = ({ children }) => {
                         )}
                     </div>
                 </nav>
+                <Modal
+                    visible={showVideo}
+                    onCancel={() => {
+                        setShowVideo(false);
+                        playerRef?.current?.getInternalPlayer().pause();
+                    }}
+                    style={{
+                        minWidth: '100%',
+                        maxWidth: '60vw',
+                        pointerEvents: 'unset',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                    }}
+                    modalRender={() => (
+                        <div className={styles.modalWrapper}>
+                            <ReactPlayer
+                                ref={playerRef}
+                                url={DEMO_VIDEO_URL}
+                                width={'100%'}
+                                height={'100%'}
+                                playing={showVideo}
+                                controls
+                                stopOnUnmount
+                            />
+                        </div>
+                    )}
+                ></Modal>
                 <div className={styles.landingWrapper}>
                     <div className={styles.landing}>
                         <h2 className={styles.header}>
@@ -112,3 +159,5 @@ export const Home: React.FC = ({ children }) => {
         </div>
     );
 };
+
+export const Home = withRouter(HomeInternal);
