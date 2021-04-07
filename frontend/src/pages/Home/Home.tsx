@@ -20,7 +20,7 @@ const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
     const [showVideo, setShowVideo] = useState(false);
 
     useEffect(() => {
-        if (url.includes('demo')) {
+        if (url.includes('video')) {
             setShowVideo(true);
         }
     }, [url]);
