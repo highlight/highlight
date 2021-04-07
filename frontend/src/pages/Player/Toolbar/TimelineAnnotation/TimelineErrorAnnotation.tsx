@@ -1,6 +1,6 @@
 import React, { ReactElement, useContext, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import PrimaryButton from '../../../../components/Button/PrimaryButton/PrimaryButton';
+import GoToButton from '../../../../components/Button/GoToButton';
 import Popover from '../../../../components/Popover/Popover';
 import { getHeaderFromError } from '../../../Error/ErrorPage';
 import { PlayerSearchParameters } from '../../PlayerHook/utils';
@@ -31,13 +31,12 @@ function TimelineErrorAnnotation({ error }: Props): ReactElement {
                 <div className={styles.popoverContent}>
                     {error.source}
                     <div className={styles.buttonContainer}>
-                        <PrimaryButton
+                        <GoToButton
                             onClick={() => {
                                 setSelectedError(error);
                             }}
-                        >
-                            More info
-                        </PrimaryButton>
+                            label="More info"
+                        />
                     </div>
                 </div>
             }
