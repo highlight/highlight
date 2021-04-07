@@ -77,14 +77,6 @@ const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
                                 >
                                     Careers
                                 </Link>
-                                <button
-                                    className={styles.demoVideoButton}
-                                    onClick={() => {
-                                        setShowVideo((v) => !v);
-                                    }}
-                                >
-                                    Demo
-                                </button>
                                 <a
                                     href="https://app.highlight.run"
                                     className={styles.arrowWrapper}
