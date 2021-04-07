@@ -91,7 +91,7 @@ export const Home: React.FC = ({ children }) => {
                     onCancel={() => setShowVideo(false)}
                     forceRender
                     modalRender={() => (
-                        <div>
+                        <div className={styles.modalWrapper}>
                             <video
                                 controls
                                 src={DEMO_VIDEO_URL}
