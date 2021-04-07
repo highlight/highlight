@@ -32,5 +32,15 @@
   "editor.colorDecorators": true,
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.associations": {
+    // We are telling VS Code to treat the response files as plain text so it skips tokenizing and formatting. This is a perf gain when working with the large response files.
+    "**/mocks/responses/*.json": "plaintext"
+  },
+  "search.exclude": {
+    "frontend/src/mocks/responses/*.json": true
+  },
+  "files.watcherExclude": {
+    "frontend/src/mocks/responses/*.json": true
   }
 }

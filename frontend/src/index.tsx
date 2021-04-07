@@ -25,6 +25,9 @@ const options: HighlightOptions = {
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
     options.backendUrl = 'http://localhost:8082';
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { worker } = require('./mocks/browser');
+    worker.start();
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
