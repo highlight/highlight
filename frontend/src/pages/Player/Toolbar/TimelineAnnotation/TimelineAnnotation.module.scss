@@ -19,7 +19,8 @@
     animation: grow 0.5s normal;
     cursor: pointer;
 
-    &:hover {
+    &:hover,
+    &.selected {
         opacity: 1;
         transform: scale(2, 2);
         z-index: 25;

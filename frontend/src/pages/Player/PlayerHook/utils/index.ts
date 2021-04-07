@@ -3,7 +3,7 @@ import {
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
 import { useCallback } from 'react';
-import { useHistory, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
 import { ErrorObject } from '../../../../graph/generated/schemas';
 import { HighlightEvent } from '../../HighlightEvent';
 import {
@@ -104,7 +104,6 @@ export enum PlayerSearchParameters {
 export const useSetPlayerTimestampFromSearchParam = (
     setTime: (newTime: number) => void
 ) => {
-    const history = useHistory();
     const location = useLocation();
 
     const setPlayerTimestamp = useCallback(
@@ -152,16 +151,8 @@ export const useSetPlayerTimestampFromSearchParam = (
                 }
                 searchParamsObject.delete(PlayerSearchParameters.errorId);
             }
-            const remainingSearchParams = searchParamsObject.toString();
-            history.replace(
-                `${location.pathname}${
-                    remainingSearchParams !== ''
-                        ? `?${remainingSearchParams}`
-                        : ''
-                }`
-            );
         },
-        [history, location.pathname, location.search, setTime]
+        [location.search, setTime]
     );
 
     return {

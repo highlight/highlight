@@ -9,7 +9,7 @@ import styles from './Popover.module.scss';
 
 type PopoverProps = Pick<
     AntDesignPopoverProps,
-    'content' | 'title' | 'trigger'
+    'content' | 'title' | 'trigger' | 'defaultVisible' | 'onVisibleChange'
 >;
 
 /**
