@@ -11,7 +11,7 @@ import ReactPlayer from 'react-player';
 import Modal from '../../components/Modal/Modal';
 
 const DEMO_VIDEO_URL =
-    'https://highlight-demo-video.s3-us-west-2.amazonaws.com/v2/v2.9.mp4';
+    'https://highlight-demo-video.s3-us-west-2.amazonaws.com/v2/v2.12.264bq.1980.mp4';
 
 const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
     const width = window.innerWidth;
