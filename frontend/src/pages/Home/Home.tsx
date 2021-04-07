@@ -7,6 +7,7 @@ import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { HighlightLogo } from '../../components/HighlightLogo/HighlightLogo';
 import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
 import { Dropdown } from 'antd';
+import ReactPlayer from 'react-player';
 import Modal from '../../components/Modal/Modal';
 
 const DEMO_VIDEO_URL =
@@ -22,6 +23,10 @@ const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
             setShowVideo(true);
         }
     }, [url]);
+
+    useEffect(() => {
+        console.log(showVideo);
+    }, [showVideo]);
 
     return (
         <div className={styles.homePageWrapper}>
@@ -90,14 +95,19 @@ const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
                 </nav>
                 <Modal
                     visible={showVideo}
-                    onCancel={() => setShowVideo(false)}
-                    forceRender
+                    onCancel={() => {
+                        console.log('false');
+                        setShowVideo(false);
+                    }}
                     modalRender={() => (
                         <div className={styles.modalWrapper}>
-                            <video
+                            <ReactPlayer
+                                url={DEMO_VIDEO_URL}
+                                width={'100%'}
+                                height={'100%'}
+                                playing={showVideo}
                                 controls
-                                src={DEMO_VIDEO_URL}
-                                style={{ maxWidth: '100%', maxHeight: '100%' }}
+                                stopOnUnmount
                             />
                         </div>
                     )}

@@ -60,6 +60,7 @@
         "react-json-view": "^1.21.1",
         "react-lines-ellipsis": "^0.14.1",
         "react-loading-skeleton": "^2.1.1",
+        "react-player": "^2.9.0",
         "react-resize-aware": "^3.0.1",
         "react-resize-detector": "^5.2.0",
         "react-resize-panel-ts": "^0.0.5",
