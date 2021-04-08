@@ -15,7 +15,6 @@ import { DemoRouter } from './DemoRouter';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import { QueryParamProvider } from 'use-query-params';
 import { About } from './pages/About/About';
-import { HighlightConfiguration } from '@highlight-run/rrweb';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
@@ -23,16 +22,6 @@ const options: HighlightOptions = {
     manualStart: true,
     enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
 };
-
-declare global {
-    interface Window {
-        HIG_CONFIGURATION: HighlightConfiguration;
-    }
-}
-
-window.HIG_CONFIGURATION = {};
-window.HIG_CONFIGURATION.enableOnHoverClass = false;
-
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
     options.backendUrl = 'http://localhost:8082';
