@@ -2015,10 +2015,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@highlight-run/rrweb@0.10.4":
-  version "0.10.4"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.10.4.tgz#f2e6da9a9e6dafbc887ca61734d664b9f0f2f493"
-  integrity sha512-Ru/YOYT0MuRiR0e86hfebJcQmxECsK8kJfGYFtifrO3NKZ783OVCRfAGdDYie0FMSI+jkCZ4YREVnP/kjr9LwA==
+"@highlight-run/rrweb@0.11.1":
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.11.1.tgz#dfa7cb05ccba53435740c420249fc39f38cfb6dc"
+  integrity sha512-hPGDuqOpfyntAPR+RC4R2Y1iLJbeA4dbmBkiqh0+zQZyR4PBrCRM3nSXNeF0soLEZLYLLu6Nq69BmRBDFWd0AQ==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
