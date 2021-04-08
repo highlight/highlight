@@ -20,7 +20,7 @@ const TimelineAnnotation = ({
     ...props
 }: Props) => {
     const baseStyles = {
-        left: `${event.relativeIntervalPercentage}%`,
+        left: `calc(${event.relativeIntervalPercentage}% - calc(var(--size) / 2))`,
         backgroundColor: `var(${getAnnotationColor(colorKey)})`,
     };
 

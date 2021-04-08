@@ -2,11 +2,12 @@
 
 .annotation {
     --annotation-scale: 0.1;
+    --size: calc(1px * (1 / var(--annotation-scale)));
 
     position: absolute;
     z-index: 21;
-    height: calc(1px * (1 / var(--annotation-scale)));
-    width: calc(1px * (1 / var(--annotation-scale)));
+    height: var(--size);
+    width: var(--size);
     opacity: 0.5;
     border: 1px solid white;
     transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
