@@ -2,24 +2,11 @@ package util
 
 import (
 	"os"
-	"time"
 
-	"github.com/jay-khatri/fullstory/backend/client-graph/graph/resolver"
 	backend "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
-	model "github.com/jay-khatri/fullstory/backend/model"
-	e "github.com/pkg/errors"
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/client"
 )
-
-func GetSessionCount(r *resolver.Resolver, org_id int) (int, error) {
-	year, month, _ := time.Now().Date()
-	var meter int
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: org_id}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
-		return 0, e.Wrap(err, "error querying for session meter")
-	}
-	return meter, nil
-}
 
 func GetOrgPlanString(stripeClient *client.API, customerID string) string {
 	params := &stripe.CustomerParams{}

@@ -90,7 +90,11 @@ func (r *Resolver) CanRecordSession(org_id int) (bool, error) {
 		org.Plan = &planType
 	}
 
-	meter := util.GetSessionCount(r, org_id)
+	year, month, _ := time.Now().Date()
+	var meter int
+	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: org_id}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
+		return false, e.Wrap(err, "error querying for session meter")
+	}
 
 	if util.TypeToQuota(modelInputs.PlanType(*org.Plan)) >= meter {
 		return true, nil

@@ -936,7 +936,11 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
 	planType := util.FromPriceID(priceID)
-	meter := util.GetSessionCount(r, organizationID)
+	year, month, _ := time.Now().Date()
+	var meter int
+	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
+		return nil, e.Wrap(err, "error querying for session meter")
+	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  modelInputs.PlanType(planType.String()),
