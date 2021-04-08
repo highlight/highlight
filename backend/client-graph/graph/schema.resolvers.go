@@ -6,14 +6,16 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	"github.com/jay-khatri/fullstory/backend/event-parse"
+	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jinzhu/gorm"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -114,7 +116,18 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
-	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{Identifier: userIdentifier})
+
+	// Check if there is a session created by this user and it isn't the same session.
+	firstTime := &model.F
+	if err := r.DB.Where(&model.Session{Identifier: userIdentifier}).Not(&model.Session{Model: model.Model{ID: sessionID}}).Take(&model.Session{}).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			firstTime = &model.T
+		} else {
+			return nil, e.Wrap(err, "error when searching for past sessions")
+		}
+	}
+
+	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{Identifier: userIdentifier, FirstTime: firstTime})
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error adding user identifier to session")
 	}
