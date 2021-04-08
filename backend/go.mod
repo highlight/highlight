@@ -48,5 +48,5 @@ require (
 	gopkg.in/DataDog/dd-trace-go.v1 v1.29.2
 	gopkg.in/boj/redistore.v1 v1.0.0-20160128113310-fc113767cd6b
 	gopkg.in/yaml.v2 v2.3.0 // indirect
-	gorm.io/gorm v1.20.10
+	gorm.io/gorm v1.21.6
 )
