@@ -42,6 +42,7 @@ export type Session = {
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
     starred?: Maybe<Scalars['Boolean']>;
+    first_time?: Maybe<Scalars['Boolean']>;
     field_group?: Maybe<Scalars['String']>;
     enable_strict_privacy?: Maybe<Scalars['Boolean']>;
 };
@@ -350,6 +351,7 @@ export type QuerySessionsArgs = {
     count: Scalars['Int'];
     processed: Scalars['Boolean'];
     starred: Scalars['Boolean'];
+    first_time: Scalars['Boolean'];
     params?: Maybe<SearchParamsInput>;
 };
 

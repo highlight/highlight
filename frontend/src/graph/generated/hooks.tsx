@@ -1106,6 +1106,7 @@ export const GetSessionsDocument = gql`
         $count: Int!
         $processed: Boolean!
         $starred: Boolean!
+        $first_time: Boolean!
         $params: SearchParamsInput
     ) {
         sessions(
@@ -1113,6 +1114,7 @@ export const GetSessionsDocument = gql`
             count: $count
             processed: $processed
             starred: $starred
+            first_time: $first_time
             params: $params
         ) {
             sessions {
@@ -1135,6 +1137,7 @@ export const GetSessionsDocument = gql`
                     value
                     type
                 }
+                first_time
             }
             totalCount
         }
@@ -1157,6 +1160,7 @@ export const GetSessionsDocument = gql`
  *      count: // value for 'count'
  *      processed: // value for 'processed'
  *      starred: // value for 'starred'
+ *      first_time: // value for 'first_time'
  *      params: // value for 'params'
  *   },
  * });

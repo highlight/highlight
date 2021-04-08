@@ -204,7 +204,7 @@ type ComplexityRoot struct {
 		Segments                 func(childComplexity int, organizationID int) int
 		Session                  func(childComplexity int, id int) int
 		SessionComments          func(childComplexity int, sessionID int) int
-		Sessions                 func(childComplexity int, organizationID int, count int, processed bool, starred bool, params *model.SearchParamsInput) int
+		Sessions                 func(childComplexity int, organizationID int, count int, processed bool, starred bool, firstTime bool, params *model.SearchParamsInput) int
 		UnprocessedSessionsCount func(childComplexity int, organizationID int) int
 	}
 
@@ -249,6 +249,7 @@ type ComplexityRoot struct {
 		EnableStrictPrivacy func(childComplexity int) int
 		FieldGroup          func(childComplexity int) int
 		Fields              func(childComplexity int) int
+		FirstTime           func(childComplexity int) int
 		ID                  func(childComplexity int) int
 		Identifier          func(childComplexity int) int
 		Length              func(childComplexity int) int
@@ -333,7 +334,7 @@ type QueryResolver interface {
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error)
-	Sessions(ctx context.Context, organizationID int, count int, processed bool, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
+	Sessions(ctx context.Context, organizationID int, count int, processed bool, starred bool, firstTime bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
@@ -1299,7 +1300,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["params"].(*model.SearchParamsInput)), true
+		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["first_time"].(bool), args["params"].(*model.SearchParamsInput)), true
 
 	case "Query.unprocessedSessionsCount":
 		if e.complexity.Query.UnprocessedSessionsCount == nil {
@@ -1508,6 +1509,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.Fields(childComplexity), true
+
+	case "Session.first_time":
+		if e.complexity.Session.FirstTime == nil {
+			break
+		}
+
+		return e.complexity.Session.FirstTime(childComplexity), true
 
 	case "Session.id":
 		if e.complexity.Session.ID == nil {
@@ -1755,6 +1763,7 @@ type Session {
     fields: [Field]
     viewed: Boolean
     starred: Boolean
+    first_time: Boolean
     field_group: String
     enable_strict_privacy: Boolean
 }
@@ -1987,6 +1996,7 @@ type Query {
         count: Int!
         processed: Boolean!
         starred: Boolean!
+        first_time: Boolean!
         params: SearchParamsInput
     ): SessionResults!
     billingDetails(organization_id: ID!): BillingDetails!
@@ -2981,15 +2991,24 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 		}
 	}
 	args["starred"] = arg3
-	var arg4 *model.SearchParamsInput
-	if tmp, ok := rawArgs["params"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg4, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+	var arg4 bool
+	if tmp, ok := rawArgs["first_time"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first_time"))
+		arg4, err = ec.unmarshalNBoolean2bool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["params"] = arg4
+	args["first_time"] = arg4
+	var arg5 *model.SearchParamsInput
+	if tmp, ok := rawArgs["params"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
+		arg5, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["params"] = arg5
 	return args, nil
 }
 
@@ -6403,7 +6422,7 @@ func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["params"].(*model.SearchParamsInput))
+		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["first_time"].(bool), args["params"].(*model.SearchParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8137,6 +8156,38 @@ func (ec *executionContext) _Session_starred(ctx context.Context, field graphql.
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Starred, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_first_time(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstTime, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11174,6 +11225,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_viewed(ctx, field, obj)
 		case "starred":
 			out.Values[i] = ec._Session_starred(ctx, field, obj)
+		case "first_time":
+			out.Values[i] = ec._Session_first_time(ctx, field, obj)
 		case "field_group":
 			out.Values[i] = ec._Session_field_group(ctx, field, obj)
 		case "enable_strict_privacy":

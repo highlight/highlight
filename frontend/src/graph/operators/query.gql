@@ -45,6 +45,7 @@ query GetSessions(
     $count: Int!
     $processed: Boolean!
     $starred: Boolean!
+    $first_time: Boolean!
     $params: SearchParamsInput
 ) {
     sessions(
@@ -52,6 +53,7 @@ query GetSessions(
         count: $count
         processed: $processed
         starred: $starred
+        first_time: $first_time
         params: $params
     ) {
         sessions {
@@ -74,6 +76,7 @@ query GetSessions(
                 value
                 type
             }
+            first_time
         }
         totalCount
     }

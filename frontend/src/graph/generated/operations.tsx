@@ -312,6 +312,7 @@ export type GetSessionsQueryVariables = Types.Exact<{
     count: Types.Scalars['Int'];
     processed: Types.Scalars['Boolean'];
     starred: Types.Scalars['Boolean'];
+    first_time: Types.Scalars['Boolean'];
     params?: Types.Maybe<Types.SearchParamsInput>;
 }>;
 
@@ -337,6 +338,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'length'
                     | 'viewed'
                     | 'starred'
+                    | 'first_time'
                 > & {
                         fields?: Types.Maybe<
                             Array<
