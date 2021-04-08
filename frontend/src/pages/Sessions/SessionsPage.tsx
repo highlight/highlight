@@ -47,6 +47,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
+    const [hideLiveSessions, setHideLiveSessions] = useState<boolean>(false);
     const { setOpenSidebar } = useContext(SidebarContext);
     const history = useHistory();
 
@@ -76,6 +77,8 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                 setExistingParams,
                 segmentName,
                 setSegmentName,
+                hideLiveSessions,
+                setHideLiveSessions,
             }}
         >
             <div className={styles.sessionsBody}>

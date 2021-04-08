@@ -26,6 +26,8 @@ export const SearchContext = React.createContext<{
     setExistingParams: React.Dispatch<React.SetStateAction<SearchParams>>;
     segmentName: string | null;
     setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
+    hideLiveSessions: boolean;
+    setHideLiveSessions: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
     /* eslint-disable */
     searchParams: { user_properties: [], identified: false },
@@ -34,5 +36,7 @@ export const SearchContext = React.createContext<{
     setExistingParams: (params) => console.warn('goop'),
     segmentName: null,
     setSegmentName: (val) => console.warn('poop'),
+    hideLiveSessions: false,
+    setHideLiveSessions: () => {},
     /* eslint-enable */
 });

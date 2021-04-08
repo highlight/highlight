@@ -1,3 +1,4 @@
+export const checkboxRow: string;
 export const commonInputWrapper: string;
 export const datePicker: string;
 export const iconWrapper: string;

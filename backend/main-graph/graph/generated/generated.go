@@ -204,7 +204,7 @@ type ComplexityRoot struct {
 		Segments                 func(childComplexity int, organizationID int) int
 		Session                  func(childComplexity int, id int) int
 		SessionComments          func(childComplexity int, sessionID int) int
-		Sessions                 func(childComplexity int, organizationID int, count int, processed bool, starred bool, params *model.SearchParamsInput) int
+		Sessions                 func(childComplexity int, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
 		UnprocessedSessionsCount func(childComplexity int, organizationID int) int
 	}
 
@@ -255,6 +255,7 @@ type ComplexityRoot struct {
 		OSName              func(childComplexity int) int
 		OSVersion           func(childComplexity int) int
 		Postal              func(childComplexity int) int
+		Processed           func(childComplexity int) int
 		Starred             func(childComplexity int) int
 		State               func(childComplexity int) int
 		UserID              func(childComplexity int) int
@@ -333,7 +334,7 @@ type QueryResolver interface {
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error)
-	Sessions(ctx context.Context, organizationID int, count int, processed bool, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
+	Sessions(ctx context.Context, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
@@ -1299,7 +1300,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["params"].(*model.SearchParamsInput)), true
+		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["lifecycle"].(model.SessionLifecycle), args["starred"].(bool), args["params"].(*model.SearchParamsInput)), true
 
 	case "Query.unprocessedSessionsCount":
 		if e.complexity.Query.UnprocessedSessionsCount == nil {
@@ -1551,6 +1552,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Postal(childComplexity), true
 
+	case "Session.processed":
+		if e.complexity.Session.Processed == nil {
+			break
+		}
+
+		return e.complexity.Session.Processed(childComplexity), true
+
 	case "Session.starred":
 		if e.complexity.Session.Starred == nil {
 			break
@@ -1755,6 +1763,7 @@ type Session {
     fields: [Field]
     viewed: Boolean
     starred: Boolean
+    processed: Boolean
     field_group: String
     enable_strict_privacy: Boolean
 }
@@ -1966,6 +1975,12 @@ type SessionComment {
     text: String!
 }
 
+enum SessionLifecycle {
+    All
+    Live
+    Completed
+}
+
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
@@ -1985,7 +2000,7 @@ type Query {
     sessions(
         organization_id: ID!
         count: Int!
-        processed: Boolean!
+        lifecycle: SessionLifecycle!
         starred: Boolean!
         params: SearchParamsInput
     ): SessionResults!
@@ -2963,15 +2978,15 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 		}
 	}
 	args["count"] = arg1
-	var arg2 bool
-	if tmp, ok := rawArgs["processed"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("processed"))
-		arg2, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+	var arg2 model.SessionLifecycle
+	if tmp, ok := rawArgs["lifecycle"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lifecycle"))
+		arg2, err = ec.unmarshalNSessionLifecycle2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["processed"] = arg2
+	args["lifecycle"] = arg2
 	var arg3 bool
 	if tmp, ok := rawArgs["starred"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("starred"))
@@ -6403,7 +6418,7 @@ func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["count"].(int), args["processed"].(bool), args["starred"].(bool), args["params"].(*model.SearchParamsInput))
+		return ec.resolvers.Query().Sessions(rctx, args["organization_id"].(int), args["count"].(int), args["lifecycle"].(model.SessionLifecycle), args["starred"].(bool), args["params"].(*model.SearchParamsInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8137,6 +8152,38 @@ func (ec *executionContext) _Session_starred(ctx context.Context, field graphql.
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Starred, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_processed(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Processed, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11174,6 +11221,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_viewed(ctx, field, obj)
 		case "starred":
 			out.Values[i] = ec._Session_starred(ctx, field, obj)
+		case "processed":
+			out.Values[i] = ec._Session_processed(ctx, field, obj)
 		case "field_group":
 			out.Values[i] = ec._Session_field_group(ctx, field, obj)
 		case "enable_strict_privacy":
@@ -11908,6 +11957,16 @@ func (ec *executionContext) marshalNSessionComment2ᚕᚖgithubᚗcomᚋjayᚑkh
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) unmarshalNSessionLifecycle2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx context.Context, v interface{}) (model.SessionLifecycle, error) {
+	var res model.SessionLifecycle
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNSessionLifecycle2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx context.Context, sel ast.SelectionSet, v model.SessionLifecycle) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNSessionResults2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx context.Context, sel ast.SelectionSet, v model1.SessionResults) graphql.Marshaler {
