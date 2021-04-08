@@ -340,7 +340,7 @@ export class Highlight {
             if (!this.sessionID) {
                 return;
             }
-            var resources: Array<any> = [];
+            var resources: Array<PerformanceEntry> = [];
             if (!this.disableNetworkRecording) {
                 // get all resources that don't include 'api.highlight.run'
                 resources = performance
@@ -352,27 +352,37 @@ export class Highlight {
                                     'https://api.highlight.run'
                             )
                     );
-            }
-
-            const resourcesString = JSON.stringify({ resources: resources });
-            const messagesString = JSON.stringify({ messages: this.messages });
-            this.logger.log(
-                `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionID}`
-            );
-            if (!this.disableNetworkRecording) {
                 performance.clearResourceTimings();
             }
-            await this.graphqlSDK.PushPayload({
-                session_id: this.sessionID.toString(),
-                events: { events: this.events },
-                messages: messagesString,
-                resources: resourcesString,
-                errors: this.errors,
-            });
-            this.events = [];
-            this.errors = [];
-            this.messages = [];
-            this.networkContents = [];
+
+            if (
+                this.events.length ||
+                this.errors.length ||
+                this.messages.length ||
+                this.networkContents.length ||
+                resources.length
+            ) {
+                this.logger.log(
+                    `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionID}`
+                );
+                const resourcesString = JSON.stringify({
+                    resources: resources,
+                });
+                const messagesString = JSON.stringify({
+                    messages: this.messages,
+                });
+                await this.graphqlSDK.PushPayload({
+                    session_id: this.sessionID.toString(),
+                    events: { events: this.events },
+                    messages: messagesString,
+                    resources: resourcesString,
+                    errors: this.errors,
+                });
+                this.events = [];
+                this.errors = [];
+                this.messages = [];
+                this.networkContents = [];
+            }
         } catch (e) {
             HighlightWarning('_save', e);
         }
