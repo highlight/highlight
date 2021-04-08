@@ -117,9 +117,9 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
 
-	// Check if there is a session created by this user and it isn't the same session.
+	// Check if there is a session created by this user.
 	firstTime := &model.F
-	if err := r.DB.Where(&model.Session{Identifier: userIdentifier}).Not(&model.Session{Model: model.Model{ID: sessionID}}).Take(&model.Session{}).Error; err != nil {
+	if err := r.DB.Where(&model.Session{Identifier: userIdentifier}).Take(&model.Session{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			firstTime = &model.T
 		} else {
