@@ -26,6 +26,7 @@ type Session {
     fields: [Field]
     viewed: Boolean
     starred: Boolean
+    first_time: Boolean
     field_group: String
     enable_strict_privacy: Boolean
 }
@@ -59,6 +60,7 @@ type Organization {
     name: String!
     billing_email: String
     trial_end_date: Time
+    slack_webhook_channel: String
 }
 
 type Segment {
@@ -258,6 +260,7 @@ type Query {
         count: Int!
         processed: Boolean!
         starred: Boolean!
+        first_time: Boolean!
         params: SearchParamsInput
     ): SessionResults!
     billingDetails(organization_id: ID!): BillingDetails!

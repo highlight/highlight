@@ -2015,10 +2015,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@highlight-run/rrweb@0.11.1":
-  version "0.11.1"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.11.1.tgz#dfa7cb05ccba53435740c420249fc39f38cfb6dc"
-  integrity sha512-hPGDuqOpfyntAPR+RC4R2Y1iLJbeA4dbmBkiqh0+zQZyR4PBrCRM3nSXNeF0soLEZLYLLu6Nq69BmRBDFWd0AQ==
+"@highlight-run/rrweb@0.11.2":
+  version "0.11.2"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.11.2.tgz#7b5dd5eedb54b7e66d4fc9e9922b5f8a9498742f"
+  integrity sha512-J9/P/fWi0rJ5eeILokhYNTpOa8jIgHvqaWlEEIbrVu2x2N71QUm8tW48S520qhmr3oO+NwcxWMst2yLdP47ZQQ==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
@@ -12759,6 +12759,13 @@ react-command-palette@^0.14.0:
     react-autosuggest "^10.1.0"
     react-modal "^3.12.1"
 
+react-confetti@^6.0.1:
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/react-confetti/-/react-confetti-6.0.1.tgz#d4f57b5a021dd908a6243b8f63b6009b00818d10"
+  integrity sha512-ZpOTBrqSNhWE4rRXCZ6E6U+wGd7iYHF5MGrqwikoiBpgBq9Akdu0DcLW+FdFnLjyZYC+VfAiV2KeFgYRMyMrkA==
+  dependencies:
+    tween-functions "^1.2.0"
+
 react-copy-to-clipboard@^5.0.2:
   version "5.0.3"
   resolved "https://registry.yarnpkg.com/react-copy-to-clipboard/-/react-copy-to-clipboard-5.0.3.tgz#2a0623b1115a1d8c84144e9434d3342b5af41ab4"
@@ -15208,6 +15215,11 @@ tunnel-agent@^0.6.0:
   integrity sha1-J6XeoGs2sEoKmWZ3SykIaPD8QP0=
   dependencies:
     safe-buffer "^5.0.1"
+
+tween-functions@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/tween-functions/-/tween-functions-1.2.0.tgz#1ae3a50e7c60bb3def774eac707acbca73bbc3ff"
+  integrity sha1-GuOlDnxguz3vd06scHrLynO7w/8=
 
 tweetnacl@^0.14.3, tweetnacl@~0.14.0:
   version "0.14.5"
