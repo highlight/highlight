@@ -43,6 +43,7 @@ export type Session = {
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
     starred?: Maybe<Scalars['Boolean']>;
+    first_time?: Maybe<Scalars['Boolean']>;
     field_group?: Maybe<Scalars['String']>;
     enable_strict_privacy?: Maybe<Scalars['Boolean']>;
 };
@@ -80,6 +81,7 @@ export type Organization = {
     name: Scalars['String'];
     billing_email?: Maybe<Scalars['String']>;
     trial_end_date?: Maybe<Scalars['Time']>;
+    slack_webhook_channel?: Maybe<Scalars['String']>;
 };
 
 export type Segment = {
@@ -351,6 +353,7 @@ export type QuerySessionsArgs = {
     count: Scalars['Int'];
     processed: Scalars['Boolean'];
     starred: Scalars['Boolean'];
+    first_time: Scalars['Boolean'];
     params?: Maybe<SearchParamsInput>;
 };
 

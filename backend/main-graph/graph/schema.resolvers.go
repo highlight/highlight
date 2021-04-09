@@ -761,7 +761,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	return &count, nil
 }
 
-func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, processed bool, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, processed bool, starred bool, firstTime bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -851,9 +851,9 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
-	queryString := `SELECT id, user_id, organization_id, processed, starred, os_name, os_version, browser_name,
+	queryString := `SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed
-	FROM (SELECT id, user_id, organization_id, processed, starred, os_name, os_version, browser_name,
+	FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
@@ -863,6 +863,9 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 	if starred {
 		queryString += "AND (starred = true) "
+	}
+	if firstTime {
+		queryString += "AND (first_time = true) "
 	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
