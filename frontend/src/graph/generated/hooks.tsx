@@ -1310,6 +1310,7 @@ export const GetOrganizationDocument = gql`
             trial_end_date
             verbose_id
             billing_email
+            slack_webhook_channel
         }
     }
 `;
