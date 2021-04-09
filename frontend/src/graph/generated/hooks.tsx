@@ -1104,7 +1104,7 @@ export const GetSessionsDocument = gql`
     query GetSessions(
         $organization_id: ID!
         $count: Int!
-        $processed: Boolean!
+        $lifecycle: SessionLifecycle!
         $starred: Boolean!
         $first_time: Boolean!
         $params: SearchParamsInput
@@ -1112,7 +1112,7 @@ export const GetSessionsDocument = gql`
         sessions(
             organization_id: $organization_id
             count: $count
-            processed: $processed
+            lifecycle: $lifecycle
             starred: $starred
             first_time: $first_time
             params: $params
@@ -1132,6 +1132,7 @@ export const GetSessionsDocument = gql`
                 length
                 viewed
                 starred
+                processed
                 fields {
                     name
                     value
@@ -1158,7 +1159,7 @@ export const GetSessionsDocument = gql`
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      count: // value for 'count'
- *      processed: // value for 'processed'
+ *      lifecycle: // value for 'lifecycle'
  *      starred: // value for 'starred'
  *      first_time: // value for 'first_time'
  *      params: // value for 'params'

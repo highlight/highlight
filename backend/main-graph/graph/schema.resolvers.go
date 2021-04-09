@@ -765,7 +765,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	return &count, nil
 }
 
-func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, processed bool, starred bool, firstTime bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, firstTime bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -862,7 +862,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
-	if processed {
+	if lifecycle == modelInputs.SessionLifecycleCompleted {
 		queryString += fmt.Sprintf("AND (length > %d) ", 1000)
 	}
 	if starred {
@@ -882,7 +882,11 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		}
 	}
 
-	queryString += "AND (processed = " + strconv.FormatBool(processed) + ") "
+	if lifecycle == modelInputs.SessionLifecycleCompleted {
+		queryString += "AND (processed = true) "
+	} else if lifecycle == modelInputs.SessionLifecycleLive {
+		queryString += "AND (processed = false) "
+	}
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {

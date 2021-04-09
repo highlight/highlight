@@ -30,6 +30,7 @@ import {
     Maybe,
     Session,
     SessionResults,
+    SessionLifecycle,
 } from '../../../graph/generated/schemas';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import { Field } from '../../../components/Field/Field';
@@ -64,14 +65,19 @@ export const SessionFeed = () => {
         sessions: [],
         totalCount: -1,
     });
-    const { searchParams } = useContext(SearchContext);
+    const { searchParams, hideLiveSessions } = useContext(SearchContext);
 
     const { loading, fetchMore, data: sessionData } = useGetSessionsQuery({
         variables: {
             params: searchParams,
             count: count + 10,
             organization_id,
-            processed: segment_id !== LIVE_SEGMENT_ID,
+            lifecycle:
+                segment_id === LIVE_SEGMENT_ID
+                    ? SessionLifecycle.Live
+                    : hideLiveSessions
+                    ? SessionLifecycle.Completed
+                    : SessionLifecycle.All,
             starred: segment_id === STARRED_SEGMENT_ID,
             first_time: false,
         },
@@ -106,7 +112,12 @@ export const SessionFeed = () => {
                     params: searchParams,
                     count,
                     organization_id,
-                    processed: false,
+                    processed:
+                        segment_id === LIVE_SEGMENT_ID
+                            ? SessionLifecycle.Live
+                            : hideLiveSessions
+                            ? SessionLifecycle.Completed
+                            : SessionLifecycle.All,
                 },
             });
         },
@@ -313,11 +324,22 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                             </div>
                             <div className={styles.sessionTextSection}>
                                 <div className={styles.topText}>
-                                    {segment_id === LIVE_SEGMENT_ID
-                                        ? 'In Progress'
-                                        : MillisToMinutesAndSecondsVerbose(
-                                              session?.length || 0
-                                          ) || '30 min 20 sec'}
+                                    {segment_id === LIVE_SEGMENT_ID ? (
+                                        'In Progress'
+                                    ) : session?.processed ? (
+                                        MillisToMinutesAndSecondsVerbose(
+                                            session?.length || 0
+                                        ) || '30 min 20 sec'
+                                    ) : (
+                                        <div
+                                            className={styles.recordingWrapper}
+                                        >
+                                            <div
+                                                className={styles.recordingDot}
+                                            ></div>
+                                            Recording
+                                        </div>
+                                    )}
                                 </div>
                                 <div className={styles.middleText}>
                                     {created.toLocaleString('en-us', {
