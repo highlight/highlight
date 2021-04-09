@@ -45,6 +45,7 @@ query GetSessions(
     $count: Int!
     $lifecycle: SessionLifecycle!
     $starred: Boolean!
+    $first_time: Boolean!
     $params: SearchParamsInput
 ) {
     sessions(
@@ -52,6 +53,7 @@ query GetSessions(
         count: $count
         lifecycle: $lifecycle
         starred: $starred
+        first_time: $first_time
         params: $params
     ) {
         sessions {
@@ -75,6 +77,7 @@ query GetSessions(
                 value
                 type
             }
+            first_time
         }
         totalCount
     }
@@ -102,6 +105,7 @@ query GetOrganization($id: ID!) {
         trial_end_date
         verbose_id
         billing_email
+        slack_webhook_channel
     }
 }
 

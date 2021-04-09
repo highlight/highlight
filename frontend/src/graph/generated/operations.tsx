@@ -312,6 +312,7 @@ export type GetSessionsQueryVariables = Types.Exact<{
     count: Types.Scalars['Int'];
     lifecycle: Types.SessionLifecycle;
     starred: Types.Scalars['Boolean'];
+    first_time: Types.Scalars['Boolean'];
     params?: Types.Maybe<Types.SearchParamsInput>;
 }>;
 
@@ -338,6 +339,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'viewed'
                     | 'starred'
                     | 'processed'
+                    | 'first_time'
                 > & {
                         fields?: Types.Maybe<
                             Array<
@@ -387,7 +389,12 @@ export type GetOrganizationQuery = { __typename?: 'Query' } & {
     organization?: Types.Maybe<
         { __typename?: 'Organization' } & Pick<
             Types.Organization,
-            'id' | 'name' | 'trial_end_date' | 'verbose_id' | 'billing_email'
+            | 'id'
+            | 'name'
+            | 'trial_end_date'
+            | 'verbose_id'
+            | 'billing_email'
+            | 'slack_webhook_channel'
         >
     >;
 };

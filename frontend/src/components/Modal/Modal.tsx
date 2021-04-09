@@ -4,7 +4,10 @@ import React from 'react';
 import Close from '../../static/Close';
 import styles from './Modal.module.scss';
 
-type Props = Pick<ModalProps, 'width' | 'onCancel' | 'visible' | 'style'> & {
+type Props = Pick<
+    ModalProps,
+    'width' | 'onCancel' | 'visible' | 'style' | 'forceRender' | 'modalRender'
+> & {
     title?: string;
 };
 

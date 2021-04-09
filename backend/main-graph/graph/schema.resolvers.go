@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -546,6 +547,20 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
+	if os.Getenv("ENVIRONMENT") == "dev" && sessionID == 1 {
+		file, err := ioutil.ReadFile("./tmp/events.json")
+
+		if err != nil {
+			return nil, e.Wrap(err, "Failed to read temp file")
+		}
+		var data []interface{}
+
+		if err := json.Unmarshal([]byte(file), &data); err != nil {
+			return nil, e.Wrap(err, "Failed to unmarshal data from file")
+		}
+
+		return data, nil
+	}
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -750,7 +765,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	return &count, nil
 }
 
-func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, firstTime bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -840,9 +855,9 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
-	queryString := `SELECT id, user_id, organization_id, processed, starred, os_name, os_version, browser_name,
+	queryString := `SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed
-	FROM (SELECT id, user_id, organization_id, processed, starred, os_name, os_version, browser_name,
+	FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
@@ -852,6 +867,9 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 	if starred {
 		queryString += "AND (starred = true) "
+	}
+	if firstTime {
+		queryString += "AND (first_time = true) "
 	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {

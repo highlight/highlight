@@ -3,6 +3,7 @@ import React, {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -39,6 +40,7 @@ import {
     STARRED_SEGMENT_ID,
 } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import Tooltip from '../../../components/Tooltip/Tooltip';
+import Confetti from 'react-confetti';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
@@ -77,6 +79,7 @@ export const SessionFeed = () => {
                     ? SessionLifecycle.Completed
                     : SessionLifecycle.All,
             starred: segment_id === STARRED_SEGMENT_ID,
+            first_time: false,
         },
         pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
@@ -212,6 +215,7 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
             });
         },
     });
+    const containerRef = useRef<HTMLDivElement>(null);
 
     return (
         <div
@@ -254,7 +258,19 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                 </Tooltip>
             )}
             <Link to={`/${organization_id}/sessions/${session?.id}`}>
-                <div className={styles.sessionCard}>
+                <div className={styles.sessionCard} ref={containerRef}>
+                    {session?.first_time &&
+                        !session?.viewed &&
+                        containerRef.current?.offsetHeight &&
+                        containerRef.current.offsetWidth && (
+                            <Confetti
+                                height={containerRef.current.offsetHeight}
+                                width={containerRef.current.offsetWidth}
+                                numberOfPieces={150}
+                                recycle={false}
+                                tweenDuration={5000 * 2}
+                            />
+                        )}
                     <div
                         className={classNames(
                             styles.hoverBorderLeft,

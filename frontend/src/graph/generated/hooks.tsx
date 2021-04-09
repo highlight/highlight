@@ -1106,6 +1106,7 @@ export const GetSessionsDocument = gql`
         $count: Int!
         $lifecycle: SessionLifecycle!
         $starred: Boolean!
+        $first_time: Boolean!
         $params: SearchParamsInput
     ) {
         sessions(
@@ -1113,6 +1114,7 @@ export const GetSessionsDocument = gql`
             count: $count
             lifecycle: $lifecycle
             starred: $starred
+            first_time: $first_time
             params: $params
         ) {
             sessions {
@@ -1136,6 +1138,7 @@ export const GetSessionsDocument = gql`
                     value
                     type
                 }
+                first_time
             }
             totalCount
         }
@@ -1158,6 +1161,7 @@ export const GetSessionsDocument = gql`
  *      count: // value for 'count'
  *      lifecycle: // value for 'lifecycle'
  *      starred: // value for 'starred'
+ *      first_time: // value for 'first_time'
  *      params: // value for 'params'
  *   },
  * });
@@ -1311,6 +1315,7 @@ export const GetOrganizationDocument = gql`
             trial_end_date
             verbose_id
             billing_email
+            slack_webhook_channel
         }
     }
 `;
