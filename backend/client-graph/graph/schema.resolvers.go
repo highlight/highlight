@@ -123,7 +123,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			firstTime = &model.T
 		} else {
-			return nil, e.Wrap(err, "error when searching for past sessions")
+			return nil, e.Wrap(err, "error querying session with past identifier")
 		}
 	}
 
