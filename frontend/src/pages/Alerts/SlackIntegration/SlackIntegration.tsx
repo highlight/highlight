@@ -15,7 +15,9 @@ interface Props {
 const SlackIntegration = ({ redirectPath, integratedChannel }: Props) => {
     const history = useHistory();
     const { organization_id } = useParams<{ organization_id: string }>();
-    const [addSlackIntegration] = useAddSlackIntegrationToWorkspaceMutation();
+    const [addSlackIntegration] = useAddSlackIntegrationToWorkspaceMutation({
+        refetchQueries: ['GetOrganization'],
+    });
     const [integrationLoading, setIntegrationLoading] = useState<
         boolean | undefined
     >(undefined);
