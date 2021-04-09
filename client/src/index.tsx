@@ -60,6 +60,11 @@ type Source = 'segment' | undefined;
  */
 const SEND_FREQUENCY = 1000 * 5;
 
+/**
+ * Maximum length of a session
+ */
+const MAX_SESSION_LENGTH = 4 * 60 * 60 * 100;
+
 export class Highlight {
     organizationID: string;
     graphqlSDK: Sdk;
@@ -68,6 +73,9 @@ export class Highlight {
     messages: ConsoleMessage[];
     networkContents: NetworkResourceContent[];
     sessionID: number;
+    sessionStartTime: number;
+    userIdentifier: string;
+    userObject: Object;
     ready: boolean;
     logger: Logger;
     disableNetworkRecording: boolean | undefined;
@@ -103,10 +111,13 @@ export class Highlight {
             this.organizationID = '';
         }
         this.sessionID = 0;
+        this.sessionStartTime = Date.now();
         this.events = [];
         this.errors = [];
         this.networkContents = [];
         this.messages = [];
+        this.userObject = {};
+        this.userIdentifier = '';
     }
 
     async identify(user_identifier: string, user_object = {}, source?: Source) {
@@ -121,6 +132,8 @@ export class Highlight {
                 JSON.stringify({ user_identifier, ...user_object })
             );
         }
+        this.userIdentifier = user_identifier;
+        this.userObject = user_object;
         await this.graphqlSDK.identifySession({
             session_id: this.sessionID.toString(),
             user_identifier: user_identifier,
@@ -203,10 +216,23 @@ export class Highlight {
             if (organization_id) {
                 this.organizationID = org_id;
             }
+            this.sessionStartTime =
+                Number(window.sessionStorage.getItem('sessionStartTime')) ||
+                Date.now();
             let storedID =
                 Number(window.sessionStorage.getItem('currentSessionID')) ||
                 null;
             let reloaded = false;
+            this.userIdentifier =
+                window.sessionStorage.getItem('userIdentifier') || '';
+            this.userObject = JSON.parse(
+                window.sessionStorage.getItem('userObject') || '{}'
+            );
+            // To handle the 'Duplicate Tab' function, remove id from storage until page unload
+            window.sessionStorage.removeItem('currentSessionID');
+            window.sessionStorage.removeItem('sessionStartTime');
+            window.sessionStorage.removeItem('userIdentifier');
+            window.sessionStorage.removeItem('userObject');
             if (storedID) {
                 this.sessionID = storedID;
                 reloaded = true;
@@ -226,10 +252,6 @@ export class Highlight {
   Session Data:
   `,
                     gr.initializeSession
-                );
-                window.sessionStorage.setItem(
-                    'currentSessionID',
-                    this.sessionID.toString()
                 );
             }
             setTimeout(() => {
@@ -333,12 +355,55 @@ export class Highlight {
         } catch (e) {
             HighlightWarning('initializeSession', e);
         }
+        window.addEventListener('beforeunload', () => {
+            window.sessionStorage.setItem(
+                'currentSessionID',
+                this.sessionID.toString()
+            );
+            window.sessionStorage.setItem(
+                'sessionStartTime',
+                this.sessionStartTime.toString()
+            );
+            window.sessionStorage.setItem(
+                'userIdentifier',
+                this.userIdentifier
+            );
+            window.sessionStorage.setItem(
+                'userObject',
+                JSON.stringify(this.userObject)
+            );
+        });
     }
     // Reset the events array and push to a backend.
     async _save() {
         try {
             if (!this.sessionID) {
                 return;
+            }
+            if (Date.now() - this.sessionStartTime > MAX_SESSION_LENGTH) {
+                const gr = await this.graphqlSDK.initializeSession({
+                    organization_verbose_id: this.organizationID,
+                    enable_strict_privacy: this.enableStrictPrivacy,
+                });
+                this.sessionID = parseInt(gr?.initializeSession?.id || '0');
+                this.sessionStartTime = Date.now();
+                const emit = (event: eventWithTime) => {
+                    this.events.push(event);
+                };
+                emit.bind(this);
+                record({
+                    ignoreClass: 'highlight-ignore',
+                    blockClass: 'highlight-block',
+                    emit,
+                    enableStrictPrivacy: this.enableStrictPrivacy,
+                });
+                addCustomEvent('Viewport', {
+                    height: window.innerHeight,
+                    width: window.innerWidth,
+                });
+                if (this.userIdentifier) {
+                    this.identify(this.userIdentifier, this.userObject);
+                }
             }
             var resources: Array<any> = [];
             if (!this.disableNetworkRecording) {
