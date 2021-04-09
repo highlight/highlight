@@ -71,6 +71,7 @@ export const SessionFeed = () => {
             organization_id,
             processed: segment_id !== LIVE_SEGMENT_ID,
             starred: segment_id === STARRED_SEGMENT_ID,
+            first_time: false,
         },
         pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
