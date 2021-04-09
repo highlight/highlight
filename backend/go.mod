@@ -35,7 +35,6 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/slack-go/slack v0.6.6
 	github.com/speps/go-hashids v2.0.0+incompatible
-	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/vektah/gqlparser/v2 v2.1.0
@@ -44,6 +43,6 @@ require (
 	gopkg.in/DataDog/dd-trace-go.v1 v1.29.2
 	gopkg.in/boj/redistore.v1 v1.0.0-20160128113310-fc113767cd6b
 	gopkg.in/yaml.v2 v2.3.0 // indirect
-	gorm.io/driver/postgres v1.0.8 // indirect
+	gorm.io/driver/postgres v1.0.8
 	gorm.io/gorm v1.21.6
 )
