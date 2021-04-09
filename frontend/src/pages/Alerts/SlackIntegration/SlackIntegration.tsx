@@ -23,11 +23,7 @@ const SlackIntegration = ({ redirectPath, integratedChannel }: Props) => {
     >(undefined);
     const searchLocation = window.location.search;
 
-    const redirectUriOrigin = `${
-        process.env.REACT_APP_ENVIRONMENT === 'dev'
-            ? process.env.REACT_APP_LOCAL_TUNNEL_URI
-            : process.env.REACT_APP_FRONTEND_URI
-    }/${organization_id}`;
+    const redirectUriOrigin = `${process.env.REACT_APP_FRONTEND_URI}/${organization_id}`;
 
     useEffect(() => {
         const urlParams = new URLSearchParams(searchLocation);

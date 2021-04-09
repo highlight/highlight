@@ -279,19 +279,11 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 }
 
 func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
-	// NOTE: In order to use this endpoint on your local machine, use ngrok to serve
-	// the frontend on a tunnel, and set "LOCAL_TUNNEL_URI" to the base URL.
-	// The Slack API doesn't support non-ssl, hence this requirement.
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	var redirect string
-	if os.Getenv("ENVIRONMENT") == "dev" {
-		redirect = os.Getenv("LOCAL_TUNNEL_URI")
-	} else {
-		redirect = os.Getenv("FRONTEND_URI")
-	}
+	redirect := os.Getenv("FRONTEND_URI")
 	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
 	resp, err := slack.
 		GetOAuthV2Response(
