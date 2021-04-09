@@ -15,17 +15,15 @@ interface Props {
 const SlackIntegration = ({ redirectPath, integratedChannel }: Props) => {
     const history = useHistory();
     const { organization_id } = useParams<{ organization_id: string }>();
-    const [addSlackIntegration] = useAddSlackIntegrationToWorkspaceMutation();
+    const [addSlackIntegration] = useAddSlackIntegrationToWorkspaceMutation({
+        refetchQueries: ['GetOrganization'],
+    });
     const [integrationLoading, setIntegrationLoading] = useState<
         boolean | undefined
     >(undefined);
     const searchLocation = window.location.search;
 
-    const redirectUriOrigin = `${
-        process.env.REACT_APP_ENVIRONMENT === 'dev'
-            ? process.env.REACT_APP_LOCAL_TUNNEL_URI
-            : process.env.REACT_APP_FRONTEND_URI
-    }/${organization_id}`;
+    const redirectUriOrigin = `${process.env.REACT_APP_FRONTEND_URI}/${organization_id}`;
 
     useEffect(() => {
         const urlParams = new URLSearchParams(searchLocation);
