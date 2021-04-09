@@ -25,10 +25,6 @@ const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
         }
     }, [url]);
 
-    useEffect(() => {
-        console.log(showVideo);
-    }, [showVideo]);
-
     return (
         <div className={styles.homePageWrapper}>
             <div className={styles.stylingWrapper}>
