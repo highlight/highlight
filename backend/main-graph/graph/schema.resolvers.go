@@ -172,8 +172,7 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int, view
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	session := &model.Session{}
-	res := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session)
-	if err := res.Update(&model.Session{
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session).Updates(&model.Session{
 		Viewed: viewed,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as viewed")
@@ -188,8 +187,7 @@ func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, id int, sta
 		return nil, e.Wrap(err, "admin not session owner")
 	}
 	session := &model.Session{}
-	res := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session)
-	if err := res.Update(&model.Session{
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session).Updates(&model.Session{
 		Starred: starred,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing session as starred")
@@ -204,8 +202,7 @@ func (r *mutationResolver) MarkErrorGroupAsResolved(ctx context.Context, id int,
 		return nil, e.Wrap(err, "admin not errorGroup owner")
 	}
 	errorGroup := &model.ErrorGroup{}
-	res := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: id}}).First(&errorGroup)
-	if err := res.Update(&model.ErrorGroup{
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: id}}).First(&errorGroup).Updates(&model.ErrorGroup{
 		Resolved: resolved,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup resolved status")
@@ -261,8 +258,7 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 
 func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error) {
 	org := &model.Organization{}
-	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
 	if org.Secret == nil || (org.Secret != nil && *org.Secret != inviteID) {
@@ -272,7 +268,7 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 	if err != nil {
 		return nil, e.New("error querying admin")
 	}
-	if err := r.DB.Model(org).Association("Admins").Append(admin).Error; err != nil {
+	if err := r.DB.Model(org).Association("Admins").Append(admin); err != nil {
 		return nil, e.Wrap(err, "error adding admin to association")
 	}
 	return &org.ID, nil
@@ -429,7 +425,7 @@ func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizati
 	}
 	rec := &model.RecordingSettings{}
 	res := r.DB.Where(&model.RecordingSettings{Model: model.Model{ID: organizationID}}).First(&rec)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying record")
 	}
 	if err := r.DB.Model(rec).Updates(&model.RecordingSettings{
@@ -729,7 +725,7 @@ func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*mode
 	}
 	admins := []*model.Admin{}
 	err := r.DB.Model(
-		&model.Organization{Model: model.Model{ID: organizationID}}).Association("Admins").Find(&admins).Error
+		&model.Organization{Model: model.Model{ID: organizationID}}).Association("Admins").Find(&admins)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
@@ -740,7 +736,7 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	var count int
+	var count int64
 	err := r.DB.Model(&model.Session{}).Where(
 		&model.Session{OrganizationID: organizationID}).Count(&count).Error
 	if err != nil {
@@ -752,12 +748,12 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 	return &model.F, nil
 }
 
-func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error) {
+func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int64, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
-	var count int
+	var count int64
 	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, Processed: &model.F}).Count(&count).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving count of unprocessed sessions")
 	}
@@ -986,7 +982,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	}
 	planType := FromPriceID(priceID)
 	year, month, _ := time.Now().Date()
-	var meter int
+	var meter int64
 	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
 		return nil, e.Wrap(err, "error querying for session meter")
 	}
@@ -1010,7 +1006,7 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 		Where("value ILIKE ?", "%"+query+"%").
 		Limit(8).
 		Find(&fields)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
 	}
 	return fields, nil
@@ -1026,7 +1022,7 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 		Where("value ILIKE ?", "%"+query+"%").
 		Limit(8).
 		Find(&fields)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
 	}
 	return fields, nil
@@ -1043,7 +1039,7 @@ func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, organizationID
 		Where("organization_id = ?", organizationID).
 		Limit(8).
 		Find(&fields)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying error field suggestion")
 	}
 	return fields, nil
@@ -1055,7 +1051,7 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 		return nil, e.Wrap(err, "error retrieiving user")
 	}
 	orgs := []*model.Organization{}
-	if err := r.DB.Model(&admin).Association("Organizations").Find(&orgs).Error; err != nil {
+	if err := r.DB.Model(&admin).Association("Organizations").Find(&orgs); err != nil {
 		return nil, e.Wrap(err, "error getting associated organizations")
 	}
 	return orgs, nil
@@ -1083,7 +1079,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	uid := fmt.Sprintf("%v", ctx.Value("uid"))
 	admin := &model.Admin{UID: &uid}
 	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := res.Error; err != nil {
 		fbuser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
 			return nil, e.Wrap(err, "error retrieving user from firebase api")
@@ -1133,7 +1129,7 @@ func (r *queryResolver) ErrorSegments(ctx context.Context, organizationID int) (
 
 func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID int) (*model.RecordingSettings, error) {
 	recordingSettings := &model.RecordingSettings{OrganizationID: organizationID}
-	if res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recordingSettings); res.RecordNotFound() || res.Error != nil {
+	if res := r.DB.Where(&model.RecordingSettings{OrganizationID: organizationID}).First(&recordingSettings); res.Error != nil {
 		newRecordSettings := &model.RecordingSettings{
 			OrganizationID: organizationID,
 			Details:        nil,

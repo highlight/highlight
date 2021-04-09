@@ -11,7 +11,7 @@ import (
 
 type BillingDetails struct {
 	Plan  *Plan `json:"plan"`
-	Meter int   `json:"meter"`
+	Meter int64 `json:"meter"`
 }
 
 type DateRangeInput struct {
