@@ -170,11 +170,12 @@ type ComplexityRoot struct {
 	}
 
 	Organization struct {
-		BillingEmail func(childComplexity int) int
-		ID           func(childComplexity int) int
-		Name         func(childComplexity int) int
-		TrialEndDate func(childComplexity int) int
-		VerboseID    func(childComplexity int) int
+		BillingEmail        func(childComplexity int) int
+		ID                  func(childComplexity int) int
+		Name                func(childComplexity int) int
+		SlackWebhookChannel func(childComplexity int) int
+		TrialEndDate        func(childComplexity int) int
+		VerboseID           func(childComplexity int) int
 	}
 
 	Plan struct {
@@ -1019,6 +1020,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Organization.Name(childComplexity), true
 
+	case "Organization.slack_webhook_channel":
+		if e.complexity.Organization.SlackWebhookChannel == nil {
+			break
+		}
+
+		return e.complexity.Organization.SlackWebhookChannel(childComplexity), true
+
 	case "Organization.trial_end_date":
 		if e.complexity.Organization.TrialEndDate == nil {
 			break
@@ -1788,6 +1796,7 @@ type Organization {
     name: String!
     billing_email: String
     trial_end_date: Time
+    slack_webhook_channel: String
 }
 
 type Segment {
@@ -5874,6 +5883,38 @@ func (ec *executionContext) _Organization_trial_end_date(ctx context.Context, fi
 	res := resTmp.(*time.Time)
 	fc.Result = res
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_slack_webhook_channel(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SlackWebhookChannel, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Plan_type(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
@@ -10591,6 +10632,8 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._Organization_billing_email(ctx, field, obj)
 		case "trial_end_date":
 			out.Values[i] = ec._Organization_trial_end_date(ctx, field, obj)
+		case "slack_webhook_channel":
+			out.Values[i] = ec._Organization_slack_webhook_channel(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -386,7 +386,12 @@ export type GetOrganizationQuery = { __typename?: 'Query' } & {
     organization?: Types.Maybe<
         { __typename?: 'Organization' } & Pick<
             Types.Organization,
-            'id' | 'name' | 'trial_end_date' | 'verbose_id' | 'billing_email'
+            | 'id'
+            | 'name'
+            | 'trial_end_date'
+            | 'verbose_id'
+            | 'billing_email'
+            | 'slack_webhook_channel'
         >
     >;
 };

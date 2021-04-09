@@ -79,6 +79,7 @@ export type Organization = {
     name: Scalars['String'];
     billing_email?: Maybe<Scalars['String']>;
     trial_end_date?: Maybe<Scalars['Time']>;
+    slack_webhook_channel?: Maybe<Scalars['String']>;
 };
 
 export type Segment = {
