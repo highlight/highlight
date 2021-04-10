@@ -121,6 +121,9 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 	if params.Identified != nil {
 		modelParams.Identified = *params.Identified
 	}
+	if params.FirstTime != nil {
+		modelParams.FirstTime = *params.FirstTime
+	}
 	if params.HideViewed != nil {
 		modelParams.HideViewed = *params.HideViewed
 	}

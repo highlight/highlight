@@ -10,6 +10,7 @@ import {
 import {
     UserPropertyInput,
     IdentifiedUsersSwitch,
+    FirstTimeUsersSwitch,
 } from '../SearchInputs/UserPropertyInputs';
 import { TrackPropertyInput } from '../SearchInputs/TrackPropertyInputs';
 import {
@@ -58,6 +59,7 @@ export const SearchSidebar = () => {
                         </div>
                         <UserPropertyInput include={false} />
                         <IdentifiedUsersSwitch />
+                        <FirstTimeUsersSwitch />
                     </SearchSection>
                     <SearchSection
                         title="Track Properties"

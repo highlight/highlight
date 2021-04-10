@@ -14,6 +14,7 @@ import { ContainsLabel } from './SearchInputUtil';
 import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
 import { PropertyOption } from '../../../components/Option/Option';
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
+import Tooltip from '../../../components/Tooltip/Tooltip';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -131,6 +132,31 @@ export const IdentifiedUsersSwitch = () => {
             >
                 Only show identified users
             </Checkbox>
+        </div>
+    );
+};
+
+export const FirstTimeUsersSwitch = () => {
+    const { searchParams, setSearchParams } = useContext(SearchContext);
+
+    return (
+        <div className={inputStyles.checkboxRow}>
+            <Tooltip
+                title="Show only your user's first recorded session"
+                placement="left"
+            >
+                <Checkbox
+                    checked={searchParams.first_time}
+                    onChange={(e: CheckboxChangeEvent) => {
+                        setSearchParams((params) => ({
+                            ...params,
+                            first_time: e.target.checked,
+                        }));
+                    }}
+                >
+                    Only show first time users
+                </Checkbox>
+            </Tooltip>
         </div>
     );
 };

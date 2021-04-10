@@ -757,7 +757,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	return &count, nil
 }
 
-func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, firstTime bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -860,7 +860,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	if starred {
 		queryString += "AND (starred = true) "
 	}
-	if firstTime {
+	if firstTime := params.FirstTime; firstTime != nil && *firstTime {
 		queryString += "AND (first_time = true) "
 	}
 	if params.LengthRange != nil {
