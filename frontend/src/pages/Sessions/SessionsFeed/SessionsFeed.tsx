@@ -79,7 +79,6 @@ export const SessionFeed = () => {
                     ? SessionLifecycle.Completed
                     : SessionLifecycle.All,
             starred: segment_id === STARRED_SEGMENT_ID,
-            first_time: false,
         },
         pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {

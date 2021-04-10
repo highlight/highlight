@@ -312,7 +312,6 @@ export type GetSessionsQueryVariables = Types.Exact<{
     count: Types.Scalars['Int'];
     lifecycle: Types.SessionLifecycle;
     starred: Types.Scalars['Boolean'];
-    first_time: Types.Scalars['Boolean'];
     params?: Types.Maybe<Types.SearchParamsInput>;
 }>;
 
@@ -634,6 +633,7 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
                             | 'referrer'
                             | 'identified'
                             | 'hide_viewed'
+                            | 'first_time'
                         > & {
                                 user_properties?: Types.Maybe<
                                     Array<

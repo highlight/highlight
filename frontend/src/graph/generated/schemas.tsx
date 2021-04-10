@@ -165,6 +165,7 @@ export type SearchParamsInput = {
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
+    first_time?: Maybe<Scalars['Boolean']>;
 };
 
 export type SearchParams = {
@@ -180,6 +181,7 @@ export type SearchParams = {
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
+    first_time?: Maybe<Scalars['Boolean']>;
 };
 
 export type ErrorSearchParamsInput = {
@@ -359,7 +361,6 @@ export type QuerySessionsArgs = {
     count: Scalars['Int'];
     lifecycle: SessionLifecycle;
     starred: Scalars['Boolean'];
-    first_time: Scalars['Boolean'];
     params?: Maybe<SearchParamsInput>;
 };
 

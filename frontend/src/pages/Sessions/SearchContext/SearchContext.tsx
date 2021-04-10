@@ -17,6 +17,8 @@ export type SearchParams = {
     referrer?: string;
     identified: boolean;
     hide_viewed?: boolean;
+    /** Whether this session is the user's first session. */
+    first_time?: boolean;
 };
 
 export const SearchContext = React.createContext<{

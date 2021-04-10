@@ -140,6 +140,7 @@ input SearchParamsInput {
     referrer: String
     identified: Boolean
     hide_viewed: Boolean
+    first_time: Boolean
 }
 
 type SearchParams {
@@ -154,6 +155,7 @@ type SearchParams {
     referrer: String
     identified: Boolean
     hide_viewed: Boolean
+    first_time: Boolean
 }
 
 input ErrorSearchParamsInput {
@@ -267,7 +269,6 @@ type Query {
         count: Int!
         lifecycle: SessionLifecycle!
         starred: Boolean!
-        first_time: Boolean!
         params: SearchParamsInput
     ): SessionResults!
     billingDetails(organization_id: ID!): BillingDetails!
