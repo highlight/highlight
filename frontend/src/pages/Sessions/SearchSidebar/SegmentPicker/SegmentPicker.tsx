@@ -81,7 +81,8 @@ export const SegmentPicker = () => {
                     !_.isEqual(
                         history.location.state,
                         EmptySessionsSearchParams
-                    )
+                    ) &&
+                    history.length > 2
                 ) {
                     const parsed: SearchParams = gqlSanitize(
                         history.location.state
