@@ -71,6 +71,7 @@ export const SegmentPicker = () => {
     useEffect(() => {
         if (segment_id) {
             if (segment_id === LIVE_SEGMENT_ID) {
+                setSegmentName(null);
                 return;
             }
             if (currentSegment) {
@@ -97,6 +98,7 @@ export const SegmentPicker = () => {
                 setSegmentName(currentSegment.name);
             } else {
                 // Redirect home since the segment doesn't exist anymore.
+                setSegmentName(null);
                 history.replace(`/${organization_id}/sessions`);
             }
         } else {
