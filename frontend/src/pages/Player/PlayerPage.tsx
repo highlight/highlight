@@ -144,35 +144,35 @@ export const Player = () => {
                     <div className={styles.playerLeftTopSection}>
                         <SessionLevelBar />
                     </div>
-                    <Dropdown
-                        overlay={
-                            <Menu>
-                                {CONTEXT_MENU_ITEMS.map((item) => (
-                                    <Menu.Item
-                                        key={item.label}
-                                        onClick={item.onClick}
-                                    >
-                                        {item.label}
-                                    </Menu.Item>
-                                ))}
-                            </Menu>
-                        }
-                        trigger={['contextMenu']}
-                        onVisibleChange={(visible) => {
-                            if (
-                                visible &&
-                                replayerState !== ReplayerState.Paused
-                            ) {
-                                pause();
-                            }
-                        }}
-                    >
-                        <div className={styles.rrwebPlayerSection}>
-                            <div
-                                className={styles.rrwebPlayerWrapper}
-                                ref={playerWrapperRef}
+                    <div className={styles.rrwebPlayerSection}>
+                        <div
+                            className={styles.rrwebPlayerWrapper}
+                            ref={playerWrapperRef}
+                        >
+                            {resizeListener}
+                            <Dropdown
+                                overlay={
+                                    <Menu>
+                                        {CONTEXT_MENU_ITEMS.map((item) => (
+                                            <Menu.Item
+                                                key={item.label}
+                                                onClick={item.onClick}
+                                            >
+                                                {item.label}
+                                            </Menu.Item>
+                                        ))}
+                                    </Menu>
+                                }
+                                trigger={['contextMenu']}
+                                onVisibleChange={(visible) => {
+                                    if (
+                                        visible &&
+                                        replayerState !== ReplayerState.Paused
+                                    ) {
+                                        pause();
+                                    }
+                                }}
                             >
-                                {resizeListener}
                                 <div
                                     style={{
                                         visibility: isReplayerReady
@@ -182,19 +182,18 @@ export const Player = () => {
                                     className={styles.rrwebPlayerDiv}
                                     id="player"
                                 />
-                                {!isReplayerReady ? (
-                                    <PlayerSkeleton
-                                        height={
-                                            playerWrapperRef.current
-                                                ?.clientHeight
-                                        }
-                                    />
-                                ) : (
-                                    <></>
-                                )}
-                            </div>
+                            </Dropdown>
+                            {!isReplayerReady ? (
+                                <PlayerSkeleton
+                                    height={
+                                        playerWrapperRef.current?.clientHeight
+                                    }
+                                />
+                            ) : (
+                                <></>
+                            )}
                         </div>
-                    </Dropdown>
+                    </div>
                     <Toolbar
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
