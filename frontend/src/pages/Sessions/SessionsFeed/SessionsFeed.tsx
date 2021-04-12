@@ -40,7 +40,7 @@ import {
     STARRED_SEGMENT_ID,
 } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import Tooltip from '../../../components/Tooltip/Tooltip';
-import Confetti from 'react-confetti';
+import FirstTimeDecorations from './components/FirstTimeDecorations/FirstTimeDecorations';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
@@ -258,18 +258,10 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
             )}
             <Link to={`/${organization_id}/sessions/${session?.id}`}>
                 <div className={styles.sessionCard} ref={containerRef}>
-                    {session?.first_time &&
-                        !session?.viewed &&
-                        containerRef.current?.offsetHeight &&
-                        containerRef.current.offsetWidth && (
-                            <Confetti
-                                height={containerRef.current.offsetHeight}
-                                width={containerRef.current.offsetWidth}
-                                numberOfPieces={150}
-                                recycle={false}
-                                tweenDuration={5000 * 2}
-                            />
-                        )}
+                    <FirstTimeDecorations
+                        containerRef={containerRef}
+                        session={session}
+                    />
                     <div
                         className={classNames(
                             styles.hoverBorderLeft,

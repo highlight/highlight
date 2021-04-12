@@ -521,7 +521,7 @@ const TimelineAnnotationColors: {
     Reload: '--color-green-light',
     Navigate: '--color-yellow',
     Errors: '--color-red',
-    Segment: '--color-orange',
+    Segment: '--color-orange-400',
     Track: '--color-blue-light',
 };
 
