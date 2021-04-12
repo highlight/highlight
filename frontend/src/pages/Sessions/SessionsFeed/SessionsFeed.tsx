@@ -316,20 +316,11 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                             <div className={styles.sessionTextSection}>
                                 <div className={styles.topText}>
                                     {session?.processed &&
-                                    segment_id !== LIVE_SEGMENT_ID ? (
-                                        MillisToMinutesAndSecondsVerbose(
-                                            session?.length || 0
-                                        ) || '30 min 20 sec'
-                                    ) : (
-                                        <div
-                                            className={styles.recordingWrapper}
-                                        >
-                                            <div
-                                                className={styles.recordingDot}
-                                            ></div>
-                                            Recording
-                                        </div>
-                                    )}
+                                    segment_id !== LIVE_SEGMENT_ID
+                                        ? MillisToMinutesAndSecondsVerbose(
+                                              session?.length || 0
+                                          ) || '30 min 20 sec'
+                                        : 'Live'}
                                 </div>
                                 <div className={styles.middleText}>
                                     {created.toLocaleString('en-us', {
