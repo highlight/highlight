@@ -100,6 +100,8 @@ export enum PlayerSearchParameters {
     ts = 'ts',
     /** The error ID for an error in the current session. The player's time will be set to the lookback period before the error's timestamp. */
     errorId = 'errorId',
+    /** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
+    commentId = 'commentId',
 }
 
 /**

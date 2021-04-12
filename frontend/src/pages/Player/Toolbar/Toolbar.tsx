@@ -22,15 +22,14 @@ import ReplayerContext, {
 import classNames from 'classnames';
 import Skeleton from 'react-loading-skeleton';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
-import Popover from '../../../components/Popover/Popover';
-import moment from 'moment';
 import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
 import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
 import { ErrorObject } from '../../../graph/generated/schemas';
 import Modal from '../../../components/Modal/Modal';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
-import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
+import TimelineCommentAnnotation from './TimelineAnnotation/TimelineCommentAnnotation';
 import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
+import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -499,49 +498,10 @@ const SessionSegment = ({
                             }}
                         >
                             {comments?.map((comment) => (
-                                <Popover
+                                <TimelineCommentAnnotation
                                     key={comment.id}
-                                    content={
-                                        <div className={styles.popoverContent}>
-                                            {comment.text}
-                                        </div>
-                                    }
-                                    title={
-                                        <div
-                                            className={classNames(
-                                                styles.tooltipHeader,
-                                                styles.commentHeader
-                                            )}
-                                        >
-                                            <span
-                                                className={styles.commentAuthor}
-                                            >
-                                                {comment.author.name ||
-                                                    comment.author.email}
-                                            </span>
-                                            <span
-                                                className={
-                                                    styles.commentUpdatedTime
-                                                }
-                                            >
-                                                {moment(
-                                                    comment.updated_at
-                                                ).fromNow()}
-                                            </span>
-                                        </div>
-                                    }
-                                >
-                                    <div
-                                        tabIndex={1}
-                                        className={styles.annotation}
-                                        style={{
-                                            left: `${comment.relativeIntervalPercentage}%`,
-                                            backgroundColor: `var(${getAnnotationColor(
-                                                'Comments'
-                                            )})`,
-                                        }}
-                                    ></div>
-                                </Popover>
+                                    comment={comment}
+                                />
                             ))}
                         </div>
                     )}
