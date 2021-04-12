@@ -70,6 +70,9 @@ export const OrgRouter = () => {
                         part of a team, ask your workspace admin to send you an
                         invite. Otherwise, feel free to make an account!
                         `}
+                        errorString={
+                            'OrgRouter Error: ' + JSON.stringify(error)
+                        }
                     />
                 ) : (
                     <>
