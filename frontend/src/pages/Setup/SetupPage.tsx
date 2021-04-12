@@ -136,14 +136,26 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         <Section
                             title="Enable Slack Alerts"
                             headingIcon={
-                                <SvgSlackLogo height="15" width="15" />
+                                data.organization.slack_webhook_channel ? (
+                                    <IntegrationDetector
+                                        verbose={false}
+                                        integrated={integrated}
+                                    />
+                                ) : (
+                                    <SvgSlackLogo height="15" width="15" />
+                                )
                             }
                         >
                             <p className={styles.snippetSubHeading}>
                                 Get notified of errors happening in your
                                 application.
                             </p>
-                            <SlackIntegration redirectPath="setup" />
+                            <SlackIntegration
+                                redirectPath="setup"
+                                integratedChannel={
+                                    data.organization.slack_webhook_channel
+                                }
+                            />
                         </Section>
                     </>
                 )}

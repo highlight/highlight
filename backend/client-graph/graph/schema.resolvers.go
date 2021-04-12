@@ -6,19 +6,21 @@ package graph
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	"github.com/jay-khatri/fullstory/backend/event-parse"
+	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jinzhu/gorm"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string) (*model.Session, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool) (*model.Session, error) {
 	organizationID := model.FromVerboseID(organizationVerboseID)
 	organization := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization)
@@ -66,20 +68,21 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	acceptLanguageString := ctx.Value("acceptLanguage").(string)
 	n := time.Now()
 	session := &model.Session{
-		UserID:           user.ID,
-		OrganizationID:   organizationID,
-		City:             location.City,
-		State:            location.State,
-		Postal:           location.Postal,
-		Latitude:         location.Latitude.(float64),
-		Longitude:        location.Longitude.(float64),
-		OSName:           deviceDetails.OSName,
-		OSVersion:        deviceDetails.OSVersion,
-		BrowserName:      deviceDetails.BrowserName,
-		BrowserVersion:   deviceDetails.BrowserVersion,
-		Language:         acceptLanguageString,
-		Processed:        &model.F,
-		PayloadUpdatedAt: &n,
+		UserID:              user.ID,
+		OrganizationID:      organizationID,
+		City:                location.City,
+		State:               location.State,
+		Postal:              location.Postal,
+		Latitude:            location.Latitude.(float64),
+		Longitude:           location.Longitude.(float64),
+		OSName:              deviceDetails.OSName,
+		OSVersion:           deviceDetails.OSVersion,
+		BrowserName:         deviceDetails.BrowserName,
+		BrowserVersion:      deviceDetails.BrowserVersion,
+		Language:            acceptLanguageString,
+		Processed:           &model.F,
+		PayloadUpdatedAt:    &n,
+		EnableStrictPrivacy: &enableStrictPrivacy,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
@@ -113,7 +116,18 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
-	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{Identifier: userIdentifier})
+
+	// Check if there is a session created by this user.
+	firstTime := &model.F
+	if err := r.DB.Where(&model.Session{Identifier: userIdentifier}).Take(&model.Session{}).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			firstTime = &model.T
+		} else {
+			return nil, e.Wrap(err, "error querying session with past identifier")
+		}
+	}
+
+	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{Identifier: userIdentifier, FirstTime: firstTime})
 	if err := res.Error; err != nil || res.RecordNotFound() {
 		return nil, e.Wrap(err, "error adding user identifier to session")
 	}

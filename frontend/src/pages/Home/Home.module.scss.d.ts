@@ -1,6 +1,7 @@
 export const arrow: string;
 export const arrowWrapper: string;
 export const contentWrapper: string;
+export const demoVideoButton: string;
 export const header: string;
 export const highlightText: string;
 export const homePageWrapper: string;
@@ -9,6 +10,7 @@ export const landing: string;
 export const landingWrapper: string;
 export const logoHeader: string;
 export const logos: string;
+export const modalWrapper: string;
 export const nav: string;
 export const navLink: string;
 export const overlayWrapper: string;

@@ -29,6 +29,8 @@ export const sessionCardWrapper: string;
 export const sessionTextSection: string;
 export const sessionTextSectionWrapper: string;
 export const sessionTextWrapper: string;
+export const starredIcon: string;
+export const starredIconWrapper: string;
 export const tagWrapper: string;
 export const topText: string;
 export const userInputWrapper: string;

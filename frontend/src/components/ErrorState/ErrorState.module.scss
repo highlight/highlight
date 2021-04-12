@@ -1,0 +1,37 @@
+@import 'src/static/shared.scss';
+
+.errorContent {
+    max-width: 500px;
+    padding: 30px;
+    @include rounded-border;
+}
+
+.errorWrapper {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.errorTitle {
+    font-size: 24px;
+    font-weight: 400;
+}
+
+.errorBody {
+    font-size: 16px;
+    font-weight: 200;
+    max-width: 800px;
+    word-wrap: break-word;
+}
+
+.buttonGroup {
+    margin-top: 25px;
+}
+
+.expandButton {
+    color: $highlight-purple;
+    cursor: pointer;
+    font-weight: 300;
+}

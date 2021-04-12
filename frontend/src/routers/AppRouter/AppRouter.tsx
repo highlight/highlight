@@ -14,6 +14,7 @@ import {
 import { OrgRouter } from '../OrgRouter/OrgRouter';
 import { useGetOrganizationsQuery } from '../../graph/generated/hooks';
 import { Home } from '../../pages/Home/Home';
+import InternalRouter from '../InternalRouter/InternalRouter';
 
 export const AppRouter = () => {
     const {
@@ -43,6 +44,9 @@ export const AppRouter = () => {
                         <Home>
                             <NewWorkspacePage />
                         </Home>
+                    </Route>
+                    <Route path="/_internal">
+                        <InternalRouter />
                     </Route>
                     <Route path="/:organization_id">
                         <OrgRouter />

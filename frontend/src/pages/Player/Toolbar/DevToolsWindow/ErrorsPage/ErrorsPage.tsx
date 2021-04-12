@@ -1,42 +1,59 @@
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { DevToolsSelect } from '../Option/Option';
 import devStyles from '../DevToolsWindow.module.scss';
 import styles from './ErrorsPage.module.scss';
 import classNames from 'classnames';
 import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard';
-import { ErrorObject } from '../../../../../graph/generated/schemas';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import Skeleton from 'react-loading-skeleton';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
+import { findLastActiveEventIndex } from './utils/utils';
+import { useErrorModalContext } from '../../ErrorModalContext/ErrorModalContext';
 
 export interface ErrorsPageHistoryState {
     errorCardIndex: number;
 }
 
 const ErrorsPage = () => {
-    const lastActiveErrorIndex = -1;
+    const [lastActiveErrorIndex, setLastActiveErrorIndex] = useState(-1);
     const virtuoso = useRef<VirtuosoHandle>(null);
+    const [isInteractingWithErrors, setIsInteractingWithErrors] = useState(
+        false
+    );
     const history = useHistory<ErrorsPageHistoryState>();
-    const { errors, state } = useContext(ReplayerContext);
+    const { errors, state, time, replayer } = useContext(ReplayerContext);
+    const { setSelectedError } = useErrorModalContext();
 
     const loading = state === ReplayerState.Loading;
-
-    // Scrolls to the error card the user originally clicked on. This only happens if the user clicked on an error card from the player page which navigates them to the error page. From there there navigate back using the browser's back navigation.
-    useEffect(() => {
-        if (
-            history.location.state?.errorCardIndex !== undefined &&
-            virtuoso.current
-        ) {
-            virtuoso.current?.scrollToIndex(
-                history.location.state.errorCardIndex
-            );
-        }
-    }, [history.location.state?.errorCardIndex]);
 
     /** Only errors recorded after this feature was released will have the timestamp. */
     const hasTimestamp =
         !loading && errors?.every((error) => !!error.timestamp);
+
+    useEffect(() => {
+        if (!isInteractingWithErrors && hasTimestamp && replayer) {
+            const index = findLastActiveEventIndex(
+                time,
+                replayer.getMetaData().startTime,
+                errors
+            );
+            setLastActiveErrorIndex(index);
+        }
+    }, [errors, hasTimestamp, isInteractingWithErrors, replayer, time]);
+
+    useEffect(() => {
+        if (virtuoso.current) {
+            // Scrolls to the error card the user originally clicked on. This only happens if the user clicked on an error card from the player page which navigates them to the error page. From there there navigate back using the browser's back navigation.
+            if (history.location.state?.errorCardIndex !== undefined) {
+                virtuoso.current.scrollToIndex(
+                    history.location.state.errorCardIndex
+                );
+            } else {
+                virtuoso.current.scrollToIndex(lastActiveErrorIndex);
+            }
+        }
+    }, [history.location.state?.errorCardIndex, lastActiveErrorIndex]);
 
     return (
         <>
@@ -57,14 +74,19 @@ const ErrorsPage = () => {
                     </div>
                 ) : (
                     <Virtuoso
+                        onMouseEnter={() => {
+                            setIsInteractingWithErrors(true);
+                        }}
+                        onMouseLeave={() => {
+                            setIsInteractingWithErrors(false);
+                        }}
                         ref={virtuoso}
                         overscan={500}
                         data={errors}
                         itemContent={(index, error) => (
                             <ErrorCard
                                 key={error?.id}
-                                error={error as ErrorObject}
-                                index={index}
+                                error={error}
                                 state={
                                     hasTimestamp
                                         ? index === lastActiveErrorIndex
@@ -72,6 +94,9 @@ const ErrorsPage = () => {
                                             : ErrorCardState.Inactive
                                         : ErrorCardState.Unknown
                                 }
+                                setSelectedError={() => {
+                                    setSelectedError(error);
+                                }}
                             />
                         )}
                     />

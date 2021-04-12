@@ -1,0 +1,16 @@
+@import 'src/static/shared.scss';
+
+.actionsContainer {
+    display: flex;
+    gap: $size-xSmall;
+    justify-content: flex-end;
+}
+
+.errorDescriptionContainer {
+    margin-bottom: 30px;
+}
+
+.errorTitleContainer {
+    display: flex;
+    align-items: center;
+}

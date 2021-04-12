@@ -167,3 +167,27 @@ export const ViewedSessionsSwitch = () => {
         </div>
     );
 };
+
+export const LiveSessionsSwitch = () => {
+    const { hideLiveSessions, setHideLiveSessions } = useContext(SearchContext);
+
+    return (
+        <div className={inputStyles.switchRow}>
+            <Switch
+                checked={hideLiveSessions}
+                onChange={(val: boolean) => {
+                    setHideLiveSessions(val);
+                }}
+            />
+            <div
+                className={classNames(inputStyles.switchText, {
+                    [inputStyles.switchTextSelected]: hideLiveSessions,
+                })}
+            >
+                <span className={inputStyles.switchSpan}>
+                    Hide live sessions
+                </span>
+            </div>
+        </div>
+    );
+};

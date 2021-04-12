@@ -9,7 +9,7 @@ import { Link, useParams } from 'react-router-dom';
 import styles from './ErrorFeed.module.scss';
 import Skeleton from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
-import { message, Tooltip } from 'antd';
+import { message } from 'antd';
 import {
     useGetErrorGroupsQuery,
     useMarkErrorGroupAsResolvedMutation,
@@ -28,6 +28,7 @@ import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmp
 import { frequencyTimeData } from '../../../util/errorCalculations';
 import { Field } from '../../../components/Field/Field';
 import { EventInput } from '../ErrorSearchInputs/EventInput';
+import Tooltip from '../../../components/Tooltip/Tooltip';
 
 export type ErrorMetadata = {
     browser: string;

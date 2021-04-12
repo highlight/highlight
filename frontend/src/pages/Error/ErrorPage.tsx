@@ -13,41 +13,25 @@ import {
     YAxis,
     Cell,
 } from 'recharts';
-import LinesEllipsis from 'react-lines-ellipsis';
 
 import styles from './ErrorPage.module.scss';
-import commonStyles from '../../Common.module.scss';
 import Skeleton from 'react-loading-skeleton';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import moment from 'moment';
 import { frequencyTimeData } from '../../util/errorCalculations';
 import classNames from 'classnames';
-import { Tooltip } from 'antd';
-import { Link } from 'react-router-dom';
 import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
-import { PlayerSearchParameters } from '../Player/PlayerHook/utils';
+import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTable';
+import StackTraceSection from './components/StackTraceSection/StackTraceSection';
+import ErrorDescription from './components/ErrorDescription/ErrorDescription';
+import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
     const { setOpenSidebar } = useContext(SidebarContext);
-    const { organization_id } = useParams<{
-        organization_id: string;
-    }>();
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
     });
-    const [title, setTitle] = useState<string | undefined>(undefined);
-    const [eventLineExpand, setEventLineExpand] = useState(false);
-    const [showExpandButton, setShowExpandButton] = useState(true);
-    const [errorActivityCount, setErrorActivityCount] = useState(20);
-
-    useEffect(() => {
-        setTitle(
-            getHeaderFromError(
-                (data?.error_group?.event as Array<string>) ?? []
-            )
-        );
-    }, [data]);
 
     useEffect(() => {
         setOpenSidebar(false);
@@ -61,17 +45,7 @@ export const ErrorPage = () => {
                         {loading ? (
                             <Skeleton count={1} style={{ width: 300 }} />
                         ) : (
-                            <>
-                                <div className={styles.title}>{title}</div>
-                                <Field
-                                    k={'mechanism'}
-                                    v={
-                                        data?.error_group?.type ||
-                                        'window.onerror'
-                                    }
-                                    color={'warning'}
-                                />
-                            </>
+                            <ErrorTitle errorGroup={data?.error_group} />
                         )}
                     </div>
                     <div className={styles.eventText}>
@@ -81,34 +55,7 @@ export const ErrorPage = () => {
                                 style={{ height: 20, marginBottom: 10 }}
                             />
                         ) : (
-                            <>
-                                <LinesEllipsis
-                                    text={data?.error_group?.event.join() ?? ''}
-                                    maxLine={
-                                        eventLineExpand
-                                            ? Number.MAX_SAFE_INTEGER
-                                            : 2
-                                    }
-                                    style={{ display: 'inline' }}
-                                    onReflow={(c) => {
-                                        setShowExpandButton(
-                                            !(
-                                                c.text ===
-                                                data?.error_group?.event.join()
-                                            )
-                                        );
-                                    }}
-                                />
-                                {showExpandButton && (
-                                    <span
-                                        className={styles.expandButton}
-                                        onClick={() => setEventLineExpand(true)}
-                                    >
-                                        {' '}
-                                        show more
-                                    </span>
-                                )}
-                            </>
+                            <ErrorDescription errorGroup={data?.error_group} />
                         )}
                     </div>
                     <div className={styles.subTitle}>
@@ -123,15 +70,7 @@ export const ErrorPage = () => {
                         )}
                     </div>
                     <div className={styles.fieldWrapper}>
-                        {data?.error_group?.trace.map((e, i) => (
-                            <StackSection
-                                key={i}
-                                fileName={e?.file_name ?? ''}
-                                functionName={e?.function_name ?? ''}
-                                lineNumber={e?.line_number ?? 0}
-                                columnNumber={e?.column_number ?? 0}
-                            />
-                        ))}
+                        <StackTraceSection errorGroup={data?.error_group} />
                     </div>
                     <div className={styles.subTitle}>
                         {loading ? (
@@ -147,104 +86,9 @@ export const ErrorPage = () => {
                     <div className={styles.fieldWrapper}>
                         <ErrorFrequencyGraph errorGroup={data?.error_group} />
                     </div>
-                    <div
-                        className={styles.fieldWrapper}
-                        style={{ paddingBottom: '40px' }}
-                    >
-                        <div className={styles.section}>
-                            <div className={styles.collapsible}>
-                                <div
-                                    className={classNames(
-                                        styles.triggerWrapper,
-                                        styles.errorLogDivider
-                                    )}
-                                >
-                                    <div className={styles.errorLogsTitle}>
-                                        <span>Error ID</span>
-                                        <span>Session ID</span>
-                                        <span>Visited URL</span>
-                                        <span>Browser</span>
-                                        <span>OS</span>
-                                        <span>Timestamp</span>
-                                    </div>
-                                </div>
-                                <div className={styles.errorLogWrapper}>
-                                    {data?.error_group?.metadata_log
-                                        .slice(
-                                            Math.max(
-                                                data?.error_group?.metadata_log
-                                                    .length -
-                                                    errorActivityCount,
-                                                0
-                                            )
-                                        )
-                                        .reverse()
-                                        .map((e, i) => (
-                                            <Link
-                                                to={`/${organization_id}/sessions/${
-                                                    e?.session_id
-                                                }${
-                                                    e?.timestamp
-                                                        ? `?${PlayerSearchParameters.errorId}=${e.error_id}`
-                                                        : ''
-                                                }`}
-                                                key={i}
-                                            >
-                                                <div
-                                                    key={i}
-                                                    className={
-                                                        styles.errorLogItem
-                                                    }
-                                                >
-                                                    <span>{e?.error_id}</span>
-                                                    <span>{e?.session_id}</span>
-                                                    <div
-                                                        className={
-                                                            styles.errorLogCell
-                                                        }
-                                                    >
-                                                        <span
-                                                            className={
-                                                                styles.errorLogOverflow
-                                                            }
-                                                        >
-                                                            {e?.visited_url}
-                                                        </span>
-                                                    </div>
-                                                    <span>{e?.browser}</span>
-                                                    <span>{e?.os}</span>
-                                                    <span>
-                                                        {moment(
-                                                            e?.timestamp
-                                                        ).format(
-                                                            'D MMMM YYYY, HH:mm:ss'
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            </Link>
-                                        ))}
-                                    {data?.error_group?.metadata_log.length &&
-                                        errorActivityCount <
-                                            data?.error_group?.metadata_log
-                                                .length && (
-                                            <button
-                                                onClick={() =>
-                                                    setErrorActivityCount(
-                                                        errorActivityCount + 20
-                                                    )
-                                                }
-                                                className={classNames(
-                                                    commonStyles.secondaryButton,
-                                                    styles.errorLogButton
-                                                )}
-                                            >
-                                                Show more...
-                                            </button>
-                                        )}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    {data?.error_group && (
+                        <ErrorSessionsTable errorGroup={data.error_group} />
+                    )}
                 </div>
                 <div className={styles.errorPageRight}>
                     <div className={styles.errorPageRightContent}>
@@ -292,64 +136,13 @@ export const ErrorPage = () => {
     );
 };
 
-type StackSectionProps = {
-    fileName?: string;
-    functionName?: string;
-    lineNumber?: number;
-    columnNumber?: number;
-};
-
-export const StackSection: React.FC<StackSectionProps> = ({
-    fileName,
-    functionName,
-    lineNumber,
-    columnNumber,
-}) => {
-    const trigger = (
-        <Tooltip
-            title={`${fileName} in ${functionName} at line ${lineNumber}:${columnNumber}`}
-        >
-            <div className={styles.triggerWrapper}>
-                <div className={styles.snippetHeadingTwo}>
-                    <span
-                        className={styles.stackTraceErrorTitle}
-                        style={{ maxWidth: 300, fontWeight: 300 }}
-                    >
-                        {fileName}
-                    </span>
-                    <span style={{ fontWeight: 300, color: '#808080' }}>
-                        &nbsp;in&nbsp;
-                    </span>
-                    <span
-                        className={styles.stackTraceErrorTitle}
-                        style={{ maxWidth: 300, fontWeight: 400 }}
-                    >
-                        {functionName}
-                    </span>
-                    <span style={{ fontWeight: 300, color: '#808080' }}>
-                        &nbsp;at line&nbsp;
-                    </span>
-                    <span>
-                        {lineNumber}:{columnNumber}
-                    </span>
-                </div>
-            </div>
-        </Tooltip>
-    );
-    return (
-        <div className={styles.section}>
-            <div className={styles.collapsible}>{trigger}</div>
-        </div>
-    );
-};
-
 type FrequencyGraphProps = {
     errorGroup?: Maybe<ErrorGroup>;
 };
 
 type ErrorFrequency = {
     date: string;
-    occurences: number;
+    occurrences: number;
 };
 
 export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
@@ -367,7 +160,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                 .startOf('day')
                 .subtract(29 - idx, 'days')
                 .format('D MMM YYYY'),
-            occurences: val,
+            occurrences: val,
         }));
         setTotalErrors(errorDatesCopy.reduce((acc, val) => acc + val, 0));
         setErrorDates(errorData);
@@ -407,12 +200,12 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                         }}
                         itemStyle={{ color: 'white' }}
                     />
-                    <Bar dataKey="occurences" radius={[2, 2, 0, 0]}>
+                    <Bar dataKey="occurrences" radius={[2, 2, 0, 0]}>
                         {errorDates.map((e, i) => (
                             <Cell
                                 key={i}
                                 fill={
-                                    e.occurences >
+                                    e.occurrences >
                                     Math.max(totalErrors * 0.1, 10)
                                         ? '#C62929'
                                         : '#835E00'
@@ -424,13 +217,13 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
             </ResponsiveContainer>
             <div className={styles.graphLabels}>
                 <div>Past 30 days</div>
-                <div>{`Total Occurences: ${totalErrors}`}</div>
+                <div>{`Total Occurrences: ${totalErrors}`}</div>
             </div>
         </div>
     );
 };
 
-const getHeaderFromError = (errorMsg: Array<string>): string => {
+export const getHeaderFromError = (errorMsg: Maybe<string>[]): string => {
     const eventText = errorMsg[0];
     let title = '';
     // Try to get the text in the form Text: ....

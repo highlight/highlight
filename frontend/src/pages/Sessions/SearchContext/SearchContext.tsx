@@ -17,6 +17,8 @@ export type SearchParams = {
     referrer?: string;
     identified: boolean;
     hide_viewed?: boolean;
+    /** Whether this session is the user's first session. */
+    first_time?: boolean;
 };
 
 export const SearchContext = React.createContext<{
@@ -26,6 +28,8 @@ export const SearchContext = React.createContext<{
     setExistingParams: React.Dispatch<React.SetStateAction<SearchParams>>;
     segmentName: string | null;
     setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
+    hideLiveSessions: boolean;
+    setHideLiveSessions: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
     /* eslint-disable */
     searchParams: { user_properties: [], identified: false },
@@ -34,5 +38,7 @@ export const SearchContext = React.createContext<{
     setExistingParams: (params) => console.warn('goop'),
     segmentName: null,
     setSegmentName: (val) => console.warn('poop'),
+    hideLiveSessions: false,
+    setHideLiveSessions: () => {},
     /* eslint-enable */
 });

@@ -1,11 +1,11 @@
 import classNames from 'classnames';
 import React, { ReactElement } from 'react';
+import Tooltip from '../../../../components/Tooltip/Tooltip';
 import styles from './SessionToken.module.scss';
-import { Tooltip } from 'antd';
 
 interface Props {
     icon: React.ReactNode;
-    tooltipTitle: string;
+    tooltipTitle: React.ReactNode;
 }
 
 function SessionToken({

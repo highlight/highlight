@@ -2,7 +2,7 @@
 
 .urlBarWrapper {
     background-color: #f9f9f9;
-    min-width: 400px;
+    width: 400px;
     font-size: 12px;
     @include rounded-border;
     padding: 1px 8px 1px 8px;
@@ -24,6 +24,10 @@
 
 .urlLink {
     color: black;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .urlLink:hover {
@@ -31,8 +35,8 @@
 }
 
 .copyIcon {
-    visibility: hidden;
     margin-left: auto;
     cursor: pointer;
     color: grey;
+    transition: opacity 0.2s ease-in-out;
 }
