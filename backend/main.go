@@ -65,6 +65,7 @@ func main() {
 	if port == "" {
 		port = defaultPort
 	}
+	rt := *runtime
 
 	// Connect to the datadog daemon.
 	_, err := statsd.New(statsdHost)
@@ -101,41 +102,66 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
-	// Maingraph logic
-	r.Route("/main", func(r chi.Router) {
-		r.Use(mgraph.AdminMiddleWare)
-		mainServer := ghandler.NewDefaultServer(mgenerated.NewExecutableSchema(
-			mgenerated.Config{
-				Resolvers: main,
-			}),
-		)
-		mainServer.Use(util.NewTracer(util.MainGraph))
-		r.Handle("/", mainServer)
-	})
-	// Clientgraph logic
-	r.Route("/client", func(r chi.Router) {
-		r.Use(cgraph.ClientMiddleWare)
-		clientServer := ghandler.NewDefaultServer(cgenerated.NewExecutableSchema(
-			cgenerated.Config{
-				Resolvers: &cgraph.Resolver{
-					DB: db,
-				},
-			}))
-		clientServer.Use(util.NewTracer(util.ClientGraph))
-		r.Handle("/", clientServer)
-	})
+	// If the runtime is 'server' (soon to be deprecated), serve both endpoints on the same server.
+	if rt == "server" {
+		r.Route("/main", func(r chi.Router) {
+			r.Use(mgraph.AdminMiddleWare)
+			mainServer := ghandler.NewDefaultServer(mgenerated.NewExecutableSchema(
+				mgenerated.Config{
+					Resolvers: main,
+				}),
+			)
+			mainServer.Use(util.NewTracer(util.MainGraph))
+			r.Handle("/", mainServer)
+		})
+		r.Route("/client", func(r chi.Router) {
+			r.Use(cgraph.ClientMiddleWare)
+			clientServer := ghandler.NewDefaultServer(cgenerated.NewExecutableSchema(
+				cgenerated.Config{
+					Resolvers: &cgraph.Resolver{
+						DB: db,
+					},
+				}))
+			clientServer.Use(util.NewTracer(util.ClientGraph))
+			r.Handle("/", clientServer)
+		})
+	} else if rt == "client-graph" {
+		// If the runtime is 'client-graph', serve the client-server on root `/`.
+		r.Route("/", func(r chi.Router) {
+			r.Use(cgraph.ClientMiddleWare)
+			clientServer := ghandler.NewDefaultServer(cgenerated.NewExecutableSchema(
+				cgenerated.Config{
+					Resolvers: &cgraph.Resolver{
+						DB: db,
+					},
+				}))
+			clientServer.Use(util.NewTracer(util.ClientGraph))
+			r.Handle("/", clientServer)
+		})
+	} else if rt == "main-graph" {
+		// If the runtime is 'main-graph', serve the main-server on root `/`.
+		r.Route("/main", func(r chi.Router) {
+			r.Use(mgraph.AdminMiddleWare)
+			mainServer := ghandler.NewDefaultServer(mgenerated.NewExecutableSchema(
+				mgenerated.Config{
+					Resolvers: main,
+				}),
+			)
+			mainServer.Use(util.NewTracer(util.MainGraph))
+			r.Handle("/", mainServer)
+		})
+	}
 	w := &worker.Worker{R: main}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
-	if rt := *runtime; rt == "dev" {
+	if rt == "dev" {
 		go func() {
 			w.Start()
 		}()
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	} else if rt == "worker" {
 		w.Start()
-	} else if rt == "server" {
+	} else if rt == "server" || rt == "main-graph" || rt == "client-graph" {
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	}
-
 	log.Errorf("invalid runtime")
 }
