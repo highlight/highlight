@@ -48,10 +48,7 @@ function TimelineCommentAnnotation({ comment }: Props): ReactElement {
                 colorKey="Comments"
                 onClickHandler={() => {
                     if (replayer) {
-                        pause(
-                            new Date(comment.timestamp).getTime() -
-                                replayer.getMetaData().startTime
-                        );
+                        pause(comment.timestamp);
                     }
                 }}
             />
