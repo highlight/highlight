@@ -264,37 +264,10 @@
     padding: 8px 0;
     width: 100%;
     top: -$size-large;
-
-    --annotation-scale: 0.1;
-
-    .annotation {
-        position: absolute;
-        z-index: 21;
-        height: calc(1px * (1 / var(--annotation-scale)));
-        width: calc(1px * (1 / var(--annotation-scale)));
-        background-color: var(--color-red);
-        opacity: 0.5;
-        border: 1px solid white;
-        transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
-        border-radius: 50%;
-        box-sizing: content-box;
-        padding: 0;
-        outline: none;
-        flex-shrink: 0;
-        flex-grow: 0;
-        animation: grow 0.5s normal;
-
-        &:hover,
-        &:focus {
-            opacity: 1;
-            transform: scale(2, 2);
-            z-index: 25;
-        }
-    }
 }
 
 .popoverHeader {
-    width: 100%;
+    width: 240px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -307,21 +280,10 @@
     overflow: hidden;
 }
 
-@keyframes grow {
-    0% {
-        opacity: 0;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: 1;
-        transform: scale(1.5);
-    }
-
-    100% {
-        opacity: 0.5;
-        transform: scale(1);
-    }
+.buttonContainer {
+    padding-top: $size-medium;
+    display: flex;
+    justify-content: flex-end;
 }
 
 .commentUpdatedTime {

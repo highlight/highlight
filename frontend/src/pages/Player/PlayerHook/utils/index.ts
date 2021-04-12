@@ -3,7 +3,7 @@ import {
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
 import { useCallback } from 'react';
-import { useHistory, useLocation } from 'react-router';
+import { useLocation } from 'react-router';
 import {
     ErrorObject,
     SessionComment,
@@ -109,7 +109,6 @@ export enum PlayerSearchParameters {
 export const useSetPlayerTimestampFromSearchParam = (
     setTime: (newTime: number) => void
 ) => {
-    const history = useHistory();
     const location = useLocation();
 
     const setPlayerTimestamp = useCallback(
@@ -157,16 +156,8 @@ export const useSetPlayerTimestampFromSearchParam = (
                 }
                 searchParamsObject.delete(PlayerSearchParameters.errorId);
             }
-            const remainingSearchParams = searchParamsObject.toString();
-            history.replace(
-                `${location.pathname}${
-                    remainingSearchParams !== ''
-                        ? `?${remainingSearchParams}`
-                        : ''
-                }`
-            );
         },
-        [history, location.pathname, location.search, setTime]
+        [location.search, setTime]
     );
 
     return {
@@ -202,7 +193,7 @@ export const addErrorsToSessionIntervals = (
 };
 
 /** These are the type of custom events that will show up as annotations on the timeline. */
-const CustomEventsForTimeline = [
+export const CustomEventsForTimeline = [
     'Click',
     'Focus',
     'Reload',
@@ -210,10 +201,15 @@ const CustomEventsForTimeline = [
     'Segment',
     'Track',
     'Comments',
-];
+] as const;
 const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline);
 
-export const EventsForTimeline = [...CustomEventsForTimeline, 'Errors'];
+export const EventsForTimeline = [
+    ...CustomEventsForTimeline,
+    'Errors',
+] as const;
+
+export type EventsForTimelineKeys = typeof EventsForTimeline;
 
 /**
  * Adds error events based on the interval that the error was thrown.

@@ -1,0 +1,8 @@
+@import 'src/static/shared.scss';
+
+.tooltipOverlay {
+    a {
+        color: $text-primary-inverted;
+        text-decoration: underline;
+    }
+}

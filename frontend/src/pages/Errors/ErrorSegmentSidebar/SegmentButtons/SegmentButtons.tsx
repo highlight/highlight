@@ -5,7 +5,7 @@ import commonStyles from '../../../../Common.module.scss';
 import { ErrorSearchContext } from '../../ErrorSearchContext/ErrorSearchContext';
 import { RouteComponentProps, useParams, withRouter } from 'react-router-dom';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
-import { message, Modal } from 'antd';
+import { message } from 'antd';
 import styles from './SegmentButtons.module.scss';
 import { useForm } from 'react-hook-form';
 import {
@@ -13,6 +13,7 @@ import {
     useEditErrorSegmentMutation,
 } from '../../../../graph/generated/hooks';
 import ModalBody from '../../../../components/ModalBody/ModalBody';
+import Modal from '../../../../components/Modal/Modal';
 
 type Inputs = {
     name: string;
@@ -74,17 +75,13 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
     return (
         <>
             <Modal
+                title="Create a Segment"
                 visible={createClicked}
-                maskClosable
                 onCancel={() => setCreateClicked(false)}
                 style={{ display: 'flex' }}
-                footer={null}
             >
                 <ModalBody className={styles.modalWrapper}>
                     <form onSubmit={handleSubmit(onSubmit)}>
-                        <div className={styles.modalTitle}>
-                            Create a Segment
-                        </div>
                         <div className={styles.modalSubTitle}>
                             Enter the name of your segment and you'll be good to
                             go!

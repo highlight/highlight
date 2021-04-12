@@ -21,14 +21,16 @@ import ReplayerContext, {
 } from '../ReplayerContext';
 import classNames from 'classnames';
 import Skeleton from 'react-loading-skeleton';
-import { Link, useParams } from 'react-router-dom';
-import { getEventRenderDetails } from '../StreamElement/StreamElement';
-import StreamElementPayload from '../StreamElement/StreamElementPayload';
-import { getHeaderFromError } from '../../Error/ErrorPage';
 import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
-import { EventsForTimeline } from '../PlayerHook/utils';
 import Popover from '../../../components/Popover/Popover';
 import moment from 'moment';
+import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
+import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
+import { ErrorObject } from '../../../graph/generated/schemas';
+import Modal from '../../../components/Modal/Modal';
+import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
+import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
+import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -43,6 +45,9 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
+    const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
+        undefined
+    );
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
@@ -192,7 +197,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
 
     return (
-        <>
+        <ErrorModalContextProvider value={{ selectedError, setSelectedError }}>
             <DevToolsContextProvider
                 value={{
                     openDevTools,
@@ -206,6 +211,14 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     startTime={replayer?.getMetaData().startTime ?? 0}
                 />
             </DevToolsContextProvider>
+            <Modal
+                visible={!!selectedError}
+                onCancel={() => {
+                    setSelectedError(undefined);
+                }}
+            >
+                <ErrorModal error={selectedError!} />
+            </Modal>
             <div className={styles.playerRail}>
                 <div
                     className={styles.sliderRail}
@@ -223,7 +236,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             comments={sessionCommentIntervals[ind]}
                             sliderClientX={sliderClientX}
                             wrapperWidth={wrapperWidth}
-                            time={time}
                             getSliderTime={getSliderTime}
                         />
                     ))}
@@ -394,7 +406,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     />
                 </div>
             </div>
-        </>
+        </ErrorModalContextProvider>
     );
 };
 
@@ -403,19 +415,15 @@ const SessionSegment = ({
     comments,
     sliderClientX,
     wrapperWidth,
-    time,
     getSliderTime,
 }: {
     interval: ParsedSessionInterval;
     comments: ParsedSessionComment[];
     sliderClientX: number;
     wrapperWidth: number;
-    time: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
-    const { organization_id } = useParams<{
-        organization_id: string;
-    }>();
+    const { time } = useContext(ReplayerContext);
     const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
     const [
         selectedTimelineAnnotationTypes,
@@ -453,50 +461,12 @@ const SessionSegment = ({
                             }%`,
                         }}
                     >
-                        {interval.sessionEvents?.map((event) => {
-                            const details = getEventRenderDetails(event);
-
-                            if (
-                                !selectedTimelineAnnotationTypes.includes(
-                                    details.title || ''
-                                )
-                            ) {
-                                return null;
-                            }
-
-                            return (
-                                <Popover
-                                    key={event.identifier}
-                                    content={
-                                        <div className={styles.popoverContent}>
-                                            <StreamElementPayload
-                                                payload={
-                                                    typeof details.payload ===
-                                                    'object'
-                                                        ? JSON.stringify(
-                                                              details.payload
-                                                          )
-                                                        : details.payload
-                                                }
-                                            />
-                                        </div>
-                                    }
-                                    title={details.title}
-                                >
-                                    <div
-                                        tabIndex={1}
-                                        className={styles.annotation}
-                                        style={{
-                                            left: `${event.relativeIntervalPercentage}%`,
-                                            backgroundColor: `var(${getAnnotationColor(
-                                                getEventRenderDetails(event)
-                                                    .title || ''
-                                            )})`,
-                                        }}
-                                    ></div>
-                                </Popover>
-                            );
-                        })}
+                        {interval.sessionEvents?.map((event) => (
+                            <TimelineEventAnnotation
+                                event={event}
+                                key={event.identifier}
+                            />
+                        ))}
                     </div>
                     {selectedTimelineAnnotationTypes.includes('Errors') && (
                         <div
@@ -509,46 +479,12 @@ const SessionSegment = ({
                                 }%`,
                             }}
                         >
-                            {interval.errors.map((error) => {
-                                return (
-                                    <Popover
-                                        key={error.id}
-                                        content={
-                                            <div
-                                                className={
-                                                    styles.popoverContent
-                                                }
-                                            >
-                                                {error.source}
-                                                <div>
-                                                    <Link
-                                                        to={`/${organization_id}/errors/${error.error_group_id}`}
-                                                    >
-                                                        More info
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        }
-                                        title={
-                                            <div
-                                                className={styles.popoverHeader}
-                                            >
-                                                {getHeaderFromError(
-                                                    error.event
-                                                )}
-                                            </div>
-                                        }
-                                    >
-                                        <div
-                                            tabIndex={1}
-                                            className={styles.annotation}
-                                            style={{
-                                                left: `${error.relativeIntervalPercentage}%`,
-                                            }}
-                                        ></div>
-                                    </Popover>
-                                );
-                            })}
+                            {interval.errors.map((error) => (
+                                <TimelineErrorAnnotation
+                                    key={error.id}
+                                    error={error}
+                                />
+                            ))}
                         </div>
                     )}
                     {selectedTimelineAnnotationTypes.includes('Comments') && (
@@ -660,8 +596,9 @@ const SessionSegment = ({
     );
 };
 
-const TimelineAnnotationColors: { [key: string]: string } = {
-    Default: '--color-purple',
+const TimelineAnnotationColors: {
+    [key in EventsForTimelineKeys[number]]: string;
+} = {
     Click: '--color-purple-light',
     Focus: '--color-blue',
     Reload: '--color-green-light',
@@ -672,10 +609,8 @@ const TimelineAnnotationColors: { [key: string]: string } = {
     Comments: '--color-green-dark',
 };
 
-export function getAnnotationColor(str: string): string {
-    if (str in TimelineAnnotationColors) {
-        return TimelineAnnotationColors[str];
-    }
-
-    return TimelineAnnotationColors['Default'];
+export function getAnnotationColor(
+    eventTypeKey: typeof EventsForTimeline[number]
+) {
+    return TimelineAnnotationColors[eventTypeKey];
 }

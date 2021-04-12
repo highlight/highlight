@@ -14,10 +14,12 @@ import {
 } from '../../../../graph/generated/hooks';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
-import { message, Modal, Tooltip } from 'antd';
+import { message } from 'antd';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
 import { EmptySessionsSearchParams } from '../../SessionsPage';
 import _ from 'lodash';
+import Modal from '../../../../components/Modal/Modal';
+import Tooltip from '../../../../components/Tooltip/Tooltip';
 
 export const LIVE_SEGMENT_ID = 'live';
 export const STARRED_SEGMENT_ID = 'starred';
@@ -69,6 +71,7 @@ export const SegmentPicker = () => {
     useEffect(() => {
         if (segment_id) {
             if (segment_id === LIVE_SEGMENT_ID) {
+                setSegmentName(null);
                 return;
             }
             if (currentSegment) {
@@ -78,7 +81,8 @@ export const SegmentPicker = () => {
                     !_.isEqual(
                         history.location.state,
                         EmptySessionsSearchParams
-                    )
+                    ) &&
+                    history.length > 2
                 ) {
                     const parsed: SearchParams = gqlSanitize(
                         history.location.state
@@ -95,6 +99,7 @@ export const SegmentPicker = () => {
                 setSegmentName(currentSegment.name);
             } else {
                 // Redirect home since the segment doesn't exist anymore.
+                setSegmentName(null);
                 history.replace(`/${organization_id}/sessions`);
             }
         } else {
@@ -114,14 +119,12 @@ export const SegmentPicker = () => {
     return (
         <>
             <Modal
+                title="Delete Segment"
                 visible={deleteClicked}
-                maskClosable
                 onCancel={() => setDeleteClicked(false)}
                 style={{ display: 'flex' }}
-                footer={null}
             >
                 <div className={styles.modalWrapper}>
-                    <div className={styles.modalTitle}>Delete Segment</div>
                     <div className={styles.modalSubTitle}>
                         {`This action is irreversible. Do you want to delete ${
                             segmentToDelete?.name

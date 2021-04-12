@@ -19,6 +19,7 @@ import StreamElementPayload from './StreamElementPayload';
 import classNames from 'classnames/bind';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 import ReactJson from 'react-json-view';
+import { FaBug } from 'react-icons/fa';
 
 export const StreamElement = ({
     e,
@@ -120,6 +121,12 @@ export const StreamElement = ({
                                     [styles.currentIcon]: isCurrent,
                                 })}
                             />
+                        ) : debug ? (
+                            <FaBug
+                                className={classNames(styles.defaultIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
                         ) : (
                             <HoverIcon
                                 className={classNames(styles.tiltedIcon, {
@@ -134,7 +141,11 @@ export const StreamElement = ({
                             [styles.currentEventText]: isCurrent,
                         })}
                     >
-                        {details.title ? details.title : debug ? e.type : ''}
+                        {details.title
+                            ? details.title
+                            : debug
+                            ? EventType[e.type]
+                            : ''}
                     </div>
                 </div>
                 <div
@@ -165,7 +176,12 @@ export const StreamElement = ({
                 {selected ? (
                     <>
                         {debug ? (
-                            <div className={styles.codeBlockWrapperVerbose}>
+                            <div
+                                className={styles.codeBlockWrapperVerbose}
+                                onClick={(event) => {
+                                    event.stopPropagation();
+                                }}
+                            >
                                 <ReactJson
                                     style={{ wordBreak: 'break-word' }}
                                     name={null}

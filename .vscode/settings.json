@@ -6,6 +6,7 @@
   },
   "go.formatTool": "gofmt",
   "go.useLanguageServer": true,
+  "go.autocompleteUnimportedPackages": true,
   "[go]": {
     "editor.defaultFormatter": "golang.go"
   },

@@ -6,7 +6,6 @@ import React, {
     useCallback,
 } from 'react';
 import { useParams } from 'react-router-dom';
-import { Tooltip } from 'antd';
 import { Option, DevToolsSelect } from '../Option/Option';
 import Skeleton from 'react-loading-skeleton';
 
@@ -18,6 +17,7 @@ import ReplayerContext from '../../../ReplayerContext';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
+import Tooltip from '../../../../../components/Tooltip/Tooltip';
 
 export const ResourcePage = ({
     time,

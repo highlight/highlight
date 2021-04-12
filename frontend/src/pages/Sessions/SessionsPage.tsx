@@ -29,6 +29,7 @@ export const EmptySessionsSearchParams: Complete<SearchParams> = {
     referrer: undefined,
     track_properties: [],
     visited_url: undefined,
+    first_time: false,
 };
 
 export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
@@ -42,11 +43,15 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
         EmptySessionsSearchParams
     );
     const [searchParams, setSearchParams] = useState<SearchParams>(
-        cachedParams || { user_properties: [], identified: false }
+        cachedParams || {
+            user_properties: [],
+            identified: false,
+        }
     );
     const [existingParams, setExistingParams] = useState<SearchParams>(
         EmptySessionsSearchParams
     );
+    const [hideLiveSessions, setHideLiveSessions] = useState<boolean>(false);
     const { setOpenSidebar } = useContext(SidebarContext);
     const history = useHistory();
 
@@ -76,6 +81,8 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                 setExistingParams,
                 segmentName,
                 setSegmentName,
+                hideLiveSessions,
+                setHideLiveSessions,
             }}
         >
             <div className={styles.sessionsBody}>

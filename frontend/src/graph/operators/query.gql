@@ -58,14 +58,14 @@ mutation SendAdminInvite($organization_id: ID!, $email: String!) {
 query GetSessions(
     $organization_id: ID!
     $count: Int!
-    $processed: Boolean!
+    $lifecycle: SessionLifecycle!
     $starred: Boolean!
     $params: SearchParamsInput
 ) {
     sessions(
         organization_id: $organization_id
         count: $count
-        processed: $processed
+        lifecycle: $lifecycle
         starred: $starred
         params: $params
     ) {
@@ -84,11 +84,13 @@ query GetSessions(
             length
             viewed
             starred
+            processed
             fields {
                 name
                 value
                 type
             }
+            first_time
         }
         totalCount
     }
@@ -116,6 +118,7 @@ query GetOrganization($id: ID!) {
         trial_end_date
         verbose_id
         billing_email
+        slack_webhook_channel
     }
 }
 
@@ -299,6 +302,7 @@ query GetSegments($organization_id: ID!) {
             referrer
             identified
             hide_viewed
+            first_time
         }
     }
 }

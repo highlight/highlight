@@ -9,6 +9,7 @@ import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import Skeleton from 'react-loading-skeleton';
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import { findLastActiveEventIndex } from './utils/utils';
+import { useErrorModalContext } from '../../ErrorModalContext/ErrorModalContext';
 
 export interface ErrorsPageHistoryState {
     errorCardIndex: number;
@@ -22,6 +23,7 @@ const ErrorsPage = () => {
     );
     const history = useHistory<ErrorsPageHistoryState>();
     const { errors, state, time, replayer } = useContext(ReplayerContext);
+    const { setSelectedError } = useErrorModalContext();
 
     const loading = state === ReplayerState.Loading;
 
@@ -85,7 +87,6 @@ const ErrorsPage = () => {
                             <ErrorCard
                                 key={error?.id}
                                 error={error}
-                                index={index}
                                 state={
                                     hasTimestamp
                                         ? index === lastActiveErrorIndex
@@ -93,6 +94,9 @@ const ErrorsPage = () => {
                                             : ErrorCardState.Inactive
                                         : ErrorCardState.Unknown
                                 }
+                                setSelectedError={() => {
+                                    setSelectedError(error);
+                                }}
                             />
                         )}
                     />

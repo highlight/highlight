@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -278,19 +279,11 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 }
 
 func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
-	// NOTE: In order to use this endpoint on your local machine, use ngrok to serve
-	// the frontend on a tunnel, and set "LOCAL_TUNNEL_URI" to the base URL.
-	// The Slack API doesn't support non-ssl, hence this requirement.
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	var redirect string
-	if os.Getenv("ENVIRONMENT") == "dev" {
-		redirect = os.Getenv("LOCAL_TUNNEL_URI")
-	} else {
-		redirect = os.Getenv("FRONTEND_URI")
-	}
+	redirect := os.Getenv("FRONTEND_URI")
 	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
 	resp, err := slack.
 		GetOAuthV2Response(
@@ -516,6 +509,23 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string) (*model.SessionComment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	sessionComment := &model.SessionComment{
+		AdminId:   adminID,
+		SessionId: sessionID,
+		Timestamp: sessionTimestamp,
+		Text:      text,
+	}
+	if err := r.DB.Create(sessionComment).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session comment")
+	}
+	return sessionComment, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	if _, err := r.isAdminSessionOwner(ctx, id); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -529,6 +539,20 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
+	if os.Getenv("ENVIRONMENT") == "dev" && sessionID == 1 {
+		file, err := ioutil.ReadFile("./tmp/events.json")
+
+		if err != nil {
+			return nil, e.Wrap(err, "Failed to read temp file")
+		}
+		var data []interface{}
+
+		if err := json.Unmarshal([]byte(file), &data); err != nil {
+			return nil, e.Wrap(err, "Failed to unmarshal data from file")
+		}
+
+		return data, nil
+	}
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -679,6 +703,18 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 	return allResources["resources"], nil
 }
 
+func (r *queryResolver) SessionComments(ctx context.Context, sessionID int) ([]*model.SessionComment, error) {
+	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+
+	sessionComments := []*model.SessionComment{}
+	if err := r.DB.Where(model.SessionComment{SessionId: sessionID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session comments for session")
+	}
+	return sessionComments, nil
+}
+
 func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*model.Admin, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
@@ -721,7 +757,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	return &count, nil
 }
 
-func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, processed bool, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -811,18 +847,21 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
-	queryString := `SELECT id, user_id, organization_id, processed, starred, os_name, os_version, browser_name,
+	queryString := `SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed
-	FROM (SELECT id, user_id, organization_id, processed, starred, os_name, os_version, browser_name,
+	FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
-	if processed {
+	if lifecycle == modelInputs.SessionLifecycleCompleted {
 		queryString += fmt.Sprintf("AND (length > %d) ", 1000)
 	}
 	if starred {
 		queryString += "AND (starred = true) "
+	}
+	if firstTime := params.FirstTime; firstTime != nil && *firstTime {
+		queryString += "AND (first_time = true) "
 	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
@@ -835,7 +874,11 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		}
 	}
 
-	queryString += "AND (processed = " + strconv.FormatBool(processed) + ") "
+	if lifecycle == modelInputs.SessionLifecycleCompleted {
+		queryString += "AND (processed = true) "
+	} else if lifecycle == modelInputs.SessionLifecycleLive {
+		queryString += "AND (processed = false) "
+	}
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
@@ -1117,6 +1160,31 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
+	admin := &model.Admin{}
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+		return nil, e.Wrap(err, "Error finding admin for comment")
+	}
+
+	name := ""
+	email := ""
+
+	if admin.Name != nil {
+		name = *admin.Name
+	}
+	if admin.Email != nil {
+		email = *admin.Email
+	}
+
+	sanitizedAdmin := &modelInputs.SanitizedAdmin{
+		ID:    admin.ID,
+		Name:  &name,
+		Email: email,
+	}
+
+	return sanitizedAdmin, nil
+}
+
 // ErrorGroup returns generated.ErrorGroupResolver implementation.
 func (r *Resolver) ErrorGroup() generated.ErrorGroupResolver { return &errorGroupResolver{r} }
 
@@ -1138,6 +1206,11 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
+// SessionComment returns generated.SessionCommentResolver implementation.
+func (r *Resolver) SessionComment() generated.SessionCommentResolver {
+	return &sessionCommentResolver{r}
+}
+
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
@@ -1145,3 +1218,4 @@ type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+type sessionCommentResolver struct{ *Resolver }

@@ -15,10 +15,6 @@ a {
     color: #5629c6;
 }
 
-.ant-modal-close-x {
-    visibility: hidden;
-}
-
 .blob {
     margin: 10px;
     height: 15px;
@@ -81,21 +77,12 @@ a {
     border-radius: 8px;
 }
 
-.ant-modal-body {
-    padding: 0px;
-}
-
 .ant-tooltip-inner {
     border-radius: 6px;
 }
 
 .ant-tooltip-arrow-content {
     background-color: transparent;
-}
-
-.ant-modal-content {
-    border-radius: 8px;
-    padding: 10px;
 }
 
 .ant-skeleton-content .ant-skeleton-title {
