@@ -1,15 +1,20 @@
 package worker
 
 import (
+	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/fullstory/backend/util"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
+	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,7 +23,7 @@ type Worker struct {
 	R *mgraph.Resolver
 }
 
-func (w *Worker) processSession(s *model.Session) error {
+func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Set the session as processed; if any is error thrown after this, the session gets ignored.
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
@@ -79,19 +84,28 @@ func (w *Worker) processSession(s *model.Session) error {
 
 // Start begins the worker's tasks.
 func (w *Worker) Start() {
+	ctx := context.Background()
+	span, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
+	span.Finish()
+	span.SetTag("backend", util.Worker)
 	for {
 		time.Sleep(1 * time.Second)
-		thirtySecondsAgo := time.Now().Add(-30 * time.Second)
+		now := time.Now()
+		thirtySecondsAgo := now.Add(-30 * time.Second)
 		sessions := []*model.Session{}
+		span, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
 		if err := w.R.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", thirtySecondsAgo, false).Find(&sessions).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			continue
 		}
+		span.Finish()
 		for _, session := range sessions {
-			if err := w.processSession(session); err != nil {
-				log.Errorf("error processing sessions: %v", err)
+			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
+			if err := w.processSession(ctx, session); err != nil {
+				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
 				continue
 			}
+			span.Finish()
 		}
 	}
 }
