@@ -170,7 +170,6 @@ type ComplexityRoot struct {
 		BillingEmail func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Name         func(childComplexity int) int
-		Plan         func(childComplexity int) int
 		TrialEndDate func(childComplexity int) int
 		VerboseID    func(childComplexity int) int
 	}
@@ -967,13 +966,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Organization.Name(childComplexity), true
 
-	case "Organization.plan":
-		if e.complexity.Organization.Plan == nil {
-			break
-		}
-
-		return e.complexity.Organization.Plan(childComplexity), true
-
 	case "Organization.trial_end_date":
 		if e.complexity.Organization.TrialEndDate == nil {
 			break
@@ -1650,7 +1642,6 @@ type Organization {
     id: ID!
     verbose_id: String!
     name: String!
-    plan: String
     billing_email: String
     trial_end_date: Time
 }
@@ -5472,38 +5463,6 @@ func (ec *executionContext) _Organization_name(ctx context.Context, field graphq
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Organization_plan(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Organization",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Plan, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Organization_billing_email(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
@@ -9850,8 +9809,6 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "plan":
-			out.Values[i] = ec._Organization_plan(ctx, field, obj)
 		case "billing_email":
 			out.Values[i] = ec._Organization_billing_email(ctx, field, obj)
 		case "trial_end_date":
