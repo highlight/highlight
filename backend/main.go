@@ -109,7 +109,7 @@ func main() {
 				Resolvers: main,
 			}),
 		)
-		mainServer.Use(util.NewTracer("main-graph"))
+		mainServer.Use(util.NewTracer(util.MainGraph))
 		r.Handle("/", mainServer)
 	})
 	// Clientgraph logic
@@ -121,7 +121,7 @@ func main() {
 					DB: db,
 				},
 			}))
-		clientServer.Use(util.NewTracer("client-graph"))
+		clientServer.Use(util.NewTracer(util.ClientGraph))
 		r.Handle("/", clientServer)
 	})
 	w := &worker.Worker{R: main}
