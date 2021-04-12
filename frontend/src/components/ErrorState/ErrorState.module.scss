@@ -1,0 +1,22 @@
+.errorContent {
+    max-width: 500px;
+}
+
+.errorWrapper {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.errorTitle {
+    font-size: 24px;
+    font-weight: 400;
+}
+
+.errorBody {
+    font-size: 16px;
+    font-weight: 200;
+    max-width: 800px;
+}
