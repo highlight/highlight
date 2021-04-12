@@ -15,7 +15,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/jay-khatri/fullstory/backend/util"
+	"github.com/jay-khatri/fullstory/backend/pricing"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -442,7 +442,6 @@ func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizati
 
 func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
-	planString := planType.String()
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -471,7 +470,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	}
 	// If there's a single subscription on the user and a single price item on the subscription
 	if len(c.Subscriptions.Data) == 1 && len(c.Subscriptions.Data[0].Items.Data) == 1 {
-		plan := util.ToPriceID(planType)
+		plan := pricing.ToPriceID(planType)
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
 			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
@@ -486,12 +485,6 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
-		if err := r.DB.Model(org).Updates(&model.Organization{
-			Plan: &planString,
-		}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating org fields")
-		}
-		org.Plan = &planString
 		ret := ""
 		return &ret, nil
 	}
@@ -507,7 +500,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
-					Plan: stripe.String(util.ToPriceID(planType)),
+					Plan: stripe.String(pricing.ToPriceID(planType)),
 				},
 			},
 		},
@@ -945,7 +938,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
 		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
-	planType := util.FromPriceID(priceID)
+	planType := pricing.FromPriceID(priceID)
 	year, month, _ := time.Now().Date()
 	var meter int
 	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
@@ -954,7 +947,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  modelInputs.PlanType(planType.String()),
-			Quota: util.TypeToQuota(planType),
+			Quota: pricing.TypeToQuota(planType),
 		},
 		Meter: meter,
 	}

@@ -7,14 +7,11 @@ import (
 	"net/http"
 	"time"
 
-	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/jay-khatri/fullstory/backend/util"
 	"github.com/jinzhu/gorm"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	"github.com/slack-go/slack"
-	"github.com/stripe/stripe-go/client"
 )
 
 // This file will not be regenerated automatically.
@@ -23,8 +20,7 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB           *gorm.DB
-	StripeClient *client.API
+	DB *gorm.DB
 }
 
 type Location struct {
@@ -67,40 +63,6 @@ type ErrorMetaData struct {
 type FieldData struct {
 	Name  string
 	Value string
-}
-
-func (r *Resolver) CanRecordSession(org_id int) (bool, error) {
-	org := &model.Organization{}
-	res := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org)
-	if err := res.Error; err != nil || res.RecordNotFound() {
-		return false, e.Wrap(err, "error querying org")
-	}
-
-	if org.Plan == nil {
-		customerID := ""
-		if org.StripeCustomerID != nil {
-			customerID = *org.StripeCustomerID
-		}
-		planType := util.GetOrgPlanString(r.StripeClient, customerID)
-		if err := r.DB.Model(org).Updates(&model.Organization{
-			Plan: &planType,
-		}).Error; err != nil {
-			return false, e.Wrap(err, "error updating org fields")
-		}
-		org.Plan = &planType
-	}
-
-	year, month, _ := time.Now().Date()
-	var meter int
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: org_id}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
-		return false, e.Wrap(err, "error querying for session meter")
-	}
-
-	if util.TypeToQuota(modelInputs.PlanType(*org.Plan)) >= meter {
-		return true, nil
-	} else {
-		return false, nil
-	}
 }
 
 //Change to AppendProperties(sessionId,properties,type)
