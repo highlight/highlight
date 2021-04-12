@@ -1,5 +1,9 @@
+@import 'src/static/shared.scss';
+
 .errorContent {
     max-width: 500px;
+    padding: 30px;
+    @include rounded-border;
 }
 
 .errorWrapper {

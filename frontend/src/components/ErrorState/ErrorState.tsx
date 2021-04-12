@@ -13,7 +13,7 @@ export const ErrorState = ({ message }: { message: string }) => {
                 <h2 className={styles.errorTitle}>Woops, something's wrong!</h2>
                 <p className={styles.errorBody}>{message}</p>
                 <a href={'https://app.highlight.run'}>
-                    <PrimaryButton>Create an Account</PrimaryButton>
+                    <PrimaryButton>Go to my Account</PrimaryButton>
                 </a>
                 <SecondaryButton
                     style={{ marginLeft: 10 }}
