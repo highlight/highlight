@@ -59,7 +59,6 @@ export const OrgRouter = () => {
     if (integratedLoading || loading) {
         return <LoadingPage />;
     }
-    console.log(error);
     return (
         <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
             <Header trialTimeRemaining={trialTimeRemaining} />
