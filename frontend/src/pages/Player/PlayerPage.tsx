@@ -29,9 +29,9 @@ import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
 import copySessionShareLinkToClipboard from './utils/utils';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
-import { Dropdown, Menu, MenuItemProps, Modal } from 'antd';
+import { Dropdown, Menu, MenuItemProps } from 'antd';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
-import ModalBody from '../../components/ModalBody/ModalBody';
+import Modal from '../../components/Modal/Modal';
 
 export const Player = () => {
     const { session_id } = useParams<{
@@ -121,7 +121,6 @@ export const Player = () => {
     })[] = [
         {
             onClick: () => {
-                pause();
                 setShowAddCommentEntry(true);
             },
             label: 'Add a comment',
@@ -159,6 +158,14 @@ export const Player = () => {
                             </Menu>
                         }
                         trigger={['contextMenu']}
+                        onVisibleChange={(visible) => {
+                            if (
+                                visible &&
+                                replayerState !== ReplayerState.Paused
+                            ) {
+                                pause();
+                            }
+                        }}
                     >
                         <div className={styles.rrwebPlayerSection}>
                             <div
@@ -203,17 +210,17 @@ export const Player = () => {
                     onCancel={() => {
                         setShowAddCommentEntry(false);
                     }}
-                    footer={null}
+                    destroyOnClose
+                    minimal
                     centered
+                    width="324px"
                 >
-                    <ModalBody>
-                        <NewCommentEntry
-                            currentTime={Math.floor(time)}
-                            onCloseHandler={() => {
-                                setShowAddCommentEntry(false);
-                            }}
-                        />
-                    </ModalBody>
+                    <NewCommentEntry
+                        currentTime={Math.floor(time)}
+                        onCloseHandler={() => {
+                            setShowAddCommentEntry(false);
+                        }}
+                    />
                 </Modal>
             </div>
         </ReplayerContext.Provider>

@@ -19,5 +19,6 @@
 
     &:active {
         background-color: $button-primary-active;
+        color: var(--text-primary-inverted);
     }
 }

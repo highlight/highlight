@@ -8,6 +8,7 @@ import { useParams } from 'react-router-dom';
 import styles from './NewCommentEntry.module.scss';
 import PrimaryButton from '../../../../components/Button/PrimaryButton/PrimaryButton';
 import SecondaryButton from '../../../../components/Button/SecondaryButton/SecondaryButton';
+import { MillisToMinutesAndSeconds } from '../../../../util/time';
 
 const { TextArea } = Input;
 
@@ -49,7 +50,10 @@ export const NewCommentEntry = ({ currentTime, onCloseHandler }: Props) => {
             >
                 <TextArea
                     maxLength={200}
-                    placeholder="Add a comment"
+                    bordered={false}
+                    placeholder={`Add a comment at ${MillisToMinutesAndSeconds(
+                        currentTime
+                    )}`}
                     autoSize
                 />
             </Form.Item>
