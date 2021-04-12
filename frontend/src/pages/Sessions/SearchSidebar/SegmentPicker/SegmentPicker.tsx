@@ -71,6 +71,7 @@ export const SegmentPicker = () => {
     useEffect(() => {
         if (segment_id) {
             if (segment_id === LIVE_SEGMENT_ID) {
+                setSegmentName(null);
                 return;
             }
             if (currentSegment) {
@@ -80,7 +81,8 @@ export const SegmentPicker = () => {
                     !_.isEqual(
                         history.location.state,
                         EmptySessionsSearchParams
-                    )
+                    ) &&
+                    history.length > 2
                 ) {
                     const parsed: SearchParams = gqlSanitize(
                         history.location.state
@@ -97,6 +99,7 @@ export const SegmentPicker = () => {
                 setSegmentName(currentSegment.name);
             } else {
                 // Redirect home since the segment doesn't exist anymore.
+                setSegmentName(null);
                 history.replace(`/${organization_id}/sessions`);
             }
         } else {

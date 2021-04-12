@@ -12,6 +12,7 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, googleProvider } from '../../util/auth';
 import { Home } from '../Home/Home';
 import { RequestAccessPage } from '../RequestAccess/RequestAccess';
+import { ErrorState } from '../../components/ErrorState/ErrorState';
 
 export const AuthAdminRouter = () => {
     const { loading, error, data } = useGetAdminQuery();
@@ -31,8 +32,18 @@ export const AuthAdminRouter = () => {
         }
     }, [admin]);
     if (error) {
-        return <p>{'AuthAdminRouter error: ' + JSON.stringify(error)}</p>;
+        return (
+            <ErrorState
+                message={`
+        Seems like you we had issue with your login 😢. 
+        Feel free to log out and try again, or otherwise, 
+        get in contact with us!
+        `}
+                errorString={'AuthAdminRouter error: ' + JSON.stringify(error)}
+            />
+        );
     }
+
     if (loading) {
         return <LoadingPage />;
     }

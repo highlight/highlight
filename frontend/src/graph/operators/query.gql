@@ -43,17 +43,15 @@ mutation SendAdminInvite($organization_id: ID!, $email: String!) {
 query GetSessions(
     $organization_id: ID!
     $count: Int!
-    $processed: Boolean!
+    $lifecycle: SessionLifecycle!
     $starred: Boolean!
-    $first_time: Boolean!
     $params: SearchParamsInput
 ) {
     sessions(
         organization_id: $organization_id
         count: $count
-        processed: $processed
+        lifecycle: $lifecycle
         starred: $starred
-        first_time: $first_time
         params: $params
     ) {
         sessions {
@@ -71,6 +69,7 @@ query GetSessions(
             length
             viewed
             starred
+            processed
             fields {
                 name
                 value
@@ -288,6 +287,7 @@ query GetSegments($organization_id: ID!) {
             referrer
             identified
             hide_viewed
+            first_time
         }
     }
 }

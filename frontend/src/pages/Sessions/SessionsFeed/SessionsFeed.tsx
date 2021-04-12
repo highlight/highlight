@@ -3,6 +3,7 @@ import React, {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -29,6 +30,7 @@ import {
     Maybe,
     Session,
     SessionResults,
+    SessionLifecycle,
 } from '../../../graph/generated/schemas';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import { Field } from '../../../components/Field/Field';
@@ -38,6 +40,7 @@ import {
     STARRED_SEGMENT_ID,
 } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import Tooltip from '../../../components/Tooltip/Tooltip';
+import Confetti from 'react-confetti';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
@@ -62,16 +65,20 @@ export const SessionFeed = () => {
         sessions: [],
         totalCount: -1,
     });
-    const { searchParams } = useContext(SearchContext);
+    const { searchParams, hideLiveSessions } = useContext(SearchContext);
 
     const { loading, fetchMore, data: sessionData } = useGetSessionsQuery({
         variables: {
             params: searchParams,
             count: count + 10,
             organization_id,
-            processed: segment_id !== LIVE_SEGMENT_ID,
+            lifecycle:
+                segment_id === LIVE_SEGMENT_ID
+                    ? SessionLifecycle.Live
+                    : hideLiveSessions
+                    ? SessionLifecycle.Completed
+                    : SessionLifecycle.All,
             starred: segment_id === STARRED_SEGMENT_ID,
-            first_time: false,
         },
         pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
@@ -104,7 +111,12 @@ export const SessionFeed = () => {
                     params: searchParams,
                     count,
                     organization_id,
-                    processed: false,
+                    processed:
+                        segment_id === LIVE_SEGMENT_ID
+                            ? SessionLifecycle.Live
+                            : hideLiveSessions
+                            ? SessionLifecycle.Completed
+                            : SessionLifecycle.All,
                 },
             });
         },
@@ -202,6 +214,7 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
             });
         },
     });
+    const containerRef = useRef<HTMLDivElement>(null);
 
     return (
         <div
@@ -244,7 +257,19 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                 </Tooltip>
             )}
             <Link to={`/${organization_id}/sessions/${session?.id}`}>
-                <div className={styles.sessionCard}>
+                <div className={styles.sessionCard} ref={containerRef}>
+                    {session?.first_time &&
+                        !session?.viewed &&
+                        containerRef.current?.offsetHeight &&
+                        containerRef.current.offsetWidth && (
+                            <Confetti
+                                height={containerRef.current.offsetHeight}
+                                width={containerRef.current.offsetWidth}
+                                numberOfPieces={150}
+                                recycle={false}
+                                tweenDuration={5000 * 2}
+                            />
+                        )}
                     <div
                         className={classNames(
                             styles.hoverBorderLeft,
@@ -298,11 +323,22 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                             </div>
                             <div className={styles.sessionTextSection}>
                                 <div className={styles.topText}>
-                                    {segment_id === LIVE_SEGMENT_ID
-                                        ? 'In Progress'
-                                        : MillisToMinutesAndSecondsVerbose(
-                                              session?.length || 0
-                                          ) || '30 min 20 sec'}
+                                    {segment_id === LIVE_SEGMENT_ID ? (
+                                        'In Progress'
+                                    ) : session?.processed ? (
+                                        MillisToMinutesAndSecondsVerbose(
+                                            session?.length || 0
+                                        ) || '30 min 20 sec'
+                                    ) : (
+                                        <div
+                                            className={styles.recordingWrapper}
+                                        >
+                                            <div
+                                                className={styles.recordingDot}
+                                            ></div>
+                                            Recording
+                                        </div>
+                                    )}
                                 </div>
                                 <div className={styles.middleText}>
                                     {created.toLocaleString('en-us', {

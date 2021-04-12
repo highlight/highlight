@@ -43,6 +43,7 @@ export type Session = {
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
     starred?: Maybe<Scalars['Boolean']>;
+    processed?: Maybe<Scalars['Boolean']>;
     first_time?: Maybe<Scalars['Boolean']>;
     field_group?: Maybe<Scalars['String']>;
     enable_strict_privacy?: Maybe<Scalars['Boolean']>;
@@ -165,6 +166,7 @@ export type SearchParamsInput = {
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
+    first_time?: Maybe<Scalars['Boolean']>;
 };
 
 export type SearchParams = {
@@ -180,6 +182,7 @@ export type SearchParams = {
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
+    first_time?: Maybe<Scalars['Boolean']>;
 };
 
 export type ErrorSearchParamsInput = {
@@ -275,6 +278,12 @@ export type SessionComment = {
     text: Scalars['String'];
 };
 
+export enum SessionLifecycle {
+    All = 'All',
+    Live = 'Live',
+    Completed = 'Completed',
+}
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -351,9 +360,8 @@ export type QueryUnprocessedSessionsCountArgs = {
 export type QuerySessionsArgs = {
     organization_id: Scalars['ID'];
     count: Scalars['Int'];
-    processed: Scalars['Boolean'];
+    lifecycle: SessionLifecycle;
     starred: Scalars['Boolean'];
-    first_time: Scalars['Boolean'];
     params?: Maybe<SearchParamsInput>;
 };
 

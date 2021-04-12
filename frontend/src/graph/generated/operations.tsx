@@ -310,9 +310,8 @@ export type SendAdminInviteMutation = { __typename?: 'Mutation' } & Pick<
 export type GetSessionsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
-    processed: Types.Scalars['Boolean'];
+    lifecycle: Types.SessionLifecycle;
     starred: Types.Scalars['Boolean'];
-    first_time: Types.Scalars['Boolean'];
     params?: Types.Maybe<Types.SearchParamsInput>;
 }>;
 
@@ -338,6 +337,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'length'
                     | 'viewed'
                     | 'starred'
+                    | 'processed'
                     | 'first_time'
                 > & {
                         fields?: Types.Maybe<
@@ -633,6 +633,7 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
                             | 'referrer'
                             | 'identified'
                             | 'hide_viewed'
+                            | 'first_time'
                         > & {
                                 user_properties?: Types.Maybe<
                                     Array<

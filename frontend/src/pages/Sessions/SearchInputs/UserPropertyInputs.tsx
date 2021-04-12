@@ -7,13 +7,14 @@ import {
     UserProperty,
 } from '../SearchContext/SearchContext';
 import AsyncCreatableSelect from 'react-select/async-creatable';
-import { Switch } from 'antd';
+import { Checkbox } from 'antd';
 import inputStyles from './InputStyles.module.scss';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
-import classNames from 'classnames/bind';
 import { ContainsLabel } from './SearchInputUtil';
 import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
 import { PropertyOption } from '../../../components/Option/Option';
+import { CheckboxChangeEvent } from 'antd/lib/checkbox';
+import Tooltip from '../../../components/Tooltip/Tooltip';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -119,25 +120,43 @@ export const IdentifiedUsersSwitch = () => {
     const { searchParams, setSearchParams } = useContext(SearchContext);
 
     return (
-        <div className={inputStyles.switchRow}>
-            <Switch
+        <div className={inputStyles.checkboxRow}>
+            <Checkbox
                 checked={searchParams.identified}
-                onChange={(val: boolean) => {
+                onChange={(e: CheckboxChangeEvent) => {
                     setSearchParams((params) => ({
                         ...params,
-                        identified: val,
+                        identified: e.target.checked,
                     }));
                 }}
-            />
-            <label
-                className={classNames(inputStyles.switchText, {
-                    [inputStyles.switchTextSelected]: searchParams.identified,
-                })}
             >
-                <span className={inputStyles.switchSpan}>
-                    Only show identified users
-                </span>
-            </label>
+                Only show identified users
+            </Checkbox>
+        </div>
+    );
+};
+
+export const FirstTimeUsersSwitch = () => {
+    const { searchParams, setSearchParams } = useContext(SearchContext);
+
+    return (
+        <div className={inputStyles.checkboxRow}>
+            <Tooltip
+                title="Show only your user's first recorded session"
+                placement="left"
+            >
+                <Checkbox
+                    checked={searchParams.first_time}
+                    onChange={(e: CheckboxChangeEvent) => {
+                        setSearchParams((params) => ({
+                            ...params,
+                            first_time: e.target.checked,
+                        }));
+                    }}
+                >
+                    Only show first time users
+                </Checkbox>
+            </Tooltip>
         </div>
     );
 };

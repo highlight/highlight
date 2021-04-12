@@ -275,19 +275,11 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 }
 
 func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
-	// NOTE: In order to use this endpoint on your local machine, use ngrok to serve
-	// the frontend on a tunnel, and set "LOCAL_TUNNEL_URI" to the base URL.
-	// The Slack API doesn't support non-ssl, hence this requirement.
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	var redirect string
-	if os.Getenv("ENVIRONMENT") == "dev" {
-		redirect = os.Getenv("LOCAL_TUNNEL_URI")
-	} else {
-		redirect = os.Getenv("FRONTEND_URI")
-	}
+	redirect := os.Getenv("FRONTEND_URI")
 	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
 	resp, err := slack.
 		GetOAuthV2Response(
@@ -761,7 +753,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	return &count, nil
 }
 
-func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, processed bool, starred bool, firstTime bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -858,13 +850,13 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
-	if processed {
+	if lifecycle == modelInputs.SessionLifecycleCompleted {
 		queryString += fmt.Sprintf("AND (length > %d) ", 1000)
 	}
 	if starred {
 		queryString += "AND (starred = true) "
 	}
-	if firstTime {
+	if firstTime := params.FirstTime; firstTime != nil && *firstTime {
 		queryString += "AND (first_time = true) "
 	}
 	if params.LengthRange != nil {
@@ -878,7 +870,11 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		}
 	}
 
-	queryString += "AND (processed = " + strconv.FormatBool(processed) + ") "
+	if lifecycle == modelInputs.SessionLifecycleCompleted {
+		queryString += "AND (processed = true) "
+	} else if lifecycle == modelInputs.SessionLifecycleLive {
+		queryString += "AND (processed = false) "
+	}
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {

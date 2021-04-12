@@ -27,6 +27,7 @@ type Session {
     fields: [Field]
     viewed: Boolean
     starred: Boolean
+    processed: Boolean
     first_time: Boolean
     field_group: String
     enable_strict_privacy: Boolean
@@ -140,6 +141,7 @@ input SearchParamsInput {
     referrer: String
     identified: Boolean
     hide_viewed: Boolean
+    first_time: Boolean
 }
 
 type SearchParams {
@@ -154,6 +156,7 @@ type SearchParams {
     referrer: String
     identified: Boolean
     hide_viewed: Boolean
+    first_time: Boolean
 }
 
 input ErrorSearchParamsInput {
@@ -240,6 +243,12 @@ type SessionComment {
     text: String!
 }
 
+enum SessionLifecycle {
+    All
+    Live
+    Completed
+}
+
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
@@ -259,9 +268,8 @@ type Query {
     sessions(
         organization_id: ID!
         count: Int!
-        processed: Boolean!
+        lifecycle: SessionLifecycle!
         starred: Boolean!
-        first_time: Boolean!
         params: SearchParamsInput
     ): SessionResults!
     billingDetails(organization_id: ID!): BillingDetails!
