@@ -1,0 +1,23 @@
+@import 'src/static/shared.scss';
+
+.secondaryButton {
+    border: none;
+    background-color: white;
+    color: $text-primary;
+    padding: $size-xSmall $size-xLarge;
+    font-size: 14px;
+    outline: none;
+    font-weight: 300;
+    cursor: pointer;
+    line-height: initial;
+    @include rounded-border;
+
+    &:hover,
+    &:focus {
+        background-color: white;
+    }
+
+    &:active {
+        background-color: $button-primary-active;
+    }
+}
