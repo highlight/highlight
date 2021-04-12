@@ -4,14 +4,14 @@ import { useIsIntegratedLazyQuery } from '../graph/generated/hooks';
 export const useIntegrated = (
     organization_id: number
 ): { integrated: boolean; loading: boolean } => {
-    const [query, { data }] = useIsIntegratedLazyQuery({
+    const [query, { data, loading }] = useIsIntegratedLazyQuery({
         variables: { organization_id: organization_id.toString() },
         fetchPolicy: 'cache-and-network',
     });
     const [integrated, setIntegrated] = useState<boolean | undefined>(
         undefined
     );
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loadingState, setLoadingState] = useState(true);
     const integratedRaw = data?.isIntegrated;
 
     useEffect(() => {
@@ -35,12 +35,10 @@ export const useIntegrated = (
     }, [integratedRaw]);
 
     useEffect(() => {
-        if (integrated === undefined) {
-            setLoading(true);
-        } else {
-            setLoading(false);
+        if (loading === false) {
+            setLoadingState(false);
         }
-    }, [integrated]);
+    }, [loading]);
 
-    return { integrated: integrated || false, loading };
+    return { integrated: integrated || false, loading: loadingState };
 };
