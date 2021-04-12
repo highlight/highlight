@@ -32,14 +32,16 @@ export const AuthAdminRouter = () => {
         }
     }, [admin]);
     if (error) {
-        return <p>{'AuthAdminRouter error: ' + JSON.stringify(error)}</p>;
-        <ErrorState
-            message={`
+        return (
+            <ErrorState
+                message={`
         Seems like you we had issue with your login 😢. 
         Feel free to log out and try again, or otherwise, 
         get in contact with us!
         `}
-        />;
+                errorString={'AuthAdminRouter error: ' + JSON.stringify(error)}
+            />
+        );
     }
 
     if (loading) {

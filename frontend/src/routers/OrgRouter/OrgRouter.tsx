@@ -59,6 +59,7 @@ export const OrgRouter = () => {
     if (integratedLoading || loading) {
         return <LoadingPage />;
     }
+    console.log(error);
     return (
         <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
             <Header trialTimeRemaining={trialTimeRemaining} />
@@ -70,6 +71,9 @@ export const OrgRouter = () => {
                         part of a team, ask your workspace admin to send you an
                         invite. Otherwise, feel free to make an account!
                         `}
+                        errorString={
+                            'OrgRouter Error: ' + JSON.stringify(error)
+                        }
                     />
                 ) : (
                     <>

@@ -23,4 +23,15 @@
     font-size: 16px;
     font-weight: 200;
     max-width: 800px;
+    word-wrap: break-word;
+}
+
+.buttonGroup {
+    margin-top: 25px;
+}
+
+.expandButton {
+    color: $highlight-purple;
+    cursor: pointer;
+    font-weight: 300;
 }
