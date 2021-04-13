@@ -325,7 +325,6 @@ export class Highlight {
                                 { type: 'session' }
                             );
                         } else {
-                            console.log('adding navigate');
                             addCustomEvent<string>('Navigate', url);
                         }
                         highlightThis.addProperties(
