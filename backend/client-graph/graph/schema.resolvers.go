@@ -28,11 +28,12 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		return nil, e.Wrap(err, "org doesn't exist")
 	}
 	if organizationID == 110 || organizationID == 128 {
+		noRecordSession := &model.Session{Model: model.Model{ID: -1}, OrganizationID: -1}
 		if check, err := r.CanRecordSession(organizationID); !check || err != nil {
 			if !check && err == nil {
-				return nil, nil
+				return noRecordSession, nil
 			} else {
-				return nil, e.Wrap(err, "org session quota reached")
+				return noRecordSession, e.Wrap(err, "can record error")
 			}
 		}
 	}

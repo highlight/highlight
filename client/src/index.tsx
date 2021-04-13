@@ -337,7 +337,7 @@ export class Highlight {
     // Reset the events array and push to a backend.
     async _save() {
         try {
-            if (!this.sessionID) {
+            if (!this.sessionID || this.sessionID == -1) {
                 return;
             }
             var resources: Array<any> = [];
