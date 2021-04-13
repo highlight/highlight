@@ -128,6 +128,7 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err != nil {
 		return nil, e.Wrap(err, "error creating stripe customer")
 	}
+	defaultPlan := modelInputs.PlanTypeNone.String()
 
 	org := &model.Organization{
 		StripeCustomerID: &c.ID,
@@ -135,6 +136,7 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 		Admins:           []model.Admin{*admin},
 		TrialEndDate:     &trialEnd,
 		BillingEmail:     admin.Email,
+		Plan:             &defaultPlan,
 	}
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")

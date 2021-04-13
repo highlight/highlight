@@ -9,6 +9,7 @@ import (
 
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/fullstory/backend/pricing"
 	"github.com/jay-khatri/fullstory/backend/util"
 	"github.com/jinzhu/gorm"
 	"github.com/mssola/user_agent"
@@ -90,10 +91,9 @@ func (r *Resolver) CanRecordSession(org_id int) (bool, error) {
 		org.Plan = &planType
 	}
 
-	year, month, _ := time.Now().Date()
-	var meter int
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: org_id}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
-		return false, e.Wrap(err, "error querying for session meter")
+	meter, err := pricing.GetOrgQuota(r.DB, org_id)
+	if err != nil {
+		return false, e.Wrap(err, "can record org quota error")
 	}
 
 	if util.TypeToQuota(modelInputs.PlanType(*org.Plan)) >= meter {
