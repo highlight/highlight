@@ -985,7 +985,10 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
 	planType := pricing.FromPriceID(priceID)
-	meter := pricing.GetOrgQuota(r.DB, organizationID)
+	meter, err := pricing.GetOrgQuota(r.DB, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error from get quota")
+	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  modelInputs.PlanType(planType.String()),
