@@ -33,6 +33,8 @@ $right-padding: 12px;
 .networkTableWrapper {
     height: calc(100% - 45px);
     position: relative;
+    border-left: 1px solid #eaeaea;
+    margin-left: 1px;
 }
 
 // calc(total width - padding left - padding right - TYPE - NAME - TIMING - SIZE - GoToButton)
