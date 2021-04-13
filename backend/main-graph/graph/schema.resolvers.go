@@ -16,6 +16,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/fullstory/backend/pricing"
 	"github.com/jay-khatri/fullstory/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
@@ -474,7 +475,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	}
 	// If there's a single subscription on the user and a single price item on the subscription
 	if len(c.Subscriptions.Data) == 1 && len(c.Subscriptions.Data[0].Items.Data) == 1 {
-		plan := ToPriceID(planType)
+		plan := pricing.ToPriceID(planType)
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
 			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
@@ -504,7 +505,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
-					Plan: stripe.String(ToPriceID(planType)),
+					Plan: stripe.String(pricing.ToPriceID(planType)),
 				},
 			},
 		},
@@ -994,16 +995,15 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
 		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
-	planType := FromPriceID(priceID)
-	year, month, _ := time.Now().Date()
-	var meter int
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
-		return nil, e.Wrap(err, "error querying for session meter")
+	planType := pricing.FromPriceID(priceID)
+	meter, err := pricing.GetOrgQuota(r.DB, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error from get quota")
 	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
-			Type:  planType,
-			Quota: TypeToQuota(planType),
+			Type:  modelInputs.PlanType(planType.String()),
+			Quota: pricing.TypeToQuota(planType),
 		},
 		Meter: meter,
 	}

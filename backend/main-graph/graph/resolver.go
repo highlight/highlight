@@ -39,45 +39,6 @@ func profile(msg string, fid int, t time.Time) time.Time {
 	return time.Now()
 }
 
-func TypeToQuota(planType modelInputs.PlanType) int {
-	switch planType {
-	case modelInputs.PlanTypeNone:
-		return 1000
-	case modelInputs.PlanTypeBasic:
-		return 20000
-	case modelInputs.PlanTypeStartup:
-		return 80000
-	case modelInputs.PlanTypeEnterprise:
-		return 300000
-	default:
-		return 1000
-	}
-}
-
-func FromPriceID(priceID string) modelInputs.PlanType {
-	switch priceID {
-	case os.Getenv("BASIC_PLAN_PRICE_ID"):
-		return modelInputs.PlanTypeBasic
-	case os.Getenv("STARTUP_PLAN_PRICE_ID"):
-		return modelInputs.PlanTypeStartup
-	case os.Getenv("ENTERPRISE_PLAN_PRICE_ID"):
-		return modelInputs.PlanTypeEnterprise
-	}
-	return modelInputs.PlanTypeNone
-}
-
-func ToPriceID(plan modelInputs.PlanType) string {
-	switch plan {
-	case modelInputs.PlanTypeBasic:
-		return os.Getenv("BASIC_PLAN_PRICE_ID")
-	case modelInputs.PlanTypeStartup:
-		return os.Getenv("STARTUP_PLAN_PRICE_ID")
-	case modelInputs.PlanTypeEnterprise:
-		return os.Getenv("ENTERPRISE_PLAN_PRICE_ID")
-	}
-	return ""
-}
-
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value("uid"))
 	// If the user is engineering@..., we whitelist.
