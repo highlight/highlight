@@ -1,13 +1,12 @@
 import { addCustomEvent, record } from '@highlight-run/rrweb';
 import {
     eventWithTime,
-    EventType,
     listenerHandler,
 } from '@highlight-run/rrweb/dist/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
-import { GraphQLClient, gql } from 'graphql-request';
+import { GraphQLClient } from 'graphql-request';
 import { Sdk, getSdk } from './graph/generated/operations';
 import StackTrace from 'stacktrace-js';
 
@@ -74,7 +73,7 @@ const SEND_FREQUENCY = 1000 * 5;
 /**
  * Maximum length of a session
  */
-const MAX_SESSION_LENGTH = 60 * 1000;
+const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000;
 
 export class Highlight {
     organizationID: string;
