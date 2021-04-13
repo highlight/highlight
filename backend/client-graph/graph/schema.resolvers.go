@@ -13,7 +13,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	parse "github.com/jay-khatri/fullstory/backend/event-parse"
+	"github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
 	e "github.com/pkg/errors"
@@ -117,9 +117,14 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
 
+	session := &model.Session{}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session by sessionID")
+	}
+
 	// Check if there is a session created by this user.
 	firstTime := &model.F
-	if err := r.DB.Where(&model.Session{Identifier: userIdentifier}).Take(&model.Session{}).Error; err != nil {
+	if err := r.DB.Where(&model.Session{Identifier: userIdentifier, OrganizationID: session.OrganizationID}).Take(&model.Session{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			firstTime = &model.T
 		} else {
@@ -127,10 +132,13 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		}
 	}
 
-	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{Identifier: userIdentifier, FirstTime: firstTime})
-	if err := res.Error; err != nil || res.RecordNotFound() {
-		return nil, e.Wrap(err, "error adding user identifier to session")
+	session.FirstTime = firstTime
+	session.Identifier = userIdentifier
+
+	if err := r.DB.Save(&session).Error; err != nil {
+		return nil, e.Wrap(err, "failed to update session")
 	}
+
 	return &sessionID, nil
 }
 
