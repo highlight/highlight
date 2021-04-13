@@ -34,6 +34,8 @@ export const NewCommentEntry = ({ currentTime, onCloseHandler }: Props) => {
                 session_timestamp: Math.floor(currentTime),
                 text: values.commentText,
                 admin_id: admin_data?.admin?.id || 'Unknown',
+                x_coordinate: 0.0,
+                y_coordinate: 0.0,
             },
             refetchQueries: ['GetSessionComments'],
         });

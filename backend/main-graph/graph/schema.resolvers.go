@@ -509,16 +509,18 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, xCoordinate float64, yCoordinate float64) (*model.SessionComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
 	sessionComment := &model.SessionComment{
-		AdminId:   adminID,
-		SessionId: sessionID,
-		Timestamp: sessionTimestamp,
-		Text:      text,
+		AdminId:     adminID,
+		SessionId:   sessionID,
+		Timestamp:   sessionTimestamp,
+		Text:        text,
+		XCoordinate: xCoordinate,
+		YCoordinate: yCoordinate,
 	}
 	if err := r.DB.Create(sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session comment")

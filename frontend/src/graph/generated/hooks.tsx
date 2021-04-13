@@ -704,6 +704,8 @@ export const CreateSessionCommentDocument = gql`
         $session_id: ID!
         $session_timestamp: Int!
         $text: String!
+        $x_coordinate: Float!
+        $y_coordinate: Float!
     ) {
         createSessionComment(
             organization_id: $organization_id
@@ -711,6 +713,8 @@ export const CreateSessionCommentDocument = gql`
             session_id: $session_id
             session_timestamp: $session_timestamp
             text: $text
+            x_coordinate: $x_coordinate
+            y_coordinate: $y_coordinate
         ) {
             id
             timestamp
@@ -722,6 +726,8 @@ export const CreateSessionCommentDocument = gql`
                 email
             }
             text
+            x_coordinate
+            y_coordinate
         }
     }
 `;
@@ -748,6 +754,8 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      session_id: // value for 'session_id'
  *      session_timestamp: // value for 'session_timestamp'
  *      text: // value for 'text'
+ *      x_coordinate: // value for 'x_coordinate'
+ *      y_coordinate: // value for 'y_coordinate'
  *   },
  * });
  */
@@ -1139,6 +1147,8 @@ export const GetSessionCommentsDocument = gql`
                 name
                 email
             }
+            x_coordinate
+            y_coordinate
         }
     }
 `;

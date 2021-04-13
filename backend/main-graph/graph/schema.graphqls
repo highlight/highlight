@@ -240,6 +240,8 @@ type SessionComment {
     updated_at: Time!
     author: SanitizedAdmin!
     text: String!
+    x_coordinate: Float!
+    y_coordinate: Float!
 }
 
 enum SessionLifecycle {
@@ -350,5 +352,7 @@ type Mutation {
         session_id: ID!
         session_timestamp: Int!
         text: String!
+        x_coordinate: Float!
+        y_coordinate: Float!
     ): SessionComment
 }

@@ -154,7 +154,7 @@ type ComplexityRoot struct {
 		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
 		CreateOrganization             func(childComplexity int, name string) int
 		CreateSegment                  func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment           func(childComplexity int, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string) int
+		CreateSessionComment           func(childComplexity int, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, xCoordinate float64, yCoordinate float64) int
 		DeleteErrorSegment             func(childComplexity int, segmentID int) int
 		DeleteOrganization             func(childComplexity int, id int) int
 		DeleteSegment                  func(childComplexity int, segmentID int) int
@@ -267,12 +267,14 @@ type ComplexityRoot struct {
 	}
 
 	SessionComment struct {
-		Author    func(childComplexity int) int
-		CreatedAt func(childComplexity int) int
-		ID        func(childComplexity int) int
-		Text      func(childComplexity int) int
-		Timestamp func(childComplexity int) int
-		UpdatedAt func(childComplexity int) int
+		Author      func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Text        func(childComplexity int) int
+		Timestamp   func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
+		XCoordinate func(childComplexity int) int
+		YCoordinate func(childComplexity int) int
 	}
 
 	SessionResults struct {
@@ -323,7 +325,7 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
 	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
-	CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string) (*model1.SessionComment, error)
+	CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, xCoordinate float64, yCoordinate float64) (*model1.SessionComment, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -856,7 +858,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string)), true
+		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64)), true
 
 	case "Mutation.deleteErrorSegment":
 		if e.complexity.Mutation.DeleteErrorSegment == nil {
@@ -1660,6 +1662,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionComment.UpdatedAt(childComplexity), true
 
+	case "SessionComment.x_coordinate":
+		if e.complexity.SessionComment.XCoordinate == nil {
+			break
+		}
+
+		return e.complexity.SessionComment.XCoordinate(childComplexity), true
+
+	case "SessionComment.y_coordinate":
+		if e.complexity.SessionComment.YCoordinate == nil {
+			break
+		}
+
+		return e.complexity.SessionComment.YCoordinate(childComplexity), true
+
 	case "SessionResults.sessions":
 		if e.complexity.SessionResults.Sessions == nil {
 			break
@@ -2001,6 +2017,8 @@ type SessionComment {
     updated_at: Time!
     author: SanitizedAdmin!
     text: String!
+    x_coordinate: Float!
+    y_coordinate: Float!
 }
 
 enum SessionLifecycle {
@@ -2111,6 +2129,8 @@ type Mutation {
         session_id: ID!
         session_timestamp: Int!
         text: String!
+        x_coordinate: Float!
+        y_coordinate: Float!
     ): SessionComment
 }
 `, BuiltIn: false},
@@ -2331,6 +2351,24 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 		}
 	}
 	args["text"] = arg4
+	var arg5 float64
+	if tmp, ok := rawArgs["x_coordinate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("x_coordinate"))
+		arg5, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["x_coordinate"] = arg5
+	var arg6 float64
+	if tmp, ok := rawArgs["y_coordinate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("y_coordinate"))
+		arg6, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["y_coordinate"] = arg6
 	return args, nil
 }
 
@@ -5736,7 +5774,7 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string))
+		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8595,6 +8633,76 @@ func (ec *executionContext) _SessionComment_text(ctx context.Context, field grap
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SessionComment_x_coordinate(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionComment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.XCoordinate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SessionComment_y_coordinate(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionComment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.YCoordinate, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionResults_sessions(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11426,6 +11534,16 @@ func (ec *executionContext) _SessionComment(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "x_coordinate":
+			out.Values[i] = ec._SessionComment_x_coordinate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "y_coordinate":
+			out.Values[i] = ec._SessionComment_y_coordinate(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11934,6 +12052,21 @@ func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋjayᚑkhatri
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
+	res, err := graphql.UnmarshalFloat(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
+	res := graphql.MarshalFloat(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {

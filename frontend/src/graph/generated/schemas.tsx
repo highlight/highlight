@@ -275,6 +275,8 @@ export type SessionComment = {
     updated_at: Scalars['Time'];
     author: SanitizedAdmin;
     text: Scalars['String'];
+    x_coordinate: Scalars['Float'];
+    y_coordinate: Scalars['Float'];
 };
 
 export enum SessionLifecycle {
@@ -526,4 +528,6 @@ export type MutationCreateSessionCommentArgs = {
     session_id: Scalars['ID'];
     session_timestamp: Scalars['Int'];
     text: Scalars['String'];
+    x_coordinate: Scalars['Float'];
+    y_coordinate: Scalars['Float'];
 };

@@ -186,13 +186,21 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     session_id: Types.Scalars['ID'];
     session_timestamp: Types.Scalars['Int'];
     text: Types.Scalars['String'];
+    x_coordinate: Types.Scalars['Float'];
+    y_coordinate: Types.Scalars['Float'];
 }>;
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
     createSessionComment?: Types.Maybe<
         { __typename?: 'SessionComment' } & Pick<
             Types.SessionComment,
-            'id' | 'timestamp' | 'created_at' | 'updated_at' | 'text'
+            | 'id'
+            | 'timestamp'
+            | 'created_at'
+            | 'updated_at'
+            | 'text'
+            | 'x_coordinate'
+            | 'y_coordinate'
         > & {
                 author: { __typename?: 'SanitizedAdmin' } & Pick<
                     Types.SanitizedAdmin,
@@ -328,7 +336,13 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,
-                'id' | 'timestamp' | 'created_at' | 'updated_at' | 'text'
+                | 'id'
+                | 'timestamp'
+                | 'created_at'
+                | 'updated_at'
+                | 'text'
+                | 'x_coordinate'
+                | 'y_coordinate'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,

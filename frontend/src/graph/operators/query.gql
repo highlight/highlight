@@ -48,6 +48,8 @@ query GetSessionComments($session_id: ID!) {
             name
             email
         }
+        x_coordinate
+        y_coordinate
     }
 }
 
