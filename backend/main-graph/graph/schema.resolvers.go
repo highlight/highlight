@@ -963,6 +963,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	// Filter out sessions that are processed but have a length of 0. In this case the player won't work because there are no events to replay.
 	queryString += "AND NOT ((processed = true AND length = 0)) "
 	queryString += "ORDER BY created_at DESC"
+	queryString += " LIMIT 1000"
 
 	if err := r.DB.Raw(queryString).Scan(&queriedSessions).Error; err != nil {
 		return nil, e.Wrap(err, "error querying filtered sessions")
