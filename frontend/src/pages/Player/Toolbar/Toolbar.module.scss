@@ -26,11 +26,12 @@
 }
 
 .sliderSegment {
-    display: inline-block;
+    display: inline-flex;
     height: 4px;
     background: none;
     padding: 0 0 0 1px;
     outline: none;
+    align-items: center;
 }
 
 .segmentHover {
@@ -79,6 +80,7 @@
 
 .playerRail {
     position: relative;
+    z-index: 101;
 }
 
 .dropdownMenu {
@@ -125,6 +127,8 @@
     background-color: white;
     display: flex;
     flex-direction: row;
+    z-index: 100;
+    border-left: 1px solid #eaeaea;
 }
 
 .playSection {
@@ -252,4 +256,35 @@
 .icon {
     height: 18px;
     width: 18px;
+}
+
+.annotationsContainer {
+    position: absolute;
+    height: 10px;
+    display: flex;
+    align-items: center;
+    box-sizing: content-box;
+    padding: 8px 0;
+    width: 100%;
+    top: -$size-large;
+}
+
+.popoverHeader {
+    width: 240px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.popoverContent {
+    width: 240px;
+    overflow-wrap: anywhere;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.buttonContainer {
+    padding-top: $size-medium;
+    display: flex;
+    justify-content: flex-end;
 }

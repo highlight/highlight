@@ -1,4 +1,6 @@
+export const annotationsContainer: string;
 export const button: string;
+export const buttonContainer: string;
 export const dropdownInner: string;
 export const dropdownMenu: string;
 export const dropdownSection: string;
@@ -10,6 +12,8 @@ export const indicatorParent: string;
 export const playButtonStyle: string;
 export const playerRail: string;
 export const playSection: string;
+export const popoverContent: string;
+export const popoverHeader: string;
 export const redoSection: string;
 export const segmentHover: string;
 export const skipButtonStyle: string;

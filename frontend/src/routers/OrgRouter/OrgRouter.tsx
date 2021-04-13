@@ -20,6 +20,7 @@ import { Duration, MillisToDaysHoursMinSeconds } from '../../util/time';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { ErrorPage } from '../../pages/Error/ErrorPage';
 import { AlertsPage } from '../../pages/Alerts/Alerts';
+import { ErrorState } from '../../components/ErrorState/ErrorState';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -55,62 +56,78 @@ export const OrgRouter = () => {
         };
     }, []);
 
-    if (error) {
-        return <p>{'OrgValidator error: ' + JSON.stringify(error)}</p>;
-    }
-    if (integratedLoading || loading || !data?.organization) {
+    if (integratedLoading || loading) {
         return <LoadingPage />;
     }
     return (
         <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
             <Header trialTimeRemaining={trialTimeRemaining} />
             <div className={commonStyles.bodyWrapper}>
-                <Sidebar />
-                <Switch>
-                    <Route path="/:organization_id/sessions/segment/:segment_id">
-                        <SessionsPage integrated={integrated} />
-                    </Route>
-                    <Route path="/:organization_id/sessions/:session_id">
-                        <Player />
-                    </Route>
-                    <Route path="/:organization_id/sessions">
-                        <SessionsPage integrated={integrated} />
-                    </Route>
-                    <Route path="/:organization_id/settings">
-                        <WorkspaceSettings />
-                    </Route>
-                    <Route path="/:organization_id/alerts">
-                        <AlertsPage />
-                    </Route>
-                    <Route path="/:organization_id/team">
-                        <WorkspaceTeam />
-                    </Route>
-                    <Route path="/:organization_id/billing">
-                        <Billing />
-                    </Route>
-                    <Route path="/:organization_id/setup">
-                        <SetupPage integrated={integrated} />
-                    </Route>
-                    <Route path="/:organization_id/errors/segment/:segment_id">
-                        <ErrorsPage integrated={integrated} />
-                    </Route>
-                    <Route path="/:organization_id/errors/:error_id">
-                        <ErrorPage />
-                    </Route>
-                    <Route path="/:organization_id/errors">
-                        <ErrorsPage integrated={integrated} />
-                    </Route>
-                    <Route path="/:organization_id/buttons">
-                        <Buttons />
-                    </Route>
-                    <Route path="/:organization_id">
-                        {integrated ? (
-                            <Redirect to={`/${organization_id}/sessions`} />
-                        ) : (
-                            <Redirect to={`/${organization_id}/setup`} />
-                        )}
-                    </Route>
-                </Switch>
+                {error || !data?.organization ? (
+                    <ErrorState
+                        message={`
+                        Seems like you don’t have access to this page 😢. If you're
+                        part of a team, ask your workspace admin to send you an
+                        invite. Otherwise, feel free to make an account!
+                        `}
+                        errorString={
+                            'OrgRouter Error: ' + JSON.stringify(error)
+                        }
+                    />
+                ) : (
+                    <>
+                        <Sidebar />
+                        <Switch>
+                            <Route path="/:organization_id/sessions/segment/:segment_id">
+                                <SessionsPage integrated={integrated} />
+                            </Route>
+                            <Route path="/:organization_id/sessions/:session_id">
+                                <Player />
+                            </Route>
+                            <Route path="/:organization_id/sessions">
+                                <SessionsPage integrated={integrated} />
+                            </Route>
+                            <Route path="/:organization_id/settings">
+                                <WorkspaceSettings />
+                            </Route>
+                            <Route path="/:organization_id/alerts">
+                                <AlertsPage />
+                            </Route>
+                            <Route path="/:organization_id/team">
+                                <WorkspaceTeam />
+                            </Route>
+                            <Route path="/:organization_id/billing">
+                                <Billing />
+                            </Route>
+                            <Route path="/:organization_id/setup">
+                                <SetupPage integrated={integrated} />
+                            </Route>
+                            <Route path="/:organization_id/errors/segment/:segment_id">
+                                <ErrorsPage integrated={integrated} />
+                            </Route>
+                            <Route path="/:organization_id/errors/:error_id">
+                                <ErrorPage />
+                            </Route>
+                            <Route path="/:organization_id/errors">
+                                <ErrorsPage integrated={integrated} />
+                            </Route>
+                            <Route path="/:organization_id/buttons">
+                                <Buttons />
+                            </Route>
+                            <Route path="/:organization_id">
+                                {integrated ? (
+                                    <Redirect
+                                        to={`/${organization_id}/sessions`}
+                                    />
+                                ) : (
+                                    <Redirect
+                                        to={`/${organization_id}/setup`}
+                                    />
+                                )}
+                            </Route>
+                        </Switch>
+                    </>
+                )}
             </div>
         </SidebarContext.Provider>
     );

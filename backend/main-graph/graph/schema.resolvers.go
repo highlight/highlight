@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/fullstory/backend/pricing"
 	"github.com/jay-khatri/fullstory/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
@@ -26,27 +28,7 @@ import (
 )
 
 func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) ([]*string, error) {
-	if obj.Trace == "" {
-		return nil, nil
-	}
-	var eventInterface interface{}
-	if err := json.Unmarshal([]byte(obj.Event), &eventInterface); err != nil {
-		return nil, nil
-	}
-	// the event interface is either in the form 'string' or '[]string':
-	if val, ok := eventInterface.(string); ok {
-		return []*string{&val}, nil
-	}
-	if val, ok := eventInterface.([]interface{}); ok {
-		ret := []*string{}
-		for _, v := range val {
-			if s, ok := v.(string); ok {
-				ret = append(ret, &s)
-			}
-		}
-		return ret, nil
-	}
-	return nil, nil
+	return util.JsonStringToStringArray(obj.Event), nil
 }
 
 func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
@@ -107,6 +89,10 @@ func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGro
 		parsedFields = append(parsedFields, f)
 	}
 	return parsedFields, nil
+}
+
+func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject) ([]*string, error) {
+	return util.JsonStringToStringArray(obj.Event), nil
 }
 
 func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
@@ -197,6 +183,22 @@ func (r *mutationResolver) MarkSessionAsViewed(ctx context.Context, id int, view
 	return session, nil
 }
 
+func (r *mutationResolver) MarkSessionAsStarred(ctx context.Context, id int, starred *bool) (*model.Session, error) {
+	_, err := r.isAdminSessionOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+	session := &model.Session{}
+	res := r.DB.Where(&model.Session{Model: model.Model{ID: id}}).First(&session)
+	if err := res.Update(&model.Session{
+		Starred: starred,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing session as starred")
+	}
+
+	return session, nil
+}
+
 func (r *mutationResolver) MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model.ErrorGroup, error) {
 	_, err := r.isAdminErrorGroupOwner(ctx, id)
 	if err != nil {
@@ -278,19 +280,11 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 }
 
 func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
-	// NOTE: In order to use this endpoint on your local machine, use ngrok to serve
-	// the frontend on a tunnel, and set "LOCAL_TUNNEL_URI" to the base URL.
-	// The Slack API doesn't support non-ssl, hence this requirement.
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	var redirect string
-	if os.Getenv("ENVIRONMENT") == "dev" {
-		redirect = os.Getenv("LOCAL_TUNNEL_URI")
-	} else {
-		redirect = os.Getenv("FRONTEND_URI")
-	}
+	redirect := os.Getenv("FRONTEND_URI")
 	redirect += "/" + strconv.Itoa(organizationID) + "/" + redirectPath
 	resp, err := slack.
 		GetOAuthV2Response(
@@ -310,6 +304,17 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 		SlackWebhookChannel:   &resp.IncomingWebhook.Channel,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
+	}
+
+	baseMessage := "👋 Hello from Highlight!"
+	if name := org.Name; name != nil {
+		baseMessage += fmt.Sprintf(" We'll send messages here whenever we get an error from %s.", *name)
+	} else {
+		baseMessage += " We'll send messages here whenever we get an error."
+	}
+	msg := slack.WebhookMessage{Text: baseMessage}
+	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
+		e.Wrap(err, "failed to send hello alert slack message")
 	}
 	return &model.T, nil
 }
@@ -471,7 +476,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	}
 	// If there's a single subscription on the user and a single price item on the subscription
 	if len(c.Subscriptions.Data) == 1 && len(c.Subscriptions.Data[0].Items.Data) == 1 {
-		plan := util.ToPriceID(planType)
+		plan := pricing.ToPriceID(planType)
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
 			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
@@ -507,7 +512,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
-					Plan: stripe.String(util.ToPriceID(planType)),
+					Plan: stripe.String(pricing.ToPriceID(planType)),
 				},
 			},
 		},
@@ -523,6 +528,23 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string) (*model.SessionComment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	sessionComment := &model.SessionComment{
+		AdminId:   adminID,
+		SessionId: sessionID,
+		Timestamp: sessionTimestamp,
+		Text:      text,
+	}
+	if err := r.DB.Create(sessionComment).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session comment")
+	}
+	return sessionComment, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	if _, err := r.isAdminSessionOwner(ctx, id); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -536,6 +558,20 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
+	if os.Getenv("ENVIRONMENT") == "dev" && sessionID == 1 {
+		file, err := ioutil.ReadFile("./tmp/events.json")
+
+		if err != nil {
+			return nil, e.Wrap(err, "Failed to read temp file")
+		}
+		var data []interface{}
+
+		if err := json.Unmarshal([]byte(file), &data); err != nil {
+			return nil, e.Wrap(err, "Failed to unmarshal data from file")
+		}
+
+		return data, nil
+	}
 	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
@@ -686,6 +722,18 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 	return allResources["resources"], nil
 }
 
+func (r *queryResolver) SessionComments(ctx context.Context, sessionID int) ([]*model.SessionComment, error) {
+	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+		return nil, e.Wrap(err, "admin not session owner")
+	}
+
+	sessionComments := []*model.SessionComment{}
+	if err := r.DB.Where(model.SessionComment{SessionId: sessionID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session comments for session")
+	}
+	return sessionComments, nil
+}
+
 func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*model.Admin, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
@@ -703,13 +751,13 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	sessions := []*model.Session{}
-	err := r.DB.Where(
-		&model.Session{OrganizationID: organizationID}).Find(&sessions).Error
+	var count int
+	err := r.DB.Model(&model.Session{}).Where(
+		&model.Session{OrganizationID: organizationID}).Count(&count).Error
 	if err != nil {
 		return nil, e.Wrap(err, "error getting associated admins")
 	}
-	if len(sessions) > 0 {
+	if count > 0 {
 		return &model.T, nil
 	}
 	return &model.F, nil
@@ -728,7 +776,7 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	return &count, nil
 }
 
-func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, processed bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
+func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
 	fieldCheck := true
@@ -799,8 +847,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	for _, prop := range params.ExcludedProperties {
 		if prop.Name == "contains" {
-			notFieldQuery = notFieldQuery.Or("name = 'identifier' AND value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-			notFieldQuery = notFieldQuery.Or("name = 'name' AND value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
 		} else {
 			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
 		}
@@ -819,15 +866,21 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
-	queryString := `SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,
+	queryString := `SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed
-	FROM (SELECT id, user_id, organization_id, processed, os_name, os_version, browser_name,
+	FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
 	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds
 	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
-	if processed {
+	if lifecycle == modelInputs.SessionLifecycleCompleted {
 		queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+	}
+	if starred {
+		queryString += "AND (starred = true) "
+	}
+	if firstTime := params.FirstTime; firstTime != nil && *firstTime {
+		queryString += "AND (first_time = true) "
 	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
@@ -840,7 +893,11 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		}
 	}
 
-	queryString += "AND (processed = " + strconv.FormatBool(processed) + ") "
+	if lifecycle == modelInputs.SessionLifecycleCompleted {
+		queryString += "AND (processed = true) "
+	} else if lifecycle == modelInputs.SessionLifecycleLive {
+		queryString += "AND (processed = false) "
+	}
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
@@ -945,16 +1002,15 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
 		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
-	planType := util.FromPriceID(priceID)
-	year, month, _ := time.Now().Date()
-	var meter int
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
-		return nil, e.Wrap(err, "error querying for session meter")
+	planType := pricing.FromPriceID(priceID)
+	meter, err := pricing.GetOrgQuota(r.DB, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error from get quota")
 	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  modelInputs.PlanType(planType.String()),
-			Quota: util.TypeToQuota(planType),
+			Quota: pricing.TypeToQuota(planType),
 		},
 		Meter: meter,
 	}
@@ -1122,6 +1178,31 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
+	admin := &model.Admin{}
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+		return nil, e.Wrap(err, "Error finding admin for comment")
+	}
+
+	name := ""
+	email := ""
+
+	if admin.Name != nil {
+		name = *admin.Name
+	}
+	if admin.Email != nil {
+		email = *admin.Email
+	}
+
+	sanitizedAdmin := &modelInputs.SanitizedAdmin{
+		ID:    admin.ID,
+		Name:  &name,
+		Email: email,
+	}
+
+	return sanitizedAdmin, nil
+}
+
 // ErrorGroup returns generated.ErrorGroupResolver implementation.
 func (r *Resolver) ErrorGroup() generated.ErrorGroupResolver { return &errorGroupResolver{r} }
 
@@ -1143,6 +1224,11 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
+// SessionComment returns generated.SessionCommentResolver implementation.
+func (r *Resolver) SessionComment() generated.SessionCommentResolver {
+	return &sessionCommentResolver{r}
+}
+
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
@@ -1150,3 +1236,4 @@ type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+type sessionCommentResolver struct{ *Resolver }

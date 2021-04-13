@@ -3,6 +3,7 @@ import React, {
     useContext,
     useEffect,
     useMemo,
+    useRef,
     useState,
 } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -14,23 +15,32 @@ import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import { ReactComponent as ViewedIcon } from '../../../static/viewed.svg';
 import { ReactComponent as UnviewedIcon } from '../../../static/unviewed.svg';
+import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
+import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { Avatar } from '../../../components/Avatar/Avatar';
-import { message, Tooltip } from 'antd';
+import { message } from 'antd';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 import {
     useGetBillingDetailsQuery,
     useGetSessionsQuery,
+    useMarkSessionAsStarredMutation,
     useMarkSessionAsViewedMutation,
 } from '../../../graph/generated/hooks';
 import {
     Maybe,
     Session,
     SessionResults,
+    SessionLifecycle,
 } from '../../../graph/generated/schemas';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import { Field } from '../../../components/Field/Field';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
-import { LIVE_SEGMENT_ID } from '../SearchSidebar/SegmentPicker/SegmentPicker';
+import {
+    LIVE_SEGMENT_ID,
+    STARRED_SEGMENT_ID,
+} from '../SearchSidebar/SegmentPicker/SegmentPicker';
+import Tooltip from '../../../components/Tooltip/Tooltip';
+import FirstTimeDecorations from './components/FirstTimeDecorations/FirstTimeDecorations';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
@@ -55,14 +65,20 @@ export const SessionFeed = () => {
         sessions: [],
         totalCount: -1,
     });
-    const { searchParams } = useContext(SearchContext);
+    const { searchParams, hideLiveSessions } = useContext(SearchContext);
 
     const { loading, fetchMore, data: sessionData } = useGetSessionsQuery({
         variables: {
             params: searchParams,
             count: count + 10,
             organization_id,
-            processed: segment_id !== LIVE_SEGMENT_ID,
+            lifecycle:
+                segment_id === LIVE_SEGMENT_ID
+                    ? SessionLifecycle.Live
+                    : hideLiveSessions
+                    ? SessionLifecycle.Completed
+                    : SessionLifecycle.All,
+            starred: segment_id === STARRED_SEGMENT_ID,
         },
         pollInterval: SESSIONS_FEED_POLL_INTERVAL,
         onCompleted: (response) => {
@@ -95,7 +111,12 @@ export const SessionFeed = () => {
                     params: searchParams,
                     count,
                     organization_id,
-                    processed: false,
+                    processed:
+                        segment_id === LIVE_SEGMENT_ID
+                            ? SessionLifecycle.Live
+                            : hideLiveSessions
+                            ? SessionLifecycle.Completed
+                            : SessionLifecycle.All,
                 },
             });
         },
@@ -178,6 +199,22 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
     const [hovered, setHovered] = useState(false);
     const created = new Date(session?.created_at);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
+    const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
+        update(cache) {
+            cache.modify({
+                fields: {
+                    session(existingSession) {
+                        const updatedSession = {
+                            ...existingSession,
+                            starred: !existingSession.starred,
+                        };
+                        return updatedSession;
+                    },
+                },
+            });
+        },
+    });
+    const containerRef = useRef<HTMLDivElement>(null);
 
     return (
         <div
@@ -186,8 +223,45 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
         >
+            {(session?.starred || hovered) && (
+                <Tooltip title={session?.starred ? 'Unstar' : 'Star'}>
+                    <div
+                        className={styles.starredIconWrapper}
+                        onClick={() => {
+                            markSessionAsStarred({
+                                variables: {
+                                    id: session?.id || '',
+                                    starred: !session?.starred,
+                                },
+                            })
+                                .then(() => {
+                                    message.success(
+                                        'Updated session status!',
+                                        3
+                                    );
+                                })
+                                .catch(() => {
+                                    message.error(
+                                        'Error updating session status!',
+                                        3
+                                    );
+                                });
+                        }}
+                    >
+                        {session?.starred ? (
+                            <FilledStarIcon className={styles.starredIcon} />
+                        ) : (
+                            <StarIcon className={styles.actionIcon} />
+                        )}
+                    </div>
+                </Tooltip>
+            )}
             <Link to={`/${organization_id}/sessions/${session?.id}`}>
-                <div className={styles.sessionCard}>
+                <div className={styles.sessionCard} ref={containerRef}>
+                    <FirstTimeDecorations
+                        containerRef={containerRef}
+                        session={session}
+                    />
                     <div
                         className={classNames(
                             styles.hoverBorderLeft,
@@ -241,11 +315,12 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                             </div>
                             <div className={styles.sessionTextSection}>
                                 <div className={styles.topText}>
-                                    {segment_id === LIVE_SEGMENT_ID
-                                        ? 'In Progress'
-                                        : MillisToMinutesAndSecondsVerbose(
+                                    {session?.processed &&
+                                    segment_id !== LIVE_SEGMENT_ID
+                                        ? MillisToMinutesAndSecondsVerbose(
                                               session?.length || 0
-                                          ) || '30 min 20 sec'}
+                                          ) || '30 min 20 sec'
+                                        : 'Live'}
                                 </div>
                                 <div className={styles.middleText}>
                                     {created.toLocaleString('en-us', {

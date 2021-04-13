@@ -54,6 +54,12 @@ type Plan struct {
 	Quota int      `json:"quota"`
 }
 
+type SanitizedAdmin struct {
+	ID    int     `json:"id"`
+	Name  *string `json:"name"`
+	Email string  `json:"email"`
+}
+
 type SearchParamsInput struct {
 	UserProperties     []*UserPropertyInput `json:"user_properties"`
 	ExcludedProperties []*UserPropertyInput `json:"excluded_properties"`
@@ -66,6 +72,7 @@ type SearchParamsInput struct {
 	Referrer           *string              `json:"referrer"`
 	Identified         *bool                `json:"identified"`
 	HideViewed         *bool                `json:"hide_viewed"`
+	FirstTime          *bool                `json:"first_time"`
 }
 
 type UserPropertyInput struct {
@@ -115,5 +122,48 @@ func (e *PlanType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PlanType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+type SessionLifecycle string
+
+const (
+	SessionLifecycleAll       SessionLifecycle = "All"
+	SessionLifecycleLive      SessionLifecycle = "Live"
+	SessionLifecycleCompleted SessionLifecycle = "Completed"
+)
+
+var AllSessionLifecycle = []SessionLifecycle{
+	SessionLifecycleAll,
+	SessionLifecycleLive,
+	SessionLifecycleCompleted,
+}
+
+func (e SessionLifecycle) IsValid() bool {
+	switch e {
+	case SessionLifecycleAll, SessionLifecycleLive, SessionLifecycleCompleted:
+		return true
+	}
+	return false
+}
+
+func (e SessionLifecycle) String() string {
+	return string(e)
+}
+
+func (e *SessionLifecycle) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = SessionLifecycle(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid SessionLifecycle", str)
+	}
+	return nil
+}
+
+func (e SessionLifecycle) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }

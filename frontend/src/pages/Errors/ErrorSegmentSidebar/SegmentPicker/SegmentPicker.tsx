@@ -16,10 +16,11 @@ import {
 } from '../../../../graph/generated/hooks';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import classNames from 'classnames';
-import { message, Modal } from 'antd';
+import { message } from 'antd';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
 import _ from 'lodash';
 import { EmptyErrorsSearchParams } from '../../ErrorsPage';
+import Modal from '../../../../components/Modal/Modal';
 
 const NO_SEGMENT = 'none';
 
@@ -103,14 +104,12 @@ export const ErrorSegmentPicker = () => {
     return (
         <>
             <Modal
+                title="Delete Segment"
                 visible={deleteClicked}
-                maskClosable
                 onCancel={() => setDeleteClicked(false)}
                 style={{ display: 'flex' }}
-                footer={null}
             >
                 <div className={styles.modalWrapper}>
-                    <div className={styles.modalTitle}>Delete Segment</div>
                     <div className={styles.modalSubTitle}>
                         {`This action is irreversible. Do you want to delete ${
                             segmentToDelete?.name

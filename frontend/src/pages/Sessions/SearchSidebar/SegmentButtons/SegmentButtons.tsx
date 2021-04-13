@@ -5,13 +5,15 @@ import commonStyles from '../../../../Common.module.scss';
 import { SearchContext } from '../../SearchContext/SearchContext';
 import { RouteComponentProps, useParams, withRouter } from 'react-router-dom';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
-import { message, Modal } from 'antd';
+import { message } from 'antd';
 import styles from './SegmentButtons.module.scss';
 import { useForm } from 'react-hook-form';
 import {
     useCreateSegmentMutation,
     useEditSegmentMutation,
 } from '../../../../graph/generated/hooks';
+import Modal from '../../../../components/Modal/Modal';
+import PrimaryButton from '../../../../components/Button/PrimaryButton/PrimaryButton';
 
 type Inputs = {
     name: string;
@@ -73,17 +75,13 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
     return (
         <>
             <Modal
+                title="Create a segment"
                 visible={createClicked}
-                maskClosable
                 onCancel={() => setCreateClicked(false)}
                 style={{ display: 'flex' }}
-                footer={null}
             >
                 <div className={styles.modalWrapper}>
                     <form onSubmit={handleSubmit(onSubmit)}>
-                        <div className={styles.modalTitle}>
-                            Create a Segment
-                        </div>
                         <div className={styles.modalSubTitle}>
                             Enter the name of your segment and you'll be good to
                             go!
@@ -99,7 +97,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                                 'Error with segment name ' +
                                     errors.name.message}
                         </div>
-                        <button className={commonStyles.submitButton}>
+                        <PrimaryButton style={{ width: '100%', marginTop: 10 }}>
                             {loading ? (
                                 <CircularSpinner
                                     style={{ fontSize: 18, color: 'white' }}
@@ -107,7 +105,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                             ) : (
                                 'Save As Segment'
                             )}
-                        </button>
+                        </PrimaryButton>
                     </form>
                 </div>
             </Modal>

@@ -5,6 +5,13 @@ mutation MarkSessionAsViewed($id: ID!, $viewed: Boolean!) {
     }
 }
 
+mutation MarkSessionAsStarred($id: ID!, $starred: Boolean!) {
+    markSessionAsStarred(id: $id, starred: $starred) {
+        id
+        starred
+    }
+}
+
 mutation CreateOrUpdateSubscription(
     $organization_id: ID!
     $plan_type: PlanType!

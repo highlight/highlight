@@ -104,6 +104,13 @@
     max-width: 90vw;
 }
 
+.modalWrapper {
+    width: 80vw;
+    border-radius: 8px;
+    background-color: black;
+    padding: 10px;
+}
+
 .subHeader {
     text-align: center;
     font-size: 20px;
@@ -112,6 +119,21 @@
     justify-content: center;
     max-width: 500px;
     margin-bottom: 30px;
+}
+
+.demoVideoButton {
+    color: #888888;
+    margin: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: white;
+    border: none;
+    font-weight: 300;
+    transition: 0.3s color;
+}
+
+.demoVideoButton:hover {
+    color: $highlight-purple;
 }
 
 .navLink {

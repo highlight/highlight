@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { FaUndoAlt, FaPlay, FaPause, FaRedoAlt } from 'react-icons/fa';
 import { useLocalStorage } from '@rehooks/local-storage';
-import { MillisToMinutesAndSeconds } from '../../../util/time';
+import {
+    MillisToMinutesAndSeconds,
+    MillisToMinutesAndSecondsVerbose,
+} from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
 import { SettingsMenu } from './SettingsMenu/SettingsMenu';
 import {
@@ -17,6 +20,14 @@ import ReplayerContext, {
 } from '../ReplayerContext';
 import classNames from 'classnames';
 import Skeleton from 'react-loading-skeleton';
+import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
+import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
+import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
+import { ErrorObject } from '../../../graph/generated/schemas';
+import Modal from '../../../components/Modal/Modal';
+import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
+import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
+import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -30,6 +41,9 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
+    const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
+        undefined
+    );
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
@@ -54,6 +68,9 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         'highlightMenuShowRightPanel',
         true
     );
+    const [] = useLocalStorage('highlightTimelineAnnotationTypes', [
+        ...EventsForTimeline,
+    ]);
 
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const isPaused =
@@ -138,6 +155,9 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 sliderPercent < interval.endPercent &&
                 sliderPercent >= interval.startPercent
             ) {
+                if (!interval.active) {
+                    return interval.endTime;
+                }
                 const segmentPercent =
                     (sliderPercent - interval.startPercent) /
                     (interval.endPercent - interval.startPercent);
@@ -159,7 +179,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
 
     return (
-        <>
+        <ErrorModalContextProvider value={{ selectedError, setSelectedError }}>
             <DevToolsContextProvider
                 value={{
                     openDevTools,
@@ -173,6 +193,14 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     startTime={replayer?.getMetaData().startTime ?? 0}
                 />
             </DevToolsContextProvider>
+            <Modal
+                visible={!!selectedError}
+                onCancel={() => {
+                    setSelectedError(undefined);
+                }}
+            >
+                <ErrorModal error={selectedError!} />
+            </Modal>
             <div className={styles.playerRail}>
                 <div
                     className={styles.sliderRail}
@@ -189,7 +217,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             interval={e}
                             sliderClientX={sliderClientX}
                             wrapperWidth={wrapperWidth}
-                            time={time}
                             getSliderTime={getSliderTime}
                         />
                     ))}
@@ -330,6 +357,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>
+                    <TimelineAnnotationsSettings />
                     <SettingsMenu
                         skipInactive={skipInactive}
                         onSkipInactiveChange={() =>
@@ -355,7 +383,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     />
                 </div>
             </div>
-        </>
+        </ErrorModalContextProvider>
     );
 };
 
@@ -363,17 +391,24 @@ const SessionSegment = ({
     interval,
     sliderClientX,
     wrapperWidth,
-    time,
     getSliderTime,
 }: {
     interval: ParsedSessionInterval;
     sliderClientX: number;
     wrapperWidth: number;
-    time: number;
     getSliderTime: (sliderTime: number) => number;
 }) => {
+    const { time } = useContext(ReplayerContext);
+    const [openDevTools] = useLocalStorage('highlightMenuOpenDevTools', false);
+    const [
+        selectedTimelineAnnotationTypes,
+    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
+        ...EventsForTimeline,
+    ]);
     const playedColor = interval.active ? '#5629c6' : '#808080';
     const unplayedColor = interval.active ? '#EEE7FF' : '#d2d2d2';
+    const currentRawPercent =
+        (time - interval.startTime) / (interval.endTime - interval.startTime);
     const isPercentInInterval = (
         sliderPercent: number,
         interval: ParsedSessionInterval
@@ -390,6 +425,45 @@ const SessionSegment = ({
                 }%`,
             }}
         >
+            {!openDevTools && (
+                <>
+                    <div
+                        className={styles.annotationsContainer}
+                        style={{
+                            width: `${
+                                (interval.endPercent - interval.startPercent) *
+                                100
+                            }%`,
+                        }}
+                    >
+                        {interval.sessionEvents?.map((event) => (
+                            <TimelineEventAnnotation
+                                event={event}
+                                key={event.identifier}
+                            />
+                        ))}
+                    </div>
+                    {selectedTimelineAnnotationTypes.includes('Errors') && (
+                        <div
+                            className={styles.annotationsContainer}
+                            style={{
+                                width: `${
+                                    (interval.endPercent -
+                                        interval.startPercent) *
+                                    100
+                                }%`,
+                            }}
+                        >
+                            {interval.errors.map((error) => (
+                                <TimelineErrorAnnotation
+                                    key={error.id}
+                                    error={error}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </>
+            )}
             <div
                 className={styles.sliderPopover}
                 style={{
@@ -407,9 +481,11 @@ const SessionSegment = ({
             >
                 <div>{interval.active ? 'Active' : 'Inactive'}</div>
                 <div className={styles.sliderPopoverTime}>
-                    {MillisToMinutesAndSeconds(
-                        getSliderTime(sliderClientX / wrapperWidth)
-                    )}
+                    {interval.active
+                        ? MillisToMinutesAndSeconds(
+                              getSliderTime(sliderClientX / wrapperWidth)
+                          )
+                        : MillisToMinutesAndSecondsVerbose(interval.duration)}
                 </div>
             </div>
             <div
@@ -420,27 +496,37 @@ const SessionSegment = ({
                         : ''
                 )}
                 style={{
-                    background: `linear-gradient(to right,${playedColor} 0%, ${playedColor} ${
-                        Math.min(
-                            Math.max(
-                                (time - interval.startTime) /
-                                    (interval.endTime - interval.startTime),
-                                0
-                            ),
-                            1
-                        ) * 100
-                    }%, ${unplayedColor} ${
-                        Math.min(
-                            Math.max(
-                                (time - interval.startTime) /
-                                    (interval.endTime - interval.startTime),
-                                0
-                            ),
-                            1
-                        ) * 100
-                    }%)`,
+                    backgroundColor: unplayedColor,
                 }}
-            ></div>
+            >
+                <div
+                    style={{
+                        backgroundColor: playedColor,
+                        height: '100%',
+                        width: `${
+                            Math.min(Math.max(currentRawPercent, 0), 1) * 100
+                        }%`,
+                    }}
+                ></div>
+            </div>
         </div>
     );
 };
+
+const TimelineAnnotationColors: {
+    [key in EventsForTimelineKeys[number]]: string;
+} = {
+    Click: '--color-purple-light',
+    Focus: '--color-blue',
+    Reload: '--color-green-light',
+    Navigate: '--color-yellow',
+    Errors: '--color-red',
+    Segment: '--color-orange-400',
+    Track: '--color-blue-light',
+};
+
+export function getAnnotationColor(
+    eventTypeKey: typeof EventsForTimeline[number]
+) {
+    return TimelineAnnotationColors[eventTypeKey];
+}

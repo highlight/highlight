@@ -158,13 +158,17 @@ type Session struct {
 	// Tells us if the session has been parsed by a worker.
 	Processed *bool `json:"processed"`
 	// The length of a session.
-	Length           int64      `json:"length"`
-	Fields           []*Field   `json:"fields" gorm:"many2many:session_fields;"`
-	UserObject       JSONB      `json:"user_object" sql:"type:jsonb"`
+	Length     int64    `json:"length"`
+	Fields     []*Field `json:"fields" gorm:"many2many:session_fields;"`
+	UserObject JSONB    `json:"user_object" sql:"type:jsonb"`
+	// Whether this is the first session created by this user.
+	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
 	// Custom properties
-	Viewed     *bool   `json:"viewed"`
-	FieldGroup *string `json:"field_group"`
+	Viewed              *bool   `json:"viewed"`
+	Starred             *bool   `json:"starred"`
+	FieldGroup          *string `json:"field_group"`
+	EnableStrictPrivacy *bool   `json:"enable_strict_privacy"`
 }
 
 type Field struct {
@@ -197,6 +201,7 @@ type SearchParams struct {
 	Referrer           *string         `json:"referrer"`
 	Identified         bool            `json:"identified"`
 	HideViewed         bool            `json:"hide_viewed"`
+	FirstTime          bool            `json:"first_time"`
 }
 type Segment struct {
 	Model
@@ -305,6 +310,14 @@ type ErrorField struct {
 	ErrorGroups    []ErrorGroup `gorm:"many2many:error_group_fields;"`
 }
 
+type SessionComment struct {
+	Model
+	AdminId   int
+	SessionId int
+	Timestamp int
+	Text      string
+}
+
 func SetupDB() *gorm.DB {
 	log.Println("setting up database")
 	psqlConf := fmt.Sprintf(
@@ -336,6 +349,7 @@ func SetupDB() *gorm.DB {
 		&Field{},
 		&EmailSignup{},
 		&ResourcesObject{},
+		&SessionComment{},
 	)
 	return DB
 }

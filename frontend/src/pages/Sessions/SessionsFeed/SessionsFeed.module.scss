@@ -6,6 +6,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 .readMarkerContainer {
@@ -255,6 +256,35 @@
     stroke: #808080;
     color: #808080;
     fill: #808080;
+}
+
+.starredIconWrapper {
+    position: absolute;
+    margin: auto;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    padding: 6px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    z-index: 5;
+
+    &:hover {
+        cursor: pointer;
+
+        .actionIcon {
+            color: black;
+            fill: black;
+            stroke: black;
+        }
+    }
+}
+
+.starredIcon {
+    stroke: #ffd82c;
+    color: #ffd82c;
+    fill: #ffd82c;
 }
 
 .sessionCard {

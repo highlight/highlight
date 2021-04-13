@@ -4,6 +4,7 @@ package util
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/99designs/gqlgen/graphql"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -14,11 +15,11 @@ type Tracer struct {
 	graphql.ResponseInterceptor
 	graphql.FieldInterceptor
 
-	serverName string
+	serverType BackendType
 }
 
-func NewTracer(backend string) Tracer {
-	return Tracer{serverName: backend}
+func NewTracer(backend BackendType) Tracer {
+	return Tracer{serverType: backend}
 }
 
 func (t Tracer) ExtensionName() string {
@@ -32,8 +33,15 @@ func (t Tracer) Validate(graphql.ExecutableSchema) error {
 func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (interface{}, error) {
 	// taken from: https://docs.datadoghq.com/tracing/setup_overview/custom_instrumentation/go/#manually-creating-a-new-span
 	fc := graphql.GetFieldContext(ctx)
+	rc := graphql.GetResolverContext(ctx)
 	fieldSpan, ctx := tracer.StartSpanFromContext(ctx, "operation.field", tracer.ResourceName(fc.Field.Name))
 	fieldSpan.SetTag("field.type", fc.Field.Definition.Type.String())
+
+	if b, err := json.MarshalIndent(rc.Args, "", ""); err == nil {
+		if bs := string(b); len(bs) <= 1000 {
+			fieldSpan.SetTag("field.arguments", bs)
+		}
+	}
 
 	start := graphql.Now()
 	defer func() {
@@ -51,7 +59,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	// NOTE: This gets called for the first time at the highest level. Creates the 'tracing' value, calls the next handler
 	// and returns the response.
 	span, ctx := tracer.StartSpanFromContext(ctx, "graphql.operation", tracer.ResourceName(rc.Operation.Name))
-	span.SetTag("backend", t.serverName)
+	span.SetTag("backend", t.serverType)
 	defer span.Finish()
 	resp := next(ctx)
 	end := graphql.Now()

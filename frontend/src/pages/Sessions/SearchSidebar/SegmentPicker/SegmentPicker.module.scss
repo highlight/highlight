@@ -44,6 +44,15 @@
     margin-bottom: 2px;
 }
 
+.starIcon {
+    color: black;
+    fill: black;
+    margin-left: 6px;
+    margin-bottom: 2px;
+    padding: 1px;
+    height: 1rem;
+}
+
 .segmentAction {
     background-color: #f2eefb;
     border: 0;
@@ -151,6 +160,11 @@
 
 .segmentUnselected {
     color: #808080;
+
+    .starIcon {
+        color: #808080;
+        fill: #808080;
+    }
 }
 
 .segmentNameText {
@@ -190,19 +204,7 @@
 }
 
 .modalWrapper {
-    border-radius: 8px;
-    border-color: #eaeaea;
-    background-color: white;
     width: 60vh;
-    padding: 20px;
-    padding-bottom: 10px;
-    z-index: 1200;
-}
-
-.modalTitle {
-    font-size: 23px;
-    font-weight: 400;
-    margin-bottom: 10px;
 }
 
 .modalSubTitle {

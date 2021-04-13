@@ -1,0 +1,10 @@
+.container {
+    border-radius: 0px var(--size-xSmall) 0px var(--size-xSmall);
+    background-color: var(--color-orange-500);
+    padding: var(--size-xSmall) var(--size-small);
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: var(--text-primary-inverted);
+    font-size: 10px;
+}

@@ -2,13 +2,24 @@ package pricing
 
 import (
 	"os"
+	"time"
 
 	backend "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
+	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jinzhu/gorm"
+	e "github.com/pkg/errors"
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/client"
 )
 
-//GetQuota(db,org_id)
+func GetOrgQuota(DB *gorm.DB, org_id int) (int, error) {
+	year, month, _ := time.Now().Date()
+	var meter int64
+	if err := DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: org_id}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
+		return 0, e.Wrap(err, "error querying for session meter")
+	}
+	return int(meter), nil
+}
 
 func GetOrgPlanString(stripeClient *client.API, customerID string) string {
 	params := &stripe.CustomerParams{}

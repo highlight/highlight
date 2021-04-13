@@ -11,6 +11,17 @@ export type MarkSessionAsViewedMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type MarkSessionAsStarredMutationVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+    starred: Types.Scalars['Boolean'];
+}>;
+
+export type MarkSessionAsStarredMutation = { __typename?: 'Mutation' } & {
+    markSessionAsStarred?: Types.Maybe<
+        { __typename?: 'Session' } & Pick<Types.Session, 'id' | 'starred'>
+    >;
+};
+
 export type CreateOrUpdateSubscriptionMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     plan_type: Types.PlanType;
@@ -252,6 +263,8 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'created_at'
             | 'user_object'
             | 'identifier'
+            | 'starred'
+            | 'enable_strict_privacy'
         > & {
                 fields?: Types.Maybe<
                     Array<
@@ -297,7 +310,8 @@ export type SendAdminInviteMutation = { __typename?: 'Mutation' } & Pick<
 export type GetSessionsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     count: Types.Scalars['Int'];
-    processed: Types.Scalars['Boolean'];
+    lifecycle: Types.SessionLifecycle;
+    starred: Types.Scalars['Boolean'];
     params?: Types.Maybe<Types.SearchParamsInput>;
 }>;
 
@@ -322,6 +336,9 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'created_at'
                     | 'length'
                     | 'viewed'
+                    | 'starred'
+                    | 'processed'
+                    | 'first_time'
                 > & {
                         fields?: Types.Maybe<
                             Array<
@@ -371,7 +388,12 @@ export type GetOrganizationQuery = { __typename?: 'Query' } & {
     organization?: Types.Maybe<
         { __typename?: 'Organization' } & Pick<
             Types.Organization,
-            'id' | 'name' | 'trial_end_date' | 'verbose_id' | 'billing_email'
+            | 'id'
+            | 'name'
+            | 'trial_end_date'
+            | 'verbose_id'
+            | 'billing_email'
+            | 'slack_webhook_channel'
         >
     >;
 };
@@ -611,6 +633,7 @@ export type GetSegmentsQuery = { __typename?: 'Query' } & {
                             | 'referrer'
                             | 'identified'
                             | 'hide_viewed'
+                            | 'first_time'
                         > & {
                                 user_properties?: Types.Maybe<
                                     Array<

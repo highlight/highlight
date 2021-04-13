@@ -29,15 +29,14 @@ import (
 )
 
 var (
-	env            = os.Getenv("ENVIRONMENT")
-	frontendURL    = os.Getenv("FRONTEND_URI")
-	statsdHost     = os.Getenv("DD_STATSD_HOST")
-	apmHost        = os.Getenv("DD_APM_HOST")
-	landingURL     = os.Getenv("LANDING_PAGE_URI")
-	sendgridKey    = os.Getenv("SENDGRID_API_KEY")
-	stripeApiKey   = os.Getenv("STRIPE_API_KEY")
-	localTunnelURL = os.Getenv("LOCAL_TUNNEL_URI")
-	runtime        = flag.String("runtime", "dev", "the runtime of the backend; either dev/worker/server")
+	env          = os.Getenv("ENVIRONMENT")
+	frontendURL  = os.Getenv("FRONTEND_URI")
+	statsdHost   = os.Getenv("DD_STATSD_HOST")
+	apmHost      = os.Getenv("DD_APM_HOST")
+	landingURL   = os.Getenv("LANDING_PAGE_URI")
+	sendgridKey  = os.Getenv("SENDGRID_API_KEY")
+	stripeApiKey = os.Getenv("STRIPE_API_KEY")
+	runtime      = flag.String("runtime", "dev", "the runtime of the backend; either dev/worker/server")
 )
 
 func health(w http.ResponseWriter, r *http.Request) {
@@ -49,8 +48,7 @@ func validateOrigin(request *http.Request, origin string) bool {
 	if path := request.URL.Path; path == "/main" {
 		// From the highlight frontend, only the url is whitelisted.
 		isPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
-		isLocalTunnel := origin == localTunnelURL
-		if origin == frontendURL || origin == landingURL || isPreviewEnv || isLocalTunnel {
+		if origin == frontendURL || origin == landingURL || isPreviewEnv {
 			return true
 		}
 	} else if path == "/client" {
@@ -111,7 +109,7 @@ func main() {
 				Resolvers: main,
 			}),
 		)
-		mainServer.Use(util.NewTracer("main-graph"))
+		mainServer.Use(util.NewTracer(util.MainGraph))
 		r.Handle("/", mainServer)
 	})
 	// Clientgraph logic
@@ -124,7 +122,7 @@ func main() {
 					StripeClient: stripeClient,
 				},
 			}))
-		clientServer.Use(util.NewTracer("client-graph"))
+		clientServer.Use(util.NewTracer(util.ClientGraph))
 		r.Handle("/", clientServer)
 	})
 	w := &worker.Worker{R: main}
