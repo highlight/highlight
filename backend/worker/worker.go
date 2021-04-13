@@ -55,6 +55,17 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Calcaulate total session length and write the length to the session.
 	diff := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
+	length := diff.Milliseconds()
+
+	// Delete the session if there are no events. This can happen when:
+	// 1. Nothing happened in the session
+	// 2. A web crawler visited the page and produced no events
+	if length == 0 {
+		if err := w.R.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+			return errors.Wrap(err, "error trying to delete session with no events")
+		}
+	}
+
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -62,7 +73,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			// We are setting Viewed to false so sessions the user viewed while they were live will be reset.
 			Viewed:    &model.F,
 			Processed: &model.T,
-			Length:    diff.Milliseconds(),
+			Length:    length,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
