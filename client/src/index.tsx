@@ -212,10 +212,7 @@ export class Highlight {
         }
     }
     // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
-    async initialize(
-        organization_id?: number | string,
-        add_listeners: boolean = true
-    ) {
+    async initialize(organization_id?: number | string) {
         var org_id = '';
         if (typeof organization_id === 'number') {
             org_id = organization_id.toString();
@@ -256,6 +253,12 @@ export class Highlight {
   `,
                     gr.initializeSession
                 );
+                if (this.sessionData.userIdentifier) {
+                    this.identify(
+                        this.sessionData.userIdentifier,
+                        this.sessionData.userObject
+                    );
+                }
             }
             setTimeout(() => {
                 this._save();
@@ -277,13 +280,6 @@ export class Highlight {
                 height: window.innerHeight,
                 width: window.innerWidth,
             });
-
-            if (this.sessionData.userIdentifier) {
-                this.identify(
-                    this.sessionData.userIdentifier,
-                    this.sessionData.userObject
-                );
-            }
 
             const highlightThis = this;
             if (this.enableSegmentIntegration) {
@@ -314,74 +310,70 @@ export class Highlight {
                     { type: 'session' }
                 );
             }
-            if (add_listeners) {
-                this.stopRecording.push(
-                    PathListener((url: string) => {
-                        if (reloaded) {
-                            addCustomEvent<string>('Reload', url);
-                            reloaded = false;
-                            highlightThis.addProperties(
-                                { reload: true },
-                                { type: 'session' }
-                            );
-                        } else {
-                            addCustomEvent<string>('Navigate', url);
-                        }
+            this.stopRecording.push(
+                PathListener((url: string) => {
+                    if (reloaded) {
+                        addCustomEvent<string>('Reload', url);
+                        reloaded = false;
                         highlightThis.addProperties(
-                            { 'visited-url': url },
+                            { reload: true },
                             { type: 'session' }
                         );
-                    })
-                );
-                if (!this.disableConsoleRecording) {
-                    this.stopRecording.push(
-                        ConsoleListener((c: ConsoleMessage) => {
-                            if (c.type == 'Error' && c.value && c.trace)
-                                highlightThis.errors.push({
-                                    event: JSON.stringify(c.value),
-                                    type: 'console.error',
-                                    url: window.location.href,
-                                    source: c.trace[0].fileName
-                                        ? c.trace[0].fileName
-                                        : '',
-                                    lineNumber: c.trace[0].lineNumber
-                                        ? c.trace[0].lineNumber
-                                        : 0,
-                                    columnNumber: c.trace[0].columnNumber
-                                        ? c.trace[0].columnNumber
-                                        : 0,
-                                    trace: c.trace,
-                                    timestamp: new Date().toISOString(),
-                                });
-                            highlightThis.messages.push(c);
-                        })
+                    } else {
+                        addCustomEvent<string>('Navigate', url);
+                    }
+                    highlightThis.addProperties(
+                        { 'visited-url': url },
+                        { type: 'session' }
                     );
-                }
+                })
+            );
+            if (!this.disableConsoleRecording) {
                 this.stopRecording.push(
-                    ErrorListener((e: ErrorMessage) =>
-                        highlightThis.errors.push(e)
-                    )
-                );
-                this.stopRecording.push(
-                    ViewportResizeListener((viewport) => {
-                        addCustomEvent('Viewport', viewport);
-                    })
-                );
-                this.stopRecording.push(
-                    ClickListener((clickTarget) => {
-                        if (clickTarget) {
-                            addCustomEvent('Click', clickTarget);
-                        }
-                    })
-                );
-                this.stopRecording.push(
-                    FocusListener((focusTarget) => {
-                        if (focusTarget) {
-                            addCustomEvent('Focus', focusTarget);
-                        }
+                    ConsoleListener((c: ConsoleMessage) => {
+                        if (c.type == 'Error' && c.value && c.trace)
+                            highlightThis.errors.push({
+                                event: JSON.stringify(c.value),
+                                type: 'console.error',
+                                url: window.location.href,
+                                source: c.trace[0].fileName
+                                    ? c.trace[0].fileName
+                                    : '',
+                                lineNumber: c.trace[0].lineNumber
+                                    ? c.trace[0].lineNumber
+                                    : 0,
+                                columnNumber: c.trace[0].columnNumber
+                                    ? c.trace[0].columnNumber
+                                    : 0,
+                                trace: c.trace,
+                                timestamp: new Date().toISOString(),
+                            });
+                        highlightThis.messages.push(c);
                     })
                 );
             }
+            this.stopRecording.push(
+                ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e))
+            );
+            this.stopRecording.push(
+                ViewportResizeListener((viewport) => {
+                    addCustomEvent('Viewport', viewport);
+                })
+            );
+            this.stopRecording.push(
+                ClickListener((clickTarget) => {
+                    if (clickTarget) {
+                        addCustomEvent('Click', clickTarget);
+                    }
+                })
+            );
+            this.stopRecording.push(
+                FocusListener((focusTarget) => {
+                    if (focusTarget) {
+                        addCustomEvent('Focus', focusTarget);
+                    }
+                })
+            );
             this.ready = true;
         } catch (e) {
             HighlightWarning('initializeSession', e);
@@ -441,7 +433,7 @@ export class Highlight {
                 this.sessionData.sessionStartTime = Date.now();
                 this.stopRecording.map((stop: listenerHandler) => stop());
                 this.stopRecording = [];
-                this.initialize(this.organizationID, true);
+                this.initialize(this.organizationID);
                 return;
             }
         } catch (e) {
