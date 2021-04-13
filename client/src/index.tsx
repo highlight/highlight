@@ -73,7 +73,7 @@ const SEND_FREQUENCY = 1000 * 5;
 /**
  * Maximum length of a session
  */
-const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000;
+const MAX_SESSION_LENGTH = 40 * 1000;
 
 export class Highlight {
     organizationID: string;
@@ -90,7 +90,7 @@ export class Highlight {
     enableSegmentIntegration: boolean | undefined;
     enableStrictPrivacy: boolean;
     debugOptions: DebugOptions;
-    stopRecording: listenerHandler | undefined;
+    stopRecording: listenerHandler[];
 
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
@@ -122,6 +122,7 @@ export class Highlight {
             sessionID: 0,
             sessionStartTime: Date.now(),
         };
+        this.stopRecording = [];
         this.events = [];
         this.errors = [];
         this.networkContents = [];
@@ -263,35 +264,47 @@ export class Highlight {
                 this.events.push(event);
             };
             emit.bind(this);
-            this.stopRecording = record({
+            const recordStop = record({
                 ignoreClass: 'highlight-ignore',
                 blockClass: 'highlight-block',
                 emit,
                 enableStrictPrivacy: this.enableStrictPrivacy,
             });
+            if (recordStop) {
+                this.stopRecording.push(recordStop);
+            }
             addCustomEvent('Viewport', {
                 height: window.innerHeight,
                 width: window.innerWidth,
             });
 
+            if (this.sessionData.userIdentifier) {
+                this.identify(
+                    this.sessionData.userIdentifier,
+                    this.sessionData.userObject
+                );
+            }
+
             const highlightThis = this;
             if (this.enableSegmentIntegration) {
-                SegmentIntegrationListener((obj: any) => {
-                    if (obj.type === 'track') {
-                        const properties: { [key: string]: string } = {};
-                        properties['segment-event'] = obj.event;
-                        highlightThis.addProperties(properties, {
-                            type: 'track',
-                            source: 'segment',
-                        });
-                    } else if (obj.type === 'identify') {
-                        highlightThis.identify(
-                            obj.userId,
-                            obj.traits,
-                            'segment'
-                        );
-                    }
-                });
+                this.stopRecording.push(
+                    SegmentIntegrationListener((obj: any) => {
+                        if (obj.type === 'track') {
+                            const properties: { [key: string]: string } = {};
+                            properties['segment-event'] = obj.event;
+                            highlightThis.addProperties(properties, {
+                                type: 'track',
+                                source: 'segment',
+                            });
+                        } else if (obj.type === 'identify') {
+                            highlightThis.identify(
+                                obj.userId,
+                                obj.traits,
+                                'segment'
+                            );
+                        }
+                    })
+                );
             }
 
             if (document.referrer) {
@@ -302,60 +315,73 @@ export class Highlight {
                 );
             }
             if (add_listeners) {
-                PathListener((url: string) => {
-                    if (reloaded) {
-                        addCustomEvent<string>('Reload', url);
-                        reloaded = false;
+                this.stopRecording.push(
+                    PathListener((url: string) => {
+                        if (reloaded) {
+                            addCustomEvent<string>('Reload', url);
+                            reloaded = false;
+                            highlightThis.addProperties(
+                                { reload: true },
+                                { type: 'session' }
+                            );
+                        } else {
+                            console.log('adding navigate');
+                            addCustomEvent<string>('Navigate', url);
+                        }
                         highlightThis.addProperties(
-                            { reload: true },
+                            { 'visited-url': url },
                             { type: 'session' }
                         );
-                    } else {
-                        addCustomEvent<string>('Navigate', url);
-                    }
-                    highlightThis.addProperties(
-                        { 'visited-url': url },
-                        { type: 'session' }
-                    );
-                });
-                if (!this.disableConsoleRecording) {
-                    ConsoleListener((c: ConsoleMessage) => {
-                        if (c.type == 'Error' && c.value && c.trace)
-                            highlightThis.errors.push({
-                                event: JSON.stringify(c.value),
-                                type: 'console.error',
-                                url: window.location.href,
-                                source: c.trace[0].fileName
-                                    ? c.trace[0].fileName
-                                    : '',
-                                lineNumber: c.trace[0].lineNumber
-                                    ? c.trace[0].lineNumber
-                                    : 0,
-                                columnNumber: c.trace[0].columnNumber
-                                    ? c.trace[0].columnNumber
-                                    : 0,
-                                trace: c.trace,
-                                timestamp: new Date().toISOString(),
-                            });
-                        highlightThis.messages.push(c);
-                    });
-                }
-                ErrorListener((e: ErrorMessage) =>
-                    highlightThis.errors.push(e)
+                    })
                 );
-                ViewportResizeListener((viewport) => {
-                    addCustomEvent('Viewport', viewport);
-                });
-                ClickListener((clickTarget) => {
-                    if (clickTarget) {
-                        addCustomEvent('Click', clickTarget);
-                    }
-                });
-                FocusListener((focusTarget) => {
-                    if (focusTarget) {
-                        addCustomEvent('Focus', focusTarget);
-                    }
-                });
+                if (!this.disableConsoleRecording) {
+                    this.stopRecording.push(
+                        ConsoleListener((c: ConsoleMessage) => {
+                            if (c.type == 'Error' && c.value && c.trace)
+                                highlightThis.errors.push({
+                                    event: JSON.stringify(c.value),
+                                    type: 'console.error',
+                                    url: window.location.href,
+                                    source: c.trace[0].fileName
+                                        ? c.trace[0].fileName
+                                        : '',
+                                    lineNumber: c.trace[0].lineNumber
+                                        ? c.trace[0].lineNumber
+                                        : 0,
+                                    columnNumber: c.trace[0].columnNumber
+                                        ? c.trace[0].columnNumber
+                                        : 0,
+                                    trace: c.trace,
+                                    timestamp: new Date().toISOString(),
+                                });
+                            highlightThis.messages.push(c);
+                        })
+                    );
+                }
+                this.stopRecording.push(
+                    ErrorListener((e: ErrorMessage) =>
+                        highlightThis.errors.push(e)
+                    )
+                );
+                this.stopRecording.push(
+                    ViewportResizeListener((viewport) => {
+                        addCustomEvent('Viewport', viewport);
+                    })
+                );
+                this.stopRecording.push(
+                    ClickListener((clickTarget) => {
+                        if (clickTarget) {
+                            addCustomEvent('Click', clickTarget);
+                        }
+                    })
+                );
+                this.stopRecording.push(
+                    FocusListener((focusTarget) => {
+                        if (focusTarget) {
+                            addCustomEvent('Focus', focusTarget);
+                        }
+                    })
+                );
             }
             this.ready = true;
         } catch (e) {
@@ -414,14 +440,9 @@ export class Highlight {
                     MAX_SESSION_LENGTH
             ) {
                 this.sessionData.sessionStartTime = Date.now();
-                this.stopRecording();
-                this.initialize(this.organizationID, false);
-                if (this.sessionData.userIdentifier) {
-                    this.identify(
-                        this.sessionData.userIdentifier,
-                        this.sessionData.userObject
-                    );
-                }
+                this.stopRecording.map((stop: listenerHandler) => stop());
+                this.stopRecording = [];
+                this.initialize(this.organizationID, true);
                 return;
             }
         } catch (e) {
