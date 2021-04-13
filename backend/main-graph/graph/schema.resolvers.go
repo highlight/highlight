@@ -961,6 +961,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		queryString += "AND (id != id) "
 	}
 
+	queryString += "AND (length != 0) "
 	queryString += "ORDER BY created_at DESC"
 
 	if err := r.DB.Raw(queryString).Scan(&queriedSessions).Error; err != nil {
