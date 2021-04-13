@@ -431,7 +431,7 @@ export class Highlight {
                     MAX_SESSION_LENGTH
             ) {
                 this.sessionData.sessionStartTime = Date.now();
-                this.stopRecording.map((stop: listenerHandler) => stop());
+                this.stopRecording.forEach((stop: listenerHandler) => stop());
                 this.stopRecording = [];
                 this.initialize(this.organizationID);
                 return;
