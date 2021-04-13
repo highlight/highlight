@@ -906,7 +906,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if len(visitedIds) > 0 {
-		fmt.Println(visitedIds)
 		queryString += "AND ("
 		for idx, id := range visitedIds {
 			if idx == 0 {
@@ -961,7 +960,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		queryString += "AND (id != id) "
 	}
 
-	queryString += "AND (length != 0) "
+	// Filter out sessions that are processed but have a length of 0. In this case the player won't work because there are no events to replay.
+	queryString += "AND NOT ((processed = true AND length = 0)) "
 	queryString += "ORDER BY created_at DESC"
 
 	if err := r.DB.Raw(queryString).Scan(&queriedSessions).Error; err != nil {
