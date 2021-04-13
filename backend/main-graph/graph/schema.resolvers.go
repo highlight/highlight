@@ -305,7 +305,13 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 		return nil, e.Wrap(err, "error updating org fields")
 	}
 
-	msg := slack.WebhookMessage{Text: fmt.Sprintf("👋 Hello from Highlight! We'll send messages here whenever we get an error from %s.", *org.Name)}
+	baseMessage := "👋 Hello from Highlight!"
+	if name := org.Name; name != nil {
+		baseMessage += fmt.Sprintf(" We'll send messages here whenever we get an error from %s.", *name)
+	} else {
+		baseMessage += " We'll send messages here whenever we get an error."
+	}
+	msg := slack.WebhookMessage{Text: baseMessage}
 	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
 		e.Wrap(err, "failed to send hello alert slack message")
 	}
