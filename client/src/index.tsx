@@ -73,7 +73,7 @@ const SEND_FREQUENCY = 1000 * 5;
 /**
  * Maximum length of a session
  */
-const MAX_SESSION_LENGTH = 40 * 1000;
+const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000;
 
 export class Highlight {
     organizationID: string;
