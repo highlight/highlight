@@ -176,6 +176,8 @@ type Session struct {
 	ClientVersion string `json:"client_version" gorm:"index"`
 	// The version of Highlight's Firstload.
 	FirstloadVersion string `json:"firstload_version" gorm:"index"`
+	// The client configuration that the end-user sets up. This is used for debugging purposes.
+	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
 }
 
 type Field struct {

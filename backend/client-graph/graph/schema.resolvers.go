@@ -13,7 +13,7 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	parse "github.com/jay-khatri/fullstory/backend/event-parse"
+	"github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
 	e "github.com/pkg/errors"
@@ -21,7 +21,8 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string) (*model.Session, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string) (*model.Session, error) {
+	fmt.Println(clientConfig)
 	organizationID := model.FromVerboseID(organizationVerboseID)
 	organization := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization)
@@ -68,6 +69,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	// Get the language from the request header
 	acceptLanguageString := ctx.Value("acceptLanguage").(string)
 	n := time.Now()
+
 	session := &model.Session{
 		UserID:              user.ID,
 		OrganizationID:      organizationID,
@@ -86,6 +88,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		EnableStrictPrivacy: &enableStrictPrivacy,
 		FirstloadVersion:    firstloadVersion,
 		ClientVersion:       clientVersion,
+		ClientConfig:        &clientConfig,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {

@@ -52,6 +52,14 @@ export type HighlightClassOptions = {
     firstloadVersion: string;
 };
 
+/**
+ * Subset of HighlightClassOptions that is stored with the session. These fields are stored for debugging purposes.
+ */
+type HighlightClassOptionsInternal = Omit<
+    HighlightClassOptions,
+    'firstloadVersion'
+>;
+
 type PropertyType = {
     type?: 'track' | 'session';
     source?: Source;
@@ -94,6 +102,7 @@ export class Highlight {
     debugOptions: DebugOptions;
     stopRecording: listenerHandler[];
     firstloadVersion: string;
+    _optionsInternal: HighlightClassOptionsInternal;
 
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
@@ -126,6 +135,9 @@ export class Highlight {
             sessionID: 0,
             sessionStartTime: Date.now(),
         };
+        // We only want to store a subset of the options for debugging purposes. Firstload version is stored as another field so we don't need to store it here.
+        const { firstloadVersion: _, ...optionsInternal } = options;
+        this._optionsInternal = optionsInternal;
         this.stopRecording = [];
         this.events = [];
         this.errors = [];
@@ -244,6 +256,7 @@ export class Highlight {
                     enable_strict_privacy: this.enableStrictPrivacy,
                     clientVersion: packageJson['version'],
                     firstloadVersion: this.firstloadVersion,
+                    clientConfig: JSON.stringify(this._optionsInternal),
                 });
                 this.sessionData.sessionID = parseInt(
                     gr?.initializeSession?.id || '0'

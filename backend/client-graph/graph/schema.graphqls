@@ -30,6 +30,7 @@ type Mutation {
         enable_strict_privacy: Boolean!
         clientVersion: String!
         firstloadVersion: String!
+        clientConfig: String!
     ): Session
     identifySession(
         session_id: ID!

@@ -52,6 +52,7 @@ export type MutationInitializeSessionArgs = {
   enable_strict_privacy: Scalars['Boolean'];
   clientVersion: Scalars['String'];
   firstloadVersion: Scalars['String'];
+  clientConfig: Scalars['String'];
 };
 
 

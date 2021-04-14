@@ -45,12 +45,14 @@ mutation initializeSession(
     $enable_strict_privacy: Boolean!
     $clientVersion: String!
     $firstloadVersion: String!
+    $clientConfig: String!
 ) {
     initializeSession(
         organization_verbose_id: $organization_verbose_id
         enable_strict_privacy: $enable_strict_privacy
         clientVersion: $clientVersion
         firstloadVersion: $firstloadVersion
+        clientConfig: $clientConfig
     ) {
         id
         user_id
