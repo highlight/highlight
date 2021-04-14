@@ -143,7 +143,7 @@ type Session struct {
 	UserID int `json:"user_id"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
-	OrganizationID int    `json:"organization_id"`
+	OrganizationID int    `json:"organization_id" gorm:"index"`
 	// Location data based off user ip (see InitializeSession)
 	City      string  `json:"city"`
 	State     string  `json:"state"`
@@ -166,7 +166,7 @@ type Session struct {
 	UserObject JSONB    `json:"user_object" sql:"type:jsonb"`
 	// Whether this is the first session created by this user.
 	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
-	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
+	PayloadUpdatedAt *time.Time `json:"payload_updated_at" gorm:"index"`
 	// Custom properties
 	Viewed              *bool   `json:"viewed"`
 	Starred             *bool   `json:"starred"`
@@ -179,10 +179,10 @@ type Field struct {
 	// 'user_property', 'session_property'.
 	Type string
 	// 'email', 'identifier', etc.
-	Name string
+	Name string `gorm:"index"`
 	// 'email@email.com'
-	Value          string
-	OrganizationID int       `json:"organization_id"`
+	Value          string    `gorm:"index"`
+	OrganizationID int       `json:"organization_id" gorm:"index"`
 	Sessions       []Session `gorm:"many2many:session_fields;"`
 }
 
@@ -252,7 +252,7 @@ type MessagesObject struct {
 
 type EventsObject struct {
 	Model
-	SessionID int
+	SessionID int `gorm:"index"`
 	Events    string
 }
 
