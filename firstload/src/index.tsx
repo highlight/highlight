@@ -127,7 +127,7 @@ export const H: HighlightPublicInterface = {
         return new Promise<string>((resolve, reject) => {
             H.onHighlightReady(() => {
                 const orgID = highlight_obj.organizationID;
-                const sessionID = highlight_obj.sessionID;
+                const sessionID = highlight_obj.sessionData.sessionID;
                 if (orgID && sessionID) {
                     const res = `${HIGHLIGHT_URL}/${orgID}/sessions/${sessionID}`;
                     resolve(res);
