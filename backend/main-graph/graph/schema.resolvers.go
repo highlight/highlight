@@ -967,10 +967,12 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	sessionsSpan.Finish()
 
+	sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsCountQuery"))
 	var queriedSessionsCount model.SessionCount
 	if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) FROM sessions %s", whereClause)).Scan(&queriedSessionsCount).Error; err != nil {
 		return nil, e.Wrap(err, "error querying filtered sessions count")
 	}
+	sessionCountSpan.Finish()
 
 	sessionList := &model.SessionResults{
 		Sessions:   queriedSessions,
