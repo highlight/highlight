@@ -131,7 +131,11 @@ type User struct {
 
 type SessionResults struct {
 	Sessions   []Session
-	TotalCount int
+	TotalCount int64
+}
+
+type SessionCount struct {
+	Count int64
 }
 
 type Session struct {
