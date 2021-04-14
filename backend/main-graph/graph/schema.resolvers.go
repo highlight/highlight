@@ -859,123 +859,124 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
-	queryString := `SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
-	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed
-	FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
-	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds
-	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
+	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed"
+	joinClause := "FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows"
+	whereClause := ` `
 
-	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
+	whereClause += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
 	if lifecycle == modelInputs.SessionLifecycleCompleted {
-		queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+		whereClause += fmt.Sprintf("AND (length > %d) ", 1000)
 	}
 	if starred {
-		queryString += "AND (starred = true) "
+		whereClause += "AND (starred = true) "
 	}
 	if firstTime := params.FirstTime; firstTime != nil && *firstTime {
-		queryString += "AND (first_time = true) "
+		whereClause += "AND (first_time = true) "
 	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
-			queryString += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min*60000)
+			whereClause += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min*60000)
 		}
 		if params.LengthRange.Max != nil {
 			if *params.LengthRange.Max != 60 && *params.LengthRange.Max != 0 {
-				queryString += fmt.Sprintf("AND (length < %d) ", *params.LengthRange.Max*60000)
+				whereClause += fmt.Sprintf("AND (length < %d) ", *params.LengthRange.Max*60000)
 			}
 		}
 	}
 
 	if lifecycle == modelInputs.SessionLifecycleCompleted {
-		queryString += "AND (processed = true) "
+		whereClause += "AND (processed = true) "
 	} else if lifecycle == modelInputs.SessionLifecycleLive {
-		queryString += "AND (processed = false) "
+		whereClause += "AND (processed = false) "
 	}
-	queryString += "AND (deleted_at IS NULL) "
+	whereClause += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
-		queryString += "AND ("
+		whereClause += "AND ("
 		for idx, id := range fieldIds {
 			if idx == 0 {
-				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
 			} else {
-				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
 			}
 		}
-		queryString += ") "
+		whereClause += ") "
 	}
 
 	if len(visitedIds) > 0 {
-		queryString += "AND ("
+		whereClause += "AND ("
 		for idx, id := range visitedIds {
 			if idx == 0 {
-				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
 			} else {
-				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
 			}
 		}
-		queryString += ") "
+		whereClause += ") "
 	}
 
 	if len(referrerIds) > 0 {
-		queryString += "AND ("
+		whereClause += "AND ("
 		for idx, id := range referrerIds {
 			if idx == 0 {
-				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
 			} else {
-				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
 			}
 		}
-		queryString += ") "
+		whereClause += ") "
 	}
 
 	if len(notFieldIds) > 0 {
 		for _, id := range notFieldIds {
-			queryString += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
+			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
 		}
 	}
 
 	if d := params.DateRange; d != nil {
-		queryString += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
+		whereClause += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
 	}
 
 	if os := params.Os; os != nil {
-		queryString += fmt.Sprintf("AND (os_name = '%s') ", *os)
+		whereClause += fmt.Sprintf("AND (os_name = '%s') ", *os)
 	}
 
 	if identified := params.Identified; identified != nil && *identified {
-		queryString += "AND (length(identifier) > 0) "
+		whereClause += "AND (length(identifier) > 0) "
 	}
 
 	if viewed := params.HideViewed; viewed != nil && *viewed {
-		queryString += "AND (viewed = false) "
+		whereClause += "AND (viewed = false) "
 	}
 
 	if browser := params.Browser; browser != nil {
-		queryString += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
+		whereClause += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
 	}
 
 	//if there should be fields but aren't no sessions are returned
 	if !fieldCheck || !visitedCheck || !referrerCheck {
-		queryString += "AND (id != id) "
+		whereClause += "AND (id != id) "
 	}
 
 	// Filter out sessions that are processed but have a length of 0. In this case the player won't work because there are no events to replay.
-	queryString += "AND NOT ((processed = true AND length = 0)) "
-	queryString += "ORDER BY created_at DESC"
+	whereClause += "AND NOT ((processed = true AND length = 0)) "
 
-	if err := r.DB.Raw(queryString).Scan(&queriedSessions).Error; err != nil {
+	if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
 		return nil, e.Wrap(err, "error querying filtered sessions")
 	}
 
 	sessionsSpan.Finish()
 
-	if len(queriedSessions) < count {
-		count = len(queriedSessions)
+	sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsCountQuery"))
+	var queriedSessionsCount model.SessionCount
+	if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) FROM sessions %s", whereClause)).Scan(&queriedSessionsCount).Error; err != nil {
+		return nil, e.Wrap(err, "error querying filtered sessions count")
 	}
+	sessionCountSpan.Finish()
+
 	sessionList := &model.SessionResults{
-		Sessions:   queriedSessions[:count],
-		TotalCount: len(queriedSessions),
+		Sessions:   queriedSessions,
+		TotalCount: queriedSessionsCount.Count,
 	}
 	return sessionList, nil
 }
