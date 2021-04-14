@@ -49,7 +49,7 @@ export type HighlightClassOptions = {
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
-    firstloadVersion: string;
+    firstloadVersion?: string;
 };
 
 /**
@@ -130,7 +130,7 @@ export class Highlight {
         } else {
             this.organizationID = '';
         }
-        this.firstloadVersion = options.firstloadVersion;
+        this.firstloadVersion = options.firstloadVersion || 'unknown';
         this.sessionData = {
             sessionID: 0,
             sessionStartTime: Date.now(),
