@@ -7,6 +7,16 @@ export const parseErrorDescription = (
     if (!_text) {
         return '';
     }
+
+    return parseErrorDescriptionList(_text).join('');
+};
+
+export const parseErrorDescriptionList = (
+    _text: Maybe<string>[] | undefined
+): string[] => {
+    if (!_text) {
+        return [];
+    }
     const text = _.cloneDeep(_text);
     const result: string[] = [];
     let index = 0;
@@ -33,5 +43,5 @@ export const parseErrorDescription = (
         }
     }
 
-    return result.join('');
+    return result;
 };
