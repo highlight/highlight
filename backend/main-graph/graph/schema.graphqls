@@ -2,6 +2,7 @@
 
 scalar Any
 scalar Time
+scalar Int64
 
 type Field {
     name: String!
@@ -226,7 +227,7 @@ type SanitizedAdmin {
 
 type SessionResults {
     sessions: [Session!]!
-    totalCount: Int!
+    totalCount: Int64!
 }
 
 type ErrorResults {

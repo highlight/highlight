@@ -13,11 +13,12 @@ import (
 
 	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	"github.com/jay-khatri/fullstory/backend/event-parse"
+	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jinzhu/gorm"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool) (*model.Session, error) {
@@ -185,12 +186,21 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
+	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("db.querySession"))
+	querySessionSpan.SetTag("sessionID", sessionID)
+	querySessionSpan.SetTag("messagesLength", len(messages))
+	querySessionSpan.SetTag("resourcesLength", len(resources))
+	querySessionSpan.SetTag("numberOfErrors", len(errors))
+	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)
 	}
+	querySessionSpan.Finish()
+
 	organizationID := sessionObj.OrganizationID
+	parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("go.parseEvents"))
 	if evs := events.Events; len(evs) > 0 {
 		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 		// should fix at some point.
@@ -224,7 +234,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating events object")
 		}
 	}
+	parseEventsSpan.Finish()
+
 	// unmarshal messages
+	unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("go.unmarshal.messages"))
 	messagesParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding message data: %v", err)
@@ -235,7 +248,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating messages object")
 		}
 	}
+	unmarshalMessagesSpan.Finish()
+
 	// unmarshal resources
+	unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("go.unmarshal.resources"))
 	resourcesParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding resource data: %v", err)
@@ -246,7 +262,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
+	unmarshalResourcesSpan.Finish()
+
 	// put errors in db
+	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("db.errors"))
 	for _, v := range errors {
 		traceBytes, err := json.Marshal(v.Trace)
 		if err != nil {
@@ -290,6 +309,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.
 	}
+	putErrorsToDBSpan.Finish()
+
 	now := time.Now()
 	res = r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
 	if err := res.Error; err != nil || res.RecordNotFound() {
