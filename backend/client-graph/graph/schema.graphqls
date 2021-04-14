@@ -28,6 +28,8 @@ type Mutation {
     initializeSession(
         organization_verbose_id: String!
         enable_strict_privacy: Boolean!
+        clientVersion: String!
+        firstloadVersion: String!
     ): Session
     identifySession(
         session_id: ID!

@@ -43,10 +43,14 @@ mutation addTrackProperties($session_id: ID!, $properties_object: Any) {
 mutation initializeSession(
     $organization_verbose_id: String!
     $enable_strict_privacy: Boolean!
+    $clientVersion: String!
+    $firstloadVersion: String!
 ) {
     initializeSession(
         organization_verbose_id: $organization_verbose_id
         enable_strict_privacy: $enable_strict_privacy
+        clientVersion: $clientVersion
+        firstloadVersion: $firstloadVersion
     ) {
         id
         user_id

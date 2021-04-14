@@ -172,6 +172,10 @@ type Session struct {
 	Starred             *bool   `json:"starred"`
 	FieldGroup          *string `json:"field_group"`
 	EnableStrictPrivacy *bool   `json:"enable_strict_privacy"`
+	// The version of Highlight's Client.
+	ClientVersion string `json:"client_version" gorm:"index"`
+	// The version of Highlight's Firstload.
+	FirstloadVersion string `json:"firstload_version" gorm:"index"`
 }
 
 type Field struct {

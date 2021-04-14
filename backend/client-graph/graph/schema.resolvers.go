@@ -21,7 +21,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool) (*model.Session, error) {
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string) (*model.Session, error) {
 	organizationID := model.FromVerboseID(organizationVerboseID)
 	organization := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization)
@@ -84,6 +84,8 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		Processed:           &model.F,
 		PayloadUpdatedAt:    &n,
 		EnableStrictPrivacy: &enableStrictPrivacy,
+		FirstloadVersion:    firstloadVersion,
+		ClientVersion:       clientVersion,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {

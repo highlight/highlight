@@ -19,6 +19,7 @@ import { ViewportResizeListener } from './listeners/viewport-resize-listener';
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
 import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
+import packageJson from '../package.json';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -48,6 +49,7 @@ export type HighlightClassOptions = {
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
+    firstloadVersion: string;
 };
 
 type PropertyType = {
@@ -91,6 +93,7 @@ export class Highlight {
     enableStrictPrivacy: boolean;
     debugOptions: DebugOptions;
     stopRecording: listenerHandler[];
+    firstloadVersion: string;
 
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
@@ -118,6 +121,7 @@ export class Highlight {
         } else {
             this.organizationID = '';
         }
+        this.firstloadVersion = options.firstloadVersion;
         this.sessionData = {
             sessionID: 0,
             sessionStartTime: Date.now(),
@@ -238,6 +242,8 @@ export class Highlight {
                 const gr = await this.graphqlSDK.initializeSession({
                     organization_verbose_id: this.organizationID,
                     enable_strict_privacy: this.enableStrictPrivacy,
+                    clientVersion: packageJson['version'],
+                    firstloadVersion: this.firstloadVersion,
                 });
                 this.sessionData.sessionID = parseInt(
                     gr?.initializeSession?.id || '0'
