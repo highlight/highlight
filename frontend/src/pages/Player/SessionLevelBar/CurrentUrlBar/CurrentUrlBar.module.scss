@@ -2,7 +2,8 @@
 
 .urlBarWrapper {
     background-color: #f9f9f9;
-    width: 400px;
+    width: 100%;
+    max-width: 400px;
     font-size: 12px;
     @include rounded-border;
     padding: 1px var(--size-small);
@@ -10,6 +11,7 @@
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
+    overflow: hidden;
 
     &:hover .copyIcon {
         visibility: visible;

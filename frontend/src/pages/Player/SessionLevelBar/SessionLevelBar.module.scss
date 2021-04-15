@@ -10,9 +10,8 @@
     justify-content: space-between;
     border-radius: var(--size-xSmall);
     flex-grow: 1;
-    overflow-x: auto;
     height: 36px;
-    overflow-y: hidden;
+    overflow: hidden;
 }
 
 .skeletonContainer {
