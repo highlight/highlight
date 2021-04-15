@@ -226,7 +226,7 @@ type SanitizedAdmin {
 
 type SessionResults {
     sessions: [Session!]!
-    totalCount: Int!
+    totalCount: Int64!
 }
 
 type ErrorResults {

@@ -80,6 +80,7 @@
 
 .playerRail {
     position: relative;
+    z-index: 101;
 }
 
 .dropdownMenu {
@@ -126,6 +127,8 @@
     background-color: white;
     display: flex;
     flex-direction: row;
+    z-index: 100;
+    border-left: 1px solid #eaeaea;
 }
 
 .playSection {

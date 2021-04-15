@@ -25,6 +25,7 @@ import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTab
 import StackTraceSection from './components/StackTraceSection/StackTraceSection';
 import ErrorDescription from './components/ErrorDescription/ErrorDescription';
 import ErrorTitle from './components/ErrorTitle/ErrorTitle';
+import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -223,8 +224,10 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
     );
 };
 
-export const getHeaderFromError = (errorMsg: Maybe<string>[]): string => {
-    const eventText = errorMsg[0];
+export const getHeaderFromError = (
+    errorMsg: Maybe<string>[] | undefined
+): string => {
+    const eventText = parseErrorDescriptionList(errorMsg)[0];
     let title = '';
     // Try to get the text in the form Text: ....
     const splitOnColon = eventText?.split(':') ?? [];
@@ -247,5 +250,5 @@ export const getHeaderFromError = (errorMsg: Maybe<string>[]): string => {
         prev = curr;
     }
 
-    return errorMsg.join() ?? '';
+    return errorMsg?.join() ?? '';
 };

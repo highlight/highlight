@@ -18,7 +18,7 @@ export const ConsoleListener = (callback: (c: ConsoleMessage) => void) => {
         StackTrace.get().then((result) => {
             callback({
                 type: 'Error',
-                time: Date.now(),               
+                time: Date.now(),
                 value: Array.from(errorArgs),
                 trace: result.slice(1),
             });
@@ -42,5 +42,11 @@ export const ConsoleListener = (callback: (c: ConsoleMessage) => void) => {
             value: Array.from(arguments),
         });
         console.defaultDebug.apply(console, arguments);
+    };
+    return () => {
+        console.debug = console.defaultDebug;
+        console.warn = console.defaultWarn;
+        console.error = console.defaultError;
+        console.log = console.defaultLog;
     };
 };

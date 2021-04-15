@@ -17,6 +17,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
 
@@ -114,9 +115,14 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
 
+	session := &model.Session{}
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session by sessionID")
+	}
+
 	// Check if there is a session created by this user.
 	firstTime := &model.F
-	if err := r.DB.Where(&model.Session{Identifier: userIdentifier}).Take(&model.Session{}).Error; err != nil {
+	if err := r.DB.Where(&model.Session{Identifier: userIdentifier, OrganizationID: session.OrganizationID}).Take(&model.Session{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			firstTime = &model.T
 		} else {
@@ -124,10 +130,13 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		}
 	}
 
-	res := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{Identifier: userIdentifier, FirstTime: firstTime})
-	if err := res.Error; err != nil {
-		return nil, e.Wrap(err, "error adding user identifier to session")
+	session.FirstTime = firstTime
+	session.Identifier = userIdentifier
+
+	if err := r.DB.Save(&session).Error; err != nil {
+		return nil, e.Wrap(err, "failed to update session")
 	}
+
 	return &sessionID, nil
 }
 
@@ -164,12 +173,21 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
+	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("db.querySession"))
+	querySessionSpan.SetTag("sessionID", sessionID)
+	querySessionSpan.SetTag("messagesLength", len(messages))
+	querySessionSpan.SetTag("resourcesLength", len(resources))
+	querySessionSpan.SetTag("numberOfErrors", len(errors))
+	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
 	if res.Error != nil {
 		return nil, fmt.Errorf("error reading from session: %v", res.Error)
 	}
+	querySessionSpan.Finish()
+
 	organizationID := sessionObj.OrganizationID
+	parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("go.parseEvents"))
 	if evs := events.Events; len(evs) > 0 {
 		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 		// should fix at some point.
@@ -203,7 +221,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating events object")
 		}
 	}
+	parseEventsSpan.Finish()
+
 	// unmarshal messages
+	unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("go.unmarshal.messages"))
 	messagesParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding message data: %v", err)
@@ -214,7 +235,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating messages object")
 		}
 	}
+	unmarshalMessagesSpan.Finish()
+
 	// unmarshal resources
+	unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("go.unmarshal.resources"))
 	resourcesParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding resource data: %v", err)
@@ -225,7 +249,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			return nil, e.Wrap(err, "error creating resources object")
 		}
 	}
+	unmarshalResourcesSpan.Finish()
+
 	// put errors in db
+	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("db.errors"))
 	for _, v := range errors {
 		traceBytes, err := json.Marshal(v.Trace)
 		if err != nil {
@@ -269,6 +296,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.
 	}
+	putErrorsToDBSpan.Finish()
+
 	now := time.Now()
 	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating session payload time")

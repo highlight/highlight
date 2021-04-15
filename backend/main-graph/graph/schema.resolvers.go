@@ -16,6 +16,7 @@ import (
 	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/fullstory/backend/pricing"
 	"github.com/jay-khatri/fullstory/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
@@ -300,6 +301,17 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
+
+	baseMessage := "👋 Hello from Highlight!"
+	if name := org.Name; name != nil {
+		baseMessage += fmt.Sprintf(" We'll send messages here whenever we get an error from %s.", *name)
+	} else {
+		baseMessage += " We'll send messages here whenever we get an error."
+	}
+	msg := slack.WebhookMessage{Text: baseMessage}
+	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
+		e.Wrap(err, "failed to send hello alert slack message")
+	}
 	return &model.T, nil
 }
 
@@ -459,7 +471,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	}
 	// If there's a single subscription on the user and a single price item on the subscription
 	if len(c.Subscriptions.Data) == 1 && len(c.Subscriptions.Data[0].Items.Data) == 1 {
-		plan := ToPriceID(planType)
+		plan := pricing.ToPriceID(planType)
 		subscriptionParams := &stripe.SubscriptionParams{
 			CancelAtPeriodEnd: stripe.Bool(false),
 			ProrationBehavior: stripe.String(string(stripe.SubscriptionProrationBehaviorCreateProrations)),
@@ -489,7 +501,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
-					Plan: stripe.String(ToPriceID(planType)),
+					Plan: stripe.String(pricing.ToPriceID(planType)),
 				},
 			},
 		},
@@ -843,122 +855,124 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	//find all session with those fields (if any)
 	queriedSessions := []model.Session{}
 
-	queryString := `SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
-	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed
-	FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name,
-	browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds
-	FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows `
+	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed"
+	joinClause := "FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows"
+	whereClause := ` `
 
-	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
+	whereClause += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
 	if lifecycle == modelInputs.SessionLifecycleCompleted {
-		queryString += fmt.Sprintf("AND (length > %d) ", 1000)
+		whereClause += fmt.Sprintf("AND (length > %d) ", 1000)
 	}
 	if starred {
-		queryString += "AND (starred = true) "
+		whereClause += "AND (starred = true) "
 	}
 	if firstTime := params.FirstTime; firstTime != nil && *firstTime {
-		queryString += "AND (first_time = true) "
+		whereClause += "AND (first_time = true) "
 	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
-			queryString += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min*60000)
+			whereClause += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min*60000)
 		}
 		if params.LengthRange.Max != nil {
 			if *params.LengthRange.Max != 60 && *params.LengthRange.Max != 0 {
-				queryString += fmt.Sprintf("AND (length < %d) ", *params.LengthRange.Max*60000)
+				whereClause += fmt.Sprintf("AND (length < %d) ", *params.LengthRange.Max*60000)
 			}
 		}
 	}
 
 	if lifecycle == modelInputs.SessionLifecycleCompleted {
-		queryString += "AND (processed = true) "
+		whereClause += "AND (processed = true) "
 	} else if lifecycle == modelInputs.SessionLifecycleLive {
-		queryString += "AND (processed = false) "
+		whereClause += "AND (processed = false) "
 	}
-	queryString += "AND (deleted_at IS NULL) "
+	whereClause += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
-		queryString += "AND ("
+		whereClause += "AND ("
 		for idx, id := range fieldIds {
 			if idx == 0 {
-				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
 			} else {
-				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
 			}
 		}
-		queryString += ") "
+		whereClause += ") "
 	}
 
 	if len(visitedIds) > 0 {
-		fmt.Println(visitedIds)
-		queryString += "AND ("
+		whereClause += "AND ("
 		for idx, id := range visitedIds {
 			if idx == 0 {
-				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
 			} else {
-				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
 			}
 		}
-		queryString += ") "
+		whereClause += ") "
 	}
 
 	if len(referrerIds) > 0 {
-		queryString += "AND ("
+		whereClause += "AND ("
 		for idx, id := range referrerIds {
 			if idx == 0 {
-				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
 			} else {
-				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
+				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
 			}
 		}
-		queryString += ") "
+		whereClause += ") "
 	}
 
 	if len(notFieldIds) > 0 {
 		for _, id := range notFieldIds {
-			queryString += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
+			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
 		}
 	}
 
 	if d := params.DateRange; d != nil {
-		queryString += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
+		whereClause += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
 	}
 
 	if os := params.Os; os != nil {
-		queryString += fmt.Sprintf("AND (os_name = '%s') ", *os)
+		whereClause += fmt.Sprintf("AND (os_name = '%s') ", *os)
 	}
 
 	if identified := params.Identified; identified != nil && *identified {
-		queryString += "AND (length(identifier) > 0) "
+		whereClause += "AND (length(identifier) > 0) "
 	}
 
 	if viewed := params.HideViewed; viewed != nil && *viewed {
-		queryString += "AND (viewed = false) "
+		whereClause += "AND (viewed = false) "
 	}
 
 	if browser := params.Browser; browser != nil {
-		queryString += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
+		whereClause += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
 	}
 
 	//if there should be fields but aren't no sessions are returned
 	if !fieldCheck || !visitedCheck || !referrerCheck {
-		queryString += "AND (id != id) "
+		whereClause += "AND (id != id) "
 	}
 
-	queryString += "ORDER BY created_at DESC"
+	// Filter out sessions that are processed but have a length of 0. In this case the player won't work because there are no events to replay.
+	whereClause += "AND NOT ((processed = true AND length = 0)) "
 
-	if err := r.DB.Raw(queryString).Scan(&queriedSessions).Error; err != nil {
+	if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
 		return nil, e.Wrap(err, "error querying filtered sessions")
 	}
 
 	sessionsSpan.Finish()
 
-	if len(queriedSessions) < count {
-		count = len(queriedSessions)
+	sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsCountQuery"))
+	var queriedSessionsCount model.SessionCount
+	if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s", joinClause, whereClause)).Scan(&queriedSessionsCount).Error; err != nil {
+		return nil, e.Wrap(err, "error querying filtered sessions count")
 	}
+	sessionCountSpan.Finish()
+
 	sessionList := &model.SessionResults{
-		Sessions:   queriedSessions[:count],
-		TotalCount: len(queriedSessions),
+		Sessions:   queriedSessions,
+		TotalCount: queriedSessionsCount.Count,
 	}
 	return sessionList, nil
 }
@@ -979,16 +993,15 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
 		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
-	planType := FromPriceID(priceID)
-	year, month, _ := time.Now().Date()
-	var meter int64
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&meter).Error; err != nil {
-		return nil, e.Wrap(err, "error querying for session meter")
+	planType := pricing.FromPriceID(priceID)
+	meter, err := pricing.GetOrgQuota(r.DB, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error from get quota")
 	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
-			Type:  planType,
-			Quota: TypeToQuota(planType),
+			Type:  modelInputs.PlanType(planType.String()),
+			Quota: pricing.TypeToQuota(planType),
 		},
 		Meter: meter,
 	}

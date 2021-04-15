@@ -29,6 +29,7 @@ import { frequencyTimeData } from '../../../util/errorCalculations';
 import { Field } from '../../../components/Field/Field';
 import { EventInput } from '../ErrorSearchInputs/EventInput';
 import Tooltip from '../../../components/Tooltip/Tooltip';
+import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
 
 export type ErrorMetadata = {
     browser: string;
@@ -228,7 +229,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                         'highlight-block'
                                     )}
                                 >
-                                    {errorGroup?.event[0]}
+                                    {parseErrorDescription(errorGroup?.event)}
                                 </div>
                                 <div className={styles.tagWrapper}>
                                     {errorGroup?.trace[0]?.function_name && (

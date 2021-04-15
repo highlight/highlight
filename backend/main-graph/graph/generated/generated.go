@@ -1987,7 +1987,7 @@ type SanitizedAdmin {
 
 type SessionResults {
     sessions: [Session!]!
-    totalCount: Int!
+    totalCount: Int64!
 }
 
 type ErrorResults {
@@ -8661,9 +8661,9 @@ func (ec *executionContext) _SessionResults_totalCount(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model1.User) (ret graphql.Marshaler) {

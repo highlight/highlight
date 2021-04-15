@@ -259,7 +259,7 @@ export type SanitizedAdmin = {
 export type SessionResults = {
     __typename?: 'SessionResults';
     sessions: Array<Session>;
-    totalCount: Scalars['Int'];
+    totalCount: Scalars['Int64'];
 };
 
 export type ErrorResults = {

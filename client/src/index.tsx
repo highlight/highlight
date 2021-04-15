@@ -1,9 +1,12 @@
 import { addCustomEvent, record } from '@highlight-run/rrweb';
-import { eventWithTime, EventType } from '@highlight-run/rrweb/dist/types';
+import {
+    eventWithTime,
+    listenerHandler,
+} from '@highlight-run/rrweb/dist/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
-import { GraphQLClient, gql } from 'graphql-request';
+import { GraphQLClient } from 'graphql-request';
 import { Sdk, getSdk } from './graph/generated/operations';
 import StackTrace from 'stacktrace-js';
 
@@ -54,11 +57,23 @@ type PropertyType = {
 
 type Source = 'segment' | undefined;
 
+type SessionData = {
+    sessionID: number;
+    sessionStartTime?: number;
+    userIdentifier?: string;
+    userObject?: Object;
+};
+
 /**
  * The amount of time between sending the client-side payload to Highlight backend client.
  * In milliseconds.
  */
 const SEND_FREQUENCY = 1000 * 5;
+
+/**
+ * Maximum length of a session
+ */
+const MAX_SESSION_LENGTH = 4 * 60 * 60 * 1000;
 
 export class Highlight {
     organizationID: string;
@@ -67,7 +82,7 @@ export class Highlight {
     errors: ErrorMessage[];
     messages: ConsoleMessage[];
     networkContents: NetworkResourceContent[];
-    sessionID: number;
+    sessionData: SessionData;
     ready: boolean;
     logger: Logger;
     disableNetworkRecording: boolean | undefined;
@@ -75,6 +90,7 @@ export class Highlight {
     enableSegmentIntegration: boolean | undefined;
     enableStrictPrivacy: boolean;
     debugOptions: DebugOptions;
+    stopRecording: listenerHandler[];
 
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
@@ -102,7 +118,11 @@ export class Highlight {
         } else {
             this.organizationID = '';
         }
-        this.sessionID = 0;
+        this.sessionData = {
+            sessionID: 0,
+            sessionStartTime: Date.now(),
+        };
+        this.stopRecording = [];
         this.events = [];
         this.errors = [];
         this.networkContents = [];
@@ -121,8 +141,10 @@ export class Highlight {
                 JSON.stringify({ user_identifier, ...user_object })
             );
         }
+        this.sessionData.userIdentifier = user_identifier;
+        this.sessionData.userObject = user_object;
         await this.graphqlSDK.identifySession({
-            session_id: this.sessionID.toString(),
+            session_id: this.sessionData.sessionID.toString(),
             user_identifier: user_identifier,
             user_object: user_object,
         });
@@ -153,12 +175,12 @@ export class Highlight {
         // Session properties are custom properties that the Highlight snippet adds (visited-url, referrer, etc.)
         if (typeArg?.type === 'session') {
             await this.graphqlSDK.addSessionProperties({
-                session_id: this.sessionID.toString(),
+                session_id: this.sessionData.sessionID.toString(),
                 properties_object: properties_obj,
             });
             this.logger.log(
                 `AddSessionProperties to session (${
-                    this.sessionID
+                    this.sessionData.sessionID
                 }) w/ obj: ${JSON.stringify(properties_obj)} @ ${
                     process.env.BACKEND_URI
                 }`
@@ -175,14 +197,14 @@ export class Highlight {
                 addCustomEvent<string>('Track', JSON.stringify(properties_obj));
             }
             await this.graphqlSDK.addTrackProperties({
-                session_id: this.sessionID.toString(),
+                session_id: this.sessionData.sessionID.toString(),
                 properties_object: properties_obj,
             });
             const sourceString =
                 typeArg?.source === 'segment' ? typeArg.source : 'default';
             this.logger.log(
                 `AddTrackProperties to session (${
-                    this.sessionID
+                    this.sessionData.sessionID
                 }, source: ${sourceString}) w/ obj: ${JSON.stringify(
                     properties_obj
                 )} @ ${process.env.BACKEND_URI}`
@@ -203,34 +225,40 @@ export class Highlight {
             if (organization_id) {
                 this.organizationID = org_id;
             }
-            let storedID =
-                Number(window.sessionStorage.getItem('currentSessionID')) ||
-                null;
+            let storedSessionData = JSON.parse(
+                window.sessionStorage.getItem('sessionData') || '{}'
+            );
             let reloaded = false;
-            if (storedID) {
-                this.sessionID = storedID;
+            // To handle the 'Duplicate Tab' function, remove id from storage until page unload
+            window.sessionStorage.removeItem('sessionData');
+            if (storedSessionData && storedSessionData.sessionID) {
+                this.sessionData = storedSessionData;
                 reloaded = true;
             } else {
                 const gr = await this.graphqlSDK.initializeSession({
                     organization_verbose_id: this.organizationID,
                     enable_strict_privacy: this.enableStrictPrivacy,
                 });
-                this.sessionID = parseInt(gr?.initializeSession?.id || '0');
+                this.sessionData.sessionID = parseInt(
+                    gr?.initializeSession?.id || '0'
+                );
                 const organization_id = gr?.initializeSession?.organization_id;
                 this.logger.log(
                     `Loaded Highlight
   Remote: ${process.env.BACKEND_URI}
   Org ID: ${organization_id}
   Verbose Org ID: ${this.organizationID}
-  SessionID: ${this.sessionID}
+  SessionID: ${this.sessionData.sessionID}
   Session Data:
   `,
                     gr.initializeSession
                 );
-                window.sessionStorage.setItem(
-                    'currentSessionID',
-                    this.sessionID.toString()
-                );
+                if (this.sessionData.userIdentifier) {
+                    this.identify(
+                        this.sessionData.userIdentifier,
+                        this.sessionData.userObject
+                    );
+                }
             }
             setTimeout(() => {
                 this._save();
@@ -239,12 +267,15 @@ export class Highlight {
                 this.events.push(event);
             };
             emit.bind(this);
-            record({
+            const recordStop = record({
                 ignoreClass: 'highlight-ignore',
                 blockClass: 'highlight-block',
                 emit,
                 enableStrictPrivacy: this.enableStrictPrivacy,
             });
+            if (recordStop) {
+                this.stopRecording.push(recordStop);
+            }
             addCustomEvent('Viewport', {
                 height: window.innerHeight,
                 width: window.innerWidth,
@@ -252,22 +283,24 @@ export class Highlight {
 
             const highlightThis = this;
             if (this.enableSegmentIntegration) {
-                SegmentIntegrationListener((obj: any) => {
-                    if (obj.type === 'track') {
-                        const properties: { [key: string]: string } = {};
-                        properties['segment-event'] = obj.event;
-                        highlightThis.addProperties(properties, {
-                            type: 'track',
-                            source: 'segment',
-                        });
-                    } else if (obj.type === 'identify') {
-                        highlightThis.identify(
-                            obj.userId,
-                            obj.traits,
-                            'segment'
-                        );
-                    }
-                });
+                this.stopRecording.push(
+                    SegmentIntegrationListener((obj: any) => {
+                        if (obj.type === 'track') {
+                            const properties: { [key: string]: string } = {};
+                            properties['segment-event'] = obj.event;
+                            highlightThis.addProperties(properties, {
+                                type: 'track',
+                                source: 'segment',
+                            });
+                        } else if (obj.type === 'identify') {
+                            highlightThis.identify(
+                                obj.userId,
+                                obj.traits,
+                                'segment'
+                            );
+                        }
+                    })
+                );
             }
 
             if (document.referrer) {
@@ -277,67 +310,85 @@ export class Highlight {
                     { type: 'session' }
                 );
             }
-            PathListener((url: string) => {
-                if (reloaded) {
-                    addCustomEvent<string>('Reload', url);
-                    reloaded = false;
+            this.stopRecording.push(
+                PathListener((url: string) => {
+                    if (reloaded) {
+                        addCustomEvent<string>('Reload', url);
+                        reloaded = false;
+                        highlightThis.addProperties(
+                            { reload: true },
+                            { type: 'session' }
+                        );
+                    } else {
+                        addCustomEvent<string>('Navigate', url);
+                    }
                     highlightThis.addProperties(
-                        { reload: true },
+                        { 'visited-url': url },
                         { type: 'session' }
                     );
-                } else {
-                    addCustomEvent<string>('Navigate', url);
-                }
-                highlightThis.addProperties(
-                    { 'visited-url': url },
-                    { type: 'session' }
-                );
-            });
+                })
+            );
             if (!this.disableConsoleRecording) {
-                ConsoleListener((c: ConsoleMessage) => {
-                    if (c.type == 'Error' && c.value && c.trace)
-                        highlightThis.errors.push({
-                            event: JSON.stringify(c.value),
-                            type: 'console.error',
-                            url: window.location.href,
-                            source: c.trace[0].fileName
-                                ? c.trace[0].fileName
-                                : '',
-                            lineNumber: c.trace[0].lineNumber
-                                ? c.trace[0].lineNumber
-                                : 0,
-                            columnNumber: c.trace[0].columnNumber
-                                ? c.trace[0].columnNumber
-                                : 0,
-                            trace: c.trace,
-                            timestamp: new Date().toISOString(),
-                        });
-                    highlightThis.messages.push(c);
-                });
+                this.stopRecording.push(
+                    ConsoleListener((c: ConsoleMessage) => {
+                        if (c.type == 'Error' && c.value && c.trace)
+                            highlightThis.errors.push({
+                                event: JSON.stringify(c.value),
+                                type: 'console.error',
+                                url: window.location.href,
+                                source: c.trace[0].fileName
+                                    ? c.trace[0].fileName
+                                    : '',
+                                lineNumber: c.trace[0].lineNumber
+                                    ? c.trace[0].lineNumber
+                                    : 0,
+                                columnNumber: c.trace[0].columnNumber
+                                    ? c.trace[0].columnNumber
+                                    : 0,
+                                trace: c.trace,
+                                timestamp: new Date().toISOString(),
+                            });
+                        highlightThis.messages.push(c);
+                    })
+                );
             }
-            ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e));
-            ViewportResizeListener((viewport) => {
-                addCustomEvent('Viewport', viewport);
-            });
-            ClickListener((clickTarget) => {
-                if (clickTarget) {
-                    addCustomEvent('Click', clickTarget);
-                }
-            });
-            FocusListener((focusTarget) => {
-                if (focusTarget) {
-                    addCustomEvent('Focus', focusTarget);
-                }
-            });
+            this.stopRecording.push(
+                ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e))
+            );
+            this.stopRecording.push(
+                ViewportResizeListener((viewport) => {
+                    addCustomEvent('Viewport', viewport);
+                })
+            );
+            this.stopRecording.push(
+                ClickListener((clickTarget) => {
+                    if (clickTarget) {
+                        addCustomEvent('Click', clickTarget);
+                    }
+                })
+            );
+            this.stopRecording.push(
+                FocusListener((focusTarget) => {
+                    if (focusTarget) {
+                        addCustomEvent('Focus', focusTarget);
+                    }
+                })
+            );
             this.ready = true;
         } catch (e) {
             HighlightWarning('initializeSession', e);
         }
+        window.addEventListener('beforeunload', () => {
+            window.sessionStorage.setItem(
+                'sessionData',
+                JSON.stringify(this.sessionData)
+            );
+        });
     }
     // Reset the events array and push to a backend.
     async _save() {
         try {
-            if (!this.sessionID) {
+            if (!this.sessionData.sessionID) {
                 return;
             }
             var resources: Array<any> = [];
@@ -357,13 +408,13 @@ export class Highlight {
             const resourcesString = JSON.stringify({ resources: resources });
             const messagesString = JSON.stringify({ messages: this.messages });
             this.logger.log(
-                `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionID}`
+                `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
             );
             if (!this.disableNetworkRecording) {
                 performance.clearResourceTimings();
             }
             await this.graphqlSDK.PushPayload({
-                session_id: this.sessionID.toString(),
+                session_id: this.sessionData.sessionID.toString(),
                 events: { events: this.events },
                 messages: messagesString,
                 resources: resourcesString,
@@ -373,6 +424,18 @@ export class Highlight {
             this.errors = [];
             this.messages = [];
             this.networkContents = [];
+            if (
+                this.stopRecording &&
+                this.sessionData.sessionStartTime &&
+                Date.now() - this.sessionData.sessionStartTime >
+                    MAX_SESSION_LENGTH
+            ) {
+                this.sessionData.sessionStartTime = Date.now();
+                this.stopRecording.forEach((stop: listenerHandler) => stop());
+                this.stopRecording = [];
+                this.initialize(this.organizationID);
+                return;
+            }
         } catch (e) {
             HighlightWarning('_save', e);
         }
