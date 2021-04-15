@@ -63,7 +63,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         'highlightMenuAutoPlayVideo',
         false
     );
-    const [enableDOMInteractions, setEnableDOMInteractions] = useLocalStorage(
+    const [enableDOMInteractions] = useLocalStorage(
         'highlightMenuEnableDOMInteractions',
         false
     );
@@ -397,10 +397,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         showRightPanel={showRightPanel}
                         onShowRightPanelChange={() => {
                             setShowRightPanel(!showRightPanel);
-                        }}
-                        enableDOMInteractions={enableDOMInteractions}
-                        onEnableDOMInteractions={() => {
-                            setEnableDOMInteractions(!enableDOMInteractions);
                         }}
                     />
                 </div>

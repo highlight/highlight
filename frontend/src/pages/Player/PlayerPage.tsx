@@ -34,6 +34,7 @@ import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import Modal from '../../components/Modal/Modal';
 import useMedia from '../../hooks/useMedia/useMedia';
 import ShareButton from './ShareButton/ShareButton';
+import DOMInteractionsToggle from './DOMInteractionsToggle/DOMInteractionsToggle';
 
 export const Player = () => {
     const { session_id } = useParams<{
@@ -152,6 +153,7 @@ export const Player = () => {
                     <div className={styles.playerLeftTopSection}>
                         <SessionLevelBar />
                         <ShareButton />
+                        <DOMInteractionsToggle />
                     </div>
                     <div className={styles.rrwebPlayerSection}>
                         <div
