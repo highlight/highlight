@@ -33,6 +33,7 @@ import Modal from '../../components/Modal/Modal';
 import useMedia from '../../hooks/useMedia/useMedia';
 import ShareButton from './ShareButton/ShareButton';
 import DOMInteractionsToggle from './DOMInteractionsToggle/DOMInteractionsToggle';
+import CommentButton from './CommentButton/CommentButton';
 
 export const Player = () => {
     const { session_id } = useParams<{
@@ -48,7 +49,6 @@ export const Player = () => {
         setScale,
         replayer,
         time,
-        pause,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
@@ -57,13 +57,15 @@ export const Player = () => {
         'highlightMenuShowRightPanel',
         true
     );
-    const [showAddCommentEntry, setShowAddCommentEntry] = useState(false);
     const hideRightPanel = useMedia<boolean>(
         ['(max-width: 1300px)'],
         [true],
         false
     );
     const shouldShowRightPanel = showRightPanelPreference && !hideRightPanel;
+    const [commentClickLocation, setCommentClickLocation] = useState<
+        { x: number; y: number } | undefined
+    >(undefined);
 
     useEffect(() => {
         if (session_id) {
@@ -142,23 +144,21 @@ export const Player = () => {
                             ref={playerWrapperRef}
                         >
                             {resizeListener}
-                            <button
-                                className={styles.commentButton}
-                                onClick={() => {
-                                    pause();
-                                    setShowAddCommentEntry(true);
+                            <CommentButton
+                                setCommentClickLocation={
+                                    setCommentClickLocation
+                                }
+                                isReplayerReady={isReplayerReady}
+                            />
+                            <div
+                                style={{
+                                    visibility: isReplayerReady
+                                        ? 'visible'
+                                        : 'hidden',
                                 }}
-                            >
-                                <div
-                                    style={{
-                                        visibility: isReplayerReady
-                                            ? 'visible'
-                                            : 'hidden',
-                                    }}
-                                    className={styles.rrwebPlayerDiv}
-                                    id="player"
-                                />
-                            </button>
+                                className={styles.rrwebPlayerDiv}
+                                id="player"
+                            />
                             {!isReplayerReady ? (
                                 <PlayerSkeleton
                                     height={
@@ -181,19 +181,23 @@ export const Player = () => {
                     </div>
                 )}
                 <Modal
-                    visible={showAddCommentEntry}
+                    visible={commentClickLocation !== undefined}
                     onCancel={() => {
-                        setShowAddCommentEntry(false);
+                        setCommentClickLocation(undefined);
                     }}
                     destroyOnClose
                     minimal
-                    centered
                     width="324px"
+                    style={{
+                        left: `${commentClickLocation?.x}px`,
+                        top: `${commentClickLocation?.y}px`,
+                        margin: 0,
+                    }}
                 >
                     <NewCommentEntry
                         currentTime={Math.floor(time)}
                         onCloseHandler={() => {
-                            setShowAddCommentEntry(false);
+                            setCommentClickLocation(undefined);
                         }}
                     />
                 </Modal>

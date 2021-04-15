@@ -2,7 +2,6 @@ export const accountIcon: string;
 export const accountIconWrapper: string;
 export const appBody: string;
 export const browserHeader: string;
-export const commentButton: string;
 export const eventStreamContainer: string;
 export const header: string;
 export const headerLink: string;
