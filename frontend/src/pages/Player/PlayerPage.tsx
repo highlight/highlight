@@ -29,6 +29,7 @@ import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
 import ShareButton from './ShareButton/ShareButton';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
+import useMedia from '../../hooks/useMedia/useMedia';
 
 export const Player = () => {
     const { session_id } = useParams<{ session_id: string }>();
@@ -45,10 +46,16 @@ export const Player = () => {
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
-    const [showRightPanel] = useLocalStorage(
+    const [showRightPanelPreference] = useLocalStorage(
         'highlightMenuShowRightPanel',
         true
     );
+    const hideRightPanel = useMedia<boolean>(
+        ['(max-width: 1300px)'],
+        [true],
+        false
+    );
+    const shouldShowRightPanel = showRightPanelPreference && !hideRightPanel;
 
     useEffect(() => {
         if (session_id) {
@@ -112,7 +119,7 @@ export const Player = () => {
         <ReplayerContext.Provider value={player}>
             <div
                 className={classNames(styles.playerBody, {
-                    [styles.noRightPanel]: !showRightPanel,
+                    [styles.noRightPanel]: !shouldShowRightPanel,
                 })}
             >
                 <div className={styles.playerLeftSection}>
@@ -150,7 +157,7 @@ export const Player = () => {
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
                 </div>
-                {showRightPanel && (
+                {shouldShowRightPanel && (
                     <div className={styles.playerRightSection}>
                         <MetadataBox />
                         <EventStream />
