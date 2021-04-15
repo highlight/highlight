@@ -9,10 +9,10 @@ import (
 
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/jinzhu/gorm"
 	"github.com/k0kubun/pp"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
+	"gorm.io/gorm"
 
 	e "github.com/pkg/errors"
 )
@@ -53,8 +53,7 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
 	if r.isWhitelistedAccount(ctx) {
 		org := &model.Organization{}
-		res := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org)
-		if err := res.Error; err != nil || res.RecordNotFound() {
+		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org).Error; err != nil {
 			return nil, e.Wrap(err, "error querying org")
 		}
 		return org, nil
@@ -155,8 +154,7 @@ func ErrorInputToParams(params *modelInputs.ErrorSearchParamsInput) *model.Error
 
 func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int) (*model.ErrorGroup, error) {
 	errorGroup := &model.ErrorGroup{}
-	res := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session")
 	}
 	_, err := r.isAdminInOrganization(ctx, errorGroup.OrganizationID)
@@ -168,8 +166,7 @@ func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int)
 
 func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*model.Session, error) {
 	session := &model.Session{}
-	res := r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := r.DB.Where(&model.Session{Model: model.Model{ID: session_id}}).First(&session).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session")
 	}
 	// This returns true if its the Whitelisted Session.

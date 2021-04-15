@@ -52,7 +52,7 @@ export type Session = {
 export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
-    meter: Scalars['Int'];
+    meter: Scalars['Int64'];
 };
 
 export type Plan = {
@@ -296,7 +296,7 @@ export type Query = {
     session_comments: Array<Maybe<SessionComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
-    unprocessedSessionsCount?: Maybe<Scalars['Int']>;
+    unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
