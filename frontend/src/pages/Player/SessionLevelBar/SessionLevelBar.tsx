@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react';
 import styles from './SessionLevelBar.module.scss';
 import SessionToken from './SessionToken/SessionToken';
 import { ReactComponent as LayoutIcon } from '../../../static/layout.svg';
+import { ReactComponent as LockIcon } from '../../../static/lock.svg';
 import ReplayerContext, { ReplayerState } from '../ReplayerContext';
 import { ReplayerEvents } from '@highlight-run/rrweb';
 import { customEvent } from '@highlight-run/rrweb/dist/types';
@@ -11,7 +12,6 @@ import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
 import { useParams } from 'react-router-dom';
 import { DemoContext } from '../../../DemoContext';
 import { useGetSessionQuery } from '../../../graph/generated/hooks';
-import { BiLockAlt, BiLockOpenAlt } from 'react-icons/bi';
 
 interface Viewport {
     height: number;
@@ -100,13 +100,7 @@ const SessionLevelBar = () => {
                     </SessionToken>
                     <CurrentUrlBar url={currentUrl ?? ''} />
                     <SessionToken
-                        icon={
-                            data?.session?.enable_strict_privacy ? (
-                                <BiLockAlt size="14px" />
-                            ) : (
-                                <BiLockOpenAlt size="14px" />
-                            )
-                        }
+                        icon={<LockIcon />}
                         tooltipTitle={
                             <>
                                 {data?.session?.enable_strict_privacy

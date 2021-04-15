@@ -3,6 +3,7 @@ import PrimaryButton from '../../../components/Button/PrimaryButton/PrimaryButto
 import ReplayerContext from '../ReplayerContext';
 import { message } from 'antd';
 import { PlayerSearchParameters } from '../PlayerHook/utils';
+import styles from './ShareButton.module.scss';
 
 const ShareButton = () => {
     const { time } = useContext(ReplayerContext);
@@ -21,7 +22,12 @@ const ShareButton = () => {
         navigator.clipboard.writeText(currentUrl.href);
     };
     return (
-        <PrimaryButton onClick={onGetLinkWithTimestamp}>Share</PrimaryButton>
+        <PrimaryButton
+            onClick={onGetLinkWithTimestamp}
+            className={styles.shareButton}
+        >
+            Share
+        </PrimaryButton>
     );
 };
 

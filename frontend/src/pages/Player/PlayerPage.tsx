@@ -33,6 +33,7 @@ import { Dropdown, Menu, MenuItemProps } from 'antd';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import Modal from '../../components/Modal/Modal';
 import useMedia from '../../hooks/useMedia/useMedia';
+import ShareButton from './ShareButton/ShareButton';
 
 export const Player = () => {
     const { session_id } = useParams<{
@@ -150,6 +151,7 @@ export const Player = () => {
                 <div className={styles.playerLeftSection}>
                     <div className={styles.playerLeftTopSection}>
                         <SessionLevelBar />
+                        <ShareButton />
                     </div>
                     <div className={styles.rrwebPlayerSection}>
                         <div

@@ -12,8 +12,7 @@
     cursor: pointer;
     line-height: initial;
 
-    &:hover,
-    &:focus {
+    &:hover {
         background-color: $button-primary-hover;
     }
 

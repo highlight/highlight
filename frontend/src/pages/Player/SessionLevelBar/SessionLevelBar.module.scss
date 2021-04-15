@@ -2,17 +2,17 @@
 
 .sessionLevelBarContainer {
     background: $primary-background-color;
-    padding: 6px $size-xLarge;
+    padding: var(--size-xSmall) var(--size-small);
     border: 1px solid $border-light-gray;
     display: flex;
     gap: $size-xSmall;
     align-items: center;
     justify-content: space-between;
-    border-radius: $button-border-radius;
+    border-radius: var(--size-xSmall);
     flex-grow: 1;
-    height: 42px;
-    max-height: 42px;
     overflow-x: auto;
+    height: 36px;
+    overflow-y: hidden;
 }
 
 .skeletonContainer {

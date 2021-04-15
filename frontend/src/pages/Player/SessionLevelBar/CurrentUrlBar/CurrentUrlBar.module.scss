@@ -5,7 +5,7 @@
     width: 400px;
     font-size: 12px;
     @include rounded-border;
-    padding: 1px 8px 1px 8px;
+    padding: 1px var(--size-small);
     height: 100%;
     display: flex;
     flex-wrap: nowrap;
@@ -14,12 +14,6 @@
     &:hover .copyIcon {
         visibility: visible;
     }
-}
-
-.searchIcon {
-    height: 12px;
-    width: 12px;
-    margin-right: 6px;
 }
 
 .urlLink {
