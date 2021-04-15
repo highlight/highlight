@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
 	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/fullstory/backend/object-storage"
 	"github.com/jay-khatri/fullstory/backend/util"
 	"github.com/jay-khatri/fullstory/backend/worker"
 	"github.com/rs/cors"
@@ -126,7 +127,12 @@ func main() {
 		clientServer.Use(util.NewTracer("client-graph"))
 		r.Handle("/", clientServer)
 	})
-	w := &worker.Worker{R: main}
+
+	storage, err := storage.NewStorageClient()
+	if err != nil {
+		log.Fatalf("err: %v", err)
+	}
+	w := &worker.Worker{R: main, S: storage}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
 	if rt := *runtime; rt == "dev" {
 		go func() {

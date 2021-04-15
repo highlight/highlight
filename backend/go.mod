@@ -9,6 +9,9 @@ require (
 	github.com/99designs/gqlgen v0.13.0
 	github.com/DataDog/datadog-go v4.4.0+incompatible
 	github.com/Microsoft/go-winio v0.4.16 // indirect
+	github.com/aws/aws-sdk-go-v2 v1.3.1
+	github.com/aws/aws-sdk-go-v2/config v1.1.4
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.4.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-chi/chi v3.3.2+incompatible
