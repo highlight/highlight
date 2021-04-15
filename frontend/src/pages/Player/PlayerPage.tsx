@@ -26,10 +26,8 @@ import { usePlayer } from './PlayerHook/PlayerHook';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
 import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
-import copySessionShareLinkToClipboard from './utils/utils';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
-import { Dropdown, Menu, MenuItemProps } from 'antd';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import Modal from '../../components/Modal/Modal';
 import useMedia from '../../hooks/useMedia/useMedia';
@@ -125,23 +123,6 @@ export const Player = () => {
     const isReplayerReady =
         replayerState !== ReplayerState.Loading && replayerScale !== 1;
 
-    const CONTEXT_MENU_ITEMS: (Pick<MenuItemProps, 'onClick'> & {
-        label: string;
-    })[] = [
-        {
-            onClick: () => {
-                setShowAddCommentEntry(true);
-            },
-            label: 'Add a comment',
-        },
-        {
-            onClick: () => {
-                copySessionShareLinkToClipboard(time);
-            },
-            label: 'Copy URL at current time',
-        },
-    ];
-
     return (
         <ReplayerContext.Provider value={player}>
             <div
@@ -161,27 +142,11 @@ export const Player = () => {
                             ref={playerWrapperRef}
                         >
                             {resizeListener}
-                            <Dropdown
-                                overlay={
-                                    <Menu>
-                                        {CONTEXT_MENU_ITEMS.map((item) => (
-                                            <Menu.Item
-                                                key={item.label}
-                                                onClick={item.onClick}
-                                            >
-                                                {item.label}
-                                            </Menu.Item>
-                                        ))}
-                                    </Menu>
-                                }
-                                trigger={['contextMenu']}
-                                onVisibleChange={(visible) => {
-                                    if (
-                                        visible &&
-                                        replayerState !== ReplayerState.Paused
-                                    ) {
-                                        pause();
-                                    }
+                            <button
+                                className={styles.commentButton}
+                                onClick={() => {
+                                    pause();
+                                    setShowAddCommentEntry(true);
                                 }}
                             >
                                 <div
@@ -193,7 +158,7 @@ export const Player = () => {
                                     className={styles.rrwebPlayerDiv}
                                     id="player"
                                 />
-                            </Dropdown>
+                            </button>
                             {!isReplayerReady ? (
                                 <PlayerSkeleton
                                     height={
