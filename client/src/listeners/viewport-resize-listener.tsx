@@ -13,10 +13,13 @@ export const ViewportResizeListener = (
     let id: ReturnType<typeof setTimeout>;
     const DELAY = 500;
 
-    window.addEventListener('resize', () => {
+    const onResize = () => {
         clearTimeout(id);
         id = setTimeout(() => {
             callback({ height: window.innerHeight, width: window.innerWidth });
         }, DELAY);
-    });
+    };
+    window.addEventListener('resize', onResize);
+
+    return () => window.removeEventListener('resize', onResize);
 };

@@ -15,6 +15,7 @@ export type Scalars = {
     Float: number;
     Any: any;
     Time: any;
+    Int64: any;
 };
 
 export type Field = {
@@ -51,7 +52,7 @@ export type Session = {
 export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
-    meter: Scalars['Int'];
+    meter: Scalars['Int64'];
 };
 
 export type Plan = {
@@ -258,7 +259,7 @@ export type SanitizedAdmin = {
 export type SessionResults = {
     __typename?: 'SessionResults';
     sessions: Array<Session>;
-    totalCount: Scalars['Int'];
+    totalCount: Scalars['Int64'];
 };
 
 export type ErrorResults = {
@@ -297,7 +298,7 @@ export type Query = {
     session_comments: Array<Maybe<SessionComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
-    unprocessedSessionsCount?: Maybe<Scalars['Int']>;
+    unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;

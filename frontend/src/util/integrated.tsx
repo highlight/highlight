@@ -1,3 +1,4 @@
+import useLocalStorage from '@rehooks/local-storage';
 import { useEffect, useState } from 'react';
 import { useIsIntegratedLazyQuery } from '../graph/generated/hooks';
 
@@ -8,6 +9,10 @@ export const useIntegrated = (
         variables: { organization_id: organization_id.toString() },
         fetchPolicy: 'cache-and-network',
     });
+    const [localStorageIntegrated, setLocalStorageIntegrated] = useLocalStorage(
+        `highlight-${organization_id}-integrated`,
+        false
+    );
     const [integrated, setIntegrated] = useState<boolean | undefined>(
         undefined
     );
@@ -15,24 +20,30 @@ export const useIntegrated = (
     const integratedRaw = data?.isIntegrated;
 
     useEffect(() => {
-        query();
-        const timer = setInterval(() => {
-            if (!integrated) {
-                query();
-            } else {
+        if (!localStorageIntegrated) {
+            query();
+            const timer = setInterval(() => {
+                if (!integrated) {
+                    query();
+                } else {
+                    clearInterval(timer);
+                }
+            }, 5000);
+            return () => {
                 clearInterval(timer);
-            }
-        }, 5000);
-        return () => {
-            clearInterval(timer);
-        };
-    }, [integrated, query]);
+            };
+        } else {
+            setLoadingState(false);
+            setIntegrated(localStorageIntegrated);
+        }
+    }, [integrated, localStorageIntegrated, query]);
 
     useEffect(() => {
         if (integratedRaw !== undefined) {
             setIntegrated(integratedRaw?.valueOf());
+            setLocalStorageIntegrated(integratedRaw?.valueOf() || false);
         }
-    }, [integratedRaw]);
+    }, [integratedRaw, setLocalStorageIntegrated]);
 
     useEffect(() => {
         if (loading === false) {

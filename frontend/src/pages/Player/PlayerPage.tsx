@@ -32,6 +32,7 @@ import classNames from 'classnames';
 import { Dropdown, Menu, MenuItemProps } from 'antd';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import Modal from '../../components/Modal/Modal';
+import useMedia from '../../hooks/useMedia/useMedia';
 
 export const Player = () => {
     const { session_id } = useParams<{
@@ -52,11 +53,17 @@ export const Player = () => {
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
-    const [showRightPanel] = useLocalStorage(
+    const [showRightPanelPreference] = useLocalStorage(
         'highlightMenuShowRightPanel',
         true
     );
     const [showAddCommentEntry, setShowAddCommentEntry] = useState(false);
+    const hideRightPanel = useMedia<boolean>(
+        ['(max-width: 1300px)'],
+        [true],
+        false
+    );
+    const shouldShowRightPanel = showRightPanelPreference && !hideRightPanel;
 
     useEffect(() => {
         if (session_id) {
@@ -137,7 +144,7 @@ export const Player = () => {
         <ReplayerContext.Provider value={player}>
             <div
                 className={classNames(styles.playerBody, {
-                    [styles.noRightPanel]: !showRightPanel,
+                    [styles.noRightPanel]: !shouldShowRightPanel,
                 })}
             >
                 <div className={styles.playerLeftSection}>
@@ -198,7 +205,7 @@ export const Player = () => {
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
                 </div>
-                {showRightPanel && (
+                {shouldShowRightPanel && (
                     <div className={styles.playerRightSection}>
                         <MetadataBox />
                         <EventStream />

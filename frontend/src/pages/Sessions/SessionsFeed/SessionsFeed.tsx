@@ -318,8 +318,8 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                     {session?.processed &&
                                     segment_id !== LIVE_SEGMENT_ID
                                         ? MillisToMinutesAndSecondsVerbose(
-                                              session?.length || 0
-                                          ) || '30 min 20 sec'
+                                              session.length || 0
+                                          )
                                         : 'Live'}
                                 </div>
                                 <div className={styles.middleText}>
