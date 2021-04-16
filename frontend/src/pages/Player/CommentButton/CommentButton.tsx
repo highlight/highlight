@@ -8,7 +8,7 @@ import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { useParams } from 'react-router-dom';
 import Comment from '../Toolbar/TimelineAnnotation/Comment';
 import useLocalStorage from '@rehooks/local-storage';
-import { EventsForTimeline } from '../PlayerHook/utils';
+import { EventsForTimeline, PlayerSearchParameters } from '../PlayerHook/utils';
 
 export interface Coordinates2D {
     x: number;
@@ -37,6 +37,9 @@ const CommentButton = ({
             session_id: session_id,
         },
     });
+    const deepLinkedCommentId = new URLSearchParams(location.search).get(
+        PlayerSearchParameters.commentId
+    );
     const [
         enabledTimelineAnnotation,
     ] = useLocalStorage('highlightTimelineAnnotationTypes', [
@@ -152,7 +155,16 @@ const CommentButton = ({
                                     className={styles.commentIndicator}
                                     src={CommentPinIcon}
                                 />
-                                <div className={styles.commentContainer}>
+                                <div
+                                    className={classNames(
+                                        styles.commentContainer,
+                                        {
+                                            [styles.activeComment]:
+                                                deepLinkedCommentId ===
+                                                comment.id,
+                                        }
+                                    )}
+                                >
                                     <Comment
                                         key={comment.id}
                                         comment={comment}

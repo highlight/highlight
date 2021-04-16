@@ -1,3 +1,4 @@
+export const activeComment: string;
 export const comment: string;
 export const commentButton: string;
 export const commentContainer: string;

@@ -64,3 +64,9 @@
         z-index: 10000;
     }
 }
+
+.activeComment {
+    border-left: var(--size-xxSmall) solid var(--color-purple);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}

@@ -1,4 +1,3 @@
-import { message } from 'antd';
 import { PlayerSearchParameters } from '../../PlayerHook/utils';
 
 /**
@@ -11,6 +10,5 @@ export const onGetLinkWithTimestamp = (time: number) => {
         (time / 1000).toString()
     );
 
-    message.success('Copied link!');
-    navigator.clipboard.writeText(currentUrl.href);
+    return currentUrl;
 };
