@@ -5,8 +5,9 @@
     width: 100%;
     max-width: 400px;
     font-size: 12px;
-    @include rounded-border;
     padding: 1px var(--size-small);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--size-xxSmall);
     height: 100%;
     display: flex;
     flex-wrap: nowrap;
