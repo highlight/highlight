@@ -5,11 +5,11 @@
     border: none;
     background: transparent;
     outline: none;
-    cursor: crosshair;
     position: absolute;
     z-index: 1;
     padding: 0;
     user-select: text;
+    cursor: url('/static/comment-pin.png') 10 25, crosshair;
 }
 
 .commentIndicator {
