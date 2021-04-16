@@ -43,4 +43,8 @@
         position: relative;
         z-index: 99;
     }
+
+    &:hover {
+        z-index: 10000;
+    }
 }
