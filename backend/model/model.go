@@ -314,10 +314,12 @@ type ErrorField struct {
 
 type SessionComment struct {
 	Model
-	AdminId   int
-	SessionId int
-	Timestamp int
-	Text      string
+	AdminId     int
+	SessionId   int
+	Timestamp   int
+	Text        string
+	XCoordinate float64
+	YCoordinate float64
 }
 
 func SetupDB() *gorm.DB {
