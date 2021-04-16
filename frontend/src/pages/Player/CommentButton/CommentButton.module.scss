@@ -26,6 +26,7 @@
     position: relative;
     z-index: 9999;
     text-align: left;
+    margin-top: calc(var(--size-small) * -1);
 
     & > p {
         font-size: 14px;
