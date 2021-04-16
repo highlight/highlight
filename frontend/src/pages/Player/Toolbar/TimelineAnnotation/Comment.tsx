@@ -1,8 +1,8 @@
 import { Dropdown, Menu, message } from 'antd';
 import classNames from 'classnames';
 import moment from 'moment';
-import React, { useContext } from 'react';
-import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
+import React from 'react';
+import { ParsedSessionComment } from '../../ReplayerContext';
 import toolbarStyles from '../Toolbar.module.scss';
 import styles from './Comment.module.scss';
 import { HiDotsHorizontal } from 'react-icons/hi';
