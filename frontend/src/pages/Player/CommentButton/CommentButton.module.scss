@@ -16,6 +16,18 @@
     height: var(--comment-indicator-height);
     width: var(--comment-indicator-width);
     position: absolute;
+    transform: scale(0);
+    animation: grow 0.2s forwards;
+}
+
+@keyframes grow {
+    0% {
+        transform: scale(0);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
 
 .commentContainer {

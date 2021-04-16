@@ -134,6 +134,7 @@ const CommentButton = ({
                         showCommentsOverlaid &&
                         Math.abs(time - comment.timestamp) <= 500 && (
                             <div
+                                key={comment.id}
                                 className={styles.comment}
                                 style={{
                                     left: `calc(${
