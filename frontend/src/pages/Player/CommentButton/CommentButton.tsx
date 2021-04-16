@@ -47,6 +47,10 @@ const CommentButton = ({
     const [indicatorLocation, setIndicatorLocation] = useState<
         Coordinates2D | undefined
     >(undefined);
+    const [enableDOMInteractions] = useLocalStorage(
+        'highlightMenuEnableDOMInteractions',
+        false
+    );
 
     // Set size of the button to be the same as the replayer. This allows us to intercept any clicks on replayer.
     useEffect(() => {
@@ -60,7 +64,7 @@ const CommentButton = ({
             buttonRef.current.style.width = `${width}px`;
             buttonRef.current.style.height = `${height}px`;
         }
-    }, [replayer?.wrapper, scale]);
+    }, [replayer?.wrapper, scale, enableDOMInteractions]);
 
     // Hide the indicator if there is no comment being created.
     useEffect(() => {
@@ -71,6 +75,10 @@ const CommentButton = ({
     }, [modalPosition, setCommentPosition]);
 
     const showCommentsOverlaid = enabledTimelineAnnotation.includes('Comments');
+
+    if (enableDOMInteractions) {
+        return null;
+    }
 
     return (
         <>
