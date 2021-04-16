@@ -297,11 +297,11 @@
 
 .commentHeader {
     display: flex;
-    gap: $size-xSmall;
+    gap: var(--size-xSmall);
+    margin-bottom: var(--size-xSmall);
 }
 
 .commentAuthor {
-    flex-grow: 1;
     overflow: hidden;
     text-overflow: ellipsis;
 }
