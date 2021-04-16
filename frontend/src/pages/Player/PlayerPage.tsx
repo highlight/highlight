@@ -149,6 +149,7 @@ export const Player = () => {
                                     setCommentClickLocation
                                 }
                                 isReplayerReady={isReplayerReady}
+                                clickLocation={commentClickLocation}
                             />
                             <div
                                 style={{
@@ -193,6 +194,10 @@ export const Player = () => {
                         top: `${commentClickLocation?.y}px`,
                         margin: 0,
                     }}
+                    mask={false}
+                    modalRender={(node) => (
+                        <div className={styles.commentModal}>{node}</div>
+                    )}
                 >
                     <NewCommentEntry
                         currentTime={Math.floor(time)}

@@ -14,6 +14,7 @@ type Props = Pick<
     | 'modalRender'
     | 'destroyOnClose'
     | 'centered'
+    | 'mask'
 > & {
     title?: string;
     minimal?: boolean;

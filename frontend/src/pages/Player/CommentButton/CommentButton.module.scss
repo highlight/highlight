@@ -8,3 +8,12 @@
     z-index: 1;
     padding: 0;
 }
+
+.commentIndicator {
+    --comment-indicator-height: 23px;
+    --comment-indicator-width: 16px;
+
+    height: var(--comment-indicator-height);
+    width: var(--comment-indicator-width);
+    position: absolute;
+}

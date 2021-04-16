@@ -1,26 +1,34 @@
 import classNames from 'classnames';
-import React, { useContext, useEffect, useRef } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import playerStyles from '../PlayerPage.module.scss';
 import ReplayerContext from '../ReplayerContext';
 import styles from './CommentButton.module.scss';
+import CommentPinIcon from '../../../static/comment-pin.png';
 
+interface CommentClickLocation {
+    x: number;
+    y: number;
+}
 interface Props {
     setCommentClickLocation: React.Dispatch<
-        React.SetStateAction<
-            | {
-                  x: number;
-                  y: number;
-              }
-            | undefined
-        >
+        React.SetStateAction<CommentClickLocation | undefined>
     >;
     isReplayerReady: boolean;
+    clickLocation: CommentClickLocation | undefined;
 }
 
-const CommentButton = ({ setCommentClickLocation, isReplayerReady }: Props) => {
+const CommentButton = ({
+    setCommentClickLocation,
+    isReplayerReady,
+    clickLocation,
+}: Props) => {
     const { pause, scale, replayer } = useContext(ReplayerContext);
     const ref = useRef<HTMLButtonElement>(null);
+    const [indicatorLocation, setIndicatorLocation] = useState<
+        CommentClickLocation | undefined
+    >(undefined);
 
+    // Set size of the button to be the same as the replayer. This allows us to intercept any clicks on replayer.
     useEffect(() => {
         const width = replayer?.wrapper?.getBoundingClientRect().width;
         const height = replayer?.wrapper?.getBoundingClientRect().height;
@@ -33,6 +41,13 @@ const CommentButton = ({ setCommentClickLocation, isReplayerReady }: Props) => {
             ref.current.style.height = `${height}px`;
         }
     }, [replayer?.wrapper, scale]);
+
+    // Hide the indicator if there is no comment being created.
+    useEffect(() => {
+        if (!clickLocation) {
+            setIndicatorLocation(undefined);
+        }
+    }, [clickLocation]);
 
     return (
         <button
@@ -53,8 +68,8 @@ const CommentButton = ({ setCommentClickLocation, isReplayerReady }: Props) => {
                     const xPercentage = x / rect.width;
                     const yPercentage = y / rect.height;
 
-                    const xOffset = 12;
-                    let yOffset = 0;
+                    const xOffset = 24;
+                    let yOffset = -36;
 
                     if (yPercentage > 0.9) {
                         yOffset -= 100;
@@ -63,12 +78,25 @@ const CommentButton = ({ setCommentClickLocation, isReplayerReady }: Props) => {
                         x: e.pageX + xOffset,
                         y: e.pageY + yOffset,
                     });
+                    setIndicatorLocation({ x, y });
 
                     pause();
                 }
             }}
             ref={ref}
-        ></button>
+        >
+            {indicatorLocation && (
+                <img
+                    className={styles.commentIndicator}
+                    style={{
+                        // Offset the position so the center of the pin is positioned where the user clicked.
+                        left: `calc(${indicatorLocation.x}px - (var(--comment-indicator-width) / 2))`,
+                        top: `calc(${indicatorLocation.y}px - var(--comment-indicator-height) + 2px)`,
+                    }}
+                    src={CommentPinIcon}
+                />
+            )}
+        </button>
     );
 };
 
