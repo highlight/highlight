@@ -62,6 +62,18 @@ type ComplexityRoot struct {
 		Plan  func(childComplexity int) int
 	}
 
+	DailyError struct {
+		Date           func(childComplexity int) int
+		ErrorCount     func(childComplexity int) int
+		OrganizationID func(childComplexity int) int
+	}
+
+	DailySession struct {
+		Date           func(childComplexity int) int
+		OrganizationID func(childComplexity int) int
+		SessionCount   func(childComplexity int) int
+	}
+
 	DateRange struct {
 		EndDate   func(childComplexity int) int
 		StartDate func(childComplexity int) int
@@ -187,6 +199,8 @@ type ComplexityRoot struct {
 		Admin                    func(childComplexity int) int
 		Admins                   func(childComplexity int, organizationID int) int
 		BillingDetails           func(childComplexity int, organizationID int) int
+		DailyErrorsCount         func(childComplexity int, organizationID int, duration model.DateRangeInput) int
+		DailySessionsCount       func(childComplexity int, organizationID int, duration model.DateRangeInput) int
 		ErrorFieldSuggestion     func(childComplexity int, organizationID int, name string, query string) int
 		ErrorGroup               func(childComplexity int, id int) int
 		ErrorGroups              func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
@@ -337,6 +351,8 @@ type QueryResolver interface {
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int, error)
+	DailySessionsCount(ctx context.Context, organizationID int, duration model.DateRangeInput) ([]*model1.DailySession, error)
+	DailyErrorsCount(ctx context.Context, organizationID int, duration model.DateRangeInput) ([]*model1.DailyError, error)
 	Sessions(ctx context.Context, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
@@ -409,6 +425,48 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BillingDetails.Plan(childComplexity), true
+
+	case "DailyError.date":
+		if e.complexity.DailyError.Date == nil {
+			break
+		}
+
+		return e.complexity.DailyError.Date(childComplexity), true
+
+	case "DailyError.error_count":
+		if e.complexity.DailyError.ErrorCount == nil {
+			break
+		}
+
+		return e.complexity.DailyError.ErrorCount(childComplexity), true
+
+	case "DailyError.organization_id":
+		if e.complexity.DailyError.OrganizationID == nil {
+			break
+		}
+
+		return e.complexity.DailyError.OrganizationID(childComplexity), true
+
+	case "DailySession.date":
+		if e.complexity.DailySession.Date == nil {
+			break
+		}
+
+		return e.complexity.DailySession.Date(childComplexity), true
+
+	case "DailySession.organization_id":
+		if e.complexity.DailySession.OrganizationID == nil {
+			break
+		}
+
+		return e.complexity.DailySession.OrganizationID(childComplexity), true
+
+	case "DailySession.session_count":
+		if e.complexity.DailySession.SessionCount == nil {
+			break
+		}
+
+		return e.complexity.DailySession.SessionCount(childComplexity), true
 
 	case "DateRange.end_date":
 		if e.complexity.DateRange.EndDate == nil {
@@ -1088,6 +1146,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.BillingDetails(childComplexity, args["organization_id"].(int)), true
+
+	case "Query.dailyErrorsCount":
+		if e.complexity.Query.DailyErrorsCount == nil {
+			break
+		}
+
+		args, err := ec.field_Query_dailyErrorsCount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.DailyErrorsCount(childComplexity, args["organization_id"].(int), args["duration"].(model.DateRangeInput)), true
+
+	case "Query.dailySessionsCount":
+		if e.complexity.Query.DailySessionsCount == nil {
+			break
+		}
+
+		args, err := ec.field_Query_dailySessionsCount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.DailySessionsCount(childComplexity, args["organization_id"].(int), args["duration"].(model.DateRangeInput)), true
 
 	case "Query.error_field_suggestion":
 		if e.complexity.Query.ErrorFieldSuggestion == nil {
@@ -2010,6 +2092,18 @@ enum SessionLifecycle {
     Completed
 }
 
+type DailySession {
+    organization_id: ID!
+    date: Time!
+    session_count: Int!
+}
+
+type DailyError {
+    organization_id: ID!
+    date: Time!
+    error_count: Int!
+}
+
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
@@ -2026,6 +2120,14 @@ type Query {
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int
+    dailySessionsCount(
+        organization_id: ID!
+        duration: DateRangeInput!
+    ): [DailySession]
+    dailyErrorsCount(
+        organization_id: ID!
+        duration: DateRangeInput!
+    ): [DailyError]
     sessions(
         organization_id: ID!
         count: Int!
@@ -2659,6 +2761,54 @@ func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context,
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_dailyErrorsCount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 model.DateRangeInput
+	if tmp, ok := rawArgs["duration"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("duration"))
+		arg1, err = ec.unmarshalNDateRangeInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["duration"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_dailySessionsCount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 model.DateRangeInput
+	if tmp, ok := rawArgs["duration"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("duration"))
+		arg1, err = ec.unmarshalNDateRangeInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["duration"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_error_field_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3249,6 +3399,216 @@ func (ec *executionContext) _BillingDetails_meter(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Meter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DailyError_organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.DailyError) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DailyError",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DailyError_date(ctx context.Context, field graphql.CollectedField, obj *model1.DailyError) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DailyError",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Date, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DailyError_error_count(ctx context.Context, field graphql.CollectedField, obj *model1.DailyError) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DailyError",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DailySession_organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.DailySession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DailySession",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.OrganizationID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DailySession_date(ctx context.Context, field graphql.CollectedField, obj *model1.DailySession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DailySession",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Date, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalNTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _DailySession_session_count(ctx context.Context, field graphql.CollectedField, obj *model1.DailySession) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "DailySession",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionCount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6452,6 +6812,84 @@ func (ec *executionContext) _Query_unprocessedSessionsCount(ctx context.Context,
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_dailySessionsCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_dailySessionsCount_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DailySessionsCount(rctx, args["organization_id"].(int), args["duration"].(model.DateRangeInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.DailySession)
+	fc.Result = res
+	return ec.marshalODailySession2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDailySession(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_dailyErrorsCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_dailyErrorsCount_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().DailyErrorsCount(rctx, args["organization_id"].(int), args["duration"].(model.DateRangeInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.DailyError)
+	fc.Result = res
+	return ec.marshalODailyError2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDailyError(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10187,6 +10625,80 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 	return out
 }
 
+var dailyErrorImplementors = []string{"DailyError"}
+
+func (ec *executionContext) _DailyError(ctx context.Context, sel ast.SelectionSet, obj *model1.DailyError) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dailyErrorImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DailyError")
+		case "organization_id":
+			out.Values[i] = ec._DailyError_organization_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "date":
+			out.Values[i] = ec._DailyError_date(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "error_count":
+			out.Values[i] = ec._DailyError_error_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var dailySessionImplementors = []string{"DailySession"}
+
+func (ec *executionContext) _DailySession(ctx context.Context, sel ast.SelectionSet, obj *model1.DailySession) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, dailySessionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("DailySession")
+		case "organization_id":
+			out.Values[i] = ec._DailySession_organization_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "date":
+			out.Values[i] = ec._DailySession_date(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "session_count":
+			out.Values[i] = ec._DailySession_session_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var dateRangeImplementors = []string{"DateRange"}
 
 func (ec *executionContext) _DateRange(ctx context.Context, sel ast.SelectionSet, obj *model1.DateRange) graphql.Marshaler {
@@ -10953,6 +11465,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_unprocessedSessionsCount(ctx, field)
+				return res
+			})
+		case "dailySessionsCount":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_dailySessionsCount(ctx, field)
+				return res
+			})
+		case "dailyErrorsCount":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_dailyErrorsCount(ctx, field)
 				return res
 			})
 		case "sessions":
@@ -11803,6 +12337,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNDateRangeInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx context.Context, v interface{}) (model.DateRangeInput, error) {
+	res, err := ec.unmarshalInputDateRangeInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNErrorGroup2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v model1.ErrorGroup) graphql.Marshaler {
 	return ec._ErrorGroup(ctx, sel, &v)
 }
@@ -12218,6 +12757,27 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 	return res
 }
 
+func (ec *executionContext) unmarshalNTime2ᚖtimeᚐTime(ctx context.Context, v interface{}) (*time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2ᚖtimeᚐTime(ctx context.Context, sel ast.SelectionSet, v *time.Time) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := graphql.MarshalTime(*v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
 	return ec.___Directive(ctx, sel, &v)
 }
@@ -12567,6 +13127,100 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) marshalODailyError2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDailyError(ctx context.Context, sel ast.SelectionSet, v []*model1.DailyError) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalODailyError2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDailyError(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalODailyError2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDailyError(ctx context.Context, sel ast.SelectionSet, v *model1.DailyError) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._DailyError(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalODailySession2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDailySession(ctx context.Context, sel ast.SelectionSet, v []*model1.DailySession) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalODailySession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDailySession(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalODailySession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDailySession(ctx context.Context, sel ast.SelectionSet, v *model1.DailySession) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._DailySession(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalODateRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDateRange(ctx context.Context, sel ast.SelectionSet, v *model1.DateRange) graphql.Marshaler {

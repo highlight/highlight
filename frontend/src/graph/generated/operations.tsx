@@ -740,3 +740,39 @@ export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'unprocessedSessionsCount'
 >;
+
+export type GetDailySessionsCountQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    duration: Types.DateRangeInput;
+}>;
+
+export type GetDailySessionsCountQuery = { __typename?: 'Query' } & {
+    dailySessionsCount?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'DailySession' } & Pick<
+                    Types.DailySession,
+                    'organization_id' | 'date' | 'session_count'
+                >
+            >
+        >
+    >;
+};
+
+export type GetDailyErrorsCountQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    duration: Types.DateRangeInput;
+}>;
+
+export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
+    dailyErrorsCount?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'DailyError' } & Pick<
+                    Types.DailyError,
+                    'organization_id' | 'date' | 'error_count'
+                >
+            >
+        >
+    >;
+};

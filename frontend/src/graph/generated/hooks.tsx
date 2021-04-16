@@ -2267,3 +2267,133 @@ export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
     Types.UnprocessedSessionsCountQuery,
     Types.UnprocessedSessionsCountQueryVariables
 >;
+export const GetDailySessionsCountDocument = gql`
+    query GetDailySessionsCount(
+        $organization_id: ID!
+        $duration: DateRangeInput!
+    ) {
+        dailySessionsCount(
+            organization_id: $organization_id
+            duration: $duration
+        ) {
+            organization_id
+            date
+            session_count
+        }
+    }
+`;
+
+/**
+ * __useGetDailySessionsCountQuery__
+ *
+ * To run a query within a React component, call `useGetDailySessionsCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDailySessionsCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDailySessionsCountQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      duration: // value for 'duration'
+ *   },
+ * });
+ */
+export function useGetDailySessionsCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >(GetDailySessionsCountDocument, baseOptions);
+}
+export function useGetDailySessionsCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >(GetDailySessionsCountDocument, baseOptions);
+}
+export type GetDailySessionsCountQueryHookResult = ReturnType<
+    typeof useGetDailySessionsCountQuery
+>;
+export type GetDailySessionsCountLazyQueryHookResult = ReturnType<
+    typeof useGetDailySessionsCountLazyQuery
+>;
+export type GetDailySessionsCountQueryResult = Apollo.QueryResult<
+    Types.GetDailySessionsCountQuery,
+    Types.GetDailySessionsCountQueryVariables
+>;
+export const GetDailyErrorsCountDocument = gql`
+    query GetDailyErrorsCount(
+        $organization_id: ID!
+        $duration: DateRangeInput!
+    ) {
+        dailyErrorsCount(
+            organization_id: $organization_id
+            duration: $duration
+        ) {
+            organization_id
+            date
+            error_count
+        }
+    }
+`;
+
+/**
+ * __useGetDailyErrorsCountQuery__
+ *
+ * To run a query within a React component, call `useGetDailyErrorsCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDailyErrorsCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDailyErrorsCountQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      duration: // value for 'duration'
+ *   },
+ * });
+ */
+export function useGetDailyErrorsCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >(GetDailyErrorsCountDocument, baseOptions);
+}
+export function useGetDailyErrorsCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >(GetDailyErrorsCountDocument, baseOptions);
+}
+export type GetDailyErrorsCountQueryHookResult = ReturnType<
+    typeof useGetDailyErrorsCountQuery
+>;
+export type GetDailyErrorsCountLazyQueryHookResult = ReturnType<
+    typeof useGetDailyErrorsCountLazyQuery
+>;
+export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
+    Types.GetDailyErrorsCountQuery,
+    Types.GetDailyErrorsCountQueryVariables
+>;

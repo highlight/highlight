@@ -249,6 +249,18 @@ enum SessionLifecycle {
     Completed
 }
 
+type DailySession {
+    organization_id: ID!
+    date: Time!
+    session_count: Int!
+}
+
+type DailyError {
+    organization_id: ID!
+    date: Time!
+    error_count: Int!
+}
+
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
@@ -265,6 +277,14 @@ type Query {
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int
+    dailySessionsCount(
+        organization_id: ID!
+        duration: DateRangeInput!
+    ): [DailySession]
+    dailyErrorsCount(
+        organization_id: ID!
+        duration: DateRangeInput!
+    ): [DailyError]
     sessions(
         organization_id: ID!
         count: Int!

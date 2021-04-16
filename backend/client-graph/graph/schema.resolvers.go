@@ -99,6 +99,29 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
+
+	// Update session count on dailydb
+	dailySession := &model.DailySession{}
+	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	if res := r.DB.Where(&model.DailySession{
+		OrganizationID: organizationID,
+		Date:           &currentDate,
+	}).First(&dailySession); res.RecordNotFound() || res.Error != nil {
+		newDailySession := &model.DailySession{
+			SessionCount:   0,
+			Date:           &currentDate,
+			OrganizationID: organizationID,
+		}
+		if err := r.DB.Create(newDailySession).Error; err != nil {
+			return nil, e.Wrap(err, "Error creating new daily session")
+		}
+		dailySession = newDailySession
+	}
+
+	if err := r.DB.Model(dailySession).Update(&model.DailySession{SessionCount: dailySession.SessionCount + 1}).Error; err != nil {
+		return nil, e.Wrap(err, "Error incrementing session count in db")
+	}
+
 	return session, nil
 }
 
@@ -290,6 +313,28 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
 		}
+
+		n := time.Now()
+		dailyError := &model.DailyError{}
+		currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
+		if res := r.DB.Where(&model.DailyError{
+			OrganizationID: organizationID,
+			Date:           &currentDate,
+		}).First(&dailyError); res.RecordNotFound() || res.Error != nil {
+			newDailyError := &model.DailyError{
+				ErrorCount:     0,
+				Date:           &currentDate,
+				OrganizationID: organizationID,
+			}
+			if err := r.DB.Create(newDailyError).Error; err != nil {
+				return nil, e.Wrap(err, "Error creating new daily error")
+			}
+			dailyError = newDailyError
+		}
+		if err := r.DB.Model(dailyError).Update(&model.DailyError{ErrorCount: dailyError.ErrorCount + 1}).Error; err != nil {
+			return nil, e.Wrap(err, "Error incrementing error count in db")
+		}
+
 		// Send a slack message if we're not on localhost.
 		if !strings.Contains(errorToInsert.URL, "localhost") {
 			if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL); err != nil {
