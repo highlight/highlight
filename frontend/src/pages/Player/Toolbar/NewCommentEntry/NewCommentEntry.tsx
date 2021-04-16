@@ -9,15 +9,21 @@ import styles from './NewCommentEntry.module.scss';
 import PrimaryButton from '../../../../components/Button/PrimaryButton/PrimaryButton';
 import SecondaryButton from '../../../../components/Button/SecondaryButton/SecondaryButton';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
+import { Coordinates2D } from '../../CommentButton/CommentButton';
 
 const { TextArea } = Input;
 
 interface Props {
     currentTime: number;
     onCloseHandler: () => void;
+    commentPosition: Coordinates2D | undefined;
 }
 
-export const NewCommentEntry = ({ currentTime, onCloseHandler }: Props) => {
+export const NewCommentEntry = ({
+    currentTime,
+    onCloseHandler,
+    commentPosition,
+}: Props) => {
     const [createComment] = useCreateSessionCommentMutation();
     const { data: admin_data } = useGetAdminQuery({ skip: false });
     const { session_id, organization_id } = useParams<{
@@ -34,8 +40,8 @@ export const NewCommentEntry = ({ currentTime, onCloseHandler }: Props) => {
                 session_timestamp: Math.floor(currentTime),
                 text: values.commentText,
                 admin_id: admin_data?.admin?.id || 'Unknown',
-                x_coordinate: 0.0,
-                y_coordinate: 0.0,
+                x_coordinate: commentPosition?.x || 0,
+                y_coordinate: commentPosition?.y || 0,
             },
             refetchQueries: ['GetSessionComments'],
         });

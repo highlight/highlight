@@ -33,7 +33,7 @@ import Modal from '../../components/Modal/Modal';
 import useMedia from '../../hooks/useMedia/useMedia';
 import ShareButton from './ShareButton/ShareButton';
 import DOMInteractionsToggle from './DOMInteractionsToggle/DOMInteractionsToggle';
-import CommentButton from './CommentButton/CommentButton';
+import CommentButton, { Coordinates2D } from './CommentButton/CommentButton';
 
 export const Player = () => {
     const { session_id } = useParams<{
@@ -64,7 +64,10 @@ export const Player = () => {
     );
     const shouldShowRightPanel = showRightPanelPreference && !hideRightPanel;
     const [commentModalPosition, setCommentModalPosition] = useState<
-        { x: number; y: number } | undefined
+        Coordinates2D | undefined
+    >(undefined);
+    const [commentPosition, setCommentPosition] = useState<
+        Coordinates2D | undefined
     >(undefined);
 
     useEffect(() => {
@@ -148,6 +151,7 @@ export const Player = () => {
                                 setModalPosition={setCommentModalPosition}
                                 isReplayerReady={isReplayerReady}
                                 modalPosition={commentModalPosition}
+                                setCommentPosition={setCommentPosition}
                             />
                             <div
                                 style={{
@@ -202,6 +206,7 @@ export const Player = () => {
                         onCloseHandler={() => {
                             setCommentModalPosition(undefined);
                         }}
+                        commentPosition={commentPosition}
                     />
                 </Modal>
             </div>
