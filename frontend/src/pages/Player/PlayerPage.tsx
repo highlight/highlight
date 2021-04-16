@@ -63,7 +63,7 @@ export const Player = () => {
         false
     );
     const shouldShowRightPanel = showRightPanelPreference && !hideRightPanel;
-    const [commentClickLocation, setCommentClickLocation] = useState<
+    const [commentModalPosition, setCommentModalPosition] = useState<
         { x: number; y: number } | undefined
     >(undefined);
 
@@ -145,11 +145,9 @@ export const Player = () => {
                         >
                             {resizeListener}
                             <CommentButton
-                                setCommentClickLocation={
-                                    setCommentClickLocation
-                                }
+                                setModalPosition={setCommentModalPosition}
                                 isReplayerReady={isReplayerReady}
-                                clickLocation={commentClickLocation}
+                                modalPosition={commentModalPosition}
                             />
                             <div
                                 style={{
@@ -182,16 +180,16 @@ export const Player = () => {
                     </div>
                 )}
                 <Modal
-                    visible={commentClickLocation !== undefined}
+                    visible={commentModalPosition !== undefined}
                     onCancel={() => {
-                        setCommentClickLocation(undefined);
+                        setCommentModalPosition(undefined);
                     }}
                     destroyOnClose
                     minimal
                     width="324px"
                     style={{
-                        left: `${commentClickLocation?.x}px`,
-                        top: `${commentClickLocation?.y}px`,
+                        left: `${commentModalPosition?.x}px`,
+                        top: `${commentModalPosition?.y}px`,
                         margin: 0,
                     }}
                     mask={false}
@@ -202,7 +200,7 @@ export const Player = () => {
                     <NewCommentEntry
                         currentTime={Math.floor(time)}
                         onCloseHandler={() => {
-                            setCommentClickLocation(undefined);
+                            setCommentModalPosition(undefined);
                         }}
                     />
                 </Modal>

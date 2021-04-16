@@ -5,27 +5,27 @@ import ReplayerContext from '../ReplayerContext';
 import styles from './CommentButton.module.scss';
 import CommentPinIcon from '../../../static/comment-pin.png';
 
-interface CommentClickLocation {
+interface Coordinates2D {
     x: number;
     y: number;
 }
 interface Props {
-    setCommentClickLocation: React.Dispatch<
-        React.SetStateAction<CommentClickLocation | undefined>
+    setModalPosition: React.Dispatch<
+        React.SetStateAction<Coordinates2D | undefined>
     >;
     isReplayerReady: boolean;
-    clickLocation: CommentClickLocation | undefined;
+    modalPosition: Coordinates2D | undefined;
 }
 
 const CommentButton = ({
-    setCommentClickLocation,
+    setModalPosition,
     isReplayerReady,
-    clickLocation,
+    modalPosition,
 }: Props) => {
     const { pause, scale, replayer } = useContext(ReplayerContext);
     const ref = useRef<HTMLButtonElement>(null);
     const [indicatorLocation, setIndicatorLocation] = useState<
-        CommentClickLocation | undefined
+        Coordinates2D | undefined
     >(undefined);
 
     // Set size of the button to be the same as the replayer. This allows us to intercept any clicks on replayer.
@@ -44,10 +44,10 @@ const CommentButton = ({
 
     // Hide the indicator if there is no comment being created.
     useEffect(() => {
-        if (!clickLocation) {
+        if (!modalPosition) {
             setIndicatorLocation(undefined);
         }
-    }, [clickLocation]);
+    }, [modalPosition]);
 
     return (
         <button
@@ -74,7 +74,7 @@ const CommentButton = ({
                     if (yPercentage > 0.9) {
                         yOffset -= 100;
                     }
-                    setCommentClickLocation({
+                    setModalPosition({
                         x: e.pageX + xOffset,
                         y: e.pageY + yOffset,
                     });
