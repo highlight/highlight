@@ -3,14 +3,14 @@ mutation PushPayload(
     $events: ReplayEventsInput!
     $messages: String!
     $resources: String!
-    $errors: [ErrorObjectInput]!
+    $errorObjects: [ErrorObjectInput]!
 ) {
     pushPayload(
         session_id: $session_id
         events: $events
         messages: $messages
         resources: $resources
-        errors: $errors
+        errorObjects: $errorObjects
     )
 }
 

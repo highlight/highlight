@@ -418,7 +418,7 @@ export class Highlight {
                 events: { events: this.events },
                 messages: messagesString,
                 resources: resourcesString,
-                errors: this.errors,
+                errorObjects: this.errors,
             });
             this.events = [];
             this.errors = [];

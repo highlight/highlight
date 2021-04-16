@@ -83,7 +83,7 @@ export type MutationPushPayloadArgs = {
   events: ReplayEventsInput;
   messages: Scalars['String'];
   resources: Scalars['String'];
-  errors: Array<Maybe<ErrorObjectInput>>;
+  errorObjects: Array<Maybe<ErrorObjectInput>>;
 };
 
 export type Query = {
@@ -101,7 +101,7 @@ export type PushPayloadMutationVariables = Types.Exact<{
   events: Types.ReplayEventsInput;
   messages: Types.Scalars['String'];
   resources: Types.Scalars['String'];
-  errors: Array<Types.Maybe<Types.ErrorObjectInput>> | Types.Maybe<Types.ErrorObjectInput>;
+  errorObjects: Array<Types.Maybe<Types.ErrorObjectInput>> | Types.Maybe<Types.ErrorObjectInput>;
 }>;
 
 
@@ -170,13 +170,13 @@ export type IgnoreQuery = (
 
 
 export const PushPayloadDocument = gql`
-    mutation PushPayload($session_id: ID!, $events: ReplayEventsInput!, $messages: String!, $resources: String!, $errors: [ErrorObjectInput]!) {
+    mutation PushPayload($session_id: ID!, $events: ReplayEventsInput!, $messages: String!, $resources: String!, $errorObjects: [ErrorObjectInput]!) {
   pushPayload(
     session_id: $session_id
     events: $events
     messages: $messages
     resources: $resources
-    errors: $errors
+    errorObjects: $errorObjects
   )
 }
     `;
