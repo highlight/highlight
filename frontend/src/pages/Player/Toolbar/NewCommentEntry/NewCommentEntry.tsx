@@ -93,7 +93,7 @@ export const NewCommentEntry = ({
                                     .length
                             }
                         >
-                            Comment
+                            Post
                         </PrimaryButton>
                     </div>
                 )}
