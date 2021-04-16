@@ -135,6 +135,9 @@ const CommentButton = ({
                                         comment.y_coordinate * 100
                                     }% - var(--comment-indicator-height) + 2px)`,
                                 }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                }}
                             >
                                 <img
                                     className={styles.commentIndicator}
