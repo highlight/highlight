@@ -198,6 +198,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 onCancel={() => {
                     setSelectedError(undefined);
                 }}
+                width={'fit-content'}
             >
                 <ErrorModal error={selectedError!} />
             </Modal>
