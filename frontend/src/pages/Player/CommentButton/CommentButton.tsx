@@ -7,6 +7,8 @@ import CommentPinIcon from '../../../static/comment-pin.png';
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { useParams } from 'react-router-dom';
 import Comment from '../Toolbar/TimelineAnnotation/Comment';
+import useLocalStorage from '@rehooks/local-storage';
+import { EventsForTimeline } from '../PlayerHook/utils';
 
 export interface Coordinates2D {
     x: number;
@@ -35,7 +37,12 @@ const CommentButton = ({
             session_id: session_id,
         },
     });
-    const { pause, scale, replayer } = useContext(ReplayerContext);
+    const [
+        enabledTimelineAnnotation,
+    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
+        ...EventsForTimeline,
+    ]);
+    const { pause, scale, replayer, time } = useContext(ReplayerContext);
     const buttonRef = useRef<HTMLButtonElement>(null);
     const [indicatorLocation, setIndicatorLocation] = useState<
         Coordinates2D | undefined
@@ -62,6 +69,8 @@ const CommentButton = ({
             setCommentPosition(undefined);
         }
     }, [modalPosition, setCommentPosition]);
+
+    const showCommentsOverlaid = enabledTimelineAnnotation.includes('Comments');
 
     return (
         <>
@@ -113,7 +122,9 @@ const CommentButton = ({
                 )}
                 {sessionCommentsData?.session_comments.map(
                     (comment) =>
-                        comment && (
+                        comment &&
+                        showCommentsOverlaid &&
+                        Math.abs(time - comment.timestamp) <= 500 && (
                             <div
                                 className={styles.comment}
                                 style={{
