@@ -52,7 +52,7 @@ export type Session = {
 export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
-    meter: Scalars['Int'];
+    meter: Scalars['Int64'];
 };
 
 export type Plan = {
@@ -276,6 +276,8 @@ export type SessionComment = {
     updated_at: Scalars['Time'];
     author: SanitizedAdmin;
     text: Scalars['String'];
+    x_coordinate: Scalars['Float'];
+    y_coordinate: Scalars['Float'];
 };
 
 export enum SessionLifecycle {
@@ -310,7 +312,7 @@ export type Query = {
     session_comments: Array<Maybe<SessionComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
-    unprocessedSessionsCount?: Maybe<Scalars['Int']>;
+    unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     dailySessionsCount?: Maybe<Array<Maybe<DailySession>>>;
     dailyErrorsCount?: Maybe<Array<Maybe<DailyError>>>;
     sessions: SessionResults;
@@ -553,4 +555,6 @@ export type MutationCreateSessionCommentArgs = {
     session_id: Scalars['ID'];
     session_timestamp: Scalars['Int'];
     text: Scalars['String'];
+    x_coordinate: Scalars['Float'];
+    y_coordinate: Scalars['Float'];
 };

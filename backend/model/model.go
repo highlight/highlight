@@ -9,11 +9,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/k0kubun/pp"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
 	"github.com/speps/go-hashids"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
 	e "github.com/pkg/errors"
@@ -69,10 +70,8 @@ type Organization struct {
 	StripeCustomerID *string
 	BillingEmail     *string
 	Secret           *string `json:"-"`
-	Users            []User
 	Admins           []Admin `gorm:"many2many:organization_admins;"`
 	Fields           []Field
-	Segments         []Segment `gorm:"foreignKey:ID;"`
 	RecordingSetting RecordingSettings
 	TrialEndDate     *time.Time `json:"trial_end_date"`
 	// Slack API Interaction.
@@ -329,10 +328,12 @@ type ErrorField struct {
 
 type SessionComment struct {
 	Model
-	AdminId   int
-	SessionId int
-	Timestamp int
-	Text      string
+	AdminId     int
+	SessionId   int
+	Timestamp   int
+	Text        string
+	XCoordinate float64
+	YCoordinate float64
 }
 
 func SetupDB() *gorm.DB {
@@ -346,7 +347,7 @@ func SetupDB() *gorm.DB {
 		os.Getenv("PSQL_PASSWORD"))
 
 	var err error
-	DB, err = gorm.Open("postgres", psqlConf)
+	DB, err = gorm.Open(postgres.Open(psqlConf))
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}

@@ -15,17 +15,16 @@ import (
 	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
 	parse "github.com/jay-khatri/fullstory/backend/event-parse"
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/jinzhu/gorm"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool) (*model.Session, error) {
 	organizationID := model.FromVerboseID(organizationVerboseID)
 	organization := &model.Organization{}
-	res := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization).Error; err != nil {
 		return nil, e.Wrap(err, "org doesn't exist")
 	}
 
@@ -36,14 +35,12 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 
 	// Get the current user to check whether the org_id is set.
 	user := &model.User{}
-	res = r.DB.Where(&model.User{Model: model.Model{ID: uid}}).First(&user)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := r.DB.Where(&model.User{Model: model.Model{ID: uid}}).First(&user).Error; err != nil {
 		return nil, e.Wrap(err, "user doesn't exist")
 	}
 	// If not, set it.
 	if user.OrganizationID != organizationID {
-		res := r.DB.Model(user).Updates(model.User{OrganizationID: organizationID})
-		if err := res.Error; err != nil || res.RecordNotFound() {
+		if err := r.DB.Model(user).Updates(model.User{OrganizationID: organizationID}).Error; err != nil {
 			return nil, e.Wrap(err, "error updating user")
 		}
 	}
@@ -347,8 +344,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	putErrorsToDBSpan.Finish()
 
 	now := time.Now()
-	res = r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now})
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := r.DB.Model(&model.Session{Model: model.Model{ID: sessionID}}).Updates(&model.Session{PayloadUpdatedAt: &now}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating session payload time")
 	}
 	return &sessionID, nil
