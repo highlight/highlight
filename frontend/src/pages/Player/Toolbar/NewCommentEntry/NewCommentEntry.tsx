@@ -63,6 +63,7 @@ export const NewCommentEntry = ({
                         currentTime
                     )}`}
                     autoSize
+                    autoFocus
                 />
             </Form.Item>
             <Form.Item
