@@ -41,7 +41,7 @@ type Mutation {
         events: ReplayEventsInput!
         messages: String!
         resources: String!
-        errorObjects: [ErrorObjectInput]!
+        errors: [ErrorObjectInput]!
     ): ID
 }
 

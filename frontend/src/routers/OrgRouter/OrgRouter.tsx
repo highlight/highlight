@@ -21,7 +21,7 @@ import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { ErrorPage } from '../../pages/Error/ErrorPage';
 import { AlertsPage } from '../../pages/Alerts/Alerts';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
-import { AnalyticsPage } from '../../pages/Analytics/AnalyticsPage';
+import { HomePage } from '../../pages/Analytics/HomePage';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -115,8 +115,8 @@ export const OrgRouter = () => {
                             <Route path="/:organization_id/buttons">
                                 <Buttons />
                             </Route>
-                            <Route path="/:organization_id/dashboard">
-                                <AnalyticsPage />
+                            <Route path="/:organization_id/home">
+                                <HomePage />
                             </Route>
                             <Route path="/:organization_id">
                                 {integrated ? (

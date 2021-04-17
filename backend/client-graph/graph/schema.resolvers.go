@@ -98,13 +98,13 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	}
 
 	// Update session count on dailydb
-	dailySession := &model.DailySession{}
+	dailySession := &model.DailySessionCount{}
 	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	if res := r.DB.Where(&model.DailySession{
+	if res := r.DB.Where(&model.DailySessionCount{
 		OrganizationID: organizationID,
 		Date:           &currentDate,
 	}).First(&dailySession); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
-		newDailySession := &model.DailySession{
+		newDailySession := &model.DailySessionCount{
 			SessionCount:   0,
 			Date:           &currentDate,
 			OrganizationID: organizationID,
@@ -115,7 +115,7 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		dailySession = newDailySession
 	}
 
-	if err := r.DB.Exec("UPDATE daily_sessions SET session_count = session_count + 1 WHERE date = ?", currentDate).Error; err != nil {
+	if err := r.DB.Exec("UPDATE daily_session_counts SET session_count = session_count + 1 WHERE date = ?", currentDate).Error; err != nil {
 		return nil, e.Wrap(err, "Error incrementing session count in db")
 	}
 
@@ -195,12 +195,12 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 	return &sessionID, nil
 }
 
-func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errorObjects []*customModels.ErrorObjectInput) (*int, error) {
+func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
 	querySessionSpan.SetTag("resourcesLength", len(resources))
-	querySessionSpan.SetTag("numberOfErrors", len(errorObjects))
+	querySessionSpan.SetTag("numberOfErrors", len(errors))
 	querySessionSpan.SetTag("numberOfEvents", len(events.Events))
 	sessionObj := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&sessionObj)
@@ -276,7 +276,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("db.errors"))
-	for _, v := range errorObjects {
+	for _, v := range errors {
 		traceBytes, err := json.Marshal(v.Trace)
 		if err != nil {
 			log.Errorf("Error marshaling trace: %v", v.Trace)
@@ -312,13 +312,13 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 
 		n := time.Now()
-		dailyError := &model.DailyError{}
+		dailyError := &model.DailyErrorCount{}
 		currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-		if res := r.DB.Where(&model.DailyError{
+		if res := r.DB.Where(&model.DailyErrorCount{
 			OrganizationID: organizationID,
 			Date:           &currentDate,
-		}).First(&dailyError); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
-			newDailyError := &model.DailyError{
+		}).First(&dailyError); e.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
+			newDailyError := &model.DailyErrorCount{
 				ErrorCount:     0,
 				Date:           &currentDate,
 				OrganizationID: organizationID,
@@ -328,7 +328,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			}
 			dailyError = newDailyError
 		}
-		if err := r.DB.Exec("UPDATE daily_errors SET error_count = error_count + 1 WHERE date = ?", currentDate).Error; err != nil {
+		if err := r.DB.Exec("UPDATE daily_error_counts SET error_count = error_count + 1 WHERE date = ?", currentDate).Error; err != nil {
 			return nil, e.Wrap(err, "Error incrementing error count in db")
 		}
 

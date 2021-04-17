@@ -286,15 +286,15 @@ export enum SessionLifecycle {
     Completed = 'Completed',
 }
 
-export type DailySession = {
-    __typename?: 'DailySession';
+export type DailySessionCount = {
+    __typename?: 'DailySessionCount';
     organization_id: Scalars['ID'];
     date: Scalars['Time'];
     session_count: Scalars['Int'];
 };
 
-export type DailyError = {
-    __typename?: 'DailyError';
+export type DailyErrorCount = {
+    __typename?: 'DailyErrorCount';
     organization_id: Scalars['ID'];
     date: Scalars['Time'];
     error_count: Scalars['Int'];
@@ -313,8 +313,8 @@ export type Query = {
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
-    dailySessionsCount?: Maybe<Array<Maybe<DailySession>>>;
-    dailyErrorsCount?: Maybe<Array<Maybe<DailyError>>>;
+    dailySessionsCount?: Maybe<Array<Maybe<DailySessionCount>>>;
+    dailyErrorsCount?: Maybe<Array<Maybe<DailyErrorCount>>>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -377,12 +377,12 @@ export type QueryUnprocessedSessionsCountArgs = {
 
 export type QueryDailySessionsCountArgs = {
     organization_id: Scalars['ID'];
-    duration: DateRangeInput;
+    date_range: DateRangeInput;
 };
 
 export type QueryDailyErrorsCountArgs = {
     organization_id: Scalars['ID'];
-    duration: DateRangeInput;
+    date_range: DateRangeInput;
 };
 
 export type QuerySessionsArgs = {

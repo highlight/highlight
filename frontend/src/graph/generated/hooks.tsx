@@ -2270,11 +2270,11 @@ export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
 export const GetDailySessionsCountDocument = gql`
     query GetDailySessionsCount(
         $organization_id: ID!
-        $duration: DateRangeInput!
+        $date_range: DateRangeInput!
     ) {
         dailySessionsCount(
             organization_id: $organization_id
-            duration: $duration
+            date_range: $date_range
         ) {
             organization_id
             date
@@ -2296,7 +2296,7 @@ export const GetDailySessionsCountDocument = gql`
  * const { data, loading, error } = useGetDailySessionsCountQuery({
  *   variables: {
  *      organization_id: // value for 'organization_id'
- *      duration: // value for 'duration'
+ *      date_range: // value for 'date_range'
  *   },
  * });
  */
@@ -2335,11 +2335,11 @@ export type GetDailySessionsCountQueryResult = Apollo.QueryResult<
 export const GetDailyErrorsCountDocument = gql`
     query GetDailyErrorsCount(
         $organization_id: ID!
-        $duration: DateRangeInput!
+        $date_range: DateRangeInput!
     ) {
         dailyErrorsCount(
             organization_id: $organization_id
-            duration: $duration
+            date_range: $date_range
         ) {
             organization_id
             date
@@ -2361,7 +2361,7 @@ export const GetDailyErrorsCountDocument = gql`
  * const { data, loading, error } = useGetDailyErrorsCountQuery({
  *   variables: {
  *      organization_id: // value for 'organization_id'
- *      duration: // value for 'duration'
+ *      date_range: // value for 'date_range'
  *   },
  * });
  */

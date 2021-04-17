@@ -743,15 +743,15 @@ export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
 
 export type GetDailySessionsCountQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
-    duration: Types.DateRangeInput;
+    date_range: Types.DateRangeInput;
 }>;
 
 export type GetDailySessionsCountQuery = { __typename?: 'Query' } & {
     dailySessionsCount?: Types.Maybe<
         Array<
             Types.Maybe<
-                { __typename?: 'DailySession' } & Pick<
-                    Types.DailySession,
+                { __typename?: 'DailySessionCount' } & Pick<
+                    Types.DailySessionCount,
                     'organization_id' | 'date' | 'session_count'
                 >
             >
@@ -761,15 +761,15 @@ export type GetDailySessionsCountQuery = { __typename?: 'Query' } & {
 
 export type GetDailyErrorsCountQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
-    duration: Types.DateRangeInput;
+    date_range: Types.DateRangeInput;
 }>;
 
 export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
     dailyErrorsCount?: Types.Maybe<
         Array<
             Types.Maybe<
-                { __typename?: 'DailyError' } & Pick<
-                    Types.DailyError,
+                { __typename?: 'DailyErrorCount' } & Pick<
+                    Types.DailyErrorCount,
                     'organization_id' | 'date' | 'error_count'
                 >
             >

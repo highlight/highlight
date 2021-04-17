@@ -213,14 +213,14 @@ type Segment struct {
 	OrganizationID int
 }
 
-type DailySession struct {
+type DailySessionCount struct {
 	Model
 	Date           *time.Time `json:"date"`
 	SessionCount   int        `json:"session_count"`
 	OrganizationID int
 }
 
-type DailyError struct {
+type DailyErrorCount struct {
 	Model
 	Date           *time.Time `json:"date"`
 	ErrorCount     int        `json:"error_count"`
@@ -364,8 +364,8 @@ func SetupDB() *gorm.DB {
 		&Admin{},
 		&User{},
 		&Session{},
-		&DailySession{},
-		&DailyError{},
+		&DailySessionCount{},
+		&DailyErrorCount{},
 		&Field{},
 		&EmailSignup{},
 		&ResourcesObject{},

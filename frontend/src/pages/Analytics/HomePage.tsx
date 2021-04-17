@@ -15,7 +15,7 @@ import {
     YAxis,
 } from 'recharts';
 
-import styles from './AnalyticsPage.module.scss';
+import styles from './HomePage.module.scss';
 import classNames from 'classnames';
 import Skeleton from 'react-loading-skeleton';
 
@@ -29,7 +29,7 @@ type ErrorCount = {
     errors: number;
 };
 
-export const AnalyticsPage = () => {
+export const HomePage = () => {
     return (
         <div className={styles.dashboardWrapper}>
             <div className={styles.dashboard}>
@@ -57,7 +57,7 @@ const SessionCountGraph = () => {
     const { loading } = useGetDailySessionsCountQuery({
         variables: {
             organization_id,
-            duration: {
+            date_range: {
                 start_date: moment()
                     .subtract(dateRangeLength, 'd')
                     .startOf('day'),
@@ -152,7 +152,7 @@ const ErrorCountGraph = () => {
     const { loading } = useGetDailyErrorsCountQuery({
         variables: {
             organization_id,
-            duration: {
+            date_range: {
                 start_date: moment()
                     .subtract(dateRangeLength, 'd')
                     .startOf('day'),

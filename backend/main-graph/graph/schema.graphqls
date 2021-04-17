@@ -251,13 +251,13 @@ enum SessionLifecycle {
     Completed
 }
 
-type DailySession {
+type DailySessionCount {
     organization_id: ID!
     date: Time!
     session_count: Int!
 }
 
-type DailyError {
+type DailyErrorCount {
     organization_id: ID!
     date: Time!
     error_count: Int!
@@ -281,12 +281,12 @@ type Query {
     unprocessedSessionsCount(organization_id: ID!): Int64
     dailySessionsCount(
         organization_id: ID!
-        duration: DateRangeInput!
-    ): [DailySession]
+        date_range: DateRangeInput!
+    ): [DailySessionCount]
     dailyErrorsCount(
         organization_id: ID!
-        duration: DateRangeInput!
-    ): [DailyError]
+        date_range: DateRangeInput!
+    ): [DailyErrorCount]
     sessions(
         organization_id: ID!
         count: Int!

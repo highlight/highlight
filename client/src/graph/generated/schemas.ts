@@ -77,7 +77,7 @@ export type MutationPushPayloadArgs = {
   events: ReplayEventsInput;
   messages: Scalars['String'];
   resources: Scalars['String'];
-  errorObjects: Array<Maybe<ErrorObjectInput>>;
+  errors: Array<Maybe<ErrorObjectInput>>;
 };
 
 export type Query = {
