@@ -51,11 +51,7 @@ export const NewCommentEntry = ({
 
     return (
         <Form name="newComment" onFinish={onFinish} form={form}>
-            <Form.Item
-                name="commentText"
-                rules={[{ required: true, message: 'Please add a comment' }]}
-                wrapperCol={{ span: 24 }}
-            >
+            <Form.Item name="commentText" wrapperCol={{ span: 24 }}>
                 <TextArea
                     maxLength={200}
                     bordered={false}
@@ -86,6 +82,7 @@ export const NewCommentEntry = ({
                         <PrimaryButton
                             type="submit"
                             disabled={
+                                !form.getFieldValue('commentText')?.length ||
                                 !form.isFieldsTouched(true) ||
                                 !!form
                                     .getFieldsError()
