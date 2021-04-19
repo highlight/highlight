@@ -2,6 +2,7 @@ package graph
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,11 +11,11 @@ import (
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/pricing"
-	"github.com/jinzhu/gorm"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"github.com/stripe/stripe-go/client"
+	"gorm.io/gorm"
 )
 
 // This file will not be regenerated automatically.
@@ -72,7 +73,7 @@ type FieldData struct {
 func (r *Resolver) CanRecordSession(org_id int) (bool, error) {
 	org := &model.Organization{}
 	res := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := res.Error; err != nil {
 		return false, e.Wrap(err, "error querying org")
 	}
 
@@ -95,7 +96,7 @@ func (r *Resolver) CanRecordSession(org_id int) (bool, error) {
 		return false, e.Wrap(err, "can record org quota error")
 	}
 
-	if pricing.TypeToQuota(modelInputs.PlanType(*org.Plan)) >= meter {
+	if int64(pricing.TypeToQuota(modelInputs.PlanType(*org.Plan))) >= meter {
 		return true, nil
 	} else {
 		return false, nil
@@ -106,7 +107,7 @@ func (r *Resolver) CanRecordSession(org_id int) (bool, error) {
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
 		return e.Wrap(err, "error receiving session")
 	}
 
@@ -136,7 +137,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		field := &model.Field{}
 		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || res.RecordNotFound() {
+		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
@@ -167,12 +168,11 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	}
 	fieldString := string(fieldBytes)
 
-	if res := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}); res.RecordNotFound() || res.Error != nil {
+	if err := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}).Error; errors.Is(err, gorm.ErrRecordNotFound) || err != nil {
 		return e.Wrap(err, "Error updating session field group")
 	}
 	// We append to this session in the join table regardless.
-	re := r.DB.Model(session).Association("Fields").Append(fieldsToAppend)
-	if err := re.Error; err != nil {
+	if err := r.DB.Model(session).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating fields")
 	}
 	return nil
@@ -194,7 +194,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 		Event:          errorObj.Event,
 		Trace:          frameString,
 		Type:           errorObj.Type,
-	}).First(&errorGroup); res.RecordNotFound() || res.Error != nil {
+	}).First(&errorGroup); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
 		newErrorGroup := &model.ErrorGroup{
 			OrganizationID: errorObj.OrganizationID,
 			Event:          errorObj.Event,
@@ -234,7 +234,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	logString := string(logBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString}); res.RecordNotFound() || res.Error != nil {
+	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
 		return nil, e.Wrap(err, "Error updating error group metadata log")
 	}
 
@@ -259,7 +259,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 		field := &model.ErrorField{}
 		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || res.RecordNotFound() {
+		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
@@ -290,12 +290,11 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	}
 	fieldString := string(fieldBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}); res.RecordNotFound() || res.Error != nil {
+	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
 		return e.Wrap(err, "Error updating error group field group")
 	}
 	// We append to this session in the join table regardless.
-	re := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend)
-	if err := re.Error; err != nil {
+	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating error fields")
 	}
 	return nil

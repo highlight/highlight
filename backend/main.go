@@ -25,7 +25,7 @@ import (
 	rd "github.com/jay-khatri/fullstory/backend/redis"
 	log "github.com/sirupsen/logrus"
 
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "gorm.io/gorm"
 )
 
 var (
