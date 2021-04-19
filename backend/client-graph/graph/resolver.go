@@ -10,7 +10,6 @@ import (
 	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
 	"github.com/jay-khatri/fullstory/backend/model"
 	"github.com/jay-khatri/fullstory/backend/pricing"
-	"github.com/jay-khatri/fullstory/backend/util"
 	"github.com/jinzhu/gorm"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
@@ -82,7 +81,7 @@ func (r *Resolver) CanRecordSession(org_id int) (bool, error) {
 		if org.StripeCustomerID != nil {
 			customerID = *org.StripeCustomerID
 		}
-		planType := util.GetOrgPlanString(r.StripeClient, customerID)
+		planType := pricing.GetOrgPlanString(r.StripeClient, customerID)
 		if err := r.DB.Model(org).Updates(&model.Organization{
 			Plan: &planType,
 		}).Error; err != nil {
@@ -96,7 +95,7 @@ func (r *Resolver) CanRecordSession(org_id int) (bool, error) {
 		return false, e.Wrap(err, "can record org quota error")
 	}
 
-	if util.TypeToQuota(modelInputs.PlanType(*org.Plan)) >= meter {
+	if pricing.TypeToQuota(modelInputs.PlanType(*org.Plan)) >= meter {
 		return true, nil
 	} else {
 		return false, nil
