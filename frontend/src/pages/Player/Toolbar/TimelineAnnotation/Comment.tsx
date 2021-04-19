@@ -1,8 +1,8 @@
 import { Dropdown, Menu, message } from 'antd';
 import classNames from 'classnames';
 import moment from 'moment';
-import React from 'react';
-import { ParsedSessionComment } from '../../ReplayerContext';
+import React, { useContext } from 'react';
+import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
 import toolbarStyles from '../Toolbar.module.scss';
 import styles from './Comment.module.scss';
 import { HiDotsHorizontal } from 'react-icons/hi';
@@ -14,6 +14,8 @@ interface Props {
 }
 
 const Comment = ({ comment }: Props) => {
+    const { pause } = useContext(ReplayerContext);
+
     const menu = (
         <Menu>
             <Menu.Item
@@ -29,6 +31,13 @@ const Comment = ({ comment }: Props) => {
                 }}
             >
                 Copy Link
+            </Menu.Item>
+            <Menu.Item
+                onClick={() => {
+                    pause(comment.timestamp);
+                }}
+            >
+                Goto
             </Menu.Item>
         </Menu>
     );
