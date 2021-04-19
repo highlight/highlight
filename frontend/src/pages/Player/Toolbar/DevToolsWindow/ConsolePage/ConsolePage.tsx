@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { useParams } from 'react-router-dom';
 import Skeleton from 'react-loading-skeleton';
-import { Option, DevToolsSelect } from '../Option/Option';
+import { Option } from '../Option/Option';
 import { ConsoleMessage } from '../../../../../util/shared-types';
 
 import styles from './ConsolePage.module.scss';
@@ -138,7 +138,6 @@ export const ConsolePage = ({ time }: { time: number }) => {
                         );
                     })}
                 </div>
-                <DevToolsSelect />
             </div>
             <div className={styles.consoleStreamWrapper} id="logStreamWrapper">
                 {loading ? (

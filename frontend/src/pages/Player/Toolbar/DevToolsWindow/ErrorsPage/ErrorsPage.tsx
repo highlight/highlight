@@ -1,9 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { DevToolsSelect } from '../Option/Option';
 import devStyles from '../DevToolsWindow.module.scss';
 import styles from './ErrorsPage.module.scss';
-import classNames from 'classnames';
 import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import Skeleton from 'react-loading-skeleton';
@@ -57,9 +55,6 @@ const ErrorsPage = () => {
 
     return (
         <>
-            <div className={classNames(devStyles.topBar)} id={styles.topBar}>
-                <DevToolsSelect />
-            </div>
             <div className={styles.errorList}>
                 {loading ? (
                     <div className={styles.skeleton}>
