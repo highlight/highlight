@@ -139,7 +139,6 @@ export const Player = () => {
                     <div className={styles.playerLeftTopSection}>
                         <SessionLevelBar />
                         <ShareButton />
-                        <DOMInteractionsToggle />
                     </div>
                     <div className={styles.rrwebPlayerSection}>
                         <div

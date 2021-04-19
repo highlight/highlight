@@ -3,5 +3,11 @@
     width: 14px;
     cursor: pointer;
     fill: #959595;
+}
+
+.endActions {
     margin-left: auto;
+    display: flex;
+    align-items: center;
+    column-gap: var(--size-medium);
 }

@@ -7,6 +7,7 @@ import {
     DevToolTabs,
     useDevToolsContext,
 } from '../../DevToolsContext/DevToolsContext';
+import DOMInteractionsToggle from '../../../DOMInteractionsToggle/DOMInteractionsToggle';
 
 const DISPLAY_NAMES: { [key: string]: string } = {
     iframe: 'iFrame',
@@ -82,10 +83,13 @@ export const DevToolsSelect = () => {
                     optionValue={displayName}
                 />
             ))}
-            <Close
-                className={styles.closeStyle}
-                onClick={() => setOpenDevTools(false)}
-            />
+            <div className={styles.endActions}>
+                <DOMInteractionsToggle />
+                <Close
+                    className={styles.closeStyle}
+                    onClick={() => setOpenDevTools(false)}
+                />
+            </div>
         </div>
     );
 };
