@@ -33,14 +33,14 @@
 .commentContainer {
     background: var(--color-primary-background);
     border: 1px solid var(--color-gray-300);
-    border-radius: var(--size-xSmall);
+    border-radius: var(--size-xxSmall);
     padding: var(--size-xSmall) calc(var(--size-xSmall) + 11px);
     width: 350px;
     position: relative;
     z-index: 9999;
     text-align: left;
     margin-top: calc(var(--size-small) * -1);
-    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--box-shadow);
 
     & > p {
         font-size: 14px;
