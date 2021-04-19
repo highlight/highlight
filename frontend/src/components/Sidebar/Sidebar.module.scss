@@ -115,6 +115,7 @@
 
 .staticSidebarWrapper {
     position: fixed;
+    z-index: 32;
     top: 80px;
     width: 64px;
     height: calc(100vh - 80px);
