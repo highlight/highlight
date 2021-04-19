@@ -1,6 +1,12 @@
 declare module 'react-command-palette' {
     import * as React from 'react';
 
+    export interface Command {
+        name: string;
+        command: () => void;
+        id: number | string;
+        category: string;
+    }
     interface ReactCommandPaletteProps {
         trigger: React.ReactNode;
         hotKeys: string[];
@@ -10,7 +16,10 @@ declare module 'react-command-palette' {
         onSelect?: any;
         onChange?: any;
         onHighlight?: any;
-        commands: Array<{ name: string; command: () => void; id: string }>;
+        commands: Command[];
+        renderCommand?: any;
+        options?: any;
+        theme?: any;
     }
 
     class ReactCommandPalette extends React.Component<ReactCommandPaletteProps> {

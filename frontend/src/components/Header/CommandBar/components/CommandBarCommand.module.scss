@@ -1,0 +1,20 @@
+.suggestion {
+    background: var(--font-family);
+    font-size: 14px;
+    color: var(--text-primary-inverted);
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    column-gap: var(--size-small);
+}
+
+.category {
+    display: flex;
+    align-items: center;
+
+    & > svg {
+        fill: var(--text-primary-inverted);
+        height: 12px;
+        width: 12px;
+    }
+}
