@@ -85,7 +85,7 @@
 
 .dropdownMenu {
     box-shadow: none;
-    min-width: 200px;
+    min-width: 250px;
 }
 
 .dropdownInner {
@@ -287,4 +287,21 @@
     padding-top: $size-medium;
     display: flex;
     justify-content: flex-end;
+}
+
+.commentUpdatedTime {
+    color: $text-label;
+    font-weight: 200;
+    flex-shrink: 0;
+}
+
+.commentHeader {
+    display: flex;
+    gap: var(--size-xSmall);
+    margin-bottom: var(--size-xSmall);
+}
+
+.commentAuthor {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

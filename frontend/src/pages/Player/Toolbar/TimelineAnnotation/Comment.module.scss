@@ -1,0 +1,22 @@
+.ellipsisButton {
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border-radius: var(--button-border-radius);
+    height: 100%;
+
+    &:hover {
+        background: var(--color-gray-300);
+    }
+
+    &:active {
+        background: var(--color-gray-400);
+    }
+}
+
+.endActions {
+    margin-left: auto;
+}

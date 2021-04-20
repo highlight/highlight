@@ -19,6 +19,7 @@ import { ViewportResizeListener } from './listeners/viewport-resize-listener';
 import { SegmentIntegrationListener } from './listeners/segment-integration-listener';
 import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
+import packageJson from '../package.json';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -48,7 +49,16 @@ export type HighlightClassOptions = {
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
+    firstloadVersion?: string;
 };
+
+/**
+ * Subset of HighlightClassOptions that is stored with the session. These fields are stored for debugging purposes.
+ */
+type HighlightClassOptionsInternal = Omit<
+    HighlightClassOptions,
+    'firstloadVersion'
+>;
 
 type PropertyType = {
     type?: 'track' | 'session';
@@ -91,6 +101,8 @@ export class Highlight {
     enableStrictPrivacy: boolean;
     debugOptions: DebugOptions;
     stopRecording: listenerHandler[];
+    firstloadVersion: string;
+    _optionsInternal: HighlightClassOptionsInternal;
 
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
@@ -118,10 +130,14 @@ export class Highlight {
         } else {
             this.organizationID = '';
         }
+        this.firstloadVersion = options.firstloadVersion || 'unknown';
         this.sessionData = {
             sessionID: 0,
             sessionStartTime: Date.now(),
         };
+        // We only want to store a subset of the options for debugging purposes. Firstload version is stored as another field so we don't need to store it here.
+        const { firstloadVersion: _, ...optionsInternal } = options;
+        this._optionsInternal = optionsInternal;
         this.stopRecording = [];
         this.events = [];
         this.errors = [];
@@ -238,6 +254,9 @@ export class Highlight {
                 const gr = await this.graphqlSDK.initializeSession({
                     organization_verbose_id: this.organizationID,
                     enable_strict_privacy: this.enableStrictPrivacy,
+                    clientVersion: packageJson['version'],
+                    firstloadVersion: this.firstloadVersion,
+                    clientConfig: JSON.stringify(this._optionsInternal),
                 });
                 this.sessionData.sessionID = parseInt(
                     gr?.initializeSession?.id || '0'

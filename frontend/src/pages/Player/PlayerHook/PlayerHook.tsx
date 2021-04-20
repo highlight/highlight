@@ -3,16 +3,21 @@ import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQueryParam, BooleanParam } from 'use-query-params';
 import { DemoContext } from '../../../DemoContext';
-import { useGetSessionPayloadQuery } from '../../../graph/generated/hooks';
-import { ErrorObject } from '../../../graph/generated/schemas';
+import {
+    useGetSessionPayloadQuery,
+    useGetSessionCommentsQuery,
+} from '../../../graph/generated/hooks';
+import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
 import { HighlightEvent } from '../HighlightEvent';
 
 import {
+    ParsedSessionComment,
     ParsedSessionInterval,
     ReplayerContextInterface,
     ReplayerState,
 } from '../ReplayerContext';
 import {
+    getCommentsInSessionIntervals,
     addErrorsToSessionIntervals,
     addEventsToSessionIntervals,
     getSessionIntervals,
@@ -34,6 +39,9 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     const [download] = useQueryParam('download', BooleanParam);
     const [scale, setScale] = useState(1);
     const [events, setEvents] = useState<Array<HighlightEvent>>([]);
+    const [sessionCommentIntervals, setSessionCommentIntervals] = useState<
+        ParsedSessionComment[][]
+    >([]);
     const [errors, setErrors] = useState<ErrorObject[]>([]);
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
@@ -48,15 +56,25 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     );
 
     const { demo } = useContext(DemoContext);
+    const sessionId = demo
+        ? process.env.REACT_APP_DEMO_SESSION ?? ''
+        : session_id ?? '';
 
     const { data: eventsData } = useGetSessionPayloadQuery({
         variables: {
-            session_id: demo
-                ? process.env.REACT_APP_DEMO_SESSION ?? ''
-                : session_id ?? '',
+            session_id: sessionId,
         },
         context: { headers: { 'Highlight-Demo': demo } },
         fetchPolicy: 'no-cache',
+    });
+    const {
+        data: sessionCommentsData,
+        loading: sessionCommentsLoading,
+    } = useGetSessionCommentsQuery({
+        variables: {
+            session_id: sessionId,
+        },
+        pollInterval: 5000,
     });
 
     // Downloads the events data only if the URL search parameter '?download=1' is present.
@@ -91,8 +109,6 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             r.on(ReplayerEvents.Finish, () => {
                 setState(ReplayerState.Paused);
             });
-            // Allows users to interact with the DOM in the player.
-            r.enableInteract();
             setEvents(newEvents);
             if (eventsData?.errors) {
                 setErrors(eventsData.errors as ErrorObject[]);
@@ -160,6 +176,28 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
         }
     }, [errors, events, events.length, replayer, setPlayerTimestamp]);
 
+    useEffect(() => {
+        if (
+            replayer &&
+            sessionCommentsData?.session_comments &&
+            sessionIntervals.length > 0 &&
+            !sessionCommentsLoading
+        ) {
+            setSessionCommentIntervals(
+                getCommentsInSessionIntervals(
+                    sessionIntervals,
+                    sessionCommentsData.session_comments as SessionComment[],
+                    replayer.getMetaData().startTime
+                )
+            );
+        }
+    }, [
+        replayer,
+        sessionCommentsData?.session_comments,
+        sessionCommentsLoading,
+        sessionIntervals,
+    ]);
+
     // "Subscribes" the time with the Replayer when the Player is playing.
     useEffect(() => {
         if (state === ReplayerState.Playing) {
@@ -224,6 +262,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
         play,
         pause,
         errors,
+        sessionCommentIntervals,
     };
 };
 

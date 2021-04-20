@@ -15,6 +15,7 @@ import Draggable from 'react-draggable';
 
 import styles from './Toolbar.module.scss';
 import ReplayerContext, {
+    ParsedSessionComment,
     ParsedSessionInterval,
     ReplayerState,
 } from '../ReplayerContext';
@@ -26,8 +27,9 @@ import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext
 import { ErrorObject } from '../../../graph/generated/schemas';
 import Modal from '../../../components/Modal/Modal';
 import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
-import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
+import TimelineCommentAnnotation from './TimelineAnnotation/TimelineCommentAnnotation';
 import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
+import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -38,6 +40,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         play,
         pause,
         sessionIntervals,
+        sessionCommentIntervals,
     } = useContext(ReplayerContext);
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
@@ -60,6 +63,10 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         'highlightMenuAutoPlayVideo',
         false
     );
+    const [enableDOMInteractions] = useLocalStorage(
+        'highlightMenuEnableDOMInteractions',
+        false
+    );
     const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
         'highlightSelectedDevtoolTabs',
         DevToolTabs.Errors
@@ -80,6 +87,16 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     useEffect(() => {
         onResize();
     }, [openDevTools, onResize]);
+
+    useEffect(() => {
+        if (replayer) {
+            if (enableDOMInteractions) {
+                replayer.enableInteract();
+            } else {
+                replayer.disableInteract();
+            }
+        }
+    }, [enableDOMInteractions, replayer]);
 
     useEffect(() => {
         replayer?.setConfig({ skipInactive, speed });
@@ -216,6 +233,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         <SessionSegment
                             key={ind}
                             interval={e}
+                            comments={sessionCommentIntervals[ind]}
                             sliderClientX={sliderClientX}
                             wrapperWidth={wrapperWidth}
                             getSliderTime={getSliderTime}
@@ -390,11 +408,13 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
 
 const SessionSegment = ({
     interval,
+    comments,
     sliderClientX,
     wrapperWidth,
     getSliderTime,
 }: {
     interval: ParsedSessionInterval;
+    comments: ParsedSessionComment[];
     sliderClientX: number;
     wrapperWidth: number;
     getSliderTime: (sliderTime: number) => number;
@@ -463,6 +483,25 @@ const SessionSegment = ({
                             ))}
                         </div>
                     )}
+                    {selectedTimelineAnnotationTypes.includes('Comments') && (
+                        <div
+                            className={styles.annotationsContainer}
+                            style={{
+                                width: `${
+                                    (interval.endPercent -
+                                        interval.startPercent) *
+                                    100
+                                }%`,
+                            }}
+                        >
+                            {comments?.map((comment) => (
+                                <TimelineCommentAnnotation
+                                    key={comment.id}
+                                    comment={comment}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </>
             )}
             <div
@@ -524,6 +563,7 @@ const TimelineAnnotationColors: {
     Errors: '--color-red',
     Segment: '--color-orange-400',
     Track: '--color-blue-light',
+    Comments: '--color-green-dark',
 };
 
 export function getAnnotationColor(

@@ -26,13 +26,19 @@ import { usePlayer } from './PlayerHook/PlayerHook';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
 import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
-import ShareButton from './ShareButton/ShareButton';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
+import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
+import Modal from '../../components/Modal/Modal';
 import useMedia from '../../hooks/useMedia/useMedia';
+import ShareButton from './ShareButton/ShareButton';
+import DOMInteractionsToggle from './DOMInteractionsToggle/DOMInteractionsToggle';
+import CommentButton, { Coordinates2D } from './CommentButton/CommentButton';
 
 export const Player = () => {
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_id } = useParams<{
+        session_id: string;
+    }>();
     const [resizeListener, sizes] = useResizeAware();
     const player = usePlayer({
         refId: 'player',
@@ -42,6 +48,7 @@ export const Player = () => {
         scale: replayerScale,
         setScale,
         replayer,
+        time,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
@@ -56,6 +63,12 @@ export const Player = () => {
         false
     );
     const shouldShowRightPanel = showRightPanelPreference && !hideRightPanel;
+    const [commentModalPosition, setCommentModalPosition] = useState<
+        Coordinates2D | undefined
+    >(undefined);
+    const [commentPosition, setCommentPosition] = useState<
+        Coordinates2D | undefined
+    >(undefined);
 
     useEffect(() => {
         if (session_id) {
@@ -126,6 +139,7 @@ export const Player = () => {
                     <div className={styles.playerLeftTopSection}>
                         <SessionLevelBar />
                         <ShareButton />
+                        <DOMInteractionsToggle />
                     </div>
                     <div className={styles.rrwebPlayerSection}>
                         <div
@@ -133,6 +147,12 @@ export const Player = () => {
                             ref={playerWrapperRef}
                         >
                             {resizeListener}
+                            <CommentButton
+                                setModalPosition={setCommentModalPosition}
+                                isReplayerReady={isReplayerReady}
+                                modalPosition={commentModalPosition}
+                                setCommentPosition={setCommentPosition}
+                            />
                             <div
                                 style={{
                                     visibility: isReplayerReady
@@ -163,6 +183,32 @@ export const Player = () => {
                         <EventStream />
                     </div>
                 )}
+                <Modal
+                    visible={commentModalPosition !== undefined}
+                    onCancel={() => {
+                        setCommentModalPosition(undefined);
+                    }}
+                    destroyOnClose
+                    minimal
+                    width="324px"
+                    style={{
+                        left: `${commentModalPosition?.x}px`,
+                        top: `${commentModalPosition?.y}px`,
+                        margin: 0,
+                    }}
+                    mask={false}
+                    modalRender={(node) => (
+                        <div className={styles.commentModal}>{node}</div>
+                    )}
+                >
+                    <NewCommentEntry
+                        currentTime={Math.floor(time)}
+                        onCloseHandler={() => {
+                            setCommentModalPosition(undefined);
+                        }}
+                        commentPosition={commentPosition}
+                    />
+                </Modal>
             </div>
         </ReplayerContext.Provider>
     );
