@@ -1,0 +1,40 @@
+.comment {
+    position: absolute;
+    z-index: 9999;
+    display: flex;
+    column-gap: var(--size-small);
+    cursor: auto;
+
+    & > img {
+        position: relative;
+        z-index: 99;
+    }
+
+    &:hover {
+        z-index: 10000;
+    }
+}
+
+.commentContainer {
+    background: var(--color-primary-background);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--size-xSmall);
+    padding: var(--size-xSmall) calc(var(--size-xSmall) + 11px);
+    width: 350px;
+    position: relative;
+    z-index: 9999;
+    text-align: left;
+    margin-top: calc(var(--size-small) * -1);
+    box-shadow: var(--box-shadow);
+
+    & > p {
+        font-size: 14px;
+        font-weight: 200;
+    }
+}
+
+.activeComment {
+    border-left: var(--size-xxSmall) solid var(--color-purple);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
