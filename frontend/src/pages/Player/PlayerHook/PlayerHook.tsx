@@ -1,4 +1,5 @@
 import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
+import useLocalStorage from '@rehooks/local-storage';
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQueryParam, BooleanParam } from 'use-query-params';
@@ -47,6 +48,8 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
     const [time, setTime] = useState<number>(0);
+    /** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
+    const [, setLocalStorageTime] = useLocalStorage('playerTime', time);
     const [sessionEndTime, setSessionEndTime] = useState<number>(0);
     const [sessionIntervals, setSessionIntervals] = useState<
         Array<ParsedSessionInterval>
@@ -215,6 +218,10 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             return () => cancelAnimationFrame(timerId);
         }
     }, [state, replayer]);
+
+    useEffect(() => {
+        setLocalStorageTime(time);
+    }, [setLocalStorageTime, time]);
 
     const play = (newTime?: number) => {
         // Don't play the session if the player is already at the end of the session.

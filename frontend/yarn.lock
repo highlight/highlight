@@ -12748,10 +12748,10 @@ react-collapsible@^2.8.1:
   resolved "https://registry.yarnpkg.com/react-collapsible/-/react-collapsible-2.8.3.tgz#55b2c41f670a2031d29622110bbdb66c1a10ebc9"
   integrity sha512-SiVsLZW8qeh09eARzJ9/fwrwOlPWfAdu+vUJGQaTqVYH61XBnKqnwcTDeGZjL005hatmJSkk2CAtYtb4rz14fA==
 
-react-command-palette@^0.14.0:
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/react-command-palette/-/react-command-palette-0.14.0.tgz#4ea19226aa58024b856a3c435c7b2db77a066150"
-  integrity sha512-vbPIbLMXTpFDvdDO66OW+m24ugQ/Lfxj+FtXq6D9yE9+6H6tQz/XZn3NC3xfZhcJKj+M5aAc5LAOzUf0yVgR8A==
+react-command-palette@0.16.0:
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/react-command-palette/-/react-command-palette-0.16.0.tgz#7aa5c3c8dd13963486fcb7952c3c9e2788be8bbe"
+  integrity sha512-SPNesY5lOQw14R4ztVhYNBOprWodKO+xDvYd8VBzXzpi1m3hpRISvRq93ZeyXsDBlUcx1v5qLvxLMIdMij0ioA==
   dependencies:
     fast-deep-equal "^3.1.3"
     fuzzysort "^1.1.4"
