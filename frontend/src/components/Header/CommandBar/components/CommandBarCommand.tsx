@@ -1,7 +1,7 @@
 import React from 'react';
 import { Command } from 'react-command-palette';
 import styles from './CommandBarCommand.module.scss';
-import { VscArrowRight } from 'react-icons/vsc';
+import { VscArrowRight, VscDeviceCameraVideo } from 'react-icons/vsc';
 import { ReactComponent as TeamIcon } from '../../../../static/team-icon.svg';
 
 type Props = Command & {
@@ -10,7 +10,6 @@ type Props = Command & {
 
 const CommandBarCommand = (suggestion: Props) => {
     const { name, highlight = [], category } = suggestion;
-    console.log(highlight);
 
     let baseComponent = (
         <div className={styles.suggestion}>
@@ -36,10 +35,10 @@ export default CommandBarCommand;
 const CATEGORY_ICON_MAPPING: { [key: string]: React.ReactNode } = {
     Navigation: <VscArrowRight />,
     Organizations: <TeamIcon />,
+    Player: <VscDeviceCameraVideo />,
 };
 
 const getIcon = (category: string) => {
-    console.log({ category });
     switch (true) {
         case category in CATEGORY_ICON_MAPPING:
             return CATEGORY_ICON_MAPPING[category];

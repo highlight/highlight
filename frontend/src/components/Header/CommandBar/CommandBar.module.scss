@@ -30,4 +30,19 @@
     background-color: #2c313a;
     padding: 14px 12px;
     cursor: pointer;
+    border-left: 3px solid transparent;
+}
+
+.suggestionsContainerOpen {
+    overflow-y: auto;
+    border-top: 1px solid #111;
+    border-bottom: 1px solid #111;
+    max-height: 315px;
+    margin-top: 10px;
+}
+
+.suggestionHighlighted {
+    color: #fff;
+    background: #3a3f4b;
+    border-left: 3px solid var(--color-purple);
 }

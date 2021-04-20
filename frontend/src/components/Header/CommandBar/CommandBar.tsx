@@ -7,7 +7,11 @@ import {
     useGetAdminQuery,
     useGetOrganizationSuggestionLazyQuery,
 } from '../../../graph/generated/hooks';
-import { CommandWithoutId, getNavigationCommands } from './CommandBarCommands';
+import {
+    CommandWithoutId,
+    getNavigationCommands,
+    usePlayerCommands,
+} from './CommandBarCommands';
 import CommandBarCommand from './components/CommandBarCommand';
 import styles from './CommandBar.module.scss';
 
@@ -22,15 +26,17 @@ const THEME = {
     inputFocused: styles.inputFocused,
     spinner: 'atom-spinner',
     suggestionsContainer: 'atom-suggestionsContainer',
-    suggestionsContainerOpen: 'atom-suggestionsContainerOpen',
+    suggestionsContainerOpen: styles.suggestionsContainerOpen,
     suggestionsList: 'atom-suggestionsList',
     suggestion: styles.suggestion,
     suggestionFirst: 'atom-suggestionFirst',
-    suggestionHighlighted: 'atom-suggestionHighlighted',
+    suggestionHighlighted: styles.suggestionHighlighted,
     trigger: 'atom-trigger',
 };
 
-const Bar: React.FC<RouteComponentProps> = ({ history }) => {
+const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
+    history,
+}) => {
     const [
         getOrganizations,
         { data },
@@ -38,7 +44,10 @@ const Bar: React.FC<RouteComponentProps> = ({ history }) => {
     const { loading: a_loading, data: a_data } = useGetAdminQuery({
         skip: false,
     });
-    const { organization_id } = useParams<{ organization_id: string }>();
+    const { organization_id } = useParams<{
+        organization_id: string;
+    }>();
+    const playerCommands = usePlayerCommands();
 
     useEffect(() => {
         if (!a_loading && a_data?.admin?.email.includes('@highlight.run')) {
@@ -66,8 +75,9 @@ const Bar: React.FC<RouteComponentProps> = ({ history }) => {
     );
 
     const commands: Command[] = [
-        ...organizationCommands,
+        ...playerCommands,
         ...navigationCommands,
+        ...organizationCommands,
     ].map((command, index) => ({ ...command, id: index }));
 
     return (
@@ -80,8 +90,10 @@ const Bar: React.FC<RouteComponentProps> = ({ history }) => {
             renderCommand={CommandBarCommand}
             options={{ keys: ['name', 'category'] }}
             theme={THEME}
+            resetInputOnOpen
+            maxDisplayed={25}
         />
     );
 };
 
-export const CommandBar = withRouter(Bar);
+export const CommandBar = withRouter(CommandPaletteComponent);
