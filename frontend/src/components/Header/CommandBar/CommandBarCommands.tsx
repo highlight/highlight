@@ -1,7 +1,9 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { message } from 'antd';
 import { History } from 'history';
 import { Command } from 'react-command-palette';
 import { EventsForTimeline } from '../../../pages/Player/PlayerHook/utils';
+import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
 import { DevToolTabs } from '../../../pages/Player/Toolbar/DevToolsContext/DevToolsContext';
 
 export type CommandWithoutId = Omit<Command, 'id'>;
@@ -39,7 +41,7 @@ export const usePlayerCommands = (
         'highlightMenuAutoPlayVideo',
         false
     );
-    const [, setSelectedDevToolsTab] = useLocalStorage(
+    const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
         'highlightSelectedDevtoolTabs',
         DevToolTabs.Errors
     );
@@ -55,9 +57,30 @@ export const usePlayerCommands = (
     ] = useLocalStorage('highlightTimelineAnnotationTypesUserPersisted', [
         ...EventsForTimeline,
     ]);
+    const [time] = useLocalStorage('playerTime', 0);
 
     const PLAYER_COMMANDS = [
-        // { command: 'sessions', name: 'Toggle comments' },
+        {
+            command: () => {
+                if (selectedTimelineAnnotationTypes.includes('Comments')) {
+                    setSelectedTimelineAnnotationTypes(
+                        [...selectedTimelineAnnotationTypes].filter(
+                            (type) => type !== 'Comments'
+                        )
+                    );
+                } else {
+                    setSelectedTimelineAnnotationTypes([
+                        ...selectedTimelineAnnotationTypes,
+                        'Comments',
+                    ]);
+                }
+            },
+            name: `${
+                selectedTimelineAnnotationTypes.includes('Comments')
+                    ? 'Hide'
+                    : 'Show'
+            } comments`,
+        },
         {
             command: () => {
                 if (selectedTimelineAnnotationTypes.length === 0) {
@@ -77,32 +100,44 @@ export const usePlayerCommands = (
             command: () => {
                 setOpenDevTools(!openDevTools);
             },
-            name: 'Toggle DevTools',
+            name: `${openDevTools ? 'Hide' : 'Show'} DevTools`,
         },
         {
             command: () => {
                 setShowRightPanelPreference(!showRightPanelPreference);
             },
-            name: 'Toggle right panel',
+            name: `${showRightPanelPreference ? 'Hide' : 'Show'} right panel`,
         },
         {
             command: () => {
-                setOpenDevTools(true);
-                setSelectedDevToolsTab(DevToolTabs.Errors);
+                if (selectedDevToolsTab === DevToolTabs.Errors) {
+                    setOpenDevTools(false);
+                } else {
+                    setOpenDevTools(true);
+                    setSelectedDevToolsTab(DevToolTabs.Errors);
+                }
             },
             name: 'Toggle errors list',
         },
         {
             command: () => {
-                setOpenDevTools(true);
-                setSelectedDevToolsTab(DevToolTabs.Network);
+                if (selectedDevToolsTab === DevToolTabs.Network) {
+                    setOpenDevTools(false);
+                } else {
+                    setOpenDevTools(true);
+                    setSelectedDevToolsTab(DevToolTabs.Network);
+                }
             },
             name: 'Toggle network requests',
         },
         {
             command: () => {
-                setOpenDevTools(true);
-                setSelectedDevToolsTab(DevToolTabs.Console);
+                if (selectedDevToolsTab === DevToolTabs.Console) {
+                    setOpenDevTools(false);
+                } else {
+                    setOpenDevTools(true);
+                    setSelectedDevToolsTab(DevToolTabs.Console);
+                }
             },
             name: 'Toggle console log',
         },
@@ -112,8 +147,22 @@ export const usePlayerCommands = (
             },
             name: `${autoPlayVideo ? 'Disable' : 'Enable'} auto playing videos`,
         },
-        // { command: 'errors4', name: 'Copy URL' },
-        // { command: 'errors5', name: 'Copy URL at current timestamp' },
+        {
+            command: () => {
+                const url = window.location.href;
+                message.success('Copied link!');
+                navigator.clipboard.writeText(url);
+            },
+            name: 'Copy URL',
+        },
+        {
+            command: () => {
+                const url = onGetLinkWithTimestamp(time);
+                message.success('Copied link!');
+                navigator.clipboard.writeText(url.href);
+            },
+            name: 'Copy URL at current timestamp',
+        },
     ] as const;
 
     /** These commands should only be exposed for Highlight engineering. */
