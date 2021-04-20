@@ -14,6 +14,7 @@ import {
 } from '../../../../graph/generated/hooks';
 import Modal from '../../../../components/Modal/Modal';
 import PrimaryButton from '../../../../components/Button/PrimaryButton/PrimaryButton';
+import ModalBody from '../../../../components/ModalBody/ModalBody';
 
 type Inputs = {
     name: string;
@@ -80,7 +81,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                 onCancel={() => setCreateClicked(false)}
                 style={{ display: 'flex' }}
             >
-                <div className={styles.modalWrapper}>
+                <ModalBody className={styles.modalWrapper}>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className={styles.modalSubTitle}>
                             Enter the name of your segment and you'll be good to
@@ -107,7 +108,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                             )}
                         </PrimaryButton>
                     </form>
-                </div>
+                </ModalBody>
             </Modal>
             {/* If the params have changed for the current segment, offer to update it. */}
             {paramsIsDifferent && segmentName ? (

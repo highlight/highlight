@@ -1,13 +1,13 @@
 @import 'src/static/shared.scss';
 
 .sessionToken {
-    font-size: 14px;
+    font-size: 12px;
     display: flex;
     align-items: center;
     max-width: 378px;
     min-width: 0;
     gap: $size-xSmall;
-    color: $text-primary;
+    color: var(--color-gray-500);
     flex-shrink: 0;
 
     > p {
@@ -22,9 +22,9 @@
 
     svg {
         flex-shrink: 0;
-        fill: $text-primary;
-        height: 14px;
-        width: 14px;
+        fill: var(--color-gray-500);
+        height: 16px;
+        width: 16px;
     }
 }
 

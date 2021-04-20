@@ -1,0 +1,72 @@
+.commentButton {
+    --comment-indicator-height: 23px;
+    --comment-indicator-width: 16px;
+
+    border: none;
+    background: transparent;
+    outline: none;
+    position: absolute;
+    z-index: 1;
+    padding: 0;
+    user-select: text;
+    cursor: url('/static/comment-pin.png') 10 25, crosshair;
+}
+
+.commentIndicator {
+    height: var(--comment-indicator-height);
+    width: var(--comment-indicator-width);
+    position: absolute;
+    transform: scale(0);
+    animation: grow 0.2s forwards;
+}
+
+@keyframes grow {
+    0% {
+        transform: scale(0);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.commentContainer {
+    background: var(--color-primary-background);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--size-xSmall);
+    padding: var(--size-xSmall) calc(var(--size-xSmall) + 11px);
+    width: 350px;
+    position: relative;
+    z-index: 9999;
+    text-align: left;
+    margin-top: calc(var(--size-small) * -1);
+    box-shadow: var(--box-shadow);
+
+    & > p {
+        font-size: 14px;
+        font-weight: 200;
+    }
+}
+
+.comment {
+    position: absolute;
+    z-index: 9999;
+    display: flex;
+    column-gap: var(--size-small);
+    cursor: auto;
+
+    & > .commentIndicator {
+        position: relative;
+        z-index: 99;
+    }
+
+    &:hover {
+        z-index: 10000;
+    }
+}
+
+.activeComment {
+    border-left: var(--size-xxSmall) solid var(--color-purple);
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
