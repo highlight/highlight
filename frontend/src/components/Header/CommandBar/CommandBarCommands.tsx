@@ -24,7 +24,9 @@ export const getNavigationCommands = (
     }));
 };
 
-export const usePlayerCommands = (): CommandWithoutId[] => {
+export const usePlayerCommands = (
+    isHighlightUser: boolean
+): CommandWithoutId[] => {
     const [
         showRightPanelPreference,
         setShowRightPanelPreference,
@@ -114,6 +116,23 @@ export const usePlayerCommands = (): CommandWithoutId[] => {
         // { command: 'errors5', name: 'Copy URL at current timestamp' },
     ] as const;
 
+    /** These commands should only be exposed for Highlight engineering. */
+    const HIGHLIGHT_COMMANDS = [
+        {
+            command: () => {
+                setShowRightPanelPreference(true);
+                document.location.search = 'debug=1';
+            },
+            name: `Enable events debugging`,
+        },
+        {
+            command: () => {
+                document.location.search = 'download=1';
+            },
+            name: `Download events`,
+        },
+    ] as const;
+
     const pathNameTokens = location.pathname.split('/');
     // We don't have access to the session_id URL parameter on all routes so we manually parse/check for the session_id.
     const isOnPlayerPage =
@@ -125,7 +144,15 @@ export const usePlayerCommands = (): CommandWithoutId[] => {
         return [];
     }
 
-    return PLAYER_COMMANDS.map(({ name, command }) => ({
+    let commands;
+
+    if (isHighlightUser) {
+        commands = [...PLAYER_COMMANDS, ...HIGHLIGHT_COMMANDS];
+    } else {
+        commands = [...PLAYER_COMMANDS];
+    }
+
+    return commands.map(({ name, command }) => ({
         category: 'Player',
         name,
         command,

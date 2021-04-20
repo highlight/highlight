@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import CommandPalette, { Command } from 'react-command-palette';
 import { RouteComponentProps } from 'react-router';
@@ -47,10 +47,12 @@ const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
-    const playerCommands = usePlayerCommands();
+    const [isHighlightUser, setIsHighlightUser] = useState(false);
+    const playerCommands = usePlayerCommands(isHighlightUser);
 
     useEffect(() => {
         if (!a_loading && a_data?.admin?.email.includes('@highlight.run')) {
+            setIsHighlightUser(true);
             getOrganizations({
                 variables: { query: '' },
             });
