@@ -17,92 +17,21 @@ import (
 	"github.com/jay-khatri/fullstory/backend/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool) (*model.Session, error) {
-	organizationID := model.FromVerboseID(organizationVerboseID)
-	organization := &model.Organization{}
-	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization).Error; err != nil {
-		return nil, e.Wrap(err, "org doesn't exist")
+	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy)
+
+	if err != nil {
+		msg := slack.WebhookMessage{Text: fmt.
+			Sprintf("Error in InitializeSession: %q\nOccurred for organization: %q", err, organizationVerboseID)}
+		slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
 	}
 
-	uid, ok := ctx.Value("uid").(int)
-	if !ok {
-		return nil, e.New("error unwrapping uid in context")
-	}
-
-	// Get the current user to check whether the org_id is set.
-	user := &model.User{}
-	if err := r.DB.Where(&model.User{Model: model.Model{ID: uid}}).First(&user).Error; err != nil {
-		return nil, e.Wrap(err, "user doesn't exist")
-	}
-	// If not, set it.
-	if user.OrganizationID != organizationID {
-		if err := r.DB.Model(user).Updates(model.User{OrganizationID: organizationID}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating user")
-		}
-	}
-
-	// Get the user's ip, get geolocation data
-	location := &Location{
-		City:      "",
-		Postal:    "",
-		Latitude:  0.0,
-		Longitude: 0.0,
-		State:     "",
-	}
-	// var err error
-	// ip, ok := ctx.Value("ip").(string)
-	// if ok {
-	// 	location, err = GetLocationFromIP(ip)
-	// 	if err != nil {
-	// 		log.Errorf("error getting user's location: %v", err)
-	// 	}
-	// }
-
-	// Parse the user-agent string
-	var deviceDetails DeviceDetails
-	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
-		deviceDetails = GetDeviceDetails(userAgentString)
-	}
-
-	// Get the language from the request header
-	acceptLanguageString := ctx.Value("acceptLanguage").(string)
-	n := time.Now()
-	session := &model.Session{
-		UserID:              user.ID,
-		OrganizationID:      organizationID,
-		City:                location.City,
-		State:               location.State,
-		Postal:              location.Postal,
-		Latitude:            location.Latitude.(float64),
-		Longitude:           location.Longitude.(float64),
-		OSName:              deviceDetails.OSName,
-		OSVersion:           deviceDetails.OSVersion,
-		BrowserName:         deviceDetails.BrowserName,
-		BrowserVersion:      deviceDetails.BrowserVersion,
-		Language:            acceptLanguageString,
-		Processed:           &model.F,
-		PayloadUpdatedAt:    &n,
-		EnableStrictPrivacy: &enableStrictPrivacy,
-	}
-
-	if err := r.DB.Create(session).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session")
-	}
-
-	sessionProperties := map[string]string{
-		"os_name":         deviceDetails.OSName,
-		"os_version":      deviceDetails.OSVersion,
-		"browser_name":    deviceDetails.BrowserName,
-		"browser_version": deviceDetails.BrowserVersion,
-	}
-	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
-		return nil, e.Wrap(err, "error adding set of properites to db")
-	}
-	return session, nil
+	return session, err
 }
 
 func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, userIdentifier string, userObject interface{}) (*int, error) {
