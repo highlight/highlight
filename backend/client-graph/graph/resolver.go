@@ -320,7 +320,7 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 }
 
 func GetLocationFromIP(ip string) (location *Location, err error) {
-	url := fmt.Sprintf("https://geolocation-db.com/json/%s", ip)
+	url := fmt.Sprintf("http://geolocation-db.com/json/%s", ip)
 	method := "GET"
 
 	client := &http.Client{}
