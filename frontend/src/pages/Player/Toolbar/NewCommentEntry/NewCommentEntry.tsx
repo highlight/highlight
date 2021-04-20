@@ -10,6 +10,8 @@ import PrimaryButton from '../../../../components/Button/PrimaryButton/PrimaryBu
 import SecondaryButton from '../../../../components/Button/SecondaryButton/SecondaryButton';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { Coordinates2D } from '../../CommentButton/CommentButton';
+import useLocalStorage from '@rehooks/local-storage';
+import { EventsForTimeline } from '../../PlayerHook/utils';
 
 const { TextArea } = Input;
 
@@ -31,6 +33,12 @@ export const NewCommentEntry = ({
         organization_id: string;
     }>();
     const [form] = Form.useForm<{ commentText: string }>();
+    const [
+        selectedTimelineAnnotationTypes,
+        setSelectedTimelineAnnotationTypes,
+    ] = useLocalStorage('highlightTimelineAnnotationTypes', [
+        ...EventsForTimeline,
+    ]);
 
     const onFinish = (values: { commentText: string }) => {
         createComment({
@@ -47,6 +55,12 @@ export const NewCommentEntry = ({
         });
         onCloseHandler();
         form.resetFields();
+        if (!selectedTimelineAnnotationTypes.includes('Comments')) {
+            setSelectedTimelineAnnotationTypes([
+                ...selectedTimelineAnnotationTypes,
+                'Comments',
+            ]);
+        }
     };
 
     return (

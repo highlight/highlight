@@ -3,10 +3,10 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import playerStyles from '../PlayerPage.module.scss';
 import ReplayerContext from '../ReplayerContext';
 import styles from './CommentButton.module.scss';
-import CommentPinIcon from '../../../static/comment-pin.png';
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { useParams } from 'react-router-dom';
-import Comment from '../Toolbar/TimelineAnnotation/Comment';
+import Comment from './Comment/Comment';
+import CommentPinIcon from '../../../static/comment-pin.png';
 import useLocalStorage from '@rehooks/local-storage';
 import { EventsForTimeline, PlayerSearchParameters } from '../PlayerHook/utils';
 
@@ -136,42 +136,11 @@ const CommentButton = ({
                         comment &&
                         showCommentsOverlaid &&
                         Math.abs(time - comment.timestamp) <= 500 && (
-                            <div
+                            <Comment
                                 key={comment.id}
-                                className={styles.comment}
-                                style={{
-                                    left: `calc(${
-                                        comment.x_coordinate * 100
-                                    }% - (var(--comment-indicator-width) / 2))`,
-                                    top: `calc(${
-                                        comment.y_coordinate * 100
-                                    }% - var(--comment-indicator-height) + 2px)`,
-                                }}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                }}
-                            >
-                                <img
-                                    className={styles.commentIndicator}
-                                    src={CommentPinIcon}
-                                />
-                                <div
-                                    className={classNames(
-                                        styles.commentContainer,
-                                        {
-                                            [styles.activeComment]:
-                                                deepLinkedCommentId ===
-                                                comment.id,
-                                        }
-                                    )}
-                                >
-                                    <Comment
-                                        key={comment.id}
-                                        comment={comment}
-                                    />
-                                    <p>{comment.text}</p>
-                                </div>
-                            </div>
+                                comment={comment}
+                                deepLinkedCommentId={deepLinkedCommentId}
+                            />
                         )
                 )}
             </button>
