@@ -35,7 +35,7 @@ type Session {
 
 type BillingDetails {
     plan: Plan!
-    meter: Int!
+    meter: Int64!
 }
 
 type Plan {
@@ -241,6 +241,8 @@ type SessionComment {
     updated_at: Time!
     author: SanitizedAdmin!
     text: String!
+    x_coordinate: Float!
+    y_coordinate: Float!
 }
 
 enum SessionLifecycle {
@@ -264,7 +266,7 @@ type Query {
     session_comments(session_id: ID!): [SessionComment]!
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
-    unprocessedSessionsCount(organization_id: ID!): Int
+    unprocessedSessionsCount(organization_id: ID!): Int64
     sessions(
         organization_id: ID!
         count: Int!
@@ -351,5 +353,7 @@ type Mutation {
         session_id: ID!
         session_timestamp: Int!
         text: String!
+        x_coordinate: Float!
+        y_coordinate: Float!
     ): SessionComment
 }

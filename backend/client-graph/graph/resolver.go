@@ -1,17 +1,20 @@
 package graph
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/jinzhu/gorm"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	"gorm.io/gorm"
 )
 
 // This file will not be regenerated automatically.
@@ -69,7 +72,7 @@ type FieldData struct {
 func (r *Resolver) AppendProperties(sessionID int, properties map[string]string, propType Property) error {
 	session := &model.Session{}
 	res := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session)
-	if err := res.Error; err != nil || res.RecordNotFound() {
+	if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
 		return e.Wrap(err, "error receiving session")
 	}
 
@@ -99,7 +102,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 		field := &model.Field{}
 		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || res.RecordNotFound() {
+		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating field")
 			}
@@ -130,12 +133,11 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	}
 	fieldString := string(fieldBytes)
 
-	if res := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}); res.RecordNotFound() || res.Error != nil {
+	if err := r.DB.Model(session).Updates(&model.Session{FieldGroup: &fieldString}).Error; errors.Is(err, gorm.ErrRecordNotFound) || err != nil {
 		return e.Wrap(err, "Error updating session field group")
 	}
 	// We append to this session in the join table regardless.
-	re := r.DB.Model(session).Association("Fields").Append(fieldsToAppend)
-	if err := re.Error; err != nil {
+	if err := r.DB.Model(session).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating fields")
 	}
 	return nil
@@ -157,7 +159,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 		Event:          errorObj.Event,
 		Trace:          frameString,
 		Type:           errorObj.Type,
-	}).First(&errorGroup); res.RecordNotFound() || res.Error != nil {
+	}).First(&errorGroup); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
 		newErrorGroup := &model.ErrorGroup{
 			OrganizationID: errorObj.OrganizationID,
 			Event:          errorObj.Event,
@@ -197,7 +199,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	logString := string(logBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString}); res.RecordNotFound() || res.Error != nil {
+	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
 		return nil, e.Wrap(err, "Error updating error group metadata log")
 	}
 
@@ -222,7 +224,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 		field := &model.ErrorField{}
 		res := r.DB.Where(f).First(&field)
 		// If the field doesn't exist, we create it.
-		if err := res.Error; err != nil || res.RecordNotFound() {
+		if err := res.Error; err != nil || errors.Is(err, gorm.ErrRecordNotFound) {
 			if err := r.DB.Create(f).Error; err != nil {
 				return e.Wrap(err, "error creating error field")
 			}
@@ -253,12 +255,11 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	}
 	fieldString := string(fieldBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}); res.RecordNotFound() || res.Error != nil {
+	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
 		return e.Wrap(err, "Error updating error group field group")
 	}
 	// We append to this session in the join table regardless.
-	re := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend)
-	if err := re.Error; err != nil {
+	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating error fields")
 	}
 	return nil
@@ -321,7 +322,7 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 }
 
 func GetLocationFromIP(ip string) (location *Location, err error) {
-	url := fmt.Sprintf("https://geolocation-db.com/json/%s", ip)
+	url := fmt.Sprintf("http://geolocation-db.com/json/%s", ip)
 	method := "GET"
 
 	client := &http.Client{}
@@ -369,4 +370,93 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	deviceDetails.OSVersion = userAgent.OSInfo().Version
 	deviceDetails.BrowserName, deviceDetails.BrowserVersion = userAgent.Browser()
 	return deviceDetails
+}
+
+func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string) (*model.Session, error) {
+	organizationID := model.FromVerboseID(organizationVerboseID)
+	organization := &model.Organization{}
+	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization).Error; err != nil {
+		return nil, e.Wrap(err, "org doesn't exist")
+	}
+
+	uid, ok := ctx.Value("uid").(int)
+	if !ok {
+		return nil, e.New("error unwrapping uid in context")
+	}
+
+	// Get the current user to check whether the org_id is set.
+	user := &model.User{}
+	if err := r.DB.Where(&model.User{Model: model.Model{ID: uid}}).First(&user).Error; err != nil {
+		return nil, e.Wrap(err, "user doesn't exist")
+	}
+	// If not, set it.
+	if user.OrganizationID != organizationID {
+		if err := r.DB.Model(user).Updates(model.User{OrganizationID: organizationID}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating user")
+		}
+	}
+
+	// Get the user's ip, get geolocation data
+	location := &Location{
+		City:      "",
+		Postal:    "",
+		Latitude:  0.0,
+		Longitude: 0.0,
+		State:     "",
+	}
+	ip, ok := ctx.Value("ip").(string)
+	if ok {
+		fetchedLocation, err := GetLocationFromIP(ip)
+		if err != nil || fetchedLocation == nil {
+			log.Errorf("error getting user's location: %v", err)
+		} else {
+			location = fetchedLocation
+		}
+	}
+
+	// Parse the user-agent string
+	var deviceDetails DeviceDetails
+	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
+		deviceDetails = GetDeviceDetails(userAgentString)
+	}
+
+	// Get the language from the request header
+	acceptLanguageString := ctx.Value("acceptLanguage").(string)
+	n := time.Now()
+	session := &model.Session{
+		UserID:              user.ID,
+		OrganizationID:      organizationID,
+		City:                location.City,
+		State:               location.State,
+		Postal:              location.Postal,
+		Latitude:            location.Latitude.(float64),
+		Longitude:           location.Longitude.(float64),
+		OSName:              deviceDetails.OSName,
+		OSVersion:           deviceDetails.OSVersion,
+		BrowserName:         deviceDetails.BrowserName,
+		BrowserVersion:      deviceDetails.BrowserVersion,
+		Language:            acceptLanguageString,
+		Processed:           &model.F,
+		PayloadUpdatedAt:    &n,
+		EnableStrictPrivacy: &enableStrictPrivacy,
+		FirstloadVersion:    firstloadVersion,
+		ClientVersion:       clientVersion,
+		ClientConfig:        &clientConfig,
+	}
+
+	if err := r.DB.Create(session).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session")
+	}
+
+	sessionProperties := map[string]string{
+		"os_name":         deviceDetails.OSName,
+		"os_version":      deviceDetails.OSVersion,
+		"browser_name":    deviceDetails.BrowserName,
+		"browser_version": deviceDetails.BrowserVersion,
+	}
+	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
+		return nil, e.Wrap(err, "error adding set of properites to db")
+	}
+	return session, nil
+
 }

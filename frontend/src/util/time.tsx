@@ -6,6 +6,9 @@ export function MillisToMinutesAndSeconds(millis: number) {
 }
 
 export function MillisToMinutesAndSecondsVerbose(millis: number) {
+    if (millis < 1000) {
+        return `${millis} milliseconds`;
+    }
     const minutes = Math.floor(millis / 60000);
     const seconds = ((millis % 60000) / 1000).toFixed(0);
     let str = '';
