@@ -46,15 +46,21 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	}
 
 	// Get the user's ip, get geolocation data
-	location := &Location{}
-	var err error
-	ip, ok := ctx.Value("ip").(string)
-	if ok {
-		location, err = GetLocationFromIP(ip)
-		if err != nil {
-			log.Errorf("error getting user's location: %v", err)
-		}
+	location := &Location{
+		City:      "",
+		Postal:    "",
+		Latitude:  0.0,
+		Longitude: 0.0,
+		State:     "",
 	}
+	// var err error
+	// ip, ok := ctx.Value("ip").(string)
+	// if ok {
+	// 	location, err = GetLocationFromIP(ip)
+	// 	if err != nil {
+	// 		log.Errorf("error getting user's location: %v", err)
+	// 	}
+	// }
 
 	// Parse the user-agent string
 	var deviceDetails DeviceDetails
