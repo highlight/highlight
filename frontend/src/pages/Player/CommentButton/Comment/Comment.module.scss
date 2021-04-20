@@ -5,7 +5,17 @@
     column-gap: var(--size-small);
     cursor: auto;
 
-    & > img {
+    .commentPinButton {
+        background: none;
+        border: none;
+        cursor: pointer;
+        outline: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    & > .commentPinButton {
         position: relative;
         z-index: 99;
     }

@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Maybe,
     SanitizedAdmin,
@@ -32,6 +32,8 @@ interface Props {
 }
 
 const Comment = ({ comment, deepLinkedCommentId }: Props) => {
+    const [collapsed, setCollapsed] = useState(false);
+
     if (!comment) {
         return null;
     }
@@ -52,18 +54,28 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
                 e.stopPropagation();
             }}
         >
-            <img
-                className={commentButtonStyles.commentIndicator}
-                src={CommentPinIcon}
-            />
-            <div
-                className={classNames(styles.commentContainer, {
-                    [styles.activeComment]: deepLinkedCommentId === comment.id,
-                })}
+            <button
+                onClick={() => {
+                    setCollapsed((previous) => !previous);
+                }}
+                className={classNames(
+                    commentButtonStyles.commentIndicator,
+                    styles.commentPinButton
+                )}
             >
-                <CommentBody key={comment.id} comment={comment} />
-                <p>{comment.text}</p>
-            </div>
+                <img src={CommentPinIcon} />
+            </button>
+            {!collapsed && (
+                <div
+                    className={classNames(styles.commentContainer, {
+                        [styles.activeComment]:
+                            deepLinkedCommentId === comment.id,
+                    })}
+                >
+                    <CommentBody key={comment.id} comment={comment} />
+                    <p>{comment.text}</p>
+                </div>
+            )}
         </div>
     );
 };
