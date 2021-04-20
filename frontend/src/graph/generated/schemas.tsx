@@ -290,14 +290,14 @@ export type DailySessionCount = {
     __typename?: 'DailySessionCount';
     organization_id: Scalars['ID'];
     date: Scalars['Time'];
-    session_count: Scalars['Int'];
+    count: Scalars['Int64'];
 };
 
 export type DailyErrorCount = {
     __typename?: 'DailyErrorCount';
     organization_id: Scalars['ID'];
     date: Scalars['Time'];
-    error_count: Scalars['Int'];
+    count: Scalars['Int64'];
 };
 
 export type Query = {
@@ -313,8 +313,8 @@ export type Query = {
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
-    dailySessionsCount?: Maybe<Array<Maybe<DailySessionCount>>>;
-    dailyErrorsCount?: Maybe<Array<Maybe<DailyErrorCount>>>;
+    dailySessionsCount: Array<Maybe<DailySessionCount>>;
+    dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;

@@ -747,13 +747,11 @@ export type GetDailySessionsCountQueryVariables = Types.Exact<{
 }>;
 
 export type GetDailySessionsCountQuery = { __typename?: 'Query' } & {
-    dailySessionsCount?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'DailySessionCount' } & Pick<
-                    Types.DailySessionCount,
-                    'organization_id' | 'date' | 'session_count'
-                >
+    dailySessionsCount: Array<
+        Types.Maybe<
+            { __typename?: 'DailySessionCount' } & Pick<
+                Types.DailySessionCount,
+                'date' | 'count'
             >
         >
     >;
@@ -765,13 +763,11 @@ export type GetDailyErrorsCountQueryVariables = Types.Exact<{
 }>;
 
 export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
-    dailyErrorsCount?: Types.Maybe<
-        Array<
-            Types.Maybe<
-                { __typename?: 'DailyErrorCount' } & Pick<
-                    Types.DailyErrorCount,
-                    'organization_id' | 'date' | 'error_count'
-                >
+    dailyErrorsCount: Array<
+        Types.Maybe<
+            { __typename?: 'DailyErrorCount' } & Pick<
+                Types.DailyErrorCount,
+                'date' | 'count'
             >
         >
     >;

@@ -326,9 +326,8 @@ query GetDailySessionsCount(
         organization_id: $organization_id
         date_range: $date_range
     ) {
-        organization_id
         date
-        session_count
+        count
     }
 }
 
@@ -337,8 +336,7 @@ query GetDailyErrorsCount($organization_id: ID!, $date_range: DateRangeInput!) {
         organization_id: $organization_id
         date_range: $date_range
     ) {
-        organization_id
         date
-        error_count
+        count
     }
 }

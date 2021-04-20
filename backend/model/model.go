@@ -216,14 +216,14 @@ type Segment struct {
 type DailySessionCount struct {
 	Model
 	Date           *time.Time `json:"date"`
-	SessionCount   int        `json:"session_count"`
+	Count          int64      `json:"count"`
 	OrganizationID int
 }
 
 type DailyErrorCount struct {
 	Model
 	Date           *time.Time `json:"date"`
-	ErrorCount     int        `json:"error_count"`
+	Count          int64      `json:"count"`
 	OrganizationID int
 }
 

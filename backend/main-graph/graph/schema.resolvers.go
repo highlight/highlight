@@ -774,9 +774,8 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, organizationID i
 
 	dailySessions := []*model.DailySessionCount{}
 
-	endDateShifted := dateRange.EndDate.AddDate(0, 0, 1)
 	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	endDateUTC := time.Date(endDateShifted.UTC().Year(), endDateShifted.UTC().Month(), endDateShifted.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 
 	if err := r.DB.Model(&model.DailySessionCount{OrganizationID: organizationID}).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailySessions).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from daily sessions")
@@ -792,9 +791,8 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 
 	dailyErrors := []*model.DailyErrorCount{}
 
-	endDateShifted := dateRange.EndDate.AddDate(0, 0, 1)
 	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	endDateUTC := time.Date(endDateShifted.UTC().Year(), endDateShifted.UTC().Month(), endDateShifted.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 
 	if err := r.DB.Model(&model.DailyErrorCount{OrganizationID: organizationID}).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailyErrors).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from daily errors")

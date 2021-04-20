@@ -100,22 +100,16 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	// Update session count on dailydb
 	dailySession := &model.DailySessionCount{}
 	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-	if res := r.DB.Where(&model.DailySessionCount{
+	if err := r.DB.Where(&model.DailySessionCount{
 		OrganizationID: organizationID,
 		Date:           &currentDate,
-	}).First(&dailySession); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
-		newDailySession := &model.DailySessionCount{
-			SessionCount:   0,
-			Date:           &currentDate,
-			OrganizationID: organizationID,
-		}
-		if err := r.DB.Create(newDailySession).Error; err != nil {
-			return nil, e.Wrap(err, "Error creating new daily session")
-		}
-		dailySession = newDailySession
+	}).Attrs(&model.DailySessionCount{
+		Count: 0,
+	}).FirstOrCreate(&dailySession).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating new daily session")
 	}
 
-	if err := r.DB.Exec("UPDATE daily_session_counts SET session_count = session_count + 1 WHERE date = ?", currentDate).Error; err != nil {
+	if err := r.DB.Exec("UPDATE daily_session_counts SET count = count + 1 WHERE date = ? AND organization_id = ?", currentDate, organizationID).Error; err != nil {
 		return nil, e.Wrap(err, "Error incrementing session count in db")
 	}
 
@@ -274,6 +268,25 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	}
 	unmarshalResourcesSpan.Finish()
 
+	// increment daily error table
+	if len(errors) > 0 {
+		n := time.Now()
+		dailyError := &model.DailyErrorCount{}
+		currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
+		if err := r.DB.Where(&model.DailyErrorCount{
+			OrganizationID: organizationID,
+			Date:           &currentDate,
+		}).Attrs(&model.DailyErrorCount{
+			Count: 0,
+		}).FirstOrCreate(&dailyError).Error; err != nil {
+			return nil, e.Wrap(err, "Error creating new daily error")
+		}
+
+		if err := r.DB.Exec("UPDATE daily_error_counts SET count = count + ? WHERE date = ? AND organization_id = ?", len(errors), currentDate, organizationID).Error; err != nil {
+			return nil, e.Wrap(err, "Error incrementing error count in db")
+		}
+	}
+
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("db.errors"))
 	for _, v := range errors {
@@ -309,27 +322,6 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		if err != nil {
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
-		}
-
-		n := time.Now()
-		dailyError := &model.DailyErrorCount{}
-		currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-		if res := r.DB.Where(&model.DailyErrorCount{
-			OrganizationID: organizationID,
-			Date:           &currentDate,
-		}).First(&dailyError); e.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
-			newDailyError := &model.DailyErrorCount{
-				ErrorCount:     0,
-				Date:           &currentDate,
-				OrganizationID: organizationID,
-			}
-			if err := r.DB.Create(newDailyError).Error; err != nil {
-				return nil, e.Wrap(err, "Error creating new daily error")
-			}
-			dailyError = newDailyError
-		}
-		if err := r.DB.Exec("UPDATE daily_error_counts SET error_count = error_count + 1 WHERE date = ?", currentDate).Error; err != nil {
-			return nil, e.Wrap(err, "Error incrementing error count in db")
 		}
 
 		// Send a slack message if we're not on localhost.
