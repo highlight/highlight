@@ -6,8 +6,10 @@
     font-size: 14px;
     border-radius: 4px;
     border: 2px solid #181a1f;
-    width: 590px;
+    width: -webkit-fill-available;
     padding: 6px;
+    margin: var(--size-small);
+    box-sizing: border-box;
     outline: none;
     background-color: #202634;
     color: #d7dae0;
@@ -25,8 +27,6 @@
     }
 
     color: #9da5b4;
-    border: 1px solid #181a1f;
-    border-top: 0;
     background-color: #2c313a;
     padding: 14px 12px;
     cursor: pointer;
@@ -37,12 +37,32 @@
     overflow-y: auto;
     border-top: 1px solid #111;
     border-bottom: 1px solid #111;
-    max-height: 315px;
-    margin-top: 10px;
+    max-height: 400px;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 .suggestionHighlighted {
     color: #fff;
     background: #3a3f4b;
     border-left: 3px solid var(--color-purple);
+}
+
+.modal {
+    width: 605px;
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    border: none;
+    background: rgb(48, 51, 56);
+    overflow: hidden;
+    border-radius: 4px;
+    outline: none;
+    box-shadow: var(--box-shadow);
+    // margin-right: -50%;
+    transform: translate(-50%, 0px);
 }

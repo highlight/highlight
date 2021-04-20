@@ -17,7 +17,7 @@ import styles from './CommandBar.module.scss';
 
 const THEME = {
     container: styles.container,
-    modal: 'atom-modal',
+    modal: styles.modal,
     overlay: 'atom-overlay',
     content: 'atom-content',
     containerOpen: 'atom-containerOpen',
