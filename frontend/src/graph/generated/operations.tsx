@@ -186,6 +186,7 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     session_id: Types.Scalars['ID'];
     session_timestamp: Types.Scalars['Int'];
     text: Types.Scalars['String'];
+    text_for_email: Types.Scalars['String'];
     x_coordinate: Types.Scalars['Float'];
     y_coordinate: Types.Scalars['Float'];
     tagged_admin_emails:

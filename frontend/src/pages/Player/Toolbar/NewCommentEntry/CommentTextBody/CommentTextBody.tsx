@@ -39,7 +39,6 @@ const CommentTextBody = ({
                 data={suggestions}
                 displayTransform={onDisplayTransformHandler}
                 appendSpaceOnAdd
-                markup="{{{[__display__](__id__)}}}"
             />
         </MentionsInput>
     );

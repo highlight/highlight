@@ -529,6 +529,7 @@ export type MutationCreateSessionCommentArgs = {
     session_id: Scalars['ID'];
     session_timestamp: Scalars['Int'];
     text: Scalars['String'];
+    text_for_email: Scalars['String'];
     x_coordinate: Scalars['Float'];
     y_coordinate: Scalars['Float'];
     tagged_admin_emails: Array<Maybe<Scalars['String']>>;

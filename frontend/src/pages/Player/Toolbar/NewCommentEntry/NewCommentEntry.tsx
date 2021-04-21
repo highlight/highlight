@@ -37,6 +37,11 @@ export const NewCommentEntry = ({
         organization_id: string;
     }>();
     const [commentText, setCommentText] = useState('');
+    /**
+     * commentTextForEmail is the comment text without the formatting.
+     * For example, the display string of "hello foobar how are you?" is persisted as "hello @[foobar](foobar@example.com) how are you?"
+     */
+    const [commentTextForEmail, setCommentTextForEmail] = useState('');
     const [form] = Form.useForm<{ commentText: string }>();
     const [
         selectedTimelineAnnotationTypes,
@@ -57,6 +62,7 @@ export const NewCommentEntry = ({
                 session_id,
                 session_timestamp: Math.floor(currentTime),
                 text: commentText.trim(),
+                text_for_email: commentTextForEmail.trim(),
                 admin_id: admin_data?.admin?.id || 'Unknown',
                 x_coordinate: commentPosition?.x || 0,
                 y_coordinate: commentPosition?.y || 0,
@@ -106,9 +112,10 @@ export const NewCommentEntry = ({
     const onChangeHandler: OnChangeHandlerFunc = (
         e,
         _newValue,
-        _newPlainTextValue,
+        newPlainTextValue,
         mentions
     ) => {
+        setCommentTextForEmail(newPlainTextValue);
         setMentionedAdmins(mentions.map((mention) => mention.id));
         setCommentText(e.target.value);
     };

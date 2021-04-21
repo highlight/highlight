@@ -123,6 +123,7 @@ mutation CreateSessionComment(
     $session_id: ID!
     $session_timestamp: Int!
     $text: String!
+    $text_for_email: String!
     $x_coordinate: Float!
     $y_coordinate: Float!
     $tagged_admin_emails: [String]!
@@ -136,6 +137,7 @@ mutation CreateSessionComment(
         session_id: $session_id
         session_timestamp: $session_timestamp
         text: $text
+        text_for_email: $text_for_email
         x_coordinate: $x_coordinate
         y_coordinate: $y_coordinate
         tagged_admin_emails: $tagged_admin_emails
