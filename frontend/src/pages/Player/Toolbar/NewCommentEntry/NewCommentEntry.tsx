@@ -1,11 +1,10 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import {
     useCreateSessionCommentMutation,
     useGetAdminQuery,
     useGetAdminsQuery,
 } from '../../../../graph/generated/hooks';
-import { Form, Mentions } from 'antd';
-const { Option, getMentions } = Mentions;
+import { Form } from 'antd';
 import { useParams } from 'react-router-dom';
 import styles from './NewCommentEntry.module.scss';
 import PrimaryButton from '../../../../components/Button/PrimaryButton/PrimaryButton';
@@ -16,6 +15,8 @@ import useLocalStorage from '@rehooks/local-storage';
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import ReplayerContext from '../../ReplayerContext';
 import { H } from 'highlight.run';
+import { SuggestionDataItem, OnChangeHandlerFunc } from 'react-mentions';
+import CommentTextBody from './CommentTextBody/CommentTextBody';
 
 interface Props {
     currentTime: number;
@@ -35,6 +36,7 @@ export const NewCommentEntry = ({
         session_id: string;
         organization_id: string;
     }>();
+    const [commentText, setCommentText] = useState('');
     const [form] = Form.useForm<{ commentText: string }>();
     const [
         selectedTimelineAnnotationTypes,
@@ -47,22 +49,19 @@ export const NewCommentEntry = ({
     });
     const [mentionedAdmins, setMentionedAdmins] = useState<string[]>([]);
 
-    const onFinish = (values: { commentText: string }) => {
-        const taggedAdmins = getMentions(values.commentText).map(
-            (entity) => entity.value
-        );
+    const onFinish = () => {
         H.track('Create Comment', {});
         createComment({
             variables: {
                 organization_id,
                 session_id,
                 session_timestamp: Math.floor(currentTime),
-                text: values.commentText,
+                text: commentText.trim(),
                 admin_id: admin_data?.admin?.id || 'Unknown',
                 x_coordinate: commentPosition?.x || 0,
                 y_coordinate: commentPosition?.y || 0,
                 session_url: `${window.location.origin}${window.location.pathname}`,
-                tagged_admin_emails: taggedAdmins,
+                tagged_admin_emails: mentionedAdmins,
                 time: time / 1000,
                 author_name:
                     admin_data?.admin?.name ||
@@ -81,44 +80,53 @@ export const NewCommentEntry = ({
         }
     };
 
-    // Watch as new mentions get added. We use this to filter the list of suggested mentions to remove admins who are already mentioned.
-    const onValuesChange = ({ commentText }: { commentText: string }) => {
-        const mentions = getMentions(commentText);
-        setMentionedAdmins(mentions.map((mention) => mention.value));
+    const adminSuggestions: SuggestionDataItem[] = useMemo(() => {
+        if (!data?.admins || !admin_data?.admin) {
+            return [];
+        }
+
+        return data.admins
+            .filter(
+                (admin) =>
+                    admin!.email !== admin_data.admin!.email &&
+                    !mentionedAdmins.includes(admin!.email)
+            )
+            .map((admin) => {
+                return {
+                    id: admin!.email,
+                    display: admin?.name || admin!.email,
+                };
+            });
+    }, [admin_data?.admin, data?.admins, mentionedAdmins]);
+
+    const onDisplayTransform = (_id: string, display: string): string => {
+        return display;
+    };
+
+    const onChangeHandler: OnChangeHandlerFunc = (
+        e,
+        _newValue,
+        _newPlainTextValue,
+        mentions
+    ) => {
+        setMentionedAdmins(mentions.map((mention) => mention.id));
+        setCommentText(e.target.value);
     };
 
     return (
-        <Form
-            name="newComment"
-            onFinish={onFinish}
-            onValuesChange={onValuesChange}
-            form={form}
-        >
+        <Form name="newComment" onFinish={onFinish} form={form}>
             <Form.Item name="commentText" wrapperCol={{ span: 24 }}>
-                <Mentions
-                    rows={3}
-                    maxLength={200}
-                    placeholder={`Add a comment at ${MillisToMinutesAndSeconds(
-                        currentTime
-                    )}`}
-                    autoFocus
-                    notFoundContent={'No users matching search'}
-                >
-                    {data?.admins?.map((admin) => {
-                        if (
-                            admin?.email &&
-                            (mentionedAdmins.includes(admin.email) ||
-                                admin_data?.admin?.email === admin.email)
-                        ) {
-                            return null;
-                        }
-                        return (
-                            <Option value={admin?.email} key={admin?.id}>
-                                {admin?.name || admin?.email}
-                            </Option>
-                        );
-                    })}
-                </Mentions>
+                <div className={styles.commentInputContainer}>
+                    <CommentTextBody
+                        commentText={commentText}
+                        onChangeHandler={onChangeHandler}
+                        placeholder={`Add a comment at ${MillisToMinutesAndSeconds(
+                            currentTime
+                        )}`}
+                        suggestions={adminSuggestions}
+                        onDisplayTransformHandler={onDisplayTransform}
+                    />
+                </div>
             </Form.Item>
             <Form.Item
                 shouldUpdate
@@ -139,14 +147,7 @@ export const NewCommentEntry = ({
                         </SecondaryButton>
                         <PrimaryButton
                             type="submit"
-                            disabled={
-                                !form.getFieldValue('commentText')?.length ||
-                                !form.isFieldsTouched(true) ||
-                                !!form
-                                    .getFieldsError()
-                                    .filter(({ errors }) => errors.length)
-                                    .length
-                            }
+                            disabled={commentText.length === 0}
                         >
                             Post
                         </PrimaryButton>

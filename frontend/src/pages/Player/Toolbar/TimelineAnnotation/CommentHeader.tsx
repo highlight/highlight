@@ -4,7 +4,7 @@ import moment from 'moment';
 import React, { useContext } from 'react';
 import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
 import toolbarStyles from '../Toolbar.module.scss';
-import styles from './Comment.module.scss';
+import styles from './CommentHeader.module.scss';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { onGetLinkWithTimestamp } from '../../ShareButton/utils/utils';
 import { PlayerSearchParameters } from '../../PlayerHook/utils';
@@ -13,7 +13,7 @@ interface Props {
     comment: ParsedSessionComment;
 }
 
-const Comment = ({ comment }: Props) => {
+const CommentHeader = ({ comment }: Props) => {
     const { pause } = useContext(ReplayerContext);
 
     const menu = (
@@ -65,4 +65,4 @@ const Comment = ({ comment }: Props) => {
     );
 };
 
-export default Comment;
+export default CommentHeader;

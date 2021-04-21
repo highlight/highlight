@@ -1,0 +1,10 @@
+.mention {
+    position: relative;
+    font-weight: 400 !important;
+    z-index: 1;
+    color: var(--color-purple-400);
+    pointer-events: none;
+    background-color: var(--color-primary-background);
+    top: -1px;
+    left: -1px;
+}
