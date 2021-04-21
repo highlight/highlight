@@ -353,7 +353,12 @@ type Mutation {
         session_id: ID!
         session_timestamp: Int!
         text: String!
+        text_for_email: String!
         x_coordinate: Float!
         y_coordinate: Float!
+        tagged_admin_emails: [String]!
+        session_url: String!
+        time: Float!
+        author_name: String!
     ): SessionComment
 }

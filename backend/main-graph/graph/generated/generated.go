@@ -13,8 +13,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
-	model1 "github.com/jay-khatri/fullstory/backend/model"
+	"github.com/highlight-run/highlight/backend/main-graph/graph/model"
+	model1 "github.com/highlight-run/highlight/backend/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -154,7 +154,7 @@ type ComplexityRoot struct {
 		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
 		CreateOrganization             func(childComplexity int, name string) int
 		CreateSegment                  func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment           func(childComplexity int, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, xCoordinate float64, yCoordinate float64) int
+		CreateSessionComment           func(childComplexity int, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string) int
 		DeleteErrorSegment             func(childComplexity int, segmentID int) int
 		DeleteOrganization             func(childComplexity int, id int) int
 		DeleteSegment                  func(childComplexity int, segmentID int) int
@@ -325,7 +325,7 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
 	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
-	CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, xCoordinate float64, yCoordinate float64) (*model1.SessionComment, error)
+	CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string) (*model1.SessionComment, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -858,7 +858,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64)), true
+		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admin_emails"].([]*string), args["session_url"].(string), args["time"].(float64), args["author_name"].(string)), true
 
 	case "Mutation.deleteErrorSegment":
 		if e.complexity.Mutation.DeleteErrorSegment == nil {
@@ -2130,8 +2130,13 @@ type Mutation {
         session_id: ID!
         session_timestamp: Int!
         text: String!
+        text_for_email: String!
         x_coordinate: Float!
         y_coordinate: Float!
+        tagged_admin_emails: [String]!
+        session_url: String!
+        time: Float!
+        author_name: String!
     ): SessionComment
 }
 `, BuiltIn: false},
@@ -2352,24 +2357,69 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 		}
 	}
 	args["text"] = arg4
-	var arg5 float64
-	if tmp, ok := rawArgs["x_coordinate"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("x_coordinate"))
-		arg5, err = ec.unmarshalNFloat2float64(ctx, tmp)
+	var arg5 string
+	if tmp, ok := rawArgs["text_for_email"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("text_for_email"))
+		arg5, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["x_coordinate"] = arg5
+	args["text_for_email"] = arg5
 	var arg6 float64
-	if tmp, ok := rawArgs["y_coordinate"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("y_coordinate"))
+	if tmp, ok := rawArgs["x_coordinate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("x_coordinate"))
 		arg6, err = ec.unmarshalNFloat2float64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["y_coordinate"] = arg6
+	args["x_coordinate"] = arg6
+	var arg7 float64
+	if tmp, ok := rawArgs["y_coordinate"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("y_coordinate"))
+		arg7, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["y_coordinate"] = arg7
+	var arg8 []*string
+	if tmp, ok := rawArgs["tagged_admin_emails"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("tagged_admin_emails"))
+		arg8, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tagged_admin_emails"] = arg8
+	var arg9 string
+	if tmp, ok := rawArgs["session_url"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_url"))
+		arg9, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["session_url"] = arg9
+	var arg10 float64
+	if tmp, ok := rawArgs["time"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("time"))
+		arg10, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["time"] = arg10
+	var arg11 string
+	if tmp, ok := rawArgs["author_name"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("author_name"))
+		arg11, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["author_name"] = arg11
 	return args, nil
 }
 
@@ -5775,7 +5825,7 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64))
+		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admin_emails"].([]*string), args["session_url"].(string), args["time"].(float64), args["author_name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

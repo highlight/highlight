@@ -13,11 +13,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
-	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
-	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/jay-khatri/fullstory/backend/pricing"
-	"github.com/jay-khatri/fullstory/backend/util"
+	"github.com/highlight-run/highlight/backend/main-graph/graph/generated"
+	modelInputs "github.com/highlight-run/highlight/backend/main-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -518,7 +518,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, xCoordinate float64, yCoordinate float64) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string) (*model.SessionComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -531,9 +531,41 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		XCoordinate: xCoordinate,
 		YCoordinate: yCoordinate,
 	}
+	createSessionCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment", tracer.ResourceName("db.createSessionComment"))
 	if err := r.DB.Create(sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session comment")
 	}
+	createSessionCommentSpan.Finish()
+
+	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment", tracer.ResourceName("sendgrid.sendCommentMention"))
+	commentMentionEmailSpan.SetTag("count", len(taggedAdminEmails))
+	if len(taggedAdminEmails) > 0 {
+		for _, email := range taggedAdminEmails {
+			to := &mail.Email{Address: *email}
+			viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+			subject := fmt.Sprintf("%v mentioned you on Highlight", authorName)
+			content := fmt.Sprintf(`
+	Hi there, <br><br>
+
+	%v mentioned you in a comment on Session %v: <br><br>
+
+	"%v" <br><br>
+
+	<a href="%v">View the comment</a><br><br>
+
+	Cheers, <br>
+	The Highlight Team <br>
+	`, authorName, sessionID, textForEmail, viewLink)
+
+			from := mail.NewEmail("Highlight", "notifications@highlight.run")
+			message := mail.NewSingleEmail(from, subject, to, content, fmt.Sprintf("<p>%v</p>", content))
+			_, err := r.MailClient.Send(message)
+			if err != nil {
+				return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
+			}
+		}
+	}
+	commentMentionEmailSpan.Finish()
 	return sessionComment, nil
 }
 

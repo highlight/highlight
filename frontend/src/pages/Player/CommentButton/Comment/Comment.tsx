@@ -8,7 +8,8 @@ import {
 import CommentPinIcon from '../../../../static/comment-pin.png';
 import styles from './Comment.module.scss';
 import commentButtonStyles from '../CommentButton.module.scss';
-import CommentBody from '../../Toolbar/TimelineAnnotation/Comment';
+import CommentHeader from '../../Toolbar/TimelineAnnotation/CommentHeader';
+import CommentTextBody from '../../Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 
 interface Props {
     comment: Maybe<
@@ -72,8 +73,8 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
                             deepLinkedCommentId === comment.id,
                     })}
                 >
-                    <CommentBody key={comment.id} comment={comment} />
-                    <p>{comment.text}</p>
+                    <CommentHeader key={comment.id} comment={comment} />
+                    <CommentTextBody commentText={comment.text} />
                 </div>
             )}
         </div>

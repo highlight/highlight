@@ -5,7 +5,8 @@ import { PlayerSearchParameters } from '../../PlayerHook/utils';
 import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
-import Comment from './Comment';
+import CommentHeader from './CommentHeader';
+import CommentTextBody from '../NewCommentEntry/CommentTextBody/CommentTextBody';
 
 interface Props {
     comment: ParsedSessionComment;
@@ -25,12 +26,14 @@ function TimelineCommentAnnotation({ comment }: Props): ReactElement {
             key={comment.id}
             defaultVisible={commentId === comment.id}
             content={
-                <div className={styles.popoverContent}>{comment.text}</div>
+                <div className={styles.popoverContent}>
+                    <CommentTextBody commentText={comment.text} />
+                </div>
             }
             onVisibleChange={(visible) => {
                 setIsTooltipOpen(visible);
             }}
-            title={<Comment comment={comment} />}
+            title={<CommentHeader comment={comment} />}
         >
             <TimelineAnnotation
                 isSelected={isTooltipOpen}
