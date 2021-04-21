@@ -8,3 +8,25 @@
     top: -1px;
     left: -1px;
 }
+
+.suggestionContainer {
+    display: flex;
+    align-items: center;
+    column-gap: var(--size-xSmall);
+
+    .adminText {
+        display: flex;
+        flex-direction: column;
+
+        .email {
+            color: var(--color-gray-500);
+        }
+
+        .longValue {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 225px;
+            white-space: nowrap;
+        }
+    }
+}
