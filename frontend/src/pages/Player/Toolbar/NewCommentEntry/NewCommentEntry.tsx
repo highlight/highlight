@@ -15,6 +15,7 @@ import { Coordinates2D } from '../../CommentButton/CommentButton';
 import useLocalStorage from '@rehooks/local-storage';
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import ReplayerContext from '../../ReplayerContext';
+import { H } from 'highlight.run';
 
 interface Props {
     currentTime: number;
@@ -50,6 +51,7 @@ export const NewCommentEntry = ({
         const taggedAdmins = getMentions(values.commentText).map(
             (entity) => entity.value
         );
+        H.track('Create Comment', {});
         createComment({
             variables: {
                 organization_id,
