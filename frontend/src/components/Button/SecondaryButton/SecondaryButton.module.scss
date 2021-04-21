@@ -1,7 +1,8 @@
 @import 'src/static/shared.scss';
 
 .secondaryButton {
-    border: none;
+    border-radius: var(--button-border-radius);
+    border: 1px solid var(--color-black);
     background-color: white;
     color: $text-primary;
     padding: $size-xSmall $size-xLarge;
@@ -10,14 +11,12 @@
     font-weight: 300;
     cursor: pointer;
     line-height: initial;
-    @include rounded-border;
 
-    &:hover,
-    &:focus {
-        background-color: white;
+    &:hover {
+        background-color: var(--color-gray-200);
     }
 
     &:active {
-        background-color: $button-primary-active;
+        background-color: var(--color-gray-300);
     }
 }

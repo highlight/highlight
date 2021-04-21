@@ -39,6 +39,7 @@ const EventTypeDescriptions: EventTypesKeys = {
     Click: 'A user clicked on an element on the page',
     Track:
         'These are custom calls to Highlights track method for custom logging',
+    Comments: 'These are comments created by you and other people on your team',
 };
 
 const TimelineAnnotationsSettings = () => {
