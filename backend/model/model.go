@@ -341,7 +341,7 @@ func SetupDB() *gorm.DB {
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	if err := DB.AutoMigrate(
+	DB.AutoMigrate(
 		&RecordingSettings{},
 		&MessagesObject{},
 		&EventsObject{},
@@ -358,9 +358,7 @@ func SetupDB() *gorm.DB {
 		&EmailSignup{},
 		&ResourcesObject{},
 		&SessionComment{},
-	); err != nil {
-		log.Fatalf("Error migrating db: %v", err)
-	}
+	)
 	return DB
 }
 
