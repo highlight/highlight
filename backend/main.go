@@ -18,10 +18,10 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
-	cgraph "github.com/highlight-run/highlight/backend/client-graph/graph"
-	cgenerated "github.com/highlight-run/highlight/backend/client-graph/graph/generated"
 	mgraph "github.com/highlight-run/highlight/backend/main-graph/graph"
 	mgenerated "github.com/highlight-run/highlight/backend/main-graph/graph/generated"
+	cgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
+	cgenerated "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	rd "github.com/highlight-run/highlight/backend/redis"
 	log "github.com/sirupsen/logrus"
 

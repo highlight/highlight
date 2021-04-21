@@ -1,6 +1,6 @@
 start:
 		doppler run -- air
 client-gen:
-			(cd ./client-graph; go run github.com/99designs/gqlgen)
+			(cd ./public-graph; go run github.com/99designs/gqlgen)
 main-gen:
-			(cd ./main-graph; go run github.com/99designs/gqlgen)
+			(cd ./private-graph; go run github.com/99designs/gqlgen)
