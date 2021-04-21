@@ -1,3 +1,4 @@
+import { Replayer } from '@highlight-run/rrweb';
 import {
     playerMetaData,
     SessionInterval,
@@ -109,7 +110,8 @@ export enum PlayerSearchParameters {
  * @param setTime Sets the new time in milliseconds.
  */
 export const useSetPlayerTimestampFromSearchParam = (
-    setTime: (newTime: number) => void
+    setTime: (newTime: number) => void,
+    replayer?: Replayer
 ) => {
     const location = useLocation();
 
@@ -135,6 +137,7 @@ export const useSetPlayerTimestampFromSearchParam = (
                     timestampMilliseconds <= sessionDurationMilliseconds
                 ) {
                     setTime(timestampMilliseconds);
+                    replayer?.pause(timestampMilliseconds);
                 }
                 searchParamsObject.delete(PlayerSearchParameters.ts);
             } else if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
@@ -153,13 +156,14 @@ export const useSetPlayerTimestampFromSearchParam = (
                             delta - ERROR_TIMESTAMP_LOOK_BACK_MILLISECONDS
                         );
                         setTime(newTime);
+                        replayer?.pause(newTime);
                         setSelectedErrorId(errorId);
                     }
                 }
                 searchParamsObject.delete(PlayerSearchParameters.errorId);
             }
         },
-        [location.search, setTime]
+        [location.search, replayer, setTime]
     );
 
     return {
