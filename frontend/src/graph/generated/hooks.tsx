@@ -706,6 +706,10 @@ export const CreateSessionCommentDocument = gql`
         $text: String!
         $x_coordinate: Float!
         $y_coordinate: Float!
+        $tagged_admin_emails: [String]!
+        $session_url: String!
+        $time: Float!
+        $author_name: String!
     ) {
         createSessionComment(
             organization_id: $organization_id
@@ -715,6 +719,10 @@ export const CreateSessionCommentDocument = gql`
             text: $text
             x_coordinate: $x_coordinate
             y_coordinate: $y_coordinate
+            tagged_admin_emails: $tagged_admin_emails
+            session_url: $session_url
+            time: $time
+            author_name: $author_name
         ) {
             id
             timestamp
@@ -756,6 +764,10 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      text: // value for 'text'
  *      x_coordinate: // value for 'x_coordinate'
  *      y_coordinate: // value for 'y_coordinate'
+ *      tagged_admin_emails: // value for 'tagged_admin_emails'
+ *      session_url: // value for 'session_url'
+ *      time: // value for 'time'
+ *      author_name: // value for 'author_name'
  *   },
  * });
  */

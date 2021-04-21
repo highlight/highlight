@@ -355,5 +355,9 @@ type Mutation {
         text: String!
         x_coordinate: Float!
         y_coordinate: Float!
+        tagged_admin_emails: [String]!
+        session_url: String!
+        time: Float!
+        author_name: String!
     ): SessionComment
 }

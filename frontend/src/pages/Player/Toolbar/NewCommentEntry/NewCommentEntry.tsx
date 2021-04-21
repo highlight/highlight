@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useContext, useState } from 'react';
 import {
     useCreateSessionCommentMutation,
     useGetAdminQuery,
+    useGetAdminsQuery,
 } from '../../../../graph/generated/hooks';
-import { Input, Form } from 'antd';
+import { Form, Mentions } from 'antd';
+const { Option, getMentions } = Mentions;
 import { useParams } from 'react-router-dom';
 import styles from './NewCommentEntry.module.scss';
 import PrimaryButton from '../../../../components/Button/PrimaryButton/PrimaryButton';
@@ -12,8 +14,7 @@ import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { Coordinates2D } from '../../CommentButton/CommentButton';
 import useLocalStorage from '@rehooks/local-storage';
 import { EventsForTimeline } from '../../PlayerHook/utils';
-
-const { TextArea } = Input;
+import ReplayerContext from '../../ReplayerContext';
 
 interface Props {
     currentTime: number;
@@ -26,6 +27,7 @@ export const NewCommentEntry = ({
     onCloseHandler,
     commentPosition,
 }: Props) => {
+    const { time } = useContext(ReplayerContext);
     const [createComment] = useCreateSessionCommentMutation();
     const { data: admin_data } = useGetAdminQuery({ skip: false });
     const { session_id, organization_id } = useParams<{
@@ -39,8 +41,15 @@ export const NewCommentEntry = ({
     ] = useLocalStorage('highlightTimelineAnnotationTypes', [
         ...EventsForTimeline,
     ]);
+    const { data } = useGetAdminsQuery({
+        variables: { organization_id },
+    });
+    const [mentionedAdmins, setMentionedAdmins] = useState<string[]>([]);
 
     const onFinish = (values: { commentText: string }) => {
+        const taggedAdmins = getMentions(values.commentText).map(
+            (entity) => entity.value
+        );
         createComment({
             variables: {
                 organization_id,
@@ -50,6 +59,13 @@ export const NewCommentEntry = ({
                 admin_id: admin_data?.admin?.id || 'Unknown',
                 x_coordinate: commentPosition?.x || 0,
                 y_coordinate: commentPosition?.y || 0,
+                session_url: `${window.location.origin}${window.location.pathname}`,
+                tagged_admin_emails: taggedAdmins,
+                time: time / 1000,
+                author_name:
+                    admin_data?.admin?.name ||
+                    admin_data?.admin?.email ||
+                    'Someone',
             },
             refetchQueries: ['GetSessionComments'],
         });
@@ -63,18 +79,44 @@ export const NewCommentEntry = ({
         }
     };
 
+    // Watch as new mentions get added. We use this to filter the list of suggested mentions to remove admins who are already mentioned.
+    const onValuesChange = ({ commentText }: { commentText: string }) => {
+        const mentions = getMentions(commentText);
+        setMentionedAdmins(mentions.map((mention) => mention.value));
+    };
+
     return (
-        <Form name="newComment" onFinish={onFinish} form={form}>
+        <Form
+            name="newComment"
+            onFinish={onFinish}
+            onValuesChange={onValuesChange}
+            form={form}
+        >
             <Form.Item name="commentText" wrapperCol={{ span: 24 }}>
-                <TextArea
+                <Mentions
+                    rows={3}
                     maxLength={200}
-                    bordered={false}
                     placeholder={`Add a comment at ${MillisToMinutesAndSeconds(
                         currentTime
                     )}`}
-                    autoSize
                     autoFocus
-                />
+                    notFoundContent={'No users matching search'}
+                >
+                    {data?.admins?.map((admin) => {
+                        if (
+                            admin?.email &&
+                            (mentionedAdmins.includes(admin.email) ||
+                                admin_data?.admin?.email === admin.email)
+                        ) {
+                            return null;
+                        }
+                        return (
+                            <Option value={admin?.email} key={admin?.id}>
+                                {admin?.name || admin?.email}
+                            </Option>
+                        );
+                    })}
+                </Mentions>
             </Form.Item>
             <Form.Item
                 shouldUpdate
