@@ -36,7 +36,7 @@ var (
 	landingURL   = os.Getenv("LANDING_PAGE_URI")
 	sendgridKey  = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey = os.Getenv("STRIPE_API_KEY")
-	runtime      = flag.String("runtime", "dev", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
+	runtime      = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 )
 
 func health(w http.ResponseWriter, r *http.Request) {
