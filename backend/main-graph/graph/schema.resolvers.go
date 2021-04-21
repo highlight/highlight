@@ -530,10 +530,14 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		XCoordinate: xCoordinate,
 		YCoordinate: yCoordinate,
 	}
+	createSessionCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment", tracer.ResourceName("db.createSessionComment"))
 	if err := r.DB.Create(sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session comment")
 	}
+	createSessionCommentSpan.Finish()
 
+	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment", tracer.ResourceName("sendgrid.sendCommentMention"))
+	commentMentionEmailSpan.SetTag("count", len(taggedAdminEmails))
 	if len(taggedAdminEmails) > 0 {
 		for _, email := range taggedAdminEmails {
 			to := &mail.Email{Address: *email}
@@ -560,6 +564,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 			}
 		}
 	}
+	commentMentionEmailSpan.Finish()
 	return sessionComment, nil
 }
 
