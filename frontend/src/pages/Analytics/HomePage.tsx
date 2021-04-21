@@ -156,12 +156,18 @@ const ErrorCountGraph = () => {
                     onSelect={setDateRangeLength}
                 />
             </div>
-            <DailyChart data={errorCountData} />
+            <DailyChart data={errorCountData} lineColor={'#FFB038'} />
         </div>
     );
 };
 
-const DailyChart = ({ data }: { data: Array<DailyCount> }) => {
+const DailyChart = ({
+    data,
+    lineColor = '#5629c6',
+}: {
+    data: Array<DailyCount>;
+    lineColor?: string;
+}) => {
     const gridColor = '#EAEAEA';
     const labelColor = '#111111';
     return (
@@ -209,7 +215,7 @@ const DailyChart = ({ data }: { data: Array<DailyCount> }) => {
                 />
                 <Line
                     dataKey="count"
-                    stroke={'#5629c6'}
+                    stroke={lineColor}
                     strokeWidth={1.5}
                 ></Line>
             </LineChart>
