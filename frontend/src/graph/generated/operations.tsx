@@ -186,8 +186,15 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     session_id: Types.Scalars['ID'];
     session_timestamp: Types.Scalars['Int'];
     text: Types.Scalars['String'];
+    text_for_email: Types.Scalars['String'];
     x_coordinate: Types.Scalars['Float'];
     y_coordinate: Types.Scalars['Float'];
+    tagged_admin_emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+    session_url: Types.Scalars['String'];
+    time: Types.Scalars['Float'];
+    author_name: Types.Scalars['String'];
 }>;
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
