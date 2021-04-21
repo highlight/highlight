@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
-	"github.com/jay-khatri/fullstory/backend/model"
+	modelInputs "github.com/jay-khatri/highlight/backend/main-graph/graph/model"
+	"github.com/jay-khatri/highlight/backend/model"
 	"github.com/k0kubun/pp"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"

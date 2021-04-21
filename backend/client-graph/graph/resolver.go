@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/highlight/backend/model"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"

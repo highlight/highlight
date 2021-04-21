@@ -12,8 +12,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	model1 "github.com/jay-khatri/fullstory/backend/model"
+	"github.com/jay-khatri/highlight/backend/client-graph/graph/model"
+	model1 "github.com/jay-khatri/highlight/backend/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/jay-khatri/fullstory/backend/redis"
+	"github.com/jay-khatri/highlight/backend/model"
+	"github.com/jay-khatri/highlight/backend/redis"
 
 	e "github.com/pkg/errors"
 )
