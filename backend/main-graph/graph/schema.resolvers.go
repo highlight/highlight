@@ -538,7 +538,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		for _, email := range taggedAdminEmails {
 			to := &mail.Email{Address: *email}
 			viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
-			subject := fmt.Sprintf("%v mentioned you in a comment on Session %v", authorName, sessionID)
+			subject := fmt.Sprintf("%v mentioned you on Highlight", authorName)
 			content := fmt.Sprintf(`
 	Hi there, <br><br>
 
