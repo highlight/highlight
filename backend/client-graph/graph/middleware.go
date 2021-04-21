@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"https://github.com/highlight-run/highlight/backend/model"
-	"https://github.com/highlight-run/highlight/backend/redis"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/redis"
 
 	e "github.com/pkg/errors"
 )

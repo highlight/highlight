@@ -12,8 +12,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"https://github.com/highlight-run/highlight/backend/client-graph/graph/model"
-	model1 "https://github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/client-graph/graph/model"
+	model1 "github.com/highlight-run/highlight/backend/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )

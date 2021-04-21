@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/go-test/deep"
-	parse "https://github.com/highlight-run/highlight/backend/event-parse"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 )
 
 func TestCalculateSessionLength(t *testing.T) {

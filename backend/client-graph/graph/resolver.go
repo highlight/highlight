@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"https://github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/model"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
