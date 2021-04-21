@@ -6,14 +6,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jay-khatri/highlight/backend/model"
-	"github.com/jay-khatri/highlight/backend/util"
+	"https://github.com/highlight-run/highlight/backend/model"
+	"https://github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
-	parse "github.com/jay-khatri/highlight/backend/event-parse"
-	mgraph "github.com/jay-khatri/highlight/backend/main-graph/graph"
+	parse "https://github.com/highlight-run/highlight/backend/event-parse"
+	mgraph "https://github.com/highlight-run/highlight/backend/main-graph/graph"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )

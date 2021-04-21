@@ -1,4 +1,4 @@
-module github.com/jay-khatri/highlight/backend
+module https://github.com/highlight-run/highlight/backend
 
 go 1.14
 

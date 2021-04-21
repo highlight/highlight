@@ -4,8 +4,8 @@ import (
 	"os"
 	"time"
 
-	backend "github.com/jay-khatri/highlight/backend/main-graph/graph/model"
-	"github.com/jay-khatri/highlight/backend/model"
+	backend "https://github.com/highlight-run/highlight/backend/main-graph/graph/model"
+	"https://github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/client"
