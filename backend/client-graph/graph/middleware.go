@@ -11,7 +11,7 @@ import (
 	e "github.com/pkg/errors"
 )
 
-func ClientMiddleWare(next http.Handler) http.Handler {
+func PublicMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		session, _ := redis.Store.Get(r, "highlight-session")
 		// If the session is new (or empty), create a brand new user.
