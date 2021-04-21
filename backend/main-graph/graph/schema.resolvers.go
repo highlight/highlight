@@ -24,6 +24,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -852,10 +853,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	fieldsSpan.Finish()
-	sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsQuery"))
-
-	//find all session with those fields (if any)
-	queriedSessions := []model.Session{}
 
 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed"
 	joinClause := "FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows"
@@ -956,21 +953,35 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += "AND (id != id) "
 	}
 
-	// Filter out sessions that are processed but have a length of 0. In this case the player won't work because there are no events to replay.
-	whereClause += "AND NOT ((processed = true AND length = 0)) "
-
-	if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
-		return nil, e.Wrap(err, "error querying filtered sessions")
-	}
-
-	sessionsSpan.Finish()
-
-	sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsCountQuery"))
+	var g errgroup.Group
+	queriedSessions := []model.Session{}
 	var queriedSessionsCount model.SessionCount
-	if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s", joinClause, whereClause)).Scan(&queriedSessionsCount).Error; err != nil {
-		return nil, e.Wrap(err, "error querying filtered sessions count")
+
+	g.Go(func() error {
+		// Filter out sessions that are processed but have a length of 0. In this case the player won't work because there are no events to replay.
+		whereClause += "AND NOT ((processed = true AND length = 0)) "
+		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsQuery"))
+
+		if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
+			return e.Wrap(err, "error querying filtered sessions")
+		}
+		sessionsSpan.Finish()
+		return nil
+	})
+
+	g.Go(func() error {
+		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsCountQuery"))
+		if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s", joinClause, whereClause)).Scan(&queriedSessionsCount).Error; err != nil {
+			return e.Wrap(err, "error querying filtered sessions count")
+		}
+		sessionCountSpan.Finish()
+		return nil
+	})
+
+	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
+	if err := g.Wait(); err != nil {
+		return nil, e.Wrap(err, "error querying session data")
 	}
-	sessionCountSpan.Finish()
 
 	sessionList := &model.SessionResults{
 		Sessions:   queriedSessions,
