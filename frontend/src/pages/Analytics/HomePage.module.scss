@@ -4,34 +4,34 @@
 
 .dashboard {
     margin: 120px 80px 80px 80px;
-    word-break: break-word;
-    display: flex;
-    justify-content: space-between;
-    flex-direction: column;
 }
 
 .title {
-    font-size: 26px;
-    margin-bottom: 10px;
+    font-size: 28px;
     font-weight: 400;
-    display: inline-block;
-    margin-right: 10px;
-    max-width: 400px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .subTitle {
+    margin-top: 12px;
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+.chartHeaderWrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px 30px 10px;
+}
+
+.chartTitle {
     font-size: 20px;
-    color: black;
-    margin-bottom: 16px;
-    font-weight: 300;
+    font-weight: 400;
 }
 
 .graphSection {
     flex-direction: column;
-    padding: 30px 15px 20px 15px;
+    padding: 20px 15px 20px 15px;
 }
 
 .section {
@@ -41,4 +41,13 @@
     transition: 0.4s;
     display: flex;
     width: 100%;
+}
+
+.dashboardBody {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(400px, 1fr) minmax(400px, 1fr);
+    gap: 0px 0px;
+    grid-template-areas: 'Left-Panel Right-Panel';
+    column-gap: 30px;
 }
