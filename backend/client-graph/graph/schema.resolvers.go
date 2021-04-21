@@ -186,25 +186,6 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	}
 	unmarshalResourcesSpan.Finish()
 
-	// increment daily error table
-	if len(errors) > 0 {
-		n := time.Now()
-		dailyError := &model.DailyErrorCount{}
-		currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
-		if err := r.DB.Where(&model.DailyErrorCount{
-			OrganizationID: organizationID,
-			Date:           &currentDate,
-		}).Attrs(&model.DailyErrorCount{
-			Count: 0,
-		}).FirstOrCreate(&dailyError).Error; err != nil {
-			return nil, e.Wrap(err, "Error creating new daily error")
-		}
-
-		if err := r.DB.Exec("UPDATE daily_error_counts SET count = count + ? WHERE date = ? AND organization_id = ?", len(errors), currentDate, organizationID).Error; err != nil {
-			return nil, e.Wrap(err, "Error incrementing error count in db")
-		}
-	}
-
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("db.errors"))
 	for _, v := range errors {
@@ -241,7 +222,6 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
 		}
-
 		// Send a slack message if we're not on localhost.
 		if !strings.Contains(errorToInsert.URL, "localhost") {
 			if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL); err != nil {

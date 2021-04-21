@@ -334,26 +334,3 @@ query IsIntegrated($organization_id: ID!) {
 query UnprocessedSessionsCount($organization_id: ID!) {
     unprocessedSessionsCount(organization_id: $organization_id)
 }
-
-query GetDailySessionsCount(
-    $organization_id: ID!
-    $date_range: DateRangeInput!
-) {
-    dailySessionsCount(
-        organization_id: $organization_id
-        date_range: $date_range
-    ) {
-        date
-        count
-    }
-}
-
-query GetDailyErrorsCount($organization_id: ID!, $date_range: DateRangeInput!) {
-    dailyErrorsCount(
-        organization_id: $organization_id
-        date_range: $date_range
-    ) {
-        date
-        count
-    }
-}
