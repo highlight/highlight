@@ -217,6 +217,20 @@ type Segment struct {
 	OrganizationID int
 }
 
+type DailySessionCount struct {
+	Model
+	Date           *time.Time `json:"date"`
+	Count          int64      `json:"count"`
+	OrganizationID int
+}
+
+type DailyErrorCount struct {
+	Model
+	Date           *time.Time `json:"date"`
+	Count          int64      `json:"count"`
+	OrganizationID int
+}
+
 func (s *SearchParams) GormDataType() string {
 	out, err := json.Marshal(s)
 	if err != nil {
@@ -354,6 +368,8 @@ func SetupDB() *gorm.DB {
 		&Admin{},
 		&User{},
 		&Session{},
+		&DailySessionCount{},
+		&DailyErrorCount{},
 		&Field{},
 		&EmailSignup{},
 		&ResourcesObject{},

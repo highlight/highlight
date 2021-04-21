@@ -803,3 +803,35 @@ export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
     'unprocessedSessionsCount'
 >;
+
+export type GetDailySessionsCountQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    date_range: Types.DateRangeInput;
+}>;
+
+export type GetDailySessionsCountQuery = { __typename?: 'Query' } & {
+    dailySessionsCount: Array<
+        Types.Maybe<
+            { __typename?: 'DailySessionCount' } & Pick<
+                Types.DailySessionCount,
+                'date' | 'count'
+            >
+        >
+    >;
+};
+
+export type GetDailyErrorsCountQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    date_range: Types.DateRangeInput;
+}>;
+
+export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
+    dailyErrorsCount: Array<
+        Types.Maybe<
+            { __typename?: 'DailyErrorCount' } & Pick<
+                Types.DailyErrorCount,
+                'date' | 'count'
+            >
+        >
+    >;
+};
