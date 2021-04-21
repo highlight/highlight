@@ -50,6 +50,7 @@ export const Player = () => {
         time,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
+    const newCommentModalRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [showRightPanelPreference] = useLocalStorage(
@@ -199,13 +200,16 @@ export const Player = () => {
                         <div className={styles.commentModal}>{node}</div>
                     )}
                 >
-                    <NewCommentEntry
-                        currentTime={Math.floor(time)}
-                        onCloseHandler={() => {
-                            setCommentModalPosition(undefined);
-                        }}
-                        commentPosition={commentPosition}
-                    />
+                    <div ref={newCommentModalRef}>
+                        <NewCommentEntry
+                            currentTime={Math.floor(time)}
+                            onCloseHandler={() => {
+                                setCommentModalPosition(undefined);
+                            }}
+                            commentPosition={commentPosition}
+                            parentRef={newCommentModalRef}
+                        />
+                    </div>
                 </Modal>
             </div>
         </ReplayerContext.Provider>

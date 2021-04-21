@@ -22,12 +22,14 @@ interface Props {
     currentTime: number;
     onCloseHandler: () => void;
     commentPosition: Coordinates2D | undefined;
+    parentRef?: React.RefObject<HTMLDivElement>;
 }
 
 export const NewCommentEntry = ({
     currentTime,
     onCloseHandler,
     commentPosition,
+    parentRef,
 }: Props) => {
     const { time } = useContext(ReplayerContext);
     const [createComment] = useCreateSessionCommentMutation();
@@ -132,6 +134,7 @@ export const NewCommentEntry = ({
                         )}`}
                         suggestions={adminSuggestions}
                         onDisplayTransformHandler={onDisplayTransform}
+                        suggestionsPortalHost={parentRef?.current as Element}
                     />
                 </div>
             </Form.Item>
