@@ -6,6 +6,7 @@ import { useSendEmailSignupMutation } from '../../graph/generated/hooks';
 import styles from './RequestAccess.module.scss';
 import commonStyles from '../../Common.module.scss';
 import { message } from 'antd';
+import Button from '../../components/Button/Button/Button';
 
 type Inputs = {
     email: string;
@@ -50,7 +51,11 @@ export const RequestAccessPage = () => {
                 <div className={commonStyles.errorMessage}>
                     {errors.email && 'Error with email ' + errors.email.message}
                 </div>
-                <button className={commonStyles.submitButton} type="submit">
+                <Button
+                    className={commonStyles.submitButton}
+                    type="primary"
+                    htmlType="submit"
+                >
                     {loading ? (
                         <CircularSpinner
                             style={{ fontSize: 18, color: 'white' }}
@@ -58,7 +63,7 @@ export const RequestAccessPage = () => {
                     ) : (
                         'Request Access'
                     )}
-                </button>
+                </Button>
             </form>
         </div>
     );

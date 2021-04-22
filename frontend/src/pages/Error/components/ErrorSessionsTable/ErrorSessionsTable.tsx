@@ -6,6 +6,7 @@ import { PlayerSearchParameters } from '../../../Player/PlayerHook/utils';
 import styles from '../../ErrorPage.module.scss';
 import commonStyles from '../../../../Common.module.scss';
 import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
+import Button from '../../../../components/Button/Button/Button';
 
 interface Props {
     errorGroup: Maybe<ErrorGroup> | undefined;
@@ -85,7 +86,7 @@ const ErrorSessionsTable = ({ errorGroup }: Props) => {
                         {errorGroup?.metadata_log.length &&
                             errorActivityCount <
                                 errorGroup?.metadata_log.length && (
-                                <button
+                                <Button
                                     onClick={() =>
                                         setErrorActivityCount(
                                             errorActivityCount + 20
@@ -97,7 +98,7 @@ const ErrorSessionsTable = ({ errorGroup }: Props) => {
                                     )}
                                 >
                                     Show more...
-                                </button>
+                                </Button>
                             )}
                     </div>
                 </div>

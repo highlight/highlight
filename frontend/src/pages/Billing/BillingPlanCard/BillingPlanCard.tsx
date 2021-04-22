@@ -3,6 +3,7 @@ import commonStyles from '../../../Common.module.scss';
 import styles from './BillingPlanCard.module.scss';
 import { BillingPlan } from './BillingConfig';
 import classNames from 'classnames/bind';
+import Button from '../../../components/Button/Button/Button';
 
 export const BillingPlanCard = ({
     billingPlan,
@@ -36,20 +37,11 @@ export const BillingPlanCard = ({
                 {advertisedFeatureDivs}
             </div>
 
-            <button
-                type="submit"
-                className={
-                    current
-                        ? commonStyles.submitButton
-                        : commonStyles.secondaryButton
-                }
-                disabled={current}
-                onClick={onSelect}
-            >
+            <Button disabled={current} onClick={onSelect}>
                 {current
                     ? 'Current plan'
                     : `Select ${billingPlan.planName} Plan`}
-            </button>
+            </Button>
         </div>
     );
 };

@@ -4,6 +4,7 @@ import commonStyles from '../../../Common.module.scss';
 import { useParams } from 'react-router-dom';
 import { CircularSpinner } from '../../../components/Loading/Loading';
 import { message } from 'antd';
+import Button from '../../../components/Button/Button/Button';
 
 export const ResolveErrorButton: React.FC<{
     resolved: boolean;
@@ -12,7 +13,8 @@ export const ResolveErrorButton: React.FC<{
     const { error_id } = useParams<{ error_id: string }>();
     const [markErrorGroupAsResolved] = useMarkErrorGroupAsResolvedMutation();
     return (
-        <button
+        <Button
+            type="primary"
             onClick={() => {
                 markErrorGroupAsResolved({
                     variables: {
@@ -41,6 +43,6 @@ export const ResolveErrorButton: React.FC<{
             ) : (
                 'Mark as Resolved'
             )}
-        </button>
+        </Button>
     );
 };
