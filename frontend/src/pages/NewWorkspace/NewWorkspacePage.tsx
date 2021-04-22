@@ -7,6 +7,7 @@ import { client } from '../../util/graph';
 import styles from './NewWorkspace.module.scss';
 import commonStyles from '../../Common.module.scss';
 import { useCreateOrganizationMutation } from '../../graph/generated/hooks';
+import Button from '../../components/Button/Button/Button';
 
 type Inputs = {
     name: string;
@@ -55,7 +56,11 @@ export const NewWorkspacePage = () => {
                     {errors.name &&
                         'Error with workspace name ' + errors.name.message}
                 </div>
-                <button className={commonStyles.submitButton} type="submit">
+                <Button
+                    type="primary"
+                    className={commonStyles.submitButton}
+                    htmlType="submit"
+                >
                     {loading ? (
                         <CircularSpinner
                             style={{ fontSize: 18, color: 'white' }}
@@ -63,7 +68,7 @@ export const NewWorkspacePage = () => {
                     ) : (
                         'Create Workspace'
                     )}
-                </button>
+                </Button>
             </form>
         </div>
     );

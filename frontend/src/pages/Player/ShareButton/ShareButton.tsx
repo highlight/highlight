@@ -1,6 +1,6 @@
 import { message } from 'antd';
 import React, { useContext } from 'react';
-import PrimaryButton from '../../../components/Button/PrimaryButton/PrimaryButton';
+import Button from '../../../components/Button/Button/Button';
 import ReplayerContext from '../ReplayerContext';
 import styles from './ShareButton.module.scss';
 import { onGetLinkWithTimestamp } from './utils/utils';
@@ -15,9 +15,9 @@ const ShareButton = () => {
     };
 
     return (
-        <PrimaryButton onClick={onClickHandler} className={styles.shareButton}>
+        <Button onClick={onClickHandler} className={styles.shareButton}>
             Share
-        </PrimaryButton>
+        </Button>
     );
 };
 

@@ -22,14 +22,8 @@
     display: flex;
     outline: none;
     align-items: center;
-    font-weight: 300;
     justify-content: center;
-    border: none;
-    cursor: pointer;
-    background-color: #5629c6;
-    border-radius: 8px;
     min-height: 40px;
-    color: white;
     margin: 8px 0px 8px 0px;
 }
 
@@ -40,15 +34,7 @@
 
 .secondaryButton {
     width: 100%;
-    cursor: pointer;
-    border: none;
-    border-radius: 8px;
-    font-weight: 300;
-    min-height: 40px;
-    color: black;
     margin: 8px 0px 8px 0px;
-    background-color: white;
-    border: 1px solid #dbdbdb;
     display: flex;
     align-items: center;
     justify-content: center;

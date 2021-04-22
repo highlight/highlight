@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { auth } from '../../util/auth';
 import { client } from '../../util/graph';
-import PrimaryButton from '../Button/PrimaryButton/PrimaryButton';
-import SecondaryButton from '../Button/SecondaryButton/SecondaryButton';
+import Button from '../Button/Button/Button';
 
 import styles from './ErrorState.module.scss';
 
@@ -30,9 +29,9 @@ export const ErrorState = ({
                 {showError && <p className={styles.errorBody}>{errorString}</p>}
                 <div className={styles.buttonGroup}>
                     <a href={'https://app.highlight.run'}>
-                        <PrimaryButton>Go to my Account</PrimaryButton>
+                        <Button>Go to my Account</Button>
                     </a>
-                    <SecondaryButton
+                    <Button
                         style={{ marginLeft: 10 }}
                         onClick={async () => {
                             try {
@@ -44,7 +43,7 @@ export const ErrorState = ({
                         }}
                     >
                         Login as a different User
-                    </SecondaryButton>
+                    </Button>
                 </div>
             </div>
         </div>

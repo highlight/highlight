@@ -12,6 +12,7 @@ import {
     useEditOrganizationMutation,
     useGetOrganizationQuery,
 } from '../../../graph/generated/hooks';
+import Button from '../../../components/Button/Button/Button';
 
 type Inputs = {
     name: string;
@@ -76,8 +77,9 @@ export const FieldsForm = () => {
             </div>
             <div className={styles.fieldRow}>
                 <div className={styles.fieldKey} />
-                <button
-                    type="submit"
+                <Button
+                    htmlType="submit"
+                    type="primary"
                     className={classNames(
                         commonStyles.submitButton,
                         styles.saveButton
@@ -90,7 +92,7 @@ export const FieldsForm = () => {
                     ) : (
                         'Save'
                     )}
-                </button>
+                </Button>
             </div>
         </form>
     );

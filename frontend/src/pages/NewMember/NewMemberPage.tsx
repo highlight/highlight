@@ -10,6 +10,7 @@ import {
     useAddAdminToOrganizationMutation,
     useGetAdminQuery,
 } from '../../graph/generated/hooks';
+import Button from '../../components/Button/Button/Button';
 
 export const NewMemberPage = () => {
     const { invite_id, organization_id } = useParams<{
@@ -36,7 +37,8 @@ export const NewMemberPage = () => {
                 Would you like to enter this workspace as '
                 {adminData?.admin?.email}' ?
             </div>
-            <button
+            <Button
+                type="primary"
                 className={commonStyles.submitButton}
                 onClick={() => {
                     addAdmin({
@@ -54,8 +56,8 @@ export const NewMemberPage = () => {
                 ) : (
                     'Enter Workspace'
                 )}
-            </button>
-            <button
+            </Button>
+            <Button
                 className={commonStyles.secondaryButton}
                 style={{ marginTop: 16 }}
                 onClick={() => {
@@ -64,7 +66,7 @@ export const NewMemberPage = () => {
                 }}
             >
                 Login as different User
-            </button>
+            </Button>
         </div>
     );
 };

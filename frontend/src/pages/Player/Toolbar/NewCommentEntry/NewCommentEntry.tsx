@@ -7,8 +7,6 @@ import {
 import { Form } from 'antd';
 import { useParams } from 'react-router-dom';
 import styles from './NewCommentEntry.module.scss';
-import PrimaryButton from '../../../../components/Button/PrimaryButton/PrimaryButton';
-import SecondaryButton from '../../../../components/Button/SecondaryButton/SecondaryButton';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
 import { Coordinates2D } from '../../CommentButton/CommentButton';
 import useLocalStorage from '@rehooks/local-storage';
@@ -17,6 +15,7 @@ import ReplayerContext from '../../ReplayerContext';
 import { H } from 'highlight.run';
 import { SuggestionDataItem, OnChangeHandlerFunc } from 'react-mentions';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
+import Button from '../../../../components/Button/Button/Button';
 
 interface Props {
     currentTime: number;
@@ -146,21 +145,21 @@ export const NewCommentEntry = ({
                 {/* This Form.Item by default are optimized to not rerender the children. For this child however, we want to rerender on every form change to change the disabled state of the button. See https://ant.design/components/form/#shouldUpdate */}
                 {() => (
                     <div className={styles.actionButtons}>
-                        <SecondaryButton
-                            type="button"
+                        <Button
+                            htmlType="button"
                             onClick={() => {
                                 onCloseHandler();
                                 form.resetFields();
                             }}
                         >
                             Cancel
-                        </SecondaryButton>
-                        <PrimaryButton
-                            type="submit"
+                        </Button>
+                        <Button
+                            type="primary"
                             disabled={commentText.length === 0}
                         >
                             Post
-                        </PrimaryButton>
+                        </Button>
                     </div>
                 )}
             </Form.Item>

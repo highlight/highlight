@@ -13,6 +13,8 @@ import { auth, googleProvider } from '../../util/auth';
 import { Home } from '../Home/Home';
 import { RequestAccessPage } from '../RequestAccess/RequestAccess';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
+import Button from '../../components/Button/Button/Button';
+import classNames from 'classnames';
 
 export const AuthAdminRouter = () => {
     const { loading, error, data } = useGetAdminQuery();
@@ -35,8 +37,8 @@ export const AuthAdminRouter = () => {
         return (
             <ErrorState
                 message={`
-        Seems like you we had issue with your login 😢. 
-        Feel free to log out and try again, or otherwise, 
+        Seems like you we had issue with your login 😢.
+        Feel free to log out and try again, or otherwise,
         get in contact with us!
         `}
                 errorString={'AuthAdminRouter error: ' + JSON.stringify(error)}
@@ -198,18 +200,22 @@ export const LoginForm = () => {
                         <div className={commonStyles.errorMessage}>
                             {errors.password && errors.password.message}
                         </div>
-                        <button
+                        <Button
                             className={commonStyles.submitButton}
-                            type="submit"
+                            type="primary"
+                            htmlType="submit"
                         >
                             {signIn ? 'Sign In' : 'Sign Up'}
-                        </button>
+                        </Button>
                     </form>
                     <div className={styles.otherSigninText}>
                         or sign {signIn ? 'in' : 'up'} with
                     </div>
-                    <div
-                        className={commonStyles.secondaryButton}
+                    <Button
+                        className={classNames(
+                            commonStyles.secondaryButton,
+                            styles.googleButton
+                        )}
                         onClick={() => {
                             auth.signInWithRedirect(googleProvider).catch((e) =>
                                 setFirebaseError(JSON.stringify(e))
@@ -220,7 +226,7 @@ export const LoginForm = () => {
                         <span className={styles.googleText}>
                             Google Sign {signIn ? 'In' : 'Up'}
                         </span>
-                    </div>
+                    </Button>
                     <div className={commonStyles.errorMessage}>
                         {firebaseError}
                     </div>

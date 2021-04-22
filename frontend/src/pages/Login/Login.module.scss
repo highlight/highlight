@@ -67,3 +67,9 @@
 .googleText {
     margin-left: 10px;
 }
+
+.googleButton {
+    display: flex;
+    align-items: center;
+    color: var(--color-text-primary);
+}
