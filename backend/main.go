@@ -19,6 +19,9 @@ import (
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
+	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
+	public "github.com/highlight-run/highlight/backend/public-graph/graph"
+	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	rd "github.com/highlight-run/highlight/backend/redis"
 	log "github.com/sirupsen/logrus"
 
@@ -123,14 +126,14 @@ func main() {
 			privateEndpoint = "/"
 		}
 		r.Route(privateEndpoint, func(r chi.Router) {
-			r.Use(mgraph.PrivateMiddleware)
-			mainServer := ghandler.NewDefaultServer(mgenerated.NewExecutableSchema(
-				mgenerated.Config{
-					Resolvers: main,
+			r.Use(private.PrivateMiddleware)
+			privateServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
+				privategen.Config{
+					Resolvers: privateResolver,
 				}),
 			)
-			mainServer.Use(util.NewTracer(util.PrivateGraph))
-			r.Handle("/", mainServer)
+			privateServer.Use(util.NewTracer(util.PrivateGraph))
+			r.Handle("/", privateServer)
 		})
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
@@ -139,10 +142,10 @@ func main() {
 			publicEndpoint = "/"
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
-			r.Use(cgraph.PublicMiddleware)
-			clientServer := ghandler.NewDefaultServer(cgenerated.NewExecutableSchema(
-				cgenerated.Config{
-					Resolvers: &cgraph.Resolver{
+			r.Use(public.PublicMiddleware)
+			clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
+				publicgen.Config{
+					Resolvers: &public.Resolver{
 						DB: db,
 					},
 				}))
@@ -158,10 +161,10 @@ func main() {
 		For anything else, just run the server.
 	*/
 	if runtimeParsed == util.Worker {
-		w := &worker.Worker{R: main}
+		w := &worker.Worker{R: privateResolver}
 		w.Start()
 	} else if runtimeParsed == util.All {
-		w := &worker.Worker{R: main}
+		w := &worker.Worker{R: privateResolver}
 		go func() {
 			w.Start()
 		}()
