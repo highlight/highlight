@@ -56,13 +56,13 @@ func health(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateOrigin(request *http.Request, origin string) bool {
-	if path := request.URL.Path; path == "/private" {
+	if runtimeParsed == util.PrivateGraph {
 		// From the highlight frontend, only the url is whitelisted.
 		isPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
 		if origin == frontendURL || origin == landingURL || isPreviewEnv {
 			return true
 		}
-	} else if path == "/client" {
+	} else if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
 		return true
 	}
 	return false
