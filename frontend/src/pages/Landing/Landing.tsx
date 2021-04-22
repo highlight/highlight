@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import styles from './Home.module.scss';
+import styles from './Landing.module.scss';
 import { ReactComponent as Humans } from '../../static/human-image.svg';
 import { ReactComponent as Logos } from '../../static/logos.svg';
 import { ReactComponent as ArrowRight } from '../../static/arrow-right.svg';
@@ -156,4 +156,4 @@ const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
     );
 };
 
-export const Home = withRouter(HomeInternal);
+export const Landing = withRouter(HomeInternal);

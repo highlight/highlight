@@ -13,7 +13,7 @@ import {
 } from 'react-router-dom';
 import { OrgRouter } from '../OrgRouter/OrgRouter';
 import { useGetOrganizationsQuery } from '../../graph/generated/hooks';
-import { Home } from '../../pages/Home/Home';
+import { Landing } from '../../pages/Landing/Landing';
 import InternalRouter from '../InternalRouter/InternalRouter';
 
 export const AppRouter = () => {
@@ -36,14 +36,14 @@ export const AppRouter = () => {
             <Router>
                 <Switch>
                     <Route path="/:organization_id/invite/:invite_id">
-                        <Home>
+                        <Landing>
                             <NewMemberPage />
-                        </Home>
+                        </Landing>
                     </Route>
                     <Route path="/new">
-                        <Home>
+                        <Landing>
                             <NewWorkspacePage />
-                        </Home>
+                        </Landing>
                     </Route>
                     <Route path="/_internal">
                         <InternalRouter />
