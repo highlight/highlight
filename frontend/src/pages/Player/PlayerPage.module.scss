@@ -179,14 +179,6 @@
     padding-right: 30px;
 }
 
-.playerLeftTopSection {
-    display: flex;
-    gap: $size-xSmall;
-    padding: $size-xSmall $size-small;
-    align-items: center;
-    justify-content: space-between;
-}
-
 .commentModal {
     & > div {
         box-shadow: var(--box-shadow);
