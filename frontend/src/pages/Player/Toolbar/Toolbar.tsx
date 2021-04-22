@@ -82,7 +82,8 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const [lastCanvasPreview, setLastCanvasPreview] = useState(0);
     const isPaused =
         state === ReplayerState.Paused ||
-        state === ReplayerState.LoadedAndUntouched;
+        state === ReplayerState.LoadedAndUntouched ||
+        state === ReplayerState.LoadedWithDeepLink;
 
     useEffect(() => {
         onResize();
@@ -104,16 +105,14 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
-        if (
-            autoPlayVideo &&
-            replayer &&
-            state === ReplayerState.LoadedAndUntouched
-        ) {
-            setTimeout(() => {
+        if (autoPlayVideo && replayer) {
+            if (state === ReplayerState.LoadedAndUntouched) {
                 play(time);
-            }, 100);
+            } else if (state === ReplayerState.LoadedWithDeepLink) {
+                pause(time);
+            }
         }
-    }, [autoPlayVideo, replayer, time, play, state]);
+    }, [autoPlayVideo, replayer, time, play, state, pause]);
 
     const endLogger = (e: any) => {
         let newTime = (e.x / wrapperWidth) * max;

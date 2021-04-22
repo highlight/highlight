@@ -54,10 +54,10 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
     const [sessionIntervals, setSessionIntervals] = useState<
         Array<ParsedSessionInterval>
     >([]);
-    const { setPlayerTimestamp } = useSetPlayerTimestampFromSearchParam(
-        setTime,
-        replayer
-    );
+    const {
+        setPlayerTimestamp,
+        hasSearchParam,
+    } = useSetPlayerTimestampFromSearchParam(setTime, replayer);
 
     const { demo } = useContext(DemoContext);
     const sessionId = demo
@@ -159,7 +159,11 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                         )
                     );
                     setSessionEndTime(replayer.getMetaData().totalTime);
-                    setState(ReplayerState.LoadedAndUntouched);
+                    setState(
+                        hasSearchParam
+                            ? ReplayerState.LoadedWithDeepLink
+                            : ReplayerState.LoadedAndUntouched
+                    );
                     console.timeEnd('LoadingEvents');
                     setPlayerTimestamp(
                         replayer.getMetaData().totalTime,
@@ -178,7 +182,14 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                 cancelAnimationFrame(timerId);
             };
         }
-    }, [errors, events, events.length, replayer, setPlayerTimestamp]);
+    }, [
+        errors,
+        events,
+        events.length,
+        hasSearchParam,
+        replayer,
+        setPlayerTimestamp,
+    ]);
 
     useEffect(() => {
         if (
@@ -250,6 +261,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                 return;
             case ReplayerState.Paused:
             case ReplayerState.LoadedAndUntouched:
+            case ReplayerState.LoadedWithDeepLink:
                 pause(newTime);
                 return;
 

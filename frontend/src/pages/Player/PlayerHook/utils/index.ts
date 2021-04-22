@@ -3,7 +3,7 @@ import {
     playerMetaData,
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router';
 import {
     ErrorObject,
@@ -114,6 +114,7 @@ export const useSetPlayerTimestampFromSearchParam = (
     replayer?: Replayer
 ) => {
     const location = useLocation();
+    const [hasSearchParam, setHasSearchParam] = useState(false);
 
     const setPlayerTimestamp = useCallback(
         (
@@ -139,7 +140,7 @@ export const useSetPlayerTimestampFromSearchParam = (
                     setTime(timestampMilliseconds);
                     replayer?.pause(timestampMilliseconds);
                 }
-                searchParamsObject.delete(PlayerSearchParameters.ts);
+                setHasSearchParam(true);
             } else if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
                 const errorId = searchParamsObject.get(
                     PlayerSearchParameters.errorId
@@ -160,7 +161,7 @@ export const useSetPlayerTimestampFromSearchParam = (
                         setSelectedErrorId(errorId);
                     }
                 }
-                searchParamsObject.delete(PlayerSearchParameters.errorId);
+                setHasSearchParam(true);
             }
         },
         [location.search, replayer, setTime]
@@ -171,6 +172,8 @@ export const useSetPlayerTimestampFromSearchParam = (
          * Sets the player's time based on the search parameter "ts".
          */
         setPlayerTimestamp,
+        /** Whether the current page had a search param that needed to be handled. */
+        hasSearchParam,
     };
 };
 
