@@ -117,6 +117,49 @@ mutation CreateSegment(
     }
 }
 
+mutation CreateSessionComment(
+    $organization_id: ID!
+    $admin_id: ID!
+    $session_id: ID!
+    $session_timestamp: Int!
+    $text: String!
+    $text_for_email: String!
+    $x_coordinate: Float!
+    $y_coordinate: Float!
+    $tagged_admin_emails: [String]!
+    $session_url: String!
+    $time: Float!
+    $author_name: String!
+) {
+    createSessionComment(
+        organization_id: $organization_id
+        admin_id: $admin_id
+        session_id: $session_id
+        session_timestamp: $session_timestamp
+        text: $text
+        text_for_email: $text_for_email
+        x_coordinate: $x_coordinate
+        y_coordinate: $y_coordinate
+        tagged_admin_emails: $tagged_admin_emails
+        session_url: $session_url
+        time: $time
+        author_name: $author_name
+    ) {
+        id
+        timestamp
+        created_at
+        updated_at
+        author {
+            id
+            name
+            email
+        }
+        text
+        x_coordinate
+        y_coordinate
+    }
+}
+
 mutation DeleteErrorSegment($segment_id: ID!) {
     deleteErrorSegment(segment_id: $segment_id)
 }

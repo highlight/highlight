@@ -36,6 +36,23 @@ query GetAdmins($organization_id: ID!) {
     }
 }
 
+query GetSessionComments($session_id: ID!) {
+    session_comments(session_id: $session_id) {
+        id
+        timestamp
+        created_at
+        updated_at
+        text
+        author {
+            id
+            name
+            email
+        }
+        x_coordinate
+        y_coordinate
+    }
+}
+
 mutation SendAdminInvite($organization_id: ID!, $email: String!) {
     sendAdminInvite(organization_id: $organization_id, email: $email)
 }

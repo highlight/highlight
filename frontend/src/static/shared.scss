@@ -1,4 +1,7 @@
 :root {
+    --color-purple-200: #f2eefb;
+    --color-purple-300: #bea8f1;
+    --color-purple-400: #937ccc;
     --color-purple-light: #bb6bd9;
     --color-purple: #5629c6;
     --color-blue-light: #56ccf2;
@@ -12,11 +15,13 @@
     --color-orange-500: #c67e29;
     --color-red: #eb5757;
     --color-gray-200: #f2f2f2;
-    --color-gray-300: #e0e0e0;
+    --color-gray-300: #eaeaea;
     --color-gray-400: #bdbdbd;
     --color-gray-500: #828282;
     --color-gray-600: #4f4f4f;
+    --color-black: #111111;
 
+    --color-primary-background: #ffffff;
     --text-primary-inverted: #ffffff;
 
     --size-xxLarge: 48px;
@@ -26,6 +31,13 @@
     --size-small: 12px;
     --size-xSmall: 8px;
     --size-xxSmall: 4px;
+
+    --box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
+
+    --font-family: AvenirNext, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+        'Noto Sans', sans-serif;
+
+    --button-border-radius: 5px;
 }
 
 // colors
@@ -62,6 +74,7 @@ $size-xxSmall: 4px;
 $disabled-button: #bfbfbf;
 $button-primary-hover: #5327be;
 $button-primary-active: #401f94;
+$button-primary-disabled: #2f2549;
 
 $button-transparent-resting: transparent;
 $button-transparent-hover: rgba(239, 239, 239, 0.49);

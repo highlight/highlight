@@ -6,7 +6,7 @@ import React, {
     useCallback,
 } from 'react';
 import { useParams } from 'react-router-dom';
-import { Option, DevToolsSelect } from '../Option/Option';
+import { Option } from '../Option/Option';
 import Skeleton from 'react-loading-skeleton';
 
 import devStyles from '../DevToolsWindow.module.scss';
@@ -135,7 +135,7 @@ export const ResourcePage = ({
     }, [currentResource, scrollFunction, isInteractingWithResources]);
 
     return (
-        <>
+        <div className={styles.resourcePageWrapper}>
             <div className={devStyles.topBar}>
                 <div className={devStyles.optionsWrapper}>
                     {options.map((o: string, i: number) => {
@@ -149,7 +149,6 @@ export const ResourcePage = ({
                         );
                     })}
                 </div>
-                <DevToolsSelect />
             </div>
             <div className={styles.networkTableWrapper}>
                 {loading ? (
@@ -214,7 +213,7 @@ export const ResourcePage = ({
                     </>
                 )}
             </div>
-        </>
+        </div>
     );
 };
 

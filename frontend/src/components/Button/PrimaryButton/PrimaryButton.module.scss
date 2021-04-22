@@ -12,12 +12,16 @@
     cursor: pointer;
     line-height: initial;
 
-    &:hover,
-    &:focus {
+    &:hover {
         background-color: $button-primary-hover;
     }
 
     &:active {
         background-color: $button-primary-active;
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        background-color: var(--color-gray-600);
     }
 }

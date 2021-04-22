@@ -1,0 +1,31 @@
+.commentButton {
+    --comment-indicator-height: 23px;
+    --comment-indicator-width: 16px;
+
+    border: none;
+    background: transparent;
+    outline: none;
+    position: absolute;
+    z-index: 1;
+    padding: 0;
+    user-select: text;
+    cursor: url('/static/comment-pin.png') 10 25, crosshair;
+}
+
+.commentIndicator {
+    height: var(--comment-indicator-height);
+    width: var(--comment-indicator-width);
+    position: absolute;
+    transform: scale(0);
+    animation: grow 0.2s forwards;
+}
+
+@keyframes grow {
+    0% {
+        transform: scale(0);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}

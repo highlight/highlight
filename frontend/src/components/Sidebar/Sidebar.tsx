@@ -130,7 +130,7 @@ const StaticSidebar = () => {
                     <CreditCardIcon className={styles.icon} />
                 </MiniSidebarItem>
             </div>
-            <div style={{ width: 65, height: '100%' }} />
+            <div style={{ paddingLeft: 62, height: '100%' }} />
         </>
     );
 };

@@ -1,15 +1,20 @@
+import { Replayer } from '@highlight-run/rrweb';
 import {
     playerMetaData,
     SessionInterval,
 } from '@highlight-run/rrweb/dist/types';
 import { useCallback } from 'react';
 import { useLocation } from 'react-router';
-import { ErrorObject } from '../../../../graph/generated/schemas';
+import {
+    ErrorObject,
+    SessionComment,
+} from '../../../../graph/generated/schemas';
 import { HighlightEvent } from '../../HighlightEvent';
 import {
     ParsedErrorObject,
     ParsedEvent,
     ParsedHighlightEvent,
+    ParsedSessionComment,
     ParsedSessionInterval,
 } from '../../ReplayerContext';
 
@@ -83,6 +88,7 @@ const getIntervalWithPercentages = (
             endPercent: currTime / totalDuration,
             errors: [],
             sessionEvents: [],
+            comments: [],
         };
     });
 };
@@ -95,6 +101,8 @@ export enum PlayerSearchParameters {
     ts = 'ts',
     /** The error ID for an error in the current session. The player's time will be set to the lookback period before the error's timestamp. */
     errorId = 'errorId',
+    /** The comment ID for a comment in the current session. The player's time will be set to the comments's timestamp. */
+    commentId = 'commentId',
 }
 
 /**
@@ -102,7 +110,8 @@ export enum PlayerSearchParameters {
  * @param setTime Sets the new time in milliseconds.
  */
 export const useSetPlayerTimestampFromSearchParam = (
-    setTime: (newTime: number) => void
+    setTime: (newTime: number) => void,
+    replayer?: Replayer
 ) => {
     const location = useLocation();
 
@@ -128,6 +137,7 @@ export const useSetPlayerTimestampFromSearchParam = (
                     timestampMilliseconds <= sessionDurationMilliseconds
                 ) {
                     setTime(timestampMilliseconds);
+                    replayer?.pause(timestampMilliseconds);
                 }
                 searchParamsObject.delete(PlayerSearchParameters.ts);
             } else if (searchParamsObject.get(PlayerSearchParameters.errorId)) {
@@ -146,13 +156,14 @@ export const useSetPlayerTimestampFromSearchParam = (
                             delta - ERROR_TIMESTAMP_LOOK_BACK_MILLISECONDS
                         );
                         setTime(newTime);
+                        replayer?.pause(newTime);
                         setSelectedErrorId(errorId);
                     }
                 }
                 searchParamsObject.delete(PlayerSearchParameters.errorId);
             }
         },
-        [location.search, setTime]
+        [location.search, replayer, setTime]
     );
 
     return {
@@ -195,6 +206,7 @@ export const CustomEventsForTimeline = [
     'Navigate',
     'Segment',
     'Track',
+    'Comments',
 ] as const;
 const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline);
 
@@ -233,7 +245,23 @@ export const addEventsToSessionIntervals = (
     }));
 };
 
-type ParsableEvent = ErrorObject | HighlightEvent;
+/**
+ * Returns the comments that are in the respective interval bins. If a comment is in the ith index, then it shows up in the ith session interval.
+ */
+export const getCommentsInSessionIntervals = (
+    sessionIntervals: ParsedSessionInterval[],
+    comments: SessionComment[],
+    sessionStartTime: number
+): ParsedSessionComment[][] => {
+    return assignEventToSessionInterval(
+        sessionIntervals,
+        comments,
+        sessionStartTime,
+        true
+    ) as ParsedSessionComment[][];
+};
+
+type ParsableEvent = ErrorObject | HighlightEvent | SessionComment;
 
 /**
  * Adds events to the session interval that the event occurred in.
@@ -241,7 +269,9 @@ type ParsableEvent = ErrorObject | HighlightEvent;
 const assignEventToSessionInterval = (
     sessionIntervals: ParsedSessionInterval[],
     events: ParsableEvent[],
-    sessionStartTime: number
+    sessionStartTime: number,
+    /** Whether the timestamp in events global time or already relative to the session. */
+    relativeTime = false
 ) => {
     let eventIndex = 0;
     let sessionIntervalIndex = 0;
@@ -255,8 +285,9 @@ const assignEventToSessionInterval = (
         sessionIntervalIndex < sessionIntervals.length
     ) {
         const event = events[eventIndex];
-        const relativeTimestamp =
-            new Date(event.timestamp).getTime() - sessionStartTime;
+        const relativeTimestamp = relativeTime
+            ? event.timestamp
+            : new Date(event.timestamp).getTime() - sessionStartTime;
 
         if (
             relativeTimestamp >= currentSessionInterval.startTime &&
