@@ -95,6 +95,10 @@ export const Player = () => {
         const heightScale = (targetHeight - 80) / height;
         const scale = Math.min(heightScale, widthScale);
 
+        if (scale <= 0) {
+            return false;
+        }
+
         // why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
         replayer?.wrapper?.setAttribute(
             'style',
