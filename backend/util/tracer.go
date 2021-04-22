@@ -15,10 +15,10 @@ type Tracer struct {
 	graphql.ResponseInterceptor
 	graphql.FieldInterceptor
 
-	serverType BackendType
+	serverType Runtime
 }
 
-func NewTracer(backend BackendType) Tracer {
+func NewTracer(backend Runtime) Tracer {
 	return Tracer{serverType: backend}
 }
 

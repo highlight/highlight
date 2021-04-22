@@ -125,7 +125,6 @@ type EmailSignup struct {
 type User struct {
 	Model
 	OrganizationID int
-	Sessions       []Session
 }
 
 type SessionResults struct {
@@ -156,7 +155,6 @@ type Session struct {
 	BrowserVersion string `json:"browser_version"`
 	Status         string `json:"status"`
 	Language       string `json:"language"`
-	EventsObjects  []EventsObject
 	// Tells us if the session has been parsed by a worker.
 	Processed *bool `json:"processed"`
 	// The length of a session.
@@ -353,11 +351,13 @@ func SetupDB() *gorm.DB {
 		os.Getenv("PSQL_PASSWORD"))
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(psqlConf))
+	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	DB.AutoMigrate(
+	if err := DB.AutoMigrate(
 		&RecordingSettings{},
 		&MessagesObject{},
 		&EventsObject{},
@@ -376,7 +376,9 @@ func SetupDB() *gorm.DB {
 		&EmailSignup{},
 		&ResourcesObject{},
 		&SessionComment{},
-	)
+	); err != nil {
+		log.Fatalf("Error migrating db: %v", err)
+	}
 	return DB
 }
 

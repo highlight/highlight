@@ -13,17 +13,18 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
-	modelInputs "github.com/jay-khatri/fullstory/backend/main-graph/graph/model"
-	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/jay-khatri/fullstory/backend/pricing"
-	"github.com/jay-khatri/fullstory/backend/util"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	stripe "github.com/stripe/stripe-go"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
@@ -517,7 +518,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, xCoordinate float64, yCoordinate float64) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string) (*model.SessionComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -530,9 +531,41 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		XCoordinate: xCoordinate,
 		YCoordinate: yCoordinate,
 	}
+	createSessionCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment", tracer.ResourceName("db.createSessionComment"))
 	if err := r.DB.Create(sessionComment).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session comment")
 	}
+	createSessionCommentSpan.Finish()
+
+	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment", tracer.ResourceName("sendgrid.sendCommentMention"))
+	commentMentionEmailSpan.SetTag("count", len(taggedAdminEmails))
+	if len(taggedAdminEmails) > 0 {
+		for _, email := range taggedAdminEmails {
+			to := &mail.Email{Address: *email}
+			viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+			subject := fmt.Sprintf("%v mentioned you on Highlight", authorName)
+			content := fmt.Sprintf(`
+	Hi there, <br><br>
+
+	%v mentioned you in a comment on Session %v: <br><br>
+
+	"%v" <br><br>
+
+	<a href="%v">View the comment</a><br><br>
+
+	Cheers, <br>
+	The Highlight Team <br>
+	`, authorName, sessionID, textForEmail, viewLink)
+
+			from := mail.NewEmail("Highlight", "notifications@highlight.run")
+			message := mail.NewSingleEmail(from, subject, to, content, fmt.Sprintf("<p>%v</p>", content))
+			_, err := r.MailClient.Send(message)
+			if err != nil {
+				return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
+			}
+		}
+	}
+	commentMentionEmailSpan.Finish()
 	return sessionComment, nil
 }
 
@@ -886,10 +919,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	fieldsSpan.Finish()
-	sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsQuery"))
-
-	//find all session with those fields (if any)
-	queriedSessions := []model.Session{}
 
 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed"
 	joinClause := "FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows"
@@ -990,21 +1019,35 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += "AND (id != id) "
 	}
 
-	// Filter out sessions that are processed but have a length of 0. In this case the player won't work because there are no events to replay.
-	whereClause += "AND NOT ((processed = true AND length = 0)) "
-
-	if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
-		return nil, e.Wrap(err, "error querying filtered sessions")
-	}
-
-	sessionsSpan.Finish()
-
-	sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsCountQuery"))
+	var g errgroup.Group
+	queriedSessions := []model.Session{}
 	var queriedSessionsCount model.SessionCount
-	if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s", joinClause, whereClause)).Scan(&queriedSessionsCount).Error; err != nil {
-		return nil, e.Wrap(err, "error querying filtered sessions count")
+
+	g.Go(func() error {
+		// Filter out sessions that are processed but have a length of 0. In this case the player won't work because there are no events to replay.
+		whereClause += "AND NOT ((processed = true AND length = 0)) "
+		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsQuery"))
+
+		if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
+			return e.Wrap(err, "error querying filtered sessions")
+		}
+		sessionsSpan.Finish()
+		return nil
+	})
+
+	g.Go(func() error {
+		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsCountQuery"))
+		if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s", joinClause, whereClause)).Scan(&queriedSessionsCount).Error; err != nil {
+			return e.Wrap(err, "error querying filtered sessions count")
+		}
+		sessionCountSpan.Finish()
+		return nil
+	})
+
+	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
+	if err := g.Wait(); err != nil {
+		return nil, e.Wrap(err, "error querying session data")
 	}
-	sessionCountSpan.Finish()
 
 	sessionList := &model.SessionResults{
 		Sessions:   queriedSessions,
