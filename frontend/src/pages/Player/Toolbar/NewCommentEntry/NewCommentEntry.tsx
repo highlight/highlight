@@ -156,6 +156,7 @@ export const NewCommentEntry = ({
                         </Button>
                         <Button
                             type="primary"
+                            htmlType="submit"
                             disabled={commentText.length === 0}
                         >
                             Post
