@@ -90,9 +90,10 @@
 }
 
 .resizeContainer {
-    max-height: 50vh;
+    max-height: 80vh;
     height: 34vh;
     min-height: 45px;
+    overflow: hidden;
 }
 
 .resizeHandle {
