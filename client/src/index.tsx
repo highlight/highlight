@@ -120,8 +120,8 @@ export class Highlight {
         this.logger = new Logger(this.debugOptions.clientInteractions);
         const backend = options?.backendUrl
             ? options.backendUrl
-            : process.env.BACKEND_URI;
-        const client = new GraphQLClient(`${backend}/client`, { headers: {} });
+            : process.env.PUBLIC_GRAPH_URI;
+        const client = new GraphQLClient(`${backend}`, { headers: {} });
         this.graphqlSDK = getSdk(client);
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
@@ -168,7 +168,7 @@ export class Highlight {
         this.logger.log(
             `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${JSON.stringify(
                 user_object
-            )} @ ${process.env.BACKEND_URI}`
+            )} @ ${process.env.PUBLIC_GRAPH_URI}`
         );
     }
 
@@ -198,7 +198,7 @@ export class Highlight {
                 `AddSessionProperties to session (${
                     this.sessionData.sessionID
                 }) w/ obj: ${JSON.stringify(properties_obj)} @ ${
-                    process.env.BACKEND_URI
+                    process.env.PUBLIC_GRAPH_URI
                 }`
             );
         }
@@ -223,7 +223,7 @@ export class Highlight {
                     this.sessionData.sessionID
                 }, source: ${sourceString}) w/ obj: ${JSON.stringify(
                     properties_obj
-                )} @ ${process.env.BACKEND_URI}`
+                )} @ ${process.env.PUBLIC_GRAPH_URI}`
             );
         }
     }
@@ -264,7 +264,7 @@ export class Highlight {
                 const organization_id = gr?.initializeSession?.organization_id;
                 this.logger.log(
                     `Loaded Highlight
-  Remote: ${process.env.BACKEND_URI}
+  Remote: ${process.env.PUBLIC_GRAPH_URI}
   Org ID: ${organization_id}
   Verbose Org ID: ${this.organizationID}
   SessionID: ${this.sessionData.sessionID}
@@ -418,7 +418,7 @@ export class Highlight {
                     .filter(
                         (r) =>
                             !r.name.includes(
-                                process.env.BACKEND_URI ??
+                                process.env.PUBLIC_GRAPH_URI ??
                                     'https://api.highlight.run'
                             )
                     );
@@ -427,7 +427,7 @@ export class Highlight {
             const resourcesString = JSON.stringify({ resources: resources });
             const messagesString = JSON.stringify({ messages: this.messages });
             this.logger.log(
-                `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.BACKEND_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
+                `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.PUBLIC_GRAPH_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
             );
             if (!this.disableNetworkRecording) {
                 performance.clearResourceTimings();

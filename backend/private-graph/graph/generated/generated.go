@@ -13,8 +13,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/highlight-run/highlight/backend/main-graph/graph/model"
 	model1 "github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -2228,7 +2228,7 @@ func (ec *executionContext) field_Mutation_createErrorSegment_args(ctx context.C
 	var arg2 model.ErrorSearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNErrorSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
+		arg2, err = ec.unmarshalNErrorSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2252,7 +2252,7 @@ func (ec *executionContext) field_Mutation_createOrUpdateSubscription_args(ctx c
 	var arg1 model.PlanType
 	if tmp, ok := rawArgs["plan_type"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("plan_type"))
-		arg1, err = ec.unmarshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, tmp)
+		arg1, err = ec.unmarshalNPlanType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2300,7 +2300,7 @@ func (ec *executionContext) field_Mutation_createSegment_args(ctx context.Contex
 	var arg2 model.SearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+		arg2, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2492,7 +2492,7 @@ func (ec *executionContext) field_Mutation_editErrorSegment_args(ctx context.Con
 	var arg2 model.ErrorSearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNErrorSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
+		arg2, err = ec.unmarshalNErrorSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2582,7 +2582,7 @@ func (ec *executionContext) field_Mutation_editSegment_args(ctx context.Context,
 	var arg2 model.SearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+		arg2, err = ec.unmarshalNSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2819,7 +2819,7 @@ func (ec *executionContext) field_Query_error_groups_args(ctx context.Context, r
 	var arg2 *model.ErrorSearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg2, err = ec.unmarshalOErrorSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
+		arg2, err = ec.unmarshalOErrorSearchParamsInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3098,7 +3098,7 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 	var arg2 model.SessionLifecycle
 	if tmp, ok := rawArgs["lifecycle"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lifecycle"))
-		arg2, err = ec.unmarshalNSessionLifecycle2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx, tmp)
+		arg2, err = ec.unmarshalNSessionLifecycle2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3116,7 +3116,7 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 	var arg4 *model.SearchParamsInput
 	if tmp, ok := rawArgs["params"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("params"))
-		arg4, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
+		arg4, err = ec.unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3315,7 +3315,7 @@ func (ec *executionContext) _BillingDetails_plan(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.Plan)
 	fc.Result = res
-	return ec.marshalNPlan2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx, field.Selections, res)
+	return ec.marshalNPlan2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlan(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _BillingDetails_meter(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
@@ -3691,7 +3691,7 @@ func (ec *executionContext) _ErrorGroup_trace(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*model.ErrorTrace)
 	fc.Result = res
-	return ec.marshalNErrorTrace2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx, field.Selections, res)
+	return ec.marshalNErrorTrace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorGroup_metadata_log(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
@@ -3726,7 +3726,7 @@ func (ec *executionContext) _ErrorGroup_metadata_log(ctx context.Context, field 
 	}
 	res := resTmp.([]*model.ErrorMetadata)
 	fc.Result = res
-	return ec.marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx, field.Selections, res)
+	return ec.marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
@@ -3758,7 +3758,7 @@ func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field g
 	}
 	res := resTmp.([]*model1.ErrorField)
 	fc.Result = res
-	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
+	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorGroup_resolved(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
@@ -4431,7 +4431,7 @@ func (ec *executionContext) _ErrorResults_error_groups(ctx context.Context, fiel
 	}
 	res := resTmp.([]model1.ErrorGroup)
 	fc.Result = res
-	return ec.marshalNErrorGroup2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroupᚄ(ctx, field.Selections, res)
+	return ec.marshalNErrorGroup2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroupᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorResults_totalCount(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
@@ -4498,7 +4498,7 @@ func (ec *executionContext) _ErrorSearchParams_date_range(ctx context.Context, f
 	}
 	res := resTmp.(*model1.DateRange)
 	fc.Result = res
-	return ec.marshalODateRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDateRange(ctx, field.Selections, res)
+	return ec.marshalODateRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDateRange(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorSearchParams_os(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
@@ -4763,7 +4763,7 @@ func (ec *executionContext) _ErrorSegment_params(ctx context.Context, field grap
 	}
 	res := resTmp.(*model1.ErrorSearchParams)
 	fc.Result = res
-	return ec.marshalNErrorSearchParams2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorSearchParams(ctx, field.Selections, res)
+	return ec.marshalNErrorSearchParams2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSearchParams(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorSegment_organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSegment) (ret graphql.Marshaler) {
@@ -5131,7 +5131,7 @@ func (ec *executionContext) _Mutation_createOrganization(ctx context.Context, fi
 	}
 	res := resTmp.(*model1.Organization)
 	fc.Result = res
-	return ec.marshalOOrganization2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
+	return ec.marshalOOrganization2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5170,7 +5170,7 @@ func (ec *executionContext) _Mutation_editOrganization(ctx context.Context, fiel
 	}
 	res := resTmp.(*model1.Organization)
 	fc.Result = res
-	return ec.marshalOOrganization2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
+	return ec.marshalOOrganization2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_markSessionAsViewed(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5209,7 +5209,7 @@ func (ec *executionContext) _Mutation_markSessionAsViewed(ctx context.Context, f
 	}
 	res := resTmp.(*model1.Session)
 	fc.Result = res
-	return ec.marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+	return ec.marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_markSessionAsStarred(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5248,7 +5248,7 @@ func (ec *executionContext) _Mutation_markSessionAsStarred(ctx context.Context, 
 	}
 	res := resTmp.(*model1.Session)
 	fc.Result = res
-	return ec.marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+	return ec.marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_markErrorGroupAsResolved(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5287,7 +5287,7 @@ func (ec *executionContext) _Mutation_markErrorGroupAsResolved(ctx context.Conte
 	}
 	res := resTmp.(*model1.ErrorGroup)
 	fc.Result = res
-	return ec.marshalOErrorGroup2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
+	return ec.marshalOErrorGroup2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteOrganization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5482,7 +5482,7 @@ func (ec *executionContext) _Mutation_createSegment(ctx context.Context, field g
 	}
 	res := resTmp.(*model1.Segment)
 	fc.Result = res
-	return ec.marshalOSegment2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSegment(ctx, field.Selections, res)
+	return ec.marshalOSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSegment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_emailSignup(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5641,7 +5641,7 @@ func (ec *executionContext) _Mutation_createErrorSegment(ctx context.Context, fi
 	}
 	res := resTmp.(*model1.ErrorSegment)
 	fc.Result = res
-	return ec.marshalOErrorSegment2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorSegment(ctx, field.Selections, res)
+	return ec.marshalOErrorSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSegment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_editErrorSegment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5758,7 +5758,7 @@ func (ec *executionContext) _Mutation_editRecordingSettings(ctx context.Context,
 	}
 	res := resTmp.(*model1.RecordingSettings)
 	fc.Result = res
-	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
+	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createOrUpdateSubscription(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5836,7 +5836,7 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	}
 	res := resTmp.(*model1.SessionComment)
 	fc.Result = res
-	return ec.marshalOSessionComment2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionComment(ctx, field.Selections, res)
+	return ec.marshalOSessionComment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
@@ -6072,7 +6072,7 @@ func (ec *executionContext) _Plan_type(ctx context.Context, field graphql.Collec
 	}
 	res := resTmp.(model.PlanType)
 	fc.Result = res
-	return ec.marshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, field.Selections, res)
+	return ec.marshalNPlanType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlanType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Plan_quota(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
@@ -6146,7 +6146,7 @@ func (ec *executionContext) _Query_session(ctx context.Context, field graphql.Co
 	}
 	res := resTmp.(*model1.Session)
 	fc.Result = res
-	return ec.marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+	return ec.marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_events(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6224,7 +6224,7 @@ func (ec *executionContext) _Query_error_groups(ctx context.Context, field graph
 	}
 	res := resTmp.(*model1.ErrorResults)
 	fc.Result = res
-	return ec.marshalOErrorResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorResults(ctx, field.Selections, res)
+	return ec.marshalOErrorResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorResults(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_error_group(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6263,7 +6263,7 @@ func (ec *executionContext) _Query_error_group(ctx context.Context, field graphq
 	}
 	res := resTmp.(*model1.ErrorGroup)
 	fc.Result = res
-	return ec.marshalOErrorGroup2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
+	return ec.marshalOErrorGroup2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_messages(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6341,7 +6341,7 @@ func (ec *executionContext) _Query_errors(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.([]*model1.ErrorObject)
 	fc.Result = res
-	return ec.marshalOErrorObject2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx, field.Selections, res)
+	return ec.marshalOErrorObject2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_resources(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6422,7 +6422,7 @@ func (ec *executionContext) _Query_session_comments(ctx context.Context, field g
 	}
 	res := resTmp.([]*model1.SessionComment)
 	fc.Result = res
-	return ec.marshalNSessionComment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionComment(ctx, field.Selections, res)
+	return ec.marshalNSessionComment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_admins(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6461,7 +6461,7 @@ func (ec *executionContext) _Query_admins(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.([]*model1.Admin)
 	fc.Result = res
-	return ec.marshalOAdmin2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
+	return ec.marshalOAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_isIntegrated(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6581,7 +6581,7 @@ func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model1.SessionResults)
 	fc.Result = res
-	return ec.marshalNSessionResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx, field.Selections, res)
+	return ec.marshalNSessionResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionResults(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_billingDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6623,7 +6623,7 @@ func (ec *executionContext) _Query_billingDetails(ctx context.Context, field gra
 	}
 	res := resTmp.(*model.BillingDetails)
 	fc.Result = res
-	return ec.marshalNBillingDetails2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx, field.Selections, res)
+	return ec.marshalNBillingDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6662,7 +6662,7 @@ func (ec *executionContext) _Query_field_suggestion(ctx context.Context, field g
 	}
 	res := resTmp.([]*model1.Field)
 	fc.Result = res
-	return ec.marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
+	return ec.marshalOField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_property_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6701,7 +6701,7 @@ func (ec *executionContext) _Query_property_suggestion(ctx context.Context, fiel
 	}
 	res := resTmp.([]*model1.Field)
 	fc.Result = res
-	return ec.marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
+	return ec.marshalOField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_error_field_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6740,7 +6740,7 @@ func (ec *executionContext) _Query_error_field_suggestion(ctx context.Context, f
 	}
 	res := resTmp.([]*model1.ErrorField)
 	fc.Result = res
-	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
+	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_organizations(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6772,7 +6772,7 @@ func (ec *executionContext) _Query_organizations(ctx context.Context, field grap
 	}
 	res := resTmp.([]*model1.Organization)
 	fc.Result = res
-	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
+	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_organizationSuggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6811,7 +6811,7 @@ func (ec *executionContext) _Query_organizationSuggestion(ctx context.Context, f
 	}
 	res := resTmp.([]*model1.Organization)
 	fc.Result = res
-	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
+	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_organization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6850,7 +6850,7 @@ func (ec *executionContext) _Query_organization(ctx context.Context, field graph
 	}
 	res := resTmp.(*model1.Organization)
 	fc.Result = res
-	return ec.marshalOOrganization2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
+	return ec.marshalOOrganization2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_admin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6882,7 +6882,7 @@ func (ec *executionContext) _Query_admin(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(*model1.Admin)
 	fc.Result = res
-	return ec.marshalOAdmin2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
+	return ec.marshalOAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_segments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6921,7 +6921,7 @@ func (ec *executionContext) _Query_segments(ctx context.Context, field graphql.C
 	}
 	res := resTmp.([]*model1.Segment)
 	fc.Result = res
-	return ec.marshalOSegment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSegment(ctx, field.Selections, res)
+	return ec.marshalOSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSegment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_error_segments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6960,7 +6960,7 @@ func (ec *executionContext) _Query_error_segments(ctx context.Context, field gra
 	}
 	res := resTmp.([]*model1.ErrorSegment)
 	fc.Result = res
-	return ec.marshalOErrorSegment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorSegment(ctx, field.Selections, res)
+	return ec.marshalOErrorSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSegment(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_recording_settings(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6999,7 +6999,7 @@ func (ec *executionContext) _Query_recording_settings(ctx context.Context, field
 	}
 	res := resTmp.(*model1.RecordingSettings)
 	fc.Result = res
-	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
+	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -7309,7 +7309,7 @@ func (ec *executionContext) _SearchParams_user_properties(ctx context.Context, f
 	}
 	res := resTmp.([]*model1.UserProperty)
 	fc.Result = res
-	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
+	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchParams_excluded_properties(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
@@ -7341,7 +7341,7 @@ func (ec *executionContext) _SearchParams_excluded_properties(ctx context.Contex
 	}
 	res := resTmp.([]*model1.UserProperty)
 	fc.Result = res
-	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
+	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchParams_track_properties(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
@@ -7373,7 +7373,7 @@ func (ec *executionContext) _SearchParams_track_properties(ctx context.Context, 
 	}
 	res := resTmp.([]*model1.UserProperty)
 	fc.Result = res
-	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
+	return ec.marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchParams_date_range(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
@@ -7405,7 +7405,7 @@ func (ec *executionContext) _SearchParams_date_range(ctx context.Context, field 
 	}
 	res := resTmp.(*model1.DateRange)
 	fc.Result = res
-	return ec.marshalODateRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDateRange(ctx, field.Selections, res)
+	return ec.marshalODateRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDateRange(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchParams_length_range(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
@@ -7437,7 +7437,7 @@ func (ec *executionContext) _SearchParams_length_range(ctx context.Context, fiel
 	}
 	res := resTmp.(*model1.LengthRange)
 	fc.Result = res
-	return ec.marshalOLengthRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐLengthRange(ctx, field.Selections, res)
+	return ec.marshalOLengthRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐLengthRange(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchParams_os(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
@@ -7766,7 +7766,7 @@ func (ec *executionContext) _Segment_params(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model1.SearchParams)
 	fc.Result = res
-	return ec.marshalNSearchParams2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSearchParams(ctx, field.Selections, res)
+	return ec.marshalNSearchParams2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSearchParams(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Segment_organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.Segment) (ret graphql.Marshaler) {
@@ -8279,7 +8279,7 @@ func (ec *executionContext) _Session_fields(ctx context.Context, field graphql.C
 	}
 	res := resTmp.([]*model1.Field)
 	fc.Result = res
-	return ec.marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
+	return ec.marshalOField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Session_viewed(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
@@ -8646,7 +8646,7 @@ func (ec *executionContext) _SessionComment_author(ctx context.Context, field gr
 	}
 	res := resTmp.(*model.SanitizedAdmin)
 	fc.Result = res
-	return ec.marshalNSanitizedAdmin2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx, field.Selections, res)
+	return ec.marshalNSanitizedAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionComment_text(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
@@ -8786,7 +8786,7 @@ func (ec *executionContext) _SessionResults_sessions(ctx context.Context, field 
 	}
 	res := resTmp.([]model1.Session)
 	fc.Result = res
-	return ec.marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionᚄ(ctx, field.Selections, res)
+	return ec.marshalNSession2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionResults_totalCount(ctx context.Context, field graphql.CollectedField, obj *model1.SessionResults) (ret graphql.Marshaler) {
@@ -10054,7 +10054,7 @@ func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
+			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10142,7 +10142,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("user_properties"))
-			it.UserProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
+			it.UserProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10150,7 +10150,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excluded_properties"))
-			it.ExcludedProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
+			it.ExcludedProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10158,7 +10158,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("track_properties"))
-			it.TrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
+			it.TrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10166,7 +10166,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("date_range"))
-			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
+			it.DateRange, err = ec.unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10174,7 +10174,7 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("length_range"))
-			it.LengthRange, err = ec.unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐLengthRangeInput(ctx, v)
+			it.LengthRange, err = ec.unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLengthRangeInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11942,11 +11942,11 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNBillingDetails2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v model.BillingDetails) graphql.Marshaler {
+func (ec *executionContext) marshalNBillingDetails2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v model.BillingDetails) graphql.Marshaler {
 	return ec._BillingDetails(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNBillingDetails2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v *model.BillingDetails) graphql.Marshaler {
+func (ec *executionContext) marshalNBillingDetails2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐBillingDetails(ctx context.Context, sel ast.SelectionSet, v *model.BillingDetails) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -11971,11 +11971,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNErrorGroup2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v model1.ErrorGroup) graphql.Marshaler {
+func (ec *executionContext) marshalNErrorGroup2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v model1.ErrorGroup) graphql.Marshaler {
 	return ec._ErrorGroup(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNErrorGroup2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []model1.ErrorGroup) graphql.Marshaler {
+func (ec *executionContext) marshalNErrorGroup2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []model1.ErrorGroup) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -11999,7 +11999,7 @@ func (ec *executionContext) marshalNErrorGroup2ᚕgithubᚗcomᚋjayᚑkhatriᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNErrorGroup2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx, sel, v[i])
+			ret[i] = ec.marshalNErrorGroup2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroup(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12012,7 +12012,7 @@ func (ec *executionContext) marshalNErrorGroup2ᚕgithubᚗcomᚋjayᚑkhatriᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorMetadata) graphql.Marshaler {
+func (ec *executionContext) marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorMetadata) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12036,7 +12036,7 @@ func (ec *executionContext) marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋjayᚑkha
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOErrorMetadata2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx, sel, v[i])
+			ret[i] = ec.marshalOErrorMetadata2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12049,11 +12049,11 @@ func (ec *executionContext) marshalNErrorMetadata2ᚕᚖgithubᚗcomᚋjayᚑkha
 	return ret
 }
 
-func (ec *executionContext) marshalNErrorSearchParams2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorSearchParams(ctx context.Context, sel ast.SelectionSet, v model1.ErrorSearchParams) graphql.Marshaler {
+func (ec *executionContext) marshalNErrorSearchParams2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSearchParams(ctx context.Context, sel ast.SelectionSet, v model1.ErrorSearchParams) graphql.Marshaler {
 	return ec._ErrorSearchParams(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNErrorSearchParams2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorSearchParams(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorSearchParams) graphql.Marshaler {
+func (ec *executionContext) marshalNErrorSearchParams2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSearchParams(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorSearchParams) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -12063,12 +12063,12 @@ func (ec *executionContext) marshalNErrorSearchParams2ᚖgithubᚗcomᚋjayᚑkh
 	return ec._ErrorSearchParams(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNErrorSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx context.Context, v interface{}) (model.ErrorSearchParamsInput, error) {
+func (ec *executionContext) unmarshalNErrorSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx context.Context, v interface{}) (model.ErrorSearchParamsInput, error) {
 	res, err := ec.unmarshalInputErrorSearchParamsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorTrace) graphql.Marshaler {
+func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorTrace) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12092,7 +12092,7 @@ func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋjayᚑkhatri
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOErrorTrace2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx, sel, v[i])
+			ret[i] = ec.marshalOErrorTrace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12165,7 +12165,7 @@ func (ec *executionContext) marshalNInt642int64(ctx context.Context, sel ast.Sel
 	return res
 }
 
-func (ec *executionContext) marshalNPlan2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {
+func (ec *executionContext) marshalNPlan2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlan(ctx context.Context, sel ast.SelectionSet, v *model.Plan) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -12175,21 +12175,21 @@ func (ec *executionContext) marshalNPlan2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullst
 	return ec._Plan(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, v interface{}) (model.PlanType, error) {
+func (ec *executionContext) unmarshalNPlanType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, v interface{}) (model.PlanType, error) {
 	var res model.PlanType
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNPlanType2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, sel ast.SelectionSet, v model.PlanType) graphql.Marshaler {
+func (ec *executionContext) marshalNPlanType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, sel ast.SelectionSet, v model.PlanType) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNSanitizedAdmin2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx context.Context, sel ast.SelectionSet, v model.SanitizedAdmin) graphql.Marshaler {
+func (ec *executionContext) marshalNSanitizedAdmin2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx context.Context, sel ast.SelectionSet, v model.SanitizedAdmin) graphql.Marshaler {
 	return ec._SanitizedAdmin(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSanitizedAdmin2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx context.Context, sel ast.SelectionSet, v *model.SanitizedAdmin) graphql.Marshaler {
+func (ec *executionContext) marshalNSanitizedAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx context.Context, sel ast.SelectionSet, v *model.SanitizedAdmin) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -12199,11 +12199,11 @@ func (ec *executionContext) marshalNSanitizedAdmin2ᚖgithubᚗcomᚋjayᚑkhatr
 	return ec._SanitizedAdmin(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSearchParams2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSearchParams(ctx context.Context, sel ast.SelectionSet, v model1.SearchParams) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchParams2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSearchParams(ctx context.Context, sel ast.SelectionSet, v model1.SearchParams) graphql.Marshaler {
 	return ec._SearchParams(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSearchParams2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSearchParams(ctx context.Context, sel ast.SelectionSet, v *model1.SearchParams) graphql.Marshaler {
+func (ec *executionContext) marshalNSearchParams2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSearchParams(ctx context.Context, sel ast.SelectionSet, v *model1.SearchParams) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -12213,16 +12213,16 @@ func (ec *executionContext) marshalNSearchParams2ᚖgithubᚗcomᚋjayᚑkhatri�
 	return ec._SearchParams(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNSearchParamsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx context.Context, v interface{}) (model.SearchParamsInput, error) {
+func (ec *executionContext) unmarshalNSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx context.Context, v interface{}) (model.SearchParamsInput, error) {
 	res, err := ec.unmarshalInputSearchParamsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSession2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model1.Session) graphql.Marshaler {
+func (ec *executionContext) marshalNSession2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model1.Session) graphql.Marshaler {
 	return ec._Session(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []model1.Session) graphql.Marshaler {
+func (ec *executionContext) marshalNSession2ᚕgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []model1.Session) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12246,7 +12246,7 @@ func (ec *executionContext) marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋful
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNSession2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, sel, v[i])
+			ret[i] = ec.marshalNSession2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12259,7 +12259,7 @@ func (ec *executionContext) marshalNSession2ᚕgithubᚗcomᚋjayᚑkhatriᚋful
 	return ret
 }
 
-func (ec *executionContext) marshalNSessionComment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionComment(ctx context.Context, sel ast.SelectionSet, v []*model1.SessionComment) graphql.Marshaler {
+func (ec *executionContext) marshalNSessionComment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx context.Context, sel ast.SelectionSet, v []*model1.SessionComment) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -12283,7 +12283,7 @@ func (ec *executionContext) marshalNSessionComment2ᚕᚖgithubᚗcomᚋjayᚑkh
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOSessionComment2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionComment(ctx, sel, v[i])
+			ret[i] = ec.marshalOSessionComment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12296,21 +12296,21 @@ func (ec *executionContext) marshalNSessionComment2ᚕᚖgithubᚗcomᚋjayᚑkh
 	return ret
 }
 
-func (ec *executionContext) unmarshalNSessionLifecycle2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx context.Context, v interface{}) (model.SessionLifecycle, error) {
+func (ec *executionContext) unmarshalNSessionLifecycle2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx context.Context, v interface{}) (model.SessionLifecycle, error) {
 	var res model.SessionLifecycle
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNSessionLifecycle2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx context.Context, sel ast.SelectionSet, v model.SessionLifecycle) graphql.Marshaler {
+func (ec *executionContext) marshalNSessionLifecycle2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSessionLifecycle(ctx context.Context, sel ast.SelectionSet, v model.SessionLifecycle) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) marshalNSessionResults2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx context.Context, sel ast.SelectionSet, v model1.SessionResults) graphql.Marshaler {
+func (ec *executionContext) marshalNSessionResults2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionResults(ctx context.Context, sel ast.SelectionSet, v model1.SessionResults) graphql.Marshaler {
 	return ec._SessionResults(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSessionResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionResults(ctx context.Context, sel ast.SelectionSet, v *model1.SessionResults) graphql.Marshaler {
+func (ec *executionContext) marshalNSessionResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionResults(ctx context.Context, sel ast.SelectionSet, v *model1.SessionResults) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -12630,7 +12630,7 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) marshalOAdmin2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐAdmin(ctx context.Context, sel ast.SelectionSet, v []*model1.Admin) graphql.Marshaler {
+func (ec *executionContext) marshalOAdmin2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx context.Context, sel ast.SelectionSet, v []*model1.Admin) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12657,7 +12657,7 @@ func (ec *executionContext) marshalOAdmin2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfu
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOAdmin2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐAdmin(ctx, sel, v[i])
+			ret[i] = ec.marshalOAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12670,7 +12670,7 @@ func (ec *executionContext) marshalOAdmin2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfu
 	return ret
 }
 
-func (ec *executionContext) marshalOAdmin2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐAdmin(ctx context.Context, sel ast.SelectionSet, v *model1.Admin) graphql.Marshaler {
+func (ec *executionContext) marshalOAdmin2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐAdmin(ctx context.Context, sel ast.SelectionSet, v *model1.Admin) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12752,14 +12752,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) marshalODateRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐDateRange(ctx context.Context, sel ast.SelectionSet, v *model1.DateRange) graphql.Marshaler {
+func (ec *executionContext) marshalODateRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDateRange(ctx context.Context, sel ast.SelectionSet, v *model1.DateRange) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._DateRange(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx context.Context, v interface{}) (*model.DateRangeInput, error) {
+func (ec *executionContext) unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐDateRangeInput(ctx context.Context, v interface{}) (*model.DateRangeInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -12767,7 +12767,7 @@ func (ec *executionContext) unmarshalODateRangeInput2ᚖgithubᚗcomᚋjayᚑkha
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOErrorField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorField(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorField) graphql.Marshaler {
+func (ec *executionContext) marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorField) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12794,7 +12794,7 @@ func (ec *executionContext) marshalOErrorField2ᚕᚖgithubᚗcomᚋjayᚑkhatri
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOErrorField2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorField(ctx, sel, v[i])
+			ret[i] = ec.marshalOErrorField2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12807,28 +12807,28 @@ func (ec *executionContext) marshalOErrorField2ᚕᚖgithubᚗcomᚋjayᚑkhatri
 	return ret
 }
 
-func (ec *executionContext) marshalOErrorField2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorField(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorField) graphql.Marshaler {
+func (ec *executionContext) marshalOErrorField2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorField) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ErrorField(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOErrorGroup2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorGroup) graphql.Marshaler {
+func (ec *executionContext) marshalOErrorGroup2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroup(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorGroup) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ErrorGroup(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOErrorMetadata2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx context.Context, sel ast.SelectionSet, v *model.ErrorMetadata) graphql.Marshaler {
+func (ec *executionContext) marshalOErrorMetadata2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorMetadata(ctx context.Context, sel ast.SelectionSet, v *model.ErrorMetadata) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ErrorMetadata(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOErrorObject2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorObject) graphql.Marshaler {
+func (ec *executionContext) marshalOErrorObject2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorObject) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12855,7 +12855,7 @@ func (ec *executionContext) marshalOErrorObject2ᚕᚖgithubᚗcomᚋjayᚑkhatr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOErrorObject2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx, sel, v[i])
+			ret[i] = ec.marshalOErrorObject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12868,21 +12868,21 @@ func (ec *executionContext) marshalOErrorObject2ᚕᚖgithubᚗcomᚋjayᚑkhatr
 	return ret
 }
 
-func (ec *executionContext) marshalOErrorObject2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorObject) graphql.Marshaler {
+func (ec *executionContext) marshalOErrorObject2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorObject(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorObject) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ErrorObject(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOErrorResults2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorResults(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorResults) graphql.Marshaler {
+func (ec *executionContext) marshalOErrorResults2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorResults(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorResults) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ErrorResults(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOErrorSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx context.Context, v interface{}) (*model.ErrorSearchParamsInput, error) {
+func (ec *executionContext) unmarshalOErrorSearchParamsInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx context.Context, v interface{}) (*model.ErrorSearchParamsInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -12890,7 +12890,7 @@ func (ec *executionContext) unmarshalOErrorSearchParamsInput2ᚖgithubᚗcomᚋj
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOErrorSegment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorSegment(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorSegment) graphql.Marshaler {
+func (ec *executionContext) marshalOErrorSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSegment(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorSegment) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12917,7 +12917,7 @@ func (ec *executionContext) marshalOErrorSegment2ᚕᚖgithubᚗcomᚋjayᚑkhat
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOErrorSegment2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorSegment(ctx, sel, v[i])
+			ret[i] = ec.marshalOErrorSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSegment(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12930,21 +12930,21 @@ func (ec *executionContext) marshalOErrorSegment2ᚕᚖgithubᚗcomᚋjayᚑkhat
 	return ret
 }
 
-func (ec *executionContext) marshalOErrorSegment2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐErrorSegment(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorSegment) graphql.Marshaler {
+func (ec *executionContext) marshalOErrorSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorSegment(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorSegment) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ErrorSegment(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOErrorTrace2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx context.Context, sel ast.SelectionSet, v *model.ErrorTrace) graphql.Marshaler {
+func (ec *executionContext) marshalOErrorTrace2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx context.Context, sel ast.SelectionSet, v *model.ErrorTrace) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ErrorTrace(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v []*model1.Field) graphql.Marshaler {
+func (ec *executionContext) marshalOField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v []*model1.Field) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -12971,7 +12971,7 @@ func (ec *executionContext) marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfu
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOField2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx, sel, v[i])
+			ret[i] = ec.marshalOField2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -12984,7 +12984,7 @@ func (ec *executionContext) marshalOField2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfu
 	return ret
 }
 
-func (ec *executionContext) marshalOField2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v *model1.Field) graphql.Marshaler {
+func (ec *executionContext) marshalOField2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx context.Context, sel ast.SelectionSet, v *model1.Field) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -13054,14 +13054,14 @@ func (ec *executionContext) marshalOInt642ᚖint64(ctx context.Context, sel ast.
 	return graphql.MarshalInt64(*v)
 }
 
-func (ec *executionContext) marshalOLengthRange2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐLengthRange(ctx context.Context, sel ast.SelectionSet, v *model1.LengthRange) graphql.Marshaler {
+func (ec *executionContext) marshalOLengthRange2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐLengthRange(ctx context.Context, sel ast.SelectionSet, v *model1.LengthRange) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._LengthRange(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐLengthRangeInput(ctx context.Context, v interface{}) (*model.LengthRangeInput, error) {
+func (ec *executionContext) unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐLengthRangeInput(ctx context.Context, v interface{}) (*model.LengthRangeInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -13069,7 +13069,7 @@ func (ec *executionContext) unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋjayᚑk
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOOrganization2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v []*model1.Organization) graphql.Marshaler {
+func (ec *executionContext) marshalOOrganization2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v []*model1.Organization) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -13096,7 +13096,7 @@ func (ec *executionContext) marshalOOrganization2ᚕᚖgithubᚗcomᚋjayᚑkhat
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOOrganization2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx, sel, v[i])
+			ret[i] = ec.marshalOOrganization2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐOrganization(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13109,21 +13109,21 @@ func (ec *executionContext) marshalOOrganization2ᚕᚖgithubᚗcomᚋjayᚑkhat
 	return ret
 }
 
-func (ec *executionContext) marshalOOrganization2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v *model1.Organization) graphql.Marshaler {
+func (ec *executionContext) marshalOOrganization2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v *model1.Organization) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Organization(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalORecordingSettings2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐRecordingSettings(ctx context.Context, sel ast.SelectionSet, v *model1.RecordingSettings) graphql.Marshaler {
+func (ec *executionContext) marshalORecordingSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐRecordingSettings(ctx context.Context, sel ast.SelectionSet, v *model1.RecordingSettings) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._RecordingSettings(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx context.Context, v interface{}) (*model.SearchParamsInput, error) {
+func (ec *executionContext) unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx context.Context, v interface{}) (*model.SearchParamsInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -13131,7 +13131,7 @@ func (ec *executionContext) unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋjayᚑ
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOSegment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSegment(ctx context.Context, sel ast.SelectionSet, v []*model1.Segment) graphql.Marshaler {
+func (ec *executionContext) marshalOSegment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSegment(ctx context.Context, sel ast.SelectionSet, v []*model1.Segment) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -13158,7 +13158,7 @@ func (ec *executionContext) marshalOSegment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOSegment2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSegment(ctx, sel, v[i])
+			ret[i] = ec.marshalOSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSegment(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13171,21 +13171,21 @@ func (ec *executionContext) marshalOSegment2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalOSegment2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSegment(ctx context.Context, sel ast.SelectionSet, v *model1.Segment) graphql.Marshaler {
+func (ec *executionContext) marshalOSegment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSegment(ctx context.Context, sel ast.SelectionSet, v *model1.Segment) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Segment(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model1.Session) graphql.Marshaler {
+func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model1.Session) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Session(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOSessionComment2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSessionComment(ctx context.Context, sel ast.SelectionSet, v *model1.SessionComment) graphql.Marshaler {
+func (ec *executionContext) marshalOSessionComment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx context.Context, sel ast.SelectionSet, v *model1.SessionComment) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -13240,7 +13240,7 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 	return graphql.MarshalTime(*v)
 }
 
-func (ec *executionContext) marshalOUserProperty2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v []*model1.UserProperty) graphql.Marshaler {
+func (ec *executionContext) marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v []*model1.UserProperty) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -13267,7 +13267,7 @@ func (ec *executionContext) marshalOUserProperty2ᚕᚖgithubᚗcomᚋjayᚑkhat
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOUserProperty2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUserProperty(ctx, sel, v[i])
+			ret[i] = ec.marshalOUserProperty2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -13280,14 +13280,14 @@ func (ec *executionContext) marshalOUserProperty2ᚕᚖgithubᚗcomᚋjayᚑkhat
 	return ret
 }
 
-func (ec *executionContext) marshalOUserProperty2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v *model1.UserProperty) graphql.Marshaler {
+func (ec *executionContext) marshalOUserProperty2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v *model1.UserProperty) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._UserProperty(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx context.Context, v interface{}) ([]*model.UserPropertyInput, error) {
+func (ec *executionContext) unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx context.Context, v interface{}) ([]*model.UserPropertyInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -13303,7 +13303,7 @@ func (ec *executionContext) unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjay
 	res := make([]*model.UserPropertyInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOUserPropertyInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOUserPropertyInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -13311,7 +13311,7 @@ func (ec *executionContext) unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋjay
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOUserPropertyInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmainᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx context.Context, v interface{}) (*model.UserPropertyInput, error) {
+func (ec *executionContext) unmarshalOUserPropertyInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx context.Context, v interface{}) (*model.UserPropertyInput, error) {
 	if v == nil {
 		return nil, nil
 	}

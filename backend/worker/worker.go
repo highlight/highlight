@@ -13,7 +13,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
-	mgraph "github.com/highlight-run/highlight/backend/main-graph/graph"
+	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )

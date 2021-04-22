@@ -1,5 +1,5 @@
 # Endpoint API, the following URL is a example
-schema: '../backend/main-graph/graph/schema.graphqls'
+schema: '../backend/private-graph/graph/schema.graphqls'
 overwrite: true
 # Format files
 hooks:
