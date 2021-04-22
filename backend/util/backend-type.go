@@ -4,6 +4,6 @@ type BackendType string
 
 const (
 	Worker      BackendType = "worker"
-	MainGraph   BackendType = "main-graph"
-	ClientGraph BackendType = "client-graph"
+	MainGraph   BackendType = "private-graph"
+	ClientGraph BackendType = "public-graph"
 )

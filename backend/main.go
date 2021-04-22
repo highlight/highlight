@@ -18,10 +18,10 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
-	cgraph "github.com/highlight-run/highlight/backend/client-graph/graph"
-	cgenerated "github.com/highlight-run/highlight/backend/client-graph/graph/generated"
-	mgraph "github.com/highlight-run/highlight/backend/main-graph/graph"
-	mgenerated "github.com/highlight-run/highlight/backend/main-graph/graph/generated"
+	private "github.com/highlight-run/highlight/backend/private-graph/graph"
+	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
+	public "github.com/highlight-run/highlight/backend/public-graph/graph"
+	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	rd "github.com/highlight-run/highlight/backend/redis"
 	log "github.com/sirupsen/logrus"
 
@@ -84,8 +84,8 @@ func main() {
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
-	mgraph.SetupAuthClient()
-	main := &mgraph.Resolver{
+	private.SetupAuthClient()
+	main := &private.Resolver{
 		DB:           db,
 		MailClient:   sendgrid.NewSendClient(sendgridKey),
 		StripeClient: stripeClient,
@@ -103,9 +103,9 @@ func main() {
 	}).Handler)
 	// Maingraph logic
 	r.Route("/main", func(r chi.Router) {
-		r.Use(mgraph.AdminMiddleWare)
-		mainServer := ghandler.NewDefaultServer(mgenerated.NewExecutableSchema(
-			mgenerated.Config{
+		r.Use(private.AdminMiddleWare)
+		mainServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
+			privategen.Config{
 				Resolvers: main,
 			}),
 		)
@@ -114,10 +114,10 @@ func main() {
 	})
 	// Clientgraph logic
 	r.Route("/client", func(r chi.Router) {
-		r.Use(cgraph.ClientMiddleWare)
-		clientServer := ghandler.NewDefaultServer(cgenerated.NewExecutableSchema(
-			cgenerated.Config{
-				Resolvers: &cgraph.Resolver{
+		r.Use(public.ClientMiddleWare)
+		clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
+			publicgen.Config{
+				Resolvers: &public.Resolver{
 					DB: db,
 				},
 			}))
