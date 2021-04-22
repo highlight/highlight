@@ -1,3 +1,4 @@
+export const googleButton: string;
 export const googleLogoStyle: string;
 export const googleText: string;
 export const loadingWrapper: string;
