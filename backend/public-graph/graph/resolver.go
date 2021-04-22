@@ -457,6 +457,22 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
 	}
+
+	// Update session count on dailydb
+	dailySession := &model.DailySessionCount{}
+	currentDate := time.Date(n.UTC().Year(), n.UTC().Month(), n.UTC().Day(), 0, 0, 0, 0, time.UTC)
+	if err := r.DB.Where(&model.DailySessionCount{
+		OrganizationID: organizationID,
+		Date:           &currentDate,
+	}).Attrs(&model.DailySessionCount{
+		Count: 0,
+	}).FirstOrCreate(&dailySession).Error; err != nil {
+		return nil, e.Wrap(err, "Error creating new daily session")
+	}
+
+	if err := r.DB.Exec("UPDATE daily_session_counts SET count = count + 1 WHERE date = ? AND organization_id = ?", currentDate, organizationID).Error; err != nil {
+		return nil, e.Wrap(err, "Error incrementing session count in db")
+	}
 	return session, nil
 
 }

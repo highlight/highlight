@@ -1,0 +1,44 @@
+.dashboardWrapper {
+    width: 100%;
+}
+
+.dashboard {
+    margin: 120px 80px 80px 80px;
+    word-break: break-word;
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+}
+
+.title {
+    font-size: 26px;
+    margin-bottom: 10px;
+    font-weight: 400;
+    display: inline-block;
+    margin-right: 10px;
+    max-width: 400px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.subTitle {
+    font-size: 20px;
+    color: black;
+    margin-bottom: 16px;
+    font-weight: 300;
+}
+
+.graphSection {
+    flex-direction: column;
+    padding: 30px 15px 20px 15px;
+}
+
+.section {
+    border: 1px solid #e4e8eb;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    transition: 0.4s;
+    display: flex;
+    width: 100%;
+}
