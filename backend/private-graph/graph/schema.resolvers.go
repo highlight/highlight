@@ -13,10 +13,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/main-graph/graph/generated"
-	modelInputs "github.com/highlight-run/highlight/backend/main-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"

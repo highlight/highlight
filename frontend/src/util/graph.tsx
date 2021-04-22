@@ -5,7 +5,7 @@ import * as firebase from 'firebase/app';
 import 'firebase/auth';
 
 const httpLink = createHttpLink({
-    uri: process.env.REACT_APP_MAIN_GRAPH_URI + '/main',
+    uri: process.env.REACT_APP_PRIVATE_GRAPH_URI,
     credentials: 'include',
 });
 
