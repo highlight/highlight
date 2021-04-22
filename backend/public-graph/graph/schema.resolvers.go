@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -29,12 +29,12 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 		return nil, e.Wrap(err, "org doesn't exist")
 	}
 	if organizationID == 110 || organizationID == 128 {
-		noRecordSession := &model.Session{Model: model.Model{ID: -1}, OrganizationID: -1}
+		ignoreSession := &model.Session{Model: model.Model{ID: -1}, OrganizationID: -1}
 		if check, err := r.CanRecordSession(organizationID); !check || err != nil {
 			if !check && err == nil {
-				return noRecordSession, nil
+				return ignoreSession, nil
 			} else {
-				return noRecordSession, e.Wrap(err, "can record error")
+				return ignoreSession, e.Wrap(err, "can record error")
 			}
 		}
 	}

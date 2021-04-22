@@ -258,6 +258,7 @@ export class Highlight {
                     firstloadVersion: this.firstloadVersion,
                     clientConfig: JSON.stringify(this._optionsInternal),
                 });
+                if (gr.initializeSession?.id == '-1') return;
                 this.sessionData.sessionID = parseInt(
                     gr?.initializeSession?.id || '0'
                 );
@@ -407,10 +408,7 @@ export class Highlight {
     // Reset the events array and push to a backend.
     async _save() {
         try {
-            if (
-                !this.sessionData.sessionID ||
-                this.sessionData.sessionID == -1
-            ) {
+            if (!this.sessionData.sessionID) {
                 return;
             }
             var resources: Array<any> = [];
