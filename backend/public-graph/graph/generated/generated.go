@@ -12,8 +12,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	model1 "github.com/jay-khatri/fullstory/backend/model"
+	model1 "github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -454,7 +454,7 @@ func (ec *executionContext) field_Mutation_pushPayload_args(ctx context.Context,
 	var arg1 model.ReplayEventsInput
 	if tmp, ok := rawArgs["events"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("events"))
-		arg1, err = ec.unmarshalNReplayEventsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋclientᚑgraphᚋgraphᚋmodelᚐReplayEventsInput(ctx, tmp)
+		arg1, err = ec.unmarshalNReplayEventsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventsInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -481,7 +481,7 @@ func (ec *executionContext) field_Mutation_pushPayload_args(ctx context.Context,
 	var arg4 []*model.ErrorObjectInput
 	if tmp, ok := rawArgs["errors"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errors"))
-		arg4, err = ec.unmarshalNErrorObjectInput2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋclientᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx, tmp)
+		arg4, err = ec.unmarshalNErrorObjectInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -594,7 +594,7 @@ func (ec *executionContext) _Mutation_initializeSession(ctx context.Context, fie
 	}
 	res := resTmp.(*model1.Session)
 	fc.Result = res
-	return ec.marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
+	return ec.marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_identifySession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -2563,7 +2563,7 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNErrorObjectInput2ᚕᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋclientᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx context.Context, v interface{}) ([]*model.ErrorObjectInput, error) {
+func (ec *executionContext) unmarshalNErrorObjectInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx context.Context, v interface{}) ([]*model.ErrorObjectInput, error) {
 	var vSlice []interface{}
 	if v != nil {
 		if tmp1, ok := v.([]interface{}); ok {
@@ -2576,7 +2576,7 @@ func (ec *executionContext) unmarshalNErrorObjectInput2ᚕᚖgithubᚗcomᚋjay�
 	res := make([]*model.ErrorObjectInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOErrorObjectInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋclientᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOErrorObjectInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -2614,7 +2614,7 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNReplayEventsInput2githubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋclientᚑgraphᚋgraphᚋmodelᚐReplayEventsInput(ctx context.Context, v interface{}) (model.ReplayEventsInput, error) {
+func (ec *executionContext) unmarshalNReplayEventsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐReplayEventsInput(ctx context.Context, v interface{}) (model.ReplayEventsInput, error) {
 	res, err := ec.unmarshalInputReplayEventsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -2917,7 +2917,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) unmarshalOErrorObjectInput2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋclientᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx context.Context, v interface{}) (*model.ErrorObjectInput, error) {
+func (ec *executionContext) unmarshalOErrorObjectInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐErrorObjectInput(ctx context.Context, v interface{}) (*model.ErrorObjectInput, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -2940,7 +2940,7 @@ func (ec *executionContext) marshalOID2ᚖint(ctx context.Context, sel ast.Selec
 	return graphql.MarshalIntID(*v)
 }
 
-func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋjayᚑkhatriᚋfullstoryᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model1.Session) graphql.Marshaler {
+func (ec *executionContext) marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model1.Session) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

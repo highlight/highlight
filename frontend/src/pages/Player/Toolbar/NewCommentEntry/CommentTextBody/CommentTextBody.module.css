@@ -1,0 +1,47 @@
+.mentions {
+  font-size: 14px;
+}
+
+.mentions--singleLine .mentions__control {
+  display: inline-block;
+  width: 130px;
+}
+.mentions--singleLine .mentions__highlighter {
+  padding: 1px;
+  border: 2px inset transparent;
+}
+.mentions--singleLine .mentions__input {
+  padding: 1px;
+  border: 2px inset;
+}
+
+/* The styles below match Ant Design's dropdown. */
+.mentions--multiLine .mentions__control {
+  font-size: 14px;
+}
+.mentions--multiLine .mentions__highlighter {
+  border: 1px solid transparent;
+}
+.mentions--multiLine .mentions__input {
+  border: none;
+  outline: 0;
+  padding: 0;
+  font-weight: 200;
+}
+
+.mentions__suggestions__list {
+  width: 300px;
+  background: #f5f5f5;
+  padding: 5px 12px;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);
+}
+
+.mentions__suggestions__item {
+  padding: var(--size-xSmall) 12px;
+}
+
+.mentions__suggestions__item--focused {
+  background: #f5f5f5;
+}

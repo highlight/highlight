@@ -55,7 +55,8 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
         Array<ParsedSessionInterval>
     >([]);
     const { setPlayerTimestamp } = useSetPlayerTimestampFromSearchParam(
-        setTime
+        setTime,
+        replayer
     );
 
     const { demo } = useContext(DemoContext);

@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
-	customModels "github.com/jay-khatri/fullstory/backend/client-graph/graph/model"
-	parse "github.com/jay-khatri/fullstory/backend/event-parse"
-	"github.com/jay-khatri/fullstory/backend/model"
+	"github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
+	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -108,7 +108,7 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
-	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("db.querySession"))
+	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
 	querySessionSpan.SetTag("resourcesLength", len(resources))
@@ -122,7 +122,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	querySessionSpan.Finish()
 
 	organizationID := sessionObj.OrganizationID
-	parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("go.parseEvents"))
+	parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.parseEvents"))
 	if evs := events.Events; len(evs) > 0 {
 		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 		// should fix at some point.
@@ -159,7 +159,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	parseEventsSpan.Finish()
 
 	// unmarshal messages
-	unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("go.unmarshal.messages"))
+	unmarshalMessagesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.unmarshal.messages"))
 	messagesParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(messages), &messagesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding message data: %v", err)
@@ -173,7 +173,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	unmarshalMessagesSpan.Finish()
 
 	// unmarshal resources
-	unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("go.unmarshal.resources"))
+	unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.unmarshal.resources"))
 	resourcesParsed := make(map[string][]interface{})
 	if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
 		return nil, fmt.Errorf("error decoding resource data: %v", err)
@@ -206,7 +206,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	}
 
 	// put errors in db
-	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "client-graph.pushPayload", tracer.ResourceName("db.errors"))
+	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.errors"))
 	for _, v := range errors {
 		traceBytes, err := json.Marshal(v.Trace)
 		if err != nil {
