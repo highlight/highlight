@@ -337,7 +337,9 @@ func SetupDB() *gorm.DB {
 		os.Getenv("PSQL_PASSWORD"))
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(psqlConf))
+	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
