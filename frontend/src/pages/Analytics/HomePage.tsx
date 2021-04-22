@@ -7,7 +7,6 @@ import {
 } from '../../graph/generated/hooks';
 import {
     LineChart,
-    Bar,
     XAxis,
     Tooltip as RechartsTooltip,
     ResponsiveContainer,
