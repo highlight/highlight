@@ -81,6 +81,7 @@ const SessionCountGraph = () => {
                 );
                 const sessionCounts = dateRangeData.map((val, idx) => ({
                     date: moment()
+                        .utc()
                         .startOf('day')
                         .subtract(dateRangeLength - 1 - idx, 'days')
                         .format('D MMM YYYY'),
@@ -134,6 +135,7 @@ const ErrorCountGraph = () => {
                 );
                 const errorCounts = dateRangeData.map((val, idx) => ({
                     date: moment()
+                        .utc()
                         .startOf('day')
                         .subtract(dateRangeLength - 1 - idx, 'days')
                         .format('D MMM YYYY'),
