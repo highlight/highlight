@@ -45,7 +45,7 @@ const CommentButton = ({
     ] = useLocalStorage('highlightTimelineAnnotationTypes', [
         ...EventsForTimeline,
     ]);
-    const { pause, scale, replayer, time } = useContext(ReplayerContext);
+    const { pause, replayer, time } = useContext(ReplayerContext);
     const buttonRef = useRef<HTMLButtonElement>(null);
     const [indicatorLocation, setIndicatorLocation] = useState<
         Coordinates2D | undefined
@@ -54,20 +54,22 @@ const CommentButton = ({
         'highlightMenuEnableDOMInteractions',
         false
     );
+    const playerBoundingClientRectWidth = replayer?.wrapper?.getBoundingClientRect()
+        .width;
+    const playerBoundingClientRectHeight = replayer?.wrapper?.getBoundingClientRect()
+        .height;
 
     // Set size of the button to be the same as the replayer. This allows us to intercept any clicks on replayer.
     useEffect(() => {
-        const width = replayer?.wrapper?.getBoundingClientRect().width;
-        const height = replayer?.wrapper?.getBoundingClientRect().height;
-
-        if (!width || !height) {
+        if (!playerBoundingClientRectHeight || !playerBoundingClientRectWidth) {
             return;
         }
+
         if (buttonRef.current) {
-            buttonRef.current.style.width = `${width}px`;
-            buttonRef.current.style.height = `${height}px`;
+            buttonRef.current.style.width = `${playerBoundingClientRectWidth}px`;
+            buttonRef.current.style.height = `${playerBoundingClientRectHeight}px`;
         }
-    }, [replayer?.wrapper, scale, enableDOMInteractions]);
+    }, [playerBoundingClientRectHeight, playerBoundingClientRectWidth]);
 
     // Hide the indicator if there is no comment being created.
     useEffect(() => {
