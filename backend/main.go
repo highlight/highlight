@@ -45,7 +45,7 @@ func health(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateOrigin(request *http.Request, origin string) bool {
-	if path := request.URL.Path; path == "/main" {
+	if path := request.URL.Path; path == "/private" {
 		// From the highlight frontend, only the url is whitelisted.
 		isPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
 		if origin == frontendURL || origin == landingURL || isPreviewEnv {
@@ -85,7 +85,7 @@ func main() {
 	stripeClient.Init(stripeApiKey, nil)
 
 	private.SetupAuthClient()
-	main := &private.Resolver{
+	privateResolver := &private.Resolver{
 		DB:           db,
 		MailClient:   sendgrid.NewSendClient(sendgridKey),
 		StripeClient: stripeClient,
@@ -102,18 +102,18 @@ func main() {
 		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
 	// Maingraph logic
-	r.Route("/main", func(r chi.Router) {
+	r.Route("/private", func(r chi.Router) {
 		r.Use(private.AdminMiddleWare)
 		mainServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
 			privategen.Config{
-				Resolvers: main,
+				Resolvers: privateResolver,
 			}),
 		)
 		mainServer.Use(util.NewTracer(util.MainGraph))
 		r.Handle("/", mainServer)
 	})
 	// Clientgraph logic
-	r.Route("/client", func(r chi.Router) {
+	r.Route("/public", func(r chi.Router) {
 		r.Use(public.ClientMiddleWare)
 		clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 			publicgen.Config{
@@ -124,7 +124,7 @@ func main() {
 		clientServer.Use(util.NewTracer(util.ClientGraph))
 		r.Handle("/", clientServer)
 	})
-	w := &worker.Worker{R: main}
+	w := &worker.Worker{R: privateResolver}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
 	if rt := *runtime; rt == "dev" {
 		go func() {
