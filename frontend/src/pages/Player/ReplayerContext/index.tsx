@@ -8,6 +8,8 @@ export enum ReplayerState {
     Loading,
     /** Replayer is loaded but the user hasn't interacted with the player yet. */
     LoadedAndUntouched,
+    /** The session page was loaded by a deep link to a comment or error. */
+    LoadedWithDeepLink,
     Playing,
     Paused,
 }
