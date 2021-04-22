@@ -7,8 +7,6 @@ const (
 	Worker       Runtime = "worker"
 	PublicGraph  Runtime = "public-graph"
 	PrivateGraph Runtime = "private-graph"
-	// TODO: DEPRECATED
-	Server Runtime = "server"
 )
 
 func (lt Runtime) IsValid() bool {
