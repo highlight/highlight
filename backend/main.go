@@ -36,8 +36,19 @@ var (
 	landingURL   = os.Getenv("LANDING_PAGE_URI")
 	sendgridKey  = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey = os.Getenv("STRIPE_API_KEY")
-	runtime      = flag.String("runtime", "dev", "the runtime of the backend; either dev/worker/server")
+	runtime      = flag.String("runtime", "all", "the runtime of the backend; either dev/worker/server")
 )
+
+var runtimeParsed util.Runtime
+
+func init() {
+	if runtime == nil {
+		log.Fatal("runtime is nil, provide a value")
+	} else if !util.Runtime(*runtime).IsValid() {
+		log.Fatalf("invalid runtime: %v", *runtime)
+	}
+	runtimeParsed = util.Runtime(*runtime)
+}
 
 func health(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("healthy"))
@@ -109,7 +120,7 @@ func main() {
 				Resolvers: privateResolver,
 			}),
 		)
-		mainServer.Use(util.NewTracer(util.MainGraph))
+		mainServer.Use(util.NewTracer(util.PrivateGraph))
 		r.Handle("/", mainServer)
 	})
 	// Clientgraph logic
@@ -121,19 +132,19 @@ func main() {
 					DB: db,
 				},
 			}))
-		clientServer.Use(util.NewTracer(util.ClientGraph))
+		clientServer.Use(util.NewTracer(util.PublicGraph))
 		r.Handle("/", clientServer)
 	})
 	w := &worker.Worker{R: privateResolver}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
-	if rt := *runtime; rt == "dev" {
+	if runtimeParsed == util.All {
 		go func() {
 			w.Start()
 		}()
 		log.Fatal(http.ListenAndServe(":"+port, r))
-	} else if rt == "worker" {
+	} else if runtimeParsed == util.Worker {
 		w.Start()
-	} else if rt == "server" {
+	} else if runtimeParsed == util.PrivateGraph || runtimeParsed == util.PublicGraph {
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	}
 
