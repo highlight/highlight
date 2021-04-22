@@ -30,8 +30,8 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	}
 	if organizationID == 110 || organizationID == 128 {
 		ignoreSession := &model.Session{Model: model.Model{ID: -1}, OrganizationID: -1}
-		if check, err := r.CanRecordSession(organizationID); !check || err != nil {
-			if !check && err == nil {
+		if canRecord, err := r.CanRecordSession(organizationID); !canRecord || err != nil {
+			if !canRecord && err == nil {
 				return ignoreSession, nil
 			} else {
 				return ignoreSession, e.Wrap(err, "can record error")
