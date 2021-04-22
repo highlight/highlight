@@ -18,17 +18,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
-<<<<<<< HEAD
-	mgraph "github.com/highlight-run/highlight/backend/main-graph/graph"
-	mgenerated "github.com/highlight-run/highlight/backend/main-graph/graph/generated"
-	cgraph "github.com/highlight-run/highlight/backend/public-graph/graph"
-	cgenerated "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
-=======
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
-	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
-	public "github.com/highlight-run/highlight/backend/public-graph/graph"
-	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
->>>>>>> master
 	rd "github.com/highlight-run/highlight/backend/redis"
 	log "github.com/sirupsen/logrus"
 
@@ -43,11 +33,7 @@ var (
 	landingURL   = os.Getenv("LANDING_PAGE_URI")
 	sendgridKey  = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey = os.Getenv("STRIPE_API_KEY")
-<<<<<<< HEAD
 	runtime      = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
-=======
-	runtime      = flag.String("runtime", "all", "the runtime of the backend; either dev/worker/server")
->>>>>>> master
 )
 
 var runtimeParsed util.Runtime
@@ -83,13 +69,6 @@ var defaultPort = "8082"
 
 func main() {
 	flag.Parse()
-
-	if runtime == nil {
-		log.Fatal("runtime is nil, provide a value")
-	} else if !util.Runtime(*runtime).IsValid() {
-		log.Fatalf("invalid runtime: %v", *runtime)
-	}
-	runtimeParsed := util.Runtime(*runtime)
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -131,7 +110,6 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
-<<<<<<< HEAD
 
 	/*
 		Selectively turn on backends depending on the input flag
@@ -184,45 +162,11 @@ func main() {
 		w.Start()
 	} else if runtimeParsed == util.All {
 		w := &worker.Worker{R: main}
-=======
-	// Maingraph logic
-	r.Route("/private", func(r chi.Router) {
-		r.Use(private.AdminMiddleWare)
-		mainServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
-			privategen.Config{
-				Resolvers: privateResolver,
-			}),
-		)
-		mainServer.Use(util.NewTracer(util.PrivateGraph))
-		r.Handle("/", mainServer)
-	})
-	// Clientgraph logic
-	r.Route("/public", func(r chi.Router) {
-		r.Use(public.ClientMiddleWare)
-		clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
-			publicgen.Config{
-				Resolvers: &public.Resolver{
-					DB: db,
-				},
-			}))
-		clientServer.Use(util.NewTracer(util.PublicGraph))
-		r.Handle("/", clientServer)
-	})
-	w := &worker.Worker{R: privateResolver}
-	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
-	if runtimeParsed == util.All {
->>>>>>> master
 		go func() {
 			w.Start()
 		}()
 		log.Fatal(http.ListenAndServe(":"+port, r))
-<<<<<<< HEAD
 	} else {
-=======
-	} else if runtimeParsed == util.Worker {
-		w.Start()
-	} else if runtimeParsed == util.PrivateGraph || runtimeParsed == util.PublicGraph {
->>>>>>> master
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	}
 }
