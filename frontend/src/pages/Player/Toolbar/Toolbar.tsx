@@ -33,6 +33,7 @@ import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotatio
 import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
 import Button from '../../../components/Button/Button/Button';
 import Tooltip from '../../../components/Tooltip/Tooltip';
+import SpeedControl from './SpeedControl/SpeedControl';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -375,6 +376,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 </div>
                 <div className={styles.toolbarRightSection}>
                     <TimelineAnnotationsSettings />
+                    <SpeedControl />
                     <Tooltip
                         title="Skip the playback of the inactive portions of the session."
                         placement="topLeft"
