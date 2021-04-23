@@ -180,7 +180,7 @@ const DailyChart = ({
                 data={data}
                 margin={{
                     top: 5,
-                    right: 30,
+                    right: 35,
                     left: 0,
                     bottom: 0,
                 }}
