@@ -20,7 +20,7 @@ const PanelDisplayControls = () => {
     return (
         <div className={styles.buttonContainer}>
             <PanelButton
-                tooltipText="Bottom panel: View the DevTools to see console logs, errors, and network requests."
+                tooltipText="Activate the DevTools to see console logs, errors, and network requests"
                 onClick={() => {
                     setOpenDevTools(!openDevTools);
                 }}
@@ -30,7 +30,7 @@ const PanelDisplayControls = () => {
                 />
             </PanelButton>
             <PanelButton
-                tooltipText="Right panel: View the user's metadata and session events."
+                tooltipText="Activate the Inspect panel to view session event details and user metadata."
                 onClick={() => {
                     setShowRightPanelPreference(!showRightPanelPreference);
                 }}
