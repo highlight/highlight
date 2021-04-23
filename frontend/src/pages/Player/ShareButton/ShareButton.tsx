@@ -1,11 +1,10 @@
-import { message } from 'antd';
+import { ButtonProps, message } from 'antd';
 import React, { useContext } from 'react';
 import Button from '../../../components/Button/Button/Button';
 import ReplayerContext from '../ReplayerContext';
-import styles from './ShareButton.module.scss';
 import { onGetLinkWithTimestamp } from './utils/utils';
 
-const ShareButton = () => {
+const ShareButton = (props: ButtonProps) => {
     const { time } = useContext(ReplayerContext);
 
     const onClickHandler = () => {
@@ -15,7 +14,7 @@ const ShareButton = () => {
     };
 
     return (
-        <Button onClick={onClickHandler} className={styles.shareButton}>
+        <Button type="primary" onClick={onClickHandler} {...props}>
             Share
         </Button>
     );

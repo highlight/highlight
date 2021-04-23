@@ -30,8 +30,6 @@ import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import Modal from '../../components/Modal/Modal';
-import useMedia from '../../hooks/useMedia/useMedia';
-import ShareButton from './ShareButton/ShareButton';
 import CommentButton, { Coordinates2D } from './CommentButton/CommentButton';
 
 export const Player = () => {
@@ -57,12 +55,7 @@ export const Player = () => {
         'highlightMenuShowRightPanel',
         true
     );
-    const hideRightPanel = useMedia<boolean>(
-        ['(max-width: 1300px)'],
-        [true],
-        false
-    );
-    const shouldShowRightPanel = showRightPanelPreference && !hideRightPanel;
+    const shouldShowRightPanel = showRightPanelPreference;
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
@@ -140,10 +133,7 @@ export const Player = () => {
                 })}
             >
                 <div className={styles.playerLeftSection}>
-                    <div className={styles.playerLeftTopSection}>
-                        <SessionLevelBar />
-                        <ShareButton />
-                    </div>
+                    <SessionLevelBar />
                     <div className={styles.rrwebPlayerSection}>
                         <div
                             className={styles.rrwebPlayerWrapper}

@@ -1,19 +1,38 @@
 @import 'src/static/shared.scss';
 
 .sessionLevelBarContainer {
+    color: var(--color-gray-500);
+    margin: 0;
     background: $primary-background-color;
-    padding: var(--size-xSmall) var(--size-small);
-    border: 1px solid $border-light-gray;
+    border-bottom: 1px solid $border-light-gray;
     display: flex;
-    gap: $size-xSmall;
     align-items: center;
-    justify-content: space-between;
-    border-radius: var(--size-xSmall);
-    flex-grow: 1;
     height: 36px;
     overflow: hidden;
+
+    & > * {
+        padding: var(--size-xSmall) var(--size-medium);
+        border-right: 1px solid var(--color-gray-300);
+    }
+
+    & > span {
+        display: flex;
+        column-gap: var(--size-medium);
+        align-items: center;
+    }
+
+    & > *:last-child {
+        border-right: none;
+    }
 }
 
 .skeletonContainer {
     width: 100%;
+}
+
+.shareButton {
+    font-size: 12px;
+    padding: 0 var(--size-large);
+    height: var(--size-large);
+    border-radius: var(--size-xxSmall);
 }

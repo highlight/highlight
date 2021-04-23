@@ -71,10 +71,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         'highlightSelectedDevtoolTabs',
         DevToolTabs.Errors
     );
-    const [showRightPanel, setShowRightPanel] = useLocalStorage(
-        'highlightMenuShowRightPanel',
-        true
-    );
     const [] = useLocalStorage('highlightTimelineAnnotationTypes', [
         ...EventsForTimeline,
     ]);
@@ -381,10 +377,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         onSkipInactiveChange={() =>
                             setSkipInactive(!skipInactive)
                         }
-                        openDevTools={openDevTools}
-                        onOpenDevToolsChange={() =>
-                            setOpenDevTools(!openDevTools)
-                        }
                         speed={speed}
                         onSpeedChange={(s: number) => {
                             setSpeed(s);
@@ -393,10 +385,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         autoPlayVideo={autoPlayVideo}
                         onAutoPlayVideoChange={() => {
                             setAutoPlayVideo(!autoPlayVideo);
-                        }}
-                        showRightPanel={showRightPanel}
-                        onShowRightPanelChange={() => {
-                            setShowRightPanel(!showRightPanel);
                         }}
                     />
                 </div>

@@ -12,6 +12,8 @@ import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
 import { useParams } from 'react-router-dom';
 import { DemoContext } from '../../../DemoContext';
 import { useGetSessionQuery } from '../../../graph/generated/hooks';
+import ShareButton from '../ShareButton/ShareButton';
+import PanelDisplayControls from './PanelDisplayControls/PanelDisplayControls';
 
 interface Viewport {
     height: number;
@@ -92,34 +94,38 @@ const SessionLevelBar = () => {
                 </div>
             ) : (
                 <>
+                    <CurrentUrlBar url={currentUrl ?? ''} />
                     <SessionToken
                         icon={<LayoutIcon />}
                         tooltipTitle="The user's current viewport size in pixels."
                     >
                         {viewport?.height} x {viewport?.width}
                     </SessionToken>
-                    <CurrentUrlBar url={currentUrl ?? ''} />
-                    <SessionToken
-                        icon={<LockIcon />}
-                        tooltipTitle={
-                            <>
-                                {data?.session?.enable_strict_privacy
-                                    ? 'Text and images in this session are obfuscated.'
-                                    : 'This session is recording all content on the page.'}{' '}
-                                <a
-                                    href="https://docs.highlight.run/docs/privacy#overview"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    Learn more about Strict Privacy Mode.
-                                </a>
-                            </>
-                        }
-                    >
-                        {data?.session?.enable_strict_privacy
-                            ? 'Privacy Enabled'
-                            : 'Privacy Disabled'}
-                    </SessionToken>
+                    <span>
+                        <SessionToken
+                            icon={<LockIcon />}
+                            tooltipTitle={
+                                <>
+                                    {data?.session?.enable_strict_privacy
+                                        ? 'Text and images in this session are obfuscated.'
+                                        : 'This session is recording all content on the page.'}{' '}
+                                    <a
+                                        href="https://docs.highlight.run/docs/privacy#overview"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        Learn more about Strict Privacy Mode.
+                                    </a>
+                                </>
+                            }
+                        >
+                            {data?.session?.enable_strict_privacy
+                                ? 'Privacy on'
+                                : 'Privacy off'}
+                        </SessionToken>
+                        <PanelDisplayControls />
+                        <ShareButton className={styles.shareButton} />
+                    </span>
                 </>
             )}
         </div>

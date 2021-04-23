@@ -168,6 +168,7 @@
     padding-top: 80px;
     display: grid;
     grid-template-columns: 1fr 350px;
+    overflow: hidden;
 
     &.noRightPanel {
         grid-template-columns: 1fr;
@@ -177,14 +178,6 @@
 .skeletonContainer {
     padding-left: 30px;
     padding-right: 30px;
-}
-
-.playerLeftTopSection {
-    display: flex;
-    gap: $size-xSmall;
-    padding: $size-xSmall $size-small;
-    align-items: center;
-    justify-content: space-between;
 }
 
 .commentModal {
