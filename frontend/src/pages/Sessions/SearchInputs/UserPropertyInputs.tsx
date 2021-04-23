@@ -130,7 +130,15 @@ export const IdentifiedUsersSwitch = () => {
                     }));
                 }}
             >
-                Only show identified users
+                <span
+                    className={
+                        searchParams.identified
+                            ? ''
+                            : inputStyles.checkboxUnselected
+                    }
+                >
+                    Only show identified users
+                </span>
             </Checkbox>
         </div>
     );
@@ -154,7 +162,15 @@ export const FirstTimeUsersSwitch = () => {
                         }));
                     }}
                 >
-                    Only show first time users
+                    <span
+                        className={
+                            searchParams.first_time
+                                ? ''
+                                : inputStyles.checkboxUnselected
+                        }
+                    >
+                        Only show first time users
+                    </span>
                 </Checkbox>
             </Tooltip>
         </div>
