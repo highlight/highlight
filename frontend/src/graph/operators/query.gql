@@ -36,6 +36,23 @@ query GetAdmins($organization_id: ID!) {
     }
 }
 
+query GetSessionComments($session_id: ID!) {
+    session_comments(session_id: $session_id) {
+        id
+        timestamp
+        created_at
+        updated_at
+        text
+        author {
+            id
+            name
+            email
+        }
+        x_coordinate
+        y_coordinate
+    }
+}
+
 mutation SendAdminInvite($organization_id: ID!, $email: String!) {
     sendAdminInvite(organization_id: $organization_id, email: $email)
 }
@@ -43,14 +60,14 @@ mutation SendAdminInvite($organization_id: ID!, $email: String!) {
 query GetSessions(
     $organization_id: ID!
     $count: Int!
-    $processed: Boolean!
+    $lifecycle: SessionLifecycle!
     $starred: Boolean!
     $params: SearchParamsInput
 ) {
     sessions(
         organization_id: $organization_id
         count: $count
-        processed: $processed
+        lifecycle: $lifecycle
         starred: $starred
         params: $params
     ) {
@@ -69,11 +86,13 @@ query GetSessions(
             length
             viewed
             starred
+            processed
             fields {
                 name
                 value
                 type
             }
+            first_time
         }
         totalCount
     }
@@ -101,6 +120,7 @@ query GetOrganization($id: ID!) {
         trial_end_date
         verbose_id
         billing_email
+        slack_webhook_channel
     }
 }
 
@@ -284,6 +304,7 @@ query GetSegments($organization_id: ID!) {
             referrer
             identified
             hide_viewed
+            first_time
         }
     }
 }
@@ -312,4 +333,27 @@ query IsIntegrated($organization_id: ID!) {
 
 query UnprocessedSessionsCount($organization_id: ID!) {
     unprocessedSessionsCount(organization_id: $organization_id)
+}
+
+query GetDailySessionsCount(
+    $organization_id: ID!
+    $date_range: DateRangeInput!
+) {
+    dailySessionsCount(
+        organization_id: $organization_id
+        date_range: $date_range
+    ) {
+        date
+        count
+    }
+}
+
+query GetDailyErrorsCount($organization_id: ID!, $date_range: DateRangeInput!) {
+    dailyErrorsCount(
+        organization_id: $organization_id
+        date_range: $date_range
+    ) {
+        date
+        count
+    }
 }

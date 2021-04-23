@@ -1,0 +1,15 @@
+@import 'src/static/shared.scss';
+
+.actionButtons {
+    display: flex;
+    gap: $size-xSmall;
+    justify-content: flex-end;
+}
+
+.actionButtonsContainer {
+    margin-bottom: 0;
+}
+
+.commentInputContainer {
+    padding: 0 var(--size-xSmall);
+}

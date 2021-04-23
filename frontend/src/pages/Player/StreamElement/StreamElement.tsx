@@ -180,7 +180,6 @@ export const StreamElement = ({
                                 className={styles.codeBlockWrapperVerbose}
                                 onClick={(event) => {
                                     event.stopPropagation();
-                                    console.log(e.data);
                                 }}
                             >
                                 <ReactJson

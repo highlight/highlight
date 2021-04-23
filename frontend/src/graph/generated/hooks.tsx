@@ -697,6 +697,102 @@ export type CreateSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateSegmentMutation,
     Types.CreateSegmentMutationVariables
 >;
+export const CreateSessionCommentDocument = gql`
+    mutation CreateSessionComment(
+        $organization_id: ID!
+        $admin_id: ID!
+        $session_id: ID!
+        $session_timestamp: Int!
+        $text: String!
+        $text_for_email: String!
+        $x_coordinate: Float!
+        $y_coordinate: Float!
+        $tagged_admin_emails: [String]!
+        $session_url: String!
+        $time: Float!
+        $author_name: String!
+    ) {
+        createSessionComment(
+            organization_id: $organization_id
+            admin_id: $admin_id
+            session_id: $session_id
+            session_timestamp: $session_timestamp
+            text: $text
+            text_for_email: $text_for_email
+            x_coordinate: $x_coordinate
+            y_coordinate: $y_coordinate
+            tagged_admin_emails: $tagged_admin_emails
+            session_url: $session_url
+            time: $time
+            author_name: $author_name
+        ) {
+            id
+            timestamp
+            created_at
+            updated_at
+            author {
+                id
+                name
+                email
+            }
+            text
+            x_coordinate
+            y_coordinate
+        }
+    }
+`;
+export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
+    Types.CreateSessionCommentMutation,
+    Types.CreateSessionCommentMutationVariables
+>;
+
+/**
+ * __useCreateSessionCommentMutation__
+ *
+ * To run a mutation, you first call `useCreateSessionCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateSessionCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createSessionCommentMutation, { data, loading, error }] = useCreateSessionCommentMutation({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      admin_id: // value for 'admin_id'
+ *      session_id: // value for 'session_id'
+ *      session_timestamp: // value for 'session_timestamp'
+ *      text: // value for 'text'
+ *      text_for_email: // value for 'text_for_email'
+ *      x_coordinate: // value for 'x_coordinate'
+ *      y_coordinate: // value for 'y_coordinate'
+ *      tagged_admin_emails: // value for 'tagged_admin_emails'
+ *      session_url: // value for 'session_url'
+ *      time: // value for 'time'
+ *      author_name: // value for 'author_name'
+ *   },
+ * });
+ */
+export function useCreateSessionCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateSessionCommentMutation,
+        Types.CreateSessionCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateSessionCommentMutation,
+        Types.CreateSessionCommentMutationVariables
+    >(CreateSessionCommentDocument, baseOptions);
+}
+export type CreateSessionCommentMutationHookResult = ReturnType<
+    typeof useCreateSessionCommentMutation
+>;
+export type CreateSessionCommentMutationResult = Apollo.MutationResult<Types.CreateSessionCommentMutation>;
+export type CreateSessionCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateSessionCommentMutation,
+    Types.CreateSessionCommentMutationVariables
+>;
 export const DeleteErrorSegmentDocument = gql`
     mutation DeleteErrorSegment($segment_id: ID!) {
         deleteErrorSegment(segment_id: $segment_id)
@@ -1053,6 +1149,73 @@ export type GetAdminsQueryResult = Apollo.QueryResult<
     Types.GetAdminsQuery,
     Types.GetAdminsQueryVariables
 >;
+export const GetSessionCommentsDocument = gql`
+    query GetSessionComments($session_id: ID!) {
+        session_comments(session_id: $session_id) {
+            id
+            timestamp
+            created_at
+            updated_at
+            text
+            author {
+                id
+                name
+                email
+            }
+            x_coordinate
+            y_coordinate
+        }
+    }
+`;
+
+/**
+ * __useGetSessionCommentsQuery__
+ *
+ * To run a query within a React component, call `useGetSessionCommentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionCommentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionCommentsQuery({
+ *   variables: {
+ *      session_id: // value for 'session_id'
+ *   },
+ * });
+ */
+export function useGetSessionCommentsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >(GetSessionCommentsDocument, baseOptions);
+}
+export function useGetSessionCommentsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionCommentsQuery,
+        Types.GetSessionCommentsQueryVariables
+    >(GetSessionCommentsDocument, baseOptions);
+}
+export type GetSessionCommentsQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsQuery
+>;
+export type GetSessionCommentsLazyQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsLazyQuery
+>;
+export type GetSessionCommentsQueryResult = Apollo.QueryResult<
+    Types.GetSessionCommentsQuery,
+    Types.GetSessionCommentsQueryVariables
+>;
 export const SendAdminInviteDocument = gql`
     mutation SendAdminInvite($organization_id: ID!, $email: String!) {
         sendAdminInvite(organization_id: $organization_id, email: $email)
@@ -1104,14 +1267,14 @@ export const GetSessionsDocument = gql`
     query GetSessions(
         $organization_id: ID!
         $count: Int!
-        $processed: Boolean!
+        $lifecycle: SessionLifecycle!
         $starred: Boolean!
         $params: SearchParamsInput
     ) {
         sessions(
             organization_id: $organization_id
             count: $count
-            processed: $processed
+            lifecycle: $lifecycle
             starred: $starred
             params: $params
         ) {
@@ -1130,11 +1293,13 @@ export const GetSessionsDocument = gql`
                 length
                 viewed
                 starred
+                processed
                 fields {
                     name
                     value
                     type
                 }
+                first_time
             }
             totalCount
         }
@@ -1155,7 +1320,7 @@ export const GetSessionsDocument = gql`
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      count: // value for 'count'
- *      processed: // value for 'processed'
+ *      lifecycle: // value for 'lifecycle'
  *      starred: // value for 'starred'
  *      params: // value for 'params'
  *   },
@@ -1310,6 +1475,7 @@ export const GetOrganizationDocument = gql`
             trial_end_date
             verbose_id
             billing_email
+            slack_webhook_channel
         }
     }
 `;
@@ -2036,6 +2202,7 @@ export const GetSegmentsDocument = gql`
                 referrer
                 identified
                 hide_viewed
+                first_time
             }
         }
     }
@@ -2262,4 +2429,132 @@ export type UnprocessedSessionsCountLazyQueryHookResult = ReturnType<
 export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
     Types.UnprocessedSessionsCountQuery,
     Types.UnprocessedSessionsCountQueryVariables
+>;
+export const GetDailySessionsCountDocument = gql`
+    query GetDailySessionsCount(
+        $organization_id: ID!
+        $date_range: DateRangeInput!
+    ) {
+        dailySessionsCount(
+            organization_id: $organization_id
+            date_range: $date_range
+        ) {
+            date
+            count
+        }
+    }
+`;
+
+/**
+ * __useGetDailySessionsCountQuery__
+ *
+ * To run a query within a React component, call `useGetDailySessionsCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDailySessionsCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDailySessionsCountQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      date_range: // value for 'date_range'
+ *   },
+ * });
+ */
+export function useGetDailySessionsCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >(GetDailySessionsCountDocument, baseOptions);
+}
+export function useGetDailySessionsCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetDailySessionsCountQuery,
+        Types.GetDailySessionsCountQueryVariables
+    >(GetDailySessionsCountDocument, baseOptions);
+}
+export type GetDailySessionsCountQueryHookResult = ReturnType<
+    typeof useGetDailySessionsCountQuery
+>;
+export type GetDailySessionsCountLazyQueryHookResult = ReturnType<
+    typeof useGetDailySessionsCountLazyQuery
+>;
+export type GetDailySessionsCountQueryResult = Apollo.QueryResult<
+    Types.GetDailySessionsCountQuery,
+    Types.GetDailySessionsCountQueryVariables
+>;
+export const GetDailyErrorsCountDocument = gql`
+    query GetDailyErrorsCount(
+        $organization_id: ID!
+        $date_range: DateRangeInput!
+    ) {
+        dailyErrorsCount(
+            organization_id: $organization_id
+            date_range: $date_range
+        ) {
+            date
+            count
+        }
+    }
+`;
+
+/**
+ * __useGetDailyErrorsCountQuery__
+ *
+ * To run a query within a React component, call `useGetDailyErrorsCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDailyErrorsCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDailyErrorsCountQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      date_range: // value for 'date_range'
+ *   },
+ * });
+ */
+export function useGetDailyErrorsCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >(GetDailyErrorsCountDocument, baseOptions);
+}
+export function useGetDailyErrorsCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetDailyErrorsCountQuery,
+        Types.GetDailyErrorsCountQueryVariables
+    >(GetDailyErrorsCountDocument, baseOptions);
+}
+export type GetDailyErrorsCountQueryHookResult = ReturnType<
+    typeof useGetDailyErrorsCountQuery
+>;
+export type GetDailyErrorsCountLazyQueryHookResult = ReturnType<
+    typeof useGetDailyErrorsCountLazyQuery
+>;
+export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
+    Types.GetDailyErrorsCountQuery,
+    Types.GetDailyErrorsCountQueryVariables
 >;

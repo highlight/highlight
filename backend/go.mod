@@ -1,4 +1,4 @@
-module github.com/jay-khatri/fullstory/backend
+module github.com/highlight-run/highlight/backend
 
 go 1.14
 
@@ -18,18 +18,15 @@ require (
 	github.com/go-redis/redis/v7 v7.4.0
 	github.com/go-test/deep v1.0.4
 	github.com/google/go-cmp v0.5.4 // indirect
-	github.com/google/martian/v3 v3.0.0
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/sessions v1.2.1
-	github.com/jinzhu/gorm v1.9.16
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0
-	github.com/lib/pq v1.3.0 // indirect
+	github.com/lib/pq v1.6.0 // indirect
 	github.com/mattn/go-colorable v0.1.7 // indirect
-	github.com/mattn/go-sqlite3 v2.0.3+incompatible // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/mssola/user_agent v0.5.2
 	github.com/philhofer/fwd v1.1.1 // indirect
@@ -41,15 +38,15 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/slack-go/slack v0.6.6
 	github.com/speps/go-hashids v2.0.0+incompatible
-	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/stripe/stripe-go v70.15.0+incompatible
 	github.com/vektah/gqlparser/v2 v2.1.0
-	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43
+	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
 	google.golang.org/api v0.31.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.29.2
 	gopkg.in/boj/redistore.v1 v1.0.0-20160128113310-fc113767cd6b
 	gopkg.in/yaml.v2 v2.3.0 // indirect
-	gorm.io/gorm v1.20.10
+	gorm.io/driver/postgres v1.0.8
+	gorm.io/gorm v1.21.6
 )

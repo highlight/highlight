@@ -21,6 +21,7 @@ import { CircularSpinner } from '../../../../components/Loading/Loading';
 import _ from 'lodash';
 import { EmptyErrorsSearchParams } from '../../ErrorsPage';
 import Modal from '../../../../components/Modal/Modal';
+import Button from '../../../../components/Button/Button/Button';
 
 const NO_SEGMENT = 'none';
 
@@ -117,7 +118,8 @@ export const ErrorSegmentPicker = () => {
                                 : 'this segment'
                         }?`}
                     </div>
-                    <button
+                    <Button
+                        type="primary"
                         className={commonStyles.submitButton}
                         onClick={() => {
                             deleteSegment({
@@ -147,13 +149,13 @@ export const ErrorSegmentPicker = () => {
                         ) : (
                             'Delete Segment'
                         )}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         className={commonStyles.secondaryButton}
                         onClick={() => setDeleteClicked(false)}
                     >
                         Cancel
-                    </button>
+                    </Button>
                 </div>
             </Modal>
             <div className={styles.segmentPickerMenu}>

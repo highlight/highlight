@@ -1,7 +1,7 @@
 import React from 'react';
 import { useHistory } from 'react-router';
 import { useParams } from 'react-router-dom';
-import PrimaryButton from '../../../../../../../components/Button/PrimaryButton/PrimaryButton';
+import Button from '../../../../../../../components/Button/Button/Button';
 import { LoadingBar } from '../../../../../../../components/Loading/Loading';
 import { useGetErrorGroupQuery } from '../../../../../../../graph/generated/hooks';
 import { ErrorObject } from '../../../../../../../graph/generated/schemas';
@@ -55,7 +55,7 @@ const ErrorModal = ({ error }: Props) => {
                         </>
                     )}
                     <div className={styles.actionsContainer}>
-                        <PrimaryButton
+                        <Button
                             onClick={() => {
                                 history.push(
                                     `/${organization_id}/errors/${error.error_group_id}`
@@ -63,7 +63,7 @@ const ErrorModal = ({ error }: Props) => {
                             }}
                         >
                             Error Page
-                        </PrimaryButton>
+                        </Button>
                     </div>
                 </div>
             )}

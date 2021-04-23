@@ -2,6 +2,7 @@ import { ErrorMessage } from '../../../frontend/src/util/shared-types';
 import StackTrace from 'stacktrace-js';
 
 export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
+    const initialOnError = window.onerror;
     window.onerror = (
         event: any,
         source: string | undefined,
@@ -25,5 +26,8 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
                 });
             });
         }
+    };
+    return () => {
+        window.onerror = initialOnError;
     };
 };

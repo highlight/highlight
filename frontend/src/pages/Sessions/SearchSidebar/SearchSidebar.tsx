@@ -10,12 +10,14 @@ import {
 import {
     UserPropertyInput,
     IdentifiedUsersSwitch,
+    FirstTimeUsersSwitch,
 } from '../SearchInputs/UserPropertyInputs';
 import { TrackPropertyInput } from '../SearchInputs/TrackPropertyInputs';
 import {
     ReferrerInput,
     VisitedUrlInput,
     ViewedSessionsSwitch,
+    LiveSessionsSwitch,
 } from '../SearchInputs/SessionInputs';
 import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
 import { SearchSection } from './SearchSection/SearchSection';
@@ -37,8 +39,8 @@ export const SearchSidebar = () => {
                 </div>
                 <div className={styles.sideContentWrapper}>
                     <div className={styles.toggleSection}>
-                        <IdentifiedUsersSwitch />
                         <ViewedSessionsSwitch />
+                        <LiveSessionsSwitch />
                     </div>
                     <SearchSection
                         title="User Properties"
@@ -56,6 +58,8 @@ export const SearchSidebar = () => {
                             Excluded Properties
                         </div>
                         <UserPropertyInput include={false} />
+                        <IdentifiedUsersSwitch />
+                        <FirstTimeUsersSwitch />
                     </SearchSection>
                     <SearchSection
                         title="Track Properties"

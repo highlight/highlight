@@ -26,12 +26,18 @@ import { usePlayer } from './PlayerHook/PlayerHook';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
 import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
-import ShareButton from './ShareButton/ShareButton';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
+import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
+import Modal from '../../components/Modal/Modal';
+import useMedia from '../../hooks/useMedia/useMedia';
+import ShareButton from './ShareButton/ShareButton';
+import CommentButton, { Coordinates2D } from './CommentButton/CommentButton';
 
 export const Player = () => {
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_id } = useParams<{
+        session_id: string;
+    }>();
     const [resizeListener, sizes] = useResizeAware();
     const player = usePlayer({
         refId: 'player',
@@ -41,14 +47,28 @@ export const Player = () => {
         scale: replayerScale,
         setScale,
         replayer,
+        time,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
+    const newCommentModalRef = useRef<HTMLDivElement>(null);
     const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
-    const [showRightPanel] = useLocalStorage(
+    const [showRightPanelPreference] = useLocalStorage(
         'highlightMenuShowRightPanel',
         true
     );
+    const hideRightPanel = useMedia<boolean>(
+        ['(max-width: 1300px)'],
+        [true],
+        false
+    );
+    const shouldShowRightPanel = showRightPanelPreference && !hideRightPanel;
+    const [commentModalPosition, setCommentModalPosition] = useState<
+        Coordinates2D | undefined
+    >(undefined);
+    const [commentPosition, setCommentPosition] = useState<
+        Coordinates2D | undefined
+    >(undefined);
 
     useEffect(() => {
         if (session_id) {
@@ -74,6 +94,10 @@ export const Player = () => {
         const widthScale = (targetWidth - 80) / width;
         const heightScale = (targetHeight - 80) / height;
         const scale = Math.min(heightScale, widthScale);
+
+        if (scale <= 0) {
+            return false;
+        }
 
         // why translate -50 -50 -> https://medium.com/front-end-weekly/absolute-centering-in-css-ea3a9d0ad72e
         replayer?.wrapper?.setAttribute(
@@ -112,7 +136,7 @@ export const Player = () => {
         <ReplayerContext.Provider value={player}>
             <div
                 className={classNames(styles.playerBody, {
-                    [styles.noRightPanel]: !showRightPanel,
+                    [styles.noRightPanel]: !shouldShowRightPanel,
                 })}
             >
                 <div className={styles.playerLeftSection}>
@@ -126,6 +150,12 @@ export const Player = () => {
                             ref={playerWrapperRef}
                         >
                             {resizeListener}
+                            <CommentButton
+                                setModalPosition={setCommentModalPosition}
+                                isReplayerReady={isReplayerReady}
+                                modalPosition={commentModalPosition}
+                                setCommentPosition={setCommentPosition}
+                            />
                             <div
                                 style={{
                                     visibility: isReplayerReady
@@ -150,12 +180,41 @@ export const Player = () => {
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
                 </div>
-                {showRightPanel && (
+                {shouldShowRightPanel && (
                     <div className={styles.playerRightSection}>
                         <MetadataBox />
                         <EventStream />
                     </div>
                 )}
+                <Modal
+                    visible={commentModalPosition !== undefined}
+                    onCancel={() => {
+                        setCommentModalPosition(undefined);
+                    }}
+                    destroyOnClose
+                    minimal
+                    width="324px"
+                    style={{
+                        left: `${commentModalPosition?.x}px`,
+                        top: `${commentModalPosition?.y}px`,
+                        margin: 0,
+                    }}
+                    mask={false}
+                    modalRender={(node) => (
+                        <div className={styles.commentModal}>{node}</div>
+                    )}
+                >
+                    <div ref={newCommentModalRef}>
+                        <NewCommentEntry
+                            currentTime={Math.floor(time)}
+                            onCloseHandler={() => {
+                                setCommentModalPosition(undefined);
+                            }}
+                            commentPosition={commentPosition}
+                            parentRef={newCommentModalRef}
+                        />
+                    </div>
+                </Modal>
             </div>
         </ReplayerContext.Provider>
     );

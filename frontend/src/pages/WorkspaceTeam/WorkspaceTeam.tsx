@@ -14,6 +14,7 @@ import {
     useGetOrganizationQuery,
     useSendAdminInviteMutation,
 } from '../../graph/generated/hooks';
+import Button from '../../components/Button/Button/Button';
 
 type Inputs = {
     email: string;
@@ -89,7 +90,8 @@ export const WorkspaceTeam = () => {
                                     emailRef.current = e;
                                 }}
                             />
-                            <button
+                            <Button
+                                type="primary"
                                 className={classNames(
                                     commonStyles.submitButton,
                                     styles.inviteButton
@@ -102,7 +104,7 @@ export const WorkspaceTeam = () => {
                                 ) : (
                                     'Invite'
                                 )}
-                            </button>
+                            </Button>
                         </div>
                         <div className={commonStyles.errorMessage}>
                             {errors.email &&

@@ -9,37 +9,47 @@ import (
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
-	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/jay-khatri/fullstory/backend/object-storage"
-	"github.com/jay-khatri/fullstory/backend/util"
-	"github.com/jay-khatri/fullstory/backend/worker"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/util"
+	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
-	cgraph "github.com/jay-khatri/fullstory/backend/client-graph/graph"
-	cgenerated "github.com/jay-khatri/fullstory/backend/client-graph/graph/generated"
-	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
-	mgenerated "github.com/jay-khatri/fullstory/backend/main-graph/graph/generated"
-	rd "github.com/jay-khatri/fullstory/backend/redis"
+	private "github.com/highlight-run/highlight/backend/private-graph/graph"
+	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
+	public "github.com/highlight-run/highlight/backend/public-graph/graph"
+	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
+	rd "github.com/highlight-run/highlight/backend/redis"
 	log "github.com/sirupsen/logrus"
 
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	_ "gorm.io/gorm"
 )
 
 var (
-	env            = os.Getenv("ENVIRONMENT")
-	frontendURL    = os.Getenv("FRONTEND_URI")
-	statsdHost     = os.Getenv("DD_STATSD_HOST")
-	apmHost        = os.Getenv("DD_APM_HOST")
-	landingURL     = os.Getenv("LANDING_PAGE_URI")
-	sendgridKey    = os.Getenv("SENDGRID_API_KEY")
-	stripeApiKey   = os.Getenv("STRIPE_API_KEY")
-	localTunnelURL = os.Getenv("LOCAL_TUNNEL_URI")
-	runtime        = flag.String("runtime", "dev", "the runtime of the backend; either dev/worker/server")
+	env          = os.Getenv("ENVIRONMENT")
+	frontendURL  = os.Getenv("FRONTEND_URI")
+	statsdHost   = os.Getenv("DD_STATSD_HOST")
+	apmHost      = os.Getenv("DD_APM_HOST")
+	landingURL   = os.Getenv("LANDING_PAGE_URI")
+	sendgridKey  = os.Getenv("SENDGRID_API_KEY")
+	stripeApiKey = os.Getenv("STRIPE_API_KEY")
+	runtime      = flag.String("runtime", "all", "the runtime of the backend; either dev/worker/server")
 )
+
+var runtimeParsed util.Runtime
+
+func init() {
+	if runtime == nil {
+		log.Fatal("runtime is nil, provide a value")
+	} else if !util.Runtime(*runtime).IsValid() {
+		log.Fatalf("invalid runtime: %v", *runtime)
+	}
+	runtimeParsed = util.Runtime(*runtime)
+}
 
 func health(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("healthy"))
@@ -47,14 +57,13 @@ func health(w http.ResponseWriter, r *http.Request) {
 }
 
 func validateOrigin(request *http.Request, origin string) bool {
-	if path := request.URL.Path; path == "/main" {
+	if runtimeParsed == util.PrivateGraph {
 		// From the highlight frontend, only the url is whitelisted.
 		isPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
-		isLocalTunnel := origin == localTunnelURL
-		if origin == frontendURL || origin == landingURL || isPreviewEnv || isLocalTunnel {
+		if origin == frontendURL || origin == landingURL || isPreviewEnv {
 			return true
 		}
-	} else if path == "/client" {
+	} else if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
 		return true
 	}
 	return false
@@ -87,8 +96,8 @@ func main() {
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
-	mgraph.SetupAuthClient()
-	main := &mgraph.Resolver{
+	private.SetupAuthClient()
+	privateResolver := &private.Resolver{
 		DB:           db,
 		MailClient:   sendgrid.NewSendClient(sendgridKey),
 		StripeClient: stripeClient,
@@ -105,26 +114,26 @@ func main() {
 		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
 	// Maingraph logic
-	r.Route("/main", func(r chi.Router) {
-		r.Use(mgraph.AdminMiddleWare)
-		mainServer := ghandler.NewDefaultServer(mgenerated.NewExecutableSchema(
-			mgenerated.Config{
-				Resolvers: main,
+	r.Route("/private", func(r chi.Router) {
+		r.Use(private.AdminMiddleWare)
+		mainServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
+			privategen.Config{
+				Resolvers: privateResolver,
 			}),
 		)
-		mainServer.Use(util.NewTracer("main-graph"))
+		mainServer.Use(util.NewTracer(util.PrivateGraph))
 		r.Handle("/", mainServer)
 	})
 	// Clientgraph logic
-	r.Route("/client", func(r chi.Router) {
-		r.Use(cgraph.ClientMiddleWare)
-		clientServer := ghandler.NewDefaultServer(cgenerated.NewExecutableSchema(
-			cgenerated.Config{
-				Resolvers: &cgraph.Resolver{
+	r.Route("/public", func(r chi.Router) {
+		r.Use(public.ClientMiddleWare)
+		clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
+			publicgen.Config{
+				Resolvers: &public.Resolver{
 					DB: db,
 				},
 			}))
-		clientServer.Use(util.NewTracer("client-graph"))
+		clientServer.Use(util.NewTracer(util.PublicGraph))
 		r.Handle("/", clientServer)
 	})
 
@@ -132,16 +141,16 @@ func main() {
 	if err != nil {
 		log.Fatalf("err: %v", err)
 	}
-	w := &worker.Worker{R: main, S: storage}
+	w := &worker.Worker{R: privateResolver, S: storage}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
-	if rt := *runtime; rt == "dev" {
+	if runtimeParsed == util.All {
 		go func() {
 			w.Start()
 		}()
 		log.Fatal(http.ListenAndServe(":"+port, r))
-	} else if rt == "worker" {
+	} else if runtimeParsed == util.Worker {
 		w.Start()
-	} else if rt == "server" {
+	} else if runtimeParsed == util.PrivateGraph || runtimeParsed == util.PublicGraph {
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	}
 

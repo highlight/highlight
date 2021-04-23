@@ -4,12 +4,10 @@
 }
 
 .modal {
-    min-width: 800px;
     max-width: 60vw;
     pointer-events: unset;
 }
 
 .modalContent {
-    height: 70vh;
     overflow-y: auto;
 }

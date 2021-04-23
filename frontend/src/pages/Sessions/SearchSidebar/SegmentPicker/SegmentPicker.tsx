@@ -20,6 +20,7 @@ import { EmptySessionsSearchParams } from '../../SessionsPage';
 import _ from 'lodash';
 import Modal from '../../../../components/Modal/Modal';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
+import Button from '../../../../components/Button/Button/Button';
 
 export const LIVE_SEGMENT_ID = 'live';
 export const STARRED_SEGMENT_ID = 'starred';
@@ -71,6 +72,7 @@ export const SegmentPicker = () => {
     useEffect(() => {
         if (segment_id) {
             if (segment_id === LIVE_SEGMENT_ID) {
+                setSegmentName(null);
                 return;
             }
             if (currentSegment) {
@@ -80,7 +82,8 @@ export const SegmentPicker = () => {
                     !_.isEqual(
                         history.location.state,
                         EmptySessionsSearchParams
-                    )
+                    ) &&
+                    history.length > 2
                 ) {
                     const parsed: SearchParams = gqlSanitize(
                         history.location.state
@@ -97,6 +100,7 @@ export const SegmentPicker = () => {
                 setSegmentName(currentSegment.name);
             } else {
                 // Redirect home since the segment doesn't exist anymore.
+                setSegmentName(null);
                 history.replace(`/${organization_id}/sessions`);
             }
         } else {
@@ -129,7 +133,8 @@ export const SegmentPicker = () => {
                                 : 'this segment'
                         }?`}
                     </div>
-                    <button
+                    <Button
+                        type="primary"
                         className={commonStyles.submitButton}
                         onClick={() => {
                             deleteSegment({
@@ -160,13 +165,13 @@ export const SegmentPicker = () => {
                         ) : (
                             'Delete Segment'
                         )}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                         className={commonStyles.secondaryButton}
                         onClick={() => setDeleteClicked(false)}
                     >
                         Cancel
-                    </button>
+                    </Button>
                 </div>
             </Modal>
             <div className={styles.segmentPickerMenu}>
@@ -301,7 +306,8 @@ export const SegmentPicker = () => {
                                         )}
                                     </div>
                                 </Link>
-                                <button
+                                <Button
+                                    type="text"
                                     className={styles.segmentAction}
                                     onClick={() => {
                                         setDeleteClicked(true);
@@ -309,7 +315,7 @@ export const SegmentPicker = () => {
                                     }}
                                 >
                                     <TrashIcon className={styles.trashIcon} />
-                                </button>
+                                </Button>
                             </div>
                         ))}
                     </div>

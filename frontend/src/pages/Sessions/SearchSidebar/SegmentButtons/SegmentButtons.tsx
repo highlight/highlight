@@ -13,6 +13,8 @@ import {
     useEditSegmentMutation,
 } from '../../../../graph/generated/hooks';
 import Modal from '../../../../components/Modal/Modal';
+import ModalBody from '../../../../components/ModalBody/ModalBody';
+import Button from '../../../../components/Button/Button/Button';
 
 type Inputs = {
     name: string;
@@ -79,7 +81,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                 onCancel={() => setCreateClicked(false)}
                 style={{ display: 'flex' }}
             >
-                <div className={styles.modalWrapper}>
+                <ModalBody className={styles.modalWrapper}>
                     <form onSubmit={handleSubmit(onSubmit)}>
                         <div className={styles.modalSubTitle}>
                             Enter the name of your segment and you'll be good to
@@ -96,7 +98,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                                 'Error with segment name ' +
                                     errors.name.message}
                         </div>
-                        <button className={commonStyles.submitButton}>
+                        <Button style={{ width: '100%', marginTop: 10 }}>
                             {loading ? (
                                 <CircularSpinner
                                     style={{ fontSize: 18, color: 'white' }}
@@ -104,14 +106,15 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                             ) : (
                                 'Save As Segment'
                             )}
-                        </button>
+                        </Button>
                     </form>
-                </div>
+                </ModalBody>
             </Modal>
             {/* If the params have changed for the current segment, offer to update it. */}
             {paramsIsDifferent && segmentName ? (
                 <>
-                    <button
+                    <Button
+                        type="primary"
                         onClick={() => {
                             editSegment({
                                 variables: {
@@ -137,14 +140,15 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                         ) : (
                             'Update Current Segment'
                         )}
-                    </button>
+                    </Button>
                 </>
             ) : (
                 <></>
             )}
             {/* In every case, let someone create a new segment w/ the current search params. */}
-            <button
+            <Button
                 onClick={() => setCreateClicked(true)}
+                type={paramsIsDifferent && segmentName ? 'default' : 'primary'}
                 className={
                     paramsIsDifferent && segmentName
                         ? commonStyles.secondaryButton
@@ -152,7 +156,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                 }
             >
                 Create New Segment
-            </button>
+            </Button>
         </>
     );
 };

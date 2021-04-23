@@ -3,6 +3,7 @@ import {
     Highlight,
     HighlightClassOptions,
 } from '../../client/src/index';
+import packageJson from '../package.json';
 
 export type HighlightOptions = {
     // a 'true' value defaults to only loggin api interactions.
@@ -40,7 +41,6 @@ type HighlightPublicInterface = {
 interface HighlightWindow extends Window {
     Highlight: new (options?: HighlightClassOptions) => Highlight;
     H: HighlightPublicInterface;
-    _h_script: string;
 }
 
 const HIGHLIGHT_URL = 'app.highlight.run';
@@ -73,6 +73,7 @@ export const H: HighlightPublicInterface = {
                     disableConsoleRecording: options?.disableConsoleRecording,
                     enableSegmentIntegration: options?.enableSegmentIntegration,
                     enableStrictPrivacy: options?.enableStrictPrivacy || false,
+                    firstloadVersion: packageJson['version'],
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);
@@ -127,7 +128,7 @@ export const H: HighlightPublicInterface = {
         return new Promise<string>((resolve, reject) => {
             H.onHighlightReady(() => {
                 const orgID = highlight_obj.organizationID;
-                const sessionID = highlight_obj.sessionID;
+                const sessionID = highlight_obj.sessionData.sessionID;
                 if (orgID && sessionID) {
                     const res = `${HIGHLIGHT_URL}/${orgID}/sessions/${sessionID}`;
                     resolve(res);

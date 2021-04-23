@@ -1,7 +1,7 @@
 @import 'src/components/Button/GoToButton/index.module.scss';
 @import 'src/static/shared.scss';
 
-$columns: 130px 200px 90px 90px 1fr $go-to-button-width;
+$columns: 50px 700px 90px 90px 1fr $go-to-button-width;
 $right-padding: 12px;
 
 .networkRow {
@@ -33,11 +33,13 @@ $right-padding: 12px;
 .networkTableWrapper {
     height: calc(100% - 45px);
     position: relative;
+    border-left: 1px solid #eaeaea;
+    margin-left: 1px;
 }
 
 // calc(total width - padding left - padding right - TYPE - NAME - TIMING - SIZE - GoToButton)
 $canvas-width: calc(
-    100% - 25px - 25px - 130px - 200px - 90px - 90px - #{$go-to-button-width}
+    100% - 25px - 25px - 50px - 700px - 90px - 90px - #{$go-to-button-width}
 );
 
 .canvasNetworkWrapper {
@@ -45,7 +47,7 @@ $canvas-width: calc(
     background-attachment: fixed;
     height: 100%;
     width: $canvas-width;
-    margin-left: calc(25px + 130px + 200px + 90px + 90px);
+    margin-left: calc(25px + 50px + 700px + 90px + 90px);
     z-index: 99;
 }
 
@@ -81,7 +83,6 @@ $canvas-width: calc(
 .typeSection {
     white-space: nowrap;
     overflow: hidden;
-    width: 110px;
     text-overflow: ellipsis;
 }
 
@@ -89,7 +90,6 @@ $canvas-width: calc(
     white-space: nowrap;
     cursor: pointer;
     overflow: hidden;
-    width: 180px;
     text-overflow: ellipsis;
 }
 
@@ -124,4 +124,8 @@ $canvas-width: calc(
 .goToButton {
     visibility: hidden;
     color: $text-primary;
+}
+
+.resourcePageWrapper {
+    height: 100%;
 }

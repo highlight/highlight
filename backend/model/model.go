@@ -9,11 +9,12 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/k0kubun/pp"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
 	"github.com/speps/go-hashids"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
 	e "github.com/pkg/errors"
@@ -69,10 +70,8 @@ type Organization struct {
 	StripeCustomerID *string
 	BillingEmail     *string
 	Secret           *string `json:"-"`
-	Users            []User
 	Admins           []Admin `gorm:"many2many:organization_admins;"`
 	Fields           []Field
-	Segments         []Segment `gorm:"foreignKey:ID;"`
 	RecordingSetting RecordingSettings
 	TrialEndDate     *time.Time `json:"trial_end_date"`
 	// Slack API Interaction.
@@ -126,12 +125,15 @@ type EmailSignup struct {
 type User struct {
 	Model
 	OrganizationID int
-	Sessions       []Session
 }
 
 type SessionResults struct {
 	Sessions   []Session
-	TotalCount int
+	TotalCount int64
+}
+
+type SessionCount struct {
+	Count int64
 }
 
 type Session struct {
@@ -153,19 +155,26 @@ type Session struct {
 	BrowserVersion string `json:"browser_version"`
 	Status         string `json:"status"`
 	Language       string `json:"language"`
-	EventsObjects  []EventsObject
 	// Tells us if the session has been parsed by a worker.
 	Processed *bool `json:"processed"`
 	// The length of a session.
-	Length           int64      `json:"length"`
-	Fields           []*Field   `json:"fields" gorm:"many2many:session_fields;"`
-	UserObject       JSONB      `json:"user_object" sql:"type:jsonb"`
+	Length     int64    `json:"length"`
+	Fields     []*Field `json:"fields" gorm:"many2many:session_fields;"`
+	UserObject JSONB    `json:"user_object" sql:"type:jsonb"`
+	// Whether this is the first session created by this user.
+	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
 	// Custom properties
 	Viewed              *bool   `json:"viewed"`
 	Starred             *bool   `json:"starred"`
 	FieldGroup          *string `json:"field_group"`
 	EnableStrictPrivacy *bool   `json:"enable_strict_privacy"`
+	// The version of Highlight's Client.
+	ClientVersion string `json:"client_version" gorm:"index"`
+	// The version of Highlight's Firstload.
+	FirstloadVersion string `json:"firstload_version" gorm:"index"`
+	// The client configuration that the end-user sets up. This is used for debugging purposes.
+	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
 }
 
 type Field struct {
@@ -198,12 +207,27 @@ type SearchParams struct {
 	Referrer           *string         `json:"referrer"`
 	Identified         bool            `json:"identified"`
 	HideViewed         bool            `json:"hide_viewed"`
+	FirstTime          bool            `json:"first_time"`
 }
 type Segment struct {
 	Model
 	Name           *string
 	Params         *string `json:"params"`
 	UserObject     JSONB   `json:"user_object" sql:"type:jsonb"`
+	OrganizationID int
+}
+
+type DailySessionCount struct {
+	Model
+	Date           *time.Time `json:"date"`
+	Count          int64      `json:"count"`
+	OrganizationID int
+}
+
+type DailyErrorCount struct {
+	Model
+	Date           *time.Time `json:"date"`
+	Count          int64      `json:"count"`
 	OrganizationID int
 }
 
@@ -308,10 +332,12 @@ type ErrorField struct {
 
 type SessionComment struct {
 	Model
-	AdminId   int
-	SessionId int
-	Timestamp int
-	Text      string
+	AdminId     int
+	SessionId   int
+	Timestamp   int
+	Text        string
+	XCoordinate float64
+	YCoordinate float64
 }
 
 func SetupDB() *gorm.DB {
@@ -325,11 +351,13 @@ func SetupDB() *gorm.DB {
 		os.Getenv("PSQL_PASSWORD"))
 
 	var err error
-	DB, err = gorm.Open("postgres", psqlConf)
+	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
-	DB.AutoMigrate(
+	if err := DB.AutoMigrate(
 		&RecordingSettings{},
 		&MessagesObject{},
 		&EventsObject{},
@@ -342,11 +370,15 @@ func SetupDB() *gorm.DB {
 		&Admin{},
 		&User{},
 		&Session{},
+		&DailySessionCount{},
+		&DailyErrorCount{},
 		&Field{},
 		&EmailSignup{},
 		&ResourcesObject{},
 		&SessionComment{},
-	)
+	); err != nil {
+		log.Fatalf("Error migrating db: %v", err)
+	}
 	return DB
 }
 

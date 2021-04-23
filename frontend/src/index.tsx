@@ -24,7 +24,9 @@ const options: HighlightOptions = {
 };
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
-    options.backendUrl = 'http://localhost:8082';
+    window.document.title = `⚙️ DEV ${window.document.title}`;
+} else if (window.location.href.includes('onrender')) {
+    window.document.title = `📸 PR ${window.document.title}`;
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();

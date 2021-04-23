@@ -15,11 +15,11 @@ type Tracer struct {
 	graphql.ResponseInterceptor
 	graphql.FieldInterceptor
 
-	serverName string
+	serverType Runtime
 }
 
-func NewTracer(backend string) Tracer {
-	return Tracer{serverName: backend}
+func NewTracer(backend Runtime) Tracer {
+	return Tracer{serverType: backend}
 }
 
 func (t Tracer) ExtensionName() string {
@@ -59,7 +59,7 @@ func (t Tracer) InterceptResponse(ctx context.Context, next graphql.ResponseHand
 	// NOTE: This gets called for the first time at the highest level. Creates the 'tracing' value, calls the next handler
 	// and returns the response.
 	span, ctx := tracer.StartSpanFromContext(ctx, "graphql.operation", tracer.ResourceName(rc.Operation.Name))
-	span.SetTag("backend", t.serverName)
+	span.SetTag("backend", t.serverType)
 	defer span.Finish()
 	resp := next(ctx)
 	end := graphql.Now()

@@ -15,6 +15,7 @@ export type Scalars = {
     Float: number;
     Any: any;
     Time: any;
+    Int64: any;
 };
 
 export type Field = {
@@ -42,6 +43,8 @@ export type Session = {
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
     starred?: Maybe<Scalars['Boolean']>;
+    processed?: Maybe<Scalars['Boolean']>;
+    first_time?: Maybe<Scalars['Boolean']>;
     field_group?: Maybe<Scalars['String']>;
     enable_strict_privacy?: Maybe<Scalars['Boolean']>;
 };
@@ -49,7 +52,7 @@ export type Session = {
 export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
-    meter: Scalars['Int'];
+    meter: Scalars['Int64'];
 };
 
 export type Plan = {
@@ -79,6 +82,7 @@ export type Organization = {
     name: Scalars['String'];
     billing_email?: Maybe<Scalars['String']>;
     trial_end_date?: Maybe<Scalars['Time']>;
+    slack_webhook_channel?: Maybe<Scalars['String']>;
 };
 
 export type Segment = {
@@ -162,6 +166,7 @@ export type SearchParamsInput = {
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
+    first_time?: Maybe<Scalars['Boolean']>;
 };
 
 export type SearchParams = {
@@ -177,6 +182,7 @@ export type SearchParams = {
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
     hide_viewed?: Maybe<Scalars['Boolean']>;
+    first_time?: Maybe<Scalars['Boolean']>;
 };
 
 export type ErrorSearchParamsInput = {
@@ -253,7 +259,7 @@ export type SanitizedAdmin = {
 export type SessionResults = {
     __typename?: 'SessionResults';
     sessions: Array<Session>;
-    totalCount: Scalars['Int'];
+    totalCount: Scalars['Int64'];
 };
 
 export type ErrorResults = {
@@ -270,6 +276,28 @@ export type SessionComment = {
     updated_at: Scalars['Time'];
     author: SanitizedAdmin;
     text: Scalars['String'];
+    x_coordinate: Scalars['Float'];
+    y_coordinate: Scalars['Float'];
+};
+
+export enum SessionLifecycle {
+    All = 'All',
+    Live = 'Live',
+    Completed = 'Completed',
+}
+
+export type DailySessionCount = {
+    __typename?: 'DailySessionCount';
+    organization_id: Scalars['ID'];
+    date: Scalars['Time'];
+    count: Scalars['Int64'];
+};
+
+export type DailyErrorCount = {
+    __typename?: 'DailyErrorCount';
+    organization_id: Scalars['ID'];
+    date: Scalars['Time'];
+    count: Scalars['Int64'];
 };
 
 export type Query = {
@@ -284,7 +312,9 @@ export type Query = {
     session_comments: Array<Maybe<SessionComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
-    unprocessedSessionsCount?: Maybe<Scalars['Int']>;
+    unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
+    dailySessionsCount: Array<Maybe<DailySessionCount>>;
+    dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -345,10 +375,20 @@ export type QueryUnprocessedSessionsCountArgs = {
     organization_id: Scalars['ID'];
 };
 
+export type QueryDailySessionsCountArgs = {
+    organization_id: Scalars['ID'];
+    date_range: DateRangeInput;
+};
+
+export type QueryDailyErrorsCountArgs = {
+    organization_id: Scalars['ID'];
+    date_range: DateRangeInput;
+};
+
 export type QuerySessionsArgs = {
     organization_id: Scalars['ID'];
     count: Scalars['Int'];
-    processed: Scalars['Boolean'];
+    lifecycle: SessionLifecycle;
     starred: Scalars['Boolean'];
     params?: Maybe<SearchParamsInput>;
 };
@@ -515,4 +555,11 @@ export type MutationCreateSessionCommentArgs = {
     session_id: Scalars['ID'];
     session_timestamp: Scalars['Int'];
     text: Scalars['String'];
+    text_for_email: Scalars['String'];
+    x_coordinate: Scalars['Float'];
+    y_coordinate: Scalars['Float'];
+    tagged_admin_emails: Array<Maybe<Scalars['String']>>;
+    session_url: Scalars['String'];
+    time: Scalars['Float'];
+    author_name: Scalars['String'];
 };

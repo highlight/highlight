@@ -22,7 +22,8 @@
 .optionsWrapper {
     display: flex;
     height: 100%;
-    padding-left: 10px;
+    padding-left: var(--size-large);
+    overflow: hidden;
 }
 
 .emptyWrapper {
@@ -59,30 +60,29 @@
 }
 
 .devToolsSelectWrapper {
+    padding-left: var(--size-large);
+    padding-right: var(--size-large);
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
     flex-direction: row;
-    padding-right: 10px;
+    border-bottom: 1px solid var(--color-gray-300);
 }
 
 .option {
-    padding-top: 5px;
+    padding-top: var(--size-small);
+    padding-bottom: var(--size-xSmall);
     color: #5629c6;
     transition: 0.2s;
     margin: 0px 15px 0px 15px;
     font-size: 14px;
     font-weight: 300;
     cursor: pointer;
-    height: 100%;
     display: flex;
     align-items: center;
 }
 
 .topBar {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
     background-color: white;
     height: 45px;
     border-bottom: 1px solid #eaeaea;
@@ -90,9 +90,10 @@
 }
 
 .resizeContainer {
-    max-height: 50vh;
+    max-height: 80vh;
     height: 34vh;
     min-height: 45px;
+    overflow: hidden;
 }
 
 .resizeHandle {

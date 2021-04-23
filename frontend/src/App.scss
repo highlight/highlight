@@ -20,6 +20,10 @@
     font-weight: 300;
 }
 
+.ant-dropdown-menu-item {
+    font-weight: 300 !important;
+}
+
 input[name='option-input'] {
     outline: none !important;
     border: none !important;
@@ -83,4 +87,14 @@ iframe {
     to {
         transform: rotate(360deg);
     }
+}
+
+.ant-mentions {
+    border: none !important;
+    font-size: 14px;
+    font-weight: 200;
+}
+
+.ant-mentions-focused {
+    box-shadow: none !important;
 }

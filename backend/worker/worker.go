@@ -1,16 +1,21 @@
 package worker
 
 import (
+	"context"
 	"fmt"
+	"strconv"
 	"time"
 
-	"github.com/jay-khatri/fullstory/backend/model"
-	"github.com/jay-khatri/fullstory/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
-	parse "github.com/jay-khatri/fullstory/backend/event-parse"
-	mgraph "github.com/jay-khatri/fullstory/backend/main-graph/graph"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
+	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
+	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -20,7 +25,7 @@ type Worker struct {
 	S *storage.StorageClient
 }
 
-func (w *Worker) processSession(s *model.Session) error {
+func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Set the session as processed; if any is error thrown after this, the session gets ignored.
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
@@ -48,6 +53,17 @@ func (w *Worker) processSession(s *model.Session) error {
 
 	// Calculate total session length and write the length to the session.
 	diff := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
+	length := diff.Milliseconds()
+
+	// Delete the session if there are no events. This can happen when:
+	// 1. Nothing happened in the session
+	// 2. A web crawler visited the page and produced no events
+	if length == 0 {
+		if err := w.R.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+			return errors.Wrap(err, "error trying to delete session with no events")
+		}
+	}
+
 	if err := w.R.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -55,7 +71,7 @@ func (w *Worker) processSession(s *model.Session) error {
 			// We are setting Viewed to false so sessions the user viewed while they were live will be reset.
 			Viewed:    &model.F,
 			Processed: &model.T,
-			Length:    diff.Milliseconds(),
+			Length:    length,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -84,20 +100,30 @@ func (w *Worker) processSession(s *model.Session) error {
 
 // Start begins the worker's tasks.
 func (w *Worker) Start() {
+	ctx := context.Background()
 	for {
 		time.Sleep(1 * time.Second)
-		thirtySecondsAgo := time.Now().Add(-30 * time.Second)
+		workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
+		workerSpan.SetTag("backend", util.Worker)
+		now := time.Now()
+		thirtySecondsAgo := now.Add(-30 * time.Second)
 		sessions := []*model.Session{}
+		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
 		if err := w.R.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", thirtySecondsAgo, false).Find(&sessions).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
+			sessionsSpan.Finish()
 			continue
 		}
+		sessionsSpan.Finish()
 		for _, session := range sessions {
-			if err := w.processSession(session); err != nil {
-				log.Errorf("error processing sessions: %v", err)
+			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
+			if err := w.processSession(ctx, session); err != nil {
+				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
 				continue
 			}
+			span.Finish()
 		}
+		workerSpan.Finish()
 	}
 }
 

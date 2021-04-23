@@ -10,6 +10,7 @@ import {
     useDeleteOrganizationMutation,
     useGetOrganizationQuery,
 } from '../../../graph/generated/hooks';
+import Button from '../../../components/Button/Button/Button';
 
 type Inputs = {
     text: string;
@@ -55,7 +56,9 @@ export const DangerForm = () => {
                                     value === data?.organization?.name,
                             })}
                         />
-                        <button
+                        <Button
+                            danger
+                            type="primary"
                             className={classNames(
                                 commonStyles.submitButton,
                                 styles.deleteButton
@@ -68,7 +71,7 @@ export const DangerForm = () => {
                             ) : (
                                 'Delete'
                             )}
-                        </button>
+                        </Button>
                         <div className={commonStyles.errorMessage}>
                             {errors.text && 'Entered the incorrect text!'}
                         </div>

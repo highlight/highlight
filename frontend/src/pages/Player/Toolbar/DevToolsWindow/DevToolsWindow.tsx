@@ -10,6 +10,7 @@ import {
 
 import styles from './DevToolsWindow.module.scss';
 import ErrorsPage from './ErrorsPage/ErrorsPage';
+import { DevToolsSelect } from './Option/Option';
 
 export const DevToolsWindow = ({
     time,
@@ -43,7 +44,10 @@ export const DevToolsWindow = ({
             handleClass={styles.resizeHandle}
             borderClass={styles.resizeBorder}
         >
-            <div className={styles.devToolsWrapper}>{getPage(selectedTab)}</div>
+            <div className={styles.devToolsWrapper}>
+                <DevToolsSelect />
+                {getPage(selectedTab)}
+            </div>
         </ResizePanel>
     );
 };

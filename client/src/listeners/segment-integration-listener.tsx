@@ -15,4 +15,8 @@ export const SegmentIntegrationListener = (callback: (obj: any) => void) => {
         }, 100);
         send.call(this, data);
     };
+
+    return () => {
+        XMLHttpRequest.prototype.send = send;
+    };
 };

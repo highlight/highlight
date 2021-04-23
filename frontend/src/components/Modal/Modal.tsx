@@ -6,18 +6,35 @@ import styles from './Modal.module.scss';
 
 type Props = Pick<
     ModalProps,
-    'width' | 'onCancel' | 'visible' | 'style' | 'forceRender' | 'modalRender'
+    | 'width'
+    | 'onCancel'
+    | 'visible'
+    | 'style'
+    | 'forceRender'
+    | 'modalRender'
+    | 'destroyOnClose'
+    | 'centered'
+    | 'mask'
 > & {
     title?: string;
+    minimal?: boolean;
 };
 
-const Modal: React.FC<Props> = ({ children, title, ...props }) => {
+const Modal: React.FC<Props> = ({ children, title, minimal, ...props }) => {
+    const bodyStyle: React.CSSProperties = minimal
+        ? {
+              padding: `var(--size-xSmall)`,
+          }
+        : {};
+
     return (
         <AntDesignModal
             footer={null}
             {...props}
-            closeIcon={<Close height="18px" width="18px" />}
+            closeIcon={!minimal ? <Close height="18px" width="18px" /> : null}
             className={styles.modal}
+            closable={!minimal}
+            bodyStyle={bodyStyle}
         >
             {title && <h1 className={styles.title}>{title}</h1>}
             <main className={styles.modalContent}>{children}</main>
