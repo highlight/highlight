@@ -13,6 +13,7 @@ import { useParams } from 'react-router-dom';
 import { DemoContext } from '../../../DemoContext';
 import { useGetSessionQuery } from '../../../graph/generated/hooks';
 import ShareButton from '../ShareButton/ShareButton';
+import PanelDisplayControls from './PanelDisplayControls/PanelDisplayControls';
 
 interface Viewport {
     height: number;
@@ -122,6 +123,7 @@ const SessionLevelBar = () => {
                                 ? 'Privacy on'
                                 : 'Privacy off'}
                         </SessionToken>
+                        <PanelDisplayControls />
                         <ShareButton className={styles.shareButton} />
                     </span>
                 </>
