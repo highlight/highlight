@@ -376,10 +376,22 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 </div>
                 <div className={styles.toolbarRightSection}>
                     <TimelineAnnotationsSettings />
-                    <SpeedControl />
+                    <Tooltip
+                        title="Automatically starts the video when you open a session."
+                        arrowPointAtCenter
+                    >
+                        <Button
+                            type="text"
+                            className={classNames(styles.autoPlayButton)}
+                            onClick={() => {
+                                setAutoPlayVideo(!autoPlayVideo);
+                            }}
+                        >
+                            {autoPlayVideo ? 'Autoplay on' : 'Autoplay off'}
+                        </Button>
+                    </Tooltip>
                     <Tooltip
                         title="Skip the playback of the inactive portions of the session."
-                        placement="topLeft"
                         arrowPointAtCenter
                     >
                         <Button
@@ -396,7 +408,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                                 : 'Skip inactive'}
                         </Button>
                     </Tooltip>
-
+                    <SpeedControl />
                     <Tooltip
                         title="View the DevTools to see console logs, errors, and network requests."
                         placement="topLeft"

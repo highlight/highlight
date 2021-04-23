@@ -1,4 +1,5 @@
 export const annotationsContainer: string;
+export const autoPlayButton: string;
 export const button: string;
 export const buttonContainer: string;
 export const commentAuthor: string;

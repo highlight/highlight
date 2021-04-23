@@ -309,6 +309,7 @@
 .devToolsButton {
     display: flex;
     align-items: center;
+    margin-left: 10px;
 
     .devToolsIcon {
         width: 20px;
@@ -322,8 +323,14 @@
 
 .skipInactiveButton {
     width: 144px;
+    color: var(--color-gray-500);
 
     &.skipInactiveButtonActive {
         color: var(--color-orange-400);
     }
+}
+
+.autoPlayButton {
+    color: var(--color-gray-500);
+    width: 112px;
 }
