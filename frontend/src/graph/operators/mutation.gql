@@ -130,6 +130,7 @@ mutation CreateSessionComment(
     $session_url: String!
     $time: Float!
     $author_name: String!
+    $session_image: String!
 ) {
     createSessionComment(
         organization_id: $organization_id
@@ -144,6 +145,7 @@ mutation CreateSessionComment(
         session_url: $session_url
         time: $time
         author_name: $author_name
+        session_image: $session_image
     ) {
         id
         timestamp
