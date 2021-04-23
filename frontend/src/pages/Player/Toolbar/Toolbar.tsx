@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { FaUndoAlt, FaPlay, FaPause, FaRedoAlt } from 'react-icons/fa';
+import { FaPause } from 'react-icons/fa';
 import { useLocalStorage } from '@rehooks/local-storage';
 import {
     MillisToMinutesAndSeconds,
