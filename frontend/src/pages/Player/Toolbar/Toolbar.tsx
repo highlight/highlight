@@ -30,6 +30,9 @@ import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorM
 import TimelineCommentAnnotation from './TimelineAnnotation/TimelineCommentAnnotation';
 import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
 import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
+import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
+import Button from '../../../components/Button/Button/Button';
+import Tooltip from '../../../components/Tooltip/Tooltip';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -372,6 +375,25 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 </div>
                 <div className={styles.toolbarRightSection}>
                     <TimelineAnnotationsSettings />
+                    <Tooltip
+                        title="View the DevTools to see console logs, errors, and network requests."
+                        placement="topLeft"
+                        arrowPointAtCenter
+                    >
+                        <Button
+                            type="text"
+                            className={styles.devToolsButton}
+                            onClick={() => {
+                                setOpenDevTools(!openDevTools);
+                            }}
+                        >
+                            <SvgDevtoolsIcon
+                                className={classNames(styles.devToolsIcon, {
+                                    [styles.devToolsActive]: openDevTools,
+                                })}
+                            />
+                        </Button>
+                    </Tooltip>
                     <SettingsMenu
                         skipInactive={skipInactive}
                         onSkipInactiveChange={() =>

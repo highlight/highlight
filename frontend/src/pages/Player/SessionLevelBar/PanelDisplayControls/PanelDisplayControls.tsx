@@ -53,7 +53,11 @@ const PanelButton = (
         tooltipText: string;
     }>
 ) => (
-    <Tooltip title={props.tooltipText} placement="bottomRight">
+    <Tooltip
+        title={props.tooltipText}
+        placement="bottomRight"
+        arrowPointAtCenter
+    >
         <Button type="text" className={styles.button} onClick={props.onClick}>
             {props.children}
         </Button>

@@ -305,3 +305,17 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.devToolsButton {
+    display: flex;
+    align-items: center;
+
+    .devToolsIcon {
+        width: 20px;
+        color: var(--color-gray-500);
+
+        &.devToolsActive {
+            color: var(--color-purple);
+        }
+    }
+}
