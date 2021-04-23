@@ -50,14 +50,14 @@ export const HomePage = () => {
 const timeFilter = [
     { label: 'Last 7 days', value: 7 },
     { label: 'Last 30 days', value: 30 },
-];
+] as const;
 
 const SessionCountGraph = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
     // In days
-    const [dateRangeLength, setDateRangeLength] = useState(7);
+    const [dateRangeLength, setDateRangeLength] = useState(timeFilter[0].value);
     const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
         []
     );
@@ -113,7 +113,7 @@ const ErrorCountGraph = () => {
         organization_id: string;
     }>();
     // In days
-    const [dateRangeLength, setDateRangeLength] = useState(7);
+    const [dateRangeLength, setDateRangeLength] = useState(timeFilter[0].value);
     const [errorCountData, setErrorCountData] = useState<Array<DailyCount>>([]);
 
     const { loading } = useGetDailyErrorsCountQuery({

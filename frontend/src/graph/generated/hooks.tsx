@@ -2439,6 +2439,7 @@ export const GetDailySessionsCountDocument = gql`
             organization_id: $organization_id
             date_range: $date_range
         ) {
+            organization_id
             date
             count
         }

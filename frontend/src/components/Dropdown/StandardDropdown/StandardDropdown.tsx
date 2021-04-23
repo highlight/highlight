@@ -13,7 +13,7 @@ export const StandardDropdown = ({
     data,
     onSelect,
 }: {
-    data: Array<Option>;
+    data: ReadonlyArray<Option>;
     onSelect: React.Dispatch<React.SetStateAction<any>>;
 }) => {
     const [visible, setVisible] = useState(false);
