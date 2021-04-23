@@ -1844,15 +1844,21 @@
     tslib "~2.0.1"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 "@highlight-run/rrweb@^0.10.4":
   version "0.10.6"
   resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.10.6.tgz#b4d5b42fc3e6cc4f5b0451c884a6e9a40b0e98ce"
   integrity sha512-3NJFjAKCP49Ne3g5u7gsOAREH/5ipEz/Q5tZNqhYrF0QCyXx/KBzXL2mNPW4pMS2FJqT5aEXXojERESVuRtTQQ==
 =======
+=======
+>>>>>>> master
 "@highlight-run/rrweb@0.11.2":
   version "0.11.2"
   resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.11.2.tgz#7b5dd5eedb54b7e66d4fc9e9922b5f8a9498742f"
   integrity sha512-J9/P/fWi0rJ5eeILokhYNTpOa8jIgHvqaWlEEIbrVu2x2N71QUm8tW48S520qhmr3oO+NwcxWMst2yLdP47ZQQ==
+<<<<<<< HEAD
+>>>>>>> master
+=======
 >>>>>>> master
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
