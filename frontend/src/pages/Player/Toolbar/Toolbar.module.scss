@@ -257,9 +257,17 @@
     fill: $text-primary;
 
     &:disabled {
+        cursor: not-allowed;
+    }
+
+    &:disabled .icon {
         color: $disabled-button;
         fill: $disabled-button;
-        cursor: not-allowed;
+    }
+
+    &:hover .icon {
+        color: var(--color-black);
+        fill: var(--color-black);
     }
 }
 
@@ -268,6 +276,7 @@
     fill: var(--color-gray-500);
     height: 20px;
     width: 20px;
+    transition: color ease-in-out 0.2s;
 }
 
 .annotationsContainer {
