@@ -6,7 +6,6 @@ import {
     MillisToMinutesAndSecondsVerbose,
 } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
-import { SettingsMenu } from './SettingsMenu/SettingsMenu';
 import {
     DevToolsContextProvider,
     DevToolTabs,
@@ -54,7 +53,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
-    const [speed, setSpeed] = useLocalStorage('highlightMenuSpeed', 2);
+    const [speed] = useLocalStorage('highlightMenuSpeed', 2);
     const [skipInactive, setSkipInactive] = useLocalStorage(
         'highlightMenuSkipInactive',
         true
@@ -428,21 +427,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             />
                         </Button>
                     </Tooltip>
-                    <SettingsMenu
-                        skipInactive={skipInactive}
-                        onSkipInactiveChange={() =>
-                            setSkipInactive(!skipInactive)
-                        }
-                        speed={speed}
-                        onSpeedChange={(s: number) => {
-                            setSpeed(s);
-                            replayer?.setConfig({ speed: s });
-                        }}
-                        autoPlayVideo={autoPlayVideo}
-                        onAutoPlayVideoChange={() => {
-                            setAutoPlayVideo(!autoPlayVideo);
-                        }}
-                    />
                 </div>
             </div>
         </ErrorModalContextProvider>
