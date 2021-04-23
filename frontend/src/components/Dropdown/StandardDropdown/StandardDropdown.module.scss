@@ -1,5 +1,7 @@
+@import 'src/static/shared.scss';
+
 .labelItem {
-    border-bottom: 1px solid #eaeaea;
+    border-bottom: 1px solid $border-light-gray;
     padding: 10px 10px 10px 6px;
     font-size: 14px;
     cursor: pointer;
@@ -13,18 +15,18 @@
 }
 
 .labelText {
-    color: black;
+    color: var(--color-black);
     margin-right: 12px;
     margin-left: 6px;
 }
 
 .dropdownInner {
-    background-color: white;
+    background-color: var(--color-primary-background);
     border-radius: 5px;
-    border: 1px solid #eaeaea;
+    border: 1px solid $border-light-gray;
     margin-top: 9px;
     box-shadow: 2px 2px 8px #e4e4e4;
-    color: black;
+    color: var(--color-black);
 }
 
 .dropdownMenu {
@@ -52,7 +54,7 @@
 .dropdownHandler {
     cursor: pointer;
     height: 40px;
-    border: 1px solid #eaeaea;
+    border: 1px solid $border-light-gray;
     display: flex;
     align-items: center;
     justify-content: center;
