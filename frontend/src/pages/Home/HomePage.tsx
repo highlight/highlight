@@ -20,6 +20,7 @@ import classNames from 'classnames';
 import Skeleton from 'react-loading-skeleton';
 import { dailyCountData } from '../../util/dashboardCalculations';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
+import { formatNumber } from '../../util/numbers';
 
 type DailyCount = {
     date: string;
@@ -198,8 +199,9 @@ const DailyChart = ({
                 />
                 <YAxis
                     interval="preserveStart"
-                    width={30}
+                    width={45}
                     allowDecimals={false}
+                    tickFormatter={(tickItem) => formatNumber(tickItem)}
                     tick={{ fontSize: '11px', fill: labelColor }}
                     tickLine={{ stroke: labelColor }}
                     axisLine={{ stroke: gridColor }}
