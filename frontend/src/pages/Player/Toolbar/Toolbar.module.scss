@@ -261,8 +261,13 @@
     }
 
     &:disabled .icon {
-        color: $disabled-button;
-        fill: $disabled-button;
+        color: #dfdfdf;
+        fill: #dfdfdf;
+
+        &:hover {
+            color: #dfdfdf;
+            fill: #dfdfdf;
+        }
     }
 
     &:hover .icon {
