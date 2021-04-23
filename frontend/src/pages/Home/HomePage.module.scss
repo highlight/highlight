@@ -1,0 +1,53 @@
+.dashboardWrapper {
+    width: 100%;
+}
+
+.dashboard {
+    margin: 120px 80px 80px 80px;
+}
+
+.title {
+    font-size: 28px;
+    font-weight: 400;
+}
+
+.subTitle {
+    margin-top: 12px;
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+.chartHeaderWrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px 30px 10px;
+}
+
+.chartTitle {
+    font-size: 20px;
+    font-weight: 400;
+}
+
+.graphSection {
+    flex-direction: column;
+    padding: 20px 15px 20px 15px;
+}
+
+.section {
+    border: 1px solid #e4e8eb;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    transition: 0.4s;
+    display: flex;
+    width: 100%;
+}
+
+.dashboardBody {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(400px, 1fr) minmax(400px, 1fr);
+    gap: 0px 0px;
+    grid-template-areas: 'Left-Panel Right-Panel';
+    column-gap: 30px;
+}
