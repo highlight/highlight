@@ -29,7 +29,7 @@ export const ErrorState = ({
                 {showError && <p className={styles.errorBody}>{errorString}</p>}
                 <div className={styles.buttonGroup}>
                     <a href={'https://app.highlight.run'}>
-                        <Button>Go to my Account</Button>
+                        <Button type="primary">Go to my Account</Button>
                     </a>
                     <Button
                         style={{ marginLeft: 10 }}
