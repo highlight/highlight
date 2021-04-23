@@ -376,6 +376,26 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 <div className={styles.toolbarRightSection}>
                     <TimelineAnnotationsSettings />
                     <Tooltip
+                        title="Skip the playback of the inactive portions of the session."
+                        placement="topLeft"
+                        arrowPointAtCenter
+                    >
+                        <Button
+                            type="text"
+                            className={classNames(styles.skipInactiveButton, {
+                                [styles.skipInactiveButtonActive]: skipInactive,
+                            })}
+                            onClick={() => {
+                                setSkipInactive(!skipInactive);
+                            }}
+                        >
+                            {skipInactive
+                                ? 'Skipping inactive'
+                                : 'Skip inactive'}
+                        </Button>
+                    </Tooltip>
+
+                    <Tooltip
                         title="View the DevTools to see console logs, errors, and network requests."
                         placement="topLeft"
                         arrowPointAtCenter

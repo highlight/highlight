@@ -319,3 +319,11 @@
         }
     }
 }
+
+.skipInactiveButton {
+    width: 144px;
+
+    &.skipInactiveButtonActive {
+        color: var(--color-orange-400);
+    }
+}
