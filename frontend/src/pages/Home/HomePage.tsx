@@ -212,7 +212,7 @@ const DailyChart = ({
                         borderWidth: 0,
                         color: 'white',
                     }}
-                    itemStyle={{ color: 'white' }}
+                    itemStyle={{ color: 'white', padding: 0 }}
                 />
                 <Line
                     dataKey="count"
