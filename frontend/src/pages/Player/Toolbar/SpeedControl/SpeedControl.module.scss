@@ -2,6 +2,10 @@
     color: var(--color-gray-500);
     font-size: 12px;
     padding: 0 var(--size-xSmall);
+
+    &:active {
+        color: var(--color-gray-500);
+    }
 }
 
 .speedButton {
@@ -18,6 +22,11 @@
 
     &:focus {
         background: var(--color-purple-200);
+    }
+
+    &:disabled {
+        background: var(--color-purple);
+        color: var(--color-purple-200);
     }
 }
 
