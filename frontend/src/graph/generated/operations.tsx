@@ -814,7 +814,7 @@ export type GetDailySessionsCountQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'DailySessionCount' } & Pick<
                 Types.DailySessionCount,
-                'organization_id' | 'date' | 'count'
+                'date' | 'count'
             >
         >
     >;
