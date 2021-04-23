@@ -15,25 +15,9 @@ const PanelDisplayControls = () => {
         showRightPanelPreference,
         setShowRightPanelPreference,
     ] = useLocalStorage('highlightMenuShowRightPanel', true);
-    const [showSidebar, setShowSidebar] = useLocalStorage(
-        'highlightShowSidebar',
-        true
-    );
 
     return (
         <div className={styles.buttonContainer}>
-            <PanelButton
-                onClick={() => {
-                    setShowSidebar(!showSidebar);
-                }}
-            >
-                <SvgPanelRightIcon
-                    className={classNames([
-                        { [styles.active]: showSidebar },
-                        styles.leftPanelIcon,
-                    ])}
-                />
-            </PanelButton>
             <PanelButton
                 onClick={() => {
                     setOpenDevTools(!openDevTools);
