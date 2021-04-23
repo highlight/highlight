@@ -1,7 +1,7 @@
 import useLocalStorage from '@rehooks/local-storage';
 import { Checkbox, CheckboxOptionType } from 'antd';
 import React from 'react';
-import TransparentButton from '../../../../components/Button/TransparentButton/TransparentButton';
+import Button from '../../../../components/Button/Button/Button';
 import Popover from '../../../../components/Popover/Popover';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import {
@@ -107,7 +107,7 @@ const TimelineAnnotationsSettings = () => {
                 </div>
             }
         >
-            <TransparentButton className={styles.button}>
+            <Button type="text" className={styles.button}>
                 <div className={styles.eventTypesContainer}>
                     {selectedEventTypes.map((eventType) => (
                         <div
@@ -124,7 +124,7 @@ const TimelineAnnotationsSettings = () => {
                         {selectedEventTypes.length} types...
                     </span>
                 </div>
-            </TransparentButton>
+            </Button>
         </Popover>
     );
 };

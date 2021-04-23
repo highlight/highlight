@@ -2,6 +2,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import React from 'react';
 import Button from '../../../../components/Button/Button/Button';
+import Tooltip from '../../../../components/Tooltip/Tooltip';
 import SvgPanelBottomIcon from '../../../../static/PanelBottomIcon';
 import SvgPanelRightIcon from '../../../../static/PanelRightIcon';
 import styles from './PanelDisplayControls.module.scss';
@@ -15,26 +16,11 @@ const PanelDisplayControls = () => {
         showRightPanelPreference,
         setShowRightPanelPreference,
     ] = useLocalStorage('highlightMenuShowRightPanel', true);
-    const [showSidebar, setShowSidebar] = useLocalStorage(
-        'highlightShowSidebar',
-        true
-    );
 
     return (
         <div className={styles.buttonContainer}>
             <PanelButton
-                onClick={() => {
-                    setShowSidebar(!showSidebar);
-                }}
-            >
-                <SvgPanelRightIcon
-                    className={classNames([
-                        { [styles.active]: showSidebar },
-                        styles.leftPanelIcon,
-                    ])}
-                />
-            </PanelButton>
-            <PanelButton
+                tooltipText="Activate the DevTools to see console logs, errors, and network requests"
                 onClick={() => {
                     setOpenDevTools(!openDevTools);
                 }}
@@ -44,6 +30,7 @@ const PanelDisplayControls = () => {
                 />
             </PanelButton>
             <PanelButton
+                tooltipText="Activate the Inspect panel to view session event details and user metadata."
                 onClick={() => {
                     setShowRightPanelPreference(!showRightPanelPreference);
                 }}
@@ -63,9 +50,16 @@ export default PanelDisplayControls;
 const PanelButton = (
     props: React.PropsWithChildren<{
         onClick: React.MouseEventHandler<HTMLElement>;
+        tooltipText: string;
     }>
 ) => (
-    <Button type="text" className={styles.button} onClick={props.onClick}>
-        {props.children}
-    </Button>
+    <Tooltip
+        title={props.tooltipText}
+        placement="bottomRight"
+        arrowPointAtCenter
+    >
+        <Button type="text" className={styles.button} onClick={props.onClick}>
+            {props.children}
+        </Button>
+    </Tooltip>
 );

@@ -110,6 +110,10 @@
 .toolbarLeftSection {
     display: flex;
     flex-direction: row;
+
+    & > * {
+        margin-top: 2px;
+    }
 }
 
 .toolbarRightSection {
@@ -119,11 +123,15 @@
     align-items: center;
     justify-content: center;
     height: 100%;
+
+    & > * {
+        margin-top: 2px;
+    }
 }
 
 .toolbarSection {
     width: 100%;
-    height: 70px;
+    height: 50px;
     background-color: white;
     display: flex;
     flex-direction: row;
@@ -136,7 +144,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    margin-left: 29px;
+    margin-left: 18px;
     cursor: pointer;
 }
 
@@ -145,7 +153,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    margin-left: 23px;
+    margin-left: 22px;
     cursor: pointer;
 }
 
@@ -154,7 +162,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    margin-left: 17px;
+    margin-left: 24px;
     cursor: pointer;
 }
 
@@ -229,7 +237,9 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    margin-left: 22px;
+    margin-left: 20px;
+    color: var(--color-gray-500);
+    font-size: 12px;
 }
 
 .skipButtonStyle {
@@ -247,15 +257,31 @@
     fill: $text-primary;
 
     &:disabled {
-        color: $disabled-button;
-        fill: $disabled-button;
         cursor: not-allowed;
+    }
+
+    &:disabled .icon {
+        color: #dfdfdf;
+        fill: #dfdfdf;
+
+        &:hover {
+            color: #dfdfdf;
+            fill: #dfdfdf;
+        }
+    }
+
+    &:hover .icon {
+        color: var(--color-black);
+        fill: var(--color-black);
     }
 }
 
 .icon {
-    height: 18px;
-    width: 18px;
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
+    height: 20px;
+    width: 20px;
+    transition: color ease-in-out 0.2s;
 }
 
 .annotationsContainer {
@@ -304,4 +330,34 @@
 .commentAuthor {
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.devToolsButton {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+    margin-right: 4px;
+
+    .devToolsIcon {
+        width: 20px;
+        color: var(--color-gray-500);
+
+        &.devToolsActive {
+            color: var(--color-purple);
+        }
+    }
+}
+
+.skipInactiveButton {
+    width: 144px;
+    color: var(--color-gray-500);
+
+    &.skipInactiveButtonActive {
+        color: var(--color-orange-400);
+    }
+}
+
+.autoPlayButton {
+    color: var(--color-gray-500);
+    width: 112px;
 }

@@ -94,6 +94,7 @@ const SessionLevelBar = () => {
                 </div>
             ) : (
                 <>
+                    <PanelDisplayControls />
                     <CurrentUrlBar url={currentUrl ?? ''} />
                     <SessionToken
                         icon={<LayoutIcon />}
@@ -123,7 +124,6 @@ const SessionLevelBar = () => {
                                 ? 'Privacy on'
                                 : 'Privacy off'}
                         </SessionToken>
-                        <PanelDisplayControls />
                         <ShareButton className={styles.shareButton} />
                     </span>
                 </>

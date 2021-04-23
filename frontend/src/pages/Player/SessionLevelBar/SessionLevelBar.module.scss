@@ -16,6 +16,7 @@
     }
 
     & > span {
+        height: 100%;
         display: flex;
         column-gap: var(--size-medium);
         align-items: center;
