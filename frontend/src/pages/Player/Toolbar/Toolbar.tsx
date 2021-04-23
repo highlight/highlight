@@ -33,6 +33,9 @@ import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
 import Button from '../../../components/Button/Button/Button';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import SpeedControl from './SpeedControl/SpeedControl';
+import SvgRedoIcon from '../../../static/RedoIcon';
+import SvgUndoIcon from '../../../static/UndoIcon';
+import SvgPlayIcon from '../../../static/PlayIcon';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -294,7 +297,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         }}
                     >
                         {isPaused ? (
-                            <FaPlay
+                            <SvgPlayIcon
                                 fill="inherit"
                                 className={classNames(
                                     styles.playButtonStyle,
@@ -326,7 +329,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             }
                         }}
                     >
-                        <FaUndoAlt
+                        <SvgUndoIcon
                             fill="inherit"
                             className={classNames(
                                 styles.skipButtonStyle,
@@ -354,7 +357,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             }
                         }}
                     >
-                        <FaRedoAlt
+                        <SvgRedoIcon
                             fill="inherit"
                             className={classNames(
                                 styles.skipButtonStyle,
