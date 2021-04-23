@@ -518,7 +518,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage string) (*model.SessionComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -540,29 +540,37 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment", tracer.ResourceName("sendgrid.sendCommentMention"))
 	commentMentionEmailSpan.SetTag("count", len(taggedAdminEmails))
 	if len(taggedAdminEmails) > 0 {
+		tos := []*mail.Email{}
+
 		for _, email := range taggedAdminEmails {
-			to := &mail.Email{Address: *email}
-			viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
-			subject := fmt.Sprintf("%v mentioned you on Highlight", authorName)
-			content := fmt.Sprintf(`
-	Hi there, <br><br>
+			tos = append(tos, &mail.Email{Address: *email})
+		}
+		m := mail.NewV3Mail()
+		from := mail.NewEmail("Highlight", "notifications@highlight.run")
+		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+		m.SetFrom(from)
+		m.SetTemplateID(SendGridCommentEmailTemplateID)
 
-	%v mentioned you in a comment on Session %v: <br><br>
+		p := mail.NewPersonalization()
+		p.AddTos(tos...)
+		p.SetDynamicTemplateData("Author_Name", authorName)
+		p.SetDynamicTemplateData("Comment_Link", viewLink)
+		p.SetDynamicTemplateData("Comment_Body", textForEmail)
+		p.SetDynamicTemplateData("Session_Image", sessionImage)
 
-	"%v" <br><br>
+		a := mail.NewAttachment()
+		a.SetContent(sessionImage)
+		a.SetFilename("session-image.png")
+		a.SetContentID("sessionImage")
+		a.SetType("image/png")
+		m.AddAttachment(a)
 
-	<a href="%v">View the comment</a><br><br>
+		m.AddPersonalizations(p)
 
-	Cheers, <br>
-	The Highlight Team <br>
-	`, authorName, sessionID, textForEmail, viewLink)
-
-			from := mail.NewEmail("Highlight", "notifications@highlight.run")
-			message := mail.NewSingleEmail(from, subject, to, content, fmt.Sprintf("<p>%v</p>", content))
-			_, err := r.MailClient.Send(message)
-			if err != nil {
-				return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
-			}
+		resp, err := r.MailClient.Send(m)
+		fmt.Println(resp.StatusCode, resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
 		}
 	}
 	commentMentionEmailSpan.Finish()
