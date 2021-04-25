@@ -138,7 +138,7 @@ func main() {
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
 		publicEndpoint := "/public"
-		if runtimeParsed == util.PrivateGraph {
+		if runtimeParsed == util.PublicGraph {
 			publicEndpoint = "/"
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
