@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
 import Avatars from '@dicebear/avatars';
 import sprites from '@dicebear/avatars-avataaars-sprites';
-import { Admin } from '../../graph/generated/schemas';
-import ReactUserAvatar from 'react-user-avatar';
 import {
     userAvatarWrapper,
     userAvatar,

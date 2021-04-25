@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 
 import { Dropdown, Skeleton } from 'antd';
-import { FaUserCircle } from 'react-icons/fa';
 import { auth } from '../../../util/auth';
 import { client } from '../../../util/graph';
 import { FiLogOut } from 'react-icons/fi';

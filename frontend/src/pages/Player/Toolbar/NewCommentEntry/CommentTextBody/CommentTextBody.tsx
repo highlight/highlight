@@ -1,5 +1,5 @@
 import React from 'react';
-import styles, { email } from './CommentTextBody.module.scss';
+import styles from './CommentTextBody.module.scss';
 import commentTextBodyClassNames from './CommentTextBody.module.css';
 import {
     MentionsInput,
@@ -7,7 +7,7 @@ import {
     OnChangeHandlerFunc,
     SuggestionDataItem,
 } from 'react-mentions';
-import { AdminAvatar, Avatar } from '../../../../../components/Avatar/Avatar';
+import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
 import classNames from 'classnames';
 
 export interface AdminSuggestion extends SuggestionDataItem {

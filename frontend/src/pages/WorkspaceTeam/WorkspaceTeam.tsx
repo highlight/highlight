@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useContext } from 'react';
 import { message, Skeleton } from 'antd';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
-import { AdminAvatar, Avatar } from '../../components/Avatar/Avatar';
+import { AdminAvatar } from '../../components/Avatar/Avatar';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import classNames from 'classnames/bind';
 
