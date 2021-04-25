@@ -15,7 +15,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"gorm.io/gorm/logger"
 
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -113,7 +112,7 @@ type Admin struct {
 	Model
 	Name          *string
 	Email         *string
-	PhotoURL      *string        `json:"trial_end_date"`
+	PhotoURL      *string        `json:"photo_url"`
 	UID           *string        `gorm:"unique_index"`
 	Organizations []Organization `gorm:"many2many:organization_admins;"`
 }
@@ -353,7 +352,6 @@ func SetupDB() *gorm.DB {
 	var err error
 	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
-		Logger:                                   logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)

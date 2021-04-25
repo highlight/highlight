@@ -81,7 +81,6 @@ const Suggestion = ({
     index: number;
     focused: boolean;
 }) => {
-    console.log(suggestion.photo_url);
     return (
         <div className={styles.suggestionContainer}>
             <AdminAvatar

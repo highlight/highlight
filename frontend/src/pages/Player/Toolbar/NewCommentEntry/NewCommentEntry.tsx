@@ -13,7 +13,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import ReplayerContext from '../../ReplayerContext';
 import { H } from 'highlight.run';
-import { SuggestionDataItem, OnChangeHandlerFunc } from 'react-mentions';
+import { OnChangeHandlerFunc } from 'react-mentions';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
 import Button from '../../../../components/Button/Button/Button';
 import { AdminSuggestion } from './CommentTextBody/CommentTextBody';
