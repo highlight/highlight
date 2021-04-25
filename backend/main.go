@@ -108,6 +108,7 @@ func main() {
 	r.Use(func(h http.Handler) http.Handler {
 		return handlers.LoggingHandler(os.Stdout, h)
 	})
+	r.MethodFunc(http.MethodGet, "/health", health)
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
@@ -138,7 +139,7 @@ func main() {
 	}
 	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
 		publicEndpoint := "/public"
-		if runtimeParsed == util.PrivateGraph {
+		if runtimeParsed == util.PublicGraph {
 			publicEndpoint = "/"
 		}
 		r.Route(publicEndpoint, func(r chi.Router) {
