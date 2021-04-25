@@ -33,6 +33,7 @@ query GetAdmins($organization_id: ID!) {
         id
         name
         email
+        photo_url
     }
 }
 
@@ -110,6 +111,7 @@ query GetAdmin {
         id
         name
         email
+        photo_url
     }
 }
 

@@ -1151,7 +1151,7 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
 	orgs := []*model.Organization{}
 	if r.isWhitelistedAccount(ctx) {
-		if err := r.DB.Debug().Model(&model.Organization{}).Where("name ILIKE ?", "%"+query+"%").Find(&orgs).Error; err != nil {
+		if err := r.DB.Model(&model.Organization{}).Where("name ILIKE ?", "%"+query+"%").Find(&orgs).Error; err != nil {
 			return nil, e.Wrap(err, "error getting associated organizations")
 		}
 	}
@@ -1171,14 +1171,15 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	admin := &model.Admin{UID: &uid}
 	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
 	if err := res.Error; err != nil {
-		fbuser, err := AuthClient.GetUser(context.Background(), uid)
+		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
 			return nil, e.Wrap(err, "error retrieving user from firebase api")
 		}
 		newAdmin := &model.Admin{
-			UID:   &uid,
-			Name:  &fbuser.DisplayName,
-			Email: &fbuser.Email,
+			UID:      &uid,
+			Name:     &firebaseUser.DisplayName,
+			Email:    &firebaseUser.Email,
+			PhotoURL: &firebaseUser.PhotoURL,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new admin")
@@ -1190,6 +1191,20 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err != nil {
 			log.Errorf("error sending slack hook: %v", err)
 		}
+	}
+	if admin.PhotoURL == nil || admin.Name == nil {
+		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
+		if err != nil {
+			return nil, e.Wrap(err, "error retrieving user from firebase api")
+		}
+		if err := r.DB.Model(admin).Updates(&model.Admin{
+			PhotoURL: &firebaseUser.PhotoURL,
+			Name:     &firebaseUser.DisplayName,
+		}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating org fields")
+		}
+		admin.PhotoURL = &firebaseUser.PhotoURL
+		admin.Name = &firebaseUser.DisplayName
 	}
 	return admin, nil
 }

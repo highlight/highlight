@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useContext } from 'react';
 import { message, Skeleton } from 'antd';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
-import { Avatar } from '../../components/Avatar/Avatar';
+import { AdminAvatar, Avatar } from '../../components/Avatar/Avatar';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import classNames from 'classnames/bind';
 
@@ -96,6 +96,7 @@ export const WorkspaceTeam = () => {
                                     commonStyles.submitButton,
                                     styles.inviteButton
                                 )}
+                                htmlType="submit"
                             >
                                 {sendLoading ? (
                                     <CircularSpinner
@@ -121,18 +122,19 @@ export const WorkspaceTeam = () => {
                         data?.admins?.map((a) => {
                             return (
                                 <div key={a?.id} className={styles.memberCard}>
-                                    <Avatar
-                                        seed={a?.id.toString() ?? ''}
-                                        style={{
-                                            height: 45,
-                                            width: 45,
-                                            marginLeft: 5,
-                                            marginRight: 5,
+                                    <AdminAvatar
+                                        adminInfo={{
+                                            email: a?.email,
+                                            name: a?.name,
+                                            photo_url: a?.photo_url,
                                         }}
+                                        size={45}
                                     />
                                     <div className={styles.userDetails}>
                                         <div className={styles.name}>
-                                            {a?.name}
+                                            {a?.name
+                                                ? a?.name
+                                                : a?.email.split('@')[0]}
                                         </div>
                                         <div className={styles.email}>
                                             {a?.email}

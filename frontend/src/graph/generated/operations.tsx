@@ -327,7 +327,7 @@ export type GetAdminsQuery = { __typename?: 'Query' } & {
             Types.Maybe<
                 { __typename?: 'Admin' } & Pick<
                     Types.Admin,
-                    'id' | 'name' | 'email'
+                    'id' | 'name' | 'email' | 'photo_url'
                 >
             >
         >
@@ -439,7 +439,10 @@ export type GetAdminQueryVariables = Types.Exact<{ [key: string]: never }>;
 
 export type GetAdminQuery = { __typename?: 'Query' } & {
     admin?: Types.Maybe<
-        { __typename?: 'Admin' } & Pick<Types.Admin, 'id' | 'name' | 'email'>
+        { __typename?: 'Admin' } & Pick<
+            Types.Admin,
+            'id' | 'name' | 'email' | 'photo_url'
+        >
     >;
 };
 

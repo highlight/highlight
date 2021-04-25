@@ -9,13 +9,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/k0kubun/pp"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
 	"github.com/speps/go-hashids"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"gorm.io/gorm/logger"
 
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -113,6 +113,7 @@ type Admin struct {
 	Model
 	Name          *string
 	Email         *string
+	PhotoURL      *string        `json:"trial_end_date"`
 	UID           *string        `gorm:"unique_index"`
 	Organizations []Organization `gorm:"many2many:organization_admins;"`
 }
@@ -240,7 +241,6 @@ func (s *SearchParams) GormDataType() string {
 }
 
 func (s *SearchParams) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
-	pp.Println("value", s.GormDataType())
 	return clause.Expr{
 		SQL: fmt.Sprintf("ST_PointFromText(%v)", s.GormDataType()),
 	}
@@ -353,6 +353,7 @@ func SetupDB() *gorm.DB {
 	var err error
 	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
+		Logger:                                   logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
