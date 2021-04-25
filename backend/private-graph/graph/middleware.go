@@ -38,7 +38,7 @@ func SetupAuthClient() {
 	}
 }
 
-func AdminMiddleWare(next http.Handler) http.Handler {
+func PrivateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// If we're on a demo domain, we have some special logic.
 		var uid string
