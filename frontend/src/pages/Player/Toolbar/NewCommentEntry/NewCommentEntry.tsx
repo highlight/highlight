@@ -13,9 +13,10 @@ import useLocalStorage from '@rehooks/local-storage';
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import ReplayerContext from '../../ReplayerContext';
 import { H } from 'highlight.run';
-import { SuggestionDataItem, OnChangeHandlerFunc } from 'react-mentions';
+import { OnChangeHandlerFunc } from 'react-mentions';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
 import Button from '../../../../components/Button/Button/Button';
+import { AdminSuggestion } from './CommentTextBody/CommentTextBody';
 import html2canvas from 'html2canvas';
 
 interface Props {
@@ -101,7 +102,7 @@ export const NewCommentEntry = ({
         }
     };
 
-    const adminSuggestions: SuggestionDataItem[] = useMemo(() => {
+    const adminSuggestions: AdminSuggestion[] = useMemo(() => {
         if (!data?.admins || !admin_data?.admin) {
             return [];
         }
@@ -115,7 +116,10 @@ export const NewCommentEntry = ({
             .map((admin) => {
                 return {
                     id: admin!.email,
+                    email: admin!.email,
+                    photo_url: admin!.photo_url,
                     display: admin?.name || admin!.email,
+                    name: admin?.name,
                 };
             });
     }, [admin_data?.admin, data?.admins, mentionedAdmins]);

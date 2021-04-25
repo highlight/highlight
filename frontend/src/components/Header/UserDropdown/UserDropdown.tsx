@@ -1,7 +1,6 @@
 import React, { useContext } from 'react';
 
 import { Dropdown, Skeleton } from 'antd';
-import { FaUserCircle } from 'react-icons/fa';
 import { auth } from '../../../util/auth';
 import { client } from '../../../util/graph';
 import { FiLogOut } from 'react-icons/fi';
@@ -9,6 +8,7 @@ import { FiLogOut } from 'react-icons/fi';
 import styles from './UserDropdown.module.scss';
 import { DemoContext } from '../../../DemoContext';
 import { useGetAdminQuery } from '../../../graph/generated/hooks';
+import { AdminAvatar } from '../../Avatar/Avatar';
 
 export const UserDropdown = () => {
     const { demo } = useContext(DemoContext);
@@ -18,6 +18,8 @@ export const UserDropdown = () => {
         data: a_data,
     } = useGetAdminQuery({ skip: demo });
 
+    console.log(a_data?.admin);
+
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>
@@ -25,12 +27,24 @@ export const UserDropdown = () => {
                     <Skeleton />
                 ) : (
                     <>
-                        <div className={styles.userCopy}>
-                            <div className={styles.dropdownName}>
-                                {a_data?.admin?.name}
+                        <div className={styles.userInfoWrapper}>
+                            <div className={styles.avatarWrapper}>
+                                <AdminAvatar
+                                    adminInfo={{
+                                        name: a_data?.admin?.name,
+                                        email: a_data?.admin?.email,
+                                        photo_url: a_data?.admin?.photo_url,
+                                    }}
+                                    size={40}
+                                />
                             </div>
-                            <div className={styles.dropdownEmail}>
-                                {a_data?.admin?.email}
+                            <div className={styles.userCopy}>
+                                <div className={styles.dropdownName}>
+                                    {a_data?.admin?.name}
+                                </div>
+                                <div className={styles.dropdownEmail}>
+                                    {a_data?.admin?.email}
+                                </div>
                             </div>
                         </div>
                         <div
@@ -66,7 +80,11 @@ export const UserDropdown = () => {
             }}
         >
             <div className={styles.accountIconWrapper}>
-                <FaUserCircle className={styles.accountIcon} />
+                {a_data?.admin ? (
+                    <AdminAvatar adminInfo={a_data.admin} size={35} />
+                ) : (
+                    <p>loading</p>
+                )}
             </div>
         </Dropdown>
     );

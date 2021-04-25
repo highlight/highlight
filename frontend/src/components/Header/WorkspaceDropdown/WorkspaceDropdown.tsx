@@ -7,12 +7,12 @@ import { ReactComponent as CheckIcon } from '../../../static/check.svg';
 
 import styles from './WorkspaceDropdown.module.scss';
 import { DemoContext } from '../../../DemoContext';
-import randomcolor from 'randomcolor';
 import {
     useGetOrganizationQuery,
     useGetOrganizationsQuery,
 } from '../../../graph/generated/hooks';
 import { SidebarContext } from '../../Sidebar/SidebarContext';
+import { generateRandomColor } from '../../../util/color';
 
 export const MiniWorkspaceIcon = () => {
     const { setOpenSidebar } = useContext(SidebarContext);
@@ -31,7 +31,7 @@ export const MiniWorkspaceIcon = () => {
                     ),
                 }}
             >
-                {currentOrg?.organization?.name[0].toUpperCase() ?? 'H'}
+                {currentOrg?.organization?.name[0]?.toUpperCase() ?? 'H'}
             </div>
         </div>
     );
@@ -63,7 +63,7 @@ export const WorkspaceDropdown = () => {
                                     ),
                                 }}
                             >
-                                {o?.name[0].toUpperCase() ?? 'H'}
+                                {o?.name[0]?.toUpperCase() ?? 'H'}
                             </div>
                             <div className={styles.orgText}>{o?.name}</div>
                             {o?.id.toString() === organization_id ? (
@@ -100,7 +100,8 @@ export const WorkspaceDropdown = () => {
                             ),
                         }}
                     >
-                        {currentOrg?.organization?.name[0].toUpperCase() ?? 'H'}
+                        {currentOrg?.organization?.name[0]?.toUpperCase() ??
+                            'H'}
                     </div>
                     <div className={styles.orgNameText}>
                         {demo ? 'Highlight' : currentOrg?.organization?.name}
@@ -115,11 +116,4 @@ export const WorkspaceDropdown = () => {
             </div>
         </Dropdown>
     );
-};
-
-const generateRandomColor = (str: string): string => {
-    return randomcolor({
-        luminosity: 'dark',
-        seed: str,
-    });
 };

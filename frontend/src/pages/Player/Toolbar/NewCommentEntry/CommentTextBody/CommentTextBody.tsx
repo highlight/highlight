@@ -7,14 +7,20 @@ import {
     OnChangeHandlerFunc,
     SuggestionDataItem,
 } from 'react-mentions';
-import { Avatar } from '../../../../../components/Avatar/Avatar';
+import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
 import classNames from 'classnames';
+
+export interface AdminSuggestion extends SuggestionDataItem {
+    email?: string;
+    photo_url?: string;
+    name?: string;
+}
 
 interface Props {
     commentText: string;
     placeholder?: string;
     onChangeHandler?: OnChangeHandlerFunc;
-    suggestions?: SuggestionDataItem[];
+    suggestions?: AdminSuggestion[];
     onDisplayTransformHandler?: (_id: string, display: string) => string;
     suggestionsPortalHost?: Element;
 }
@@ -56,7 +62,7 @@ const CommentTextBody = ({
                         highlightedDisplay={highlightedDisplay}
                         index={index}
                         search={search}
-                        suggestion={suggestion}
+                        suggestion={suggestion as AdminSuggestion}
                     />
                 )}
             />
@@ -69,7 +75,7 @@ export default CommentTextBody;
 const Suggestion = ({
     suggestion,
 }: {
-    suggestion: SuggestionDataItem;
+    suggestion: AdminSuggestion;
     search: string;
     highlightedDisplay: React.ReactNode;
     index: number;
@@ -77,9 +83,13 @@ const Suggestion = ({
 }) => {
     return (
         <div className={styles.suggestionContainer}>
-            <Avatar
-                seed={suggestion.id.toString()}
-                style={{ height: 'var(--size-xxLarge)' }}
+            <AdminAvatar
+                adminInfo={{
+                    name: suggestion.name,
+                    email: suggestion.email,
+                    photo_url: suggestion.photo_url,
+                }}
+                size={35}
             />
             <div className={styles.adminText}>
                 <span className={styles.longValue}>{suggestion.display}</span>

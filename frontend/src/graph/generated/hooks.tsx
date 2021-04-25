@@ -1102,6 +1102,7 @@ export const GetAdminsDocument = gql`
             id
             name
             email
+            photo_url
         }
     }
 `;
@@ -1421,6 +1422,7 @@ export const GetAdminDocument = gql`
             id
             name
             email
+            photo_url
         }
     }
 `;
