@@ -108,12 +108,12 @@ func main() {
 	r.Use(func(h http.Handler) http.Handler {
 		return handlers.LoggingHandler(os.Stdout, h)
 	})
-	r.MethodFunc(http.MethodGet, "/health", health)
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
+	r.MethodFunc(http.MethodGet, "/health", health)
 
 	/*
 		Selectively turn on backends depending on the input flag
