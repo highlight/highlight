@@ -80,7 +80,14 @@ export const UserDropdown = () => {
         >
             <div className={styles.accountIconWrapper}>
                 {a_data?.admin ? (
-                    <AdminAvatar adminInfo={a_data.admin} size={35} />
+                    <AdminAvatar
+                        adminInfo={{
+                            name: a_data?.admin?.name,
+                            email: a_data?.admin?.email,
+                            photo_url: a_data?.admin?.photo_url ?? '',
+                        }}
+                        size={35}
+                    />
                 ) : (
                     <p>loading</p>
                 )}

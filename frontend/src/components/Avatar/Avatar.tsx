@@ -40,7 +40,7 @@ export const AdminAvatar = ({
     adminInfo,
     size,
 }: {
-    adminInfo?: { name?: string; photo_url?: string; email?: string };
+    adminInfo?: { name?: string; photo_url?: string | null; email?: string };
     size: number;
 }) => {
     const identifier = adminInfo?.name
