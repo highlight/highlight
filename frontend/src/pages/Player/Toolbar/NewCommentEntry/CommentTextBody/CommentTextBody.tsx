@@ -12,7 +12,7 @@ import classNames from 'classnames';
 
 export interface AdminSuggestion extends SuggestionDataItem {
     email?: string;
-    photo_url?: string;
+    photo_url?: string | null;
     name?: string;
 }
 
