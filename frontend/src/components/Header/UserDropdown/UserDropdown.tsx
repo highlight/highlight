@@ -31,7 +31,8 @@ export const UserDropdown = () => {
                                     adminInfo={{
                                         name: a_data?.admin?.name,
                                         email: a_data?.admin?.email,
-                                        photo_url: a_data?.admin?.photo_url,
+                                        photo_url:
+                                            a_data?.admin?.photo_url ?? '',
                                     }}
                                     size={40}
                                 />
