@@ -44,8 +44,6 @@ var runtimeParsed util.Runtime
 
 func init() {
 	flag.Parse()
-
-	pp.Println("runtime yo", runtime)
 	if runtime == nil {
 		log.Fatal("runtime is nil, provide a value")
 	} else if !util.Runtime(*runtime).IsValid() {
