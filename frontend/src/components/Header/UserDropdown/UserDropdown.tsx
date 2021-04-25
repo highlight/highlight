@@ -18,7 +18,7 @@ export const UserDropdown = () => {
         data: a_data,
     } = useGetAdminQuery({ skip: demo });
 
-    console.log(a_data?.admin);
+    console.log(a_data);
 
     const menu = (
         <div className={styles.dropdownMenu}>
