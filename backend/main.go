@@ -12,7 +12,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
-	"github.com/k0kubun/pp"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
@@ -124,7 +123,6 @@ func main() {
 	if runtimeParsed == util.PrivateGraph || runtimeParsed == util.All {
 		privateEndpoint := "/private"
 		if runtimeParsed == util.PrivateGraph {
-			pp.Println("endpoing is /")
 			privateEndpoint = "/"
 		}
 		r.Route(privateEndpoint, func(r chi.Router) {
