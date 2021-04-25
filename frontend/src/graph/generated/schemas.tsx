@@ -247,7 +247,7 @@ export type Admin = {
     id: Scalars['ID'];
     name: Scalars['String'];
     email: Scalars['String'];
-    photo_url: Scalars['String'];
+    photo_url?: Maybe<Scalars['String']>;
 };
 
 export type SanitizedAdmin = {
