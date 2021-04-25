@@ -17,6 +17,7 @@ import { OnChangeHandlerFunc } from 'react-mentions';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
 import Button from '../../../../components/Button/Button/Button';
 import { AdminSuggestion } from './CommentTextBody/CommentTextBody';
+import html2canvas from 'html2canvas';
 
 interface Props {
     currentTime: number;
@@ -56,8 +57,18 @@ export const NewCommentEntry = ({
     });
     const [mentionedAdmins, setMentionedAdmins] = useState<string[]>([]);
 
-    const onFinish = () => {
+    const onFinish = async () => {
         H.track('Create Comment', {});
+        const canvas = await html2canvas(
+            (document.querySelector(
+                '.replayer-wrapper iframe'
+            ) as HTMLIFrameElement).contentDocument!.documentElement,
+            {
+                allowTaint: true,
+                logging: false,
+                backgroundColor: null,
+            }
+        );
         createComment({
             variables: {
                 organization_id,
@@ -75,6 +86,9 @@ export const NewCommentEntry = ({
                     admin_data?.admin?.name ||
                     admin_data?.admin?.email ||
                     'Someone',
+                session_image: canvas
+                    .toDataURL()
+                    .replace('data:image/png;base64,', ''),
             },
             refetchQueries: ['GetSessionComments'],
         });

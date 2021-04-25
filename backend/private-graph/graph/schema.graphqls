@@ -381,5 +381,6 @@ type Mutation {
         session_url: String!
         time: Float!
         author_name: String!
+        session_image: String!
     ): SessionComment
 }

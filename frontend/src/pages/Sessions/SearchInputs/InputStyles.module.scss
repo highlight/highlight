@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .commonInputWrapper {
     padding: 10px 0 10px 0;
 }
@@ -13,7 +15,7 @@
 
 .switchText {
     margin-left: 8px;
-    color: #808080;
+    color: var(--color-gray-500);
 }
 
 .switchSpan {
@@ -27,8 +29,7 @@
 }
 
 .datePicker {
-    border-color: #eaeaea;
-    border-radius: 8px;
+    @include rounded-border;
     width: 100%;
     height: 45px;
     font-weight: 300 !important;
@@ -51,4 +52,8 @@
 
 .checkboxRow {
     margin-top: 8px;
+}
+
+.checkboxUnselected {
+    color: var(--color-gray-500);
 }

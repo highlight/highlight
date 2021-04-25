@@ -17,7 +17,6 @@ import { DemoContext } from '../../DemoContext';
 import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import Tooltip from '../Tooltip/Tooltip';
-import useLocalStorage from '@rehooks/local-storage';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -103,12 +102,6 @@ export const Sidebar = () => {
 };
 
 const StaticSidebar = () => {
-    const [showSidebar] = useLocalStorage('highlightShowSidebar', true);
-
-    if (!showSidebar) {
-        return null;
-    }
-
     return (
         <>
             <div className={styles.staticSidebarWrapper}>

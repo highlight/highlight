@@ -21,7 +21,7 @@ import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { ErrorPage } from '../../pages/Error/ErrorPage';
 import { AlertsPage } from '../../pages/Alerts/Alerts';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
-import { HomePage } from '../../pages/Analytics/HomePage';
+import { HomePage } from '../../pages/Home/HomePage';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();

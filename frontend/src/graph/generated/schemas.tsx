@@ -563,4 +563,5 @@ export type MutationCreateSessionCommentArgs = {
     session_url: Scalars['String'];
     time: Scalars['Float'];
     author_name: Scalars['String'];
+    session_image: Scalars['String'];
 };

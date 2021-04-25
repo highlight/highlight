@@ -711,6 +711,7 @@ export const CreateSessionCommentDocument = gql`
         $session_url: String!
         $time: Float!
         $author_name: String!
+        $session_image: String!
     ) {
         createSessionComment(
             organization_id: $organization_id
@@ -725,6 +726,7 @@ export const CreateSessionCommentDocument = gql`
             session_url: $session_url
             time: $time
             author_name: $author_name
+            session_image: $session_image
         ) {
             id
             timestamp
@@ -771,6 +773,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      session_url: // value for 'session_url'
  *      time: // value for 'time'
  *      author_name: // value for 'author_name'
+ *      session_image: // value for 'session_image'
  *   },
  * });
  */
