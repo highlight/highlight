@@ -161,6 +161,8 @@ func main() {
 		For the the 'all' runtime, run both the server and worker.
 		For anything else, just run the server.
 	*/
+	log.Printf("runtime is: %v \n", *runtime)
+	log.Println("process running...")
 	if runtimeParsed == util.Worker {
 		w := &worker.Worker{R: privateResolver}
 		w.Start()
