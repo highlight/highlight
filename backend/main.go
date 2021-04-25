@@ -12,6 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
+	"github.com/k0kubun/pp"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
@@ -42,6 +43,9 @@ var (
 var runtimeParsed util.Runtime
 
 func init() {
+	flag.Parse()
+
+	pp.Println("runtime yo", runtime)
 	if runtime == nil {
 		log.Fatal("runtime is nil, provide a value")
 	} else if !util.Runtime(*runtime).IsValid() {
@@ -71,8 +75,6 @@ func validateOrigin(request *http.Request, origin string) bool {
 var defaultPort = "8082"
 
 func main() {
-	flag.Parse()
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
@@ -124,6 +126,7 @@ func main() {
 	if runtimeParsed == util.PrivateGraph || runtimeParsed == util.All {
 		privateEndpoint := "/private"
 		if runtimeParsed == util.PrivateGraph {
+			pp.Println("endpoing is /")
 			privateEndpoint = "/"
 		}
 		r.Route(privateEndpoint, func(r chi.Router) {
@@ -161,7 +164,7 @@ func main() {
 		For the the 'all' runtime, run both the server and worker.
 		For anything else, just run the server.
 	*/
-	log.Printf("runtime is: %v \n", *runtime)
+	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running...")
 	if runtimeParsed == util.Worker {
 		w := &worker.Worker{R: privateResolver}
