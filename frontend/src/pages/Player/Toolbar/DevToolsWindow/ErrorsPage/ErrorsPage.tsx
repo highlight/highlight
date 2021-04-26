@@ -43,7 +43,10 @@ const ErrorsPage = () => {
     useEffect(() => {
         if (virtuoso.current) {
             // Scrolls to the error card the user originally clicked on. This only happens if the user clicked on an error card from the player page which navigates them to the error page. From there there navigate back using the browser's back navigation.
-            if (history.location.state?.errorCardIndex !== undefined) {
+            if (
+                history.location.state?.errorCardIndex !== undefined &&
+                state === ReplayerState.Playing
+            ) {
                 virtuoso.current.scrollToIndex(
                     history.location.state.errorCardIndex
                 );
@@ -51,7 +54,7 @@ const ErrorsPage = () => {
                 virtuoso.current.scrollToIndex(lastActiveErrorIndex);
             }
         }
-    }, [history.location.state?.errorCardIndex, lastActiveErrorIndex]);
+    }, [history.location.state?.errorCardIndex, lastActiveErrorIndex, state]);
 
     return (
         <>
