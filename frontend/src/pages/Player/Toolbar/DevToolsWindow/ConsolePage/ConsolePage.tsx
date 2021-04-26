@@ -15,7 +15,7 @@ import styles from './ConsolePage.module.scss';
 import devStyles from '../DevToolsWindow.module.scss';
 import { DemoContext } from '../../../../../DemoContext';
 import GoToButton from '../../../../../components/Button/GoToButton';
-import ReplayerContext from '../../../ReplayerContext';
+import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import ReactJson from 'react-json-view';
@@ -30,7 +30,7 @@ export const ConsolePage = ({ time }: { time: number }) => {
     const [currentMessage, setCurrentMessage] = useState(-1);
     const [options, setOptions] = useState<Array<string>>([]);
     const { demo } = useContext(DemoContext);
-    const { pause, replayer } = useContext(ReplayerContext);
+    const { pause, replayer, state } = useContext(ReplayerContext);
     const [parsedMessages, setParsedMessages] = useState<
         undefined | Array<ParsedMessage>
     >([]);
@@ -105,8 +105,8 @@ export const ConsolePage = ({ time }: { time: number }) => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
-        _.debounce((index: number) => {
-            if (virtuoso.current) {
+        _.debounce((index: number, state) => {
+            if (virtuoso.current && state === ReplayerState.Playing) {
                 virtuoso.current.scrollToIndex({
                     index,
                     align: 'center',
@@ -119,9 +119,9 @@ export const ConsolePage = ({ time }: { time: number }) => {
 
     useEffect(() => {
         if (!isInteractingWithMessages) {
-            scrollFunction(currentMessage);
+            scrollFunction(currentMessage, state);
         }
-    }, [scrollFunction, currentMessage, isInteractingWithMessages]);
+    }, [scrollFunction, currentMessage, isInteractingWithMessages, state]);
 
     return (
         <div className={styles.consolePageWrapper}>

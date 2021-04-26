@@ -13,7 +13,7 @@ import devStyles from '../DevToolsWindow.module.scss';
 import styles from './ResourcePage.module.scss';
 import { DemoContext } from '../../../../../DemoContext';
 import GoToButton from '../../../../../components/Button/GoToButton';
-import ReplayerContext from '../../../ReplayerContext';
+import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
 import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
@@ -26,6 +26,7 @@ export const ResourcePage = ({
     time: number;
     startTime: number;
 }) => {
+    const { state } = useContext(ReplayerContext);
     const { session_id } = useParams<{ session_id: string }>();
     const { demo } = useContext(DemoContext);
     const [options, setOptions] = useState<Array<string>>([]);
@@ -116,8 +117,8 @@ export const ResourcePage = ({
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
-        _.debounce((index: number) => {
-            if (virtuoso.current) {
+        _.debounce((index: number, state) => {
+            if (virtuoso.current && state === ReplayerState.Playing) {
                 virtuoso.current.scrollToIndex({
                     index,
                     align: 'center',
@@ -130,9 +131,9 @@ export const ResourcePage = ({
 
     useEffect(() => {
         if (!isInteractingWithResources) {
-            scrollFunction(currentResource);
+            scrollFunction(currentResource, state);
         }
-    }, [currentResource, scrollFunction, isInteractingWithResources]);
+    }, [currentResource, scrollFunction, isInteractingWithResources, state]);
 
     return (
         <div className={styles.resourcePageWrapper}>

@@ -212,7 +212,7 @@ export const Player = () => {
 
 const EventStream = () => {
     const [debug] = useQueryParam('debug', BooleanParam);
-    const { replayer, time, events } = useContext(ReplayerContext);
+    const { replayer, time, events, state } = useContext(ReplayerContext);
     const [currEvent, setCurrEvent] = useState('');
     const [
         isInteractingWithStreamEvents,
@@ -238,18 +238,24 @@ const EventStream = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
         _.debounce(
-            (currentEventId: string, usefulEventsList: HighlightEvent[]) => {
+            (
+                currentEventId: string,
+                usefulEventsList: HighlightEvent[],
+                state
+            ) => {
                 if (virtuoso.current) {
-                    const matchingEventIndex = usefulEventsList.findIndex(
-                        (event) => event.identifier === currentEventId
-                    );
+                    if (state === ReplayerState.Playing) {
+                        const matchingEventIndex = usefulEventsList.findIndex(
+                            (event) => event.identifier === currentEventId
+                        );
 
-                    if (matchingEventIndex > -1) {
-                        virtuoso.current.scrollToIndex({
-                            index: matchingEventIndex,
-                            align: 'center',
-                            behavior: 'smooth',
-                        });
+                        if (matchingEventIndex > -1) {
+                            virtuoso.current.scrollToIndex({
+                                index: matchingEventIndex,
+                                align: 'center',
+                                behavior: 'smooth',
+                            });
+                        }
                     }
                 }
             },
@@ -260,13 +266,14 @@ const EventStream = () => {
 
     useEffect(() => {
         if (!isInteractingWithStreamEvents) {
-            scrollFunction(currEvent, usefulEvents);
+            scrollFunction(currEvent, usefulEvents, state);
         }
     }, [
         currEvent,
         scrollFunction,
         usefulEvents,
         isInteractingWithStreamEvents,
+        state,
     ]);
 
     return (
