@@ -10,7 +10,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
 	"github.com/rs/cors"
@@ -137,11 +136,7 @@ func main() {
 		r.Handle("/", clientServer)
 	})
 
-	storage, err := storage.NewStorageClient()
-	if err != nil {
-		log.Fatalf("err: %v", err)
-	}
-	w := &worker.Worker{R: privateResolver, S: storage}
+	w := &worker.Worker{Resolver: privateResolver, S: storage}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
 	if runtimeParsed == util.All {
 		go func() {

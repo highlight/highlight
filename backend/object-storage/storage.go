@@ -5,13 +5,11 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go/aws/session"
 
 	"log"
 	"strings"
-
-	e "github.com/pkg/errors"
 )
 
 type StorageClient struct {
@@ -20,15 +18,21 @@ type StorageClient struct {
 
 func NewStorageClient() (*StorageClient, error) {
 	// Get the first page of results for ListObjectsV2 for a bucket
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
+	// cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
+	// if err != nil {
+	// 	return nil, e.Wrap(err, "error laoding default config")
+	// }
+	// // Create an Amazon S3 service client
+	// client := s3.NewFromConfig(cfg)
+	sess, err := session.NewSession(&aws.Config{
+		Region: *aws.String("us-west-2"),
+	})
 	if err != nil {
-		return nil, e.Wrap(err, "error laoding default config")
+		return err
 	}
-	// Create an Amazon S3 service client
-	client := s3.NewFromConfig(cfg)
-
+	svc := s3.New(sess)
 	return &StorageClient{
-		S3Client: client,
+		S3Client: svc,
 	}, nil
 }
 
