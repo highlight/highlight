@@ -101,6 +101,7 @@
 }
 
 .playerLeftSection {
+    max-width: calc(100vw - 60px - 350px)
     flex-direction: column;
     display: flex;
     flex-grow: 1;
