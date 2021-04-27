@@ -45,7 +45,7 @@ const CommentButton = ({
     ] = useLocalStorage('highlightTimelineAnnotationTypes', [
         ...EventsForTimeline,
     ]);
-    const { pause, replayer, time } = useContext(ReplayerContext);
+    const { pause, replayer } = useContext(ReplayerContext);
     const buttonRef = useRef<HTMLButtonElement>(null);
     const [indicatorLocation, setIndicatorLocation] = useState<
         Coordinates2D | undefined
