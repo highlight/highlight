@@ -92,6 +92,7 @@ type ErrorObject {
     column_number: Int
     trace: [Any]
     timestamp: Time
+    payload: String
 }
 
 type ErrorField {

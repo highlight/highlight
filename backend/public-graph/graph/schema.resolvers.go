@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -228,6 +228,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			Browser:        sessionObj.BrowserName,
 			Trace:          &traceString,
 			Timestamp:      v.Timestamp,
+			Payload:        v.Payload,
 		}
 
 		//create error fields array

@@ -266,6 +266,7 @@ input ErrorObjectInput {
     columnNumber: Int!
     trace: [Any]!
     timestamp: Time!
+    payload: String
 }
 
 input ReplayEventsInput {
@@ -2122,6 +2123,14 @@ func (ec *executionContext) unmarshalInputErrorObjectInput(ctx context.Context, 
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestamp"))
 			it.Timestamp, err = ec.unmarshalNTime2timeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "payload":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("payload"))
+			it.Payload, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

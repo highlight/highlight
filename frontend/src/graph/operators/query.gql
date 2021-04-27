@@ -214,6 +214,7 @@ fragment errorFields on ErrorObject {
     column_number
     trace
     timestamp
+    payload
 }
 
 query GetFieldSuggestion(

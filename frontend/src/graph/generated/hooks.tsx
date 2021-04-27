@@ -14,6 +14,7 @@ export const ErrorFieldsFragmentDoc = gql`
         column_number
         trace
         timestamp
+        payload
     }
 `;
 export const MarkSessionAsViewedDocument = gql`
