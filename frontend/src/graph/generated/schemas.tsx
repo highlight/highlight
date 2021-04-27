@@ -457,6 +457,7 @@ export type Mutation = {
     editRecordingSettings?: Maybe<RecordingSettings>;
     createOrUpdateSubscription?: Maybe<Scalars['String']>;
     createSessionComment?: Maybe<SessionComment>;
+    deleteSessionComment?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -564,4 +565,8 @@ export type MutationCreateSessionCommentArgs = {
     time: Scalars['Float'];
     author_name: Scalars['String'];
     session_image: Scalars['String'];
+};
+
+export type MutationDeleteSessionCommentArgs = {
+    id: Scalars['ID'];
 };
