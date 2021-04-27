@@ -6,10 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	// "github.com/aws/aws-sdk-go-v2/aws"
-	// "github.com/aws/aws-sdk-go-v2/aws/session"
-	// "github.com/aws/aws-sdk-go-v2/service/s3"
-
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -36,13 +32,6 @@ func NewStorageClient() (*StorageClient, error) {
 		o.UsePathStyle = true
 	})
 
-	// sess, err := session.NewSession(&aws.Config{
-	// 	Region: aws.String("us-west-2"),
-	// })
-	// if err != nil {
-	// 	return nil, errors.Wrap(err, "error creating aws session")
-	// }
-	// svc := s3.New(sess)
 	return &StorageClient{
 		S3Client: client,
 	}, nil

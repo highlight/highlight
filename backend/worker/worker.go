@@ -8,7 +8,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/k0kubun/pp"
 	"github.com/pkg/errors"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
@@ -26,7 +25,6 @@ type Worker struct {
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Set the session as processed; if any is error thrown after this, the session gets ignored.
-	pp.Println(s.ID)
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -60,7 +58,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	diff := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
 	length := diff.Milliseconds()
 
-	// Delete the session if the lenght of the session is 0.
+	// Delete the session if the length of the session is 0.
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if length == 0 {
@@ -124,7 +122,7 @@ func (w *Worker) Start() {
 		workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
 		workerSpan.SetTag("backend", util.Worker)
 		now := time.Now()
-		thirtySecondsAgo := now.Add(-8 * time.Second)
+		thirtySecondsAgo := now.Add(-30 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
 		if err := w.Resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", thirtySecondsAgo, false).Find(&sessions).Error; err != nil {
@@ -135,7 +133,6 @@ func (w *Worker) Start() {
 		sessionsSpan.Finish()
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
-			pp.Println("processing")
 			if err := w.processSession(ctx, session); err != nil {
 				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
 				continue
