@@ -10,7 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
-	"github.com/k0kubun/pp"
 	"github.com/pkg/errors"
 
 	"strings"
@@ -37,23 +36,31 @@ func NewStorageClient() (*StorageClient, error) {
 	}, nil
 }
 
-func (s *StorageClient) PushToS3(sessionId int, organizationId int, re *parse.ReplayEvents) error {
+func (s *StorageClient) PushToS3(sessionId int, organizationId int, re *parse.ReplayEvents) (*int64, error) {
 	b, err := json.Marshal(re)
 	if err != nil {
-		return errors.Wrap(err, "error pushing to s3")
+		return nil, errors.Wrap(err, "error pushing to s3")
 	}
+	key := s.bucketKey(sessionId, organizationId)
 	body := strings.NewReader(string(b))
 	_, err = s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(S3BucketName), Key: s.bucketKey(sessionId, organizationId), Body: body,
+		Bucket: aws.String(S3BucketName), Key: key, Body: body,
 	})
 	if err != nil {
-		return errors.New("error pushing to s3")
+		return nil, errors.New("error pushing to s3")
 	}
-	return nil
+	headObj := s3.HeadObjectInput{
+		Bucket: aws.String(S3BucketName),
+		Key:    key,
+	}
+	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
+	if err != nil {
+		return nil, errors.New("error retrieving head object")
+	}
+	return &result.ContentLength, nil
 }
 
 func (s *StorageClient) ReadFromS3(sessionId int, organizationId int) ([]interface{}, error) {
-	pp.Println("fetching from s3")
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3BucketName),
 		Key: s.bucketKey(sessionId, organizationId)})
 	if err != nil {

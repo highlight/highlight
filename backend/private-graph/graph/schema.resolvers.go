@@ -18,7 +18,6 @@ import (
 	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
-	"github.com/k0kubun/pp"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -593,7 +592,6 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
 	if os.Getenv("ENVIRONMENT") == "dev" && sessionID == 1 {
 		file, err := ioutil.ReadFile("./tmp/events.json")
-
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
 		}
@@ -602,7 +600,6 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		if err := json.Unmarshal([]byte(file), &data); err != nil {
 			return nil, e.Wrap(err, "Failed to unmarshal data from file")
 		}
-
 		return data, nil
 	}
 	s, err := r.isAdminSessionOwner(ctx, sessionID)
@@ -612,7 +609,6 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	if en := s.ObjectStorageEnabled; en != nil && *en == true {
 		ret, err := r.StorageClient.ReadFromS3(sessionID, s.OrganizationID)
 		if err != nil {
-			pp.Println(err)
 			return nil, err
 		}
 		return ret, nil

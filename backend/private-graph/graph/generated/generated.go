@@ -259,26 +259,28 @@ type ComplexityRoot struct {
 	}
 
 	Session struct {
-		BrowserName         func(childComplexity int) int
-		BrowserVersion      func(childComplexity int) int
-		City                func(childComplexity int) int
-		CreatedAt           func(childComplexity int) int
-		EnableStrictPrivacy func(childComplexity int) int
-		FieldGroup          func(childComplexity int) int
-		Fields              func(childComplexity int) int
-		FirstTime           func(childComplexity int) int
-		ID                  func(childComplexity int) int
-		Identifier          func(childComplexity int) int
-		Length              func(childComplexity int) int
-		OSName              func(childComplexity int) int
-		OSVersion           func(childComplexity int) int
-		Postal              func(childComplexity int) int
-		Processed           func(childComplexity int) int
-		Starred             func(childComplexity int) int
-		State               func(childComplexity int) int
-		UserID              func(childComplexity int) int
-		UserObject          func(childComplexity int) int
-		Viewed              func(childComplexity int) int
+		BrowserName          func(childComplexity int) int
+		BrowserVersion       func(childComplexity int) int
+		City                 func(childComplexity int) int
+		CreatedAt            func(childComplexity int) int
+		EnableStrictPrivacy  func(childComplexity int) int
+		FieldGroup           func(childComplexity int) int
+		Fields               func(childComplexity int) int
+		FirstTime            func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		Identifier           func(childComplexity int) int
+		Length               func(childComplexity int) int
+		OSName               func(childComplexity int) int
+		OSVersion            func(childComplexity int) int
+		ObjectStorageEnabled func(childComplexity int) int
+		PayloadSize          func(childComplexity int) int
+		Postal               func(childComplexity int) int
+		Processed            func(childComplexity int) int
+		Starred              func(childComplexity int) int
+		State                func(childComplexity int) int
+		UserID               func(childComplexity int) int
+		UserObject           func(childComplexity int) int
+		Viewed               func(childComplexity int) int
 	}
 
 	SessionComment struct {
@@ -1661,6 +1663,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.OSVersion(childComplexity), true
 
+	case "Session.object_storage_enabled":
+		if e.complexity.Session.ObjectStorageEnabled == nil {
+			break
+		}
+
+		return e.complexity.Session.ObjectStorageEnabled(childComplexity), true
+
+	case "Session.payload_size":
+		if e.complexity.Session.PayloadSize == nil {
+			break
+		}
+
+		return e.complexity.Session.PayloadSize(childComplexity), true
+
 	case "Session.postal":
 		if e.complexity.Session.Postal == nil {
 			break
@@ -1898,6 +1914,8 @@ type Session {
     first_time: Boolean
     field_group: String
     enable_strict_privacy: Boolean
+    object_storage_enabled: Boolean
+    payload_size: Int64
 }
 
 type BillingDetails {
@@ -8969,6 +8987,70 @@ func (ec *executionContext) _Session_enable_strict_privacy(ctx context.Context, 
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_object_storage_enabled(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ObjectStorageEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_payload_size(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PayloadSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionComment_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12123,6 +12205,10 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_field_group(ctx, field, obj)
 		case "enable_strict_privacy":
 			out.Values[i] = ec._Session_enable_strict_privacy(ctx, field, obj)
+		case "object_storage_enabled":
+			out.Values[i] = ec._Session_object_storage_enabled(ctx, field, obj)
+		case "payload_size":
+			out.Values[i] = ec._Session_payload_size(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

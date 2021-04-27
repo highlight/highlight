@@ -1046,6 +1046,8 @@ export const GetSessionDocument = gql`
                 value
                 type
             }
+            object_storage_enabled
+            payload_size
         }
     }
 `;
