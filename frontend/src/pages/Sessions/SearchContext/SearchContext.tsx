@@ -23,8 +23,10 @@ export type SearchParams = {
 };
 
 interface SearchContext {
+    /** Local changes to the segment parameters that might not be persisted to the database. */
     searchParams: SearchParams;
     setSearchParams: React.Dispatch<React.SetStateAction<SearchParams>>;
+    /** The parameters that are persisted to the database. These params are saved to a segment. */
     existingParams: SearchParams;
     setExistingParams: React.Dispatch<React.SetStateAction<SearchParams>>;
     segmentName: string | null;

@@ -20,7 +20,6 @@ import classNames from 'classnames';
 import { message } from 'antd';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
 import { EmptySessionsSearchParams } from '../../SessionsPage';
-import _ from 'lodash';
 import Modal from '../../../../components/Modal/Modal';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import Button from '../../../../components/Button/Button/Button';
@@ -76,52 +75,40 @@ export const SegmentPicker = () => {
 
     useEffect(() => {
         if (data && segment_id) {
-            if (segment_id === LIVE_SEGMENT_ID) {
+            if (
+                segment_id === LIVE_SEGMENT_ID ||
+                segment_id === STARRED_SEGMENT_ID
+            ) {
                 setSegmentName(null);
-                return;
-            }
-            console.log({ currentSegment });
-            if (currentSegment) {
-                if (
-                    history.location.state &&
-                    // history.location.state is empty when the user first loads the app and the route is deep-linked to a segment.
-                    !_.isEqual(
-                        history.location.state,
-                        EmptySessionsSearchParams
-                    )
-                ) {
-                    const parsed: SearchParams = gqlSanitize(
-                        history.location.state
-                    );
-                    setSearchParams(parsed);
-                    setExistingParams(parsed);
-                } else {
-                    const parsed: SearchParams = gqlSanitize({
-                        ...currentSegment.params,
-                    });
-                    setSearchParams(parsed);
-                    setExistingParams(parsed);
-                }
-                setSegmentName(currentSegment.name);
+                setSearchParams(EmptySessionsSearchParams);
+                setExistingParams(EmptySessionsSearchParams);
             } else {
-                // Redirect home since the segment doesn't exist anymore.
-                setSegmentName(null);
-                history.replace(`/${organization_id}/sessions`);
+                setSegmentName(currentSegment?.name || null);
             }
-        } else {
+        } else if (!segment_id) {
+            setSegmentName(null);
             setSearchParams(EmptySessionsSearchParams);
             setExistingParams(EmptySessionsSearchParams);
         }
     }, [
-        currentSegment,
-        setSegmentName,
-        setSearchParams,
-        setExistingParams,
-        segment_id,
-        history,
-        organization_id,
+        currentSegment?.name,
         data,
+        segment_id,
+        setExistingParams,
+        setSearchParams,
+        setSegmentName,
     ]);
+
+    useEffect(() => {
+        if (currentSegment) {
+            const parsed: SearchParams = gqlSanitize({
+                ...currentSegment.params,
+            });
+            setSearchParams(parsed);
+            setExistingParams(parsed);
+            setSegmentName(currentSegment.name);
+        }
+    }, [currentSegment, setExistingParams, setSearchParams, setSegmentName]);
 
     return (
         <>
@@ -191,7 +178,6 @@ export const SegmentPicker = () => {
                             <Link
                                 to={{
                                     pathname: `/${organization_id}/sessions`,
-                                    state: EmptySessionsSearchParams,
                                 }}
                                 key={'sessions'}
                             >
@@ -292,7 +278,6 @@ export const SegmentPicker = () => {
                                 <Link
                                     to={{
                                         pathname: `/${organization_id}/sessions/segment/${s?.id}`,
-                                        state: s?.params,
                                     }}
                                 >
                                     <div className={styles.segmentItem}>
