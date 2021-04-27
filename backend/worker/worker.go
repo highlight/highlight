@@ -2,7 +2,6 @@ package worker
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/k0kubun/pp"
 	"github.com/pkg/errors"
-	"github.com/slack-go/slack"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -22,23 +20,14 @@ import (
 
 // Worker is a job runner that parses sessions
 type Worker struct {
-	resolver *mgraph.Resolver
-	s3Client *storage.StorageClient
-}
-
-func NewWorker(r *mgraph.Resolver) (*Worker, error) {
-	w := &Worker{resolver: r}
-	storage, err := storage.NewStorageClient()
-	if err != nil {
-		return nil, e.Wrap(err, "error creating storage client for worker")
-	}
-	w.s3Client = storage
-	return w, nil
+	Resolver *mgraph.Resolver
+	S3Client *storage.StorageClient
 }
 
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Set the session as processed; if any is error thrown after this, the session gets ignored.
-	if err := w.resolver.DB.Model(&model.Session{}).Where(
+	pp.Println(s.ID)
+	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		&model.Session{Processed: &model.T},
@@ -48,11 +37,16 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// load all events
 	events := []model.EventsObject{}
-	if err := w.resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
+	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
 		return errors.Wrap(err, "retrieving events")
 	}
-	// TODO: this is an empty array
-	fmt.Printf("got events %v", events)
+	// Delete the session if there's no events.
+	if len(events) == 0 {
+		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+			return errors.Wrap(err, "error trying to delete session with no events")
+		}
+	}
+
 	firstEventsParsed, err := parse.EventsFromString(events[0].Events)
 	if err != nil {
 		return errors.Wrap(err, "error parsing events")
@@ -66,16 +60,16 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	diff := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
 	length := diff.Milliseconds()
 
-	// Delete the session if there are no events. This can happen when:
+	// Delete the session if the lenght of the session is 0.
 	// 1. Nothing happened in the session
 	// 2. A web crawler visited the page and produced no events
 	if length == 0 {
-		if err := w.resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
+		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete session with no events")
 		}
 	}
 
-	if err := w.resolver.DB.Model(&model.Session{}).Where(
+	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
@@ -88,24 +82,36 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
+	// Upload to s3 for every even session on our org.
+	// if s.OrganizationID == 1 && s.ID%2 == 0 {
 	// Push the session to s3
-	eventStrings := []string{}
-	for _, event := range events {
-		eventStrings = append(eventStrings, event.Events)
+	re := &parse.ReplayEvents{
+		Events: []*parse.ReplayEvent{},
 	}
-	pp.Println("pushing...")
-	w.s3Client.PushToS3(s.ID, s.OrganizationID, eventStrings)
-	fmt.Printf("%v", eventStrings)
-	// Send a notification that the session was processed.
-	msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SESSION \nid: %v\norg_id: %v\nuser_id: %v\nuser_object: %v\nurl: %v```",
-		s.ID,
-		s.OrganizationID,
-		s.Identifier,
-		s.UserObject,
-		fmt.Sprintf("https://app.highlight.run/%v/sessions/%v", s.OrganizationID, s.ID))}
-	err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+	for _, event := range events {
+		parsed, err := parse.EventsFromString(event.Events)
+		if err != nil {
+			return errors.Wrap(err, "error parsing events")
+		}
+		re.Events = append(re.Events, parsed.Events...)
+	}
+	err = w.S3Client.PushToS3(s.ID, s.OrganizationID, re)
+	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
-		return errors.Wrap(err, "error sending slack hook")
+		return errors.Wrap(err, "error pushing to s3")
+	} else {
+		// Mark this session as stored in S3.
+		if err := w.Resolver.DB.Model(&model.Session{}).Where(
+			&model.Session{Model: model.Model{ID: s.ID}},
+		).Updates(
+			&model.Session{ObjectStorageEnabled: &model.T},
+		).Error; err != nil {
+			return errors.Wrap(err, "error updating session to storage enabled")
+		}
+		// Delete all the events_objects in the DB.
+		if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
+			return errors.Wrap(err, "error deleting all event records")
+		}
 	}
 	return nil
 }
@@ -118,18 +124,18 @@ func (w *Worker) Start() {
 		workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
 		workerSpan.SetTag("backend", util.Worker)
 		now := time.Now()
-		thirtySecondsAgo := now.Add(-30 * time.Second)
+		thirtySecondsAgo := now.Add(-8 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
-		if err := w.resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", thirtySecondsAgo, false).Find(&sessions).Error; err != nil {
+		if err := w.Resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", thirtySecondsAgo, false).Find(&sessions).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			sessionsSpan.Finish()
 			continue
 		}
 		sessionsSpan.Finish()
-		pp.Printf("iterate: %v \n", len(sessions))
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
+			pp.Println("processing")
 			if err := w.processSession(ctx, session); err != nil {
 				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
 				continue

@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/k0kubun/pp"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
 	"github.com/speps/go-hashids"
@@ -177,6 +176,8 @@ type Session struct {
 	FirstloadVersion string `json:"firstload_version" gorm:"index"`
 	// The client configuration that the end-user sets up. This is used for debugging purposes.
 	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
+
+	ObjectStorageEnabled *bool `json:"object_storage_enabled"`
 }
 
 type Field struct {
@@ -242,7 +243,6 @@ func (s *SearchParams) GormDataType() string {
 }
 
 func (s *SearchParams) GormValue(ctx context.Context, db *gorm.DB) clause.Expr {
-	pp.Println("value", s.GormDataType())
 	return clause.Expr{
 		SQL: fmt.Sprintf("ST_PointFromText(%v)", s.GormDataType()),
 	}

@@ -10,9 +10,9 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
 	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
-	"github.com/k0kubun/pp"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
@@ -96,18 +96,24 @@ func main() {
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
+	storage, err := storage.NewStorageClient()
+	if err != nil {
+		log.Fatalf("error creating storage client: %v", err)
+	}
+
 	private.SetupAuthClient()
 	privateResolver := &private.Resolver{
-		DB:           db,
-		MailClient:   sendgrid.NewSendClient(sendgridKey),
-		StripeClient: stripeClient,
+		DB:            db,
+		MailClient:    sendgrid.NewSendClient(sendgridKey),
+		StripeClient:  stripeClient,
+		StorageClient: storage,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
 	r.Use(handlers.CompressHandler)
-	r.Use(func(h http.Handler) http.Handler {
-		return handlers.LoggingHandler(os.Stdout, h)
-	})
+	// r.Use(func(h http.Handler) http.Handler {
+	// 	return handlers.LoggingHandler(os.Stdout, h)
+	// })
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,
@@ -137,13 +143,9 @@ func main() {
 		r.Handle("/", clientServer)
 	})
 
-	w, err := worker.NewWorker(privateResolver)
-	if err != nil {
-		log.Fatalf("error creating worker: %v", err)
-	}
+	w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
 	if runtimeParsed == util.All {
-		pp.Println("all")
 		go func() {
 			w.Start()
 		}()

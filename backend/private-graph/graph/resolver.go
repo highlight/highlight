@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/k0kubun/pp"
 	"github.com/sendgrid/sendgrid-go"
@@ -27,9 +28,10 @@ var (
 )
 
 type Resolver struct {
-	DB           *gorm.DB
-	MailClient   *sendgrid.Client
-	StripeClient *client.API
+	DB            *gorm.DB
+	MailClient    *sendgrid.Client
+	StripeClient  *client.API
+	StorageClient *storage.StorageClient
 }
 
 // Prints time since 'time' and msg, fid.
