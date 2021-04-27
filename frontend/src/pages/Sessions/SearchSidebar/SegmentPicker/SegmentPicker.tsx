@@ -70,11 +70,12 @@ export const SegmentPicker = () => {
     });
 
     useEffect(() => {
-        if (segment_id) {
+        if (data && segment_id) {
             if (segment_id === LIVE_SEGMENT_ID) {
                 setSegmentName(null);
                 return;
             }
+            console.log({ currentSegment });
             if (currentSegment) {
                 if (
                     history.location.state &&
@@ -82,8 +83,7 @@ export const SegmentPicker = () => {
                     !_.isEqual(
                         history.location.state,
                         EmptySessionsSearchParams
-                    ) &&
-                    history.length > 2
+                    )
                 ) {
                     const parsed: SearchParams = gqlSanitize(
                         history.location.state
@@ -115,6 +115,7 @@ export const SegmentPicker = () => {
         segment_id,
         history,
         organization_id,
+        data,
     ]);
 
     return (
