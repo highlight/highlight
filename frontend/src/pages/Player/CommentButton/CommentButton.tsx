@@ -136,12 +136,14 @@ const CommentButton = ({
                 {sessionCommentsData?.session_comments.map(
                     (comment) =>
                         comment &&
-                        showCommentsOverlaid &&
-                        Math.abs(time - comment.timestamp) <= 500 && (
+                        showCommentsOverlaid && (
                             <Comment
                                 key={comment.id}
                                 comment={comment}
                                 deepLinkedCommentId={deepLinkedCommentId}
+                                shouldShowComment={
+                                    Math.abs(time - comment.timestamp) <= 500
+                                }
                             />
                         )
                 )}
