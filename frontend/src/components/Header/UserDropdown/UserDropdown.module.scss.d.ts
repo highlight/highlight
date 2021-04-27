@@ -1,5 +1,6 @@
 export const accountIcon: string;
 export const accountIconWrapper: string;
+export const avatarWrapper: string;
 export const dropdownEmail: string;
 export const dropdownInner: string;
 export const dropdownLogout: string;
@@ -8,3 +9,4 @@ export const dropdownMenu: string;
 export const dropdownName: string;
 export const logoutIcon: string;
 export const userCopy: string;
+export const userInfoWrapper: string;

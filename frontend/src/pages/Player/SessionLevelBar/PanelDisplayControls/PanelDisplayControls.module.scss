@@ -1,0 +1,25 @@
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--size-xxSmall);
+    color: var(--color-gray-500);
+
+    .active {
+        color: var(--color-purple);
+    }
+
+    &:focus {
+        color: var(--color-gray-500);
+    }
+
+    &:hover {
+        color: var(--color-gray-600);
+    }
+}
+
+.buttonContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

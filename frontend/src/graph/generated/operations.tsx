@@ -195,6 +195,7 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     session_url: Types.Scalars['String'];
     time: Types.Scalars['Float'];
     author_name: Types.Scalars['String'];
+    session_image: Types.Scalars['String'];
 }>;
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -327,7 +328,7 @@ export type GetAdminsQuery = { __typename?: 'Query' } & {
             Types.Maybe<
                 { __typename?: 'Admin' } & Pick<
                     Types.Admin,
-                    'id' | 'name' | 'email'
+                    'id' | 'name' | 'email' | 'photo_url'
                 >
             >
         >
@@ -439,7 +440,10 @@ export type GetAdminQueryVariables = Types.Exact<{ [key: string]: never }>;
 
 export type GetAdminQuery = { __typename?: 'Query' } & {
     admin?: Types.Maybe<
-        { __typename?: 'Admin' } & Pick<Types.Admin, 'id' | 'name' | 'email'>
+        { __typename?: 'Admin' } & Pick<
+            Types.Admin,
+            'id' | 'name' | 'email' | 'photo_url'
+        >
     >;
 };
 

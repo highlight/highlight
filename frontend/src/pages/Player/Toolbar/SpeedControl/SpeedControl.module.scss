@@ -1,0 +1,36 @@
+.speedText {
+    color: var(--color-gray-500);
+    font-size: 12px;
+    padding: 0 var(--size-xSmall);
+
+    &:active {
+        color: var(--color-gray-500);
+    }
+}
+
+.speedButton {
+    background: var(--color-purple-200);
+    color: var(--color-purple);
+    padding: 0;
+    height: 18px;
+    width: 18px;
+    border-radius: 2px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:focus {
+        background: var(--color-purple-200);
+    }
+
+    &:disabled {
+        background: var(--color-purple);
+        color: var(--color-purple-200);
+    }
+}
+
+.speedControlContainer {
+    display: flex;
+    align-items: center;
+}

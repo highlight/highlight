@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { FaUndoAlt, FaPlay, FaPause, FaRedoAlt } from 'react-icons/fa';
+import { FaPause } from 'react-icons/fa';
 import { useLocalStorage } from '@rehooks/local-storage';
 import {
     MillisToMinutesAndSeconds,
     MillisToMinutesAndSecondsVerbose,
 } from '../../../util/time';
 import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
-import { SettingsMenu } from './SettingsMenu/SettingsMenu';
 import {
     DevToolsContextProvider,
     DevToolTabs,
@@ -30,6 +29,13 @@ import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorM
 import TimelineCommentAnnotation from './TimelineAnnotation/TimelineCommentAnnotation';
 import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
 import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
+import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
+import Button from '../../../components/Button/Button/Button';
+import Tooltip from '../../../components/Tooltip/Tooltip';
+import SpeedControl from './SpeedControl/SpeedControl';
+import SvgRedoIcon from '../../../static/RedoIcon';
+import SvgUndoIcon from '../../../static/UndoIcon';
+import SvgPlayIcon from '../../../static/PlayIcon';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -50,7 +56,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const wrapperWidth =
         sliderWrapperRef.current?.getBoundingClientRect().width ?? 1;
     const [sliderClientX, setSliderClientX] = useState<number>(-1);
-    const [speed, setSpeed] = useLocalStorage('highlightMenuSpeed', 2);
+    const [speed] = useLocalStorage('highlightMenuSpeed', 2);
     const [skipInactive, setSkipInactive] = useLocalStorage(
         'highlightMenuSkipInactive',
         true
@@ -70,10 +76,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const [selectedDevToolsTab, setSelectedDevToolsTab] = useLocalStorage(
         'highlightSelectedDevtoolTabs',
         DevToolTabs.Errors
-    );
-    const [showRightPanel, setShowRightPanel] = useLocalStorage(
-        'highlightMenuShowRightPanel',
-        true
     );
     const [] = useLocalStorage('highlightTimelineAnnotationTypes', [
         ...EventsForTimeline,
@@ -295,7 +297,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         }}
                     >
                         {isPaused ? (
-                            <FaPlay
+                            <SvgPlayIcon
                                 fill="inherit"
                                 className={classNames(
                                     styles.playButtonStyle,
@@ -327,7 +329,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             }
                         }}
                     >
-                        <FaUndoAlt
+                        <SvgUndoIcon
                             fill="inherit"
                             className={classNames(
                                 styles.skipButtonStyle,
@@ -355,7 +357,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             }
                         }}
                     >
-                        <FaRedoAlt
+                        <SvgRedoIcon
                             fill="inherit"
                             className={classNames(
                                 styles.skipButtonStyle,
@@ -376,29 +378,58 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 </div>
                 <div className={styles.toolbarRightSection}>
                     <TimelineAnnotationsSettings />
-                    <SettingsMenu
-                        skipInactive={skipInactive}
-                        onSkipInactiveChange={() =>
-                            setSkipInactive(!skipInactive)
-                        }
-                        openDevTools={openDevTools}
-                        onOpenDevToolsChange={() =>
-                            setOpenDevTools(!openDevTools)
-                        }
-                        speed={speed}
-                        onSpeedChange={(s: number) => {
-                            setSpeed(s);
-                            replayer?.setConfig({ speed: s });
-                        }}
-                        autoPlayVideo={autoPlayVideo}
-                        onAutoPlayVideoChange={() => {
-                            setAutoPlayVideo(!autoPlayVideo);
-                        }}
-                        showRightPanel={showRightPanel}
-                        onShowRightPanelChange={() => {
-                            setShowRightPanel(!showRightPanel);
-                        }}
-                    />
+                    <Tooltip
+                        title="Automatically starts the video when you open a session."
+                        arrowPointAtCenter
+                    >
+                        <Button
+                            type="text"
+                            className={classNames(styles.autoPlayButton)}
+                            onClick={() => {
+                                setAutoPlayVideo(!autoPlayVideo);
+                            }}
+                        >
+                            {autoPlayVideo ? 'Autoplay on' : 'Autoplay off'}
+                        </Button>
+                    </Tooltip>
+                    <Tooltip
+                        title="Skip the playback of the inactive portions of the session."
+                        arrowPointAtCenter
+                    >
+                        <Button
+                            type="text"
+                            className={classNames(styles.skipInactiveButton, {
+                                [styles.skipInactiveButtonActive]: skipInactive,
+                            })}
+                            onClick={() => {
+                                setSkipInactive(!skipInactive);
+                            }}
+                        >
+                            {skipInactive
+                                ? 'Skipping inactive'
+                                : 'Skip inactive'}
+                        </Button>
+                    </Tooltip>
+                    <SpeedControl />
+                    <Tooltip
+                        title="View the DevTools to see console logs, errors, and network requests."
+                        placement="topLeft"
+                        arrowPointAtCenter
+                    >
+                        <Button
+                            type="text"
+                            className={styles.devToolsButton}
+                            onClick={() => {
+                                setOpenDevTools(!openDevTools);
+                            }}
+                        >
+                            <SvgDevtoolsIcon
+                                className={classNames(styles.devToolsIcon, {
+                                    [styles.devToolsActive]: openDevTools,
+                                })}
+                            />
+                        </Button>
+                    </Tooltip>
                 </div>
             </div>
         </ErrorModalContextProvider>

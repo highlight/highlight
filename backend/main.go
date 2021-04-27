@@ -37,12 +37,13 @@ var (
 	landingURL   = os.Getenv("LANDING_PAGE_URI")
 	sendgridKey  = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey = os.Getenv("STRIPE_API_KEY")
-	runtime      = flag.String("runtime", "all", "the runtime of the backend; either dev/worker/server")
+	runtime      = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 )
 
 var runtimeParsed util.Runtime
 
 func init() {
+	flag.Parse()
 	if runtime == nil {
 		log.Fatal("runtime is nil, provide a value")
 	} else if !util.Runtime(*runtime).IsValid() {
@@ -72,7 +73,6 @@ func validateOrigin(request *http.Request, origin string) bool {
 var defaultPort = "8082"
 
 func main() {
-	flag.Parse()
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
@@ -119,42 +119,66 @@ func main() {
 		AllowCredentials:       true,
 		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
-	// Maingraph logic
-	r.Route("/private", func(r chi.Router) {
-		r.Use(private.AdminMiddleWare)
-		mainServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
-			privategen.Config{
-				Resolvers: privateResolver,
-			}),
-		)
-		mainServer.Use(util.NewTracer(util.PrivateGraph))
-		r.Handle("/", mainServer)
-	})
-	// Clientgraph logic
-	r.Route("/public", func(r chi.Router) {
-		r.Use(public.ClientMiddleWare)
-		clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
-			publicgen.Config{
-				Resolvers: &public.Resolver{
-					DB: db,
-				},
-			}))
-		clientServer.Use(util.NewTracer(util.PublicGraph))
-		r.Handle("/", clientServer)
-	})
+	r.MethodFunc(http.MethodGet, "/health", health)
 
-	w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
-	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
-	if runtimeParsed == util.All {
+	/*
+		Selectively turn on backends depending on the input flag
+		If type is 'all', we run public-graph on /public and private-graph on /private
+		If type is 'public-graph', we run public-graph on /
+		If type is 'private-graph', we run private-graph on /
+	*/
+	if runtimeParsed == util.PrivateGraph || runtimeParsed == util.All {
+		privateEndpoint := "/private"
+		if runtimeParsed == util.PrivateGraph {
+			privateEndpoint = "/"
+		}
+		r.Route(privateEndpoint, func(r chi.Router) {
+			r.Use(private.PrivateMiddleware)
+			privateServer := ghandler.NewDefaultServer(privategen.NewExecutableSchema(
+				privategen.Config{
+					Resolvers: privateResolver,
+				}),
+			)
+			privateServer.Use(util.NewTracer(util.PrivateGraph))
+			r.Handle("/", privateServer)
+		})
+	}
+	if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
+		publicEndpoint := "/public"
+		if runtimeParsed == util.PublicGraph {
+			publicEndpoint = "/"
+		}
+		r.Route(publicEndpoint, func(r chi.Router) {
+			r.Use(public.PublicMiddleware)
+			clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
+				publicgen.Config{
+					Resolvers: &public.Resolver{
+						DB: db,
+					},
+				}))
+			clientServer.Use(util.NewTracer(util.PublicGraph))
+			r.Handle("/", clientServer)
+		})
+	}
+
+	/*
+		Decide what binary to run
+		For the the 'worker' runtime, run only the worker.
+		For the the 'all' runtime, run both the server and worker.
+		For anything else, just run the server.
+	*/
+	log.Printf("runtime is: %v \n", runtimeParsed)
+	log.Println("process running...")
+	if runtimeParsed == util.Worker {
+		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
+		w.Start()
+	} else if runtimeParsed == util.All {
+		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		go func() {
 			w.Start()
 		}()
 		log.Fatal(http.ListenAndServe(":"+port, r))
-	} else if runtimeParsed == util.Worker {
-		w.Start()
-	} else if runtimeParsed == util.PrivateGraph || runtimeParsed == util.PublicGraph {
+	} else {
 		log.Fatal(http.ListenAndServe(":"+port, r))
 	}
-
-	log.Errorf("invalid runtime")
 }

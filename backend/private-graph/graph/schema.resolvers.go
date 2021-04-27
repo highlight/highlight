@@ -519,7 +519,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage string) (*model.SessionComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -541,29 +541,37 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment", tracer.ResourceName("sendgrid.sendCommentMention"))
 	commentMentionEmailSpan.SetTag("count", len(taggedAdminEmails))
 	if len(taggedAdminEmails) > 0 {
+		tos := []*mail.Email{}
+
 		for _, email := range taggedAdminEmails {
-			to := &mail.Email{Address: *email}
-			viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
-			subject := fmt.Sprintf("%v mentioned you on Highlight", authorName)
-			content := fmt.Sprintf(`
-	Hi there, <br><br>
+			tos = append(tos, &mail.Email{Address: *email})
+		}
+		m := mail.NewV3Mail()
+		from := mail.NewEmail("Highlight", "notifications@highlight.run")
+		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
+		m.SetFrom(from)
+		m.SetTemplateID(SendGridCommentEmailTemplateID)
 
-	%v mentioned you in a comment on Session %v: <br><br>
+		p := mail.NewPersonalization()
+		p.AddTos(tos...)
+		p.SetDynamicTemplateData("Author_Name", authorName)
+		p.SetDynamicTemplateData("Comment_Link", viewLink)
+		p.SetDynamicTemplateData("Comment_Body", textForEmail)
+		p.SetDynamicTemplateData("Session_Image", sessionImage)
 
-	"%v" <br><br>
+		a := mail.NewAttachment()
+		a.SetContent(sessionImage)
+		a.SetFilename("session-image.png")
+		a.SetContentID("sessionImage")
+		a.SetType("image/png")
+		m.AddAttachment(a)
 
-	<a href="%v">View the comment</a><br><br>
+		m.AddPersonalizations(p)
 
-	Cheers, <br>
-	The Highlight Team <br>
-	`, authorName, sessionID, textForEmail, viewLink)
-
-			from := mail.NewEmail("Highlight", "notifications@highlight.run")
-			message := mail.NewSingleEmail(from, subject, to, content, fmt.Sprintf("<p>%v</p>", content))
-			_, err := r.MailClient.Send(message)
-			if err != nil {
-				return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
-			}
+		resp, err := r.MailClient.Send(m)
+		fmt.Println(resp.StatusCode, resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
 		}
 	}
 	commentMentionEmailSpan.Finish()
@@ -820,7 +828,7 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, organizationID i
 	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 
-	if err := r.DB.Model(&model.DailySessionCount{OrganizationID: organizationID}).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailySessions).Error; err != nil {
+	if err := r.DB.Where(&model.DailySessionCount{OrganizationID: organizationID}).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailySessions).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from daily sessions")
 	}
 
@@ -837,7 +845,7 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 	startDateUTC := time.Date(dateRange.StartDate.UTC().Year(), dateRange.StartDate.UTC().Month(), dateRange.StartDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 	endDateUTC := time.Date(dateRange.EndDate.UTC().Year(), dateRange.EndDate.UTC().Month(), dateRange.EndDate.UTC().Day(), 0, 0, 0, 0, time.UTC)
 
-	if err := r.DB.Model(&model.DailyErrorCount{OrganizationID: organizationID}).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailyErrors).Error; err != nil {
+	if err := r.DB.Where(&model.DailyErrorCount{OrganizationID: organizationID}).Where("date BETWEEN ? AND ?", startDateUTC, endDateUTC).Find(&dailyErrors).Error; err != nil {
 		return nil, e.Wrap(err, "error reading from daily errors")
 	}
 
@@ -1161,7 +1169,7 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
 	orgs := []*model.Organization{}
 	if r.isWhitelistedAccount(ctx) {
-		if err := r.DB.Debug().Model(&model.Organization{}).Where("name ILIKE ?", "%"+query+"%").Find(&orgs).Error; err != nil {
+		if err := r.DB.Model(&model.Organization{}).Where("name ILIKE ?", "%"+query+"%").Find(&orgs).Error; err != nil {
 			return nil, e.Wrap(err, "error getting associated organizations")
 		}
 	}
@@ -1181,14 +1189,15 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 	admin := &model.Admin{UID: &uid}
 	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
 	if err := res.Error; err != nil {
-		fbuser, err := AuthClient.GetUser(context.Background(), uid)
+		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
 		if err != nil {
 			return nil, e.Wrap(err, "error retrieving user from firebase api")
 		}
 		newAdmin := &model.Admin{
-			UID:   &uid,
-			Name:  &fbuser.DisplayName,
-			Email: &fbuser.Email,
+			UID:      &uid,
+			Name:     &firebaseUser.DisplayName,
+			Email:    &firebaseUser.Email,
+			PhotoURL: &firebaseUser.PhotoURL,
 		}
 		if err := r.DB.Create(newAdmin).Error; err != nil {
 			return nil, e.Wrap(err, "error creating new admin")
@@ -1200,6 +1209,20 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 		if err != nil {
 			log.Errorf("error sending slack hook: %v", err)
 		}
+	}
+	if admin.PhotoURL == nil || admin.Name == nil {
+		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
+		if err != nil {
+			return nil, e.Wrap(err, "error retrieving user from firebase api")
+		}
+		if err := r.DB.Model(admin).Updates(&model.Admin{
+			PhotoURL: &firebaseUser.PhotoURL,
+			Name:     &firebaseUser.DisplayName,
+		}).Error; err != nil {
+			return nil, e.Wrap(err, "error updating org fields")
+		}
+		admin.PhotoURL = &firebaseUser.PhotoURL
+		admin.Name = &firebaseUser.DisplayName
 	}
 	return admin, nil
 }

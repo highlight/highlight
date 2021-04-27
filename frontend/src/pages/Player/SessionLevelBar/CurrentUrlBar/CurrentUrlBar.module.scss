@@ -1,18 +1,15 @@
 @import 'src/static/shared.scss';
 
 .urlBarWrapper {
-    background-color: #f9f9f9;
-    width: 100%;
-    max-width: 400px;
+    width: 50px;
     font-size: 12px;
     padding: 1px var(--size-small);
-    border: 1px solid var(--color-gray-300);
-    border-radius: var(--size-xxSmall);
     height: 100%;
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
     overflow: hidden;
+    flex-grow: 1;
 
     &:hover .copyIcon {
         visibility: visible;
@@ -20,8 +17,8 @@
 }
 
 .urlLink {
-    color: black;
-    width: 100%;
+    color: var(--color-gray-500);
+    width: fit-content;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -32,8 +29,8 @@
 }
 
 .copyIcon {
-    margin-left: auto;
+    margin-left: var(--size-xSmall);
     cursor: pointer;
-    color: grey;
+    color: var(--color-gray-600);
     transition: opacity 0.2s ease-in-out;
 }

@@ -113,7 +113,7 @@ type Admin struct {
 	Model
 	Name          *string
 	Email         *string
-	PhotoURL      *string
+	PhotoURL      *string        `json:"photo_url"`
 	UID           *string        `gorm:"unique_index"`
 	Organizations []Organization `gorm:"many2many:organization_admins;"`
 }

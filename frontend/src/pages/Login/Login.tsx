@@ -10,7 +10,7 @@ import { H } from 'highlight.run';
 import { useForm } from 'react-hook-form';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth, googleProvider } from '../../util/auth';
-import { Home } from '../Home/Home';
+import { Landing } from '../Landing/Landing';
 import { RequestAccessPage } from '../RequestAccess/RequestAccess';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
 import Button from '../../components/Button/Button/Button';
@@ -112,14 +112,14 @@ export const LoginForm = () => {
         window.location.pathname.toLowerCase().includes('request')
     ) {
         return (
-            <Home>
+            <Landing>
                 <RequestAccessPage />
-            </Home>
+            </Landing>
         );
     }
 
     return (
-        <Home>
+        <Landing>
             <div className={styles.loginPage}>
                 <div className={styles.loginFormWrapper}>
                     <form
@@ -235,6 +235,6 @@ export const LoginForm = () => {
                     </div>
                 </div>
             </div>
-        </Home>
+        </Landing>
     );
 };

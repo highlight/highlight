@@ -10,7 +10,6 @@ export const loadingWrapper: string;
 export const noRightPanel: string;
 export const playerBody: string;
 export const playerLeftSection: string;
-export const playerLeftTopSection: string;
 export const playerPageBody: string;
 export const playerRightSection: string;
 export const progressBar: string;

@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .title {
     font-size: 28px;
     font-weight: 400;
@@ -55,11 +57,12 @@
 }
 
 .name {
-    color: #5629c6;
+    color: black;
     font-weight: 400;
 }
 
 .email {
+    color: var(--color-gray-500);
     font-size: 13px;
 }
 

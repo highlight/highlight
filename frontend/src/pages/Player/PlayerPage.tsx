@@ -30,8 +30,6 @@ import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import Modal from '../../components/Modal/Modal';
-import useMedia from '../../hooks/useMedia/useMedia';
-import ShareButton from './ShareButton/ShareButton';
 import CommentButton, { Coordinates2D } from './CommentButton/CommentButton';
 
 export const Player = () => {
@@ -57,12 +55,7 @@ export const Player = () => {
         'highlightMenuShowRightPanel',
         true
     );
-    const hideRightPanel = useMedia<boolean>(
-        ['(max-width: 1300px)'],
-        [true],
-        false
-    );
-    const shouldShowRightPanel = showRightPanelPreference && !hideRightPanel;
+    const shouldShowRightPanel = showRightPanelPreference;
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
@@ -140,10 +133,7 @@ export const Player = () => {
                 })}
             >
                 <div className={styles.playerLeftSection}>
-                    <div className={styles.playerLeftTopSection}>
-                        <SessionLevelBar />
-                        <ShareButton />
-                    </div>
+                    <SessionLevelBar />
                     <div className={styles.rrwebPlayerSection}>
                         <div
                             className={styles.rrwebPlayerWrapper}
@@ -222,7 +212,7 @@ export const Player = () => {
 
 const EventStream = () => {
     const [debug] = useQueryParam('debug', BooleanParam);
-    const { replayer, time, events } = useContext(ReplayerContext);
+    const { replayer, time, events, state } = useContext(ReplayerContext);
     const [currEvent, setCurrEvent] = useState('');
     const [
         isInteractingWithStreamEvents,
@@ -248,18 +238,24 @@ const EventStream = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const scrollFunction = useCallback(
         _.debounce(
-            (currentEventId: string, usefulEventsList: HighlightEvent[]) => {
+            (
+                currentEventId: string,
+                usefulEventsList: HighlightEvent[],
+                state
+            ) => {
                 if (virtuoso.current) {
-                    const matchingEventIndex = usefulEventsList.findIndex(
-                        (event) => event.identifier === currentEventId
-                    );
+                    if (state === ReplayerState.Playing) {
+                        const matchingEventIndex = usefulEventsList.findIndex(
+                            (event) => event.identifier === currentEventId
+                        );
 
-                    if (matchingEventIndex > -1) {
-                        virtuoso.current.scrollToIndex({
-                            index: matchingEventIndex,
-                            align: 'center',
-                            behavior: 'smooth',
-                        });
+                        if (matchingEventIndex > -1) {
+                            virtuoso.current.scrollToIndex({
+                                index: matchingEventIndex,
+                                align: 'center',
+                                behavior: 'smooth',
+                            });
+                        }
                     }
                 }
             },
@@ -270,13 +266,14 @@ const EventStream = () => {
 
     useEffect(() => {
         if (!isInteractingWithStreamEvents) {
-            scrollFunction(currEvent, usefulEvents);
+            scrollFunction(currEvent, usefulEvents, state);
         }
     }, [
         currEvent,
         scrollFunction,
         usefulEvents,
         isInteractingWithStreamEvents,
+        state,
     ]);
 
     return (
