@@ -1,11 +1,11 @@
 import { Slider } from 'antd';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import 'antd/dist/antd.css';
-import { SearchContext } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
+import { useSearchContext } from '../SearchContext/SearchContext';
 
 export const LengthInput = () => {
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSearchContext();
     const [localMin, setLocalMin] = useState(
         searchParams.length_range?.min ? searchParams.length_range?.min : 0
     );

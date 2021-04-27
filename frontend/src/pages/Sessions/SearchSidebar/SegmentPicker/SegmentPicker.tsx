@@ -1,6 +1,9 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useHistory, useParams } from 'react-router-dom';
-import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
+import {
+    SearchParams,
+    useSearchContext,
+} from '../../SearchContext/SearchContext';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
 import Skeleton from 'react-loading-skeleton';
@@ -27,9 +30,11 @@ export const STARRED_SEGMENT_ID = 'starred';
 const NO_SEGMENT = 'none';
 
 export const SegmentPicker = () => {
-    const { setSearchParams, setSegmentName, setExistingParams } = useContext(
-        SearchContext
-    );
+    const {
+        setSearchParams,
+        setSegmentName,
+        setExistingParams,
+    } = useSearchContext();
     const { segment_id, organization_id } = useParams<{
         segment_id: string;
         organization_id: string;

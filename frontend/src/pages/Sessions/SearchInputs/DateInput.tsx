@@ -1,13 +1,13 @@
 import { DatePicker } from 'antd';
-import React, { useContext } from 'react';
+import React from 'react';
 import moment from 'moment';
-import { SearchContext, SearchParams } from '../SearchContext/SearchContext';
+import { SearchParams, useSearchContext } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
 
 const { RangePicker } = DatePicker;
 
 export const DateInput = () => {
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSearchContext();
     return (
         <div className={inputStyles.commonInputWrapper}>
             <RangePicker

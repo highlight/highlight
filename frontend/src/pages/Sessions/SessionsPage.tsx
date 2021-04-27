@@ -4,7 +4,10 @@ import { useLocalStorage } from '@rehooks/local-storage';
 import styles from './SessionsPage.module.scss';
 import { SegmentSidebar } from './SegmentSidebar/SegmentSidebar';
 import { SearchSidebar } from './SearchSidebar/SearchSidebar';
-import { SearchContext, SearchParams } from './SearchContext/SearchContext';
+import {
+    SearchContextProvider,
+    SearchParams,
+} from './SearchContext/SearchContext';
 import { SessionFeed } from './SessionsFeed/SessionsFeed';
 
 import { IntegrationCard } from './IntegrationCard/IntegrationCard';
@@ -73,7 +76,7 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     }
 
     return (
-        <SearchContext.Provider
+        <SearchContextProvider
             value={{
                 searchParams,
                 setSearchParams,
@@ -99,6 +102,6 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
                     <SearchSidebar />
                 </div>
             </div>
-        </SearchContext.Provider>
+        </SearchContextProvider>
     );
 };
