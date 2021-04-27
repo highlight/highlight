@@ -416,7 +416,7 @@ export class Highlight {
                         type: 'application/json',
                     }
                 );
-                navigator.sendBeacon(`${this._backendUrl}/unload`, blob);
+                navigator.sendBeacon(`${this._backendUrl}`, blob);
             });
             this.ready = true;
         } catch (e) {
