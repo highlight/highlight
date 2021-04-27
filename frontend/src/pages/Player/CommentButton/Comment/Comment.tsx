@@ -79,8 +79,14 @@ const Comment = ({
             >
                 <img src={CommentPinIcon} />
             </button>
-            {(showing || shouldShowComment) && (
+            {showing && (
                 <div
+                    onMouseEnter={() => {
+                        setShowing(true);
+                    }}
+                    onMouseLeave={() => {
+                        setShowing(false);
+                    }}
                     className={classNames(styles.commentContainer, {
                         [styles.activeComment]:
                             deepLinkedCommentId === comment.id,
