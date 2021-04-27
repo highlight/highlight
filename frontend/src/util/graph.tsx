@@ -1,12 +1,24 @@
-import { ApolloClient, createHttpLink, InMemoryCache } from '@apollo/client';
+import {
+    ApolloClient,
+    ApolloLink,
+    HttpLink,
+    InMemoryCache,
+} from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 
 import * as firebase from 'firebase/app';
 import 'firebase/auth';
 
-const httpLink = createHttpLink({
+const highlightGraph = new HttpLink({
     uri: process.env.REACT_APP_PRIVATE_GRAPH_URI,
     credentials: 'include',
+});
+
+const launchNotesGraph = new HttpLink({
+    uri: 'https://app.launchnotes.io/graphql',
+    headers: {
+        Authorization: 'Bearer public_WjznlihAyRRTZD7gjc42TaP4',
+    },
 });
 
 const authLink = setContext((_, { headers }) => {
@@ -19,7 +31,11 @@ const authLink = setContext((_, { headers }) => {
 });
 
 export const client = new ApolloClient({
-    link: authLink.concat(httpLink),
+    link: ApolloLink.split(
+        (operation) => operation.getContext().clientName === 'launchNotes',
+        launchNotesGraph,
+        authLink.concat(highlightGraph)
+    ),
     cache: new InMemoryCache(),
     assumeImmutableResults: true,
     connectToDevTools:

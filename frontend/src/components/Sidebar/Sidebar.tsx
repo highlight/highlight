@@ -17,6 +17,7 @@ import { DemoContext } from '../../DemoContext';
 import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import Tooltip from '../Tooltip/Tooltip';
+import Changelog from '../Changelog/Changelog';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -75,6 +76,7 @@ export const Sidebar = () => {
                 </SidebarItem>
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
+                        <Changelog />
                         {!loadingBillingDetails &&
                         data?.billingDetails.meter !== undefined &&
                         data?.billingDetails.plan.quota !== undefined ? (
