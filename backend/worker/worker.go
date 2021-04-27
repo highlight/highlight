@@ -9,6 +9,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/util"
+	"github.com/k0kubun/pp"
 	"github.com/pkg/errors"
 	"github.com/slack-go/slack"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -92,6 +93,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	for _, event := range events {
 		eventStrings = append(eventStrings, event.Events)
 	}
+	pp.Println("pushing...")
 	w.s3Client.PushToS3(s.ID, s.OrganizationID, eventStrings)
 	fmt.Printf("%v", eventStrings)
 	// Send a notification that the session was processed.
@@ -119,12 +121,13 @@ func (w *Worker) Start() {
 		thirtySecondsAgo := now.Add(-30 * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
-		if err := w.R.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", thirtySecondsAgo, false).Find(&sessions).Error; err != nil {
+		if err := w.resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", thirtySecondsAgo, false).Find(&sessions).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			sessionsSpan.Finish()
 			continue
 		}
 		sessionsSpan.Finish()
+		pp.Printf("iterate: %v \n", len(sessions))
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
 			if err := w.processSession(ctx, session); err != nil {

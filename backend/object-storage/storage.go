@@ -4,9 +4,14 @@ import (
 	"context"
 	"fmt"
 
+	// "github.com/aws/aws-sdk-go-v2/aws"
+	// "github.com/aws/aws-sdk-go-v2/aws/session"
+	// "github.com/aws/aws-sdk-go-v2/service/s3"
+
 	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/pkg/errors"
 
 	"log"
 	"strings"
@@ -17,22 +22,27 @@ type StorageClient struct {
 }
 
 func NewStorageClient() (*StorageClient, error) {
-	// Get the first page of results for ListObjectsV2 for a bucket
-	// cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-west-2"))
-	// if err != nil {
-	// 	return nil, e.Wrap(err, "error laoding default config")
-	// }
-	// // Create an Amazon S3 service client
-	// client := s3.NewFromConfig(cfg)
-	sess, err := session.NewSession(&aws.Config{
-		Region: *aws.String("us-west-2"),
-	})
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithSharedConfigProfile("profile-name"),
+	)
 	if err != nil {
-		return err
+		return nil, errors.Wrap(err, "error loading default from config")
 	}
-	svc := s3.New(sess)
+	// Create Amazon S3 API client using path style addressing.
+	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.UsePathStyle = true
+	})
+
+	// sess, err := session.NewSession(&aws.Config{
+	// 	Region: aws.String("us-west-2"),
+	// })
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "error creating aws session")
+	// }
+	// svc := s3.New(sess)
 	return &StorageClient{
-		S3Client: svc,
+		S3Client: client,
 	}, nil
 }
 

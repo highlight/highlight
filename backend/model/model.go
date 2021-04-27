@@ -16,6 +16,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"gorm.io/gorm/logger"
 
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -354,6 +355,7 @@ func SetupDB() *gorm.DB {
 	var err error
 	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
+		Logger:                                   logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)

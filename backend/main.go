@@ -12,6 +12,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
+	"github.com/k0kubun/pp"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
@@ -136,9 +137,13 @@ func main() {
 		r.Handle("/", clientServer)
 	})
 
-	w := &worker.Worker{Resolver: privateResolver, S: storage}
+	w, err := worker.NewWorker(privateResolver)
+	if err != nil {
+		log.Fatalf("error creating worker: %v", err)
+	}
 	log.Infof("listening with:\nruntime config: %v\ndoppler environment: %v\n", *runtime, os.Getenv("DOPPLER_ENCLAVE_ENVIRONMENT"))
 	if runtimeParsed == util.All {
+		pp.Println("all")
 		go func() {
 			w.Start()
 		}()
