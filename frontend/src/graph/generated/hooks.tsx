@@ -796,6 +796,52 @@ export type CreateSessionCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateSessionCommentMutation,
     Types.CreateSessionCommentMutationVariables
 >;
+export const DeleteSessionCommentDocument = gql`
+    mutation DeleteSessionComment($id: ID!) {
+        deleteSessionComment(id: $id)
+    }
+`;
+export type DeleteSessionCommentMutationFn = Apollo.MutationFunction<
+    Types.DeleteSessionCommentMutation,
+    Types.DeleteSessionCommentMutationVariables
+>;
+
+/**
+ * __useDeleteSessionCommentMutation__
+ *
+ * To run a mutation, you first call `useDeleteSessionCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteSessionCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteSessionCommentMutation, { data, loading, error }] = useDeleteSessionCommentMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteSessionCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteSessionCommentMutation,
+        Types.DeleteSessionCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteSessionCommentMutation,
+        Types.DeleteSessionCommentMutationVariables
+    >(DeleteSessionCommentDocument, baseOptions);
+}
+export type DeleteSessionCommentMutationHookResult = ReturnType<
+    typeof useDeleteSessionCommentMutation
+>;
+export type DeleteSessionCommentMutationResult = Apollo.MutationResult<Types.DeleteSessionCommentMutation>;
+export type DeleteSessionCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteSessionCommentMutation,
+    Types.DeleteSessionCommentMutationVariables
+>;
 export const DeleteErrorSegmentDocument = gql`
     mutation DeleteErrorSegment($segment_id: ID!) {
         deleteErrorSegment(segment_id: $segment_id)

@@ -383,4 +383,5 @@ type Mutation {
         author_name: String!
         session_image: String!
     ): SessionComment
+    deleteSessionComment(id: ID!): Boolean
 }
