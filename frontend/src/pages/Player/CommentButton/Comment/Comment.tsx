@@ -31,14 +31,9 @@ interface Props {
             }
     >;
     deepLinkedCommentId: string | null;
-    shouldShowComment: boolean;
 }
 
-const Comment = ({
-    comment,
-    deepLinkedCommentId,
-    shouldShowComment,
-}: Props) => {
+const Comment = ({ comment, deepLinkedCommentId }: Props) => {
     const [showing, setShowing] = useState(false);
     const { pause } = useContext(ReplayerContext);
 

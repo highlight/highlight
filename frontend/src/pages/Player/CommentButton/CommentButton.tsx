@@ -141,10 +141,6 @@ const CommentButton = ({
                                 key={comment.id}
                                 comment={comment}
                                 deepLinkedCommentId={deepLinkedCommentId}
-                                shouldShowComment={
-                                    // Show the comment if the comment was made within 3 seconds of the current time.
-                                    Math.abs(time - comment.timestamp) <= 3000
-                                }
                             />
                         )
                 )}
