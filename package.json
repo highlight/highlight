@@ -1,0 +1,14 @@
+{
+    "name": "highlight",
+    "version": "1.0.0",
+    "main": "index.js",
+    "repository": "git@github.com:highlight-run/highlight.git",
+    "author": "Highlight",
+    "license": "MIT",
+    "dependencies": {
+        "concurrently": "^6.0.2"
+    },
+    "scripts": {
+        "start-frontend": "concurrently 'cd frontend && yarn start' 'cd frontend && yarn gql' 'cd frontend && yarn styles' 'cd client && yarn dev' 'cd client && yarn gql' 'cd firstload && yarn dev'"
+    }
+}
