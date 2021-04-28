@@ -6,7 +6,7 @@ COPY ./backend .
 RUN go mod download
 RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /bin/backend
 
-FROM node:13.12.0-alpine as frontend-builder
+FROM node:14-alpine as frontend-builder
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
 COPY ./frontend/package.json ./frontend/yarn.lock ./
