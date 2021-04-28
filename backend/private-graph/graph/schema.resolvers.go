@@ -518,7 +518,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -558,12 +558,14 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		p.SetDynamicTemplateData("Comment_Body", textForEmail)
 		p.SetDynamicTemplateData("Session_Image", sessionImage)
 
-		a := mail.NewAttachment()
-		a.SetContent(sessionImage)
-		a.SetFilename("session-image.png")
-		a.SetContentID("sessionImage")
-		a.SetType("image/png")
-		m.AddAttachment(a)
+		if sessionImage != nil {
+			a := mail.NewAttachment()
+			a.SetContent(*sessionImage)
+			a.SetFilename("session-image.png")
+			a.SetContentID("sessionImage")
+			a.SetType("image/png")
+			m.AddAttachment(a)
+		}
 
 		m.AddPersonalizations(p)
 

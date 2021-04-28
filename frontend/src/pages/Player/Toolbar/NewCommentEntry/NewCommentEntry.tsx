@@ -17,7 +17,7 @@ import { OnChangeHandlerFunc } from 'react-mentions';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
 import Button from '../../../../components/Button/Button/Button';
 import { AdminSuggestion } from './CommentTextBody/CommentTextBody';
-import html2canvas from 'html2canvas';
+// import html2canvas from 'html2canvas';
 
 interface Props {
     currentTime: number;
@@ -61,16 +61,16 @@ export const NewCommentEntry = ({
     const onFinish = async () => {
         H.track('Create Comment', {});
         setIsCreatingComment(true);
-        const canvas = await html2canvas(
-            (document.querySelector(
-                '.replayer-wrapper iframe'
-            ) as HTMLIFrameElement).contentDocument!.documentElement,
-            {
-                allowTaint: true,
-                logging: false,
-                backgroundColor: null,
-            }
-        );
+        // const canvas = await html2canvas(
+        //     (document.querySelector(
+        //         '.replayer-wrapper iframe'
+        //     ) as HTMLIFrameElement).contentDocument!.documentElement,
+        //     {
+        //         allowTaint: true,
+        //         logging: false,
+        //         backgroundColor: null,
+        //     }
+        // );
         await createComment({
             variables: {
                 organization_id,
@@ -88,9 +88,9 @@ export const NewCommentEntry = ({
                     admin_data?.admin?.name ||
                     admin_data?.admin?.email ||
                     'Someone',
-                session_image: canvas
-                    .toDataURL()
-                    .replace('data:image/png;base64,', ''),
+                // session_image: canvas
+                //     .toDataURL()
+                //     .replace('data:image/png;base64,', ''),
             },
             refetchQueries: ['GetSessionComments'],
         });
