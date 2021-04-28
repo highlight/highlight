@@ -13,5 +13,6 @@ jobs:
           context: ./backend
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: my-docker-hub-namespace/my-docker-hub-repository
-          tag_with_ref: true
+          repository: highlightrun/backend
+          push: true
+          tags: highlightrun/backend:latest
