@@ -60,6 +60,7 @@ export const NewCommentEntry = ({
 
     const onFinish = async () => {
         H.track('Create Comment', {});
+        setIsCreatingComment(true);
         const canvas = await html2canvas(
             (document.querySelector(
                 '.replayer-wrapper iframe'
@@ -70,7 +71,6 @@ export const NewCommentEntry = ({
                 backgroundColor: null,
             }
         );
-        setIsCreatingComment(true);
         await createComment({
             variables: {
                 organization_id,
