@@ -12,7 +12,7 @@ WORKDIR /build-frontend
 COPY ./frontend/package.json ./frontend/yarn.lock ./
 RUN yarn install
 COPY ./frontend ./
-RUN yarn build
+RUN CI=false yarn build
 
 FROM alpine
 WORKDIR /root/
