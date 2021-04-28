@@ -68,6 +68,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete session with no events")
 		}
+		return nil
 	}
 
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
