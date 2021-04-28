@@ -85,37 +85,63 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	// Upload to s3 for every even session on our org.
-	if s.OrganizationID == 1 && s.ID%2 == 0 && os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
-		// Push the session to s3
-		re := &parse.ReplayEvents{
-			Events: []*parse.ReplayEvent{},
-		}
-		for _, event := range events {
-			parsed, err := parse.EventsFromString(event.Events)
-			if err != nil {
-				return errors.Wrap(err, "error parsing events")
-			}
-			re.Events = append(re.Events, parsed.Events...)
-		}
-		size, err := w.S3Client.PushToS3(s.ID, s.OrganizationID, re)
+	if s.OrganizationID == 1 && os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
+		fmt.Printf("starting push for: %v \n", s.ID)
+		sessionPayloadSize, err := w.S3Client.PushSessionsToS3(s.ID, s.OrganizationID, events)
 		// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 		if err != nil {
-			return errors.Wrap(err, "error pushing to s3")
-		} else {
-			// Mark this session as stored in S3.
-			if err := w.Resolver.DB.Model(&model.Session{}).Where(
-				&model.Session{Model: model.Model{ID: s.ID}},
-			).Updates(
-				&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: size},
-			).Error; err != nil {
-				return errors.Wrap(err, "error updating session to storage enabled")
-			}
-			// Delete all the events_objects in the DB.
-			if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
-				return errors.Wrap(err, "error deleting all event records")
-			}
-			fmt.Println("parsed: ", s.ID)
+			return errors.Wrap(err, "error pushing session payload to s3")
 		}
+
+		resourcesObject := []*model.ResourcesObject{}
+		if res := w.Resolver.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
+			return errors.Wrap(res.Error, "error reading from resources")
+		}
+		resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
+		if err != nil {
+			return errors.Wrap(err, "error pushing network payload to s3")
+		}
+
+		messagesObj := []*model.MessagesObject{}
+		if res := w.Resolver.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
+			return errors.Wrap(res.Error, "error reading from messages")
+		}
+		messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messagesObj)
+		if err != nil {
+			return errors.Wrap(err, "error pushing network payload to s3")
+		}
+
+		var totalPayloadSize int64
+		if sessionPayloadSize != nil {
+			totalPayloadSize += *sessionPayloadSize
+		}
+		if resourcePayloadSize != nil {
+			totalPayloadSize += *resourcePayloadSize
+		}
+		if messagePayloadSize != nil {
+			totalPayloadSize += *messagePayloadSize
+		}
+
+		// Mark this session as stored in S3.
+		if err := w.Resolver.DB.Model(&model.Session{}).Where(
+			&model.Session{Model: model.Model{ID: s.ID}},
+		).Updates(
+			&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize},
+		).Error; err != nil {
+			return errors.Wrap(err, "error updating session to storage enabled")
+		}
+		// Delete all the events_objects in the DB.
+		if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
+			return errors.Wrap(err, "error deleting all event records")
+		}
+		if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
+			return errors.Wrap(err, "error deleting all network resource records")
+		}
+		if err := w.Resolver.DB.Unscoped().Delete(&messagesObj).Error; err != nil {
+			return errors.Wrap(err, "error deleting all console message records")
+		}
+		fmt.Println("parsed: ", s.ID)
+
 	}
 	return nil
 }

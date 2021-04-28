@@ -618,7 +618,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	if en := s.ObjectStorageEnabled; en != nil && *en == true {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadFromS3(sessionID, s.OrganizationID)
+		ret, err := r.StorageClient.ReadSessionsFromS3(sessionID, s.OrganizationID)
 		if err != nil {
 			return nil, err
 		}
@@ -721,8 +721,18 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, id int) (*model.ErrorGro
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
-	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+	s, err := r.isAdminSessionOwner(ctx, sessionID)
+	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
+	}
+	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
+		defer objectStorageSpan.Finish()
+		ret, err := r.StorageClient.ReadMessagesFromS3(sessionID, s.OrganizationID)
+		if err != nil {
+			return nil, e.Wrap(err, "error pulling messages from s3")
+		}
+		return ret, nil
 	}
 	messagesObj := []*model.MessagesObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: sessionID}).Find(&messagesObj); res.Error != nil {
@@ -753,8 +763,18 @@ func (r *queryResolver) Errors(ctx context.Context, sessionID int) ([]*model.Err
 }
 
 func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interface{}, error) {
-	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+	s, err := r.isAdminSessionOwner(ctx, sessionID)
+	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
+	}
+	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
+		defer objectStorageSpan.Finish()
+		ret, err := r.StorageClient.ReadResourcesFromS3(sessionID, s.OrganizationID)
+		if err != nil {
+			return nil, e.Wrap(err, "error pulling resources from s3")
+		}
+		return ret, nil
 	}
 	resourcesObject := []*model.ResourcesObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: sessionID}).Find(&resourcesObject); res.Error != nil {
