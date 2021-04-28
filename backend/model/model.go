@@ -15,6 +15,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"gorm.io/gorm/logger"
 
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -175,6 +176,9 @@ type Session struct {
 	FirstloadVersion string `json:"firstload_version" gorm:"index"`
 	// The client configuration that the end-user sets up. This is used for debugging purposes.
 	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
+
+	ObjectStorageEnabled *bool  `json:"object_storage_enabled"`
+	PayloadSize          *int64 `json:"payload_size"`
 }
 
 type Field struct {
@@ -352,6 +356,7 @@ func SetupDB() *gorm.DB {
 	var err error
 	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
+		Logger:                                   logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)

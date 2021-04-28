@@ -18,6 +18,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
@@ -95,11 +96,17 @@ func main() {
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
+	storage, err := storage.NewStorageClient()
+	if err != nil {
+		log.Fatalf("error creating storage client: %v", err)
+	}
+
 	private.SetupAuthClient()
 	privateResolver := &private.Resolver{
-		DB:           db,
-		MailClient:   sendgrid.NewSendClient(sendgridKey),
-		StripeClient: stripeClient,
+		DB:            db,
+		MailClient:    sendgrid.NewSendClient(sendgridKey),
+		StripeClient:  stripeClient,
+		StorageClient: storage,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -163,10 +170,10 @@ func main() {
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running...")
 	if runtimeParsed == util.Worker {
-		w := &worker.Worker{R: privateResolver}
+		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		w.Start()
 	} else if runtimeParsed == util.All {
-		w := &worker.Worker{R: privateResolver}
+		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		go func() {
 			w.Start()
 		}()

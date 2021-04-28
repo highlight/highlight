@@ -599,7 +599,6 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
 	if os.Getenv("ENVIRONMENT") == "dev" && sessionID == 1 {
 		file, err := ioutil.ReadFile("./tmp/events.json")
-
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
 		}
@@ -608,11 +607,20 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		if err := json.Unmarshal([]byte(file), &data); err != nil {
 			return nil, e.Wrap(err, "Failed to unmarshal data from file")
 		}
-
 		return data, nil
 	}
-	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+	s, err := r.isAdminSessionOwner(ctx, sessionID)
+	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
+	}
+	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
+		defer objectStorageSpan.Finish()
+		ret, err := r.StorageClient.ReadFromS3(sessionID, s.OrganizationID)
+		if err != nil {
+			return nil, err
+		}
+		return ret, nil
 	}
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.eventsObjectsQuery"))
 	eventObjs := []*model.EventsObject{}
