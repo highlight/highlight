@@ -35,19 +35,19 @@ const ApplicationRouter = ({ integrated }: Props) => {
     const [hideLiveSessions, setHideLiveSessions] = useState<boolean>(false);
 
     return (
-        <Switch>
-            <SearchContextProvider
-                value={{
-                    searchParams,
-                    setSearchParams,
-                    existingParams,
-                    setExistingParams,
-                    segmentName,
-                    setSegmentName,
-                    hideLiveSessions,
-                    setHideLiveSessions,
-                }}
-            >
+        <SearchContextProvider
+            value={{
+                searchParams,
+                setSearchParams,
+                existingParams,
+                setExistingParams,
+                segmentName,
+                setSegmentName,
+                hideLiveSessions,
+                setHideLiveSessions,
+            }}
+        >
+            <Switch>
                 <Route
                     path="/:organization_id/sessions/segment/:segment_id"
                     exact
@@ -97,8 +97,8 @@ const ApplicationRouter = ({ integrated }: Props) => {
                         <Redirect to={`/${organization_id}/setup`} />
                     )}
                 </Route>
-            </SearchContextProvider>
-        </Switch>
+            </Switch>
+        </SearchContextProvider>
     );
 };
 
