@@ -9,6 +9,7 @@ import { PathListener } from './listeners/path-listener';
 import { GraphQLClient } from 'graphql-request';
 import { Sdk, getSdk } from './graph/generated/operations';
 import StackTrace from 'stacktrace-js';
+import stringify from 'json-stringify-safe';
 
 import {
     ConsoleMessage,
@@ -424,8 +425,8 @@ export class Highlight {
                     );
             }
 
-            const resourcesString = JSON.stringify({ resources: resources });
-            const messagesString = JSON.stringify({ messages: this.messages });
+            const resourcesString = stringify({ resources: resources });
+            const messagesString = stringify({ messages: this.messages });
             this.logger.log(
                 `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.PUBLIC_GRAPH_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
             );
