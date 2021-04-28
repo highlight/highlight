@@ -144,13 +144,13 @@ func (s *StorageClient) ReadResourcesFromS3(sessionId int, organizationId int) (
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
-	var allEvents struct {
-		Events []interface{}
+	var allResources struct {
+		Resources []interface{}
 	}
-	if err := json.Unmarshal(buf.Bytes(), &allEvents); err != nil {
+	if err := json.Unmarshal(buf.Bytes(), &allResources); err != nil {
 		return nil, fmt.Errorf("error decoding event data: %v", err)
 	}
-	return allEvents.Events, nil
+	return allResources.Resources, nil
 }
 
 func (s *StorageClient) PushMessagesToS3(sessionId int, organizationId int, messagesObj []*model.MessagesObject) (*int64, error) {
@@ -166,7 +166,7 @@ func (s *StorageClient) PushMessagesToS3(sessionId int, organizationId int, mess
 	if err != nil {
 		return nil, errors.Wrap(err, "error marshaling Resources object")
 	}
-	key := s.bucketKey(sessionId, organizationId, NetworkResources)
+	key := s.bucketKey(sessionId, organizationId, ConsoleMessages)
 	body := strings.NewReader(string(b))
 	_, err = s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(S3BucketName), Key: key, Body: body,
@@ -187,7 +187,7 @@ func (s *StorageClient) PushMessagesToS3(sessionId int, organizationId int, mess
 
 func (s *StorageClient) ReadMessagesFromS3(sessionId int, organizationId int) ([]interface{}, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3BucketName),
-		Key: s.bucketKey(sessionId, organizationId, NetworkResources)})
+		Key: s.bucketKey(sessionId, organizationId, ConsoleMessages)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
@@ -196,13 +196,13 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, organizationId int) ([
 	if err != nil {
 		return nil, errors.Wrap(err, "error reading from s3 buffer")
 	}
-	var allEvents struct {
-		Events []interface{}
+	var allMessages struct {
+		Messages []interface{}
 	}
-	if err := json.Unmarshal(buf.Bytes(), &allEvents); err != nil {
+	if err := json.Unmarshal(buf.Bytes(), &allMessages); err != nil {
 		return nil, fmt.Errorf("error decoding event data: %v", err)
 	}
-	return allEvents.Events, nil
+	return allMessages.Messages, nil
 }
 
 func (s *StorageClient) bucketKey(sessionId int, organizationId int, key PayloadType) *string {
