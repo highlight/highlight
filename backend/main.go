@@ -23,7 +23,6 @@ import (
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
-	rd "github.com/highlight-run/highlight/backend/redis"
 	log "github.com/sirupsen/logrus"
 
 	_ "gorm.io/gorm"
@@ -78,19 +77,17 @@ func main() {
 		port = defaultPort
 	}
 
-	// Connect to the datadog daemon.
-	_, err := statsd.New(statsdHost)
-	if err != nil {
-		log.Fatalf("error connecting to statsd: %v", err)
-		return
-	}
-
 	if env == "prod" {
+		// Connect to the datadog daemon.
+		_, err := statsd.New(statsdHost)
+		if err != nil {
+			log.Fatalf("error connecting to statsd: %v", err)
+			return
+		}
 		tracer.Start(tracer.WithAgentAddr(apmHost))
 		defer tracer.Stop()
 	}
 
-	rd.SetupRedisStore()
 	db := model.SetupDB()
 
 	stripeClient := &client.API{}
