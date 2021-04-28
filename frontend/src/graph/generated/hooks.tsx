@@ -711,7 +711,7 @@ export const CreateSessionCommentDocument = gql`
         $session_url: String!
         $time: Float!
         $author_name: String!
-        $session_image: String!
+        $session_image: String
     ) {
         createSessionComment(
             organization_id: $organization_id

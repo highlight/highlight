@@ -195,7 +195,7 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     session_url: Types.Scalars['String'];
     time: Types.Scalars['Float'];
     author_name: Types.Scalars['String'];
-    session_image: Types.Scalars['String'];
+    session_image?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {

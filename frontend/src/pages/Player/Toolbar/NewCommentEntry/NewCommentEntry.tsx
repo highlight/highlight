@@ -4,7 +4,7 @@ import {
     useGetAdminQuery,
     useGetAdminsQuery,
 } from '../../../../graph/generated/hooks';
-import { Form } from 'antd';
+import { Form, message } from 'antd';
 import { useParams } from 'react-router-dom';
 import styles from './NewCommentEntry.module.scss';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
@@ -17,7 +17,7 @@ import { OnChangeHandlerFunc } from 'react-mentions';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
 import Button from '../../../../components/Button/Button/Button';
 import { AdminSuggestion } from './CommentTextBody/CommentTextBody';
-import html2canvas from 'html2canvas';
+// import html2canvas from 'html2canvas';
 
 interface Props {
     currentTime: number;
@@ -60,48 +60,71 @@ export const NewCommentEntry = ({
 
     const onFinish = async () => {
         H.track('Create Comment', {});
-        const canvas = await html2canvas(
-            (document.querySelector(
-                '.replayer-wrapper iframe'
-            ) as HTMLIFrameElement).contentDocument!.documentElement,
-            {
-                allowTaint: true,
-                logging: false,
-                backgroundColor: null,
-            }
-        );
         setIsCreatingComment(true);
-        await createComment({
-            variables: {
-                organization_id,
-                session_id,
-                session_timestamp: Math.floor(currentTime),
-                text: commentText.trim(),
-                text_for_email: commentTextForEmail.trim(),
-                admin_id: admin_data?.admin?.id || 'Unknown',
-                x_coordinate: commentPosition?.x || 0,
-                y_coordinate: commentPosition?.y || 0,
-                session_url: `${window.location.origin}${window.location.pathname}`,
-                tagged_admin_emails: mentionedAdmins,
-                time: time / 1000,
-                author_name:
-                    admin_data?.admin?.name ||
-                    admin_data?.admin?.email ||
-                    'Someone',
-                session_image: canvas
-                    .toDataURL()
-                    .replace('data:image/png;base64,', ''),
-            },
-            refetchQueries: ['GetSessionComments'],
-        });
-        onCloseHandler();
-        form.resetFields();
-        if (!selectedTimelineAnnotationTypes.includes('Comments')) {
-            setSelectedTimelineAnnotationTypes([
-                ...selectedTimelineAnnotationTypes,
-                'Comments',
-            ]);
+        // const canvas = await html2canvas(
+        //     (document.querySelector(
+        //         '.replayer-wrapper iframe'
+        //     ) as HTMLIFrameElement).contentDocument!.documentElement,
+        //     {
+        //         allowTaint: true,
+        //         logging: false,
+        //         backgroundColor: null,
+        //     }
+        // );
+        try {
+            await createComment({
+                variables: {
+                    organization_id,
+                    session_id,
+                    session_timestamp: Math.floor(currentTime),
+                    text: commentText.trim(),
+                    text_for_email: commentTextForEmail.trim(),
+                    admin_id: admin_data?.admin?.id || 'Unknown',
+                    x_coordinate: commentPosition?.x || 0,
+                    y_coordinate: commentPosition?.y || 0,
+                    session_url: `${window.location.origin}${window.location.pathname}`,
+                    tagged_admin_emails: mentionedAdmins,
+                    time: time / 1000,
+                    author_name:
+                        admin_data?.admin?.name ||
+                        admin_data?.admin?.email ||
+                        'Someone',
+                    // session_image: canvas
+                    //     .toDataURL()
+                    //     .replace('data:image/png;base64,', ''),
+                },
+                refetchQueries: ['GetSessionComments'],
+            });
+            onCloseHandler();
+            form.resetFields();
+            if (!selectedTimelineAnnotationTypes.includes('Comments')) {
+                setSelectedTimelineAnnotationTypes([
+                    ...selectedTimelineAnnotationTypes,
+                    'Comments',
+                ]);
+            }
+        } catch (e) {
+            H.track('Create Comment Failed', { error: e });
+            message.error(
+                <>
+                    Failed to post a comment, please try again. If this keeps
+                    failing please message us on{' '}
+                    <span
+                        className={styles.intercomLink}
+                        onClick={() => {
+                            window.Intercom(
+                                'showNewMessage',
+                                `I can't create a comment. This is the error I'm getting: "${e}"`
+                            );
+                        }}
+                    >
+                        Intercom
+                    </span>
+                    .
+                </>
+            );
         }
+        setIsCreatingComment(false);
     };
 
     const adminSuggestions: AdminSuggestion[] = useMemo(() => {
@@ -141,8 +164,21 @@ export const NewCommentEntry = ({
         setCommentText(e.target.value);
     };
 
+    const onFormChangeHandler: React.KeyboardEventHandler<HTMLFormElement> = (
+        e
+    ) => {
+        if (e.key === 'Enter' && e.metaKey) {
+            onFinish();
+        }
+    };
+
     return (
-        <Form name="newComment" onFinish={onFinish} form={form}>
+        <Form
+            name="newComment"
+            onFinish={onFinish}
+            form={form}
+            onKeyDown={onFormChangeHandler}
+        >
             <Form.Item name="commentText" wrapperCol={{ span: 24 }}>
                 <div className={styles.commentInputContainer}>
                     <CommentTextBody
