@@ -141,8 +141,21 @@ export const NewCommentEntry = ({
         setCommentText(e.target.value);
     };
 
+    const onFormChangeHandler: React.KeyboardEventHandler<HTMLFormElement> = (
+        e
+    ) => {
+        if (e.key === 'Enter' && e.metaKey) {
+            onFinish();
+        }
+    };
+
     return (
-        <Form name="newComment" onFinish={onFinish} form={form}>
+        <Form
+            name="newComment"
+            onFinish={onFinish}
+            form={form}
+            onKeyDown={onFormChangeHandler}
+        >
             <Form.Item name="commentText" wrapperCol={{ span: 24 }}>
                 <div className={styles.commentInputContainer}>
                     <CommentTextBody
