@@ -38,4 +38,4 @@ interface SearchContext {
 export const [
     useSearchContext,
     SearchContextProvider,
-] = createContext<SearchContext>();
+] = createContext<SearchContext>('SearchContext');

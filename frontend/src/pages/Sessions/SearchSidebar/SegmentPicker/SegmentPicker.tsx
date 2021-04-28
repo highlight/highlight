@@ -23,6 +23,7 @@ import { EmptySessionsSearchParams } from '../../SessionsPage';
 import Modal from '../../../../components/Modal/Modal';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import Button from '../../../../components/Button/Button/Button';
+import _ from 'lodash';
 
 export const LIVE_SEGMENT_ID = 'live';
 export const STARRED_SEGMENT_ID = 'starred';
@@ -33,6 +34,8 @@ export const SegmentPicker = () => {
         setSearchParams,
         setSegmentName,
         setExistingParams,
+        searchParams,
+        existingParams,
     } = useSearchContext();
     const { segment_id, organization_id } = useParams<{
         segment_id: string;
@@ -80,35 +83,32 @@ export const SegmentPicker = () => {
                 segment_id === STARRED_SEGMENT_ID
             ) {
                 setSegmentName(null);
-                setSearchParams(EmptySessionsSearchParams);
                 setExistingParams(EmptySessionsSearchParams);
             } else {
-                setSegmentName(currentSegment?.name || null);
+                if (_.isEqual(EmptySessionsSearchParams, existingParams)) {
+                    const segmentParameters = gqlSanitize({
+                        ...currentSegment?.params,
+                    });
+                    setExistingParams(segmentParameters);
+                    setSearchParams(segmentParameters);
+                    setSegmentName(currentSegment?.name || null);
+                }
             }
-        } else if (!segment_id) {
+        } else if (!segment_id && data) {
             setSegmentName(null);
-            setSearchParams(EmptySessionsSearchParams);
             setExistingParams(EmptySessionsSearchParams);
         }
     }, [
         currentSegment?.name,
+        currentSegment?.params,
         data,
+        existingParams,
+        searchParams,
         segment_id,
         setExistingParams,
         setSearchParams,
         setSegmentName,
     ]);
-
-    useEffect(() => {
-        if (currentSegment) {
-            const parsed: SearchParams = gqlSanitize({
-                ...currentSegment.params,
-            });
-            setSearchParams(parsed);
-            setExistingParams(parsed);
-            setSegmentName(currentSegment.name);
-        }
-    }, [currentSegment, setExistingParams, setSearchParams, setSegmentName]);
 
     return (
         <>
@@ -180,6 +180,12 @@ export const SegmentPicker = () => {
                                     pathname: `/${organization_id}/sessions`,
                                 }}
                                 key={'sessions'}
+                                onClick={() => {
+                                    setExistingParams(
+                                        EmptySessionsSearchParams
+                                    );
+                                    setSearchParams(EmptySessionsSearchParams);
+                                }}
                             >
                                 <div className={styles.segmentItem}>
                                     <div
@@ -203,6 +209,12 @@ export const SegmentPicker = () => {
                             <Link
                                 to={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
                                 key={'live-sessions'}
+                                onClick={() => {
+                                    setExistingParams(
+                                        EmptySessionsSearchParams
+                                    );
+                                    setSearchParams(EmptySessionsSearchParams);
+                                }}
                             >
                                 <div className={styles.segmentItem}>
                                     <div
@@ -247,6 +259,12 @@ export const SegmentPicker = () => {
                             <Link
                                 to={`/${organization_id}/sessions/segment/${STARRED_SEGMENT_ID}`}
                                 key={'starred-sessions'}
+                                onClick={() => {
+                                    setExistingParams(
+                                        EmptySessionsSearchParams
+                                    );
+                                    setSearchParams(EmptySessionsSearchParams);
+                                }}
                             >
                                 <div className={styles.segmentItem}>
                                     <div
@@ -278,6 +296,14 @@ export const SegmentPicker = () => {
                                 <Link
                                     to={{
                                         pathname: `/${organization_id}/sessions/segment/${s?.id}`,
+                                    }}
+                                    onClick={() => {
+                                        const segmentParameters = gqlSanitize({
+                                            ...s?.params,
+                                        });
+                                        setExistingParams(segmentParameters);
+                                        setSearchParams(segmentParameters);
+                                        setSegmentName(s?.name || null);
                                     }}
                                 >
                                     <div className={styles.segmentItem}>
