@@ -119,14 +119,16 @@ export const MetadataBox = () => {
                                         User#{data?.session?.user_id}
                                     </div>
                                 )}
-                                <div className={styles.userIdSubHeader}>
-                                    {data?.session?.object_storage_enabled
-                                        ? `size: ${
-                                              data.session.payload_size /
-                                              1000000
-                                          }mb`
-                                        : ''}
-                                </div>
+                                {data?.session?.object_storage_enabled ? (
+                                    <div className={styles.userIdSubHeader}>
+                                        {`${
+                                            data.session.payload_size / 1000000
+                                        }`}
+                                        mb
+                                    </div>
+                                ) : (
+                                    <></>
+                                )}
                             </>
                         )}
                     </div>
