@@ -1,6 +1,9 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useHistory, useParams } from 'react-router-dom';
-import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
+import {
+    SearchParams,
+    useSearchContext,
+} from '../../SearchContext/SearchContext';
 import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
 import Skeleton from 'react-loading-skeleton';
@@ -17,19 +20,23 @@ import classNames from 'classnames';
 import { message } from 'antd';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
 import { EmptySessionsSearchParams } from '../../SessionsPage';
-import _ from 'lodash';
 import Modal from '../../../../components/Modal/Modal';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import Button from '../../../../components/Button/Button/Button';
+import _ from 'lodash';
 
 export const LIVE_SEGMENT_ID = 'live';
 export const STARRED_SEGMENT_ID = 'starred';
 const NO_SEGMENT = 'none';
 
 export const SegmentPicker = () => {
-    const { setSearchParams, setSegmentName, setExistingParams } = useContext(
-        SearchContext
-    );
+    const {
+        setSearchParams,
+        setSegmentName,
+        setExistingParams,
+        searchParams,
+        existingParams,
+    } = useSearchContext();
     const { segment_id, organization_id } = useParams<{
         segment_id: string;
         organization_id: string;
@@ -70,51 +77,37 @@ export const SegmentPicker = () => {
     });
 
     useEffect(() => {
-        if (segment_id) {
-            if (segment_id === LIVE_SEGMENT_ID) {
+        if (data && segment_id) {
+            if (
+                segment_id === LIVE_SEGMENT_ID ||
+                segment_id === STARRED_SEGMENT_ID
+            ) {
                 setSegmentName(null);
-                return;
-            }
-            if (currentSegment) {
-                if (
-                    history.location.state &&
-                    // history.location.state is empty when the user first loads the app and the route is deep-linked to a segment.
-                    !_.isEqual(
-                        history.location.state,
-                        EmptySessionsSearchParams
-                    ) &&
-                    history.length > 2
-                ) {
-                    const parsed: SearchParams = gqlSanitize(
-                        history.location.state
-                    );
-                    setSearchParams(parsed);
-                    setExistingParams(parsed);
-                } else {
-                    const parsed: SearchParams = gqlSanitize({
-                        ...currentSegment.params,
-                    });
-                    setSearchParams(parsed);
-                    setExistingParams(parsed);
-                }
-                setSegmentName(currentSegment.name);
+                setExistingParams(EmptySessionsSearchParams);
             } else {
-                // Redirect home since the segment doesn't exist anymore.
-                setSegmentName(null);
-                history.replace(`/${organization_id}/sessions`);
+                if (_.isEqual(EmptySessionsSearchParams, existingParams)) {
+                    const segmentParameters = gqlSanitize({
+                        ...currentSegment?.params,
+                    });
+                    setExistingParams(segmentParameters);
+                    setSearchParams(segmentParameters);
+                    setSegmentName(currentSegment?.name || null);
+                }
             }
-        } else {
-            setSearchParams(EmptySessionsSearchParams);
+        } else if (!segment_id && data) {
+            setSegmentName(null);
             setExistingParams(EmptySessionsSearchParams);
         }
     }, [
-        currentSegment,
-        setSegmentName,
-        setSearchParams,
-        setExistingParams,
+        currentSegment?.name,
+        currentSegment?.params,
+        data,
+        existingParams,
+        searchParams,
         segment_id,
-        history,
-        organization_id,
+        setExistingParams,
+        setSearchParams,
+        setSegmentName,
     ]);
 
     return (
@@ -185,9 +178,14 @@ export const SegmentPicker = () => {
                             <Link
                                 to={{
                                     pathname: `/${organization_id}/sessions`,
-                                    state: EmptySessionsSearchParams,
                                 }}
                                 key={'sessions'}
+                                onClick={() => {
+                                    setExistingParams(
+                                        EmptySessionsSearchParams
+                                    );
+                                    setSearchParams(EmptySessionsSearchParams);
+                                }}
                             >
                                 <div className={styles.segmentItem}>
                                     <div
@@ -211,6 +209,12 @@ export const SegmentPicker = () => {
                             <Link
                                 to={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
                                 key={'live-sessions'}
+                                onClick={() => {
+                                    setExistingParams(
+                                        EmptySessionsSearchParams
+                                    );
+                                    setSearchParams(EmptySessionsSearchParams);
+                                }}
                             >
                                 <div className={styles.segmentItem}>
                                     <div
@@ -255,6 +259,12 @@ export const SegmentPicker = () => {
                             <Link
                                 to={`/${organization_id}/sessions/segment/${STARRED_SEGMENT_ID}`}
                                 key={'starred-sessions'}
+                                onClick={() => {
+                                    setExistingParams(
+                                        EmptySessionsSearchParams
+                                    );
+                                    setSearchParams(EmptySessionsSearchParams);
+                                }}
                             >
                                 <div className={styles.segmentItem}>
                                     <div
@@ -286,7 +296,14 @@ export const SegmentPicker = () => {
                                 <Link
                                     to={{
                                         pathname: `/${organization_id}/sessions/segment/${s?.id}`,
-                                        state: s?.params,
+                                    }}
+                                    onClick={() => {
+                                        const segmentParameters = gqlSanitize({
+                                            ...s?.params,
+                                        });
+                                        setExistingParams(segmentParameters);
+                                        setSearchParams(segmentParameters);
+                                        setSegmentName(s?.name || null);
                                     }}
                                 >
                                     <div className={styles.segmentItem}>
