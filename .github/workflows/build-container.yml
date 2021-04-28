@@ -15,4 +15,3 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: highlightrun/backend
           push: true
-          tags: highlightrun/backend:latest
