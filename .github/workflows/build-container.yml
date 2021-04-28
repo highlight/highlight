@@ -20,7 +20,7 @@ jobs:
       - name: Push to Docker Hub
         uses: docker/build-push-action@v2
         with:
-          context: ./backend
+          context: ./
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest
       - name: Image digest
