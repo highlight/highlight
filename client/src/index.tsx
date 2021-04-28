@@ -106,7 +106,7 @@ export class Highlight {
     enableSegmentIntegration: boolean | undefined;
     enableStrictPrivacy: boolean;
     debugOptions: DebugOptions;
-    stopRecording: listenerHandler[];
+    listeners: listenerHandler[];
     firstloadVersion: string;
     _optionsInternal: HighlightClassOptionsInternal;
     _backendUrl: string;
@@ -147,7 +147,7 @@ export class Highlight {
         // We only want to store a subset of the options for debugging purposes. Firstload version is stored as another field so we don't need to store it here.
         const { firstloadVersion: _, ...optionsInternal } = options;
         this._optionsInternal = optionsInternal;
-        this.stopRecording = [];
+        this.listeners = [];
         this.events = [];
         this.errors = [];
         this.networkContents = [];
@@ -302,7 +302,7 @@ export class Highlight {
                 enableStrictPrivacy: this.enableStrictPrivacy,
             });
             if (recordStop) {
-                this.stopRecording.push(recordStop);
+                this.listeners.push(recordStop);
             }
             addCustomEvent('Viewport', {
                 height: window.innerHeight,
@@ -311,7 +311,7 @@ export class Highlight {
 
             const highlightThis = this;
             if (this.enableSegmentIntegration) {
-                this.stopRecording.push(
+                this.listeners.push(
                     SegmentIntegrationListener((obj: any) => {
                         if (obj.type === 'track') {
                             const properties: { [key: string]: string } = {};
@@ -338,7 +338,7 @@ export class Highlight {
                     { type: 'session' }
                 );
             }
-            this.stopRecording.push(
+            this.listeners.push(
                 PathListener((url: string) => {
                     if (reloaded) {
                         addCustomEvent<string>('Reload', url);
@@ -357,7 +357,7 @@ export class Highlight {
                 })
             );
             if (!this.disableConsoleRecording) {
-                this.stopRecording.push(
+                this.listeners.push(
                     ConsoleListener((c: ConsoleMessage) => {
                         if (c.type == 'Error' && c.value && c.trace)
                             highlightThis.errors.push({
@@ -380,22 +380,22 @@ export class Highlight {
                     })
                 );
             }
-            this.stopRecording.push(
+            this.listeners.push(
                 ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e))
             );
-            this.stopRecording.push(
+            this.listeners.push(
                 ViewportResizeListener((viewport) => {
                     addCustomEvent('Viewport', viewport);
                 })
             );
-            this.stopRecording.push(
+            this.listeners.push(
                 ClickListener((clickTarget) => {
                     if (clickTarget) {
                         addCustomEvent('Click', clickTarget);
                     }
                 })
             );
-            this.stopRecording.push(
+            this.listeners.push(
                 FocusListener((focusTarget) => {
                     if (focusTarget) {
                         addCustomEvent('Focus', focusTarget);
@@ -429,6 +429,12 @@ export class Highlight {
             );
         });
     }
+
+    stopRecording() {
+        this.listeners.forEach((stop: listenerHandler) => stop());
+        this.listeners = [];
+    }
+
     // Reset the events array and push to a backend.
     async _save() {
         try {
@@ -441,15 +447,18 @@ export class Highlight {
             this.errors = [];
             this.messages = [];
             this.networkContents = [];
+            // Listeners are cleared when the user calls stop() manually.
+            if (this.listeners.length === 0) {
+                return;
+            }
             if (
-                this.stopRecording &&
+                this.listeners &&
                 this.sessionData.sessionStartTime &&
                 Date.now() - this.sessionData.sessionStartTime >
                     MAX_SESSION_LENGTH
             ) {
                 this.sessionData.sessionStartTime = Date.now();
-                this.stopRecording.forEach((stop: listenerHandler) => stop());
-                this.stopRecording = [];
+                this.stopRecording();
                 this.initialize(this.organizationID);
                 return;
             }
