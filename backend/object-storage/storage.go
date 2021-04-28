@@ -39,7 +39,7 @@ func NewStorageClient() (*StorageClient, error) {
 func (s *StorageClient) PushToS3(sessionId int, organizationId int, re *parse.ReplayEvents) (*int64, error) {
 	b, err := json.Marshal(re)
 	if err != nil {
-		return nil, errors.Wrap(err, "error pushing to s3")
+		return nil, errors.Wrap(err, "error marshaling ReplayEvents object")
 	}
 	key := s.bucketKey(sessionId, organizationId)
 	body := strings.NewReader(string(b))
@@ -47,7 +47,7 @@ func (s *StorageClient) PushToS3(sessionId int, organizationId int, re *parse.Re
 		Bucket: aws.String(S3BucketName), Key: key, Body: body,
 	})
 	if err != nil {
-		return nil, errors.New("error pushing to s3")
+		return nil, errors.Wrap(err, "error 'put'ing in s3 bucket")
 	}
 	headObj := s3.HeadObjectInput{
 		Bucket: aws.String(S3BucketName),

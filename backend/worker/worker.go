@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -44,6 +45,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
 			return errors.Wrap(err, "error trying to delete session with no events")
 		}
+		return nil
 	}
 
 	firstEventsParsed, err := parse.EventsFromString(events[0].Events)
@@ -125,10 +127,14 @@ func (w *Worker) Start() {
 		workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
 		workerSpan.SetTag("backend", util.Worker)
 		now := time.Now()
-		thirtySecondsAgo := now.Add(-30 * time.Second)
+		seconds := 30
+		if os.Getenv("ENVIRONMENT") == "dev" {
+			seconds = 8
+		}
+		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
 		sessions := []*model.Session{}
 		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
-		if err := w.Resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", thirtySecondsAgo, false).Find(&sessions).Error; err != nil {
+		if err := w.Resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).Find(&sessions).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			sessionsSpan.Finish()
 			continue
@@ -137,6 +143,7 @@ func (w *Worker) Start() {
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
 			if err := w.processSession(ctx, session); err != nil {
+				log.Errorf("error processing session: %v", err)
 				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
 				continue
 			}
