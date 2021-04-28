@@ -45,7 +45,7 @@ const CommentTextBody = ({
             suggestionsPortalHost={suggestionsPortalHost}
         >
             <Mention
-                className={styles.mention}
+                className={commentTextBodyClassNames.mentions__mention}
                 trigger="@"
                 data={suggestions}
                 displayTransform={onDisplayTransformHandler}
