@@ -134,10 +134,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return errors.Wrap(err, "error deleting all event records")
 		}
 		if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
-			return errors.Wrap(err, "error deleting all event records")
+			return errors.Wrap(err, "error deleting all network resource records")
 		}
 		if err := w.Resolver.DB.Unscoped().Delete(&messagesObj).Error; err != nil {
-			return errors.Wrap(err, "error deleting all event records")
+			return errors.Wrap(err, "error deleting all console message records")
 		}
 		fmt.Println("parsed: ", s.ID)
 
