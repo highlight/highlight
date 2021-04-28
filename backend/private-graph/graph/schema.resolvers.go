@@ -616,7 +616,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	if en := s.ObjectStorageEnabled; en != nil && *en == true {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
 		defer objectStorageSpan.Finish()
-		ret, err := r.StorageClient.ReadFromS3(sessionID, s.OrganizationID)
+		ret, err := r.StorageClient.ReadSessionsFromS3(sessionID, s.OrganizationID)
 		if err != nil {
 			return nil, err
 		}
