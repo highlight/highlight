@@ -60,44 +60,44 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 <Route path="/:organization_id/sessions" exact>
                     <SessionsPage integrated={integrated} />
                 </Route>
+                <Route path="/:organization_id/settings">
+                    <WorkspaceSettings />
+                </Route>
+                <Route path="/:organization_id/alerts">
+                    <AlertsPage />
+                </Route>
+                <Route path="/:organization_id/team">
+                    <WorkspaceTeam />
+                </Route>
+                <Route path="/:organization_id/billing">
+                    <Billing />
+                </Route>
+                <Route path="/:organization_id/setup">
+                    <SetupPage integrated={integrated} />
+                </Route>
+                <Route path="/:organization_id/errors/segment/:segment_id">
+                    <ErrorsPage integrated={integrated} />
+                </Route>
+                <Route path="/:organization_id/errors/:error_id">
+                    <ErrorPage />
+                </Route>
+                <Route path="/:organization_id/errors">
+                    <ErrorsPage integrated={integrated} />
+                </Route>
+                <Route path="/:organization_id/buttons">
+                    <Buttons />
+                </Route>
+                <Route path="/:organization_id/home">
+                    <HomePage />
+                </Route>
+                <Route path="/:organization_id">
+                    {integrated ? (
+                        <Redirect to={`/${organization_id}/sessions`} />
+                    ) : (
+                        <Redirect to={`/${organization_id}/setup`} />
+                    )}
+                </Route>
             </SearchContextProvider>
-            <Route path="/:organization_id/settings">
-                <WorkspaceSettings />
-            </Route>
-            <Route path="/:organization_id/alerts">
-                <AlertsPage />
-            </Route>
-            <Route path="/:organization_id/team">
-                <WorkspaceTeam />
-            </Route>
-            <Route path="/:organization_id/billing">
-                <Billing />
-            </Route>
-            <Route path="/:organization_id/setup">
-                <SetupPage integrated={integrated} />
-            </Route>
-            <Route path="/:organization_id/errors/segment/:segment_id">
-                <ErrorsPage integrated={integrated} />
-            </Route>
-            <Route path="/:organization_id/errors/:error_id">
-                <ErrorPage />
-            </Route>
-            <Route path="/:organization_id/errors">
-                <ErrorsPage integrated={integrated} />
-            </Route>
-            <Route path="/:organization_id/buttons">
-                <Buttons />
-            </Route>
-            <Route path="/:organization_id/home">
-                <HomePage />
-            </Route>
-            <Route path="/:organization_id">
-                {integrated ? (
-                    <Redirect to={`/${organization_id}/sessions`} />
-                ) : (
-                    <Redirect to={`/${organization_id}/setup`} />
-                )}
-            </Route>
         </Switch>
     );
 };
