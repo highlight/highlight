@@ -218,6 +218,15 @@ export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type DeleteSessionCommentMutationVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+}>;
+
+export type DeleteSessionCommentMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'deleteSessionComment'
+>;
+
 export type DeleteErrorSegmentMutationVariables = Types.Exact<{
     segment_id: Types.Scalars['ID'];
 }>;

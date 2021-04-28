@@ -7,9 +7,15 @@ import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener } from './listeners/error-listener';
 import { PathListener } from './listeners/path-listener';
 import { GraphQLClient } from 'graphql-request';
-import { Sdk, getSdk } from './graph/generated/operations';
+import {
+    Sdk,
+    getSdk,
+    PushPayloadMutationVariables,
+    PushPayloadDocument,
+} from './graph/generated/operations';
 import StackTrace from 'stacktrace-js';
 import stringify from 'json-stringify-safe';
+import { print } from 'graphql';
 
 import {
     ConsoleMessage,
@@ -104,6 +110,7 @@ export class Highlight {
     stopRecording: listenerHandler[];
     firstloadVersion: string;
     _optionsInternal: HighlightClassOptionsInternal;
+    _backendUrl: string;
 
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
@@ -119,10 +126,12 @@ export class Highlight {
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
-        const backend = options?.backendUrl
+        this._backendUrl = options?.backendUrl
             ? options.backendUrl
-            : process.env.PUBLIC_GRAPH_URI;
-        const client = new GraphQLClient(`${backend}`, { headers: {} });
+            : (process.env.PUBLIC_GRAPH_URI as string);
+        const client = new GraphQLClient(`${this._backendUrl}`, {
+            headers: {},
+        });
         this.graphqlSDK = getSdk(client);
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
@@ -394,6 +403,22 @@ export class Highlight {
                     }
                 })
             );
+            // Send the payload as the page closes. navigator.sendBeacon guarantees that a request will be made.
+            window.addEventListener('beforeunload', () => {
+                const payload = this._getPayload();
+                let blob = new Blob(
+                    [
+                        JSON.stringify({
+                            query: print(PushPayloadDocument),
+                            variables: payload,
+                        }),
+                    ],
+                    {
+                        type: 'application/json',
+                    }
+                );
+                navigator.sendBeacon(`${this._backendUrl}`, blob);
+            });
             this.ready = true;
         } catch (e) {
             HighlightWarning('initializeSession', e);
@@ -411,35 +436,8 @@ export class Highlight {
             if (!this.sessionData.sessionID) {
                 return;
             }
-            var resources: Array<any> = [];
-            if (!this.disableNetworkRecording) {
-                // get all resources that don't include 'api.highlight.run'
-                resources = performance
-                    .getEntriesByType('resource')
-                    .filter(
-                        (r) =>
-                            !r.name.includes(
-                                process.env.PUBLIC_GRAPH_URI ??
-                                    'https://api.highlight.run'
-                            )
-                    );
-            }
-
-            const resourcesString = stringify({ resources: resources });
-            const messagesString = stringify({ messages: this.messages });
-            this.logger.log(
-                `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.PUBLIC_GRAPH_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
-            );
-            if (!this.disableNetworkRecording) {
-                performance.clearResourceTimings();
-            }
-            await this.graphqlSDK.PushPayload({
-                session_id: this.sessionData.sessionID.toString(),
-                events: { events: this.events },
-                messages: messagesString,
-                resources: resourcesString,
-                errors: this.errors,
-            });
+            const payload = this._getPayload();
+            await this.graphqlSDK.PushPayload(payload);
             this.events = [];
             this.errors = [];
             this.messages = [];
@@ -462,6 +460,39 @@ export class Highlight {
         setTimeout(() => {
             this._save();
         }, SEND_FREQUENCY);
+    }
+
+    _getPayload(): PushPayloadMutationVariables {
+        var resources: Array<any> = [];
+        if (!this.disableNetworkRecording) {
+            // get all resources that don't include 'api.highlight.run'
+            resources = performance
+                .getEntriesByType('resource')
+                .filter(
+                    (r) =>
+                        !r.name.includes(
+                            process.env.PUBLIC_GRAPH_URI ??
+                                'https://api.highlight.run'
+                        )
+                );
+        }
+
+        const resourcesString = stringify({ resources: resources });
+        const messagesString = stringify({ messages: this.messages });
+        this.logger.log(
+            `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.PUBLIC_GRAPH_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
+        );
+        if (!this.disableNetworkRecording) {
+            performance.clearResourceTimings();
+        }
+
+        return {
+            session_id: this.sessionData.sessionID.toString(),
+            events: { events: this.events },
+            messages: messagesString,
+            resources: resourcesString,
+            errors: this.errors,
+        };
     }
 }
 

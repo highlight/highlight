@@ -162,6 +162,10 @@ mutation CreateSessionComment(
     }
 }
 
+mutation DeleteSessionComment($id: ID!) {
+    deleteSessionComment(id: $id)
+}
+
 mutation DeleteErrorSegment($segment_id: ID!) {
     deleteErrorSegment(segment_id: $segment_id)
 }

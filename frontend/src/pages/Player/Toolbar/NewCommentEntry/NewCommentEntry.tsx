@@ -45,6 +45,7 @@ export const NewCommentEntry = ({
      * For example, the display string of "hello foobar how are you?" is persisted as "hello @[foobar](foobar@example.com) how are you?"
      */
     const [commentTextForEmail, setCommentTextForEmail] = useState('');
+    const [isCreatingComment, setIsCreatingComment] = useState(false);
     const [form] = Form.useForm<{ commentText: string }>();
     const [
         selectedTimelineAnnotationTypes,
@@ -69,7 +70,8 @@ export const NewCommentEntry = ({
                 backgroundColor: null,
             }
         );
-        createComment({
+        setIsCreatingComment(true);
+        await createComment({
             variables: {
                 organization_id,
                 session_id,
@@ -176,6 +178,7 @@ export const NewCommentEntry = ({
                             type="primary"
                             htmlType="submit"
                             disabled={commentText.length === 0}
+                            loading={isCreatingComment}
                         >
                             Post
                         </Button>

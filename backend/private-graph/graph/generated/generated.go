@@ -171,6 +171,7 @@ type ComplexityRoot struct {
 		DeleteErrorSegment             func(childComplexity int, segmentID int) int
 		DeleteOrganization             func(childComplexity int, id int) int
 		DeleteSegment                  func(childComplexity int, segmentID int) int
+		DeleteSessionComment           func(childComplexity int, id int) int
 		EditErrorSegment               func(childComplexity int, id int, organizationID int, params model.ErrorSearchParamsInput) int
 		EditOrganization               func(childComplexity int, id int, name *string, billingEmail *string) int
 		EditRecordingSettings          func(childComplexity int, organizationID int, details *string) int
@@ -341,6 +342,7 @@ type MutationResolver interface {
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
 	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
 	CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage string) (*model1.SessionComment, error)
+	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -961,6 +963,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteSegment(childComplexity, args["segment_id"].(int)), true
+
+	case "Mutation.deleteSessionComment":
+		if e.complexity.Mutation.DeleteSessionComment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteSessionComment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteSessionComment(childComplexity, args["id"].(int)), true
 
 	case "Mutation.editErrorSegment":
 		if e.complexity.Mutation.EditErrorSegment == nil {
@@ -2250,6 +2264,7 @@ type Mutation {
         author_name: String!
         session_image: String!
     ): SessionComment
+    deleteSessionComment(id: ID!): Boolean
 }
 `, BuiltIn: false},
 }
@@ -2586,6 +2601,21 @@ func (ec *executionContext) field_Mutation_deleteSegment_args(ctx context.Contex
 		}
 	}
 	args["segment_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteSessionComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -6248,6 +6278,45 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	res := resTmp.(*model1.SessionComment)
 	fc.Result = res
 	return ec.marshalOSessionComment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteSessionComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteSessionComment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteSessionComment(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
@@ -11459,6 +11528,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createOrUpdateSubscription(ctx, field)
 		case "createSessionComment":
 			out.Values[i] = ec._Mutation_createSessionComment(ctx, field)
+		case "deleteSessionComment":
+			out.Values[i] = ec._Mutation_deleteSessionComment(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
