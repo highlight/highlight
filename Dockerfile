@@ -12,6 +12,7 @@ WORKDIR /build-frontend
 COPY ./frontend/package.json ./frontend/yarn.lock ./
 RUN yarn install
 COPY ./frontend ./
+COPY ./.prettierrc ./
 RUN CI=false yarn build
 
 FROM alpine
