@@ -104,7 +104,6 @@ export const NewCommentEntry = ({
                 ]);
             }
         } catch (e) {
-            console.log(e);
             H.track('Create Comment Failed', { error: e });
             message.error(
                 <>
