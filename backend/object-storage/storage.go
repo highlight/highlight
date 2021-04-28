@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -15,7 +16,7 @@ import (
 	"strings"
 )
 
-const S3BucketName = "highlight-session-s3-test"
+var S3BucketName = os.Getenv("AWS_S3_BUCKET_NAME")
 
 type StorageClient struct {
 	S3Client *s3.Client

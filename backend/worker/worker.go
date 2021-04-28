@@ -84,7 +84,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	// Upload to s3 for every even session on our org.
-	if s.OrganizationID == 1 && s.ID%2 == 0 {
+	if s.OrganizationID == 1 && s.ID%2 == 0 && os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		// Push the session to s3
 		re := &parse.ReplayEvents{
 			Events: []*parse.ReplayEvent{},
