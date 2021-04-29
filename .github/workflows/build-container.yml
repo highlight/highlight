@@ -1,8 +1,8 @@
 name: Publish Docker image
 on:
-    push:
-        branches:
-            - 'master'
+    # push:
+    #     branches:
+    #         - 'master'
 jobs:
    push_to_registry:
     name: Push Docker image to Docker Hub
@@ -22,6 +22,6 @@ jobs:
         with:
           context: ./
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest
+          tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest,${{ secrets.DOCKER_USERNAME }}/backend:$(git rev-parse --short "$GITHUB_SHA")
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
