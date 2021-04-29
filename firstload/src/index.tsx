@@ -120,7 +120,11 @@ export const H: HighlightPublicInterface = {
         }
     },
     stop: () => {
-        highlight_obj.stopRecording();
+        try {
+            H.onHighlightReady(() => highlight_obj.stopRecording());
+        } catch (e) {
+            HighlightWarning('stop', e);
+        }
     },
     identify: (identifier: string, obj: any) => {
         try {
