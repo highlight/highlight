@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -424,7 +425,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	acceptLanguageString := ctx.Value("acceptLanguage").(string)
 	n := time.Now()
 	session := &model.Session{
-		UserID:              user.ID,
+		UserID:              5000 + rand.Intn(5000),
 		OrganizationID:      organizationID,
 		City:                location.City,
 		State:               location.State,

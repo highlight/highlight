@@ -4,30 +4,10 @@ import (
 	"context"
 	"net/http"
 	"strings"
-
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/redis"
-
-	e "github.com/pkg/errors"
 )
 
 func PublicMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		session, _ := redis.Store.Get(r, "highlight-session")
-		// If the session is new (or empty), create a brand new user.
-		if session.IsNew || session.Values["uid"] == nil {
-			user := &model.User{}
-			if err := model.DB.Create(user).Error; err != nil {
-				http.Error(w, e.Wrap(err, "error creating user").Error(), http.StatusInternalServerError)
-				return
-			}
-			session.Values["uid"] = user.ID
-			err := session.Save(r, w)
-			if err != nil {
-				http.Error(w, e.Wrap(err, "error saving session").Error(), http.StatusInternalServerError)
-				return
-			}
-		}
 		// get users ip for geolocation data
 		IPAddress := r.Header.Get("X-Real-Ip")
 		if IPAddress == "" {
@@ -50,8 +30,7 @@ func PublicMiddleware(next http.Handler) http.Handler {
 		// get the accept-language string
 		AcceptLanguage := r.Header.Get("Accept-Language")
 		// Pass the user's id, ip address, user agent, and accept-language through context.
-		ctx := context.WithValue(r.Context(), "uid", session.Values["uid"])
-		ctx = context.WithValue(ctx, "ip", IPAddress)
+		ctx := context.WithValue(r.Context(), "ip", IPAddress)
 		ctx = context.WithValue(ctx, "userAgent", UserAgent)
 		ctx = context.WithValue(ctx, "acceptLanguage", AcceptLanguage)
 		r = r.WithContext(ctx)
