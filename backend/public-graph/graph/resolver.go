@@ -380,23 +380,6 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		return nil, e.Wrap(err, "org doesn't exist")
 	}
 
-	uid, ok := ctx.Value("uid").(int)
-	if !ok {
-		return nil, e.New("error unwrapping uid in context")
-	}
-
-	// Get the current user to check whether the org_id is set.
-	user := &model.User{}
-	if err := r.DB.Where(&model.User{Model: model.Model{ID: uid}}).First(&user).Error; err != nil {
-		return nil, e.Wrap(err, "user doesn't exist")
-	}
-	// If not, set it.
-	if user.OrganizationID != organizationID {
-		if err := r.DB.Model(user).Updates(model.User{OrganizationID: organizationID}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating user")
-		}
-	}
-
 	// Get the user's ip, get geolocation data
 	location := &Location{
 		City:      "",
