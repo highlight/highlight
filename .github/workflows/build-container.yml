@@ -25,6 +25,6 @@ jobs:
         with:
           context: ./
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/backend:latest,${{ secrets.DOCKER_USERNAME }}/backend:${{ steps.vars.outputs.sha_short }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/highlight:latest,${{ secrets.DOCKER_USERNAME }}/highlight:${{ steps.vars.outputs.sha_short }}
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
