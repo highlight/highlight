@@ -19,4 +19,3 @@ FROM alpine
 WORKDIR /root/
 COPY --from=backend-builder /bin/backend /bin/backend
 COPY --from=frontend-builder /build-frontend/build ./
-CMD ["backend"]
