@@ -49,6 +49,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                 params: searchParams,
             },
         }).then((r) => {
+            setExistingParams(searchParams);
             history.push(
                 `/${organization_id}/sessions/segment/${r.data?.createSegment?.id}`
             );
