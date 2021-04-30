@@ -311,7 +311,7 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                     {session?.processed &&
                                     segment_id !== LIVE_SEGMENT_ID
                                         ? MillisToMinutesAndSecondsVerbose(
-                                              session.length || 0
+                                              session.active_length || 0
                                           )
                                         : 'Live'}
                                 </div>
