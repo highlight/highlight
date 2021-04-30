@@ -74,23 +74,24 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
             >
                 <img src={CommentPinIcon} />
             </button>
-            {showing && (
-                <div
-                    onMouseEnter={() => {
-                        setShowing(true);
-                    }}
-                    onMouseLeave={() => {
-                        setShowing(false);
-                    }}
-                    className={classNames(styles.commentContainer, {
-                        [styles.activeComment]:
-                            deepLinkedCommentId === comment.id,
-                    })}
-                >
-                    <CommentHeader key={comment.id} comment={comment} />
-                    <CommentTextBody commentText={comment.text} />
-                </div>
-            )}
+            {showing ||
+                (deepLinkedCommentId === comment.id && (
+                    <div
+                        onMouseEnter={() => {
+                            setShowing(true);
+                        }}
+                        onMouseLeave={() => {
+                            setShowing(false);
+                        }}
+                        className={classNames(styles.commentContainer, {
+                            [styles.activeComment]:
+                                deepLinkedCommentId === comment.id,
+                        })}
+                    >
+                        <CommentHeader key={comment.id} comment={comment} />
+                        <CommentTextBody commentText={comment.text} />
+                    </div>
+                ))}
         </div>
     );
 };

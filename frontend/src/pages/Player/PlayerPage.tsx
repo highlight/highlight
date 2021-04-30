@@ -32,6 +32,7 @@ import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import Modal from '../../components/Modal/Modal';
 import CommentButton, { Coordinates2D } from './CommentButton/CommentButton';
 import Tabs from '../../components/Tabs/Tabs';
+import CommentStream from './CommentStream/CommentStream';
 
 export const Player = () => {
     const { session_id } = useParams<{
@@ -182,7 +183,7 @@ export const Player = () => {
                                 },
                                 {
                                     title: 'Comments',
-                                    panelContent: <EventStream />,
+                                    panelContent: <CommentStream />,
                                 },
                                 {
                                     title: 'Metadata',

@@ -1,0 +1,33 @@
+.commentStream {
+    color: var(--color-gray-500);
+    font-size: 12px;
+}
+
+.comment {
+    padding: var(--size-xxSmall) 0;
+    border-bottom: 1px solid var(--color-gray-300);
+    margin-bottom: var(--size-small);
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--size-xSmall);
+
+    h2 {
+        color: var(--color-black);
+        font-size: 12px;
+        font-weight: 400;
+        margin: 0;
+    }
+
+    p {
+        margin: 0;
+        font-size: 10px;
+    }
+}
+
+.goToButton {
+    margin-top: var(--size-xSmall);
+    color: var(--color-gray-500);
+}
