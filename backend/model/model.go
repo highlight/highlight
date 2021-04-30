@@ -311,6 +311,7 @@ type ErrorObject struct {
 	Browser        string
 	Trace          *string   `json:"trace"`
 	Timestamp      time.Time `json:"timestamp"`
+	Payload        *string   `json:"payload"`
 }
 
 type ErrorGroup struct {
