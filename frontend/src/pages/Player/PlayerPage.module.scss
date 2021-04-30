@@ -52,7 +52,7 @@
     width: 100%;
     overflow-y: auto;
     position: relative;
-    padding-top: 19px;
+    padding: var(--size-small);
     box-sizing: border-box;
 }
 
