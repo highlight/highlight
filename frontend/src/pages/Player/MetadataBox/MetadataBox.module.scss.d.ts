@@ -1,4 +1,5 @@
 export const avatarWrapper: string;
+export const deviceDetails: string;
 export const expandArrow: string;
 export const headerWrapper: string;
 export const locationBox: string;
