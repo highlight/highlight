@@ -1,5 +1,6 @@
-import React, { useContext } from 'react';
+import React, { useContext, useRef } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
+import { VirtuosoHandle, Virtuoso } from 'react-virtuoso';
 import GoToButton from '../../../components/Button/GoToButton';
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
@@ -17,40 +18,50 @@ const CommentStream = () => {
     });
     const { pause } = useContext(ReplayerContext);
     const history = useHistory();
+    const virtuoso = useRef<VirtuosoHandle>(null);
 
     return (
         <div className={styles.commentStream}>
-            {sessionCommentsData?.session_comments.map((comment) => (
-                <div key={comment?.id} className={styles.comment}>
-                    <div className={styles.header}>
-                        <h2>{comment?.author.name || comment?.author.email}</h2>
-                        <p>
-                            {MillisToMinutesAndSeconds(comment?.timestamp || 0)}
-                        </p>
-                    </div>
-                    <CommentTextBody commentText={comment?.text || ''} />
-                    <GoToButton
-                        className={styles.goToButton}
-                        onClick={() => {
-                            if (comment?.id) {
-                                const urlSearchParams = new URLSearchParams();
-                                urlSearchParams.append(
-                                    PlayerSearchParameters.commentId,
-                                    comment?.id
-                                );
+            <Virtuoso
+                ref={virtuoso}
+                overscan={500}
+                data={sessionCommentsData?.session_comments}
+                itemContent={(_index, comment: any) => (
+                    <div key={comment?.id} className={styles.comment}>
+                        <div className={styles.header}>
+                            <h2>
+                                {comment?.author.name || comment?.author.email}
+                            </h2>
+                            <p>
+                                {MillisToMinutesAndSeconds(
+                                    comment?.timestamp || 0
+                                )}
+                            </p>
+                        </div>
+                        <CommentTextBody commentText={comment?.text || ''} />
+                        <GoToButton
+                            className={styles.goToButton}
+                            onClick={() => {
+                                if (comment?.id) {
+                                    const urlSearchParams = new URLSearchParams();
+                                    urlSearchParams.append(
+                                        PlayerSearchParameters.commentId,
+                                        comment?.id
+                                    );
 
-                                console.log(history.location.pathname);
-                                history.replace(
-                                    `${
-                                        history.location.pathname
-                                    }?${urlSearchParams.toString()}`
-                                );
-                                pause(comment?.timestamp);
-                            }
-                        }}
-                    />
-                </div>
-            ))}
+                                    console.log(history.location.pathname);
+                                    history.replace(
+                                        `${
+                                            history.location.pathname
+                                        }?${urlSearchParams.toString()}`
+                                    );
+                                    pause(comment?.timestamp);
+                                }
+                            }}
+                        />
+                    </div>
+                )}
+            />
         </div>
     );
 };

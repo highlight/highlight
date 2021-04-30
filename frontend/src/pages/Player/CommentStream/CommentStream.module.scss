@@ -1,6 +1,11 @@
 .commentStream {
     color: var(--color-gray-500);
     font-size: 12px;
+    height: 100%;
+
+    & > div::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 .comment {
