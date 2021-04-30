@@ -26,7 +26,6 @@ const Tabs = ({ tabs, key, ...props }: Props) => {
                 setActiveTab(activeKey);
             }}
             centered
-            animated={{ inkBar: true, tabPane: true }}
             {...props}
         >
             {tabs.map(({ panelContent, title }) => (
