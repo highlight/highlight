@@ -90,20 +90,6 @@
     border-radius: 50%;
 }
 
-.tagWrapper {
-    display: flex;
-    flex: 1;
-    flex-flow: row wrap;
-    overflow: hidden;
-    height: 24px;
-}
-
-.tagDiv {
-    display: flex;
-    width: 100%;
-    padding-right: 20px;
-}
-
 .tagEllipsis {
     display: block;
     max-width: 160px;

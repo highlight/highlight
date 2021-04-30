@@ -33,6 +33,7 @@ import Modal from '../../components/Modal/Modal';
 import CommentButton, { Coordinates2D } from './CommentButton/CommentButton';
 import Tabs from '../../components/Tabs/Tabs';
 import CommentStream from './CommentStream/CommentStream';
+import MetadataPanel from './MetadataPanel/MetadataPanel';
 
 export const Player = () => {
     const { session_id } = useParams<{
@@ -187,7 +188,7 @@ export const Player = () => {
                                 },
                                 {
                                     title: 'Metadata',
-                                    panelContent: <EventStream />,
+                                    panelContent: <MetadataPanel />,
                                 },
                             ]}
                         />
