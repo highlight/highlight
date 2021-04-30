@@ -18,7 +18,6 @@ export const rrwebPlayerDiv: string;
 export const rrwebPlayerSection: string;
 export const rrwebPlayerWrapper: string;
 export const signinWrapper: string;
-export const skeletonContainer: string;
 export const urlAddressBar: string;
 export const urlAddressBarWrapper: string;
 export const urlText: string;

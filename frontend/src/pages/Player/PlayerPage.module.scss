@@ -55,6 +55,10 @@
     position: relative;
     padding: 0;
     box-sizing: border-box;
+
+    & > div::-webkit-scrollbar {
+        display: none;
+    }
 }
 
 .appBody {
@@ -174,11 +178,6 @@
     &.noRightPanel {
         grid-template-columns: 1fr;
     }
-}
-
-.skeletonContainer {
-    padding-left: 30px;
-    padding-right: 30px;
 }
 
 .commentModal {

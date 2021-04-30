@@ -299,7 +299,7 @@ const EventStream = () => {
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
                 {!events.length ? (
-                    <div className={styles.skeletonContainer}>
+                    <div>
                         <Skeleton
                             count={4}
                             height={35}
