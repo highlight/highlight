@@ -6,18 +6,33 @@ import {
     PopoverProps as AntDesignPopoverProps,
 } from 'antd';
 import styles from './Popover.module.scss';
+import classNames from 'classnames';
 
 type PopoverProps = Pick<
     AntDesignPopoverProps,
-    'content' | 'title' | 'trigger' | 'defaultVisible' | 'onVisibleChange'
->;
+    | 'content'
+    | 'title'
+    | 'trigger'
+    | 'defaultVisible'
+    | 'onVisibleChange'
+    | 'placement'
+    | 'align'
+> & {
+    hasBorder?: boolean;
+};
 
 /**
  * A proxy for Ant Design's popover. This component should be used instead of directly using Ant Design's.
  */
-const Popover: React.FC<PopoverProps> = ({ children, title, ...props }) => {
+const Popover: React.FC<PopoverProps> = ({
+    children,
+    hasBorder,
+    title,
+    ...props
+}) => {
     return (
         <AntDesignPopover
+            overlayClassName={classNames({ [styles.popover]: hasBorder })}
             {...props}
             content={
                 <>

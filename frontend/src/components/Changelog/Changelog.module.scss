@@ -1,8 +1,59 @@
+.container {
+    margin-top: auto;
+}
+
 .changelogContainer {
-    width: 100%;
+    width: 310px;
     overflow: auto;
+    max-height: 350px;
+    margin: calc(var(--size-medium) * -1);
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
 
     img {
         width: 100%;
+    }
+
+    .changelogItem {
+        padding: var(--size-medium);
+        border-bottom: 1px solid var(--color-gray-300);
+
+        p,
+        h3 {
+            margin: 0;
+        }
+
+        h3 {
+            font-size: 13px;
+            font-weight: 300;
+            color: var(--color-black);
+        }
+
+        .date {
+            color: var(--color-gray-500);
+            font-size: 12px;
+            margin-bottom: var(--size-xSmall);
+        }
+    }
+}
+
+.indicator {
+    background: none;
+    border: none;
+    cursor: pointer;
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--size-xSmall);
+
+    .indicatorIcon {
+        border-radius: 50%;
+        height: 14px;
+        width: 14px;
+        background: var(--color-purple-200);
     }
 }

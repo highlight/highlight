@@ -76,7 +76,6 @@ export const Sidebar = () => {
                 </SidebarItem>
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
-                        <Changelog />
                         {!loadingBillingDetails &&
                         data?.billingDetails.meter !== undefined &&
                         data?.billingDetails.plan.quota !== undefined ? (
@@ -131,6 +130,7 @@ const StaticSidebar = () => {
                 <MiniSidebarItem route="billing" text="Billing">
                     <CreditCardIcon className={styles.icon} />
                 </MiniSidebarItem>
+                <Changelog />
             </div>
             <div style={{ paddingLeft: 62, height: '100%' }} />
         </>
