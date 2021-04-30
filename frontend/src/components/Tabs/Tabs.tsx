@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import { Tabs as AntDesignTabs, TabsProps } from 'antd';
 const { TabPane } = AntDesignTabs;
