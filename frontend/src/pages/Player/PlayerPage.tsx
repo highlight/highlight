@@ -31,6 +31,7 @@ import classNames from 'classnames';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import Modal from '../../components/Modal/Modal';
 import CommentButton, { Coordinates2D } from './CommentButton/CommentButton';
+import Tabs from '../../components/Tabs/Tabs';
 
 export const Player = () => {
     const { session_id } = useParams<{
@@ -173,7 +174,22 @@ export const Player = () => {
                 {shouldShowRightPanel && (
                     <div className={styles.playerRightSection}>
                         <MetadataBox />
-                        <EventStream />
+                        <Tabs
+                            tabs={[
+                                {
+                                    title: 'Events',
+                                    panelContent: <EventStream />,
+                                },
+                                {
+                                    title: 'Comments',
+                                    panelContent: <EventStream />,
+                                },
+                                {
+                                    title: 'Metadata',
+                                    panelContent: <EventStream />,
+                                },
+                            ]}
+                        />
                     </div>
                 )}
                 <Modal
