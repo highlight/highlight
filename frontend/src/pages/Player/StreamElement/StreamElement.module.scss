@@ -157,6 +157,7 @@
 }
 
 .goToButton {
+    color: var(--color-gray-500);
     grid-column-start: 1;
 
     &:hover {

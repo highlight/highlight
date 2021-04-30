@@ -21,8 +21,8 @@ $go-to-button-width: 63px;
 }
 
 .icon {
-    margin-left: 6px;
-    width: 16px;
-    height: 16px;
-    color: $text-primary;
+    margin-left: var(--size-xSmall);
+    width: auto;
+    height: 10px;
+    color: var(--color-gray-500);
 }
