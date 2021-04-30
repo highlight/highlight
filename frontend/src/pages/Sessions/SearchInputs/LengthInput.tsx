@@ -37,7 +37,7 @@ export const LengthInput = () => {
 
     return (
         <div className={inputStyles.commonInputWrapper}>
-            <div className={inputStyles.subTitle}>Active Length (minutes)</div>
+            <div className={inputStyles.subTitle}>Length (minutes)</div>
             <Slider
                 range
                 tooltipPlacement={'bottom'}
