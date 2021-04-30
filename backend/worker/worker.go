@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -60,6 +61,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Calculate total session length and write the length to the session.
 	diff := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
 	length := diff.Milliseconds()
+	activeLength := getActiveDuration(events).Milliseconds()
 
 	// Delete the session if the length of the session is 0.
 	// 1. Nothing happened in the session
@@ -76,9 +78,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	).Updates(
 		model.Session{
 			// We are setting Viewed to false so sessions the user viewed while they were live will be reset.
-			Viewed:    &model.F,
-			Processed: &model.T,
-			Length:    length,
+			Viewed:       &model.F,
+			Processed:    &model.T,
+			Length:       length,
+			ActiveLength: activeLength,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -191,5 +194,40 @@ func CalculateSessionLength(first *parse.ReplayEvents, last *parse.ReplayEvents)
 	start := first.Events[0].Timestamp
 	end := last.Events[len(last.Events)-1].Timestamp
 	d = end.Sub(start)
+	return d
+}
+
+func getActiveDuration(events []model.EventsObject) time.Duration {
+	d := time.Duration(0)
+	// unnests the events from EventObjects
+	allEvents := []*parse.ReplayEvent{}
+	for _, eventObj := range events {
+		subEvents, err := parse.EventsFromString(eventObj.Events)
+		if err != nil {
+			return d
+		}
+		allEvents = append(allEvents, subEvents.Events...)
+	}
+	// Iterate through all events and sum up time between interactions
+	prevUserEvent := &parse.ReplayEvent{}
+	for _, eventObj := range allEvents {
+		if eventObj.Type == 3 {
+			aux := struct {
+				Source float64 `json:"source"`
+			}{}
+			if err := json.Unmarshal([]byte(eventObj.Data), &aux); err != nil {
+				return d
+			}
+			if aux.Source > 0 && aux.Source <= 5 {
+				if prevUserEvent != (&parse.ReplayEvent{}) {
+					diff := eventObj.Timestamp.Sub(prevUserEvent.Timestamp)
+					if diff.Seconds() <= 10 {
+						d += eventObj.Timestamp.Sub(prevUserEvent.Timestamp)
+					}
+				}
+				prevUserEvent = eventObj
+			}
+		}
+	}
 	return d
 }

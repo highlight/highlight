@@ -23,6 +23,7 @@ type Session {
     identifier: String!
     created_at: Time
     length: Int
+    active_length: Int
     user_object: Any
     fields: [Field]
     viewed: Boolean
