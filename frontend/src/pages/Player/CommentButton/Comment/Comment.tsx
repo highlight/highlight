@@ -74,7 +74,7 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
             >
                 <img src={CommentPinIcon} />
             </button>
-            {showing && (
+            {(showing || deepLinkedCommentId === comment.id) && (
                 <div
                     onMouseEnter={() => {
                         setShowing(true);
