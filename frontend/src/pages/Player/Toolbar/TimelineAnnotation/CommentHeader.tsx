@@ -13,6 +13,7 @@ import {
     useGetSessionQuery,
 } from '../../../../graph/generated/hooks';
 import { useParams } from 'react-router-dom';
+import { H } from 'highlight.run';
 
 interface Props {
     comment: ParsedSessionComment;
@@ -69,6 +70,7 @@ const CommentHeader = ({ comment }: Props) => {
             {data && (
                 <Menu.Item
                     onClick={() => {
+                        H.track('Create Linear issue', {});
                         const url = getCommentLink();
                         window.open(
                             `http://linear.app/new?title=Highlight session comment for ${
