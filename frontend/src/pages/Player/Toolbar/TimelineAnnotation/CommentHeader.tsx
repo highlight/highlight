@@ -8,6 +8,7 @@ import styles from './CommentHeader.module.scss';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { onGetLinkWithTimestamp } from '../../ShareButton/utils/utils';
 import { PlayerSearchParameters } from '../../PlayerHook/utils';
+import { useDeleteSessionCommentMutation } from '../../../../graph/generated/hooks';
 
 interface Props {
     comment: ParsedSessionComment;
@@ -15,6 +16,9 @@ interface Props {
 
 const CommentHeader = ({ comment }: Props) => {
     const { pause } = useContext(ReplayerContext);
+    const [deleteSessionComment] = useDeleteSessionCommentMutation({
+        refetchQueries: ['GetSessionComments'],
+    });
 
     const menu = (
         <Menu>
@@ -30,7 +34,7 @@ const CommentHeader = ({ comment }: Props) => {
                     navigator.clipboard.writeText(url.href);
                 }}
             >
-                Copy Link
+                Copy link
             </Menu.Item>
             <Menu.Item
                 onClick={() => {
@@ -38,6 +42,17 @@ const CommentHeader = ({ comment }: Props) => {
                 }}
             >
                 Goto
+            </Menu.Item>
+            <Menu.Item
+                onClick={() => {
+                    deleteSessionComment({
+                        variables: {
+                            id: comment.id,
+                        },
+                    });
+                }}
+            >
+                Delete comment
             </Menu.Item>
         </Menu>
     );

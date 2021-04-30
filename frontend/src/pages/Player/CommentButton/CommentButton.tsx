@@ -45,7 +45,7 @@ const CommentButton = ({
     ] = useLocalStorage('highlightTimelineAnnotationTypes', [
         ...EventsForTimeline,
     ]);
-    const { pause, replayer, time } = useContext(ReplayerContext);
+    const { pause, replayer } = useContext(ReplayerContext);
     const buttonRef = useRef<HTMLButtonElement>(null);
     const [indicatorLocation, setIndicatorLocation] = useState<
         Coordinates2D | undefined
@@ -136,8 +136,7 @@ const CommentButton = ({
                 {sessionCommentsData?.session_comments.map(
                     (comment) =>
                         comment &&
-                        showCommentsOverlaid &&
-                        Math.abs(time - comment.timestamp) <= 500 && (
+                        showCommentsOverlaid && (
                             <Comment
                                 key={comment.id}
                                 comment={comment}

@@ -34,6 +34,8 @@ type HighlightPublicInterface = {
     error: (message: string, payload?: { [key: string]: string }) => void;
     getSessionURL: () => Promise<string>;
     start: () => void;
+    /** Stops the session and error recording. */
+    stop: () => void;
     onHighlightReady: (func: () => void) => void;
     options: HighlightOptions | undefined;
 };
@@ -117,6 +119,13 @@ export const H: HighlightPublicInterface = {
             }
         } catch (e) {
             HighlightWarning('start', e);
+        }
+    },
+    stop: () => {
+        try {
+            H.onHighlightReady(() => highlight_obj.stopRecording());
+        } catch (e) {
+            HighlightWarning('stop', e);
         }
     },
     identify: (identifier: string, obj: any) => {

@@ -1,8 +1,8 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import _ from 'lodash';
 
 import commonStyles from '../../../../Common.module.scss';
-import { SearchContext } from '../../SearchContext/SearchContext';
+import { useSearchContext } from '../../SearchContext/SearchContext';
 import { RouteComponentProps, useParams, withRouter } from 'react-router-dom';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
 import { message } from 'antd';
@@ -32,7 +32,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
         segmentName,
         existingParams,
         setExistingParams,
-    } = useContext(SearchContext);
+    } = useSearchContext();
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
     const [editSegment, editSegmentOptions] = useEditSegmentMutation({
         refetchQueries: ['GetSegments'],

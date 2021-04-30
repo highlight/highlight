@@ -18,11 +18,11 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	private "github.com/highlight-run/highlight/backend/private-graph/graph"
 	privategen "github.com/highlight-run/highlight/backend/private-graph/graph/generated"
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
-	rd "github.com/highlight-run/highlight/backend/redis"
 	log "github.com/sirupsen/logrus"
 
 	_ "gorm.io/gorm"
@@ -72,34 +72,42 @@ func validateOrigin(request *http.Request, origin string) bool {
 var defaultPort = "8082"
 
 func main() {
+	if os.Getenv("DEPLOYMENT_KEY") != "HIGHLIGHT_ONPREM_BETA" {
+		log.Fatalf("please specify a deploy key in order to run Highlight")
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
 	}
 
-	// Connect to the datadog daemon.
-	_, err := statsd.New(statsdHost)
-	if err != nil {
-		log.Fatalf("error connecting to statsd: %v", err)
-		return
-	}
-
 	if env == "prod" {
+		// Connect to the datadog daemon.
+		_, err := statsd.New(statsdHost)
+		if err != nil {
+			log.Fatalf("error connecting to statsd: %v", err)
+			return
+		}
 		tracer.Start(tracer.WithAgentAddr(apmHost))
 		defer tracer.Stop()
 	}
 
-	rd.SetupRedisStore()
 	db := model.SetupDB()
 
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
 
+	storage, err := storage.NewStorageClient()
+	if err != nil {
+		log.Fatalf("error creating storage client: %v", err)
+	}
+
 	private.SetupAuthClient()
 	privateResolver := &private.Resolver{
-		DB:           db,
-		MailClient:   sendgrid.NewSendClient(sendgridKey),
-		StripeClient: stripeClient,
+		DB:            db,
+		MailClient:    sendgrid.NewSendClient(sendgridKey),
+		StripeClient:  stripeClient,
+		StorageClient: storage,
 	}
 	r := chi.NewMux()
 	// Common middlewares for both the client/main graphs.
@@ -163,10 +171,10 @@ func main() {
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running...")
 	if runtimeParsed == util.Worker {
-		w := &worker.Worker{R: privateResolver}
+		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		w.Start()
 	} else if runtimeParsed == util.All {
-		w := &worker.Worker{R: privateResolver}
+		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		go func() {
 			w.Start()
 		}()

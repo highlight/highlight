@@ -195,7 +195,7 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     session_url: Types.Scalars['String'];
     time: Types.Scalars['Float'];
     author_name: Types.Scalars['String'];
-    session_image: Types.Scalars['String'];
+    session_image?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
@@ -217,6 +217,15 @@ export type CreateSessionCommentMutation = { __typename?: 'Mutation' } & {
             }
     >;
 };
+
+export type DeleteSessionCommentMutationVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+}>;
+
+export type DeleteSessionCommentMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'deleteSessionComment'
+>;
 
 export type DeleteErrorSegmentMutationVariables = Types.Exact<{
     segment_id: Types.Scalars['ID'];
@@ -303,6 +312,8 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'identifier'
             | 'starred'
             | 'enable_strict_privacy'
+            | 'object_storage_enabled'
+            | 'payload_size'
         > & {
                 fields?: Types.Maybe<
                     Array<
