@@ -31,7 +31,7 @@ type HighlightPublicInterface = {
     init: (orgID: number | string, debug?: HighlightOptions) => void;
     identify: (identify: string, obj: any) => void;
     track: (event: string, obj: any) => void;
-    error: (message: string, payload?: any) => void;
+    error: (message: string, payload?: { [key: string]: string }) => void;
     getSessionURL: () => Promise<string>;
     start: () => void;
     onHighlightReady: (func: () => void) => void;
@@ -83,7 +83,7 @@ export const H: HighlightPublicInterface = {
             HighlightWarning('init', e);
         }
     },
-    error: (message: string, payload?: any) => {
+    error: (message: string, payload?: { [key: string]: string }) => {
         try {
             H.onHighlightReady(() =>
                 highlight_obj.pushCustomError(message, JSON.stringify(payload))
