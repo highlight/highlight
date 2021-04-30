@@ -98,7 +98,11 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                                 'Error with segment name ' +
                                     errors.name.message}
                         </div>
-                        <Button style={{ width: '100%', marginTop: 10 }}>
+                        <Button
+                            style={{ width: '100%', marginTop: 10 }}
+                            type="primary"
+                            htmlType="submit"
+                        >
                             {loading ? (
                                 <CircularSpinner
                                     style={{ fontSize: 18, color: 'white' }}
