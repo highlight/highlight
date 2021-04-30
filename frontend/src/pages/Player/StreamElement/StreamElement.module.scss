@@ -37,7 +37,10 @@
 
     .goToButton {
         color: white;
-        fill: white;
+
+        svg {
+            fill: white;
+        }
     }
 }
 
@@ -162,6 +165,10 @@
     &:hover {
         color: $text-primary;
         fill: $text-primary;
+
+        svg {
+            fill: $text-primary;
+        }
     }
 }
 
