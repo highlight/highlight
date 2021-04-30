@@ -16,4 +16,4 @@ interface DevToolsContext {
 export const [
     useDevToolsContext,
     DevToolsContextProvider,
-] = createContext<DevToolsContext>();
+] = createContext<DevToolsContext>('DevTools');

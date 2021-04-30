@@ -1,12 +1,11 @@
 .locationBox {
     border-bottom: 1px solid #eaeaea;
     box-sizing: border-box;
-    display: grid;
-    grid-template-columns: 120px 230px;
-    padding: 25px 0px;
-    flex-direction: column;
+    display: flex;
+    padding: var(--size-small);
+    padding-bottom: var(--size-medium);
+    column-gap: var(--size-small);
     background-color: white;
-    z-index: 1;
     max-width: 350px;
     position: relative;
 }
@@ -14,7 +13,6 @@
 .userAvatarWrapper {
     display: flex;
     align-items: flex-start;
-    padding: 25px;
     justify-content: center;
 }
 
@@ -28,6 +26,7 @@
 .userContentWrapper {
     display: flex;
     flex-direction: column;
+    row-gap: var(--size-xxSmall);
     align-items: center;
     justify-content: center;
     width: 100%;
@@ -41,11 +40,12 @@
 }
 
 .headerWrapper {
-    font-size: 16px;
     font-weight: 400;
     width: 100%;
-    margin-bottom: 5px;
-    padding-right: 40px;
+    padding-right: 20px;
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-xxSmall);
 }
 
 .userText {
@@ -57,6 +57,8 @@
 }
 
 .userIdHeader {
+    font-size: 14px;
+    color: var(--color-gray-500);
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -68,9 +70,10 @@
     text-overflow: ellipsis;
     display: block;
     overflow: hidden;
-    font-weight: 300;
-    font-size: 14px;
-    padding-right: 25px;
+    font-weight: 200;
+    line-height: 17px;
+    font-size: 12px;
+    color: var(--color-gray-500);
 }
 
 .userInfoWrapper {
@@ -85,21 +88,6 @@
     width: 60px;
     background-color: #f2eefb;
     border-radius: 50%;
-}
-
-.tagWrapper {
-    display: flex;
-    flex: 1;
-    flex-flow: row wrap;
-    overflow: hidden;
-    height: 24px;
-}
-
-.tagDiv {
-    display: flex;
-    width: 100%;
-    padding-bottom: 8px;
-    padding-right: 20px;
 }
 
 .tagEllipsis {
@@ -119,10 +107,10 @@
 
 .starIconWrapper {
     position: absolute;
-    right: 15px;
-    top: 25px;
+    right: var(--size-small);
+    top: var(--size-medium);
     margin: auto;
-    width: 20px;
+    width: var(--size-small);
 
     &:hover {
         cursor: pointer;
@@ -139,4 +127,10 @@
     stroke: #808080;
     color: #808080;
     fill: #808080;
+}
+
+.deviceDetails {
+    display: flex;
+    align-items: center;
+    column-gap: 6px;
 }

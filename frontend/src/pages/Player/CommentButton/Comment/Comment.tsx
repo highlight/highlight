@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import {
     Maybe,
     SanitizedAdmin,
@@ -10,6 +10,7 @@ import styles from './Comment.module.scss';
 import commentButtonStyles from '../CommentButton.module.scss';
 import CommentHeader from '../../Toolbar/TimelineAnnotation/CommentHeader';
 import CommentTextBody from '../../Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
+import ReplayerContext from '../../ReplayerContext';
 
 interface Props {
     comment: Maybe<
@@ -33,7 +34,8 @@ interface Props {
 }
 
 const Comment = ({ comment, deepLinkedCommentId }: Props) => {
-    const [collapsed, setCollapsed] = useState(false);
+    const [showing, setShowing] = useState(false);
+    const { pause } = useContext(ReplayerContext);
 
     if (!comment) {
         return null;
@@ -57,17 +59,29 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
         >
             <button
                 onClick={() => {
-                    setCollapsed((previous) => !previous);
+                    pause(comment.timestamp);
                 }}
                 className={classNames(
                     commentButtonStyles.commentIndicator,
                     styles.commentPinButton
                 )}
+                onMouseEnter={() => {
+                    setShowing(true);
+                }}
+                onMouseLeave={() => {
+                    setShowing(false);
+                }}
             >
                 <img src={CommentPinIcon} />
             </button>
-            {!collapsed && (
+            {(showing || deepLinkedCommentId === comment.id) && (
                 <div
+                    onMouseEnter={() => {
+                        setShowing(true);
+                    }}
+                    onMouseLeave={() => {
+                        setShowing(false);
+                    }}
                     className={classNames(styles.commentContainer, {
                         [styles.activeComment]:
                             deepLinkedCommentId === comment.id,

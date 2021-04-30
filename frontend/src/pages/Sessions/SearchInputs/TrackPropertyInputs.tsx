@@ -1,10 +1,10 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
 import {
-    SearchContext,
     SearchParams,
     UserProperty,
+    useSearchContext,
 } from '../SearchContext/SearchContext';
 
 import AsyncCreatableSelect from 'react-select/async-creatable';
@@ -16,7 +16,7 @@ import { PropertyOption } from '../../../components/Option/Option';
 
 export const TrackPropertyInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSearchContext();
 
     const { refetch } = useGetTrackSuggestionQuery({ skip: true });
 

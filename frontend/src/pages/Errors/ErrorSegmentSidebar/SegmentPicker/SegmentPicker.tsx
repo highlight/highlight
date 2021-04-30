@@ -167,10 +167,7 @@ export const ErrorSegmentPicker = () => {
                     <div className={styles.segmentPickerInner}>
                         <div className={styles.segmentItemWrapper}>
                             <Link
-                                to={{
-                                    pathname: `/${organization_id}/errors`,
-                                    state: EmptyErrorsSearchParams,
-                                }}
+                                to={`/${organization_id}/errors`}
                                 key={'errors'}
                             >
                                 <div className={styles.segmentItem}>
@@ -197,10 +194,7 @@ export const ErrorSegmentPicker = () => {
                                 key={s?.id}
                             >
                                 <Link
-                                    to={{
-                                        pathname: `/${organization_id}/errors/segment/${s?.id}`,
-                                        state: s?.params,
-                                    }}
+                                    to={`/${organization_id}/errors/segment/${s?.id}`}
                                 >
                                     <div className={styles.segmentItem}>
                                         <div

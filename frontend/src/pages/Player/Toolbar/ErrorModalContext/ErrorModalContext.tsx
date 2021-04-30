@@ -9,4 +9,4 @@ interface ErrorModalContext {
 export const [
     useErrorModalContext,
     ErrorModalContextProvider,
-] = createContext<ErrorModalContext>();
+] = createContext<ErrorModalContext>('ErrorModal');

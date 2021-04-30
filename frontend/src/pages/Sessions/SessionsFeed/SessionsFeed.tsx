@@ -1,13 +1,6 @@
-import React, {
-    RefObject,
-    useContext,
-    useEffect,
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
+import React, { RefObject, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { SearchContext } from '../SearchContext/SearchContext';
+import { useSearchContext } from '../SearchContext/SearchContext';
 import styles from './SessionsFeed.module.scss';
 import Skeleton from 'react-loading-skeleton';
 import classNames from 'classnames/bind';
@@ -65,7 +58,7 @@ export const SessionFeed = () => {
         sessions: [],
         totalCount: -1,
     });
-    const { searchParams, hideLiveSessions } = useContext(SearchContext);
+    const { searchParams, hideLiveSessions } = useSearchContext();
 
     const { loading, fetchMore, data: sessionData } = useGetSessionsQuery({
         variables: {

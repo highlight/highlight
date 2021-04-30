@@ -1,10 +1,10 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
 import {
-    SearchContext,
     SearchParams,
     UserProperty,
+    useSearchContext,
 } from '../SearchContext/SearchContext';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 import { Checkbox } from 'antd';
@@ -18,7 +18,7 @@ import Tooltip from '../../../components/Tooltip/Tooltip';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSearchContext();
 
     const { refetch } = useGetUserSuggestionQuery({ skip: true });
 
@@ -117,7 +117,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
 };
 
 export const IdentifiedUsersSwitch = () => {
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSearchContext();
 
     return (
         <div className={inputStyles.checkboxRow}>
@@ -145,7 +145,7 @@ export const IdentifiedUsersSwitch = () => {
 };
 
 export const FirstTimeUsersSwitch = () => {
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSearchContext();
 
     return (
         <div className={inputStyles.checkboxRow}>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { createContext } from '../../../util/context/context';
 
 export type UserProperty = {
     name: string;
@@ -21,24 +22,20 @@ export type SearchParams = {
     first_time?: boolean;
 };
 
-export const SearchContext = React.createContext<{
+interface SearchContext {
+    /** Local changes to the segment parameters that might not be persisted to the database. */
     searchParams: SearchParams;
     setSearchParams: React.Dispatch<React.SetStateAction<SearchParams>>;
+    /** The parameters that are persisted to the database. These params are saved to a segment. */
     existingParams: SearchParams;
     setExistingParams: React.Dispatch<React.SetStateAction<SearchParams>>;
     segmentName: string | null;
     setSegmentName: React.Dispatch<React.SetStateAction<string | null>>;
     hideLiveSessions: boolean;
     setHideLiveSessions: React.Dispatch<React.SetStateAction<boolean>>;
-}>({
-    /* eslint-disable */
-    searchParams: { user_properties: [], identified: false },
-    setSearchParams: (params) => console.warn('noop'),
-    existingParams: { user_properties: [], identified: false },
-    setExistingParams: (params) => console.warn('goop'),
-    segmentName: null,
-    setSegmentName: (val) => console.warn('poop'),
-    hideLiveSessions: false,
-    setHideLiveSessions: () => {},
-    /* eslint-enable */
-});
+}
+
+export const [
+    useSearchContext,
+    SearchContextProvider,
+] = createContext<SearchContext>('SearchContext');

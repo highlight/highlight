@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
-import { SearchContext } from '../SearchContext/SearchContext';
+import { useSearchContext } from '../SearchContext/SearchContext';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 import inputStyles from './InputStyles.module.scss';
 import { Switch } from 'antd';
@@ -14,7 +14,7 @@ import { SearchMatchOption } from '../../../components/Option/Option';
 
 export const VisitedUrlInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSearchContext();
 
     const { refetch } = useGetFieldSuggestionQuery({ skip: true });
 
@@ -80,7 +80,7 @@ export const VisitedUrlInput = () => {
 
 export const ReferrerInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSearchContext();
 
     const { refetch } = useGetFieldSuggestionQuery({ skip: true });
 
@@ -142,7 +142,7 @@ export const ReferrerInput = () => {
 };
 
 export const ViewedSessionsSwitch = () => {
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSearchContext();
 
     return (
         <div className={inputStyles.switchRow}>
@@ -169,7 +169,7 @@ export const ViewedSessionsSwitch = () => {
 };
 
 export const LiveSessionsSwitch = () => {
-    const { hideLiveSessions, setHideLiveSessions } = useContext(SearchContext);
+    const { hideLiveSessions, setHideLiveSessions } = useSearchContext();
 
     return (
         <div className={inputStyles.switchRow}>

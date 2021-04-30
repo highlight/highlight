@@ -113,6 +113,7 @@ type ComplexityRoot struct {
 		ID             func(childComplexity int) int
 		LineNumber     func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
+		Payload        func(childComplexity int) int
 		SessionID      func(childComplexity int) int
 		Source         func(childComplexity int) int
 		Timestamp      func(childComplexity int) int
@@ -167,10 +168,11 @@ type ComplexityRoot struct {
 		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
 		CreateOrganization             func(childComplexity int, name string) int
 		CreateSegment                  func(childComplexity int, organizationID int, name string, params model.SearchParamsInput) int
-		CreateSessionComment           func(childComplexity int, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage string) int
+		CreateSessionComment           func(childComplexity int, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage *string) int
 		DeleteErrorSegment             func(childComplexity int, segmentID int) int
 		DeleteOrganization             func(childComplexity int, id int) int
 		DeleteSegment                  func(childComplexity int, segmentID int) int
+		DeleteSessionComment           func(childComplexity int, id int) int
 		EditErrorSegment               func(childComplexity int, id int, organizationID int, params model.ErrorSearchParamsInput) int
 		EditOrganization               func(childComplexity int, id int, name *string, billingEmail *string) int
 		EditRecordingSettings          func(childComplexity int, organizationID int, details *string) int
@@ -259,26 +261,28 @@ type ComplexityRoot struct {
 	}
 
 	Session struct {
-		BrowserName         func(childComplexity int) int
-		BrowserVersion      func(childComplexity int) int
-		City                func(childComplexity int) int
-		CreatedAt           func(childComplexity int) int
-		EnableStrictPrivacy func(childComplexity int) int
-		FieldGroup          func(childComplexity int) int
-		Fields              func(childComplexity int) int
-		FirstTime           func(childComplexity int) int
-		ID                  func(childComplexity int) int
-		Identifier          func(childComplexity int) int
-		Length              func(childComplexity int) int
-		OSName              func(childComplexity int) int
-		OSVersion           func(childComplexity int) int
-		Postal              func(childComplexity int) int
-		Processed           func(childComplexity int) int
-		Starred             func(childComplexity int) int
-		State               func(childComplexity int) int
-		UserID              func(childComplexity int) int
-		UserObject          func(childComplexity int) int
-		Viewed              func(childComplexity int) int
+		BrowserName          func(childComplexity int) int
+		BrowserVersion       func(childComplexity int) int
+		City                 func(childComplexity int) int
+		CreatedAt            func(childComplexity int) int
+		EnableStrictPrivacy  func(childComplexity int) int
+		FieldGroup           func(childComplexity int) int
+		Fields               func(childComplexity int) int
+		FirstTime            func(childComplexity int) int
+		ID                   func(childComplexity int) int
+		Identifier           func(childComplexity int) int
+		Length               func(childComplexity int) int
+		OSName               func(childComplexity int) int
+		OSVersion            func(childComplexity int) int
+		ObjectStorageEnabled func(childComplexity int) int
+		PayloadSize          func(childComplexity int) int
+		Postal               func(childComplexity int) int
+		Processed            func(childComplexity int) int
+		Starred              func(childComplexity int) int
+		State                func(childComplexity int) int
+		UserID               func(childComplexity int) int
+		UserObject           func(childComplexity int) int
+		Viewed               func(childComplexity int) int
 	}
 
 	SessionComment struct {
@@ -340,7 +344,8 @@ type MutationResolver interface {
 	DeleteErrorSegment(ctx context.Context, segmentID int) (*bool, error)
 	EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model1.RecordingSettings, error)
 	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
-	CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage string) (*model1.SessionComment, error)
+	CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
+	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -653,6 +658,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.OrganizationID(childComplexity), true
 
+	case "ErrorObject.payload":
+		if e.complexity.ErrorObject.Payload == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.Payload(childComplexity), true
+
 	case "ErrorObject.session_id":
 		if e.complexity.ErrorObject.SessionID == nil {
 			break
@@ -924,7 +936,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admin_emails"].([]*string), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(string)), true
+		return e.complexity.Mutation.CreateSessionComment(childComplexity, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admin_emails"].([]*string), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string)), true
 
 	case "Mutation.deleteErrorSegment":
 		if e.complexity.Mutation.DeleteErrorSegment == nil {
@@ -961,6 +973,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteSegment(childComplexity, args["segment_id"].(int)), true
+
+	case "Mutation.deleteSessionComment":
+		if e.complexity.Mutation.DeleteSessionComment == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteSessionComment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteSessionComment(childComplexity, args["id"].(int)), true
 
 	case "Mutation.editErrorSegment":
 		if e.complexity.Mutation.EditErrorSegment == nil {
@@ -1661,6 +1685,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.OSVersion(childComplexity), true
 
+	case "Session.object_storage_enabled":
+		if e.complexity.Session.ObjectStorageEnabled == nil {
+			break
+		}
+
+		return e.complexity.Session.ObjectStorageEnabled(childComplexity), true
+
+	case "Session.payload_size":
+		if e.complexity.Session.PayloadSize == nil {
+			break
+		}
+
+		return e.complexity.Session.PayloadSize(childComplexity), true
+
 	case "Session.postal":
 		if e.complexity.Session.Postal == nil {
 			break
@@ -1898,6 +1936,8 @@ type Session {
     first_time: Boolean
     field_group: String
     enable_strict_privacy: Boolean
+    object_storage_enabled: Boolean
+    payload_size: Int64
 }
 
 type BillingDetails {
@@ -1959,6 +1999,7 @@ type ErrorObject {
     column_number: Int
     trace: [Any]
     timestamp: Time
+    payload: String
 }
 
 type ErrorField {
@@ -2248,8 +2289,9 @@ type Mutation {
         session_url: String!
         time: Float!
         author_name: String!
-        session_image: String!
+        session_image: String
     ): SessionComment
+    deleteSessionComment(id: ID!): Boolean
 }
 `, BuiltIn: false},
 }
@@ -2532,10 +2574,10 @@ func (ec *executionContext) field_Mutation_createSessionComment_args(ctx context
 		}
 	}
 	args["author_name"] = arg11
-	var arg12 string
+	var arg12 *string
 	if tmp, ok := rawArgs["session_image"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session_image"))
-		arg12, err = ec.unmarshalNString2string(ctx, tmp)
+		arg12, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2586,6 +2628,21 @@ func (ec *executionContext) field_Mutation_deleteSegment_args(ctx context.Contex
 		}
 	}
 	args["segment_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteSessionComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -4810,6 +4867,38 @@ func (ec *executionContext) _ErrorObject_timestamp(ctx context.Context, field gr
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ErrorObject_payload(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorObject",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Payload, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ErrorResults_error_groups(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorResults) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6236,7 +6325,7 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admin_emails"].([]*string), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(string))
+		return ec.resolvers.Mutation().CreateSessionComment(rctx, args["organization_id"].(int), args["admin_id"].(int), args["session_id"].(int), args["session_timestamp"].(int), args["text"].(string), args["text_for_email"].(string), args["x_coordinate"].(float64), args["y_coordinate"].(float64), args["tagged_admin_emails"].([]*string), args["session_url"].(string), args["time"].(float64), args["author_name"].(string), args["session_image"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6248,6 +6337,45 @@ func (ec *executionContext) _Mutation_createSessionComment(ctx context.Context, 
 	res := resTmp.(*model1.SessionComment)
 	fc.Result = res
 	return ec.marshalOSessionComment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSessionComment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteSessionComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteSessionComment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteSessionComment(rctx, args["id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
@@ -8969,6 +9097,70 @@ func (ec *executionContext) _Session_enable_strict_privacy(ctx context.Context, 
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_object_storage_enabled(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ObjectStorageEnabled, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_payload_size(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PayloadSize, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*int64)
+	fc.Result = res
+	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionComment_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11185,6 +11377,8 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			})
 		case "timestamp":
 			out.Values[i] = ec._ErrorObject_timestamp(ctx, field, obj)
+		case "payload":
+			out.Values[i] = ec._ErrorObject_payload(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11459,6 +11653,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createOrUpdateSubscription(ctx, field)
 		case "createSessionComment":
 			out.Values[i] = ec._Mutation_createSessionComment(ctx, field)
+		case "deleteSessionComment":
+			out.Values[i] = ec._Mutation_deleteSessionComment(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -12123,6 +12319,10 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_field_group(ctx, field, obj)
 		case "enable_strict_privacy":
 			out.Values[i] = ec._Session_enable_strict_privacy(ctx, field, obj)
+		case "object_storage_enabled":
+			out.Values[i] = ec._Session_object_storage_enabled(ctx, field, obj)
+		case "payload_size":
+			out.Values[i] = ec._Session_payload_size(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

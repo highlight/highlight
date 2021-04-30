@@ -518,7 +518,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -558,12 +558,14 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		p.SetDynamicTemplateData("Comment_Body", textForEmail)
 		p.SetDynamicTemplateData("Session_Image", sessionImage)
 
-		a := mail.NewAttachment()
-		a.SetContent(sessionImage)
-		a.SetFilename("session-image.png")
-		a.SetContentID("sessionImage")
-		a.SetType("image/png")
-		m.AddAttachment(a)
+		if sessionImage != nil {
+			a := mail.NewAttachment()
+			a.SetContent(*sessionImage)
+			a.SetFilename("session-image.png")
+			a.SetContentID("sessionImage")
+			a.SetType("image/png")
+			m.AddAttachment(a)
+		}
 
 		m.AddPersonalizations(p)
 
@@ -575,6 +577,13 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	}
 	commentMentionEmailSpan.Finish()
 	return sessionComment, nil
+}
+
+func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*bool, error) {
+	if err := r.DB.Delete(&model.SessionComment{Model: model.Model{ID: id}}).Error; err != nil {
+		return nil, e.Wrap(err, "error session comment")
+	}
+	return &model.T, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
@@ -592,7 +601,6 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
 	if os.Getenv("ENVIRONMENT") == "dev" && sessionID == 1 {
 		file, err := ioutil.ReadFile("./tmp/events.json")
-
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
 		}
@@ -601,11 +609,20 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 		if err := json.Unmarshal([]byte(file), &data); err != nil {
 			return nil, e.Wrap(err, "Failed to unmarshal data from file")
 		}
-
 		return data, nil
 	}
-	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+	s, err := r.isAdminSessionOwner(ctx, sessionID)
+	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
+	}
+	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
+		defer objectStorageSpan.Finish()
+		ret, err := r.StorageClient.ReadSessionsFromS3(sessionID, s.OrganizationID)
+		if err != nil {
+			return nil, err
+		}
+		return ret, nil
 	}
 	eventsQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.eventsObjectsQuery"))
 	eventObjs := []*model.EventsObject{}
@@ -704,8 +721,18 @@ func (r *queryResolver) ErrorGroup(ctx context.Context, id int) (*model.ErrorGro
 }
 
 func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interface{}, error) {
-	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+	s, err := r.isAdminSessionOwner(ctx, sessionID)
+	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
+	}
+	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
+		defer objectStorageSpan.Finish()
+		ret, err := r.StorageClient.ReadMessagesFromS3(sessionID, s.OrganizationID)
+		if err != nil {
+			return nil, e.Wrap(err, "error pulling messages from s3")
+		}
+		return ret, nil
 	}
 	messagesObj := []*model.MessagesObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: sessionID}).Find(&messagesObj); res.Error != nil {
@@ -736,8 +763,18 @@ func (r *queryResolver) Errors(ctx context.Context, sessionID int) ([]*model.Err
 }
 
 func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interface{}, error) {
-	if _, err := r.isAdminSessionOwner(ctx, sessionID); err != nil {
+	s, err := r.isAdminSessionOwner(ctx, sessionID)
+	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
+	}
+	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
+		defer objectStorageSpan.Finish()
+		ret, err := r.StorageClient.ReadResourcesFromS3(sessionID, s.OrganizationID)
+		if err != nil {
+			return nil, e.Wrap(err, "error pulling resources from s3")
+		}
+		return ret, nil
 	}
 	resourcesObject := []*model.ResourcesObject{}
 	if res := r.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: sessionID}).Find(&resourcesObject); res.Error != nil {

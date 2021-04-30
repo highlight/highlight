@@ -130,7 +130,7 @@ mutation CreateSessionComment(
     $session_url: String!
     $time: Float!
     $author_name: String!
-    $session_image: String!
+    $session_image: String
 ) {
     createSessionComment(
         organization_id: $organization_id
@@ -160,6 +160,10 @@ mutation CreateSessionComment(
         x_coordinate
         y_coordinate
     }
+}
+
+mutation DeleteSessionComment($id: ID!) {
+    deleteSessionComment(id: $id)
 }
 
 mutation DeleteErrorSegment($segment_id: ID!) {

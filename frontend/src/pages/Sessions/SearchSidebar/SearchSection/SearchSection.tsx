@@ -1,7 +1,10 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Collapsible from 'react-collapsible';
 import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg';
-import { SearchContext, SearchParams } from '../../SearchContext/SearchContext';
+import {
+    SearchParams,
+    useSearchContext,
+} from '../../SearchContext/SearchContext';
 import SearchCountBubble from '../SearchCountBubble/SearchCountBubble';
 import styles from './SearchSection.module.scss';
 
@@ -21,7 +24,7 @@ export const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
     searchParamsKey = [],
 }) => {
     const [isOpen, setIsOpen] = useState<boolean>(open);
-    const { searchParams } = useContext(SearchContext);
+    const { searchParams } = useSearchContext();
 
     const searchCount = useMemo(
         () =>

@@ -1,7 +1,7 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
-import { SearchContext } from '../SearchContext/SearchContext';
+import { useSearchContext } from '../SearchContext/SearchContext';
 import AsyncSelect from 'react-select/async';
 import { ReactComponent as OSIcon } from '../../../static/os.svg';
 import { ReactComponent as BrowserIcon } from '../../../static/browser.svg';
@@ -12,7 +12,7 @@ import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
 
 export const OperatingSystemInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSearchContext();
 
     const { refetch } = useGetFieldSuggestionQuery({ skip: true });
 
@@ -69,7 +69,7 @@ export const OperatingSystemInput = () => {
 
 export const BrowserInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { searchParams, setSearchParams } = useContext(SearchContext);
+    const { searchParams, setSearchParams } = useSearchContext();
 
     const { refetch } = useGetFieldSuggestionQuery({ skip: true });
 

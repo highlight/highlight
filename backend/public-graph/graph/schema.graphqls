@@ -18,6 +18,7 @@ input ErrorObjectInput {
     columnNumber: Int!
     trace: [Any]!
     timestamp: Time!
+    payload: String
 }
 
 input ReplayEventsInput {

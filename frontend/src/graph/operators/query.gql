@@ -25,6 +25,8 @@ query GetSession($id: ID!) {
             value
             type
         }
+        object_storage_enabled
+        payload_size
     }
 }
 
@@ -214,6 +216,7 @@ fragment errorFields on ErrorObject {
     column_number
     trace
     timestamp
+    payload
 }
 
 query GetFieldSuggestion(

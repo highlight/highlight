@@ -47,6 +47,8 @@ export type Session = {
     first_time?: Maybe<Scalars['Boolean']>;
     field_group?: Maybe<Scalars['String']>;
     enable_strict_privacy?: Maybe<Scalars['Boolean']>;
+    object_storage_enabled?: Maybe<Scalars['Boolean']>;
+    payload_size?: Maybe<Scalars['Int64']>;
 };
 
 export type BillingDetails = {
@@ -115,6 +117,7 @@ export type ErrorObject = {
     column_number?: Maybe<Scalars['Int']>;
     trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
     timestamp?: Maybe<Scalars['Time']>;
+    payload?: Maybe<Scalars['String']>;
 };
 
 export type ErrorField = {
@@ -457,6 +460,7 @@ export type Mutation = {
     editRecordingSettings?: Maybe<RecordingSettings>;
     createOrUpdateSubscription?: Maybe<Scalars['String']>;
     createSessionComment?: Maybe<SessionComment>;
+    deleteSessionComment?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -563,5 +567,9 @@ export type MutationCreateSessionCommentArgs = {
     session_url: Scalars['String'];
     time: Scalars['Float'];
     author_name: Scalars['String'];
-    session_image: Scalars['String'];
+    session_image?: Maybe<Scalars['String']>;
+};
+
+export type MutationDeleteSessionCommentArgs = {
+    id: Scalars['ID'];
 };
