@@ -33,3 +33,11 @@
         height: 24px;
     }
 }
+
+.noMetadataContainer {
+    p {
+        margin: 0;
+        font-size: 12px;
+        color: var(--color-gray-500);
+    }
+}

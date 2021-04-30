@@ -51,7 +51,7 @@ const MetadataPanel = () => {
                     </div>
                     <div>
                         <h2 className={styles.header}>User details</h2>
-                        {!(!parsedFields?.length || loading) && (
+                        {!(!parsedFields?.length || loading) ? (
                             <div className={styles.tagDiv}>
                                 <div className={styles.tagWrapper}>
                                     {parsedFields?.map((f, i) => (
@@ -63,6 +63,22 @@ const MetadataPanel = () => {
                                         />
                                     ))}
                                 </div>
+                            </div>
+                        ) : (
+                            <div className={styles.noMetadataContainer}>
+                                <p>
+                                    Did you know that you can enrich sessions
+                                    with additional metadata? They'll show up
+                                    here. You can learn more{' '}
+                                    <a
+                                        href="https://docs.highlight.run/docs/identifying-users"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        here
+                                    </a>
+                                    .
+                                </p>
                             </div>
                         )}
                     </div>
