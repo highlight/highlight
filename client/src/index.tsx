@@ -159,12 +159,12 @@ export class Highlight {
         if (source === 'segment') {
             addCustomEvent(
                 'Segment Identify',
-                JSON.stringify({ user_identifier, ...user_object })
+                stringify({ user_identifier, ...user_object })
             );
         } else {
             addCustomEvent(
                 'Identify',
-                JSON.stringify({ user_identifier, ...user_object })
+                stringify({ user_identifier, ...user_object })
             );
         }
         this.sessionData.userIdentifier = user_identifier;
@@ -176,7 +176,7 @@ export class Highlight {
         });
         const sourceString = source === 'segment' ? source : 'default';
         this.logger.log(
-            `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${JSON.stringify(
+            `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${stringify(
                 user_object
             )} @ ${process.env.PUBLIC_GRAPH_URI}`
         );
@@ -217,10 +217,10 @@ export class Highlight {
             if (typeArg?.source === 'segment') {
                 addCustomEvent<string>(
                     'Segment Track',
-                    JSON.stringify(properties_obj)
+                    stringify(properties_obj)
                 );
             } else {
-                addCustomEvent<string>('Track', JSON.stringify(properties_obj));
+                addCustomEvent<string>('Track', stringify(properties_obj));
             }
             await this.graphqlSDK.addTrackProperties({
                 session_id: this.sessionData.sessionID.toString(),
@@ -231,7 +231,7 @@ export class Highlight {
             this.logger.log(
                 `AddTrackProperties to session (${
                     this.sessionData.sessionID
-                }, source: ${sourceString}) w/ obj: ${JSON.stringify(
+                }, source: ${sourceString}) w/ obj: ${stringify(
                     properties_obj
                 )} @ ${process.env.PUBLIC_GRAPH_URI}`
             );
@@ -362,7 +362,7 @@ export class Highlight {
                     ConsoleListener((c: ConsoleMessage) => {
                         if (c.type == 'Error' && c.value && c.trace)
                             highlightThis.errors.push({
-                                event: JSON.stringify(c.value),
+                                event: stringify(c.value),
                                 type: 'console.error',
                                 url: window.location.href,
                                 source: c.trace[0].fileName
