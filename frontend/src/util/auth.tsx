@@ -7,7 +7,9 @@ let firebaseConfig: any;
 // with the string presented to an developer in the firebase console.
 // This value is passed at build time, so security concerns are put aside.
 try {
-    firebaseConfig = eval('(' + process.env.REACT_APP_FIREBASE_CONFIG + ')');
+    firebaseConfig = eval(
+        '(' + process.env.REACT_APP_FIREBASE_CONFIG_OBJECT + ')'
+    );
 } catch (e) {
     throw new TypeError(
         'Error parsing incoming firebase config' + e.toString()
