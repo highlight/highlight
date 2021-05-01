@@ -3,8 +3,8 @@ import 'firebase/auth';
 
 let firebaseConfig: any;
 
-// NOTE: we use eval() here (rather than JSON.parse) because its more intune
-// with the string presented to an developer in the firebase console.
+// NOTE: we use eval() here (rather than JSON.parse) because its more in-tune
+// with the string presented to a developer in the firebase console.
 // This value is passed at build time, so security concerns are put aside.
 try {
     firebaseConfig = eval(
