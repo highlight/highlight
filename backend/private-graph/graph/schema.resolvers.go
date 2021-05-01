@@ -568,9 +568,11 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		}
 
 		m.AddPersonalizations(p)
-		_, err := r.MailClient.Send(m)
+
+		resp, err := r.MailClient.Send(m)
+		fmt.Println(resp.StatusCode, resp.Body)
 		if err != nil {
-			log.Errorf("error sending sendgrid email for comments mentions: %v", err)
+			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
 		}
 	}
 	commentMentionEmailSpan.Finish()
