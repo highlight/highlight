@@ -29,14 +29,15 @@ import (
 )
 
 var (
-	env          = os.Getenv("ENVIRONMENT")
-	frontendURL  = os.Getenv("FRONTEND_URI")
-	statsdHost   = os.Getenv("DD_STATSD_HOST")
-	apmHost      = os.Getenv("DD_APM_HOST")
-	landingURL   = os.Getenv("LANDING_PAGE_URI")
-	sendgridKey  = os.Getenv("SENDGRID_API_KEY")
-	stripeApiKey = os.Getenv("STRIPE_API_KEY")
-	runtime      = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
+	env                = os.Getenv("ENVIRONMENT")
+	frontendURL        = os.Getenv("FRONTEND_URI")
+	staticFrontendPath = os.Getenv("STATIC_FRONTEND_PATH")
+	statsdHost         = os.Getenv("DD_STATSD_HOST")
+	apmHost            = os.Getenv("DD_APM_HOST")
+	landingURL         = os.Getenv("LANDING_PAGE_URI")
+	sendgridKey        = os.Getenv("SENDGRID_API_KEY")
+	stripeApiKey       = os.Getenv("STRIPE_API_KEY")
+	runtime            = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
 )
 
 var runtimeParsed util.Runtime
@@ -121,6 +122,13 @@ func main() {
 		AllowedHeaders:         []string{"Highlight-Demo", "Content-Type", "Token", "Sentry-Trace"},
 	}).Handler)
 	r.MethodFunc(http.MethodGet, "/health", health)
+
+	/*
+		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
+	*/
+	if staticFrontendPath != "" && runtimeParsed == util.All {
+		util.FileServer(r, "/*", staticFrontendPath)
+	}
 
 	/*
 		Selectively turn on backends depending on the input flag
