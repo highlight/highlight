@@ -169,8 +169,18 @@ func main() {
 	if staticFrontendPath != "" {
 		log.Printf("static frontend path: %v \n", staticFrontendPath)
 		f := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			fsHandler := http.StripPrefix(req.URL.Path, http.FileServer(http.Dir(staticFrontendPath)))
-			fsHandler.ServeHTTP(w, req)
+			fileServer := http.FileServer(http.Dir(staticFrontendPath))
+
+			staticIndex := strings.Index(req.URL.Path, "/static/")
+
+			if staticIndex == -1 {
+				// If we're not fetching a static file, return the index.html file directly.
+				fsHandler := http.StripPrefix(req.URL.Path, fileServer)
+				fsHandler.ServeHTTP(w, req)
+			} else {
+				// If we are fetching a static file, serve it.
+				fileServer.ServeHTTP(w, req)
+			}
 		})
 		r.Handle("/*", f)
 	}
