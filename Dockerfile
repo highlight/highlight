@@ -21,4 +21,5 @@ FROM alpine
 WORKDIR /root/
 ENV ONPREM_STATIC_FRONTEND_PATH="./"
 COPY --from=backend-builder /bin/backend /bin/backend
-COPY --from=frontend-builder /build-frontend/build ./
+RUN mkdir ./build
+COPY --from=frontend-builder /build-frontend/build ./build
