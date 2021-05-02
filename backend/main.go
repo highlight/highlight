@@ -182,7 +182,7 @@ func main() {
 		For anything else, just run the server.
 	*/
 	log.Printf("runtime is: %v \n", runtimeParsed)
-	log.Println("process running...")
+	log.Println("process running....")
 	if runtimeParsed == util.Worker {
 		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		w.Start()
