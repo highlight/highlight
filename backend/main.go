@@ -31,7 +31,7 @@ import (
 var (
 	env                = os.Getenv("ENVIRONMENT")
 	frontendURL        = os.Getenv("FRONTEND_URI")
-	staticFrontendPath = os.Getenv("STATIC_FRONTEND_PATH")
+	staticFrontendPath = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
 	statsdHost         = os.Getenv("DD_STATSD_HOST")
 	apmHost            = os.Getenv("DD_APM_HOST")
 	landingURL         = os.Getenv("LANDING_PAGE_URI")
