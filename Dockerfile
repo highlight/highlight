@@ -7,6 +7,8 @@ RUN go mod download
 RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /bin/backend
 
 FROM node:14-alpine as frontend-builder
+ARG REACT_APP_ONPREM=true
+ARG REACT_APP_COMMIT_SHA=1
 RUN mkdir /build-frontend
 WORKDIR /build-frontend
 COPY ./frontend/package.json ./frontend/yarn.lock ./
