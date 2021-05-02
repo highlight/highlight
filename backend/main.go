@@ -167,6 +167,7 @@ func main() {
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
 	*/
 	if staticFrontendPath != "" {
+		log.Printf("static frontend path: %v \n", staticFrontendPath)
 		f := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 			fsHandler := http.StripPrefix(req.URL.Path, http.FileServer(http.Dir(staticFrontendPath)))
 			fsHandler.ServeHTTP(w, req)
