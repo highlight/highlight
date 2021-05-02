@@ -4,10 +4,17 @@ import { setContext } from '@apollo/client/link/context';
 import * as firebase from 'firebase/app';
 import 'firebase/auth';
 
+const uri =
+    process.env.REACT_APP_PRIVATE_GRAPH_URI ??
+    window.location.origin + '/private';
 const httpLink = createHttpLink({
-    uri: process.env.REACT_APP_PRIVATE_GRAPH_URI,
+    uri,
     credentials: 'include',
 });
+
+if (process.env.REACT_APP_ONPREM) {
+    console.log('Private Graph URI: ', uri);
+}
 
 const authLink = setContext((_, { headers }) => {
     // get the authentication token from local storage if it exists
