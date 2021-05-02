@@ -126,8 +126,8 @@ func main() {
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
 	*/
-	fs := http.FileServer(http.Dir("build"))
-	r.Handle("/static/*", http.StripPrefix("/static/", fs))
+	fs := http.FileServer(http.Dir(staticFrontendPath))
+	r.Handle("/*", http.StripPrefix("/", fs))
 
 	/*
 		Selectively turn on backends depending on the input flag
