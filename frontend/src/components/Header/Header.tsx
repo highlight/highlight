@@ -83,8 +83,11 @@ const TrialBanner = ({ timeRemaining }: { timeRemaining: Duration }) => {
 
 const OnPremiseBanner = () => {
     return (
-        <div className={styles.trialWrapper}>
-            <Banner className={styles.bannerSvg} />
+        <div
+            className={styles.trialWrapper}
+            style={{ backgroundColor: 'black' }}
+        >
+            <Banner className={styles.bannerSvg} style={{ fill: 'black' }} />
             <div className={classNames(styles.trialTimeText)}>
                 Runnning Highlight On-premise{' '}
                 {`v${process.env.REACT_APP_COMMIT_SHA}`}
