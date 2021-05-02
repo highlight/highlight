@@ -124,12 +124,6 @@ func main() {
 	r.MethodFunc(http.MethodGet, "/health", health)
 
 	/*
-		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
-	*/
-	fs := http.FileServer(http.Dir(staticFrontendPath))
-	r.Handle("/*", http.StripPrefix("/", fs))
-
-	/*
 		Selectively turn on backends depending on the input flag
 		If type is 'all', we run public-graph on /public and private-graph on /private
 		If type is 'public-graph', we run public-graph on /
@@ -167,6 +161,17 @@ func main() {
 			clientServer.Use(util.NewTracer(util.PublicGraph))
 			r.Handle("/", clientServer)
 		})
+	}
+
+	/*
+		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
+	*/
+	if staticFrontendPath != "" {
+		f := http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			fsHandler := http.StripPrefix(req.URL.Path, http.FileServer(http.Dir(staticFrontendPath)))
+			fsHandler.ServeHTTP(w, req)
+		})
+		r.Handle("/*", f)
 	}
 
 	/*
