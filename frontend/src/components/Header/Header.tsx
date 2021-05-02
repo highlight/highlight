@@ -27,8 +27,12 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
         <>
             <CommandBar />
             <div className={styles.header}>
-                {trialTimeRemaining && (
+                {process.env.REACT_APP_ONPREM ? (
+                    <OnPremiseBanner />
+                ) : trialTimeRemaining ? (
                     <TrialBanner timeRemaining={trialTimeRemaining} />
+                ) : (
+                    <></>
                 )}
                 <div className={styles.headerContent}>
                     <div className={styles.logoWrapper}>
@@ -72,6 +76,18 @@ const TrialBanner = ({ timeRemaining }: { timeRemaining: Duration }) => {
                 >
                     here!
                 </Link>
+            </div>
+        </div>
+    );
+};
+
+const OnPremiseBanner = () => {
+    return (
+        <div className={styles.trialWrapper}>
+            <Banner className={styles.bannerSvg} />
+            <div className={classNames(styles.trialTimeText)}>
+                Runnning Highlight On-premise{' '}
+                {`v${process.env.REACT_APP_COMMIT_SHA}`}
             </div>
         </div>
     );
