@@ -4,8 +4,7 @@ import { setContext } from '@apollo/client/link/context';
 import * as firebase from 'firebase/app';
 import 'firebase/auth';
 
-// const uri = process.env.REACT_APP_PRIVATE_GRAPH_URI ?? window.location.origin;
-const uri = window.location.origin + '/private';
+const uri = process.env.REACT_APP_PRIVATE_GRAPH_URI ?? window.location.origin;
 const httpLink = createHttpLink({
     uri,
     credentials: 'include',
