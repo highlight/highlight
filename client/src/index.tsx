@@ -181,7 +181,7 @@ export class Highlight {
         );
     }
 
-    async pushCustomError(message: string) {
+    async pushCustomError(message: string, payload?: string) {
         const result = await StackTrace.get();
         const frames = result.slice(1);
         this.errors.push({
@@ -193,6 +193,7 @@ export class Highlight {
             columnNumber: frames[0].columnNumber ?? 0,
             trace: frames,
             timestamp: new Date().toISOString(),
+            payload: payload,
         });
     }
 

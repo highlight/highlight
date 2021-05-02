@@ -607,6 +607,7 @@ export type ErrorFieldsFragment = { __typename?: 'ErrorObject' } & Pick<
     | 'column_number'
     | 'trace'
     | 'timestamp'
+    | 'payload'
 >;
 
 export type GetFieldSuggestionQueryVariables = Types.Exact<{

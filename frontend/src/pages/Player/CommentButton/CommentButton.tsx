@@ -37,8 +37,10 @@ const CommentButton = ({
             session_id: session_id,
         },
     });
-    const deepLinkedCommentId = new URLSearchParams(location.search).get(
-        PlayerSearchParameters.commentId
+    const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
+        new URLSearchParams(location.search).get(
+            PlayerSearchParameters.commentId
+        )
     );
     const [
         enabledTimelineAnnotation,
@@ -58,6 +60,14 @@ const CommentButton = ({
         .width;
     const playerBoundingClientRectHeight = replayer?.wrapper?.getBoundingClientRect()
         .height;
+
+    useEffect(() => {
+        const commentId = new URLSearchParams(location.search).get(
+            PlayerSearchParameters.commentId
+        );
+        setDeepLinkedCommentId(commentId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.search]);
 
     // Set size of the button to be the same as the replayer. This allows us to intercept any clicks on replayer.
     useEffect(() => {

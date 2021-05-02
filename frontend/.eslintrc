@@ -59,6 +59,13 @@
               "Tooltip"
             ],
             "message": "Please use Tooltip from /src/components/Tooltip instead."
+          },
+          {
+            "name": "antd",
+            "importNames": [
+              "Tabs"
+            ],
+            "message": "Please use Tabs from /src/components/Tab instead."
           }
         ]
       }
