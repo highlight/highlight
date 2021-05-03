@@ -1,0 +1,16 @@
+.container {
+    --button-width: 160px;
+    position: absolute;
+    bottom: var(--size-xLarge);
+    transition: transform 0.3s ease-in-out;
+
+    // Width of the button + left padding
+    transform: translateX(
+        calc(var(--button-width) + 32px + calc(var(--size-xLarge) * 2))
+    );
+    &.collapsed {
+        transform: translateX(
+            calc(var(--button-width) + 64px + calc(var(--size-xxLarge) * 2))
+        );
+    }
+}
