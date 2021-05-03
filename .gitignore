@@ -3,6 +3,7 @@ tmp
 **/.DS_Store
 dist
 out
+build
 
 
 apollo.config.js
