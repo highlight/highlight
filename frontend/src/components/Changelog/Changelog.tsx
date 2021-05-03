@@ -1,6 +1,7 @@
 import { gql, useQuery } from '@apollo/client';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 import moment from 'moment';
 import React, { useState } from 'react';
 import Popover from '../Popover/Popover';
@@ -88,9 +89,12 @@ const Changelog = () => {
                 align={{ offset: [18, -12] }}
                 placement="rightBottom"
                 hasBorder
-                onVisibleChange={() => {
-                    setHasNewUpdates(false);
-                    setLastReadId(data[0].id);
+                onVisibleChange={(visible) => {
+                    if (visible) {
+                        setHasNewUpdates(false);
+                        setLastReadId(data[0].id);
+                        H.track('Viewed changelog', {});
+                    }
                 }}
                 content={
                     <div className={styles.changelogContainer}>
@@ -124,7 +128,7 @@ const Changelog = () => {
                     <div className={styles.popoverHeader}>
                         <h3>Changelog</h3>
                         <a
-                            href="https://highlight.launchnotes.io/"
+                            href="https://changes.highlight.run/"
                             target="_blank"
                             rel="noreferrer"
                         >
