@@ -68,11 +68,15 @@ export const Sidebar = () => {
                         <TeamIcon className={styles.icon} />
                     </div>
                 </SidebarItem>
-                <SidebarItem text="Billing" route="billing">
-                    <div className={styles.iconWrapper}>
-                        <CreditCardIcon className={styles.icon} />
-                    </div>
-                </SidebarItem>
+                {process.env.REACT_APP_ONPREM === 'true' ? (
+                    <SidebarItem text="Billing" route="billing">
+                        <div className={styles.iconWrapper}>
+                            <CreditCardIcon className={styles.icon} />
+                        </div>
+                    </SidebarItem>
+                ) : (
+                    <> </>
+                )}
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
                         {!loadingBillingDetails &&

@@ -27,7 +27,7 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
         <>
             <CommandBar />
             <div className={styles.header}>
-                {process.env.REACT_APP_ONPREM ? (
+                {process.env.REACT_APP_ONPREM === 'true' ? (
                     <OnPremiseBanner />
                 ) : trialTimeRemaining ? (
                     <TrialBanner timeRemaining={trialTimeRemaining} />

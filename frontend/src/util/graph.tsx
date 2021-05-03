@@ -12,7 +12,7 @@ const httpLink = createHttpLink({
     credentials: 'include',
 });
 
-if (process.env.REACT_APP_ONPREM) {
+if (process.env.REACT_APP_ONPREM === 'true') {
     console.log('Private Graph URI: ', uri);
 }
 
