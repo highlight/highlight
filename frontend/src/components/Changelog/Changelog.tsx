@@ -60,11 +60,15 @@ const Changelog = () => {
         },
         onCompleted: (data) => {
             if (data) {
-                const parsedData = data.viewer.project.announcements.edges.map(
-                    ({ node }) => {
+                const parsedData = data.viewer.project.announcements.edges
+                    .map(({ node }) => {
                         return { ...node };
-                    }
-                );
+                    })
+                    .sort(
+                        (a, b) =>
+                            new Date(b.publishedAt).getTime() -
+                            new Date(a.publishedAt).getTime()
+                    );
 
                 setData(parsedData);
                 const latestChangelogItem = parsedData[0];
