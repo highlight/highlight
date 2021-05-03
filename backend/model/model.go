@@ -344,6 +344,13 @@ type SessionComment struct {
 	YCoordinate float64
 }
 
+type ErrorComment struct {
+	Model
+	AdminId int
+	ErrorId int
+	Text    string
+}
+
 func SetupDB() *gorm.DB {
 	log.Println("setting up database")
 	psqlConf := fmt.Sprintf(
@@ -381,6 +388,7 @@ func SetupDB() *gorm.DB {
 		&EmailSignup{},
 		&ResourcesObject{},
 		&SessionComment{},
+		&ErrorComment{},
 	); err != nil {
 		log.Fatalf("Error migrating db: %v", err)
 	}

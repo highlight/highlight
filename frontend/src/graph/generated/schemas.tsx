@@ -284,6 +284,15 @@ export type SessionComment = {
     y_coordinate: Scalars['Float'];
 };
 
+export type ErrorComment = {
+    __typename?: 'ErrorComment';
+    id: Scalars['ID'];
+    created_at: Scalars['Time'];
+    updated_at: Scalars['Time'];
+    author: SanitizedAdmin;
+    text: Scalars['String'];
+};
+
 export enum SessionLifecycle {
     All = 'All',
     Live = 'Live',
@@ -314,6 +323,7 @@ export type Query = {
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
+    error_comments: Array<Maybe<ErrorComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
@@ -365,6 +375,10 @@ export type QueryResourcesArgs = {
 
 export type QuerySession_CommentsArgs = {
     session_id: Scalars['ID'];
+};
+
+export type QueryError_CommentsArgs = {
+    error_group_id: Scalars['ID'];
 };
 
 export type QueryAdminsArgs = {
@@ -461,6 +475,8 @@ export type Mutation = {
     createOrUpdateSubscription?: Maybe<Scalars['String']>;
     createSessionComment?: Maybe<SessionComment>;
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
+    createErrorComment?: Maybe<ErrorComment>;
+    deleteErrorComment?: Maybe<Scalars['Boolean']>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -571,5 +587,21 @@ export type MutationCreateSessionCommentArgs = {
 };
 
 export type MutationDeleteSessionCommentArgs = {
+    id: Scalars['ID'];
+};
+
+export type MutationCreateErrorCommentArgs = {
+    organization_id: Scalars['ID'];
+    admin_id: Scalars['ID'];
+    error_group_id: Scalars['ID'];
+    text: Scalars['String'];
+    text_for_email: Scalars['String'];
+    tagged_admin_emails: Array<Maybe<Scalars['String']>>;
+    error_url: Scalars['String'];
+    author_name: Scalars['String'];
+    error_image?: Maybe<Scalars['String']>;
+};
+
+export type MutationDeleteErrorCommentArgs = {
     id: Scalars['ID'];
 };

@@ -28,6 +28,31 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
+	admin := &model.Admin{}
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+		return nil, e.Wrap(err, "Error finding admin for comment")
+	}
+
+	name := ""
+	email := ""
+
+	if admin.Name != nil {
+		name = *admin.Name
+	}
+	if admin.Email != nil {
+		email = *admin.Email
+	}
+
+	sanitizedAdmin := &modelInputs.SanitizedAdmin{
+		ID:    admin.ID,
+		Name:  &name,
+		Email: email,
+	}
+
+	return sanitizedAdmin, nil
+}
+
 func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) ([]*string, error) {
 	return util.JsonStringToStringArray(obj.Event), nil
 }
@@ -586,6 +611,61 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdminEmails []*string, errorURL string, authorName string, errorImage *string) (*model.ErrorComment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	errorComment := &model.ErrorComment{
+		AdminId: adminID,
+		ErrorId: errorGroupID,
+		Text:    text,
+	}
+	createErrorCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment", tracer.ResourceName("db.createErrorComment"))
+	if err := r.DB.Create(errorComment).Error; err != nil {
+		return nil, e.Wrap(err, "error creating error comment")
+	}
+	createErrorCommentSpan.Finish()
+
+	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment", tracer.ResourceName("sendgrid.sendCommentMention"))
+	commentMentionEmailSpan.SetTag("count", len(taggedAdminEmails))
+	if len(taggedAdminEmails) > 0 {
+		tos := []*mail.Email{}
+
+		for _, email := range taggedAdminEmails {
+			tos = append(tos, &mail.Email{Address: *email})
+		}
+		m := mail.NewV3Mail()
+		from := mail.NewEmail("Highlight", "notifications@highlight.run")
+		viewLink := fmt.Sprintf("%v", errorURL)
+		m.SetFrom(from)
+		m.SetTemplateID(SendGridCommentEmailTemplateID)
+
+		p := mail.NewPersonalization()
+		p.AddTos(tos...)
+		p.SetDynamicTemplateData("Author_Name", authorName)
+		p.SetDynamicTemplateData("Comment_Link", viewLink)
+		p.SetDynamicTemplateData("Comment_Body", textForEmail)
+
+		m.AddPersonalizations(p)
+
+		resp, err := r.MailClient.Send(m)
+		fmt.Println(resp.StatusCode, resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
+		}
+	}
+	commentMentionEmailSpan.Finish()
+	return errorComment, nil
+}
+
+func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*bool, error) {
+	if err := r.DB.Delete(&model.ErrorComment{Model: model.Model{ID: id}}).Error; err != nil {
+		return nil, e.Wrap(err, "error deleting error_comment")
+	}
+	return &model.T, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	if _, err := r.isAdminSessionOwner(ctx, id); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -801,6 +881,18 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionID int) ([]*
 		return nil, e.Wrap(err, "error querying session comments for session")
 	}
 	return sessionComments, nil
+}
+
+func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupID int) ([]*model.ErrorComment, error) {
+	if _, err := r.isAdminErrorGroupOwner(ctx, errorGroupID); err != nil {
+		return nil, e.Wrap(err, "admin not error owner")
+	}
+
+	errorComments := []*model.ErrorComment{}
+	if err := r.DB.Where(model.ErrorComment{ErrorId: errorGroupID}).Order("created_at asc").Find(&errorComments).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error comments for error_group")
+	}
+	return errorComments, nil
 }
 
 func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*model.Admin, error) {
@@ -1333,6 +1425,9 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 	return sanitizedAdmin, nil
 }
 
+// ErrorComment returns generated.ErrorCommentResolver implementation.
+func (r *Resolver) ErrorComment() generated.ErrorCommentResolver { return &errorCommentResolver{r} }
+
 // ErrorGroup returns generated.ErrorGroupResolver implementation.
 func (r *Resolver) ErrorGroup() generated.ErrorGroupResolver { return &errorGroupResolver{r} }
 
@@ -1359,6 +1454,7 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }
