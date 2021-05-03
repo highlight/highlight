@@ -124,10 +124,13 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	}
 	trialEnd := time.Now().AddDate(0, 0, 14)
 
-	params := &stripe.CustomerParams{}
-	c, err := r.StripeClient.Customers.New(params)
-	if err != nil {
-		return nil, e.Wrap(err, "error creating stripe customer")
+	c := &stripe.Customer{}
+	if os.Getenv("REACT_APP_ONPREM") != "true" {
+		params := &stripe.CustomerParams{}
+		c, err = r.StripeClient.Customers.New(params)
+		if err != nil {
+			return nil, e.Wrap(err, "error creating stripe customer")
+		}
 	}
 
 	org := &model.Organization{
