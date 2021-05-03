@@ -17,6 +17,7 @@ import { DemoContext } from '../../DemoContext';
 import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import Tooltip from '../Tooltip/Tooltip';
+import Changelog from '../Changelog/Changelog';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -89,15 +90,23 @@ export const Sidebar = () => {
                         ) : (
                             <></>
                         )}
-                        <Link to={'/about/terms'} className={styles.bottomLink}>
-                            Terms of Service
-                        </Link>
-                        <Link
-                            className={styles.bottomLink}
-                            to={'/about/privacy'}
-                        >
-                            Privacy Policy
-                        </Link>
+                        <div className={styles.bottomContainer}>
+                            <div className={styles.bottomLinkContainer}>
+                                <Link
+                                    to={'/about/terms'}
+                                    className={styles.bottomLink}
+                                >
+                                    Terms of Service
+                                </Link>
+                                <Link
+                                    className={styles.bottomLink}
+                                    to={'/about/privacy'}
+                                >
+                                    Privacy Policy
+                                </Link>
+                            </div>
+                            <Changelog className={styles.changelogButton} />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -133,6 +142,7 @@ const StaticSidebar = () => {
                 <MiniSidebarItem route="billing" text="Billing">
                     <CreditCardIcon className={styles.icon} />
                 </MiniSidebarItem>
+                <Changelog />
             </div>
             <div style={{ paddingLeft: 62, height: '100%' }} />
         </>
