@@ -3,7 +3,7 @@ import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import moment from 'moment';
-import React, { useState } from 'react';
+import React, { HTMLProps, useState } from 'react';
 import Popover from '../Popover/Popover';
 import styles from './Changelog.module.scss';
 
@@ -47,7 +47,7 @@ interface LaunchNotesResponse {
     };
 }
 
-const Changelog = () => {
+const Changelog = (props: HTMLProps<HTMLDivElement>) => {
     const [data, setData] = useState<AnnouncementNode[] | null>(null);
     const [lastReadId, setLastReadId] = useLocalStorage(
         'highlightChangelogLastReadId',
@@ -84,7 +84,10 @@ const Changelog = () => {
         return null;
     }
     return (
-        <div className={styles.container}>
+        <div
+            {...props}
+            className={classNames(styles.container, props.className)}
+        >
             <Popover
                 align={{ offset: [18, -12] }}
                 placement="rightBottom"

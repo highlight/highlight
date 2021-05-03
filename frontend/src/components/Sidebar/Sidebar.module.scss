@@ -46,12 +46,30 @@
     justify-content: flex-end;
 }
 
+.bottomLinkContainer {
+    display: flex;
+    flex-direction: column;
+}
+
 .bottomWrapper {
     flex-grow: 1;
     height: 100%;
     position: relative;
     width: 100%;
     padding: 20px;
+}
+
+.bottomContainer {
+    display: flex;
+    justify-content: space-between;
+}
+
+.changelogButton {
+    margin-right: calc(var(--size-medium) * -1);
+
+    & > button {
+        margin-bottom: 0;
+    }
 }
 
 .bottomLink {

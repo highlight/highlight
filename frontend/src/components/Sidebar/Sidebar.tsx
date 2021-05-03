@@ -90,15 +90,23 @@ export const Sidebar = () => {
                         ) : (
                             <></>
                         )}
-                        <Link to={'/about/terms'} className={styles.bottomLink}>
-                            Terms of Service
-                        </Link>
-                        <Link
-                            className={styles.bottomLink}
-                            to={'/about/privacy'}
-                        >
-                            Privacy Policy
-                        </Link>
+                        <div className={styles.bottomContainer}>
+                            <div className={styles.bottomLinkContainer}>
+                                <Link
+                                    to={'/about/terms'}
+                                    className={styles.bottomLink}
+                                >
+                                    Terms of Service
+                                </Link>
+                                <Link
+                                    className={styles.bottomLink}
+                                    to={'/about/privacy'}
+                                >
+                                    Privacy Policy
+                                </Link>
+                            </div>
+                            <Changelog className={styles.changelogButton} />
+                        </div>
                     </div>
                 </div>
             </div>
