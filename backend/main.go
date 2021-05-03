@@ -168,7 +168,7 @@ func main() {
 	/*
 		Run a simple server that runs the frontend if 'staticFrontedPath' and 'all' is set.
 	*/
-	if staticFrontendPath != "" {
+	if staticFrontendPath != "" && os.Getenv("REACT_APP_ONPREM") == "true" {
 		log.Printf("static frontend path: %v \n", staticFrontendPath)
 		staticHtmlPath := path.Join(staticFrontendPath, "index.html")
 		t, err := template.ParseFiles(staticHtmlPath)
