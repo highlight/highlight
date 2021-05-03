@@ -188,7 +188,6 @@ func main() {
 		err = t.Execute(f, c)
 		if err != nil {
 			log.Fatalf("error executing golang template: %v \n", err)
-			return
 		}
 
 		log.Printf("running templating script: %v \n", staticFrontendPath)
