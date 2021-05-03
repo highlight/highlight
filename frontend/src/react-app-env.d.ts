@@ -7,4 +7,5 @@ interface Window {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Intercom: any;
     _highlightFirebaseConfig: any;
+    _highlightFirebaseConfigString: any;
 }
