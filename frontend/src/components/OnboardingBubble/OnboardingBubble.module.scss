@@ -13,6 +13,24 @@
             calc(var(--button-width) + 64px + calc(var(--size-xxLarge) * 2))
         );
     }
+
+    .stepsCount {
+        --bubble-height: 27px;
+
+        position: absolute;
+        font-size: 18px;
+        line-height: normal;
+        right: calc(var(--size-xSmall) * -1);
+        top: calc(var(--bubble-height) / 2 * -1);
+        background: var(--color-red-300);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: var(--bubble-height);
+        width: var(--bubble-height);
+        border: 1px solid var(--color-red);
+    }
 }
 
 .onboardingBubblePopover {

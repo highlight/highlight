@@ -64,6 +64,13 @@ const OnboardingBubble = ({ collapsed }: Props) => {
         },
     ];
 
+    const stepsNotFinishedCount = STEPS.reduce((prev, curr) => {
+        if (!curr.completed) {
+            return prev + 1;
+        }
+        return prev;
+    }, 0);
+
     return (
         <div
             className={classNames(styles.container, {
@@ -114,7 +121,12 @@ const OnboardingBubble = ({ collapsed }: Props) => {
                     </>
                 }
             >
-                <PillButton type="primary">Highlight setup</PillButton>
+                <PillButton type="primary">
+                    <div className={styles.stepsCount}>
+                        {stepsNotFinishedCount}
+                    </div>
+                    Highlight setup
+                </PillButton>
             </Popover>
         </div>
     );
