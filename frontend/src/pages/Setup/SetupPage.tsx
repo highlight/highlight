@@ -1,9 +1,4 @@
-import React, {
-    useEffect,
-    useState,
-    FunctionComponent,
-    useContext,
-} from 'react';
+import React, { useState, FunctionComponent } from 'react';
 
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
@@ -12,7 +7,6 @@ import styles from './SetupPage.module.scss';
 import useFetch from 'use-http';
 import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import Collapsible from 'react-collapsible';
 import Skeleton from 'react-loading-skeleton';
 import { H } from 'highlight.run';
@@ -30,15 +24,10 @@ enum PlatformType {
 
 export const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const [platform, setPlatform] = useState(PlatformType.React);
-    const { setOpenSidebar } = useContext(SidebarContext);
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data, loading } = useGetOrganizationQuery({
         variables: { id: organization_id },
     });
-
-    useEffect(() => {
-        setOpenSidebar(true);
-    }, [setOpenSidebar]);
 
     return (
         <div className={styles.setupWrapper}>

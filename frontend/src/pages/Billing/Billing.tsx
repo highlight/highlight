@@ -1,4 +1,4 @@
-import React, { useEffect, useContext, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard';
@@ -9,7 +9,6 @@ import {
 } from './BillingPlanCard/BillingConfig';
 
 import styles from './Billing.module.scss';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 import Skeleton from 'react-loading-skeleton';
 import { message } from 'antd';
@@ -38,8 +37,6 @@ export const Billing = () => {
     ] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
 
-    const { setOpenSidebar } = useContext(SidebarContext);
-
     const {
         loading: billingLoading,
         error: billingError,
@@ -55,10 +52,6 @@ export const Billing = () => {
         createOrUpdateSubscription,
         { data },
     ] = useCreateOrUpdateSubscriptionMutation();
-
-    useEffect(() => {
-        setOpenSidebar(true);
-    }, [setOpenSidebar]);
 
     useEffect(() => {
         const response = pathname.split('/')[3] ?? '';

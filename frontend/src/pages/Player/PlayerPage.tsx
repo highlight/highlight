@@ -19,7 +19,6 @@ import { HighlightEvent } from './HighlightEvent';
 import useResizeAware from 'react-resize-aware';
 import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import { usePlayer } from './PlayerHook/PlayerHook';
@@ -52,7 +51,6 @@ export const Player = () => {
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
-    const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [showRightPanelPreference] = useLocalStorage(
         'highlightMenuShowRightPanel',
@@ -73,10 +71,6 @@ export const Player = () => {
             });
         }
     }, [session_id, markSessionAsViewed]);
-
-    useEffect(() => {
-        setOpenSidebar(false);
-    }, [setOpenSidebar]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const resizePlayer = (replayer: Replayer): boolean => {
