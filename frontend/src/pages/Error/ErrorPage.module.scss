@@ -11,8 +11,8 @@
 
 .errorPageRight {
     padding-left: 40px;
-    width: 300px;
-    min-width: 300px;
+    width: 320px;
+    min-width: 320px;
 }
 
 .errorPageRightContent {
@@ -197,4 +197,80 @@
     max-width: 240px;
     margin: 10px auto;
     display: block;
+}
+
+.actionButtons {
+    display: flex;
+    gap: $size-xSmall;
+    justify-content: flex-end;
+}
+
+.actionButtonsContainer {
+    margin-bottom: 0;
+}
+
+.commentInputContainer {
+    padding: 0 var(--size-xSmall);
+}
+
+.intercomLink {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.commentInputDiv {
+    display: flex;
+    padding: var(--size-xSmall);
+    align-items: center;
+    @include rounded-border;
+}
+
+.ellipsisButton {
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    border-radius: var(--button-border-radius);
+    height: 100%;
+
+    &:hover {
+        background: var(--color-gray-300);
+    }
+
+    &:active {
+        background: var(--color-gray-400);
+    }
+}
+
+.endActions {
+    margin-left: auto;
+}
+
+.commentUpdatedTime {
+    color: $text-label;
+    font-weight: 200;
+    flex-shrink: 0;
+}
+
+.commentHeader {
+    display: flex;
+    gap: var(--size-xSmall);
+    margin-bottom: var(--size-xSmall);
+}
+
+.commentAuthor {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.commentDiv {
+    margin-bottom: var(--size-large);
+    font-size: var(--size-small);
+}
+
+.commentsContainer {
+    max-height: 300px;
+    overflow: auto;
 }
