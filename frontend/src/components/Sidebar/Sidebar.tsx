@@ -15,9 +15,14 @@ import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
 import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
 import { DemoContext } from '../../DemoContext';
 import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
-import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
+import {
+    useGetAdminQuery,
+    useGetBillingDetailsQuery,
+} from '../../graph/generated/hooks';
 import Tooltip from '../Tooltip/Tooltip';
 import Changelog from '../Changelog/Changelog';
+import OnboardingBubble from '../OnboardingBubble/OnboardingBubble';
+import useLocalStorage from '@rehooks/local-storage';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -25,6 +30,13 @@ export const Sidebar = () => {
     const { data, loading: loadingBillingDetails } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
+    const { data: a_data } = useGetAdminQuery({
+        skip: false,
+    });
+    const [hasFinishedOnboarding] = useLocalStorage(
+        `highlight-finished-onboarding-${organization_id}`,
+        false
+    );
 
     return (
         <>
@@ -109,6 +121,10 @@ export const Sidebar = () => {
                         </div>
                     </div>
                 </div>
+                {!hasFinishedOnboarding &&
+                    a_data?.admin?.email.includes('@highlight.run') && (
+                        <OnboardingBubble collapsed={!openSidebar} />
+                    )}
             </div>
         </>
     );

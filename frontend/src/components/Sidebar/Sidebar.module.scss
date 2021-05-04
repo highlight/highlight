@@ -7,7 +7,7 @@
     z-index: 40;
     width: 280px;
     border-right: 1px solid #eaeaea;
-    transition: margin-left 0.3s;
+    transition: margin-left 0.3s ease-in-out;
     margin-left: -280px;
     display: flex;
     align-items: center;

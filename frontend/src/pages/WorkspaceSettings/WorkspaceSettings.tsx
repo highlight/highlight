@@ -1,17 +1,11 @@
-import React, { useContext, useEffect } from 'react';
+import React from 'react';
 
 import styles from './WorkspaceSettings.module.scss';
 import classNames from 'classnames/bind';
 import { FieldsForm } from './FieldsForm/FieldsForm';
 import { DangerForm } from './DangerForm/DangerForm';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 export const WorkspaceSettings = () => {
-    const { setOpenSidebar } = useContext(SidebarContext);
-
-    useEffect(() => {
-        setOpenSidebar(true);
-    }, [setOpenSidebar]);
     return (
         <div className={styles.settingsPageWrapper}>
             <div className={styles.blankSidebar}></div>

@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { Field } from '../../components/Field/Field';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
 import {
     BarChart,
@@ -29,14 +28,9 @@ import { parseErrorDescriptionList } from './components/ErrorDescription/utils/u
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
-    const { setOpenSidebar } = useContext(SidebarContext);
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
     });
-
-    useEffect(() => {
-        setOpenSidebar(false);
-    }, [setOpenSidebar]);
 
     return (
         <div className={styles.errorPageWrapper}>

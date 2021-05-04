@@ -66,6 +66,13 @@
               "Tabs"
             ],
             "message": "Please use Tabs from /src/components/Tab instead."
+          },
+          {
+            "name": "antd",
+            "importNames": [
+              "Progress"
+            ],
+            "message": "Please use Progress from /src/components/Progress instead."
           }
         ]
       }

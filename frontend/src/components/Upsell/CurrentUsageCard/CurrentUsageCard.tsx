@@ -1,6 +1,6 @@
-import { Progress } from 'antd';
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
+import Progress from '../../Progress/Progress';
 import styles from './CurrentUsageCard.module.scss';
 
 export interface CurrentUsageCardProps {
@@ -24,9 +24,9 @@ export const CurrentUsageCard: React.FC<CurrentUsageCardProps> = ({
                 sessions limit ({((currentUsage / limit) * 100).toFixed(0)}%).
             </p>
             <Progress
-                percent={Math.floor((currentUsage / limit) * 100)}
+                numerator={currentUsage}
+                denominator={limit}
                 showInfo={false}
-                strokeColor="#5629c6"
             />
         </section>
     );
