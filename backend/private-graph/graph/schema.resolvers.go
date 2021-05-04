@@ -546,12 +546,22 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
+	admins := []model.Admin{}
+	for _, a := range taggedAdmins {
+		admins = append(admins,
+			model.Admin{
+				Model: model.Model{ID: a.ID},
+			},
+		)
+	}
+
 	sessionComment := &model.SessionComment{
+		Admins:      admins,
 		AdminId:     adminID,
 		SessionId:   sessionID,
 		Timestamp:   sessionTimestamp,
@@ -566,12 +576,12 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	createSessionCommentSpan.Finish()
 
 	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment", tracer.ResourceName("sendgrid.sendCommentMention"))
-	commentMentionEmailSpan.SetTag("count", len(taggedAdminEmails))
-	if len(taggedAdminEmails) > 0 {
+	commentMentionEmailSpan.SetTag("count", len(taggedAdmins))
+	if len(taggedAdmins) > 0 {
 		tos := []*mail.Email{}
 
-		for _, email := range taggedAdminEmails {
-			tos = append(tos, &mail.Email{Address: *email})
+		for _, admin := range taggedAdmins {
+			tos = append(tos, &mail.Email{Address: admin.Email})
 		}
 		m := mail.NewV3Mail()
 		from := mail.NewEmail("Highlight", "notifications@highlight.run")
@@ -883,6 +893,19 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionID int) ([]*
 	if err := r.DB.Where(model.SessionComment{SessionId: sessionID}).Order("timestamp asc").Find(&sessionComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session comments for session")
 	}
+	return sessionComments, nil
+}
+
+func (r *queryResolver) CommentsForAdmin(ctx context.Context) ([]*model.SessionComment, error) {
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieiving user")
+	}
+	var sessionComments []*model.SessionComment
+	if err := r.DB.Debug().Model(admin).Association("SessionComments").Find(&sessionComments); err != nil {
+		return nil, e.Wrap(err, "error retrieving user")
+	}
+
 	return sessionComments, nil
 }
 
