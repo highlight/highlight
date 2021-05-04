@@ -38,7 +38,11 @@ const Popover: React.FC<PopoverProps> = ({
             overlayClassName={classNames({ [styles.popover]: hasBorder })}
             {...props}
             content={
-                <div className={classNames({ [styles.content]: !isList })}>
+                <div
+                    className={classNames({
+                        [styles.contentContainer]: !isList,
+                    })}
+                >
                     {title}
                     <div className={styles.content}>{props.content}</div>
                 </div>
