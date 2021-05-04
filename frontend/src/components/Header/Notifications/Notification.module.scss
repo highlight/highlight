@@ -18,11 +18,35 @@
 }
 
 .popover {
-    width: 310px;
+    max-width: 400px;
     margin-top: var(--size-xxSmall);
 }
 
 .list {
     padding: 0;
     list-style: none;
+}
+
+.notification {
+    display: flex !important;
+    column-gap: var(--size-small);
+    color: var(--color-gray-500);
+
+    &:hover {
+        color: var(--color-gray-500);
+    }
+
+    .notificationBody {
+        display: flex;
+        flex-direction: column;
+        row-gap: var(--size-xxSmall);
+    }
+
+    .notificationIconContainer {
+        & > svg {
+            height: 18px;
+            width: 18px;
+            color: var(--color-purple);
+        }
+    }
 }
