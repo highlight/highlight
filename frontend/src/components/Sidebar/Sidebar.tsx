@@ -19,6 +19,7 @@ import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import Tooltip from '../Tooltip/Tooltip';
 import Changelog from '../Changelog/Changelog';
 import OnboardingBubble from '../OnboardingBubble/OnboardingBubble';
+import useLocalStorage from '@rehooks/local-storage';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -26,6 +27,10 @@ export const Sidebar = () => {
     const { data, loading: loadingBillingDetails } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
+    const [hasFinishedOnboarding] = useLocalStorage(
+        `highlight-finished-onboarding-${organization_id}`,
+        false
+    );
 
     return (
         <>
@@ -110,7 +115,9 @@ export const Sidebar = () => {
                         </div>
                     </div>
                 </div>
-                <OnboardingBubble collapsed={!openSidebar} />
+                {!hasFinishedOnboarding && (
+                    <OnboardingBubble collapsed={!openSidebar} />
+                )}
             </div>
         </>
     );

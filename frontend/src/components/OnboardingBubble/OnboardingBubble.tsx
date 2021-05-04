@@ -1,3 +1,4 @@
+import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
@@ -31,7 +32,14 @@ const OnboardingBubble = ({ collapsed }: Props) => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const [, setHasFinishedOnboarding] = useLocalStorage(
+        `highlight-finished-onboarding-${organization_id}`,
+        false
+    );
     const [steps, setSteps] = useState<OnboardingStep[]>([]);
+    const [stepsNotFinishedCount, setStepsNotFinishedCount] = useState<number>(
+        -1
+    );
     const { data: admin_data } = useGetAdminQuery({ skip: false });
     const {
         loading,
@@ -93,26 +101,40 @@ const OnboardingBubble = ({ collapsed }: Props) => {
                 tooltip: `You can create a comment on a session by clicking on the session player. You can also tag your team by @'ing them.`,
             });
             setSteps(STEPS);
-        }
-    }, [data, history, organization_id]);
+            const stepsNotFinishedCount = STEPS.reduce((prev, curr) => {
+                if (!curr.completed) {
+                    return prev + 1;
+                }
+                return prev;
+            }, 0);
 
-    const stepsNotFinishedCount = steps.reduce((prev, curr) => {
-        if (!curr.completed) {
-            return prev + 1;
+            setStepsNotFinishedCount(stepsNotFinishedCount);
+
+            // Don't show the onboarding bubble if all the steps are completed.
+            if (!loading && called && stepsNotFinishedCount === 0) {
+                setHasFinishedOnboarding(true);
+                stopPolling();
+            } else {
+                startPolling(3000);
+            }
         }
-        return prev;
-    }, 0);
+
+        return () => {
+            stopPolling();
+        };
+    }, [
+        called,
+        data,
+        history,
+        loading,
+        organization_id,
+        setHasFinishedOnboarding,
+        startPolling,
+        stopPolling,
+    ]);
 
     if (loading) {
         return null;
-    }
-
-    // Don't show the onboarding bubble if all the steps are completed.
-    if (!loading && called && stepsNotFinishedCount === 0) {
-        stopPolling();
-        return null;
-    } else {
-        startPolling(3000);
     }
 
     return (
