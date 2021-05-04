@@ -227,6 +227,42 @@ export type DeleteSessionCommentMutation = { __typename?: 'Mutation' } & Pick<
     'deleteSessionComment'
 >;
 
+export type CreateErrorCommentMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    admin_id: Types.Scalars['ID'];
+    error_group_id: Types.Scalars['ID'];
+    text: Types.Scalars['String'];
+    text_for_email: Types.Scalars['String'];
+    tagged_admin_emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+    error_url: Types.Scalars['String'];
+    author_name: Types.Scalars['String'];
+}>;
+
+export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
+    createErrorComment?: Types.Maybe<
+        { __typename?: 'ErrorComment' } & Pick<
+            Types.ErrorComment,
+            'id' | 'created_at' | 'updated_at' | 'text'
+        > & {
+                author: { __typename?: 'SanitizedAdmin' } & Pick<
+                    Types.SanitizedAdmin,
+                    'id' | 'name' | 'email'
+                >;
+            }
+    >;
+};
+
+export type DeleteErrorCommentMutationVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+}>;
+
+export type DeleteErrorCommentMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'deleteErrorComment'
+>;
+
 export type DeleteErrorSegmentMutationVariables = Types.Exact<{
     segment_id: Types.Scalars['ID'];
 }>;
@@ -362,6 +398,26 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'text'
                 | 'x_coordinate'
                 | 'y_coordinate'
+            > & {
+                    author: { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email'
+                    >;
+                }
+        >
+    >;
+};
+
+export type GetErrorCommentsQueryVariables = Types.Exact<{
+    error_group_id: Types.Scalars['ID'];
+}>;
+
+export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
+    error_comments: Array<
+        Types.Maybe<
+            { __typename?: 'ErrorComment' } & Pick<
+                Types.ErrorComment,
+                'id' | 'created_at' | 'updated_at' | 'text'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,

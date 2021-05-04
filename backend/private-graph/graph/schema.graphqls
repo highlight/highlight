@@ -249,6 +249,14 @@ type SessionComment {
     y_coordinate: Float!
 }
 
+type ErrorComment {
+    id: ID!
+    created_at: Time!
+    updated_at: Time!
+    author: SanitizedAdmin!
+    text: String!
+}
+
 enum SessionLifecycle {
     All
     Live
@@ -280,6 +288,7 @@ type Query {
     errors(session_id: ID!): [ErrorObject]
     resources(session_id: ID!): [Any]
     session_comments(session_id: ID!): [SessionComment]!
+    error_comments(error_group_id: ID!): [ErrorComment]!
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
@@ -389,4 +398,15 @@ type Mutation {
         session_image: String
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
+    createErrorComment(
+        organization_id: ID!
+        admin_id: ID!
+        error_group_id: ID!
+        text: String!
+        text_for_email: String!
+        tagged_admin_emails: [String]!
+        error_url: String!
+        author_name: String!
+    ): ErrorComment
+    deleteErrorComment(id: ID!): Boolean
 }
