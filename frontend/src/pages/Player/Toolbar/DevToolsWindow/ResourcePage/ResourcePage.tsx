@@ -168,23 +168,9 @@ export const ResourcePage = ({
                             <div className={styles.networkColumn}>Timing</div>
                             <div className={styles.networkColumn}>Size</div>
                             <div className={styles.networkColumn}>
-                                <div className={styles.networkTimestampGrid}>
-                                    <div>
-                                        {Math.floor((0 / 5) * networkRange)}ms{' '}
-                                    </div>
-                                    <div>
-                                        {Math.floor((1 / 5) * networkRange)}ms{' '}
-                                    </div>
-                                    <div>
-                                        {Math.floor((2 / 5) * networkRange)}ms{' '}
-                                    </div>
-                                    <div>
-                                        {Math.floor((3 / 5) * networkRange)}ms{' '}
-                                    </div>
-                                    <div>
-                                        {Math.floor((4 / 5) * networkRange)}ms{' '}
-                                    </div>
-                                </div>
+                                <div
+                                    className={styles.networkTimestampGrid}
+                                ></div>
                             </div>
                         </div>
                         <div
@@ -224,8 +210,8 @@ const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
             const canvas = canvasRef.current;
 
             if (!canvas) return;
-            canvas.height = canvas.clientHeight;
-            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight * 2;
+            canvas.width = canvas.clientWidth * 2;
 
             const context = canvas?.getContext('2d');
 
@@ -237,16 +223,16 @@ const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
 
             if (context) {
                 context.fillStyle = 'red';
-                context.fillRect(realX, 0, 1, canvas.height);
+                context.fillRect(realX, 0, 2, canvas.height);
 
-                context.font = '12px Arial';
+                context.font = '24px Arial';
                 context.fillStyle = '#777';
 
                 const msValue = Math.max(
                     0,
                     Math.floor((realX / canvas.width) * networkRange)
                 );
-                context.fillText(msValue.toString() + 'ms', realX + 4, 45, 100);
+                context.fillText(msValue.toString() + 'ms', realX + 8, 90, 200);
             }
         },
         [networkRange]
