@@ -175,7 +175,6 @@ mutation CreateErrorComment(
     $tagged_admin_emails: [String]!
     $error_url: String!
     $author_name: String!
-    $error_image: String
 ) {
     createErrorComment(
         organization_id: $organization_id
@@ -186,7 +185,6 @@ mutation CreateErrorComment(
         tagged_admin_emails: $tagged_admin_emails
         error_url: $error_url
         author_name: $author_name
-        error_image: $error_image
     ) {
         id
         created_at

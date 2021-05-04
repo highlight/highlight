@@ -599,7 +599,6 @@ export type MutationCreateErrorCommentArgs = {
     tagged_admin_emails: Array<Maybe<Scalars['String']>>;
     error_url: Scalars['String'];
     author_name: Scalars['String'];
-    error_image?: Maybe<Scalars['String']>;
 };
 
 export type MutationDeleteErrorCommentArgs = {

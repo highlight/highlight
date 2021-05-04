@@ -173,7 +173,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddAdminToOrganization         func(childComplexity int, organizationID int, inviteID string) int
 		AddSlackIntegrationToWorkspace func(childComplexity int, organizationID int, code string, redirectPath string) int
-		CreateErrorComment             func(childComplexity int, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdminEmails []*string, errorURL string, authorName string, errorImage *string) int
+		CreateErrorComment             func(childComplexity int, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdminEmails []*string, errorURL string, authorName string) int
 		CreateErrorSegment             func(childComplexity int, organizationID int, name string, params model.ErrorSearchParamsInput) int
 		CreateOrUpdateSubscription     func(childComplexity int, organizationID int, planType model.PlanType) int
 		CreateOrganization             func(childComplexity int, name string) int
@@ -361,7 +361,7 @@ type MutationResolver interface {
 	CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType model.PlanType) (*string, error)
 	CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage *string) (*model1.SessionComment, error)
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
-	CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdminEmails []*string, errorURL string, authorName string, errorImage *string) (*model1.ErrorComment, error)
+	CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdminEmails []*string, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 }
 type QueryResolver interface {
@@ -941,7 +941,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateErrorComment(childComplexity, args["organization_id"].(int), args["admin_id"].(int), args["error_group_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admin_emails"].([]*string), args["error_url"].(string), args["author_name"].(string), args["error_image"].(*string)), true
+		return e.complexity.Mutation.CreateErrorComment(childComplexity, args["organization_id"].(int), args["admin_id"].(int), args["error_group_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admin_emails"].([]*string), args["error_url"].(string), args["author_name"].(string)), true
 
 	case "Mutation.createErrorSegment":
 		if e.complexity.Mutation.CreateErrorSegment == nil {
@@ -2399,7 +2399,6 @@ type Mutation {
         tagged_admin_emails: [String]!
         error_url: String!
         author_name: String!
-        error_image: String
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
 }
@@ -2543,15 +2542,6 @@ func (ec *executionContext) field_Mutation_createErrorComment_args(ctx context.C
 		}
 	}
 	args["author_name"] = arg7
-	var arg8 *string
-	if tmp, ok := rawArgs["error_image"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_image"))
-		arg8, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["error_image"] = arg8
 	return args, nil
 }
 
@@ -6805,7 +6795,7 @@ func (ec *executionContext) _Mutation_createErrorComment(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateErrorComment(rctx, args["organization_id"].(int), args["admin_id"].(int), args["error_group_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admin_emails"].([]*string), args["error_url"].(string), args["author_name"].(string), args["error_image"].(*string))
+		return ec.resolvers.Mutation().CreateErrorComment(rctx, args["organization_id"].(int), args["admin_id"].(int), args["error_group_id"].(int), args["text"].(string), args["text_for_email"].(string), args["tagged_admin_emails"].([]*string), args["error_url"].(string), args["author_name"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

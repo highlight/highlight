@@ -405,7 +405,6 @@ type Mutation {
         tagged_admin_emails: [String]!
         error_url: String!
         author_name: String!
-        error_image: String
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
 }

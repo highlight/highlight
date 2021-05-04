@@ -853,7 +853,6 @@ export const CreateErrorCommentDocument = gql`
         $tagged_admin_emails: [String]!
         $error_url: String!
         $author_name: String!
-        $error_image: String
     ) {
         createErrorComment(
             organization_id: $organization_id
@@ -864,7 +863,6 @@ export const CreateErrorCommentDocument = gql`
             tagged_admin_emails: $tagged_admin_emails
             error_url: $error_url
             author_name: $author_name
-            error_image: $error_image
         ) {
             id
             created_at
@@ -904,7 +902,6 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  *      tagged_admin_emails: // value for 'tagged_admin_emails'
  *      error_url: // value for 'error_url'
  *      author_name: // value for 'author_name'
- *      error_image: // value for 'error_image'
  *   },
  * });
  */

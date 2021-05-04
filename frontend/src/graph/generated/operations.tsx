@@ -238,7 +238,6 @@ export type CreateErrorCommentMutationVariables = Types.Exact<{
         | Types.Maybe<Types.Scalars['String']>;
     error_url: Types.Scalars['String'];
     author_name: Types.Scalars['String'];
-    error_image?: Types.Maybe<Types.Scalars['String']>;
 }>;
 
 export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
