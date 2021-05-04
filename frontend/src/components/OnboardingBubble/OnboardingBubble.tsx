@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import { useParams } from 'react-router-dom';
 import {
@@ -33,12 +33,22 @@ const OnboardingBubble = ({ collapsed }: Props) => {
     }>();
     const [steps, setSteps] = useState<OnboardingStep[]>([]);
     const { data: admin_data } = useGetAdminQuery({ skip: false });
-    const { loading } = useGetOnboardingStepsQuery({
+    const {
+        loading,
+        startPolling,
+        stopPolling,
+        called,
+        data,
+    } = useGetOnboardingStepsQuery({
         variables: {
             organization_id,
             admin_id: (admin_data?.admin?.id as string) || '',
         },
-        onCompleted: (data) => {
+        fetchPolicy: 'network-only',
+    });
+
+    useEffect(() => {
+        if (data) {
             const STEPS: OnboardingStep[] = [];
             STEPS.push({
                 displayName: 'Install the Highlight SDK',
@@ -83,8 +93,8 @@ const OnboardingBubble = ({ collapsed }: Props) => {
                 tooltip: `You can create a comment on a session by clicking on the session player. You can also tag your team by @'ing them.`,
             });
             setSteps(STEPS);
-        },
-    });
+        }
+    }, [data, history, organization_id]);
 
     const stepsNotFinishedCount = steps.reduce((prev, curr) => {
         if (!curr.completed) {
@@ -93,9 +103,16 @@ const OnboardingBubble = ({ collapsed }: Props) => {
         return prev;
     }, 0);
 
-    // Don't show the onboarding bubble if all the steps are completed.
-    if (stepsNotFinishedCount === 0 || loading) {
+    if (loading) {
         return null;
+    }
+
+    // Don't show the onboarding bubble if all the steps are completed.
+    if (!loading && called && stepsNotFinishedCount === 0) {
+        stopPolling();
+        return null;
+    } else {
+        startPolling(3000);
     }
 
     return (
