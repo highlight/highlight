@@ -112,7 +112,7 @@ $canvas-width: calc(
 .networkTimestampGrid {
     display: grid;
     width: 100%;
-    grid-template-columns: repeat(5, 20%);
+    grid-template-columns: repeat(3, 33.33%);
 }
 
 @media only screen and (max-width: 1150px) {

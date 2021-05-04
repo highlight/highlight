@@ -18,6 +18,7 @@ import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
+import { formatNumber } from '../../../../../util/numbers';
 
 export const ResourcePage = ({
     time,
@@ -168,9 +169,23 @@ export const ResourcePage = ({
                             <div className={styles.networkColumn}>Timing</div>
                             <div className={styles.networkColumn}>Size</div>
                             <div className={styles.networkColumn}>
-                                <div
-                                    className={styles.networkTimestampGrid}
-                                ></div>
+                                <div className={styles.networkTimestampGrid}>
+                                    <div>
+                                        {Math.floor((0 / 5) * networkRange)}ms{' '}
+                                    </div>
+                                    <div>
+                                        {formatNumber(
+                                            Math.floor((2 / 5) * networkRange)
+                                        )}
+                                        ms{' '}
+                                    </div>
+                                    <div>
+                                        {formatNumber(
+                                            Math.floor((4 / 5) * networkRange)
+                                        )}
+                                        ms{' '}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div
