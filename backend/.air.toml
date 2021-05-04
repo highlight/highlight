@@ -1,0 +1,3 @@
+[build]
+include_ext = ["go"]
+exclude_dir = ["node_modules", "build"]

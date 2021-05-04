@@ -149,10 +149,13 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	}
 	trialEnd := time.Now().AddDate(0, 0, 14)
 
-	params := &stripe.CustomerParams{}
-	c, err := r.StripeClient.Customers.New(params)
-	if err != nil {
-		return nil, e.Wrap(err, "error creating stripe customer")
+	c := &stripe.Customer{}
+	if os.Getenv("REACT_APP_ONPREM") != "true" {
+		params := &stripe.CustomerParams{}
+		c, err = r.StripeClient.Customers.New(params)
+		if err != nil {
+			return nil, e.Wrap(err, "error creating stripe customer")
+		}
 	}
 
 	org := &model.Organization{
@@ -611,7 +614,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdminEmails []*string, errorURL string, authorName string, errorImage *string) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdminEmails []*string, errorURL string, authorName string) (*model.ErrorComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -935,6 +938,28 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	}
 
 	return &count, nil
+}
+
+func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error) {
+	if err := r.DB.Model(&model.SessionComment{}).Where(&model.SessionComment{
+		AdminId: adminID,
+	}).First(&model.SessionComment{}).Error; err != nil {
+		return &model.F, nil
+	}
+
+	return &model.T, nil
+}
+
+func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model.Session, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	session := model.Session{}
+	if err := r.DB.Model(&session).Where(&model.Session{OrganizationID: organizationID, Viewed: &model.T}).First(&session).Error; err != nil {
+		return &session, nil
+	}
+	return &session, nil
 }
 
 func (r *queryResolver) DailySessionsCount(ctx context.Context, organizationID int, dateRange modelInputs.DateRangeInput) ([]*model.DailySessionCount, error) {
