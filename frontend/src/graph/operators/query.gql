@@ -56,6 +56,18 @@ query GetSessionComments($session_id: ID!) {
     }
 }
 
+query GetOnboardingSteps($organization_id: ID!, $admin_id: ID!) {
+    organization(id: $organization_id) {
+        slack_webhook_channel
+    }
+    admins(organization_id: $organization_id) {
+        id
+    }
+    isIntegrated(organization_id: $organization_id)
+    adminHasCreatedComment(admin_id: $admin_id)
+    organizationHasViewedASession(organization_id: $organization_id)
+}
+
 mutation SendAdminInvite($organization_id: ID!, $email: String!) {
     sendAdminInvite(organization_id: $organization_id, email: $email)
 }

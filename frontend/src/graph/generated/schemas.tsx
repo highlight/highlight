@@ -317,6 +317,8 @@ export type Query = {
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
+    adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
+    organizationHasViewedASession?: Maybe<Scalars['Boolean']>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
     sessions: SessionResults;
@@ -376,6 +378,14 @@ export type QueryIsIntegratedArgs = {
 };
 
 export type QueryUnprocessedSessionsCountArgs = {
+    organization_id: Scalars['ID'];
+};
+
+export type QueryAdminHasCreatedCommentArgs = {
+    admin_id: Scalars['ID'];
+};
+
+export type QueryOrganizationHasViewedASessionArgs = {
     organization_id: Scalars['ID'];
 };
 
