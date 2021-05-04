@@ -37,10 +37,11 @@ export const Sidebar = () => {
         `highlight-finished-onboarding-${organization_id}`,
         false
     );
+    const renderBillingOptions = process.env.REACT_APP_ONPREM !== 'true';
 
     return (
         <>
-            <StaticSidebar />
+            <StaticSidebar renderBillingOptions={renderBillingOptions} />
             <div
                 className={classNames([
                     styles.sideBar,
@@ -81,7 +82,7 @@ export const Sidebar = () => {
                         <TeamIcon className={styles.icon} />
                     </div>
                 </SidebarItem>
-                {process.env.REACT_APP_ONPREM !== 'true' ? (
+                {renderBillingOptions ? (
                     <SidebarItem text="Billing" route="billing">
                         <div className={styles.iconWrapper}>
                             <CreditCardIcon className={styles.icon} />
@@ -92,7 +93,8 @@ export const Sidebar = () => {
                 )}
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
-                        {!loadingBillingDetails &&
+                        {renderBillingOptions &&
+                        !loadingBillingDetails &&
                         data?.billingDetails.meter !== undefined &&
                         data?.billingDetails.plan.quota !== undefined ? (
                             <CurrentUsageCard
@@ -130,7 +132,11 @@ export const Sidebar = () => {
     );
 };
 
-const StaticSidebar = () => {
+const StaticSidebar = ({
+    renderBillingOptions,
+}: {
+    renderBillingOptions: boolean;
+}) => {
     return (
         <>
             <div className={styles.staticSidebarWrapper}>
@@ -155,9 +161,13 @@ const StaticSidebar = () => {
                 <MiniSidebarItem route="team" text="Team">
                     <TeamIcon className={styles.icon} />
                 </MiniSidebarItem>
-                <MiniSidebarItem route="billing" text="Billing">
-                    <CreditCardIcon className={styles.icon} />
-                </MiniSidebarItem>
+                {renderBillingOptions ? (
+                    <MiniSidebarItem route="billing" text="Billing">
+                        <CreditCardIcon className={styles.icon} />
+                    </MiniSidebarItem>
+                ) : (
+                    <></>
+                )}
                 <Changelog />
             </div>
             <div style={{ paddingLeft: 62, height: '100%' }} />
