@@ -178,7 +178,7 @@ func main() {
 		log.Printf("static frontend html path: %v \n", staticHtmlPath)
 		f, err := os.Create(staticHtmlPath)
 		if err != nil {
-			log.Fatalf("error creating file: ", err)
+			log.Fatalf("error creating file: %v \n", err)
 		}
 		c := struct {
 			FirebaseConfigString string
