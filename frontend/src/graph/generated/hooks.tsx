@@ -1396,6 +1396,69 @@ export type GetSessionCommentsQueryResult = Apollo.QueryResult<
     Types.GetSessionCommentsQuery,
     Types.GetSessionCommentsQueryVariables
 >;
+export const GetNotificationsDocument = gql`
+    query GetNotifications {
+        comments_for_admin {
+            id
+            timestamp
+            updated_at
+            text
+            author {
+                id
+                name
+                email
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetNotificationsQuery__
+ *
+ * To run a query within a React component, call `useGetNotificationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetNotificationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetNotificationsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetNotificationsQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetNotificationsQuery,
+        Types.GetNotificationsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetNotificationsQuery,
+        Types.GetNotificationsQueryVariables
+    >(GetNotificationsDocument, baseOptions);
+}
+export function useGetNotificationsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetNotificationsQuery,
+        Types.GetNotificationsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetNotificationsQuery,
+        Types.GetNotificationsQueryVariables
+    >(GetNotificationsDocument, baseOptions);
+}
+export type GetNotificationsQueryHookResult = ReturnType<
+    typeof useGetNotificationsQuery
+>;
+export type GetNotificationsLazyQueryHookResult = ReturnType<
+    typeof useGetNotificationsLazyQuery
+>;
+export type GetNotificationsQueryResult = Apollo.QueryResult<
+    Types.GetNotificationsQuery,
+    Types.GetNotificationsQueryVariables
+>;
 export const GetSessionCommentsForAdminDocument = gql`
     query GetSessionCommentsForAdmin {
         comments_for_admin {

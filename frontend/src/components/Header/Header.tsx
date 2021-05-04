@@ -12,6 +12,7 @@ import classNames from 'classnames/bind';
 import { Duration } from '../../util/time';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { CommandBar } from './CommandBar/CommandBar';
+import Notifications from './Notifications/Notifications';
 
 type HeaderProps = {
     trialTimeRemaining?: Duration;
@@ -55,6 +56,7 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
                         </Link>
                     </div>
                     <div className={styles.rightHeader}>
+                        <Notifications />
                         <UserDropdown />
                     </div>
                 </div>

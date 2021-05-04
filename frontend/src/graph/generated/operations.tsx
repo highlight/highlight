@@ -408,6 +408,26 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetNotificationsQueryVariables = Types.Exact<{
+    [key: string]: never;
+}>;
+
+export type GetNotificationsQuery = { __typename?: 'Query' } & {
+    comments_for_admin: Array<
+        Types.Maybe<
+            { __typename?: 'SessionComment' } & Pick<
+                Types.SessionComment,
+                'id' | 'timestamp' | 'updated_at' | 'text'
+            > & {
+                    author: { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email'
+                    >;
+                }
+        >
+    >;
+};
+
 export type GetSessionCommentsForAdminQueryVariables = Types.Exact<{
     [key: string]: never;
 }>;
