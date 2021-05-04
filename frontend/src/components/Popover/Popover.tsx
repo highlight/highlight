@@ -17,6 +17,7 @@ type PopoverProps = Pick<
     | 'onVisibleChange'
     | 'placement'
     | 'align'
+    | 'visible'
 > & {
     hasBorder?: boolean;
     isList?: boolean;
