@@ -3,6 +3,7 @@ export const antMentions: string;
 export const antMentionsFocused: string;
 export const antPickerInput: string;
 export const antPickerSuffix: string;
+export const antPopoverInnerContent: string;
 export const antTabsBottom: string;
 export const antTabsContent: string;
 export const antTabsInkBar: string;

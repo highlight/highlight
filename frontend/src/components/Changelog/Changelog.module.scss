@@ -4,46 +4,11 @@
 
 .changelogContainer {
     width: 310px;
-    overflow: auto;
-    max-height: 350px;
-    margin: calc(var(--size-medium) * -1);
-    margin-bottom: calc(var(--size-small) * -1);
-    border-bottom-left-radius: 5px;
-    border-bottom-right-radius: 5px;
 
-    &::-webkit-scrollbar {
-        display: none;
-    }
-
-    img {
-        width: 100%;
-    }
-
-    .changelogItem {
-        display: block;
-        padding: var(--size-medium);
-        border-bottom: 1px solid var(--color-gray-300);
-
-        &:hover {
-            background: #f5f5f5;
-        }
-
-        p,
-        h3 {
-            margin: 0;
-        }
-
-        h3 {
-            font-size: 13px;
-            font-weight: 300;
-            color: var(--color-black);
-        }
-
-        .date {
-            color: var(--color-gray-500);
-            font-size: 12px;
-            margin-bottom: var(--size-xxSmall);
-        }
+    .date {
+        color: var(--color-gray-500);
+        font-size: 12px;
+        margin-bottom: var(--size-xxSmall) !important;
     }
 }
 
