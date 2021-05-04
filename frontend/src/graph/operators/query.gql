@@ -65,7 +65,9 @@ query GetOnboardingSteps($organization_id: ID!, $admin_id: ID!) {
     }
     isIntegrated(organization_id: $organization_id)
     adminHasCreatedComment(admin_id: $admin_id)
-    organizationHasViewedASession(organization_id: $organization_id)
+    organizationHasViewedASession(organization_id: $organization_id) {
+        id
+    }
 }
 
 mutation SendAdminInvite($organization_id: ID!, $email: String!) {

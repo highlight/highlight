@@ -71,7 +71,13 @@ const OnboardingBubble = ({ collapsed }: Props) => {
             STEPS.push({
                 displayName: 'Create your first comment',
                 action: () => {
-                    history.push(`/${organization_id}/sessions`);
+                    if (data.organizationHasViewedASession?.id !== '0') {
+                        history.push(
+                            `/${organization_id}/sessions/${data.organizationHasViewedASession?.id}`
+                        );
+                    } else {
+                        history.push(`/${organization_id}/sessions`);
+                    }
                 },
                 completed: !!data.adminHasCreatedComment || false,
                 tooltip: `You can create a comment on a session by clicking on the session player. You can also tag your team by @'ing them.`,

@@ -1279,7 +1279,9 @@ export const GetOnboardingStepsDocument = gql`
         }
         isIntegrated(organization_id: $organization_id)
         adminHasCreatedComment(admin_id: $admin_id)
-        organizationHasViewedASession(organization_id: $organization_id)
+        organizationHasViewedASession(organization_id: $organization_id) {
+            id
+        }
     }
 `;
 

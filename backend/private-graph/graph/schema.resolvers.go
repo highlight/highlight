@@ -858,15 +858,16 @@ func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int)
 	return &model.T, nil
 }
 
-func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, organizationID int) (*bool, error) {
+func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model.Session, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
-	if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, Viewed: &model.T}).First(&model.Session{}).Error; err != nil {
-		return &model.F, nil
+	session := model.Session{}
+	if err := r.DB.Model(&session).Where(&model.Session{OrganizationID: organizationID, Viewed: &model.T}).First(&session).Error; err != nil {
+		return &session, nil
 	}
-	return &model.T, nil
+	return &session, nil
 }
 
 func (r *queryResolver) DailySessionsCount(ctx context.Context, organizationID int, dateRange modelInputs.DateRangeInput) ([]*model.DailySessionCount, error) {

@@ -362,7 +362,7 @@ type QueryResolver interface {
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int64, error)
 	AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error)
-	OrganizationHasViewedASession(ctx context.Context, organizationID int) (*bool, error)
+	OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model1.Session, error)
 	DailySessionsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
 	Sessions(ctx context.Context, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
@@ -2217,7 +2217,7 @@ type Query {
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
-    organizationHasViewedASession(organization_id: ID!): Boolean
+    organizationHasViewedASession(organization_id: ID!): Session
     dailySessionsCount(
         organization_id: ID!
         date_range: DateRangeInput!
@@ -7214,9 +7214,9 @@ func (ec *executionContext) _Query_organizationHasViewedASession(ctx context.Con
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*bool)
+	res := resTmp.(*model1.Session)
 	fc.Result = res
-	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+	return ec.marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_dailySessionsCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {

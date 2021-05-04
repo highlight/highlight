@@ -379,7 +379,7 @@ export type GetOnboardingStepsQueryVariables = Types.Exact<{
 
 export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
     Types.Query,
-    'isIntegrated' | 'adminHasCreatedComment' | 'organizationHasViewedASession'
+    'isIntegrated' | 'adminHasCreatedComment'
 > & {
         organization?: Types.Maybe<
             { __typename?: 'Organization' } & Pick<
@@ -391,6 +391,9 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
             Array<
                 Types.Maybe<{ __typename?: 'Admin' } & Pick<Types.Admin, 'id'>>
             >
+        >;
+        organizationHasViewedASession?: Types.Maybe<
+            { __typename?: 'Session' } & Pick<Types.Session, 'id'>
         >;
     };
 
