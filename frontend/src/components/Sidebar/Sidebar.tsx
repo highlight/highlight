@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useRef } from 'react';
 import styles from './Sidebar.module.scss';
 import { SidebarContext } from './SidebarContext';
 import classNames from 'classnames/bind';
@@ -124,9 +124,25 @@ export const Sidebar = () => {
 };
 
 const StaticSidebar = () => {
+    const { setOpenSidebar } = useContext(SidebarContext);
+    const timerId = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     return (
         <>
-            <div className={styles.staticSidebarWrapper}>
+            <div
+                className={styles.staticSidebarWrapper}
+                onMouseEnter={() => {
+                    const id = setTimeout(() => {
+                        setOpenSidebar(true);
+                    }, 1000);
+                    timerId.current = id;
+                }}
+                onMouseLeave={() => {
+                    if (timerId.current) {
+                        clearTimeout(timerId.current);
+                    }
+                }}
+            >
                 <MiniWorkspaceIcon />
                 <MiniSidebarItem route="sessions" text="Sessions">
                     <SessionsIcon className={styles.icon} />
