@@ -167,6 +167,7 @@ const OnboardingBubble = ({ collapsed }: Props) => {
                         H.track('Viewed onboarding bubble', {});
                     }
                 }}
+                hasBorder
                 content={
                     <>
                         <div className={styles.onboardingBubblePopover}>
@@ -190,10 +191,17 @@ const OnboardingBubble = ({ collapsed }: Props) => {
                                         title={step.tooltip}
                                         placement="right"
                                     >
+                                        {/* TODO: Add box shadow on button */}
+                                        {/* Make it span the full width of the popover */}
                                         <Button
                                             onClick={step.action}
                                             type="text"
+                                            className={classNames({
+                                                [styles.stepCompleted]:
+                                                    step.completed,
+                                            })}
                                         >
+                                            {/* TODO: Swap this with the check on the setup page */}
                                             <SvgCircleCheckIcon
                                                 className={classNames(
                                                     styles.checkIcon,
@@ -212,11 +220,11 @@ const OnboardingBubble = ({ collapsed }: Props) => {
                     </>
                 }
             >
-                <PillButton type="primary">
+                <PillButton type="primary" className={styles.button}>
                     <div className={styles.stepsCount}>
                         {stepsNotFinishedCount}
                     </div>
-                    Highlight setup
+                    Highlight Setup
                 </PillButton>
             </Popover>
         </div>
