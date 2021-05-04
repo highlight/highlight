@@ -31,6 +31,10 @@
         width: var(--bubble-height);
         border: 1px solid var(--color-red);
     }
+
+    &.onPlayerPage {
+        transform: translateX(calc(100vw));
+    }
 }
 
 .onboardingBubblePopover {

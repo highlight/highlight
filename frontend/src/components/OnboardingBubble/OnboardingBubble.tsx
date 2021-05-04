@@ -34,6 +34,9 @@ const OnboardingBubble = ({ collapsed }: Props) => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const isOnSessionPlayerPage = history.location.pathname.match(
+        /\/sessions\/\d*/
+    );
     const [, setHasFinishedOnboarding] = useLocalStorage(
         `highlight-finished-onboarding-${organization_id}`,
         false
@@ -152,6 +155,7 @@ const OnboardingBubble = ({ collapsed }: Props) => {
         <div
             className={classNames(styles.container, {
                 [styles.collapsed]: collapsed,
+                [styles.onPlayerPage]: isOnSessionPlayerPage,
             })}
         >
             <Popover
