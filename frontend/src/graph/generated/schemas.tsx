@@ -260,6 +260,12 @@ export type SanitizedAdmin = {
     email: Scalars['String'];
 };
 
+export type SanitizedAdminInput = {
+    id: Scalars['ID'];
+    name?: Maybe<Scalars['String']>;
+    email: Scalars['String'];
+};
+
 export type SessionResults = {
     __typename?: 'SessionResults';
     sessions: Array<Session>;
@@ -323,6 +329,7 @@ export type Query = {
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
+    comments_for_admin: Array<Maybe<SessionComment>>;
     error_comments: Array<Maybe<ErrorComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
@@ -589,7 +596,7 @@ export type MutationCreateSessionCommentArgs = {
     text_for_email: Scalars['String'];
     x_coordinate: Scalars['Float'];
     y_coordinate: Scalars['Float'];
-    tagged_admin_emails: Array<Maybe<Scalars['String']>>;
+    tagged_admins: Array<Maybe<SanitizedAdminInput>>;
     session_url: Scalars['String'];
     time: Scalars['Float'];
     author_name: Scalars['String'];

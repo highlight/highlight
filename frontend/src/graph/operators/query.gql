@@ -56,6 +56,21 @@ query GetSessionComments($session_id: ID!) {
     }
 }
 
+query GetSessionCommentsForAdmin {
+    comments_for_admin {
+        id
+        timestamp
+        created_at
+        updated_at
+        text
+        author {
+            id
+            name
+            email
+        }
+    }
+}
+
 query GetErrorComments($error_group_id: ID!) {
     error_comments(error_group_id: $error_group_id) {
         id

@@ -708,7 +708,7 @@ export const CreateSessionCommentDocument = gql`
         $text_for_email: String!
         $x_coordinate: Float!
         $y_coordinate: Float!
-        $tagged_admin_emails: [String]!
+        $tagged_admins: [SanitizedAdminInput]!
         $session_url: String!
         $time: Float!
         $author_name: String!
@@ -723,7 +723,7 @@ export const CreateSessionCommentDocument = gql`
             text_for_email: $text_for_email
             x_coordinate: $x_coordinate
             y_coordinate: $y_coordinate
-            tagged_admin_emails: $tagged_admin_emails
+            tagged_admins: $tagged_admins
             session_url: $session_url
             time: $time
             author_name: $author_name
@@ -770,7 +770,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      text_for_email: // value for 'text_for_email'
  *      x_coordinate: // value for 'x_coordinate'
  *      y_coordinate: // value for 'y_coordinate'
- *      tagged_admin_emails: // value for 'tagged_admin_emails'
+ *      tagged_admins: // value for 'tagged_admins'
  *      session_url: // value for 'session_url'
  *      time: // value for 'time'
  *      author_name: // value for 'author_name'
@@ -1395,6 +1395,70 @@ export type GetSessionCommentsLazyQueryHookResult = ReturnType<
 export type GetSessionCommentsQueryResult = Apollo.QueryResult<
     Types.GetSessionCommentsQuery,
     Types.GetSessionCommentsQueryVariables
+>;
+export const GetSessionCommentsForAdminDocument = gql`
+    query GetSessionCommentsForAdmin {
+        comments_for_admin {
+            id
+            timestamp
+            created_at
+            updated_at
+            text
+            author {
+                id
+                name
+                email
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetSessionCommentsForAdminQuery__
+ *
+ * To run a query within a React component, call `useGetSessionCommentsForAdminQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionCommentsForAdminQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionCommentsForAdminQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSessionCommentsForAdminQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >(GetSessionCommentsForAdminDocument, baseOptions);
+}
+export function useGetSessionCommentsForAdminLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >(GetSessionCommentsForAdminDocument, baseOptions);
+}
+export type GetSessionCommentsForAdminQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsForAdminQuery
+>;
+export type GetSessionCommentsForAdminLazyQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsForAdminLazyQuery
+>;
+export type GetSessionCommentsForAdminQueryResult = Apollo.QueryResult<
+    Types.GetSessionCommentsForAdminQuery,
+    Types.GetSessionCommentsForAdminQueryVariables
 >;
 export const GetErrorCommentsDocument = gql`
     query GetErrorComments($error_group_id: ID!) {
