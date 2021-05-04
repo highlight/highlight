@@ -1460,6 +1460,71 @@ export type GetErrorCommentsQueryResult = Apollo.QueryResult<
     Types.GetErrorCommentsQuery,
     Types.GetErrorCommentsQueryVariables
 >;
+export const GetOnboardingStepsDocument = gql`
+    query GetOnboardingSteps($organization_id: ID!, $admin_id: ID!) {
+        organization(id: $organization_id) {
+            slack_webhook_channel
+        }
+        admins(organization_id: $organization_id) {
+            id
+        }
+        isIntegrated(organization_id: $organization_id)
+        adminHasCreatedComment(admin_id: $admin_id)
+        organizationHasViewedASession(organization_id: $organization_id) {
+            id
+        }
+    }
+`;
+
+/**
+ * __useGetOnboardingStepsQuery__
+ *
+ * To run a query within a React component, call `useGetOnboardingStepsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOnboardingStepsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOnboardingStepsQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      admin_id: // value for 'admin_id'
+ *   },
+ * });
+ */
+export function useGetOnboardingStepsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetOnboardingStepsQuery,
+        Types.GetOnboardingStepsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetOnboardingStepsQuery,
+        Types.GetOnboardingStepsQueryVariables
+    >(GetOnboardingStepsDocument, baseOptions);
+}
+export function useGetOnboardingStepsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetOnboardingStepsQuery,
+        Types.GetOnboardingStepsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetOnboardingStepsQuery,
+        Types.GetOnboardingStepsQueryVariables
+    >(GetOnboardingStepsDocument, baseOptions);
+}
+export type GetOnboardingStepsQueryHookResult = ReturnType<
+    typeof useGetOnboardingStepsQuery
+>;
+export type GetOnboardingStepsLazyQueryHookResult = ReturnType<
+    typeof useGetOnboardingStepsLazyQuery
+>;
+export type GetOnboardingStepsQueryResult = Apollo.QueryResult<
+    Types.GetOnboardingStepsQuery,
+    Types.GetOnboardingStepsQueryVariables
+>;
 export const SendAdminInviteDocument = gql`
     mutation SendAdminInvite($organization_id: ID!, $email: String!) {
         sendAdminInvite(organization_id: $organization_id, email: $email)

@@ -428,6 +428,31 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetOnboardingStepsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    admin_id: Types.Scalars['ID'];
+}>;
+
+export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'isIntegrated' | 'adminHasCreatedComment'
+> & {
+        organization?: Types.Maybe<
+            { __typename?: 'Organization' } & Pick<
+                Types.Organization,
+                'slack_webhook_channel'
+            >
+        >;
+        admins?: Types.Maybe<
+            Array<
+                Types.Maybe<{ __typename?: 'Admin' } & Pick<Types.Admin, 'id'>>
+            >
+        >;
+        organizationHasViewedASession?: Types.Maybe<
+            { __typename?: 'Session' } & Pick<Types.Session, 'id'>
+        >;
+    };
+
 export type SendAdminInviteMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     email: Types.Scalars['String'];

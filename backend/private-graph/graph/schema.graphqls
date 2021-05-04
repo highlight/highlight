@@ -292,6 +292,8 @@ type Query {
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
+    adminHasCreatedComment(admin_id: ID!): Boolean
+    organizationHasViewedASession(organization_id: ID!): Session
     dailySessionsCount(
         organization_id: ID!
         date_range: DateRangeInput!

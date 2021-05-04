@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React from 'react';
 
 import styles from './SessionsPage.module.scss';
 import { SegmentSidebar } from './SegmentSidebar/SegmentSidebar';
@@ -7,7 +7,6 @@ import { SearchParams } from './SearchContext/SearchContext';
 import { SessionFeed } from './SessionsFeed/SessionsFeed';
 
 import { IntegrationCard } from './IntegrationCard/IntegrationCard';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { FeedNavigation } from './SearchSidebar/FeedNavigation/FeedNavigation';
 import { Complete } from '../../util/types';
 
@@ -30,10 +29,6 @@ export const EmptySessionsSearchParams: Complete<SearchParams> = {
 };
 
 export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
-    const { setOpenSidebar } = useContext(SidebarContext);
-
-    useEffect(() => setOpenSidebar(false), [setOpenSidebar]);
-
     if (!integrated) {
         return <IntegrationCard />;
     }

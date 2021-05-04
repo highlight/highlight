@@ -210,32 +210,34 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Admin                    func(childComplexity int) int
-		Admins                   func(childComplexity int, organizationID int) int
-		BillingDetails           func(childComplexity int, organizationID int) int
-		DailyErrorsCount         func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
-		DailySessionsCount       func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
-		ErrorComments            func(childComplexity int, errorGroupID int) int
-		ErrorFieldSuggestion     func(childComplexity int, organizationID int, name string, query string) int
-		ErrorGroup               func(childComplexity int, id int) int
-		ErrorGroups              func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
-		ErrorSegments            func(childComplexity int, organizationID int) int
-		Errors                   func(childComplexity int, sessionID int) int
-		Events                   func(childComplexity int, sessionID int) int
-		FieldSuggestion          func(childComplexity int, organizationID int, name string, query string) int
-		IsIntegrated             func(childComplexity int, organizationID int) int
-		Messages                 func(childComplexity int, sessionID int) int
-		Organization             func(childComplexity int, id int) int
-		OrganizationSuggestion   func(childComplexity int, query string) int
-		Organizations            func(childComplexity int) int
-		PropertySuggestion       func(childComplexity int, organizationID int, query string, typeArg string) int
-		RecordingSettings        func(childComplexity int, organizationID int) int
-		Resources                func(childComplexity int, sessionID int) int
-		Segments                 func(childComplexity int, organizationID int) int
-		Session                  func(childComplexity int, id int) int
-		SessionComments          func(childComplexity int, sessionID int) int
-		Sessions                 func(childComplexity int, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
-		UnprocessedSessionsCount func(childComplexity int, organizationID int) int
+		Admin                         func(childComplexity int) int
+		AdminHasCreatedComment        func(childComplexity int, adminID int) int
+		Admins                        func(childComplexity int, organizationID int) int
+		BillingDetails                func(childComplexity int, organizationID int) int
+		DailyErrorsCount              func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
+		DailySessionsCount            func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
+		ErrorComments                 func(childComplexity int, errorGroupID int) int
+		ErrorFieldSuggestion          func(childComplexity int, organizationID int, name string, query string) int
+		ErrorGroup                    func(childComplexity int, id int) int
+		ErrorGroups                   func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
+		ErrorSegments                 func(childComplexity int, organizationID int) int
+		Errors                        func(childComplexity int, sessionID int) int
+		Events                        func(childComplexity int, sessionID int) int
+		FieldSuggestion               func(childComplexity int, organizationID int, name string, query string) int
+		IsIntegrated                  func(childComplexity int, organizationID int) int
+		Messages                      func(childComplexity int, sessionID int) int
+		Organization                  func(childComplexity int, id int) int
+		OrganizationHasViewedASession func(childComplexity int, organizationID int) int
+		OrganizationSuggestion        func(childComplexity int, query string) int
+		Organizations                 func(childComplexity int) int
+		PropertySuggestion            func(childComplexity int, organizationID int, query string, typeArg string) int
+		RecordingSettings             func(childComplexity int, organizationID int) int
+		Resources                     func(childComplexity int, sessionID int) int
+		Segments                      func(childComplexity int, organizationID int) int
+		Session                       func(childComplexity int, id int) int
+		SessionComments               func(childComplexity int, sessionID int) int
+		Sessions                      func(childComplexity int, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
+		UnprocessedSessionsCount      func(childComplexity int, organizationID int) int
 	}
 
 	RecordingSettings struct {
@@ -377,6 +379,8 @@ type QueryResolver interface {
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int64, error)
+	AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error)
+	OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model1.Session, error)
 	DailySessionsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
 	Sessions(ctx context.Context, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
@@ -1234,6 +1238,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Admin(childComplexity), true
 
+	case "Query.adminHasCreatedComment":
+		if e.complexity.Query.AdminHasCreatedComment == nil {
+			break
+		}
+
+		args, err := ec.field_Query_adminHasCreatedComment_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AdminHasCreatedComment(childComplexity, args["admin_id"].(int)), true
+
 	case "Query.admins":
 		if e.complexity.Query.Admins == nil {
 			break
@@ -1413,6 +1429,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Organization(childComplexity, args["id"].(int)), true
+
+	case "Query.organizationHasViewedASession":
+		if e.complexity.Query.OrganizationHasViewedASession == nil {
+			break
+		}
+
+		args, err := ec.field_Query_organizationHasViewedASession_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.OrganizationHasViewedASession(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.organizationSuggestion":
 		if e.complexity.Query.OrganizationSuggestion == nil {
@@ -2286,6 +2314,8 @@ type Query {
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
+    adminHasCreatedComment(admin_id: ID!): Boolean
+    organizationHasViewedASession(organization_id: ID!): Session
     dailySessionsCount(
         organization_id: ID!
         date_range: DateRangeInput!
@@ -3097,6 +3127,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_adminHasCreatedComment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["admin_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("admin_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["admin_id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_admins_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3376,6 +3421,21 @@ func (ec *executionContext) field_Query_messages_args(ctx context.Context, rawAr
 		}
 	}
 	args["session_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_organizationHasViewedASession_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
 	return args, nil
 }
 
@@ -7591,6 +7651,84 @@ func (ec *executionContext) _Query_unprocessedSessionsCount(ctx context.Context,
 	res := resTmp.(*int64)
 	fc.Result = res
 	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_adminHasCreatedComment(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_adminHasCreatedComment_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AdminHasCreatedComment(rctx, args["admin_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_organizationHasViewedASession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_organizationHasViewedASession_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().OrganizationHasViewedASession(rctx, args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.Session)
+	fc.Result = res
+	return ec.marshalOSession2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSession(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_dailySessionsCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12464,6 +12602,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_unprocessedSessionsCount(ctx, field)
+				return res
+			})
+		case "adminHasCreatedComment":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_adminHasCreatedComment(ctx, field)
+				return res
+			})
+		case "organizationHasViewedASession":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_organizationHasViewedASession(ctx, field)
 				return res
 			})
 		case "dailySessionsCount":

@@ -5,11 +5,17 @@ $vert: 2px;
 
 .keyValueWrapper {
     display: flex;
+    border-top-left-radius: var(--size-xxSmall);
+    border-bottom-left-radius: var(--size-xxSmall);
 }
 
 .key {
-    padding: $vert $side $vert $side;
+    padding: 0 var(--size-xSmall);
     font-size: 12px;
+    display: flex;
+    align-items: center;
+    border-top-left-radius: var(--size-xxSmall);
+    border-bottom-left-radius: var(--size-xxSmall);
 }
 
 .value {
@@ -19,7 +25,6 @@ $vert: 2px;
 
 .wrapper {
     display: inline-block;
-    color: rgba(0, 0, 0, 0.85);
     font-weight: 300 !important;
     margin-right: 11px;
     margin-bottom: 10px;
