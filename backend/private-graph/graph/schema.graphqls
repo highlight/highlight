@@ -228,6 +228,12 @@ type SanitizedAdmin {
     email: String!
 }
 
+input SanitizedAdminInput {
+    id: ID!
+    name: String
+    email: String!
+}
+
 type SessionResults {
     sessions: [Session!]!
     totalCount: Int64!
@@ -247,6 +253,14 @@ type SessionComment {
     text: String!
     x_coordinate: Float!
     y_coordinate: Float!
+}
+
+type ErrorComment {
+    id: ID!
+    created_at: Time!
+    updated_at: Time!
+    author: SanitizedAdmin!
+    text: String!
 }
 
 enum SessionLifecycle {
@@ -280,6 +294,8 @@ type Query {
     errors(session_id: ID!): [ErrorObject]
     resources(session_id: ID!): [Any]
     session_comments(session_id: ID!): [SessionComment]!
+    comments_for_admin: [SessionComment]!
+    error_comments(error_group_id: ID!): [ErrorComment]!
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
@@ -382,11 +398,22 @@ type Mutation {
         text_for_email: String!
         x_coordinate: Float!
         y_coordinate: Float!
-        tagged_admin_emails: [String]!
+        tagged_admins: [SanitizedAdminInput]!
         session_url: String!
         time: Float!
         author_name: String!
         session_image: String
     ): SessionComment
     deleteSessionComment(id: ID!): Boolean
+    createErrorComment(
+        organization_id: ID!
+        admin_id: ID!
+        error_group_id: ID!
+        text: String!
+        text_for_email: String!
+        tagged_admin_emails: [String]!
+        error_url: String!
+        author_name: String!
+    ): ErrorComment
+    deleteErrorComment(id: ID!): Boolean
 }

@@ -708,7 +708,7 @@ export const CreateSessionCommentDocument = gql`
         $text_for_email: String!
         $x_coordinate: Float!
         $y_coordinate: Float!
-        $tagged_admin_emails: [String]!
+        $tagged_admins: [SanitizedAdminInput]!
         $session_url: String!
         $time: Float!
         $author_name: String!
@@ -723,7 +723,7 @@ export const CreateSessionCommentDocument = gql`
             text_for_email: $text_for_email
             x_coordinate: $x_coordinate
             y_coordinate: $y_coordinate
-            tagged_admin_emails: $tagged_admin_emails
+            tagged_admins: $tagged_admins
             session_url: $session_url
             time: $time
             author_name: $author_name
@@ -770,7 +770,7 @@ export type CreateSessionCommentMutationFn = Apollo.MutationFunction<
  *      text_for_email: // value for 'text_for_email'
  *      x_coordinate: // value for 'x_coordinate'
  *      y_coordinate: // value for 'y_coordinate'
- *      tagged_admin_emails: // value for 'tagged_admin_emails'
+ *      tagged_admins: // value for 'tagged_admins'
  *      session_url: // value for 'session_url'
  *      time: // value for 'time'
  *      author_name: // value for 'author_name'
@@ -842,6 +842,133 @@ export type DeleteSessionCommentMutationResult = Apollo.MutationResult<Types.Del
 export type DeleteSessionCommentMutationOptions = Apollo.BaseMutationOptions<
     Types.DeleteSessionCommentMutation,
     Types.DeleteSessionCommentMutationVariables
+>;
+export const CreateErrorCommentDocument = gql`
+    mutation CreateErrorComment(
+        $organization_id: ID!
+        $admin_id: ID!
+        $error_group_id: ID!
+        $text: String!
+        $text_for_email: String!
+        $tagged_admin_emails: [String]!
+        $error_url: String!
+        $author_name: String!
+    ) {
+        createErrorComment(
+            organization_id: $organization_id
+            admin_id: $admin_id
+            error_group_id: $error_group_id
+            text: $text
+            text_for_email: $text_for_email
+            tagged_admin_emails: $tagged_admin_emails
+            error_url: $error_url
+            author_name: $author_name
+        ) {
+            id
+            created_at
+            updated_at
+            author {
+                id
+                name
+                email
+            }
+            text
+        }
+    }
+`;
+export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
+    Types.CreateErrorCommentMutation,
+    Types.CreateErrorCommentMutationVariables
+>;
+
+/**
+ * __useCreateErrorCommentMutation__
+ *
+ * To run a mutation, you first call `useCreateErrorCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateErrorCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createErrorCommentMutation, { data, loading, error }] = useCreateErrorCommentMutation({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      admin_id: // value for 'admin_id'
+ *      error_group_id: // value for 'error_group_id'
+ *      text: // value for 'text'
+ *      text_for_email: // value for 'text_for_email'
+ *      tagged_admin_emails: // value for 'tagged_admin_emails'
+ *      error_url: // value for 'error_url'
+ *      author_name: // value for 'author_name'
+ *   },
+ * });
+ */
+export function useCreateErrorCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.CreateErrorCommentMutation,
+        Types.CreateErrorCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.CreateErrorCommentMutation,
+        Types.CreateErrorCommentMutationVariables
+    >(CreateErrorCommentDocument, baseOptions);
+}
+export type CreateErrorCommentMutationHookResult = ReturnType<
+    typeof useCreateErrorCommentMutation
+>;
+export type CreateErrorCommentMutationResult = Apollo.MutationResult<Types.CreateErrorCommentMutation>;
+export type CreateErrorCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.CreateErrorCommentMutation,
+    Types.CreateErrorCommentMutationVariables
+>;
+export const DeleteErrorCommentDocument = gql`
+    mutation DeleteErrorComment($id: ID!) {
+        deleteErrorComment(id: $id)
+    }
+`;
+export type DeleteErrorCommentMutationFn = Apollo.MutationFunction<
+    Types.DeleteErrorCommentMutation,
+    Types.DeleteErrorCommentMutationVariables
+>;
+
+/**
+ * __useDeleteErrorCommentMutation__
+ *
+ * To run a mutation, you first call `useDeleteErrorCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteErrorCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteErrorCommentMutation, { data, loading, error }] = useDeleteErrorCommentMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useDeleteErrorCommentMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.DeleteErrorCommentMutation,
+        Types.DeleteErrorCommentMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.DeleteErrorCommentMutation,
+        Types.DeleteErrorCommentMutationVariables
+    >(DeleteErrorCommentDocument, baseOptions);
+}
+export type DeleteErrorCommentMutationHookResult = ReturnType<
+    typeof useDeleteErrorCommentMutation
+>;
+export type DeleteErrorCommentMutationResult = Apollo.MutationResult<Types.DeleteErrorCommentMutation>;
+export type DeleteErrorCommentMutationOptions = Apollo.BaseMutationOptions<
+    Types.DeleteErrorCommentMutation,
+    Types.DeleteErrorCommentMutationVariables
 >;
 export const DeleteErrorSegmentDocument = gql`
     mutation DeleteErrorSegment($segment_id: ID!) {
@@ -1268,6 +1395,134 @@ export type GetSessionCommentsLazyQueryHookResult = ReturnType<
 export type GetSessionCommentsQueryResult = Apollo.QueryResult<
     Types.GetSessionCommentsQuery,
     Types.GetSessionCommentsQueryVariables
+>;
+export const GetSessionCommentsForAdminDocument = gql`
+    query GetSessionCommentsForAdmin {
+        comments_for_admin {
+            id
+            timestamp
+            created_at
+            updated_at
+            text
+            author {
+                id
+                name
+                email
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetSessionCommentsForAdminQuery__
+ *
+ * To run a query within a React component, call `useGetSessionCommentsForAdminQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionCommentsForAdminQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionCommentsForAdminQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetSessionCommentsForAdminQuery(
+    baseOptions?: Apollo.QueryHookOptions<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >(GetSessionCommentsForAdminDocument, baseOptions);
+}
+export function useGetSessionCommentsForAdminLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionCommentsForAdminQuery,
+        Types.GetSessionCommentsForAdminQueryVariables
+    >(GetSessionCommentsForAdminDocument, baseOptions);
+}
+export type GetSessionCommentsForAdminQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsForAdminQuery
+>;
+export type GetSessionCommentsForAdminLazyQueryHookResult = ReturnType<
+    typeof useGetSessionCommentsForAdminLazyQuery
+>;
+export type GetSessionCommentsForAdminQueryResult = Apollo.QueryResult<
+    Types.GetSessionCommentsForAdminQuery,
+    Types.GetSessionCommentsForAdminQueryVariables
+>;
+export const GetErrorCommentsDocument = gql`
+    query GetErrorComments($error_group_id: ID!) {
+        error_comments(error_group_id: $error_group_id) {
+            id
+            created_at
+            updated_at
+            text
+            author {
+                id
+                name
+                email
+            }
+        }
+    }
+`;
+
+/**
+ * __useGetErrorCommentsQuery__
+ *
+ * To run a query within a React component, call `useGetErrorCommentsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorCommentsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorCommentsQuery({
+ *   variables: {
+ *      error_group_id: // value for 'error_group_id'
+ *   },
+ * });
+ */
+export function useGetErrorCommentsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorCommentsQuery,
+        Types.GetErrorCommentsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorCommentsQuery,
+        Types.GetErrorCommentsQueryVariables
+    >(GetErrorCommentsDocument, baseOptions);
+}
+export function useGetErrorCommentsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorCommentsQuery,
+        Types.GetErrorCommentsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorCommentsQuery,
+        Types.GetErrorCommentsQueryVariables
+    >(GetErrorCommentsDocument, baseOptions);
+}
+export type GetErrorCommentsQueryHookResult = ReturnType<
+    typeof useGetErrorCommentsQuery
+>;
+export type GetErrorCommentsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorCommentsLazyQuery
+>;
+export type GetErrorCommentsQueryResult = Apollo.QueryResult<
+    Types.GetErrorCommentsQuery,
+    Types.GetErrorCommentsQueryVariables
 >;
 export const GetOnboardingStepsDocument = gql`
     query GetOnboardingSteps($organization_id: ID!, $admin_id: ID!) {

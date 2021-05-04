@@ -189,9 +189,9 @@ export type CreateSessionCommentMutationVariables = Types.Exact<{
     text_for_email: Types.Scalars['String'];
     x_coordinate: Types.Scalars['Float'];
     y_coordinate: Types.Scalars['Float'];
-    tagged_admin_emails:
-        | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
+    tagged_admins:
+        | Array<Types.Maybe<Types.SanitizedAdminInput>>
+        | Types.Maybe<Types.SanitizedAdminInput>;
     session_url: Types.Scalars['String'];
     time: Types.Scalars['Float'];
     author_name: Types.Scalars['String'];
@@ -225,6 +225,42 @@ export type DeleteSessionCommentMutationVariables = Types.Exact<{
 export type DeleteSessionCommentMutation = { __typename?: 'Mutation' } & Pick<
     Types.Mutation,
     'deleteSessionComment'
+>;
+
+export type CreateErrorCommentMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    admin_id: Types.Scalars['ID'];
+    error_group_id: Types.Scalars['ID'];
+    text: Types.Scalars['String'];
+    text_for_email: Types.Scalars['String'];
+    tagged_admin_emails:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+    error_url: Types.Scalars['String'];
+    author_name: Types.Scalars['String'];
+}>;
+
+export type CreateErrorCommentMutation = { __typename?: 'Mutation' } & {
+    createErrorComment?: Types.Maybe<
+        { __typename?: 'ErrorComment' } & Pick<
+            Types.ErrorComment,
+            'id' | 'created_at' | 'updated_at' | 'text'
+        > & {
+                author: { __typename?: 'SanitizedAdmin' } & Pick<
+                    Types.SanitizedAdmin,
+                    'id' | 'name' | 'email'
+                >;
+            }
+    >;
+};
+
+export type DeleteErrorCommentMutationVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+}>;
+
+export type DeleteErrorCommentMutation = { __typename?: 'Mutation' } & Pick<
+    Types.Mutation,
+    'deleteErrorComment'
 >;
 
 export type DeleteErrorSegmentMutationVariables = Types.Exact<{
@@ -362,6 +398,46 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 | 'text'
                 | 'x_coordinate'
                 | 'y_coordinate'
+            > & {
+                    author: { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email'
+                    >;
+                }
+        >
+    >;
+};
+
+export type GetSessionCommentsForAdminQueryVariables = Types.Exact<{
+    [key: string]: never;
+}>;
+
+export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
+    comments_for_admin: Array<
+        Types.Maybe<
+            { __typename?: 'SessionComment' } & Pick<
+                Types.SessionComment,
+                'id' | 'timestamp' | 'created_at' | 'updated_at' | 'text'
+            > & {
+                    author: { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email'
+                    >;
+                }
+        >
+    >;
+};
+
+export type GetErrorCommentsQueryVariables = Types.Exact<{
+    error_group_id: Types.Scalars['ID'];
+}>;
+
+export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
+    error_comments: Array<
+        Types.Maybe<
+            { __typename?: 'ErrorComment' } & Pick<
+                Types.ErrorComment,
+                'id' | 'created_at' | 'updated_at' | 'text'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,

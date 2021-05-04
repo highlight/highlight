@@ -111,11 +111,12 @@ func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
 
 type Admin struct {
 	Model
-	Name          *string
-	Email         *string
-	PhotoURL      *string        `json:"photo_url"`
-	UID           *string        `gorm:"unique_index"`
-	Organizations []Organization `gorm:"many2many:organization_admins;"`
+	Name            *string
+	Email           *string
+	PhotoURL        *string          `json:"photo_url"`
+	UID             *string          `gorm:"unique_index"`
+	Organizations   []Organization   `gorm:"many2many:organization_admins;"`
+	SessionComments []SessionComment `gorm:"many2many:session_comment_admins;"`
 }
 
 type EmailSignup struct {
@@ -336,12 +337,20 @@ type ErrorField struct {
 
 type SessionComment struct {
 	Model
+	Admins      []Admin `gorm:"many2many:session_comment_admins;"`
 	AdminId     int
 	SessionId   int
 	Timestamp   int
 	Text        string
 	XCoordinate float64
 	YCoordinate float64
+}
+
+type ErrorComment struct {
+	Model
+	AdminId int
+	ErrorId int
+	Text    string
 }
 
 func SetupDB() *gorm.DB {
@@ -381,6 +390,7 @@ func SetupDB() *gorm.DB {
 		&EmailSignup{},
 		&ResourcesObject{},
 		&SessionComment{},
+		&ErrorComment{},
 	); err != nil {
 		log.Fatalf("Error migrating db: %v", err)
 	}
