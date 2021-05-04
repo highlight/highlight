@@ -1,7 +1,9 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
+import Confetti from 'react-confetti';
 import { useHistory } from 'react-router';
 import { useParams } from 'react-router-dom';
 import {
@@ -37,6 +39,7 @@ const OnboardingBubble = ({ collapsed }: Props) => {
         false
     );
     const [steps, setSteps] = useState<OnboardingStep[]>([]);
+    const [rainConfetti, setRainConfetti] = useState(false);
     const [stepsNotFinishedCount, setStepsNotFinishedCount] = useState<number>(
         -1
     );
@@ -112,7 +115,11 @@ const OnboardingBubble = ({ collapsed }: Props) => {
 
             // Don't show the onboarding bubble if all the steps are completed.
             if (!loading && called && stepsNotFinishedCount === 0) {
-                setHasFinishedOnboarding(true);
+                setRainConfetti(true);
+                message.success('You have finished onboarding 👏');
+                setTimeout(() => {
+                    setHasFinishedOnboarding(true);
+                }, 1000 * 10);
                 stopPolling();
             } else {
                 startPolling(3000);
@@ -132,6 +139,10 @@ const OnboardingBubble = ({ collapsed }: Props) => {
         startPolling,
         stopPolling,
     ]);
+
+    if (rainConfetti) {
+        return <Confetti recycle={false} />;
+    }
 
     if (loading) {
         return null;
