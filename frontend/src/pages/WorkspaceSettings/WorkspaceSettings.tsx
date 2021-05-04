@@ -8,7 +8,6 @@ import { DangerForm } from './DangerForm/DangerForm';
 export const WorkspaceSettings = () => {
     return (
         <div className={styles.settingsPageWrapper}>
-            <div className={styles.blankSidebar}></div>
             <div className={styles.settingsPage}>
                 <div className={styles.title}>Workspace Settings</div>
                 <div className={styles.subTitle}>
