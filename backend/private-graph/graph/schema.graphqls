@@ -259,6 +259,7 @@ type SessionComment {
 type ErrorComment {
     id: ID!
     created_at: Time!
+    error_id: Int!
     updated_at: Time!
     author: SanitizedAdmin!
     text: String!
@@ -297,6 +298,7 @@ type Query {
     session_comments(session_id: ID!): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
     error_comments(error_group_id: ID!): [ErrorComment]!
+    error_comments_for_admin: [ErrorComment]!
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64

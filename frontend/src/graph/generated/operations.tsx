@@ -426,6 +426,19 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
                 }
         >
     >;
+    error_comments_for_admin: Array<
+        Types.Maybe<
+            { __typename?: 'ErrorComment' } & Pick<
+                Types.ErrorComment,
+                'id' | 'updated_at' | 'text' | 'error_id'
+            > & {
+                    author: { __typename?: 'SanitizedAdmin' } & Pick<
+                        Types.SanitizedAdmin,
+                        'id' | 'name' | 'email'
+                    >;
+                }
+        >
+    >;
 };
 
 export type GetSessionCommentsForAdminQueryVariables = Types.Exact<{

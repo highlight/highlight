@@ -295,6 +295,7 @@ export type ErrorComment = {
     __typename?: 'ErrorComment';
     id: Scalars['ID'];
     created_at: Scalars['Time'];
+    error_id: Scalars['Int'];
     updated_at: Scalars['Time'];
     author: SanitizedAdmin;
     text: Scalars['String'];
@@ -332,6 +333,7 @@ export type Query = {
     session_comments: Array<Maybe<SessionComment>>;
     session_comments_for_admin: Array<Maybe<SessionComment>>;
     error_comments: Array<Maybe<ErrorComment>>;
+    error_comments_for_admin: Array<Maybe<ErrorComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;

@@ -1409,6 +1409,17 @@ export const GetNotificationsDocument = gql`
                 email
             }
         }
+        error_comments_for_admin {
+            id
+            updated_at
+            text
+            error_id
+            author {
+                id
+                name
+                email
+            }
+        }
     }
 `;
 

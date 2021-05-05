@@ -84,6 +84,7 @@ type ComplexityRoot struct {
 	ErrorComment struct {
 		Author    func(childComplexity int) int
 		CreatedAt func(childComplexity int) int
+		ErrorId   func(childComplexity int) int
 		ID        func(childComplexity int) int
 		Text      func(childComplexity int) int
 		UpdatedAt func(childComplexity int) int
@@ -217,6 +218,7 @@ type ComplexityRoot struct {
 		DailyErrorsCount              func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
 		DailySessionsCount            func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
 		ErrorComments                 func(childComplexity int, errorGroupID int) int
+		ErrorCommentsForAdmin         func(childComplexity int) int
 		ErrorFieldSuggestion          func(childComplexity int, organizationID int, name string, query string) int
 		ErrorGroup                    func(childComplexity int, id int) int
 		ErrorGroups                   func(childComplexity int, organizationID int, count int, params *model.ErrorSearchParamsInput) int
@@ -379,6 +381,7 @@ type QueryResolver interface {
 	SessionComments(ctx context.Context, sessionID int) ([]*model1.SessionComment, error)
 	SessionCommentsForAdmin(ctx context.Context) ([]*model1.SessionComment, error)
 	ErrorComments(ctx context.Context, errorGroupID int) ([]*model1.ErrorComment, error)
+	ErrorCommentsForAdmin(ctx context.Context) ([]*model1.ErrorComment, error)
 	Admins(ctx context.Context, organizationID int) ([]*model1.Admin, error)
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int64, error)
@@ -535,6 +538,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorComment.CreatedAt(childComplexity), true
+
+	case "ErrorComment.error_id":
+		if e.complexity.ErrorComment.ErrorId == nil {
+			break
+		}
+
+		return e.complexity.ErrorComment.ErrorId(childComplexity), true
 
 	case "ErrorComment.id":
 		if e.complexity.ErrorComment.ID == nil {
@@ -1312,6 +1322,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.ErrorComments(childComplexity, args["error_group_id"].(int)), true
+
+	case "Query.error_comments_for_admin":
+		if e.complexity.Query.ErrorCommentsForAdmin == nil {
+			break
+		}
+
+		return e.complexity.Query.ErrorCommentsForAdmin(childComplexity), true
 
 	case "Query.error_field_suggestion":
 		if e.complexity.Query.ErrorFieldSuggestion == nil {
@@ -2298,6 +2315,7 @@ type SessionComment {
 type ErrorComment {
     id: ID!
     created_at: Time!
+    error_id: Int!
     updated_at: Time!
     author: SanitizedAdmin!
     text: String!
@@ -2336,6 +2354,7 @@ type Query {
     session_comments(session_id: ID!): [SessionComment]!
     session_comments_for_admin: [SessionComment]!
     error_comments(error_group_id: ID!): [ErrorComment]!
+    error_comments_for_admin: [ErrorComment]!
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
@@ -4255,6 +4274,41 @@ func (ec *executionContext) _ErrorComment_created_at(ctx context.Context, field 
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorComment_error_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorComment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ErrorId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorComment_updated_at(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorComment) (ret graphql.Marshaler) {
@@ -7580,6 +7634,41 @@ func (ec *executionContext) _Query_error_comments(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().ErrorComments(rctx, args["error_group_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.ErrorComment)
+	fc.Result = res
+	return ec.marshalNErrorComment2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorComment(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_error_comments_for_admin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorCommentsForAdmin(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11933,6 +12022,11 @@ func (ec *executionContext) _ErrorComment(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "error_id":
+			out.Values[i] = ec._ErrorComment_error_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "updated_at":
 			out.Values[i] = ec._ErrorComment_updated_at(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -12708,6 +12802,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_error_comments(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "error_comments_for_admin":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_error_comments_for_admin(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
