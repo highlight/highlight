@@ -27,7 +27,7 @@ interface Props {
         > & {
                 author: { __typename?: 'SanitizedAdmin' } & Pick<
                     SanitizedAdmin,
-                    'id' | 'name' | 'email'
+                    'id' | 'name' | 'email' | 'photo_url'
                 >;
             }
     >;

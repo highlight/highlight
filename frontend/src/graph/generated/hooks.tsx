@@ -1334,6 +1334,7 @@ export const GetSessionCommentsDocument = gql`
         session_comments(session_id: $session_id) {
             id
             timestamp
+            session_id
             created_at
             updated_at
             text
@@ -1341,6 +1342,7 @@ export const GetSessionCommentsDocument = gql`
                 id
                 name
                 email
+                photo_url
             }
             x_coordinate
             y_coordinate
@@ -1408,6 +1410,7 @@ export const GetNotificationsDocument = gql`
                 id
                 name
                 email
+                photo_url
             }
         }
         error_comments_for_admin {
@@ -1419,6 +1422,7 @@ export const GetNotificationsDocument = gql`
                 id
                 name
                 email
+                photo_url
             }
         }
     }
@@ -1483,6 +1487,7 @@ export const GetSessionCommentsForAdminDocument = gql`
                 id
                 name
                 email
+                photo_url
             }
         }
     }
@@ -1546,6 +1551,7 @@ export const GetErrorCommentsDocument = gql`
                 id
                 name
                 email
+                photo_url
             }
         }
     }

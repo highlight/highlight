@@ -43,6 +43,7 @@ query GetSessionComments($session_id: ID!) {
     session_comments(session_id: $session_id) {
         id
         timestamp
+        session_id
         created_at
         updated_at
         text
@@ -50,6 +51,7 @@ query GetSessionComments($session_id: ID!) {
             id
             name
             email
+            photo_url
         }
         x_coordinate
         y_coordinate
@@ -67,6 +69,7 @@ query GetNotifications {
             id
             name
             email
+            photo_url
         }
     }
     error_comments_for_admin {
@@ -78,6 +81,7 @@ query GetNotifications {
             id
             name
             email
+            photo_url
         }
     }
 }
@@ -93,6 +97,7 @@ query GetSessionCommentsForAdmin {
             id
             name
             email
+            photo_url
         }
     }
 }
@@ -107,6 +112,7 @@ query GetErrorComments($error_group_id: ID!) {
             id
             name
             email
+            photo_url
         }
     }
 }

@@ -393,16 +393,16 @@ export type GetSessionCommentsQuery = { __typename?: 'Query' } & {
                 Types.SessionComment,
                 | 'id'
                 | 'timestamp'
+                | 'session_id'
                 | 'created_at'
                 | 'updated_at'
-                | 'session_id'
                 | 'text'
                 | 'x_coordinate'
                 | 'y_coordinate'
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
-                        'id' | 'name' | 'email'
+                        'id' | 'name' | 'email' | 'photo_url'
                     >;
                 }
         >
@@ -422,7 +422,7 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
-                        'id' | 'name' | 'email'
+                        'id' | 'name' | 'email' | 'photo_url'
                     >;
                 }
         >
@@ -435,7 +435,7 @@ export type GetNotificationsQuery = { __typename?: 'Query' } & {
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
-                        'id' | 'name' | 'email'
+                        'id' | 'name' | 'email' | 'photo_url'
                     >;
                 }
         >
@@ -455,7 +455,7 @@ export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
-                        'id' | 'name' | 'email'
+                        'id' | 'name' | 'email' | 'photo_url'
                     >;
                 }
         >
@@ -475,7 +475,7 @@ export type GetErrorCommentsQuery = { __typename?: 'Query' } & {
             > & {
                     author: { __typename?: 'SanitizedAdmin' } & Pick<
                         Types.SanitizedAdmin,
-                        'id' | 'name' | 'email'
+                        'id' | 'name' | 'email' | 'photo_url'
                     >;
                 }
         >
