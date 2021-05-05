@@ -4,13 +4,18 @@ import { LoadingPage } from '../../components/Loading/Loading';
 import { Header } from '../../components/Header/Header';
 import { useIntegrated } from '../../util/integrated';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 import commonStyles from '../../Common.module.scss';
 import { Duration, MillisToDaysHoursMinSeconds } from '../../util/time';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
 import ApplicationRouter from './ApplicationRouter';
+import {
+    SidebarContextProvider,
+    SidebarState,
+} from '../../components/Sidebar/SidebarContext';
+import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
+import useLocalStorage from '@rehooks/local-storage';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -24,7 +29,32 @@ export const OrgRouter = () => {
     const { integrated, loading: integratedLoading } = useIntegrated(
         parseInt(organization_id)
     );
-    const [openSidebar, setOpenSidebar] = useState(false);
+    const [sidebarState, setSidebarState] = useState<SidebarState>(
+        SidebarState.Collapsed
+    );
+    const [hasFinishedOnboarding] = useLocalStorage(
+        `highlight-finished-onboarding-${organization_id}`,
+        false
+    );
+
+    const toggleSidebar = () => {
+        let nextState;
+
+        switch (sidebarState) {
+            case SidebarState.Collapsed:
+                nextState = SidebarState.Expanded;
+                break;
+            case SidebarState.Expanded:
+                nextState = SidebarState.Collapsed;
+                break;
+            default:
+            case SidebarState.TemporarilyExpanded:
+                nextState = SidebarState.Collapsed;
+                break;
+        }
+
+        setSidebarState(nextState);
+    };
 
     useEffect(() => {
         const diff =
@@ -50,7 +80,13 @@ export const OrgRouter = () => {
         return <LoadingPage />;
     }
     return (
-        <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
+        <SidebarContextProvider
+            value={{
+                setState: setSidebarState,
+                state: sidebarState,
+                toggleSidebar,
+            }}
+        >
             <Header trialTimeRemaining={trialTimeRemaining} />
             <div className={commonStyles.bodyWrapper}>
                 {error || !data?.organization ? (
@@ -67,10 +103,11 @@ export const OrgRouter = () => {
                 ) : (
                     <>
                         <Sidebar />
+                        {!hasFinishedOnboarding && <OnboardingBubble />}
                         <ApplicationRouter integrated={integrated} />
                     </>
                 )}
             </div>
-        </SidebarContext.Provider>
+        </SidebarContextProvider>
     );
 };

@@ -326,6 +326,7 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                 <div className={styles.bottomText}>
                                     {created.toLocaleString('en-us', {
                                         hour: '2-digit',
+                                        second: '2-digit',
                                         minute: '2-digit',
                                         timeZoneName: 'short',
                                     })}

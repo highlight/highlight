@@ -240,6 +240,7 @@ type ComplexityRoot struct {
 		SessionComments               func(childComplexity int, sessionID int) int
 		SessionCommentsForAdmin       func(childComplexity int) int
 		Sessions                      func(childComplexity int, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
+		SlackChannelSuggestion        func(childComplexity int, orgID int) int
 		UnprocessedSessionsCount      func(childComplexity int, organizationID int) int
 	}
 
@@ -254,6 +255,11 @@ type ComplexityRoot struct {
 		ID       func(childComplexity int) int
 		Name     func(childComplexity int) int
 		PhotoURL func(childComplexity int) int
+	}
+
+	SanitizedSlackChannel struct {
+		WebhookChannel   func(childComplexity int) int
+		WebhookChannelID func(childComplexity int) int
 	}
 
 	SearchParams struct {
@@ -387,6 +393,7 @@ type QueryResolver interface {
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int64, error)
 	AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error)
+	SlackChannelSuggestion(ctx context.Context, orgID int) ([]*model.SanitizedSlackChannel, error)
 	OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model1.Session, error)
 	DailySessionsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
@@ -1573,6 +1580,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["lifecycle"].(model.SessionLifecycle), args["starred"].(bool), args["params"].(*model.SearchParamsInput)), true
 
+	case "Query.slackChannelSuggestion":
+		if e.complexity.Query.SlackChannelSuggestion == nil {
+			break
+		}
+
+		args, err := ec.field_Query_slackChannelSuggestion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SlackChannelSuggestion(childComplexity, args["org_id"].(int)), true
+
 	case "Query.unprocessedSessionsCount":
 		if e.complexity.Query.UnprocessedSessionsCount == nil {
 			break
@@ -1633,6 +1652,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SanitizedAdmin.PhotoURL(childComplexity), true
+
+	case "SanitizedSlackChannel.webhook_channel":
+		if e.complexity.SanitizedSlackChannel.WebhookChannel == nil {
+			break
+		}
+
+		return e.complexity.SanitizedSlackChannel.WebhookChannel(childComplexity), true
+
+	case "SanitizedSlackChannel.webhook_channel_id":
+		if e.complexity.SanitizedSlackChannel.WebhookChannelID == nil {
+			break
+		}
+
+		return e.complexity.SanitizedSlackChannel.WebhookChannelID(childComplexity), true
 
 	case "SearchParams.browser":
 		if e.complexity.SearchParams.Browser == nil {
@@ -2348,6 +2381,11 @@ type DailyErrorCount {
     count: Int64!
 }
 
+type SanitizedSlackChannel {
+    webhook_channel: String
+    webhook_channel_id: String
+}
+
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
@@ -2368,6 +2406,7 @@ type Query {
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
+    slackChannelSuggestion(org_id: ID!): [SanitizedSlackChannel]!
     organizationHasViewedASession(organization_id: ID!): Session
     dailySessionsCount(
         organization_id: ID!
@@ -3678,6 +3717,21 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 		}
 	}
 	args["params"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_slackChannelSuggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["org_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("org_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["org_id"] = arg0
 	return args, nil
 }
 
@@ -7850,6 +7904,48 @@ func (ec *executionContext) _Query_adminHasCreatedComment(ctx context.Context, f
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_slackChannelSuggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_slackChannelSuggestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SlackChannelSuggestion(rctx, args["org_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.SanitizedSlackChannel)
+	fc.Result = res
+	return ec.marshalNSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_organizationHasViewedASession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8730,6 +8826,70 @@ func (ec *executionContext) _SanitizedAdmin_photo_url(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.PhotoURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SanitizedSlackChannel_webhook_channel(ctx context.Context, field graphql.CollectedField, obj *model.SanitizedSlackChannel) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SanitizedSlackChannel",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WebhookChannel, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SanitizedSlackChannel_webhook_channel_id(ctx context.Context, field graphql.CollectedField, obj *model.SanitizedSlackChannel) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SanitizedSlackChannel",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WebhookChannelID, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12909,6 +13069,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_adminHasCreatedComment(ctx, field)
 				return res
 			})
+		case "slackChannelSuggestion":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_slackChannelSuggestion(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "organizationHasViewedASession":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -13163,6 +13337,32 @@ func (ec *executionContext) _SanitizedAdmin(ctx context.Context, sel ast.Selecti
 			}
 		case "photo_url":
 			out.Values[i] = ec._SanitizedAdmin_photo_url(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var sanitizedSlackChannelImplementors = []string{"SanitizedSlackChannel"}
+
+func (ec *executionContext) _SanitizedSlackChannel(ctx context.Context, sel ast.SelectionSet, obj *model.SanitizedSlackChannel) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sanitizedSlackChannelImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SanitizedSlackChannel")
+		case "webhook_channel":
+			out.Values[i] = ec._SanitizedSlackChannel_webhook_channel(ctx, field, obj)
+		case "webhook_channel_id":
+			out.Values[i] = ec._SanitizedSlackChannel_webhook_channel_id(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -14182,6 +14382,43 @@ func (ec *executionContext) unmarshalNSanitizedAdminInput2ᚕᚖgithubᚗcomᚋh
 	return res, nil
 }
 
+func (ec *executionContext) marshalNSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx context.Context, sel ast.SelectionSet, v []*model.SanitizedSlackChannel) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOSanitizedSlackChannel2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNSearchParams2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSearchParams(ctx context.Context, sel ast.SelectionSet, v model1.SearchParams) graphql.Marshaler {
 	return ec._SearchParams(ctx, sel, &v)
 }
@@ -15154,6 +15391,13 @@ func (ec *executionContext) unmarshalOSanitizedAdminInput2ᚖgithubᚗcomᚋhigh
 	}
 	res, err := ec.unmarshalInputSanitizedAdminInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSanitizedSlackChannel2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx context.Context, sel ast.SelectionSet, v *model.SanitizedSlackChannel) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SanitizedSlackChannel(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx context.Context, v interface{}) (*model.SearchParamsInput, error) {

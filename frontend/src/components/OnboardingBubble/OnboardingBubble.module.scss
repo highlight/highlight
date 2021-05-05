@@ -2,6 +2,9 @@
     --button-width: 160px;
     position: absolute;
     bottom: var(--size-xLarge);
+    right: 24px;
+    z-index: 5;
+    opacity: 0;
 
     animation: enter-viewport 1s forwards;
     box-shadow: 0 0 0 0 rgba(86, 41, 198, 0.7);
@@ -27,11 +30,11 @@
 
 @keyframes enter-viewport {
     0% {
-        transform: translateY(150vh) translateX(calc(100vw));
+        opacity: 0;
     }
 
     100% {
-        transform: translateY(0%) translateX(calc(100vw));
+        opacity: 1;
     }
 }
 

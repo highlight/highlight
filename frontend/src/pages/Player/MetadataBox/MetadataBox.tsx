@@ -12,7 +12,6 @@ import {
 } from '../../../graph/generated/hooks';
 import Skeleton from 'react-loading-skeleton';
 import { message } from 'antd';
-import classNames from 'classnames';
 import { getMajorVersion } from './utils/utils';
 
 export const MetadataBox = () => {
@@ -99,52 +98,34 @@ export const MetadataBox = () => {
                                         day: 'numeric',
                                         month: 'short',
                                         year: 'numeric',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        timeZoneName: 'short',
                                         weekday: 'long',
                                     })}
                                 </div>
                                 <div className={styles.userIdSubHeader}>
-                                    {loading ? (
+                                    {created.toLocaleString('en-us', {
+                                        second: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        timeZoneName: 'short',
+                                    })}
+                                </div>
+                                <div className={styles.userIdSubHeader}>
+                                    {data?.session?.browser_name && (
                                         <>
-                                            <Skeleton
-                                                count={3}
-                                                style={{
-                                                    height: 15,
-                                                    marginBottom: 5,
-                                                }}
-                                            />
-                                        </>
-                                    ) : (
-                                        <>
-                                            {data?.session?.browser_name && (
-                                                <div
-                                                    className={classNames(
-                                                        styles.userText,
-                                                        styles.deviceDetails
-                                                    )}
-                                                >
-                                                    <span>
-                                                        {
-                                                            data?.session
-                                                                .browser_name
-                                                        }{' '}
-                                                        {getMajorVersion(
-                                                            data?.session
-                                                                .browser_version
-                                                        )}
-                                                    </span>
-                                                    <span>•</span>
-                                                    <span>
-                                                        {data?.session.os_name}{' '}
-                                                        {getMajorVersion(
-                                                            data?.session
-                                                                .os_version
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            )}
+                                            <span>
+                                                {data?.session.browser_name}{' '}
+                                                {getMajorVersion(
+                                                    data?.session
+                                                        .browser_version
+                                                )}
+                                            </span>
+                                            <span> • </span>
+                                            <span>
+                                                {data?.session.os_name}{' '}
+                                                {getMajorVersion(
+                                                    data?.session.os_version
+                                                )}
+                                            </span>
                                         </>
                                     )}
                                 </div>

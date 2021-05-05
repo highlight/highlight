@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styles from './ErrorsPage.module.scss';
 import { ErrorFeed } from './ErrorFeed/ErrorFeed';
 import {
@@ -8,7 +8,6 @@ import {
 import { ErrorSearchSidebar } from './ErrorSearchSidebar/ErrorSearchSidebar';
 import { ErrorSegmentSidebar } from './ErrorSegmentSidebar/ErrorSegmentSidebar';
 import { useLocalStorage } from '@rehooks/local-storage';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { FeedNavigation } from '../Sessions/SearchSidebar/FeedNavigation/FeedNavigation';
 import { IntegrationCard } from '../Sessions/IntegrationCard/IntegrationCard';
 import { Complete } from '../../util/types';
@@ -32,9 +31,6 @@ export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
         cachedParams || EmptyErrorsSearchParams
     );
     const [existingParams, setExistingParams] = useState<ErrorSearchParams>({});
-    const { setOpenSidebar } = useContext(SidebarContext);
-
-    useEffect(() => setOpenSidebar(false), [setOpenSidebar]);
 
     useEffect(() => setCachedParams(searchParams), [
         searchParams,
