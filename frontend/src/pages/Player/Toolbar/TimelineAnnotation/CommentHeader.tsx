@@ -1,13 +1,9 @@
-import { Dropdown, Menu, message } from 'antd';
-import classNames from 'classnames';
-import moment from 'moment';
+import { Menu, message } from 'antd';
 import React, { useContext } from 'react';
 import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
-import toolbarStyles from '../Toolbar.module.scss';
-import styles from './CommentHeader.module.scss';
-import { HiDotsHorizontal } from 'react-icons/hi';
 import { onGetLinkWithTimestamp } from '../../ShareButton/utils/utils';
 import { PlayerSearchParameters } from '../../PlayerHook/utils';
+import { CommentHeader } from '../../../../components/Comment/Comment';
 import {
     useDeleteSessionCommentMutation,
     useGetSessionQuery,
@@ -19,7 +15,7 @@ interface Props {
     comment: ParsedSessionComment;
 }
 
-const CommentHeader = ({ comment }: Props) => {
+const SessionCommentHeader = ({ comment }: Props) => {
     const { session_id } = useParams<{ session_id: string }>();
     const { pause } = useContext(ReplayerContext);
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
@@ -91,27 +87,7 @@ const CommentHeader = ({ comment }: Props) => {
         </Menu>
     );
 
-    return (
-        <div className={classNames(toolbarStyles.commentHeader)}>
-            <span className={toolbarStyles.commentAuthor}>
-                {comment.author.name || comment.author.email.split('@')[0]}
-            </span>
-            <span className={toolbarStyles.commentUpdatedTime}>
-                {moment(comment.updated_at).fromNow()}
-            </span>
-            <span className={styles.endActions}>
-                <Dropdown
-                    overlay={menu}
-                    placement="bottomLeft"
-                    trigger={['click']}
-                >
-                    <button className={styles.ellipsisButton}>
-                        <HiDotsHorizontal />
-                    </button>
-                </Dropdown>
-            </span>
-        </div>
-    );
+    return <CommentHeader comment={comment} menu={menu} />;
 };
 
-export default CommentHeader;
+export default SessionCommentHeader;

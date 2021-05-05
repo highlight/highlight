@@ -258,6 +258,7 @@ export type SanitizedAdmin = {
     id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
     email: Scalars['String'];
+    photo_url?: Maybe<Scalars['String']>;
 };
 
 export type SanitizedAdminInput = {
@@ -613,7 +614,7 @@ export type MutationCreateErrorCommentArgs = {
     error_group_id: Scalars['ID'];
     text: Scalars['String'];
     text_for_email: Scalars['String'];
-    tagged_admin_emails: Array<Maybe<Scalars['String']>>;
+    tagged_admins: Array<Maybe<SanitizedAdminInput>>;
     error_url: Scalars['String'];
     author_name: Scalars['String'];
 };

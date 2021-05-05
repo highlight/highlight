@@ -2,17 +2,9 @@
     --button-width: 160px;
     position: absolute;
     bottom: var(--size-xLarge);
-    transition: transform 0.3s ease-in-out;
 
-    // Width of the button + left padding
-    transform: translateX(
-        calc(var(--button-width) + 32px + calc(var(--size-xLarge) * 2))
-    );
-    &.collapsed {
-        transform: translateX(
-            calc(var(--button-width) + 64px + calc(var(--size-xxLarge) * 2))
-        );
-    }
+    animation: enter-viewport 1s forwards;
+    box-shadow: 0 0 0 0 rgba(86, 41, 198, 0.7);
 
     .stepsCount {
         --bubble-height: 27px;
@@ -30,6 +22,16 @@
         height: var(--bubble-height);
         width: var(--bubble-height);
         border: 1px solid var(--color-red);
+    }
+}
+
+@keyframes enter-viewport {
+    0% {
+        transform: translateY(150vh) translateX(calc(100vw));
+    }
+
+    100% {
+        transform: translateY(0%) translateX(calc(100vw));
     }
 }
 
@@ -52,7 +54,7 @@
         font-size: 12px;
         color: var(--color-gray-500);
         margin: 0;
-        margin-bottom: var(--size-small);
+        margin-bottom: var(--size-xxSmall);
     }
 
     border-bottom: 1px solid var(--color-gray-300);
@@ -82,6 +84,14 @@
         }
     }
 
+    .stepCompleted {
+        text-decoration: line-through;
+
+        &:hover {
+            text-decoration: line-through;
+        }
+    }
+
     .checkIcon {
         height: var(--size-large);
         width: var(--size-large);
@@ -91,4 +101,8 @@
             color: var(--color-green);
         }
     }
+}
+
+.button {
+    box-shadow: var(--box-shadow);
 }

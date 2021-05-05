@@ -11,13 +11,16 @@
 
 .errorPageRight {
     padding-left: 40px;
-    width: 300px;
-    min-width: 300px;
+    width: 360px;
+    min-width: 360px;
 }
 
 .errorPageRightContent {
     position: sticky;
     top: 120px;
+    height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
 }
 
 .title {
@@ -197,4 +200,48 @@
     max-width: 240px;
     margin: 10px auto;
     display: block;
+}
+
+.actionButtons {
+    display: flex;
+    gap: $size-xSmall;
+    justify-content: flex-end;
+}
+
+.actionButtonsContainer {
+    margin-bottom: 0;
+}
+
+.commentInputContainer {
+    padding: 0 var(--size-xSmall);
+}
+
+.intercomLink {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.commentInputDiv {
+    display: flex;
+    margin-top: var(--size-small);
+    padding: var(--size-xSmall);
+    align-items: center;
+    @include rounded-border;
+}
+
+.commentDiv {
+    margin-bottom: var(--size-small);
+    padding: var(--size-small);
+    @include rounded-border;
+}
+
+.commentsContainer {
+    max-height: 300px;
+    overflow: auto;
+}
+
+.commentSection {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }

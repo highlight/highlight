@@ -16,7 +16,10 @@ import { H } from 'highlight.run';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
 import Button from '../../../../components/Button/Button/Button';
-import { AdminSuggestion } from './CommentTextBody/CommentTextBody';
+import {
+    AdminSuggestion,
+    parseAdminSuggestions,
+} from '../../../../components/Comment/Comment';
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
 // import html2canvas from 'html2canvas';
 
@@ -130,34 +133,10 @@ export const NewCommentEntry = ({
         setIsCreatingComment(false);
     };
 
-    const adminSuggestions: AdminSuggestion[] = useMemo(() => {
-        if (!data?.admins || !admin_data?.admin) {
-            return [];
-        }
-
-        return (
-            data.admins
-                // Filter out these admins
-                .filter(
-                    (admin) =>
-                        // 1. The admin that is creating the comment
-                        admin!.email !== admin_data.admin!.email &&
-                        // 2. Admins that are already mentioned
-                        !mentionedAdmins.some(
-                            (mentionedAdmin) => mentionedAdmin.id === admin?.id
-                        )
-                )
-                .map((admin) => {
-                    return {
-                        id: admin!.id,
-                        email: admin!.email,
-                        photo_url: admin!.photo_url,
-                        display: admin?.name || admin!.email,
-                        name: admin?.name,
-                    };
-                })
-        );
-    }, [admin_data?.admin, data?.admins, mentionedAdmins]);
+    const adminSuggestions: AdminSuggestion[] = useMemo(
+        () => parseAdminSuggestions(data, admin_data, mentionedAdmins),
+        [admin_data, data, mentionedAdmins]
+    );
 
     const onDisplayTransform = (_id: string, display: string): string => {
         return display;
@@ -174,7 +153,6 @@ export const NewCommentEntry = ({
         setMentionedAdmins(
             mentions.map((mention) => {
                 const admin = data?.admins?.find((admin) => {
-                    console.log(admin, mention);
                     return admin?.id === mention.id;
                 });
                 return { id: mention.id, email: admin?.email || '' };

@@ -172,7 +172,7 @@ mutation CreateErrorComment(
     $error_group_id: ID!
     $text: String!
     $text_for_email: String!
-    $tagged_admin_emails: [String]!
+    $tagged_admins: [SanitizedAdminInput]!
     $error_url: String!
     $author_name: String!
 ) {
@@ -182,7 +182,7 @@ mutation CreateErrorComment(
         error_group_id: $error_group_id
         text: $text
         text_for_email: $text_for_email
-        tagged_admin_emails: $tagged_admin_emails
+        tagged_admins: $tagged_admins
         error_url: $error_url
         author_name: $author_name
     ) {

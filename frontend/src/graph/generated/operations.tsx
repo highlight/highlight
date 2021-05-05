@@ -233,9 +233,9 @@ export type CreateErrorCommentMutationVariables = Types.Exact<{
     error_group_id: Types.Scalars['ID'];
     text: Types.Scalars['String'];
     text_for_email: Types.Scalars['String'];
-    tagged_admin_emails:
-        | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
+    tagged_admins:
+        | Array<Types.Maybe<Types.SanitizedAdminInput>>
+        | Types.Maybe<Types.SanitizedAdminInput>;
     error_url: Types.Scalars['String'];
     author_name: Types.Scalars['String'];
 }>;

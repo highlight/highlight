@@ -424,6 +424,7 @@ export class Highlight {
             HighlightWarning('initializeSession', e);
         }
         window.addEventListener('beforeunload', () => {
+            addCustomEvent('Page Unload', '');
             window.sessionStorage.setItem(
                 'sessionData',
                 JSON.stringify(this.sessionData)
@@ -431,7 +432,17 @@ export class Highlight {
         });
     }
 
-    stopRecording() {
+    /**
+     * Stops Highlight from recording.
+     * @param manual The end user requested to stop recording.
+     */
+    stopRecording(manual?: boolean) {
+        if (manual) {
+            addCustomEvent(
+                'Stop',
+                'H.stop() was called which stops Highlight from recording.'
+            );
+        }
         this.listeners.forEach((stop: listenerHandler) => stop());
         this.listeners = [];
     }
