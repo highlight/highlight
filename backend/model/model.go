@@ -160,9 +160,10 @@ type Session struct {
 	// Tells us if the session has been parsed by a worker.
 	Processed *bool `json:"processed"`
 	// The length of a session.
-	Length     int64    `json:"length"`
-	Fields     []*Field `json:"fields" gorm:"many2many:session_fields;"`
-	UserObject JSONB    `json:"user_object" sql:"type:jsonb"`
+	Length      int64    `json:"length"`
+	Fields      []*Field `json:"fields" gorm:"many2many:session_fields;"`
+	Environment string   `json:"environment"`
+	UserObject  JSONB    `json:"user_object" sql:"type:jsonb"`
 	// Whether this is the first session created by this user.
 	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`

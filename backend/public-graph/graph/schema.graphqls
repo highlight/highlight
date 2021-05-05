@@ -32,6 +32,7 @@ type Mutation {
         clientVersion: String!
         firstloadVersion: String!
         clientConfig: String!
+        environment: String!
     ): Session
     identifySession(
         session_id: ID!

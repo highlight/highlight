@@ -54,6 +54,7 @@ export type MutationInitializeSessionArgs = {
   clientVersion: Scalars['String'];
   firstloadVersion: Scalars['String'];
   clientConfig: Scalars['String'];
+  environment: Scalars['String'];
 };
 
 

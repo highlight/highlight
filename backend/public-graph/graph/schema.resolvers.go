@@ -22,8 +22,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string) (*model.Session, error) {
-	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, firstloadVersion, clientVersion, clientConfig)
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string) (*model.Session, error) {
+	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, firstloadVersion, clientVersion, clientConfig, environment)
 
 	if err != nil {
 		msg := slack.WebhookMessage{Text: fmt.

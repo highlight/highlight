@@ -14,6 +14,7 @@ export type HighlightOptions = {
     disableNetworkRecording?: boolean;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
+    environment?: 'development' | 'staging' | 'production' | string;
     /**
      * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
      * @example
@@ -76,6 +77,7 @@ export const H: HighlightPublicInterface = {
                     enableSegmentIntegration: options?.enableSegmentIntegration,
                     enableStrictPrivacy: options?.enableStrictPrivacy || false,
                     firstloadVersion: packageJson['version'],
+                    environment: options?.environment || '',
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);

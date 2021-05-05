@@ -56,6 +56,7 @@ export type HighlightClassOptions = {
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
     firstloadVersion?: string;
+    environment?: 'development' | 'production' | 'staging' | string;
 };
 
 /**
@@ -108,6 +109,7 @@ export class Highlight {
     debugOptions: DebugOptions;
     listeners: listenerHandler[];
     firstloadVersion: string;
+    environment: string;
     _optionsInternal: HighlightClassOptionsInternal;
     _backendUrl: string;
 
@@ -132,6 +134,19 @@ export class Highlight {
             headers: {},
         });
         this.graphqlSDK = getSdk(client);
+        if (
+            options.environment === 'production' ||
+            options.environment === 'development' ||
+            options.environment === 'staging'
+        ) {
+            this.environment = options.environment;
+        } else {
+            this.environment = '';
+            HighlightWarning(
+                'init',
+                'custom environment names are not currently supported'
+            );
+        }
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
         } else if (typeof options.organizationID === 'number') {
@@ -267,6 +282,7 @@ export class Highlight {
                     clientVersion: packageJson['version'],
                     firstloadVersion: this.firstloadVersion,
                     clientConfig: JSON.stringify(this._optionsInternal),
+                    environment: this.environment,
                 });
                 this.sessionData.sessionID = parseInt(
                     gr?.initializeSession?.id || '0'
