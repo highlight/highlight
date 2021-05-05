@@ -99,10 +99,15 @@ export const MetadataBox = () => {
                                         day: 'numeric',
                                         month: 'short',
                                         year: 'numeric',
+                                        weekday: 'long',
+                                    })}
+                                </div>
+                                <div className={styles.userIdSubHeader}>
+                                    {created.toLocaleString('en-us', {
+                                        second: '2-digit',
                                         hour: '2-digit',
                                         minute: '2-digit',
                                         timeZoneName: 'short',
-                                        weekday: 'long',
                                     })}
                                 </div>
                                 <div className={styles.userIdSubHeader}>
