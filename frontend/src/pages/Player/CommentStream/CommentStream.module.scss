@@ -20,19 +20,24 @@
 
 .header {
     display: flex;
-    justify-content: space-between;
     margin-bottom: var(--size-xSmall);
+    align-items: center;
 
     h2 {
         color: var(--color-black);
         font-size: 12px;
         font-weight: 400;
         margin: 0;
+        margin-left: var(--size-xSmall);
     }
 
     p {
         margin: 0;
         font-size: 10px;
+    }
+
+    .timestamp {
+        margin-left: auto;
     }
 }
 
