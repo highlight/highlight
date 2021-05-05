@@ -14,6 +14,8 @@ import {
     SidebarContextProvider,
     SidebarState,
 } from '../../components/Sidebar/SidebarContext';
+import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
+import useLocalStorage from '@rehooks/local-storage';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -29,6 +31,10 @@ export const OrgRouter = () => {
     );
     const [sidebarState, setSidebarState] = useState<SidebarState>(
         SidebarState.Collapsed
+    );
+    const [hasFinishedOnboarding] = useLocalStorage(
+        `highlight-finished-onboarding-${organization_id}`,
+        false
     );
 
     const toggleSidebar = () => {
@@ -97,6 +103,7 @@ export const OrgRouter = () => {
                 ) : (
                     <>
                         <Sidebar />
+                        {!hasFinishedOnboarding && <OnboardingBubble />}
                         <ApplicationRouter integrated={integrated} />
                     </>
                 )}
