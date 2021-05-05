@@ -10,6 +10,7 @@ import SvgBellIcon from '../../../static/BellIcon';
 import useLocalStorage from '@rehooks/local-storage';
 import SvgBellFilledIcon from '../../../static/BellFilledIcon';
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 
 const Notifications = () => {
     const [notifications, setNotifications] = useState<any[]>([]);
@@ -59,6 +60,10 @@ const Notifications = () => {
                                 )}
                                 onViewHandler={() => {
                                     if (notification.id) {
+                                        H.track(
+                                            'Clicked on notification item',
+                                            {}
+                                        );
                                         setReadNotifications([
                                             ...readNotifications,
                                             notification.id.toString(),
@@ -70,6 +75,11 @@ const Notifications = () => {
                     />
                 </div>
             }
+            onVisibleChange={(visible) => {
+                if (visible) {
+                    H.track('Viewed notifications', {});
+                }
+            }}
         >
             <div className={styles.buttonContainer}>
                 <Button
