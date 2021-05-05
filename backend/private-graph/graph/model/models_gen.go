@@ -61,6 +61,12 @@ type SanitizedAdmin struct {
 	PhotoURL *string `json:"photo_url"`
 }
 
+type SanitizedAdminInput struct {
+	ID    int     `json:"id"`
+	Name  *string `json:"name"`
+	Email string  `json:"email"`
+}
+
 type SearchParamsInput struct {
 	UserProperties     []*UserPropertyInput `json:"user_properties"`
 	ExcludedProperties []*UserPropertyInput `json:"excluded_properties"`

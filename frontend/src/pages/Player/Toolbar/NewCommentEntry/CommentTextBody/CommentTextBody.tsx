@@ -87,7 +87,7 @@ const Suggestion = ({
                     <span
                         className={classNames(styles.email, styles.longValue)}
                     >
-                        {suggestion.id}
+                        {suggestion.email}
                     </span>
                 )}
             </div>

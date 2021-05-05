@@ -109,7 +109,6 @@ export const Billing = () => {
 
     return (
         <div className={styles.billingPageWrapper}>
-            <div className={styles.blankSidebar}></div>
             <div className={styles.billingPage}>
                 <div className={styles.title}>Billing</div>
                 <div className={styles.subTitle}>

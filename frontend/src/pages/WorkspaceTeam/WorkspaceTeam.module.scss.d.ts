@@ -1,4 +1,3 @@
-export const blankSidebar: string;
 export const box: string;
 export const boxSubTitle: string;
 export const boxTitle: string;
