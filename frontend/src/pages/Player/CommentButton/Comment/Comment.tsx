@@ -8,7 +8,7 @@ import {
 import CommentPinIcon from '../../../../static/comment-pin.png';
 import styles from './Comment.module.scss';
 import commentButtonStyles from '../CommentButton.module.scss';
-import CommentHeader from '../../Toolbar/TimelineAnnotation/CommentHeader';
+import SessionCommentHeader from '../../Toolbar/TimelineAnnotation/CommentHeader';
 import CommentTextBody from '../../Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import ReplayerContext from '../../ReplayerContext';
 
@@ -87,7 +87,7 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
                             deepLinkedCommentId === comment.id,
                     })}
                 >
-                    <CommentHeader key={comment.id} comment={comment} />
+                    <SessionCommentHeader key={comment.id} comment={comment} />
                     <CommentTextBody commentText={comment.text} />
                 </div>
             )}

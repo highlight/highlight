@@ -2,17 +2,9 @@
     --button-width: 160px;
     position: absolute;
     bottom: var(--size-xLarge);
-    transition: transform 0.3s ease-in-out;
 
-    // Width of the button + left padding
-    transform: translateX(
-        calc(var(--button-width) + 32px + calc(var(--size-xLarge) * 2))
-    );
-    &.collapsed {
-        transform: translateX(
-            calc(var(--button-width) + 64px + calc(var(--size-xxLarge) * 2))
-        );
-    }
+    animation: enter-viewport 1s forwards;
+    box-shadow: 0 0 0 0 rgba(86, 41, 198, 0.7);
 
     .stepsCount {
         --bubble-height: 27px;
@@ -31,9 +23,15 @@
         width: var(--bubble-height);
         border: 1px solid var(--color-red);
     }
+}
 
-    &.onPlayerPage {
-        transform: translateX(calc(100vw));
+@keyframes enter-viewport {
+    0% {
+        transform: translateY(150vh) translateX(calc(100vw));
+    }
+
+    100% {
+        transform: translateY(0%) translateX(calc(100vw));
     }
 }
 

@@ -36,6 +36,7 @@ func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComme
 
 	name := ""
 	email := ""
+	photo_url := ""
 
 	if admin.Name != nil {
 		name = *admin.Name
@@ -43,11 +44,15 @@ func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComme
 	if admin.Email != nil {
 		email = *admin.Email
 	}
+	if admin.PhotoURL != nil {
+		photo_url = *admin.PhotoURL
+	}
 
 	sanitizedAdmin := &modelInputs.SanitizedAdmin{
-		ID:    admin.ID,
-		Name:  &name,
-		Email: email,
+		ID:       admin.ID,
+		Name:     &name,
+		Email:    email,
+		PhotoURL: &photo_url,
 	}
 
 	return sanitizedAdmin, nil
@@ -602,7 +607,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		from := mail.NewEmail("Highlight", "notifications@highlight.run")
 		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 		m.SetFrom(from)
-		m.SetTemplateID(SendGridCommentEmailTemplateID)
+		m.SetTemplateID(SendGridSessionCommentEmailTemplateID)
 
 		p := mail.NewPersonalization()
 		p.AddTos(tos...)
@@ -639,12 +644,22 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdminEmails []*string, errorURL string, authorName string) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, errorURL string, authorName string) (*model.ErrorComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
+	admins := []model.Admin{}
+	for _, a := range taggedAdmins {
+		admins = append(admins,
+			model.Admin{
+				Model: model.Model{ID: a.ID},
+			},
+		)
+	}
+
 	errorComment := &model.ErrorComment{
+		Admins:  admins,
 		AdminId: adminID,
 		ErrorId: errorGroupID,
 		Text:    text,
@@ -656,18 +671,18 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 	createErrorCommentSpan.Finish()
 
 	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment", tracer.ResourceName("sendgrid.sendCommentMention"))
-	commentMentionEmailSpan.SetTag("count", len(taggedAdminEmails))
-	if len(taggedAdminEmails) > 0 {
+	commentMentionEmailSpan.SetTag("count", len(taggedAdmins))
+	if len(taggedAdmins) > 0 {
 		tos := []*mail.Email{}
 
-		for _, email := range taggedAdminEmails {
-			tos = append(tos, &mail.Email{Address: *email})
+		for _, admin := range taggedAdmins {
+			tos = append(tos, &mail.Email{Address: admin.Email})
 		}
 		m := mail.NewV3Mail()
 		from := mail.NewEmail("Highlight", "notifications@highlight.run")
 		viewLink := fmt.Sprintf("%v", errorURL)
 		m.SetFrom(from)
-		m.SetTemplateID(SendGridCommentEmailTemplateID)
+		m.SetTemplateID(SendGridErrorCommentEmailTemplateId)
 
 		p := mail.NewPersonalization()
 		p.AddTos(tos...)

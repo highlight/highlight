@@ -25,6 +25,8 @@ import StackTraceSection from './components/StackTraceSection/StackTraceSection'
 import ErrorDescription from './components/ErrorDescription/ErrorDescription';
 import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
+import ErrorComments from './components/ErrorComments/ErrorComments';
+import classnames from 'classnames';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -122,6 +124,28 @@ export const ErrorPage = () => {
                                             )
                                     )}
                                 </>
+                            )}
+                        </div>
+                        <div className={styles.subTitle}>
+                            {loading ? (
+                                <Skeleton count={1} style={{ width: 280 }} />
+                            ) : (
+                                'Comments'
+                            )}
+                        </div>
+                        <div
+                            className={classnames(
+                                styles.fieldWrapper,
+                                styles.commentSection
+                            )}
+                        >
+                            {loading ? (
+                                <Skeleton
+                                    count={2}
+                                    style={{ height: 20, marginBottom: 10 }}
+                                />
+                            ) : (
+                                <ErrorComments />
                             )}
                         </div>
                     </div>

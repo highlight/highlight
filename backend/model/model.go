@@ -150,6 +150,7 @@ type Admin struct {
 	UID             *string          `gorm:"unique_index"`
 	Organizations   []Organization   `gorm:"many2many:organization_admins;"`
 	SessionComments []SessionComment `gorm:"many2many:session_comment_admins;"`
+	ErrorComments   []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 }
 
 type EmailSignup struct {
@@ -381,6 +382,7 @@ type SessionComment struct {
 
 type ErrorComment struct {
 	Model
+	Admins  []Admin `gorm:"many2many:error_comment_admins;"`
 	AdminId int
 	ErrorId int
 	Text    string

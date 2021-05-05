@@ -18,10 +18,6 @@ import Progress from '../Progress/Progress';
 import Tooltip from '../Tooltip/Tooltip';
 import styles from './OnboardingBubble.module.scss';
 
-interface Props {
-    collapsed: boolean;
-}
-
 interface OnboardingStep {
     displayName: string;
     action: () => void;
@@ -29,14 +25,11 @@ interface OnboardingStep {
     tooltip?: string;
 }
 
-const OnboardingBubble = ({ collapsed }: Props) => {
+const OnboardingBubble = () => {
     const history = useHistory();
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
-    const isOnSessionPlayerPage = history.location.pathname.match(
-        /\/sessions\/\d*/
-    );
     const [, setHasFinishedOnboarding] = useLocalStorage(
         `highlight-finished-onboarding-${organization_id}`,
         false
@@ -152,12 +145,7 @@ const OnboardingBubble = ({ collapsed }: Props) => {
     }
 
     return (
-        <div
-            className={classNames(styles.container, {
-                [styles.collapsed]: collapsed,
-                [styles.onPlayerPage]: isOnSessionPlayerPage,
-            })}
-        >
+        <div className={classNames(styles.container)}>
             <Popover
                 align={{ offset: [0, -24] }}
                 placement="topLeft"
