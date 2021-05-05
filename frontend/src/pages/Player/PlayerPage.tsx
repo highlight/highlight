@@ -33,6 +33,7 @@ import CommentButton, { Coordinates2D } from './CommentButton/CommentButton';
 import Tabs from '../../components/Tabs/Tabs';
 import CommentStream from './CommentStream/CommentStream';
 import MetadataPanel from './MetadataPanel/MetadataPanel';
+import Card from '../../components/Card/Card';
 
 export const Player = () => {
     const { session_id } = useParams<{
@@ -137,6 +138,45 @@ export const Player = () => {
                             ref={playerWrapperRef}
                         >
                             {resizeListener}
+                            {replayerState ===
+                                ReplayerState.SessionRecordingStopped && (
+                                <div
+                                    className={
+                                        styles.manuallyStoppedMessageContainer
+                                    }
+                                    style={{
+                                        height: replayer?.wrapper.getBoundingClientRect()
+                                            .height,
+                                        width: replayer?.wrapper.getBoundingClientRect()
+                                            .width,
+                                    }}
+                                >
+                                    <Card title="Session recording manually stopped">
+                                        <p>
+                                            <a
+                                                href="https://docs.highlight.run/reference#stop"
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                <code>H.stop()</code>
+                                            </a>{' '}
+                                            was called during the session.
+                                            Calling this method stops the
+                                            session recording. If you expect the
+                                            recording to continue please check
+                                            where you are calling{' '}
+                                            <a
+                                                href="https://docs.highlight.run/reference#stop"
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                <code>H.stop()</code>
+                                            </a>
+                                            .
+                                        </p>
+                                    </Card>
+                                </div>
+                            )}
                             <CommentButton
                                 setModalPosition={setCommentModalPosition}
                                 isReplayerReady={isReplayerReady}

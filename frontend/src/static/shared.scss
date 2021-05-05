@@ -24,6 +24,7 @@
 
     --color-primary-background: #ffffff;
     --text-primary-inverted: #ffffff;
+    --text-primary: var(--color-black);
 
     --size-xxLarge: 48px;
     --size-xLarge: 32px;
@@ -41,6 +42,7 @@
         'Noto Sans', sans-serif;
 
     --button-border-radius: 5px;
+    --border-radius: var(--size-xSmall);
 }
 
 // colors
