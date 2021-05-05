@@ -4,13 +4,16 @@ import { LoadingPage } from '../../components/Loading/Loading';
 import { Header } from '../../components/Header/Header';
 import { useIntegrated } from '../../util/integrated';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 
 import commonStyles from '../../Common.module.scss';
 import { Duration, MillisToDaysHoursMinSeconds } from '../../util/time';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
 import ApplicationRouter from './ApplicationRouter';
+import {
+    SidebarContextProvider,
+    SidebarState,
+} from '../../components/Sidebar/SidebarContext';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -24,7 +27,28 @@ export const OrgRouter = () => {
     const { integrated, loading: integratedLoading } = useIntegrated(
         parseInt(organization_id)
     );
-    const [openSidebar, setOpenSidebar] = useState(false);
+    const [sidebarState, setSidebarState] = useState<SidebarState>(
+        SidebarState.Collapsed
+    );
+
+    const toggleSidebar = () => {
+        let nextState;
+
+        switch (sidebarState) {
+            case SidebarState.Collapsed:
+                nextState = SidebarState.Expanded;
+                break;
+            case SidebarState.Expanded:
+                nextState = SidebarState.Collapsed;
+                break;
+            default:
+            case SidebarState.TemporarilyExpanded:
+                nextState = SidebarState.Collapsed;
+                break;
+        }
+
+        setSidebarState(nextState);
+    };
 
     useEffect(() => {
         const diff =
@@ -50,7 +74,13 @@ export const OrgRouter = () => {
         return <LoadingPage />;
     }
     return (
-        <SidebarContext.Provider value={{ openSidebar, setOpenSidebar }}>
+        <SidebarContextProvider
+            value={{
+                setState: setSidebarState,
+                state: sidebarState,
+                toggleSidebar,
+            }}
+        >
             <Header trialTimeRemaining={trialTimeRemaining} />
             <div className={commonStyles.bodyWrapper}>
                 {error || !data?.organization ? (
@@ -71,6 +101,6 @@ export const OrgRouter = () => {
                     </>
                 )}
             </div>
-        </SidebarContext.Provider>
+        </SidebarContextProvider>
     );
 };
