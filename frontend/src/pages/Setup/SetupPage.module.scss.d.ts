@@ -1,4 +1,3 @@
-export const blankSidebar: string;
 export const callout: string;
 export const calloutEmoji: string;
 export const calloutInner: string;

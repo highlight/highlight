@@ -1,7 +1,9 @@
 import useLocalStorage from '@rehooks/local-storage';
+import { message } from 'antd';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { useEffect, useState } from 'react';
+import Confetti from 'react-confetti';
 import { useHistory } from 'react-router';
 import { useParams } from 'react-router-dom';
 import {
@@ -32,11 +34,15 @@ const OnboardingBubble = ({ collapsed }: Props) => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const isOnSessionPlayerPage = history.location.pathname.match(
+        /\/sessions\/\d*/
+    );
     const [, setHasFinishedOnboarding] = useLocalStorage(
         `highlight-finished-onboarding-${organization_id}`,
         false
     );
     const [steps, setSteps] = useState<OnboardingStep[]>([]);
+    const [rainConfetti, setRainConfetti] = useState(false);
     const [stepsNotFinishedCount, setStepsNotFinishedCount] = useState<number>(
         -1
     );
@@ -112,7 +118,11 @@ const OnboardingBubble = ({ collapsed }: Props) => {
 
             // Don't show the onboarding bubble if all the steps are completed.
             if (!loading && called && stepsNotFinishedCount === 0) {
-                setHasFinishedOnboarding(true);
+                setRainConfetti(true);
+                message.success('You have finished onboarding 👏');
+                setTimeout(() => {
+                    setHasFinishedOnboarding(true);
+                }, 1000 * 10);
                 stopPolling();
             } else {
                 startPolling(3000);
@@ -133,6 +143,10 @@ const OnboardingBubble = ({ collapsed }: Props) => {
         stopPolling,
     ]);
 
+    if (rainConfetti) {
+        return <Confetti recycle={false} />;
+    }
+
     if (loading) {
         return null;
     }
@@ -141,6 +155,7 @@ const OnboardingBubble = ({ collapsed }: Props) => {
         <div
             className={classNames(styles.container, {
                 [styles.collapsed]: collapsed,
+                [styles.onPlayerPage]: isOnSessionPlayerPage,
             })}
         >
             <Popover
@@ -152,6 +167,7 @@ const OnboardingBubble = ({ collapsed }: Props) => {
                         H.track('Viewed onboarding bubble', {});
                     }
                 }}
+                hasBorder
                 content={
                     <>
                         <div className={styles.onboardingBubblePopover}>
@@ -175,10 +191,17 @@ const OnboardingBubble = ({ collapsed }: Props) => {
                                         title={step.tooltip}
                                         placement="right"
                                     >
+                                        {/* TODO: Add box shadow on button */}
+                                        {/* Make it span the full width of the popover */}
                                         <Button
                                             onClick={step.action}
                                             type="text"
+                                            className={classNames({
+                                                [styles.stepCompleted]:
+                                                    step.completed,
+                                            })}
                                         >
+                                            {/* TODO: Swap this with the check on the setup page */}
                                             <SvgCircleCheckIcon
                                                 className={classNames(
                                                     styles.checkIcon,
@@ -197,11 +220,11 @@ const OnboardingBubble = ({ collapsed }: Props) => {
                     </>
                 }
             >
-                <PillButton type="primary">
+                <PillButton type="primary" className={styles.button}>
                     <div className={styles.stepsCount}>
                         {stepsNotFinishedCount}
                     </div>
-                    Highlight setup
+                    Highlight Setup
                 </PillButton>
             </Popover>
         </div>
