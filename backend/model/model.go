@@ -79,6 +79,39 @@ type Organization struct {
 	SlackWebhookURL       *string
 	SlackWebhookChannel   *string
 	SlackWebhookChannelID *string
+	SlackChannels         *string
+}
+
+type SlackChannel struct {
+	WebhookAccessToken string
+	WebhookURL         string
+	WebhookChannel     string
+	WebhookChannelID   string
+}
+
+func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
+	parsedChannels := []SlackChannel{}
+	if u.SlackChannels != nil {
+		err := json.Unmarshal([]byte(*u.SlackChannels), &parsedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing details json")
+		}
+	}
+	repeat := false
+	for _, c := range parsedChannels {
+		if u.SlackWebhookChannelID != nil && c.WebhookChannelID == *u.SlackWebhookChannelID {
+			repeat = true
+		}
+	}
+	if u.SlackWebhookChannel != nil && !repeat {
+		parsedChannels = append(parsedChannels, SlackChannel{
+			WebhookAccessToken: *u.SlackAccessToken,
+			WebhookURL:         *u.SlackWebhookURL,
+			WebhookChannel:     *u.SlackWebhookChannel,
+			WebhookChannelID:   *u.SlackWebhookChannelID,
+		})
+	}
+	return parsedChannels, nil
 }
 
 func (u *Organization) VerboseID() string {
