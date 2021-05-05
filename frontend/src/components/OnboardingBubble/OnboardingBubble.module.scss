@@ -3,7 +3,7 @@
     position: absolute;
     bottom: var(--size-xLarge);
     right: 24px;
-    z-index: 5;
+    z-index: 999999;
     opacity: 0;
 
     animation: enter-viewport 1s forwards;

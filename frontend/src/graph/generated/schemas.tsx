@@ -322,6 +322,12 @@ export type DailyErrorCount = {
     count: Scalars['Int64'];
 };
 
+export type SanitizedSlackChannel = {
+    __typename?: 'SanitizedSlackChannel';
+    webhook_channel?: Maybe<Scalars['String']>;
+    webhook_channel_id?: Maybe<Scalars['String']>;
+};
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -339,6 +345,7 @@ export type Query = {
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
+    slackChannelSuggestion: Array<Maybe<SanitizedSlackChannel>>;
     organizationHasViewedASession?: Maybe<Session>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
@@ -408,6 +415,10 @@ export type QueryUnprocessedSessionsCountArgs = {
 
 export type QueryAdminHasCreatedCommentArgs = {
     admin_id: Scalars['ID'];
+};
+
+export type QuerySlackChannelSuggestionArgs = {
+    org_id: Scalars['ID'];
 };
 
 export type QueryOrganizationHasViewedASessionArgs = {
