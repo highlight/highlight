@@ -4,6 +4,7 @@ export const bottomLinkContainer: string;
 export const bottomSection: string;
 export const bottomWrapper: string;
 export const changelogButton: string;
+export const changelogContainer: string;
 export const icon: string;
 export const iconWrapper: string;
 export const innerButton: string;

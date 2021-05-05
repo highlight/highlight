@@ -150,6 +150,7 @@ const StaticSidebar = () => {
                 onMouseLeave={() => {
                     if (timerId.current) {
                         clearTimeout(timerId.current);
+                        timerId.current = null;
                     }
                 }}
             >
@@ -177,7 +178,17 @@ const StaticSidebar = () => {
                 <MiniSidebarItem route="billing" text="Billing">
                     <CreditCardIcon className={styles.icon} />
                 </MiniSidebarItem>
-                <Changelog />
+                <div
+                    className={styles.changelogContainer}
+                    onMouseEnter={() => {
+                        if (timerId.current) {
+                            clearTimeout(timerId.current);
+                            timerId.current = null;
+                        }
+                    }}
+                >
+                    <Changelog />
+                </div>
             </div>
             <div style={{ paddingLeft: 62, height: '100%' }} />
         </>
