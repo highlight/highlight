@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 import { Field } from '../../../components/Field/Field';
-import { useGetSessionQuery } from '../../../graph/generated/hooks';
+import {
+    useGetAdminQuery,
+    useGetSessionQuery,
+} from '../../../graph/generated/hooks';
 import styles from './MetadataPanel.module.scss';
 
 type Field = {
@@ -21,6 +25,8 @@ const MetadataPanel = () => {
     });
     const [parsedFields, setParsedFields] = useState<Field[]>([]);
 
+    const { data: a_data } = useGetAdminQuery({});
+
     useEffect(() => {
         const fields = data?.session?.fields?.filter((f) => {
             if (
@@ -39,7 +45,14 @@ const MetadataPanel = () => {
     return (
         <div className={styles.metadataPanel}>
             {loading && !data?.session ? (
-                <h2>loading</h2>
+                <Skeleton
+                    count={4}
+                    height={35}
+                    style={{
+                        marginTop: 8,
+                        marginBottom: 8,
+                    }}
+                />
             ) : (
                 <>
                     <div className={styles.section}>
@@ -48,6 +61,15 @@ const MetadataPanel = () => {
                             {data?.session?.city}, {data?.session?.state}{' '}
                             {data?.session?.postal}
                         </p>
+                        {data?.session?.object_storage_enabled &&
+                        a_data?.admin?.email.includes('highlight.run') ? (
+                            <p>
+                                {`${data.session.payload_size / 1000000}`}
+                                mb
+                            </p>
+                        ) : (
+                            <></>
+                        )}
                     </div>
                     <div>
                         <h2 className={styles.header}>User details</h2>

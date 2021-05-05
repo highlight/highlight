@@ -424,6 +424,7 @@ export class Highlight {
             HighlightWarning('initializeSession', e);
         }
         window.addEventListener('beforeunload', () => {
+            addCustomEvent('Page Unload', '');
             window.sessionStorage.setItem(
                 'sessionData',
                 JSON.stringify(this.sessionData)

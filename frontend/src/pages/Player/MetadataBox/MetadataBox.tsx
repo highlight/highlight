@@ -105,16 +105,6 @@ export const MetadataBox = () => {
                                         weekday: 'long',
                                     })}
                                 </div>
-                                {data?.session?.object_storage_enabled ? (
-                                    <div className={styles.userIdSubHeader}>
-                                        {`${
-                                            data.session.payload_size / 1000000
-                                        }`}
-                                        mb
-                                    </div>
-                                ) : (
-                                    <></>
-                                )}
                                 <div className={styles.userIdSubHeader}>
                                     {loading ? (
                                         <>

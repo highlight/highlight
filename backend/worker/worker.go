@@ -85,7 +85,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	// Upload to s3 for every even session on our org.
-	if s.OrganizationID == 1 && os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
+	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		fmt.Printf("starting push for: %v \n", s.ID)
 		sessionPayloadSize, err := w.S3Client.PushSessionsToS3(s.ID, s.OrganizationID, events)
 		// If this is unsucessful, return early (we treat this session as if it is stored in psql).
