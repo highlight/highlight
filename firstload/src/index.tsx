@@ -77,7 +77,7 @@ export const H: HighlightPublicInterface = {
                     enableSegmentIntegration: options?.enableSegmentIntegration,
                     enableStrictPrivacy: options?.enableStrictPrivacy || false,
                     firstloadVersion: packageJson['version'],
-                    environment: options?.environment || '',
+                    environment: options?.environment || 'production',
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);

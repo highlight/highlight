@@ -141,10 +141,10 @@ export class Highlight {
         ) {
             this.environment = options.environment;
         } else {
-            this.environment = '';
+            this.environment = 'production';
             HighlightWarning(
                 'init',
-                'custom environment names are not currently supported'
+                'custom environment names are not currently supported, "production" was used instead'
             );
         }
         if (typeof options.organizationID === 'string') {
