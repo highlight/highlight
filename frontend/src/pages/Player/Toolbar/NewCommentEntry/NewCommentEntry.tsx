@@ -16,7 +16,10 @@ import { H } from 'highlight.run';
 import { OnChangeHandlerFunc } from 'react-mentions';
 import CommentTextBody from './CommentTextBody/CommentTextBody';
 import Button from '../../../../components/Button/Button/Button';
-import { AdminSuggestion } from './CommentTextBody/CommentTextBody';
+import {
+    AdminSuggestion,
+    parseAdminSuggestions,
+} from '../../../../components/Comment/Comment';
 // import html2canvas from 'html2canvas';
 
 interface Props {
@@ -127,27 +130,10 @@ export const NewCommentEntry = ({
         setIsCreatingComment(false);
     };
 
-    const adminSuggestions: AdminSuggestion[] = useMemo(() => {
-        if (!data?.admins || !admin_data?.admin) {
-            return [];
-        }
-
-        return data.admins
-            .filter(
-                (admin) =>
-                    admin!.email !== admin_data.admin!.email &&
-                    !mentionedAdmins.includes(admin!.email)
-            )
-            .map((admin) => {
-                return {
-                    id: admin!.email,
-                    email: admin!.email,
-                    photo_url: admin!.photo_url,
-                    display: admin?.name || admin!.email,
-                    name: admin?.name,
-                };
-            });
-    }, [admin_data?.admin, data?.admins, mentionedAdmins]);
+    const adminSuggestions: AdminSuggestion[] = useMemo(
+        () => parseAdminSuggestions(data, admin_data, mentionedAdmins),
+        [admin_data, data, mentionedAdmins]
+    );
 
     const onDisplayTransform = (_id: string, display: string): string => {
         return display;

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { H } from 'highlight.run';
-import { Dropdown, Form, Menu, message } from 'antd';
+import { Form, Menu, message } from 'antd';
 import styles from '../../ErrorPage.module.scss';
 import { useParams } from 'react-router-dom';
 import {
@@ -10,13 +10,14 @@ import {
     useGetAdminsQuery,
     useGetErrorCommentsQuery,
 } from '../../../../graph/generated/hooks';
-import { AdminSuggestion } from '../../../Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import CommentTextBody from '../../../Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import { OnChangeHandlerFunc } from 'react-mentions';
-import { HiDotsHorizontal } from 'react-icons/hi';
 import Button from '../../../../components/Button/Button/Button';
-import moment from 'moment';
-import classNames from 'classnames';
+import {
+    AdminSuggestion,
+    CommentHeader,
+    parseAdminSuggestions,
+} from '../../../../components/Comment/Comment';
 
 const ErrorComments = () => {
     const { error_id, organization_id } = useParams<{
@@ -85,27 +86,10 @@ const ErrorComments = () => {
         setIsCreatingComment(false);
     };
 
-    const adminSuggestions: AdminSuggestion[] = useMemo(() => {
-        if (!data?.admins || !admin_data?.admin) {
-            return [];
-        }
-
-        return data.admins
-            .filter(
-                (admin) =>
-                    admin!.email !== admin_data.admin!.email &&
-                    !mentionedAdmins.includes(admin!.email)
-            )
-            .map((admin) => {
-                return {
-                    id: admin!.email,
-                    email: admin!.email,
-                    photo_url: admin!.photo_url,
-                    display: admin?.name || admin!.email,
-                    name: admin?.name,
-                };
-            });
-    }, [admin_data?.admin, data?.admins, mentionedAdmins]);
+    const adminSuggestions: AdminSuggestion[] = useMemo(
+        () => parseAdminSuggestions(data, admin_data, mentionedAdmins),
+        [admin_data, data, mentionedAdmins]
+    );
 
     const onDisplayTransform = (_id: string, display: string): string => {
         return display;
@@ -190,14 +174,14 @@ const ErrorComments = () => {
 
 const Comment = ({ comment }: any) => (
     <div className={styles.commentDiv}>
-        <CommentHeader comment={comment} />
+        <ErrorCommentHeader comment={comment} />
         <CommentTextBody commentText={comment.text} />
     </div>
 );
 
-const CommentHeader = ({ comment }: any) => {
+const ErrorCommentHeader = ({ comment }: any) => {
     const [deleteSessionComment] = useDeleteErrorCommentMutation({
-        refetchQueries: ['GetSessionComments'],
+        refetchQueries: ['GetErrorComments'],
     });
 
     const menu = (
@@ -216,27 +200,7 @@ const CommentHeader = ({ comment }: any) => {
         </Menu>
     );
 
-    return (
-        <div className={classNames(styles.commentHeader)}>
-            <span className={styles.commentAuthor}>
-                {comment.author.name || comment.author.email.split('@')[0]}
-            </span>
-            <span className={styles.commentUpdatedTime}>
-                {moment(comment.updated_at).fromNow()}
-            </span>
-            <span className={styles.endActions}>
-                <Dropdown
-                    overlay={menu}
-                    placement="bottomLeft"
-                    trigger={['click']}
-                >
-                    <button className={styles.ellipsisButton}>
-                        <HiDotsHorizontal />
-                    </button>
-                </Dropdown>
-            </span>
-        </div>
-    );
+    return <CommentHeader menu={menu} comment={comment} />;
 };
 
 export default ErrorComments;

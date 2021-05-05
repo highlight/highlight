@@ -258,6 +258,7 @@ export type SanitizedAdmin = {
     id: Scalars['ID'];
     name?: Maybe<Scalars['String']>;
     email: Scalars['String'];
+    photo_url?: Maybe<Scalars['String']>;
 };
 
 export type SessionResults = {

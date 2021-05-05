@@ -247,9 +247,10 @@ type ComplexityRoot struct {
 	}
 
 	SanitizedAdmin struct {
-		Email func(childComplexity int) int
-		ID    func(childComplexity int) int
-		Name  func(childComplexity int) int
+		Email    func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Name     func(childComplexity int) int
+		PhotoURL func(childComplexity int) int
 	}
 
 	SearchParams struct {
@@ -1599,6 +1600,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SanitizedAdmin.Name(childComplexity), true
 
+	case "SanitizedAdmin.photo_url":
+		if e.complexity.SanitizedAdmin.PhotoURL == nil {
+			break
+		}
+
+		return e.complexity.SanitizedAdmin.PhotoURL(childComplexity), true
+
 	case "SearchParams.browser":
 		if e.complexity.SearchParams.Browser == nil {
 			break
@@ -2248,6 +2256,7 @@ type SanitizedAdmin {
     id: ID!
     name: String
     email: String!
+    photo_url: String
 }
 
 type SessionResults {
@@ -8553,6 +8562,38 @@ func (ec *executionContext) _SanitizedAdmin_email(ctx context.Context, field gra
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SanitizedAdmin_photo_url(ctx context.Context, field graphql.CollectedField, obj *model.SanitizedAdmin) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SanitizedAdmin",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PhotoURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SearchParams_user_properties(ctx context.Context, field graphql.CollectedField, obj *model1.SearchParams) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12867,6 +12908,8 @@ func (ec *executionContext) _SanitizedAdmin(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "photo_url":
+			out.Values[i] = ec._SanitizedAdmin_photo_url(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

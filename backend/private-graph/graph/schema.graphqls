@@ -226,6 +226,7 @@ type SanitizedAdmin {
     id: ID!
     name: String
     email: String!
+    photo_url: String
 }
 
 type SessionResults {

@@ -55,9 +55,10 @@ type Plan struct {
 }
 
 type SanitizedAdmin struct {
-	ID    int     `json:"id"`
-	Name  *string `json:"name"`
-	Email string  `json:"email"`
+	ID       int     `json:"id"`
+	Name     *string `json:"name"`
+	Email    string  `json:"email"`
+	PhotoURL *string `json:"photo_url"`
 }
 
 type SearchParamsInput struct {

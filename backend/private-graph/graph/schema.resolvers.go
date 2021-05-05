@@ -36,6 +36,7 @@ func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComme
 
 	name := ""
 	email := ""
+	photo_url := ""
 
 	if admin.Name != nil {
 		name = *admin.Name
@@ -43,11 +44,15 @@ func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComme
 	if admin.Email != nil {
 		email = *admin.Email
 	}
+	if admin.PhotoURL != nil {
+		photo_url = *admin.PhotoURL
+	}
 
 	sanitizedAdmin := &modelInputs.SanitizedAdmin{
-		ID:    admin.ID,
-		Name:  &name,
-		Email: email,
+		ID:       admin.ID,
+		Name:     &name,
+		Email:    email,
+		PhotoURL: &photo_url,
 	}
 
 	return sanitizedAdmin, nil
