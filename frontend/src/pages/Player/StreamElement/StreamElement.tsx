@@ -19,7 +19,7 @@ import StreamElementPayload from './StreamElementPayload';
 import classNames from 'classnames/bind';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 import ReactJson from 'react-json-view';
-import { FaBug } from 'react-icons/fa';
+import { FaBug, FaRegStopCircle } from 'react-icons/fa';
 
 export const StreamElement = ({
     e,
@@ -117,6 +117,12 @@ export const StreamElement = ({
                             />
                         ) : details.title === 'Tab' ? (
                             <TabIcon
+                                className={classNames(styles.defaultIcon, {
+                                    [styles.currentIcon]: isCurrent,
+                                })}
+                            />
+                        ) : details.title === 'Stop' ? (
+                            <FaRegStopCircle
                                 className={classNames(styles.defaultIcon, {
                                     [styles.currentIcon]: isCurrent,
                                 })}

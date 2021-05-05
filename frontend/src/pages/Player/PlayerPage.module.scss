@@ -187,3 +187,13 @@
         border-radius: var(--size-xSmall);
     }
 }
+
+.manuallyStoppedMessageContainer {
+    z-index: 2;
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.8);
+}

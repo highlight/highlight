@@ -123,7 +123,7 @@ export const H: HighlightPublicInterface = {
     },
     stop: () => {
         try {
-            H.onHighlightReady(() => highlight_obj.stopRecording());
+            H.onHighlightReady(() => highlight_obj.stopRecording(true));
         } catch (e) {
             HighlightWarning('stop', e);
         }
