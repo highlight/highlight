@@ -46,6 +46,7 @@ mutation initializeSession(
     $clientVersion: String!
     $firstloadVersion: String!
     $clientConfig: String!
+    $environment: String!
 ) {
     initializeSession(
         organization_verbose_id: $organization_verbose_id
@@ -53,6 +54,7 @@ mutation initializeSession(
         clientVersion: $clientVersion
         firstloadVersion: $firstloadVersion
         clientConfig: $clientConfig
+        environment: $environment
     ) {
         id
         user_id
