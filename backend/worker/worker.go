@@ -26,6 +26,13 @@ type Worker struct {
 }
 
 func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string) error {
+	if err := w.Resolver.DB.Model(&model.Session{}).Where(
+		&model.Session{Model: model.Model{ID: s.ID}},
+	).Updates(
+		&model.Session{MigrationState: migrationState},
+	).Error; err != nil {
+		return errors.Wrap(err, "error updating session to processed status")
+	}
 	fmt.Printf("starting push for: %v \n", s.ID)
 	events := []model.EventsObject{}
 	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
@@ -70,7 +77,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
-		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize, MigrationState: migrationState},
+		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
