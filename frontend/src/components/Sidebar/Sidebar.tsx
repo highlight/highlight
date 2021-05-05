@@ -115,9 +115,7 @@ export const Sidebar = () => {
                         </div>
                     </div>
                 </div>
-                {!hasFinishedOnboarding && (
-                    <OnboardingBubble collapsed={!openSidebar} />
-                )}
+                {!hasFinishedOnboarding && <OnboardingBubble />}
             </div>
         </>
     );

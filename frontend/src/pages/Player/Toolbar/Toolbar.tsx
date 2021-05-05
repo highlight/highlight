@@ -85,7 +85,8 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const isPaused =
         state === ReplayerState.Paused ||
         state === ReplayerState.LoadedAndUntouched ||
-        state === ReplayerState.LoadedWithDeepLink;
+        state === ReplayerState.LoadedWithDeepLink ||
+        state === ReplayerState.SessionRecordingStopped;
 
     useEffect(() => {
         onResize();

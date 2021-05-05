@@ -850,7 +850,7 @@ export const CreateErrorCommentDocument = gql`
         $error_group_id: ID!
         $text: String!
         $text_for_email: String!
-        $tagged_admin_emails: [String]!
+        $tagged_admins: [SanitizedAdminInput]!
         $error_url: String!
         $author_name: String!
     ) {
@@ -860,7 +860,7 @@ export const CreateErrorCommentDocument = gql`
             error_group_id: $error_group_id
             text: $text
             text_for_email: $text_for_email
-            tagged_admin_emails: $tagged_admin_emails
+            tagged_admins: $tagged_admins
             error_url: $error_url
             author_name: $author_name
         ) {
@@ -899,7 +899,7 @@ export type CreateErrorCommentMutationFn = Apollo.MutationFunction<
  *      error_group_id: // value for 'error_group_id'
  *      text: // value for 'text'
  *      text_for_email: // value for 'text_for_email'
- *      tagged_admin_emails: // value for 'tagged_admin_emails'
+ *      tagged_admins: // value for 'tagged_admins'
  *      error_url: // value for 'error_url'
  *      author_name: // value for 'author_name'
  *   },
