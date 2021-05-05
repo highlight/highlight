@@ -39,7 +39,7 @@ $right-padding: 12px;
 
 // calc(total width - padding left - padding right - TYPE - NAME - TIMING - SIZE - GoToButton)
 $canvas-width: calc(
-    100% - 6px - 25px - 50px - 50% - 90px - 90px - #{$go-to-button-width}
+    100% - 5px - 25px - 50px - 50% - 90px - 90px - #{$go-to-button-width}
 );
 
 .canvasNetworkWrapper {
@@ -47,7 +47,7 @@ $canvas-width: calc(
     background-attachment: fixed;
     height: 100%;
     width: $canvas-width;
-    margin-left: calc(6px + 50px + 50% + 90px + 90px);
+    margin-left: calc(5px + 50px + 50% + 90px + 90px);
     z-index: 99;
 }
 
