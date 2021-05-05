@@ -111,45 +111,22 @@ export const MetadataBox = () => {
                                     })}
                                 </div>
                                 <div className={styles.userIdSubHeader}>
-                                    {loading ? (
+                                    {data?.session?.browser_name && (
                                         <>
-                                            <Skeleton
-                                                count={3}
-                                                style={{
-                                                    height: 15,
-                                                    marginBottom: 5,
-                                                }}
-                                            />
-                                        </>
-                                    ) : (
-                                        <>
-                                            {data?.session?.browser_name && (
-                                                <div
-                                                    className={classNames(
-                                                        styles.userText,
-                                                        styles.deviceDetails
-                                                    )}
-                                                >
-                                                    <span>
-                                                        {
-                                                            data?.session
-                                                                .browser_name
-                                                        }{' '}
-                                                        {getMajorVersion(
-                                                            data?.session
-                                                                .browser_version
-                                                        )}
-                                                    </span>
-                                                    <span>•</span>
-                                                    <span>
-                                                        {data?.session.os_name}{' '}
-                                                        {getMajorVersion(
-                                                            data?.session
-                                                                .os_version
-                                                        )}
-                                                    </span>
-                                                </div>
-                                            )}
+                                            <span>
+                                                {data?.session.browser_name}{' '}
+                                                {getMajorVersion(
+                                                    data?.session
+                                                        .browser_version
+                                                )}
+                                            </span>
+                                            <span> • </span>
+                                            <span>
+                                                {data?.session.os_name}{' '}
+                                                {getMajorVersion(
+                                                    data?.session.os_version
+                                                )}
+                                            </span>
                                         </>
                                     )}
                                 </div>
