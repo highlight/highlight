@@ -592,7 +592,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 		from := mail.NewEmail("Highlight", "notifications@highlight.run")
 		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 		m.SetFrom(from)
-		m.SetTemplateID(SendGridCommentEmailTemplateID)
+		m.SetTemplateID(SendGridSessionCommentEmailTemplateID)
 
 		p := mail.NewPersonalization()
 		p.AddTos(tos...)
@@ -667,7 +667,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 		from := mail.NewEmail("Highlight", "notifications@highlight.run")
 		viewLink := fmt.Sprintf("%v", errorURL)
 		m.SetFrom(from)
-		m.SetTemplateID(SendGridCommentEmailTemplateID)
+		m.SetTemplateID(SendGridErrorCommentEmailTemplateId)
 
 		p := mail.NewPersonalization()
 		p.AddTos(tos...)
