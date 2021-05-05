@@ -295,7 +295,7 @@ type Query {
     errors(session_id: ID!): [ErrorObject]
     resources(session_id: ID!): [Any]
     session_comments(session_id: ID!): [SessionComment]!
-    comments_for_admin: [SessionComment]!
+    session_comments_for_admin: [SessionComment]!
     error_comments(error_group_id: ID!): [ErrorComment]!
     admins(organization_id: ID!): [Admin]
     isIntegrated(organization_id: ID!): Boolean

@@ -11,9 +11,9 @@ const Notifications = () => {
     const [commentNotifications, setCommentNotifications] = useState<any[]>([]);
     const { loading } = useGetNotificationsQuery({
         onCompleted: (data) => {
-            if (data?.comments_for_admin.length) {
+            if (data?.session_comments_for_admin.length) {
                 setCommentNotifications(
-                    [...data.comments_for_admin].sort((a, b) => {
+                    [...data.session_comments_for_admin].sort((a, b) => {
                         return (
                             new Date(b?.updated_at || 0).getTime() -
                             new Date(a?.updated_at || 0).getTime()

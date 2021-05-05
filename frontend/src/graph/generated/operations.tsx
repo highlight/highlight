@@ -413,7 +413,7 @@ export type GetNotificationsQueryVariables = Types.Exact<{
 }>;
 
 export type GetNotificationsQuery = { __typename?: 'Query' } & {
-    comments_for_admin: Array<
+    session_comments_for_admin: Array<
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,
@@ -433,7 +433,7 @@ export type GetSessionCommentsForAdminQueryVariables = Types.Exact<{
 }>;
 
 export type GetSessionCommentsForAdminQuery = { __typename?: 'Query' } & {
-    comments_for_admin: Array<
+    session_comments_for_admin: Array<
         Types.Maybe<
             { __typename?: 'SessionComment' } & Pick<
                 Types.SessionComment,

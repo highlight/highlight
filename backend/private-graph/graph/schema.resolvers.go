@@ -911,7 +911,7 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionID int) ([]*
 	return sessionComments, nil
 }
 
-func (r *queryResolver) CommentsForAdmin(ctx context.Context) ([]*model.SessionComment, error) {
+func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.SessionComment, error) {
 	admin, err := r.Query().Admin(ctx)
 	if err != nil {
 		return nil, e.Wrap(err, "error retrieiving user")

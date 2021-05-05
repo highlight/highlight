@@ -1398,7 +1398,7 @@ export type GetSessionCommentsQueryResult = Apollo.QueryResult<
 >;
 export const GetNotificationsDocument = gql`
     query GetNotifications {
-        comments_for_admin {
+        session_comments_for_admin {
             id
             timestamp
             updated_at
@@ -1461,7 +1461,7 @@ export type GetNotificationsQueryResult = Apollo.QueryResult<
 >;
 export const GetSessionCommentsForAdminDocument = gql`
     query GetSessionCommentsForAdmin {
-        comments_for_admin {
+        session_comments_for_admin {
             id
             timestamp
             created_at

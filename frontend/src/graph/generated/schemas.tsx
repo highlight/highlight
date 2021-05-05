@@ -330,7 +330,7 @@ export type Query = {
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
-    comments_for_admin: Array<Maybe<SessionComment>>;
+    session_comments_for_admin: Array<Maybe<SessionComment>>;
     error_comments: Array<Maybe<ErrorComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
