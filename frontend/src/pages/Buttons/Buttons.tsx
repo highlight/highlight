@@ -22,6 +22,14 @@ export const Buttons = () => {
                 >
                     Throw a custom Error
                 </button>
+                <button
+                    className={commonStyles.submitButton}
+                    onClick={() => {
+                        H.stop();
+                    }}
+                >
+                    Stop Recording
+                </button>
             </div>
         </div>
     );

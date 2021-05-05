@@ -1209,8 +1209,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	var queriedSessionsCount model.SessionCount
 
 	g.Go(func() error {
-		// Filter out sessions that are processed but have a length of 0. In this case the player won't work because there are no events to replay.
-		whereClause += "AND NOT ((processed = true AND length = 0)) "
+		// Filter out sessions that are processed but have a length of 1000 (1 second).
+		whereClause += "AND NOT ((processed = true AND length < 1000)) "
 		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsQuery"))
 
 		if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {

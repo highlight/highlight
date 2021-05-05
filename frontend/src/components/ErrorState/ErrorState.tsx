@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { auth } from '../../util/auth';
 import { client } from '../../util/graph';
 import Button from '../Button/Button/Button';
+import Card from '../Card/Card';
 
 import styles from './ErrorState.module.scss';
 
@@ -15,8 +16,7 @@ export const ErrorState = ({
     const [showError, setShowError] = useState(false);
     return (
         <div className={styles.errorWrapper}>
-            <div className={styles.errorContent}>
-                <h2 className={styles.errorTitle}>Woops, something's wrong!</h2>
+            <Card title="Woops, something's wrong!">
                 <p className={styles.errorBody}>
                     {message}
                     <span
@@ -45,7 +45,7 @@ export const ErrorState = ({
                         Login as a different User
                     </Button>
                 </div>
-            </div>
+            </Card>
         </div>
     );
 };

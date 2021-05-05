@@ -123,11 +123,7 @@ export const Sidebar = () => {
                         </div>
                     </div>
                 </div>
-                {!hasFinishedOnboarding && (
-                    <OnboardingBubble
-                        collapsed={state === SidebarState.Collapsed}
-                    />
-                )}
+                {!hasFinishedOnboarding && <OnboardingBubble />}
             </div>
         </>
     );
