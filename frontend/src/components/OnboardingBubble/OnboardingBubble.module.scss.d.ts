@@ -4,6 +4,7 @@ export const checkIconCompleted: string;
 export const container: string;
 export const enterViewport: string;
 export const onboardingBubblePopover: string;
+export const popover: string;
 export const stepCompleted: string;
 export const stepsContainer: string;
 export const stepsCount: string;

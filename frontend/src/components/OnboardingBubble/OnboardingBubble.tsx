@@ -155,6 +155,7 @@ const OnboardingBubble = () => {
                         H.track('Viewed onboarding bubble', {});
                     }
                 }}
+                popoverClassName={styles.popover}
                 hasBorder
                 content={
                     <>
