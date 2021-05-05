@@ -12,7 +12,6 @@ import {
 } from '../../../graph/generated/hooks';
 import Skeleton from 'react-loading-skeleton';
 import { message } from 'antd';
-import classNames from 'classnames';
 import { getMajorVersion } from './utils/utils';
 
 export const MetadataBox = () => {
