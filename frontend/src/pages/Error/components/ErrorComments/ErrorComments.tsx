@@ -18,6 +18,7 @@ import {
     CommentHeader,
     parseAdminSuggestions,
 } from '../../../../components/Comment/Comment';
+import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
 
 const ErrorComments = () => {
     const { error_id, organization_id } = useParams<{
@@ -38,7 +39,9 @@ const ErrorComments = () => {
     const { data } = useGetAdminsQuery({
         variables: { organization_id },
     });
-    const [mentionedAdmins, setMentionedAdmins] = useState<string[]>([]);
+    const [mentionedAdmins, setMentionedAdmins] = useState<
+        SanitizedAdminInput[]
+    >([]);
 
     const onFinish = async () => {
         H.track('Create Error Comment', {});
@@ -52,7 +55,7 @@ const ErrorComments = () => {
                     text_for_email: commentTextForEmail.trim(),
                     admin_id: admin_data?.admin?.id || 'Unknown',
                     error_url: `${window.location.origin}${window.location.pathname}`,
-                    tagged_admin_emails: mentionedAdmins,
+                    tagged_admins: mentionedAdmins,
                     author_name:
                         admin_data?.admin?.name ||
                         admin_data?.admin?.email ||
@@ -102,7 +105,16 @@ const ErrorComments = () => {
         mentions
     ) => {
         setCommentTextForEmail(newPlainTextValue);
-        setMentionedAdmins(mentions.map((mention) => mention.id));
+
+        setMentionedAdmins(
+            mentions.map((mention) => {
+                const admin = data?.admins?.find((admin) => {
+                    console.log(admin, mention);
+                    return admin?.id === mention.id;
+                });
+                return { id: mention.id, email: admin?.email || '' };
+            })
+        );
         setCommentText(e.target.value);
     };
 

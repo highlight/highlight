@@ -629,12 +629,22 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 	return &model.T, nil
 }
 
-func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdminEmails []*string, errorURL string, authorName string) (*model.ErrorComment, error) {
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, errorURL string, authorName string) (*model.ErrorComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
+	admins := []model.Admin{}
+	for _, a := range taggedAdmins {
+		admins = append(admins,
+			model.Admin{
+				Model: model.Model{ID: a.ID},
+			},
+		)
+	}
+
 	errorComment := &model.ErrorComment{
+		Admins:  admins,
 		AdminId: adminID,
 		ErrorId: errorGroupID,
 		Text:    text,
@@ -646,12 +656,12 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 	createErrorCommentSpan.Finish()
 
 	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment", tracer.ResourceName("sendgrid.sendCommentMention"))
-	commentMentionEmailSpan.SetTag("count", len(taggedAdminEmails))
-	if len(taggedAdminEmails) > 0 {
+	commentMentionEmailSpan.SetTag("count", len(taggedAdmins))
+	if len(taggedAdmins) > 0 {
 		tos := []*mail.Email{}
 
-		for _, email := range taggedAdminEmails {
-			tos = append(tos, &mail.Email{Address: *email})
+		for _, admin := range taggedAdmins {
+			tos = append(tos, &mail.Email{Address: admin.Email})
 		}
 		m := mail.NewV3Mail()
 		from := mail.NewEmail("Highlight", "notifications@highlight.run")

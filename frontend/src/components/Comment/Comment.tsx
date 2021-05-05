@@ -10,6 +10,7 @@ import classNames from 'classnames';
 import moment from 'moment';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { AdminAvatar } from '../Avatar/Avatar';
+import { SanitizedAdminInput } from '../../graph/generated/schemas';
 
 export interface AdminSuggestion extends SuggestionDataItem {
     email?: string;
@@ -20,27 +21,34 @@ export interface AdminSuggestion extends SuggestionDataItem {
 export const parseAdminSuggestions = (
     data: GetAdminsQuery | undefined,
     admin_data: GetAdminQuery | undefined,
-    mentionedAdmins: any
+    mentionedAdmins: SanitizedAdminInput[]
 ): AdminSuggestion[] => {
     if (!data?.admins || !admin_data?.admin) {
         return [];
     }
 
-    return data.admins
-        .filter(
-            (admin) =>
-                admin!.email !== admin_data.admin!.email &&
-                !mentionedAdmins.includes(admin!.email)
-        )
-        .map((admin) => {
-            return {
-                id: admin!.email,
-                email: admin!.email,
-                photo_url: admin!.photo_url,
-                display: admin?.name || admin!.email,
-                name: admin?.name,
-            };
-        });
+    return (
+        data.admins
+            // Filter out these admins
+            .filter(
+                (admin) =>
+                    // 1. The admin that is creating the comment
+                    admin!.email !== admin_data.admin!.email &&
+                    // 2. Admins that are already mentioned
+                    !mentionedAdmins.some(
+                        (mentionedAdmin) => mentionedAdmin.id === admin?.id
+                    )
+            )
+            .map((admin) => {
+                return {
+                    id: admin!.id,
+                    email: admin!.email,
+                    photo_url: admin!.photo_url,
+                    display: admin?.name || admin!.email,
+                    name: admin?.name,
+                };
+            })
+    );
 };
 
 export const CommentHeader = ({
