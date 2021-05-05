@@ -63,7 +63,6 @@ const CommentStream = () => {
                                             comment?.id
                                         );
 
-                                        console.log(history.location.pathname);
                                         history.replace(
                                             `${
                                                 history.location.pathname

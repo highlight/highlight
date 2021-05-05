@@ -153,7 +153,6 @@ export const NewCommentEntry = ({
         setMentionedAdmins(
             mentions.map((mention) => {
                 const admin = data?.admins?.find((admin) => {
-                    console.log(admin, mention);
                     return admin?.id === mention.id;
                 });
                 return { id: mention.id, email: admin?.email || '' };
