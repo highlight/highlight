@@ -127,7 +127,7 @@ const ErrorComments = () => {
     };
 
     return (
-        <div>
+        <>
             <div className={styles.commentsContainer}>
                 {errorCommentsData?.error_comments.map(
                     (comment) =>
@@ -180,7 +180,7 @@ const ErrorComments = () => {
                     </Form.Item>
                 </div>
             </Form>
-        </div>
+        </>
     );
 };
 

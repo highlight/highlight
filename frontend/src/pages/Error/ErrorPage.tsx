@@ -26,6 +26,7 @@ import ErrorDescription from './components/ErrorDescription/ErrorDescription';
 import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
 import ErrorComments from './components/ErrorComments/ErrorComments';
+import classnames from 'classnames';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -132,7 +133,12 @@ export const ErrorPage = () => {
                                 'Comments'
                             )}
                         </div>
-                        <div className={styles.fieldWrapper}>
+                        <div
+                            className={classnames(
+                                styles.fieldWrapper,
+                                styles.commentSection
+                            )}
+                        >
                             {loading ? (
                                 <Skeleton
                                     count={2}

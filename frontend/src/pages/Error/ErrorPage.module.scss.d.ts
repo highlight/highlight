@@ -5,6 +5,7 @@ export const commentDiv: string;
 export const commentInputContainer: string;
 export const commentInputDiv: string;
 export const commentsContainer: string;
+export const commentSection: string;
 export const errorLogButton: string;
 export const errorLogCell: string;
 export const errorLogDivider: string;
