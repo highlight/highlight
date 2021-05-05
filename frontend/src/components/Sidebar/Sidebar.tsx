@@ -8,7 +8,6 @@ import {
     WorkspaceDropdown,
 } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
 import { ReactComponent as SessionsIcon } from '../../static/sessions-icon.svg';
-import { ReactComponent as ErrorsIcon } from '../../static/errors-icon.svg';
 import { ReactComponent as SetupIcon } from '../../static/setup-icon.svg';
 import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg';
 import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
@@ -20,6 +19,7 @@ import Tooltip from '../Tooltip/Tooltip';
 import Changelog from '../Changelog/Changelog';
 import OnboardingBubble from '../OnboardingBubble/OnboardingBubble';
 import useLocalStorage from '@rehooks/local-storage';
+import SvgErrorsIcon from '../../static/ErrorsIcon';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -51,7 +51,7 @@ export const Sidebar = () => {
                 </SidebarItem>
                 <SidebarItem text="Errors" route="errors">
                     <div className={styles.iconWrapper}>
-                        <ErrorsIcon
+                        <SvgErrorsIcon
                             className={classNames(styles.icon, styles.rotated)}
                         />
                     </div>
@@ -146,7 +146,7 @@ const StaticSidebar = () => {
                     <SessionsIcon className={styles.icon} />
                 </MiniSidebarItem>
                 <MiniSidebarItem route="errors" text="Errors">
-                    <ErrorsIcon
+                    <SvgErrorsIcon
                         className={classNames(styles.icon, styles.rotated)}
                     />
                 </MiniSidebarItem>
