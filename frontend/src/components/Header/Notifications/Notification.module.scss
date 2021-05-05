@@ -6,6 +6,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    color: var(--color-purple);
 
     &:hover {
         background: var(--color-purple-200);
@@ -14,7 +15,24 @@
     & > svg {
         height: var(--size-medium);
         width: var(--size-medium);
-        color: var(--color-purple);
+    }
+
+    &.hasUnreadNotifications {
+        color: var(--color-red);
+    }
+}
+
+.buttonContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: var(--size-xxSmall);
+
+    p {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 400;
+        color: var(--color-red);
     }
 }
 
@@ -49,5 +67,10 @@
             width: var(--size-small);
             color: var(--color-purple);
         }
+    }
+
+    .dotContainer {
+        margin-top: var(--size-xxSmall);
+        margin-left: auto;
     }
 }

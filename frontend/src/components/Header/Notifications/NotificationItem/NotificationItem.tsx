@@ -5,20 +5,28 @@ import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/util
 import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import SvgErrorsIcon from '../../../../static/ErrorsIcon';
 import SvgMessageIcon from '../../../../static/MessageIcon';
+import Dot from '../../../Dot/Dot';
 import notificationStyles from '../Notification.module.scss';
 import { NotificationType } from '../utils/utils';
 
 interface Props {
     notification: any;
+    viewed: boolean;
+    onViewHandler: () => void;
 }
 
-const CommentNotification = ({ notification }: Props) => {
+const CommentNotification = ({
+    notification,
+    onViewHandler,
+    viewed,
+}: Props) => {
     const { organization_id } = useParams<{ organization_id: string }>();
 
     return (
         <Link
             className={notificationStyles.notification}
             to={getLink(notification, organization_id)}
+            onClick={onViewHandler}
         >
             <div className={notificationStyles.notificationIconContainer}>
                 {getIcon(notification.type)}
@@ -29,6 +37,9 @@ const CommentNotification = ({ notification }: Props) => {
                     commentText={`"${notification?.text || ''}"`}
                 />
                 {moment(notification?.updated_at).fromNow()}
+            </div>
+            <div className={notificationStyles.dotContainer}>
+                {!viewed && <Dot />}
             </div>
         </Link>
     );

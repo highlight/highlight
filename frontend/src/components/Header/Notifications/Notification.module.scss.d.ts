@@ -1,4 +1,7 @@
 export const button: string;
+export const buttonContainer: string;
+export const dotContainer: string;
+export const hasUnreadNotifications: string;
 export const list: string;
 export const notification: string;
 export const notificationBody: string;
