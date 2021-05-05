@@ -14,6 +14,7 @@
     & > svg {
         height: var(--size-medium);
         width: var(--size-medium);
+        color: var(--color-purple);
     }
 }
 
@@ -44,8 +45,8 @@
 
     .notificationIconContainer {
         & > svg {
-            height: 18px;
-            width: 18px;
+            height: var(--size-small);
+            width: var(--size-small);
             color: var(--color-purple);
         }
     }
