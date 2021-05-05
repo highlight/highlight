@@ -1,6 +1,5 @@
 import React, { useContext, useRef } from 'react';
 import styles from './Sidebar.module.scss';
-import { SidebarContext } from './SidebarContext';
 import classNames from 'classnames/bind';
 import { Link, useParams, useLocation } from 'react-router-dom';
 import {
@@ -20,10 +19,11 @@ import Tooltip from '../Tooltip/Tooltip';
 import Changelog from '../Changelog/Changelog';
 import OnboardingBubble from '../OnboardingBubble/OnboardingBubble';
 import useLocalStorage from '@rehooks/local-storage';
+import { SidebarState, useSidebarContext } from './SidebarContext';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { openSidebar } = useContext(SidebarContext);
+    const { state, setState } = useSidebarContext();
     const { data, loading: loadingBillingDetails } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
@@ -38,8 +38,16 @@ export const Sidebar = () => {
             <div
                 className={classNames([
                     styles.sideBar,
-                    openSidebar ? styles.open : undefined,
+                    state === SidebarState.Expanded ||
+                    state === SidebarState.TemporarilyExpanded
+                        ? styles.open
+                        : undefined,
                 ])}
+                onMouseLeave={() => {
+                    if (state === SidebarState.TemporarilyExpanded) {
+                        setState(SidebarState.Collapsed);
+                    }
+                }}
             >
                 <div style={{ width: '100%', padding: '20px 20px 10px 20px' }}>
                     <WorkspaceDropdown />
@@ -116,7 +124,9 @@ export const Sidebar = () => {
                     </div>
                 </div>
                 {!hasFinishedOnboarding && (
-                    <OnboardingBubble collapsed={!openSidebar} />
+                    <OnboardingBubble
+                        collapsed={state === SidebarState.Collapsed}
+                    />
                 )}
             </div>
         </>
@@ -124,7 +134,7 @@ export const Sidebar = () => {
 };
 
 const StaticSidebar = () => {
-    const { setOpenSidebar } = useContext(SidebarContext);
+    const { setState } = useSidebarContext();
     const timerId = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     return (
@@ -133,7 +143,7 @@ const StaticSidebar = () => {
                 className={styles.staticSidebarWrapper}
                 onMouseEnter={() => {
                     const id = setTimeout(() => {
-                        setOpenSidebar(true);
+                        setState(SidebarState.TemporarilyExpanded);
                     }, 1000);
                     timerId.current = id;
                 }}

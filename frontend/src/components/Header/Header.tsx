@@ -7,7 +7,7 @@ import { UserDropdown } from './UserDropdown/UserDropdown';
 
 import styles from './Header.module.scss';
 import { DemoContext } from '../../DemoContext';
-import { SidebarContext } from '../Sidebar/SidebarContext';
+import { SidebarState, useSidebarContext } from '../Sidebar/SidebarContext';
 import classNames from 'classnames/bind';
 import { Duration } from '../../util/time';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
@@ -20,7 +20,7 @@ type HeaderProps = {
 export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { demo } = useContext(DemoContext);
-    const { setOpenSidebar, openSidebar } = useContext(SidebarContext);
+    const { state, toggleSidebar } = useSidebarContext();
     const { trialTimeRemaining } = props;
 
     return (
@@ -38,13 +38,12 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
                     <div className={styles.logoWrapper}>
                         <Hamburger
                             className={styles.hamburger}
-                            onClick={() => {
-                                setOpenSidebar(!openSidebar);
-                            }}
+                            onClick={toggleSidebar}
                             style={{
-                                transform: openSidebar
-                                    ? 'rotate(-180deg)'
-                                    : 'rotate(0deg)',
+                                transform:
+                                    state === SidebarState.Expanded
+                                        ? 'rotate(-180deg)'
+                                        : 'rotate(0deg)',
                             }}
                         />
                         <Link
