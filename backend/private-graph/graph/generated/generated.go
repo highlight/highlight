@@ -238,6 +238,7 @@ type ComplexityRoot struct {
 		Session                       func(childComplexity int, id int) int
 		SessionComments               func(childComplexity int, sessionID int) int
 		Sessions                      func(childComplexity int, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
+		SlackChannelSuggestion        func(childComplexity int, orgID int) int
 		UnprocessedSessionsCount      func(childComplexity int, organizationID int) int
 	}
 
@@ -382,6 +383,7 @@ type QueryResolver interface {
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int64, error)
 	AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error)
+	SlackChannelSuggestion(ctx context.Context, orgID int) (*bool, error)
 	OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model1.Session, error)
 	DailySessionsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
@@ -1554,6 +1556,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["lifecycle"].(model.SessionLifecycle), args["starred"].(bool), args["params"].(*model.SearchParamsInput)), true
 
+	case "Query.slackChannelSuggestion":
+		if e.complexity.Query.SlackChannelSuggestion == nil {
+			break
+		}
+
+		args, err := ec.field_Query_slackChannelSuggestion_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SlackChannelSuggestion(childComplexity, args["org_id"].(int)), true
+
 	case "Query.unprocessedSessionsCount":
 		if e.complexity.Query.UnprocessedSessionsCount == nil {
 			break
@@ -2331,6 +2345,7 @@ type Query {
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
+    slackChannelSuggestion(org_id: ID!): Boolean
     organizationHasViewedASession(organization_id: ID!): Session
     dailySessionsCount(
         organization_id: ID!
@@ -3641,6 +3656,21 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 		}
 	}
 	args["params"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_slackChannelSuggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["org_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("org_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["org_id"] = arg0
 	return args, nil
 }
 
@@ -7730,6 +7760,45 @@ func (ec *executionContext) _Query_adminHasCreatedComment(ctx context.Context, f
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().AdminHasCreatedComment(rctx, args["admin_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_slackChannelSuggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_slackChannelSuggestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SlackChannelSuggestion(rctx, args["org_id"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12714,6 +12783,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_adminHasCreatedComment(ctx, field)
+				return res
+			})
+		case "slackChannelSuggestion":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_slackChannelSuggestion(ctx, field)
 				return res
 			})
 		case "organizationHasViewedASession":

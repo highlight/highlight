@@ -988,6 +988,10 @@ func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int)
 	return &model.T, nil
 }
 
+func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, orgID int) (*bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model.Session, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
