@@ -25,7 +25,7 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
-func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
+func (w *Worker) processSession(ctx context.Context, s *model.Session, migrationState *string) error {
 	// Set the session as processed; if any is error thrown after this, the session gets ignored.
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
@@ -50,11 +50,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	firstEventsParsed, err := parse.EventsFromString(events[0].Events)
 	if err != nil {
-		return errors.Wrap(err, "error parsing events")
+		return errors.Wrap(err, "error parsing first set of events")
 	}
 	lastEventsParsed, err := parse.EventsFromString(events[len(events)-1].Events)
 	if err != nil {
-		return errors.Wrap(err, "error parsing events")
+		return errors.Wrap(err, "error parsing last set of events")
 	}
 
 	// Calculate total session length and write the length to the session.
@@ -75,8 +75,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
-			// We are setting Viewed to false so sessions the user viewed while they were live will be reset.
-			Viewed:    &model.F,
 			Processed: &model.T,
 			Length:    length,
 		},
@@ -169,12 +167,28 @@ func (w *Worker) Start() {
 		sessionsSpan.Finish()
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
-			if err := w.processSession(ctx, session); err != nil {
-				log.Errorf("error processing session: %v", err)
+			s := "normal"
+			if err := w.processSession(ctx, session, &s); err != nil {
+				log.Errorf("error processing main session(%v): %v", session.ID, err)
 				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
+				span.Finish()
 				continue
 			}
 			span.Finish()
+		}
+		// TODO: This should be deleted at some point.
+		sessionsToWipe := []*model.Session{}
+		if err := w.Resolver.DB.Where("(processed = ? AND organization_id = 1 AND (object_storage_enabled IS NULL OR object_storage_enabled = false))", true).Limit(15).Find(&sessionsToWipe).Error; err != nil {
+			log.Errorf("error querying unparsed, outdated sessions: %v", err)
+			continue
+		}
+		for _, session := range sessionsToWipe {
+			s := "late-s3-upload"
+			if err := w.processSession(ctx, session, &s); err != nil {
+				log.Errorf("error processing late session(%v): %v", session.ID, err)
+				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
+				continue
+			}
 		}
 		workerSpan.Finish()
 	}
@@ -185,11 +199,16 @@ func CalculateSessionLength(first *parse.ReplayEvents, last *parse.ReplayEvents)
 	d := time.Duration(0)
 	fe := first.Events
 	le := last.Events
-	if len(fe) <= 0 || len(le) <= 0 {
+	if len(fe) <= 0 {
 		return d
 	}
 	start := first.Events[0].Timestamp
-	end := last.Events[len(last.Events)-1].Timestamp
+	end := time.Time{}
+	if len(le) <= 0 {
+		end = first.Events[len(first.Events)-1].Timestamp
+	} else {
+		end = last.Events[len(last.Events)-1].Timestamp
+	}
 	d = end.Sub(start)
 	return d
 }
