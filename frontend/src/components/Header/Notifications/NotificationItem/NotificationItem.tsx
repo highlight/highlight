@@ -33,9 +33,7 @@ const CommentNotification = ({
             </div>
             <div className={notificationStyles.notificationBody}>
                 <h3>{getTitle(notification)}</h3>
-                <CommentTextBody
-                    commentText={`"${notification?.text || ''}"`}
-                />
+                <CommentTextBody commentText={notification?.text || ''} />
                 {moment(notification?.updated_at).fromNow()}
             </div>
             <div className={notificationStyles.dotContainer}>
