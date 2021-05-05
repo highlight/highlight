@@ -926,14 +926,14 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionID int) ([]*
 	return sessionComments, nil
 }
 
-func (r *queryResolver) CommentsForAdmin(ctx context.Context) ([]*model.SessionComment, error) {
+func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.SessionComment, error) {
 	admin, err := r.Query().Admin(ctx)
 	if err != nil {
-		return nil, e.Wrap(err, "error retrieiving user")
+		return nil, e.Wrap(err, "error retrieving user")
 	}
 	var sessionComments []*model.SessionComment
 	if err := r.DB.Debug().Model(admin).Association("SessionComments").Find(&sessionComments); err != nil {
-		return nil, e.Wrap(err, "error retrieving user")
+		return nil, e.Wrap(err, "error getting session comments for")
 	}
 
 	return sessionComments, nil
@@ -948,6 +948,19 @@ func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupID int) ([]
 	if err := r.DB.Where(model.ErrorComment{ErrorId: errorGroupID}).Order("created_at asc").Find(&errorComments).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error comments for error_group")
 	}
+	return errorComments, nil
+}
+
+func (r *queryResolver) ErrorCommentsForAdmin(ctx context.Context) ([]*model.ErrorComment, error) {
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving user")
+	}
+	var errorComments []*model.ErrorComment
+	if err := r.DB.Debug().Model(admin).Association("ErrorComments").Find(&errorComments); err != nil {
+		return nil, e.Wrap(err, "error getting error comments for admin")
+	}
+
 	return errorComments, nil
 }
 
@@ -1505,6 +1518,7 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 
 	name := ""
 	email := ""
+	photo_url := ""
 
 	if admin.Name != nil {
 		name = *admin.Name
@@ -1512,11 +1526,15 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 	if admin.Email != nil {
 		email = *admin.Email
 	}
+	if admin.PhotoURL != nil {
+		photo_url = *admin.PhotoURL
+	}
 
 	sanitizedAdmin := &modelInputs.SanitizedAdmin{
-		ID:    admin.ID,
-		Name:  &name,
-		Email: email,
+		ID:       admin.ID,
+		Name:     &name,
+		Email:    email,
+		PhotoURL: &photo_url,
 	}
 
 	return sanitizedAdmin, nil

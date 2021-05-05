@@ -30,6 +30,7 @@
   padding: 0px;
   outline: 0;
   font-weight: 200;
+  cursor: inherit;
 }
 
 .mentions__suggestions__list {

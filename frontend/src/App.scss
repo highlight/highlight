@@ -64,6 +64,10 @@
     border-bottom: 1px solid var(--color-gray-300) !important;
 }
 
+.ant-popover-inner-content {
+    padding-bottom: 0px !important;
+}
+
 input[name='option-input'] {
     outline: none !important;
     border: none !important;

@@ -285,6 +285,7 @@ export type SessionComment = {
     timestamp: Scalars['Int'];
     created_at: Scalars['Time'];
     updated_at: Scalars['Time'];
+    session_id: Scalars['Int'];
     author: SanitizedAdmin;
     text: Scalars['String'];
     x_coordinate: Scalars['Float'];
@@ -295,6 +296,7 @@ export type ErrorComment = {
     __typename?: 'ErrorComment';
     id: Scalars['ID'];
     created_at: Scalars['Time'];
+    error_id: Scalars['Int'];
     updated_at: Scalars['Time'];
     author: SanitizedAdmin;
     text: Scalars['String'];
@@ -330,8 +332,9 @@ export type Query = {
     errors?: Maybe<Array<Maybe<ErrorObject>>>;
     resources?: Maybe<Array<Maybe<Scalars['Any']>>>;
     session_comments: Array<Maybe<SessionComment>>;
-    comments_for_admin: Array<Maybe<SessionComment>>;
+    session_comments_for_admin: Array<Maybe<SessionComment>>;
     error_comments: Array<Maybe<ErrorComment>>;
+    error_comments_for_admin: Array<Maybe<ErrorComment>>;
     admins?: Maybe<Array<Maybe<Admin>>>;
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;

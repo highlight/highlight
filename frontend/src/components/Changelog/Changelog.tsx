@@ -5,6 +5,7 @@ import { H } from 'highlight.run';
 import moment from 'moment';
 import React, { HTMLProps, useState } from 'react';
 import Popover from '../Popover/Popover';
+import PopoverListContent from '../Popover/PopoverListContent';
 import styles from './Changelog.module.scss';
 
 const Announcements_Query = gql`
@@ -92,6 +93,7 @@ const Changelog = (props: HTMLProps<HTMLDivElement>) => {
                 align={{ offset: [18, -12] }}
                 placement="rightBottom"
                 hasBorder
+                isList
                 onVisibleChange={(visible) => {
                     if (visible) {
                         setHasNewUpdates(false);
@@ -101,30 +103,31 @@ const Changelog = (props: HTMLProps<HTMLDivElement>) => {
                 }}
                 content={
                     <div className={styles.changelogContainer}>
-                        {data.map(
-                            ({
-                                publishedAt,
-                                headline,
-                                id,
-                                publicPermalink,
-                                excerpt,
-                            }) => (
-                                <a
-                                    key={id}
-                                    className={styles.changelogItem}
-                                    href={publicPermalink}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    <p className={styles.date}>
-                                        {moment(publishedAt).format(
-                                            'YYYY-MM-DD'
-                                        )}
-                                    </p>
-                                    <h3>{excerpt || headline}</h3>
-                                </a>
-                            )
-                        )}
+                        <PopoverListContent
+                            listItems={data.map(
+                                ({
+                                    publishedAt,
+                                    headline,
+                                    id,
+                                    publicPermalink,
+                                    excerpt,
+                                }) => (
+                                    <a
+                                        key={id}
+                                        href={publicPermalink}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                    >
+                                        <p className={styles.date}>
+                                            {moment(publishedAt).format(
+                                                'YYYY-MM-DD'
+                                            )}
+                                        </p>
+                                        <h3>{excerpt || headline}</h3>
+                                    </a>
+                                )
+                            )}
+                        />
                     </div>
                 }
                 title={

@@ -133,5 +133,6 @@
     align-items: center;
     justify-content: center;
     margin-left: auto;
+    column-gap: var(--size-large);
     z-index: 200;
 }

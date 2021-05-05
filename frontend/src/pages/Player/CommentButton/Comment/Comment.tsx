@@ -19,6 +19,7 @@ interface Props {
             | 'id'
             | 'timestamp'
             | 'created_at'
+            | 'session_id'
             | 'updated_at'
             | 'text'
             | 'x_coordinate'
@@ -26,7 +27,7 @@ interface Props {
         > & {
                 author: { __typename?: 'SanitizedAdmin' } & Pick<
                     SanitizedAdmin,
-                    'id' | 'name' | 'email'
+                    'id' | 'name' | 'email' | 'photo_url'
                 >;
             }
     >;

@@ -17,8 +17,10 @@ type PopoverProps = Pick<
     | 'onVisibleChange'
     | 'placement'
     | 'align'
+    | 'visible'
 > & {
     hasBorder?: boolean;
+    isList?: boolean;
 };
 
 /**
@@ -28,6 +30,7 @@ const Popover: React.FC<PopoverProps> = ({
     children,
     hasBorder,
     title,
+    isList,
     ...props
 }) => {
     return (
@@ -35,10 +38,14 @@ const Popover: React.FC<PopoverProps> = ({
             overlayClassName={classNames({ [styles.popover]: hasBorder })}
             {...props}
             content={
-                <>
+                <div
+                    className={classNames({
+                        [styles.contentContainer]: !isList,
+                    })}
+                >
                     {title}
                     <div className={styles.content}>{props.content}</div>
-                </>
+                </div>
             }
         >
             {children}
