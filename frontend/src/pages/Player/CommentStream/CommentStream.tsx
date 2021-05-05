@@ -1,6 +1,7 @@
 import React, { useContext, useRef } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
 import { VirtuosoHandle, Virtuoso } from 'react-virtuoso';
+import { AdminAvatar } from '../../../components/Avatar/Avatar';
 import GoToButton from '../../../components/Button/GoToButton';
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
@@ -35,11 +36,15 @@ const CommentStream = () => {
                     itemContent={(_index, comment: any) => (
                         <div key={comment?.id} className={styles.comment}>
                             <div className={styles.header}>
+                                <AdminAvatar
+                                    adminInfo={comment.author}
+                                    size={25}
+                                />
                                 <h2>
                                     {comment?.author.name ||
                                         comment?.author.email}
                                 </h2>
-                                <p>
+                                <p className={styles.timestamp}>
                                     {MillisToMinutesAndSeconds(
                                         comment?.timestamp || 0
                                     )}
