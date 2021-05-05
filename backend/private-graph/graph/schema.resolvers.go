@@ -988,8 +988,23 @@ func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int)
 	return &model.T, nil
 }
 
-func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, orgID int) (*bool, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, orgID int) ([]*modelInputs.SanitizedSlackChannel, error) {
+	org, err := r.isAdminInOrganization(ctx, orgID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting org")
+	}
+	ret := []*modelInputs.SanitizedSlackChannel{}
+	chs, err := org.IntegratedSlackChannels()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieiving existing channels")
+	}
+	for _, ch := range chs {
+		ret = append(ret, &modelInputs.SanitizedSlackChannel{
+			WebhookChannel:   &ch.WebhookChannel,
+			WebhookChannelID: &ch.WebhookChannelID,
+		})
+	}
+	return ret, nil
 }
 
 func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model.Session, error) {

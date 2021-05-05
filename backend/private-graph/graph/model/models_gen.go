@@ -66,6 +66,11 @@ type SanitizedAdminInput struct {
 	Email string  `json:"email"`
 }
 
+type SanitizedSlackChannel struct {
+	WebhookChannel   *string `json:"webhook_channel"`
+	WebhookChannelID *string `json:"webhook_channel_id"`
+}
+
 type SearchParamsInput struct {
 	UserProperties     []*UserPropertyInput `json:"user_properties"`
 	ExcludedProperties []*UserPropertyInput `json:"excluded_properties"`
