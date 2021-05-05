@@ -285,6 +285,7 @@ export type SessionComment = {
     timestamp: Scalars['Int'];
     created_at: Scalars['Time'];
     updated_at: Scalars['Time'];
+    session_id: Scalars['Int'];
     author: SanitizedAdmin;
     text: Scalars['String'];
     x_coordinate: Scalars['Float'];

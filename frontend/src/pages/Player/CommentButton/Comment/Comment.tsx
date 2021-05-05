@@ -19,6 +19,7 @@ interface Props {
             | 'id'
             | 'timestamp'
             | 'created_at'
+            | 'session_id'
             | 'updated_at'
             | 'text'
             | 'x_coordinate'

@@ -307,6 +307,7 @@ type ComplexityRoot struct {
 		Author      func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
 		ID          func(childComplexity int) int
+		SessionId   func(childComplexity int) int
 		Text        func(childComplexity int) int
 		Timestamp   func(childComplexity int) int
 		UpdatedAt   func(childComplexity int) int
@@ -1920,6 +1921,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SessionComment.ID(childComplexity), true
 
+	case "SessionComment.session_id":
+		if e.complexity.SessionComment.SessionId == nil {
+			break
+		}
+
+		return e.complexity.SessionComment.SessionId(childComplexity), true
+
 	case "SessionComment.text":
 		if e.complexity.SessionComment.Text == nil {
 			break
@@ -2306,6 +2314,7 @@ type SessionComment {
     timestamp: Int!
     created_at: Time!
     updated_at: Time!
+    session_id: Int!
     author: SanitizedAdmin!
     text: String!
     x_coordinate: Float!
@@ -10132,6 +10141,41 @@ func (ec *executionContext) _SessionComment_updated_at(ctx context.Context, fiel
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _SessionComment_session_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SessionComment",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionId, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionComment_author(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -13360,6 +13404,11 @@ func (ec *executionContext) _SessionComment(ctx context.Context, sel ast.Selecti
 			}
 		case "updated_at":
 			out.Values[i] = ec._SessionComment_updated_at(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "session_id":
+			out.Values[i] = ec._SessionComment_session_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}

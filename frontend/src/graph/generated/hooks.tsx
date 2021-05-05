@@ -1402,6 +1402,7 @@ export const GetNotificationsDocument = gql`
             id
             timestamp
             updated_at
+            session_id
             text
             author {
                 id

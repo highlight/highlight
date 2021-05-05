@@ -250,6 +250,7 @@ type SessionComment {
     timestamp: Int!
     created_at: Time!
     updated_at: Time!
+    session_id: Int!
     author: SanitizedAdmin!
     text: String!
     x_coordinate: Float!

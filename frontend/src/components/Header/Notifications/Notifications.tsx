@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import Button from '../../Button/Button/Button';
 import Popover from '../../Popover/Popover';
-import { FaBell } from 'react-icons/fa';
 import styles from './Notification.module.scss';
 import { useGetNotificationsQuery } from '../../../graph/generated/hooks';
 import PopoverListContent from '../../Popover/PopoverListContent';
 import NotificationItem from './NotificationItem/NotificationItem';
 import { processNotifications } from './utils/utils';
+import SvgBellIcon from '../../../static/BellIcon';
 
 const Notifications = () => {
     const [notifications, setNotifications] = useState<any[]>([]);
@@ -43,7 +43,7 @@ const Notifications = () => {
             }
         >
             <Button type="text" className={styles.button}>
-                <FaBell />
+                <SvgBellIcon />
             </Button>
         </Popover>
     );

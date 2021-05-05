@@ -1,7 +1,7 @@
-import { notification } from 'antd';
 import moment from 'moment';
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/utils';
 import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import SvgErrorsIcon from '../../../../static/ErrorsIcon';
 import SvgMessageIcon from '../../../../static/MessageIcon';
@@ -65,7 +65,7 @@ const getLink = (notification: any, organization_id: string) => {
             return `${baseUrl}/errors/${notification.error_id}`;
         default:
             return `/`;
-        // case NotificationType.SessionComment:
-        //     return `${notificationAuthor} commented on a session`;
+        case NotificationType.SessionComment:
+            return `${baseUrl}/sessions/${notification.session_id}?${PlayerSearchParameters.commentId}=${notification.id}`;
     }
 };
