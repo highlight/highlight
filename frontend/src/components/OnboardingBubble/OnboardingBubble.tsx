@@ -185,12 +185,12 @@ const OnboardingBubble = () => {
                                         <Button
                                             onClick={step.action}
                                             type="text"
-                                            className={classNames({
-                                                [styles.stepCompleted]:
-                                                    step.completed,
-                                            })}
+                                            className={classNames(
+                                                step.completed
+                                                    ? styles.stepCompleted
+                                                    : styles.stepIncomplete
+                                            )}
                                         >
-                                            {/* TODO: Swap this with the check on the setup page */}
                                             <div
                                                 className={classNames(
                                                     styles.checkWrapper,

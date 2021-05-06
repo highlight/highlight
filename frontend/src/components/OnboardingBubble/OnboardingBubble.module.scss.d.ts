@@ -7,5 +7,6 @@ export const enterViewport: string;
 export const onboardingBubblePopover: string;
 export const popover: string;
 export const stepCompleted: string;
+export const stepIncomplete: string;
 export const stepsContainer: string;
 export const stepsCount: string;
