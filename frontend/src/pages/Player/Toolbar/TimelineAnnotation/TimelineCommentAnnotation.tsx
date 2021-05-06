@@ -3,7 +3,7 @@ import Popover from '../../../../components/Popover/Popover';
 import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
-import SessionCommentHeader from './SessionCommentHeader';
+import SessionCommentHeader from '../../../../components/Comment/SessionComment/SessionCommentHeader';
 import CommentTextBody from '../NewCommentEntry/CommentTextBody/CommentTextBody';
 
 interface Props {

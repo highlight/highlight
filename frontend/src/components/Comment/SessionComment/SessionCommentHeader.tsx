@@ -1,13 +1,15 @@
 import { Menu, message } from 'antd';
 import React, { useContext } from 'react';
-import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
-import { onGetLinkWithTimestamp } from '../../ShareButton/utils/utils';
-import { PlayerSearchParameters } from '../../PlayerHook/utils';
-import { CommentHeader } from '../../../../components/Comment/CommentHeader';
+import ReplayerContext, {
+    ParsedSessionComment,
+} from '../../../pages/Player/ReplayerContext';
+import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
+import { PlayerSearchParameters } from '../../../pages/Player/PlayerHook/utils';
+import { CommentHeader } from '../CommentHeader';
 import {
     useDeleteSessionCommentMutation,
     useGetSessionQuery,
-} from '../../../../graph/generated/hooks';
+} from '../../../graph/generated/hooks';
 import { useParams } from 'react-router-dom';
 import { H } from 'highlight.run';
 
