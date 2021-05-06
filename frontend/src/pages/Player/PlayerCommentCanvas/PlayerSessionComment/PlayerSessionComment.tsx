@@ -6,9 +6,9 @@ import {
     SessionComment,
 } from '../../../../graph/generated/schemas';
 import CommentPinIcon from '../../../../static/comment-pin.png';
-import styles from './Comment.module.scss';
+import styles from './PlayerSessionComment.module.scss';
 import commentButtonStyles from '../CommentButton.module.scss';
-import SessionCommentHeader from '../../Toolbar/TimelineAnnotation/CommentHeader';
+import SessionCommentHeader from '../../Toolbar/TimelineAnnotation/SessionCommentHeader';
 import CommentTextBody from '../../Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import ReplayerContext from '../../ReplayerContext';
 import TransparentPopover from '../../../../components/Popover/TransparentPopover';
@@ -35,7 +35,10 @@ interface Props {
     deepLinkedCommentId: string | null;
 }
 
-const Comment = ({ comment, deepLinkedCommentId }: Props) => {
+/**
+ * A comment that is rendered onto the Player relative to where the comment was made.
+ */
+const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
     const { pause } = useContext(ReplayerContext);
 
     if (!comment) {
@@ -60,6 +63,7 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
         >
             <TransparentPopover
                 placement="right"
+                visible
                 content={
                     <div
                         className={classNames(styles.commentContainer, {
@@ -93,4 +97,4 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
     );
 };
 
-export default Comment;
+export default PlayerSessionComment;
