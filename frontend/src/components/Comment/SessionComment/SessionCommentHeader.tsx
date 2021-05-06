@@ -1,5 +1,5 @@
 import { Menu, message } from 'antd';
-import React, { useContext } from 'react';
+import React, { PropsWithChildren, useContext } from 'react';
 import ReplayerContext, {
     ParsedSessionComment,
 } from '../../../pages/Player/ReplayerContext';
@@ -15,9 +15,19 @@ import { H } from 'highlight.run';
 
 interface Props {
     comment: ParsedSessionComment;
+    menuItems?: CommentHeaderMenuItem[];
 }
 
-const SessionCommentHeader = ({ comment }: Props) => {
+export interface CommentHeaderMenuItem {
+    label: string;
+    onClick: () => void;
+}
+
+const SessionCommentHeader = ({
+    comment,
+    children,
+    menuItems,
+}: PropsWithChildren<Props>) => {
     const { session_id } = useParams<{ session_id: string }>();
     const { pause } = useContext(ReplayerContext);
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
@@ -86,10 +96,19 @@ const SessionCommentHeader = ({ comment }: Props) => {
                     Create Linear issue
                 </Menu.Item>
             )}
+            {menuItems?.map((menuItem, index) => (
+                <Menu.Item onClick={menuItem.onClick} key={index}>
+                    {menuItem.label}
+                </Menu.Item>
+            ))}
         </Menu>
     );
 
-    return <CommentHeader comment={comment} menu={menu} />;
+    return (
+        <CommentHeader comment={comment} menu={menu}>
+            {children}
+        </CommentHeader>
+    );
 };
 
 export default SessionCommentHeader;

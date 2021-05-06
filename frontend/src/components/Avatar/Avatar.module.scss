@@ -1,8 +1,6 @@
 @import 'src/static/shared.scss';
 
 .userAvatarWrapper {
-    background-color: $highlight-purple-light;
-    padding: 3px;
     border-radius: 50%;
     height: max-content;
 }
@@ -16,4 +14,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: 300;
+    line-height: initial;
 }

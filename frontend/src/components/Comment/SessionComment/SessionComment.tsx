@@ -1,7 +1,9 @@
 import React from 'react';
 import { ParsedSessionComment } from '../../../pages/Player/ReplayerContext';
 import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
-import SessionCommentHeader from './SessionCommentHeader';
+import SessionCommentHeader, {
+    CommentHeaderMenuItem,
+} from './SessionCommentHeader';
 import styles from './SessionComment.module.scss';
 import classNames from 'classnames';
 
@@ -9,12 +11,14 @@ interface Props {
     comment: ParsedSessionComment;
     deepLinkedCommentId?: string | null;
     hasShadow?: boolean;
+    menuItems?: CommentHeaderMenuItem[];
 }
 
 export const SessionCommentCard = ({
     comment,
     deepLinkedCommentId,
     hasShadow,
+    menuItems,
 }: Props) => {
     return (
         <div
@@ -26,16 +30,22 @@ export const SessionCommentCard = ({
             <SessionComment
                 comment={comment}
                 deepLinkedCommentId={deepLinkedCommentId}
+                menuItems={menuItems}
             />
         </div>
     );
 };
 
-export const SessionComment = ({ comment }: Props) => {
+export const SessionComment = ({ comment, menuItems }: Props) => {
     return (
         <>
-            <SessionCommentHeader key={comment.id} comment={comment} />
-            <CommentTextBody commentText={comment.text} />
+            <SessionCommentHeader
+                key={comment.id}
+                comment={comment}
+                menuItems={menuItems}
+            >
+                <CommentTextBody commentText={comment.text} />
+            </SessionCommentHeader>
         </>
     );
 };

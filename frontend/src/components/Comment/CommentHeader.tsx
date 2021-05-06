@@ -1,5 +1,5 @@
 import { Dropdown } from 'antd';
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import { SuggestionDataItem } from 'react-mentions';
 import {
     GetAdminQuery,
@@ -54,30 +54,37 @@ export const parseAdminSuggestions = (
 export const CommentHeader = ({
     comment,
     menu,
-}: {
+    children,
+}: PropsWithChildren<{
     comment: any;
     menu: JSX.Element;
-}) => {
+}>) => {
     return (
-        <div className={classNames(styles.commentHeader)}>
-            <AdminAvatar adminInfo={comment.author} size={25} />
-            <span className={styles.commentAuthor}>
-                {comment.author.name || comment.author.email.split('@')[0]}
-            </span>
-            <span className={styles.commentUpdatedTime}>
-                <RelativeTime datetime={comment.updated_at} />
-            </span>
-            <span className={styles.endActions}>
-                <Dropdown
-                    overlay={menu}
-                    placement="bottomLeft"
-                    trigger={['click']}
-                >
-                    <button className={styles.ellipsisButton}>
-                        <HiDotsHorizontal />
-                    </button>
-                </Dropdown>
-            </span>
-        </div>
+        <>
+            <div className={classNames(styles.commentHeader)}>
+                <AdminAvatar adminInfo={comment.author} size={30} />
+                <div className={styles.textContainer}>
+                    <span className={styles.commentAuthor}>
+                        {comment.author.name ||
+                            comment.author.email.split('@')[0]}
+                    </span>
+                    <span className={styles.commentUpdatedTime}>
+                        <RelativeTime datetime={comment.updated_at} />
+                    </span>
+                </div>
+                <span className={styles.endActions}>
+                    <Dropdown
+                        overlay={menu}
+                        placement="bottomLeft"
+                        trigger={['click']}
+                    >
+                        <button className={styles.ellipsisButton}>
+                            <HiDotsHorizontal />
+                        </button>
+                    </Dropdown>
+                </span>
+                <div className={styles.childrenContainer}>{children}</div>
+            </div>
+        </>
     );
 };
