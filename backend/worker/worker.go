@@ -21,6 +21,8 @@ import (
 )
 
 // Worker is a job runner that parses sessions
+const MIN_INACTIVE_DURATION = 10
+
 type Worker struct {
 	Resolver *mgraph.Resolver
 	S3Client *storage.StorageClient
@@ -61,7 +63,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Calculate total session length and write the length to the session.
 	diff := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
 	length := diff.Milliseconds()
-	activeLength := getActiveDuration(events).Milliseconds()
+	activeLength, err := getActiveDuration(events)
+	if err != nil {
+		return errors.Wrap(err, "error parsing active length")
+	}
+	activeLengthSec := activeLength.Milliseconds()
 
 	// Delete the session if the length of the session is 0.
 	// 1. Nothing happened in the session
@@ -81,7 +87,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			Viewed:       &model.F,
 			Processed:    &model.T,
 			Length:       length,
-			ActiveLength: activeLength,
+			ActiveLength: activeLengthSec,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -197,14 +203,14 @@ func CalculateSessionLength(first *parse.ReplayEvents, last *parse.ReplayEvents)
 	return d
 }
 
-func getActiveDuration(events []model.EventsObject) time.Duration {
+func getActiveDuration(events []model.EventsObject) (*time.Duration, error) {
 	d := time.Duration(0)
 	// unnests the events from EventObjects
 	allEvents := []*parse.ReplayEvent{}
 	for _, eventObj := range events {
 		subEvents, err := parse.EventsFromString(eventObj.Events)
 		if err != nil {
-			return d
+			return nil, err
 		}
 		allEvents = append(allEvents, subEvents.Events...)
 	}
@@ -216,12 +222,12 @@ func getActiveDuration(events []model.EventsObject) time.Duration {
 				Source float64 `json:"source"`
 			}{}
 			if err := json.Unmarshal([]byte(eventObj.Data), &aux); err != nil {
-				return d
+				return nil, err
 			}
 			if aux.Source > 0 && aux.Source <= 5 {
 				if prevUserEvent != (&parse.ReplayEvent{}) {
 					diff := eventObj.Timestamp.Sub(prevUserEvent.Timestamp)
-					if diff.Seconds() <= 10 {
+					if diff.Seconds() <= MIN_INACTIVE_DURATION {
 						d += eventObj.Timestamp.Sub(prevUserEvent.Timestamp)
 					}
 				}
@@ -229,5 +235,5 @@ func getActiveDuration(events []model.EventsObject) time.Duration {
 			}
 		}
 	}
-	return d
+	return &d, nil
 }
