@@ -61,11 +61,34 @@
         row-gap: var(--size-xxSmall);
     }
 
-    .notificationIconContainer {
-        & > svg {
-            height: var(--size-small);
-            width: var(--size-small);
-            color: var(--color-purple);
+    .notificationStartColumn {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr;
+
+        & > * {
+            grid-row-start: 1;
+            grid-column-start: 1;
+        }
+
+        .notificationIconContainer {
+            background: var(--color-primary-background);
+            box-shadow: var(--box-shadow-2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: var(--size-medium);
+            width: var(--size-medium);
+            z-index: 1;
+            margin-top: -2px;
+            margin-left: -2px;
+        }
+
+        & svg {
+            height: var(--size-xSmall);
+            width: var(--size-xSmall);
+            color: var(--text-primary);
         }
     }
 

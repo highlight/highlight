@@ -5,6 +5,7 @@ import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/util
 import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import SvgErrorsIcon from '../../../../static/ErrorsIcon';
 import SvgMessageIcon from '../../../../static/MessageIcon';
+import { AdminAvatar } from '../../../Avatar/Avatar';
 import Dot from '../../../Dot/Dot';
 import notificationStyles from '../Notification.module.scss';
 import { NotificationType } from '../utils/utils';
@@ -28,8 +29,12 @@ const CommentNotification = ({
             to={getLink(notification, organization_id)}
             onClick={onViewHandler}
         >
-            <div className={notificationStyles.notificationIconContainer}>
-                {getIcon(notification.type)}
+            <div className={notificationStyles.notificationStartColumn}>
+                <div className={notificationStyles.notificationIconContainer}>
+                    {getIcon(notification.type)}
+                </div>
+
+                <AdminAvatar adminInfo={notification.author} size={30} />
             </div>
             <div className={notificationStyles.notificationBody}>
                 <h3 className={notificationStyles.title}>
