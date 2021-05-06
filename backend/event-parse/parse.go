@@ -58,9 +58,6 @@ func EventsFromString(eventsString string) (*ReplayEvents, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error parsing events into ReplayEvents: %v", err)
 	}
-	if len(events.Events) < 1 {
-		return nil, errors.New("empty events")
-	}
 	return events, nil
 }
 

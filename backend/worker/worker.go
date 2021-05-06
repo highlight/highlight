@@ -25,6 +25,76 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
+func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string) error {
+	if err := w.Resolver.DB.Model(&model.Session{}).Where(
+		&model.Session{Model: model.Model{ID: s.ID}},
+	).Updates(
+		&model.Session{MigrationState: migrationState},
+	).Error; err != nil {
+		return errors.Wrap(err, "error updating session to processed status")
+	}
+	fmt.Printf("starting push for: %v \n", s.ID)
+	events := []model.EventsObject{}
+	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
+		return errors.Wrap(err, "retrieving events")
+	}
+	sessionPayloadSize, err := w.S3Client.PushSessionsToS3(s.ID, s.OrganizationID, events)
+	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
+	if err != nil {
+		return errors.Wrap(err, "error pushing session payload to s3")
+	}
+
+	resourcesObject := []*model.ResourcesObject{}
+	if res := w.Resolver.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
+		return errors.Wrap(res.Error, "error reading from resources")
+	}
+	resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
+	if err != nil {
+		return errors.Wrap(err, "error pushing network payload to s3")
+	}
+
+	messagesObj := []*model.MessagesObject{}
+	if res := w.Resolver.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
+		return errors.Wrap(res.Error, "error reading from messages")
+	}
+	messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messagesObj)
+	if err != nil {
+		return errors.Wrap(err, "error pushing network payload to s3")
+	}
+
+	var totalPayloadSize int64
+	if sessionPayloadSize != nil {
+		totalPayloadSize += *sessionPayloadSize
+	}
+	if resourcePayloadSize != nil {
+		totalPayloadSize += *resourcePayloadSize
+	}
+	if messagePayloadSize != nil {
+		totalPayloadSize += *messagePayloadSize
+	}
+
+	// Mark this session as stored in S3.
+	if err := w.Resolver.DB.Model(&model.Session{}).Where(
+		&model.Session{Model: model.Model{ID: s.ID}},
+	).Updates(
+		&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize},
+	).Error; err != nil {
+		return errors.Wrap(err, "error updating session to storage enabled")
+	}
+	// Delete all the events_objects in the DB.
+	if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
+		return errors.Wrap(err, "error deleting all event records")
+	}
+	if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
+		return errors.Wrap(err, "error deleting all network resource records")
+	}
+	if err := w.Resolver.DB.Unscoped().Delete(&messagesObj).Error; err != nil {
+		return errors.Wrap(err, "error deleting all console message records")
+	}
+	fmt.Println("parsed: ", s.ID)
+	return nil
+}
+
 func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Set the session as processed; if any is error thrown after this, the session gets ignored.
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
@@ -50,11 +120,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	firstEventsParsed, err := parse.EventsFromString(events[0].Events)
 	if err != nil {
-		return errors.Wrap(err, "error parsing events")
+		return errors.Wrap(err, "error parsing first set of events")
 	}
 	lastEventsParsed, err := parse.EventsFromString(events[len(events)-1].Events)
 	if err != nil {
-		return errors.Wrap(err, "error parsing events")
+		return errors.Wrap(err, "error parsing last set of events")
 	}
 
 	// Calculate total session length and write the length to the session.
@@ -75,8 +145,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
-			// We are setting Viewed to false so sessions the user viewed while they were live will be reset.
-			Viewed:    &model.F,
 			Processed: &model.T,
 			Length:    length,
 		},
@@ -84,64 +152,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	// Upload to s3 for every even session on our org.
+	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
-		fmt.Printf("starting push for: %v \n", s.ID)
-		sessionPayloadSize, err := w.S3Client.PushSessionsToS3(s.ID, s.OrganizationID, events)
-		// If this is unsucessful, return early (we treat this session as if it is stored in psql).
-		if err != nil {
-			return errors.Wrap(err, "error pushing session payload to s3")
+		state := "normal"
+		if err := w.pushToObjectStorageAndWipe(ctx, s, &state); err != nil {
+			log.Errorf("error pushing to object and wiping from db (%v)", s.ID)
 		}
-
-		resourcesObject := []*model.ResourcesObject{}
-		if res := w.Resolver.DB.Order("created_at desc").Where(&model.ResourcesObject{SessionID: s.ID}).Find(&resourcesObject); res.Error != nil {
-			return errors.Wrap(res.Error, "error reading from resources")
-		}
-		resourcePayloadSize, err := w.S3Client.PushResourcesToS3(s.ID, s.OrganizationID, resourcesObject)
-		if err != nil {
-			return errors.Wrap(err, "error pushing network payload to s3")
-		}
-
-		messagesObj := []*model.MessagesObject{}
-		if res := w.Resolver.DB.Order("created_at desc").Where(&model.MessagesObject{SessionID: s.ID}).Find(&messagesObj); res.Error != nil {
-			return errors.Wrap(res.Error, "error reading from messages")
-		}
-		messagePayloadSize, err := w.S3Client.PushMessagesToS3(s.ID, s.OrganizationID, messagesObj)
-		if err != nil {
-			return errors.Wrap(err, "error pushing network payload to s3")
-		}
-
-		var totalPayloadSize int64
-		if sessionPayloadSize != nil {
-			totalPayloadSize += *sessionPayloadSize
-		}
-		if resourcePayloadSize != nil {
-			totalPayloadSize += *resourcePayloadSize
-		}
-		if messagePayloadSize != nil {
-			totalPayloadSize += *messagePayloadSize
-		}
-
-		// Mark this session as stored in S3.
-		if err := w.Resolver.DB.Model(&model.Session{}).Where(
-			&model.Session{Model: model.Model{ID: s.ID}},
-		).Updates(
-			&model.Session{ObjectStorageEnabled: &model.T, PayloadSize: &totalPayloadSize},
-		).Error; err != nil {
-			return errors.Wrap(err, "error updating session to storage enabled")
-		}
-		// Delete all the events_objects in the DB.
-		if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
-			return errors.Wrap(err, "error deleting all event records")
-		}
-		if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
-			return errors.Wrap(err, "error deleting all network resource records")
-		}
-		if err := w.Resolver.DB.Unscoped().Delete(&messagesObj).Error; err != nil {
-			return errors.Wrap(err, "error deleting all console message records")
-		}
-		fmt.Println("parsed: ", s.ID)
-
 	}
 	return nil
 }
@@ -170,11 +186,25 @@ func (w *Worker) Start() {
 		for _, session := range sessions {
 			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
 			if err := w.processSession(ctx, session); err != nil {
-				log.Errorf("error processing session: %v", err)
+				log.Errorf("error processing main session(%v): %v", session.ID, err)
 				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
+				span.Finish()
 				continue
 			}
 			span.Finish()
+		}
+		// TODO: This should be deleted at some point.
+		sessionsToWipe := []*model.Session{}
+		if err := w.Resolver.DB.Where("(processed = ? AND organization_id = 1 AND migration_state != 'late-s3-push' AND (object_storage_enabled IS NULL OR object_storage_enabled = false))", true).Limit(15).Find(&sessionsToWipe).Error; err != nil {
+			log.Errorf("error querying unparsed, outdated sessions: %v", err)
+			continue
+		}
+		for _, session := range sessionsToWipe {
+			state := "late-s3-push"
+			if err := w.pushToObjectStorageAndWipe(ctx, session, &state); err != nil {
+				log.Errorf("error processing late session(%v): %v", session.ID, err)
+				continue
+			}
 		}
 		workerSpan.Finish()
 	}
@@ -185,11 +215,16 @@ func CalculateSessionLength(first *parse.ReplayEvents, last *parse.ReplayEvents)
 	d := time.Duration(0)
 	fe := first.Events
 	le := last.Events
-	if len(fe) <= 0 || len(le) <= 0 {
+	if len(fe) <= 0 {
 		return d
 	}
 	start := first.Events[0].Timestamp
-	end := last.Events[len(last.Events)-1].Timestamp
+	end := time.Time{}
+	if len(le) <= 0 {
+		end = first.Events[len(first.Events)-1].Timestamp
+	} else {
+		end = last.Events[len(last.Events)-1].Timestamp
+	}
 	d = end.Sub(start)
 	return d
 }

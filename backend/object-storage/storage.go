@@ -53,9 +53,12 @@ func (s *StorageClient) PushSessionsToS3(sessionId int, organizationId int, even
 	for _, event := range events {
 		parsed, err := parse.EventsFromString(event.Events)
 		if err != nil {
-			return nil, errors.Wrap(err, "error parsing events")
+			continue
 		}
 		re.Events = append(re.Events, parsed.Events...)
+	}
+	if len(re.Events) == 0 {
+		return nil, errors.New("empty set of events")
 	}
 	b, err := json.Marshal(re)
 	if err != nil {

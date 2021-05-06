@@ -28,6 +28,22 @@ func TestCalculateSessionLength(t *testing.T) {
 		},
 		{
 			&parse.ReplayEvents{
+				Events: []*parse.ReplayEvent{
+					{
+						Timestamp: time.Date(1970, time.Month(1), 1, 0, 0, 0, 0, time.UTC),
+					},
+				}},
+			&parse.ReplayEvents{
+				Events: []*parse.ReplayEvent{
+					{
+						Timestamp: time.Date(1970, time.Month(1), 1, 1, 0, 0, 0, time.UTC),
+					},
+				},
+			},
+			time.Duration(1 * time.Hour),
+		},
+		{
+			&parse.ReplayEvents{
 				Events: []*parse.ReplayEvent{},
 			},
 			&parse.ReplayEvents{
