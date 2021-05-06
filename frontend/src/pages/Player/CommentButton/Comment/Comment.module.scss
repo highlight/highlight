@@ -36,6 +36,7 @@
     text-align: left;
     margin-top: calc(var(--size-small) * -1);
     box-shadow: var(--box-shadow);
+    overflow: hidden;
 
     & > p {
         font-size: 14px;
@@ -44,7 +45,13 @@
 }
 
 .activeComment {
-    border-left: var(--size-xxSmall) solid var(--color-purple);
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
+    &:before {
+        content: '';
+        height: 100%;
+        width: 5px;
+        background-color: var(--color-purple);
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
 }
