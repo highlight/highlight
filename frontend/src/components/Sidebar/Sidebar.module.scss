@@ -1,19 +1,28 @@
 @import 'src/static/shared.scss';
 
 .sideBar {
+    --top-offset: 80px;
     position: fixed;
-    height: 100%;
-    background-color: white;
+    height: calc(100% - 80px);
+    background-color: var(--color-primary-background);
     z-index: 40;
     width: 280px;
+    top: 80px;
     border-right: 1px solid #eaeaea;
     transition: margin-left 0.3s ease-in-out;
     margin-left: -280px;
     display: flex;
     align-items: center;
     flex-direction: column;
-    padding-top: 80px;
     box-shadow: var(--box-shadow-2);
+    padding: var(--size-large) var(--size-medium);
+    row-gap: 16px;
+}
+
+.staticSidebarWrapper {
+    width: 64px;
+    box-shadow: none;
+    margin-left: 0;
 }
 
 .open {
@@ -23,16 +32,7 @@
 .settingsDivider {
     width: 90%;
     height: 2px;
-    background-color: #eaeaea;
-    margin-top: 15px;
-    margin-bottom: 20px;
-}
-
-.settingsTitle {
-    color: #666666;
-    width: 100%;
-    padding-left: 20px;
-    margin-bottom: 5px;
+    background-color: var(--color-gray-300);
 }
 
 .link {
@@ -57,7 +57,6 @@
     height: 100%;
     position: relative;
     width: 100%;
-    padding: 20px;
 }
 
 .bottomContainer {
@@ -87,7 +86,6 @@
 
 .miniRow {
     color: black !important;
-    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -96,14 +94,11 @@
 
 .row {
     color: black !important;
-    padding-left: 20px;
     align-items: center;
     width: 100%;
-    padding: 4px 10px 4px 10px;
     font-size: 16px;
     transition: 0.1s;
     cursor: pointer;
-    border-left: 3px solid white;
 }
 
 .miniSidebarIconWrapper {
@@ -133,18 +128,6 @@
     width: 18px;
 }
 
-.staticSidebarWrapper {
-    position: fixed;
-    top: 80px;
-    width: 64px;
-    height: calc(100vh - 80px);
-    border-right: 1px solid #eaeaea;
-    display: flex;
-    flex-direction: column;
-    background-color: white;
-    align-items: center;
-}
-
 .selected {
     background-color: #f4f4f4 !important;
     color: black !important;
@@ -160,6 +143,7 @@
     width: 100%;
     align-items: center;
     padding: 10px 10px 10px 10px;
+    padding: var(--size-xSmall) var(--size-small);
     border-radius: 6px;
     transition: 0.3s background-color;
     color: #808080;
