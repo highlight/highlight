@@ -8,3 +8,6 @@ export const notificationBody: string;
 export const notificationIconContainer: string;
 export const popover: string;
 export const popoverTitle: string;
+export const timestamp: string;
+export const title: string;
+export const titleSuffix: string;

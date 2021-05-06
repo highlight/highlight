@@ -32,9 +32,13 @@ const CommentNotification = ({
                 {getIcon(notification.type)}
             </div>
             <div className={notificationStyles.notificationBody}>
-                <h3>{getTitle(notification)}</h3>
+                <h3 className={notificationStyles.title}>
+                    {getTitle(notification)}
+                </h3>
+                <span className={notificationStyles.timestamp}>
+                    {moment(notification?.updated_at).fromNow()}
+                </span>
                 <CommentTextBody commentText={notification?.text || ''} />
-                {moment(notification?.updated_at).fromNow()}
             </div>
             <div className={notificationStyles.dotContainer}>
                 {!viewed && <Dot />}
@@ -54,16 +58,26 @@ const getIcon = (type: NotificationType) => {
     }
 };
 
-const getTitle = (notification: any) => {
+const getTitle = (notification: any): React.ReactNode => {
     const notificationAuthor =
         notification?.author.name || notification?.author.email;
+    let suffix = 'mentioned you';
 
     switch (notification.type as NotificationType) {
         case NotificationType.ErrorComment:
-            return `${notificationAuthor} commented on an error`;
+            suffix = 'mentioned you';
+            break;
         case NotificationType.SessionComment:
-            return `${notificationAuthor} commented on a session`;
+            suffix = 'mentioned you';
+            break;
     }
+
+    return (
+        <>
+            {notificationAuthor}{' '}
+            <span className={notificationStyles.titleSuffix}>{suffix}</span>
+        </>
+    );
 };
 
 const getLink = (notification: any, organization_id: string) => {

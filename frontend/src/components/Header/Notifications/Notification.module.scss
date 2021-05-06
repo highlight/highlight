@@ -73,6 +73,20 @@
         margin-top: var(--size-xxSmall);
         margin-left: auto;
     }
+
+    .timestamp {
+        font-size: 10px !important;
+        margin-bottom: var(--size-xxSmall);
+    }
+
+    .title {
+        font-weight: 400;
+    }
+
+    .titleSuffix {
+        font-weight: 200;
+        color: var(--color-gray-500);
+    }
 }
 
 .popoverTitle {
