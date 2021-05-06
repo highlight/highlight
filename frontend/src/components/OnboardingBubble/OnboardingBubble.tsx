@@ -10,7 +10,6 @@ import {
     useGetAdminQuery,
     useGetOnboardingStepsQuery,
 } from '../../graph/generated/hooks';
-import SvgCircleCheckIcon from '../../static/CircleCheckIcon';
 import { ReactComponent as CheckIcon } from '../../static/verify-check.svg';
 import Button from '../Button/Button/Button';
 import PillButton from '../Button/PillButton/PillButton';
