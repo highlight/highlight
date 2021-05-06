@@ -80,6 +80,11 @@ const Notifications = () => {
                     H.track('Viewed notifications', {});
                 }
             }}
+            title={
+                <div className={styles.popoverTitle}>
+                    <h3>Mentions</h3>
+                </div>
+            }
         >
             <div className={styles.buttonContainer}>
                 <Button

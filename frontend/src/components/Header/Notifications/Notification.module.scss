@@ -74,3 +74,22 @@
         margin-left: auto;
     }
 }
+
+.popoverTitle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: var(--size-xSmall);
+    margin: 0 calc(var(--size-medium) * -1);
+    margin-bottom: var(--size-medium);
+    padding: 0 var(--size-medium);
+    border-bottom: 1px solid var(--color-gray-300);
+
+    h3,
+    span,
+    a {
+        margin-bottom: var(--size-xSmall);
+        font-size: 13px;
+        font-weight: 300;
+    }
+}
