@@ -52,7 +52,7 @@
 
 .mentions__mention {
   position: relative;
-  font-weight: 400 !important;
+  font-weight: 300 !important;
   z-index: 1;
   color: var(--color-purple-400);
   pointer-events: none;
