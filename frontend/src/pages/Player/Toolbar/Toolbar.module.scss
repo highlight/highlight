@@ -306,6 +306,7 @@
     width: 240px;
     overflow-wrap: anywhere;
     text-overflow: ellipsis;
+    padding-bottom: var(--size-xSmall);
     overflow: hidden;
 }
 
