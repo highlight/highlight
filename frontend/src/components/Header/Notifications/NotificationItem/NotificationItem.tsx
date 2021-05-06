@@ -1,4 +1,3 @@
-import moment from 'moment';
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/utils';
@@ -7,6 +6,7 @@ import SvgErrorsIcon from '../../../../static/ErrorsIcon';
 import SvgMessageIcon from '../../../../static/MessageIcon';
 import { AdminAvatar } from '../../../Avatar/Avatar';
 import Dot from '../../../Dot/Dot';
+import RelativeTime from '../../../RelativeTime/RelativeTime';
 import notificationStyles from '../Notification.module.scss';
 import { NotificationType } from '../utils/utils';
 
@@ -41,7 +41,7 @@ const CommentNotification = ({
                     {getTitle(notification)}
                 </h3>
                 <span className={notificationStyles.timestamp}>
-                    {moment(notification?.updated_at).fromNow()}
+                    <RelativeTime datetime={notification?.updated_at} />
                 </span>
                 <CommentTextBody commentText={notification?.text || ''} />
             </div>
