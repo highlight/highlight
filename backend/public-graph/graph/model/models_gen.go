@@ -15,6 +15,7 @@ type ErrorObjectInput struct {
 	ColumnNumber int           `json:"columnNumber"`
 	Trace        []interface{} `json:"trace"`
 	Timestamp    time.Time     `json:"timestamp"`
+	Payload      *string       `json:"payload"`
 }
 
 type ReplayEventsInput struct {

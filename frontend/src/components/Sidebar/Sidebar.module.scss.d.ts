@@ -1,6 +1,10 @@
+export const bottomContainer: string;
 export const bottomLink: string;
+export const bottomLinkContainer: string;
 export const bottomSection: string;
 export const bottomWrapper: string;
+export const changelogButton: string;
+export const changelogContainer: string;
 export const icon: string;
 export const iconWrapper: string;
 export const innerButton: string;
@@ -14,6 +18,5 @@ export const rowText: string;
 export const selected: string;
 export const selectedDiv: string;
 export const settingsDivider: string;
-export const settingsTitle: string;
 export const sideBar: string;
 export const staticSidebarWrapper: string;

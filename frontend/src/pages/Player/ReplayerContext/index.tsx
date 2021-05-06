@@ -12,6 +12,8 @@ export enum ReplayerState {
     LoadedWithDeepLink,
     Playing,
     Paused,
+    /** Caused when the end-user calls H.stop() manually to stop recording. */
+    SessionRecordingStopped,
 }
 
 interface BaseParsedEvent {

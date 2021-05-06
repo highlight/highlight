@@ -1,5 +1,5 @@
 start:
-		doppler run -- air
+		doppler run -- air -c .air.toml
 public-gen:
 		(cd ./public-graph; go run github.com/99designs/gqlgen)
 private-gen:

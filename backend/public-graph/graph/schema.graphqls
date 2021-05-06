@@ -18,6 +18,7 @@ input ErrorObjectInput {
     columnNumber: Int!
     trace: [Any]!
     timestamp: Time!
+    payload: String
 }
 
 input ReplayEventsInput {
@@ -31,6 +32,7 @@ type Mutation {
         clientVersion: String!
         firstloadVersion: String!
         clientConfig: String!
+        environment: String!
     ): Session
     identifySession(
         session_id: ID!

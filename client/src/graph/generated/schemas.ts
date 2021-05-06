@@ -31,6 +31,7 @@ export type ErrorObjectInput = {
   columnNumber: Scalars['Int'];
   trace: Array<Maybe<Scalars['Any']>>;
   timestamp: Scalars['Time'];
+  payload?: Maybe<Scalars['String']>;
 };
 
 export type ReplayEventsInput = {
@@ -53,6 +54,7 @@ export type MutationInitializeSessionArgs = {
   clientVersion: Scalars['String'];
   firstloadVersion: Scalars['String'];
   clientConfig: Scalars['String'];
+  environment: Scalars['String'];
 };
 
 

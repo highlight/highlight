@@ -1,7 +1,6 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { Field } from '../../components/Field/Field';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
 import {
     BarChart,
@@ -26,17 +25,14 @@ import StackTraceSection from './components/StackTraceSection/StackTraceSection'
 import ErrorDescription from './components/ErrorDescription/ErrorDescription';
 import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
+import ErrorComments from './components/ErrorComments/ErrorComments';
+import classnames from 'classnames';
 
 export const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
-    const { setOpenSidebar } = useContext(SidebarContext);
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
     });
-
-    useEffect(() => {
-        setOpenSidebar(false);
-    }, [setOpenSidebar]);
 
     return (
         <div className={styles.errorPageWrapper}>
@@ -128,6 +124,28 @@ export const ErrorPage = () => {
                                             )
                                     )}
                                 </>
+                            )}
+                        </div>
+                        <div className={styles.subTitle}>
+                            {loading ? (
+                                <Skeleton count={1} style={{ width: 280 }} />
+                            ) : (
+                                'Comments'
+                            )}
+                        </div>
+                        <div
+                            className={classnames(
+                                styles.fieldWrapper,
+                                styles.commentSection
+                            )}
+                        >
+                            {loading ? (
+                                <Skeleton
+                                    count={2}
+                                    style={{ height: 20, marginBottom: 10 }}
+                                />
+                            ) : (
+                                <ErrorComments />
                             )}
                         </div>
                     </div>

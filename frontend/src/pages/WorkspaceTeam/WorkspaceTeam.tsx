@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useContext } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { message, Skeleton } from 'antd';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
@@ -8,7 +8,6 @@ import classNames from 'classnames/bind';
 
 import commonStyles from '../../Common.module.scss';
 import styles from './WorkspaceTeam.module.scss';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import {
     useGetAdminsQuery,
     useGetOrganizationQuery,
@@ -36,12 +35,6 @@ export const WorkspaceTeam = () => {
         { loading: sendLoading },
     ] = useSendAdminInviteMutation();
 
-    const { setOpenSidebar } = useContext(SidebarContext);
-
-    useEffect(() => {
-        setOpenSidebar(true);
-    }, [setOpenSidebar]);
-
     useEffect(() => {
         reset();
     }, [reset]);
@@ -65,7 +58,6 @@ export const WorkspaceTeam = () => {
 
     return (
         <div className={styles.teamPageWrapper}>
-            <div className={styles.blankSidebar}></div>
             <div className={styles.teamPage}>
                 <div className={styles.title}>Invite A Member</div>
                 <div className={styles.subTitle}>

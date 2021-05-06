@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -372,28 +373,11 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string) (*model.Session, error) {
+func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string) (*model.Session, error) {
 	organizationID := model.FromVerboseID(organizationVerboseID)
 	organization := &model.Organization{}
 	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization).Error; err != nil {
 		return nil, e.Wrap(err, "org doesn't exist")
-	}
-
-	uid, ok := ctx.Value("uid").(int)
-	if !ok {
-		return nil, e.New("error unwrapping uid in context")
-	}
-
-	// Get the current user to check whether the org_id is set.
-	user := &model.User{}
-	if err := r.DB.Where(&model.User{Model: model.Model{ID: uid}}).First(&user).Error; err != nil {
-		return nil, e.Wrap(err, "user doesn't exist")
-	}
-	// If not, set it.
-	if user.OrganizationID != organizationID {
-		if err := r.DB.Model(user).Updates(model.User{OrganizationID: organizationID}).Error; err != nil {
-			return nil, e.Wrap(err, "error updating user")
-		}
 	}
 
 	// Get the user's ip, get geolocation data
@@ -424,7 +408,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	acceptLanguageString := ctx.Value("acceptLanguage").(string)
 	n := time.Now()
 	session := &model.Session{
-		UserID:              user.ID,
+		UserID:              5000 + rand.Intn(5000),
 		OrganizationID:      organizationID,
 		City:                location.City,
 		State:               location.State,
@@ -442,6 +426,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		FirstloadVersion:    firstloadVersion,
 		ClientVersion:       clientVersion,
 		ClientConfig:        &clientConfig,
+		Environment:         environment,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {

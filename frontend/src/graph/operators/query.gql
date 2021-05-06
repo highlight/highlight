@@ -43,6 +43,7 @@ query GetSessionComments($session_id: ID!) {
     session_comments(session_id: $session_id) {
         id
         timestamp
+        session_id
         created_at
         updated_at
         text
@@ -50,9 +51,83 @@ query GetSessionComments($session_id: ID!) {
             id
             name
             email
+            photo_url
         }
         x_coordinate
         y_coordinate
+    }
+}
+
+query GetNotifications {
+    session_comments_for_admin {
+        id
+        timestamp
+        updated_at
+        session_id
+        text
+        author {
+            id
+            name
+            email
+            photo_url
+        }
+    }
+    error_comments_for_admin {
+        id
+        updated_at
+        text
+        error_id
+        author {
+            id
+            name
+            email
+            photo_url
+        }
+    }
+}
+
+query GetSessionCommentsForAdmin {
+    session_comments_for_admin {
+        id
+        timestamp
+        created_at
+        updated_at
+        text
+        author {
+            id
+            name
+            email
+            photo_url
+        }
+    }
+}
+
+query GetErrorComments($error_group_id: ID!) {
+    error_comments(error_group_id: $error_group_id) {
+        id
+        created_at
+        updated_at
+        text
+        author {
+            id
+            name
+            email
+            photo_url
+        }
+    }
+}
+
+query GetOnboardingSteps($organization_id: ID!, $admin_id: ID!) {
+    organization(id: $organization_id) {
+        slack_webhook_channel
+    }
+    admins(organization_id: $organization_id) {
+        id
+    }
+    isIntegrated(organization_id: $organization_id)
+    adminHasCreatedComment(admin_id: $admin_id)
+    organizationHasViewedASession(organization_id: $organization_id) {
+        id
     }
 }
 
@@ -217,6 +292,7 @@ fragment errorFields on ErrorObject {
     column_number
     trace
     timestamp
+    payload
 }
 
 query GetFieldSuggestion(

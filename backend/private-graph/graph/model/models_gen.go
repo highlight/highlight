@@ -55,9 +55,21 @@ type Plan struct {
 }
 
 type SanitizedAdmin struct {
+	ID       int     `json:"id"`
+	Name     *string `json:"name"`
+	Email    string  `json:"email"`
+	PhotoURL *string `json:"photo_url"`
+}
+
+type SanitizedAdminInput struct {
 	ID    int     `json:"id"`
 	Name  *string `json:"name"`
 	Email string  `json:"email"`
+}
+
+type SanitizedSlackChannel struct {
+	WebhookChannel   *string `json:"webhook_channel"`
+	WebhookChannelID *string `json:"webhook_channel_id"`
 }
 
 type SearchParamsInput struct {

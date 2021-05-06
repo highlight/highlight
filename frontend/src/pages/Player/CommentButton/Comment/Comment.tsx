@@ -8,7 +8,7 @@ import {
 import CommentPinIcon from '../../../../static/comment-pin.png';
 import styles from './Comment.module.scss';
 import commentButtonStyles from '../CommentButton.module.scss';
-import CommentHeader from '../../Toolbar/TimelineAnnotation/CommentHeader';
+import SessionCommentHeader from '../../Toolbar/TimelineAnnotation/CommentHeader';
 import CommentTextBody from '../../Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import ReplayerContext from '../../ReplayerContext';
 
@@ -19,6 +19,7 @@ interface Props {
             | 'id'
             | 'timestamp'
             | 'created_at'
+            | 'session_id'
             | 'updated_at'
             | 'text'
             | 'x_coordinate'
@@ -26,7 +27,7 @@ interface Props {
         > & {
                 author: { __typename?: 'SanitizedAdmin' } & Pick<
                     SanitizedAdmin,
-                    'id' | 'name' | 'email'
+                    'id' | 'name' | 'email' | 'photo_url'
                 >;
             }
     >;
@@ -74,7 +75,7 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
             >
                 <img src={CommentPinIcon} />
             </button>
-            {showing && (
+            {(showing || deepLinkedCommentId === comment.id) && (
                 <div
                     onMouseEnter={() => {
                         setShowing(true);
@@ -87,7 +88,7 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
                             deepLinkedCommentId === comment.id,
                     })}
                 >
-                    <CommentHeader key={comment.id} comment={comment} />
+                    <SessionCommentHeader key={comment.id} comment={comment} />
                     <CommentTextBody commentText={comment.text} />
                 </div>
             )}

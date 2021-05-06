@@ -1,3 +1,23 @@
+@import 'src/static/shared.scss';
+
+.commentUpdatedTime {
+    color: $text-label;
+    font-weight: 200;
+    flex-shrink: 0;
+}
+
+.commentHeader {
+    display: flex;
+    align-items: center;
+    gap: var(--size-xSmall);
+    margin-bottom: var(--size-xSmall);
+}
+
+.commentAuthor {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .ellipsisButton {
     background: transparent;
     border: none;

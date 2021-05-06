@@ -28,6 +28,36 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
+	admin := &model.Admin{}
+	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
+		return nil, e.Wrap(err, "Error finding admin for comment")
+	}
+
+	name := ""
+	email := ""
+	photo_url := ""
+
+	if admin.Name != nil {
+		name = *admin.Name
+	}
+	if admin.Email != nil {
+		email = *admin.Email
+	}
+	if admin.PhotoURL != nil {
+		photo_url = *admin.PhotoURL
+	}
+
+	sanitizedAdmin := &modelInputs.SanitizedAdmin{
+		ID:       admin.ID,
+		Name:     &name,
+		Email:    email,
+		PhotoURL: &photo_url,
+	}
+
+	return sanitizedAdmin, nil
+}
+
 func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) ([]*string, error) {
 	return util.JsonStringToStringArray(obj.Event), nil
 }
@@ -124,10 +154,13 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	}
 	trialEnd := time.Now().AddDate(0, 0, 14)
 
-	params := &stripe.CustomerParams{}
-	c, err := r.StripeClient.Customers.New(params)
-	if err != nil {
-		return nil, e.Wrap(err, "error creating stripe customer")
+	c := &stripe.Customer{}
+	if os.Getenv("REACT_APP_ONPREM") != "true" {
+		params := &stripe.CustomerParams{}
+		c, err = r.StripeClient.Customers.New(params)
+		if err != nil {
+			return nil, e.Wrap(err, "error creating stripe customer")
+		}
 	}
 
 	org := &model.Organization{
@@ -294,20 +327,35 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 	if err != nil {
 		return nil, e.Wrap(err, "error getting slack oauth response")
 	}
+	existingChannels, err := org.IntegratedSlackChannels()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving existing slack channels")
+	}
+	for _, ch := range existingChannels {
+		if ch.WebhookChannelID == resp.IncomingWebhook.ChannelID {
+			return nil, e.New("this channel has already been connected to your workspace")
+		}
+	}
+	existingChannels = append(existingChannels, model.SlackChannel{
+		WebhookAccessToken: resp.AccessToken,
+		WebhookURL:         resp.IncomingWebhook.URL,
+		WebhookChannelID:   resp.IncomingWebhook.ChannelID,
+		WebhookChannel:     resp.IncomingWebhook.Channel,
+	})
+	channelBytes, err := json.Marshal(existingChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshaling existing channels")
+	}
+	channelString := string(channelBytes)
 	if err := r.DB.Model(org).Updates(&model.Organization{
-		SlackAccessToken:      &resp.AccessToken,
-		SlackWebhookURL:       &resp.IncomingWebhook.URL,
-		SlackWebhookChannelID: &resp.IncomingWebhook.ChannelID,
-		SlackWebhookChannel:   &resp.IncomingWebhook.Channel,
+		SlackChannels: &channelString,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
 
 	baseMessage := "👋 Hello from Highlight!"
 	if name := org.Name; name != nil {
-		baseMessage += fmt.Sprintf(" We'll send messages here whenever we get an error from %s.", *name)
-	} else {
-		baseMessage += " We'll send messages here whenever we get an error."
+		baseMessage += fmt.Sprintf(" We'll send messages here based on your alert preferences for %v, which can be configureate at https://app.highlight.run/%v/alerts.", *name, org.ID)
 	}
 	msg := slack.WebhookMessage{Text: baseMessage}
 	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
@@ -518,12 +566,22 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	return &stripeSession.ID, nil
 }
 
-func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdminEmails []*string, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
+func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
+	admins := []model.Admin{}
+	for _, a := range taggedAdmins {
+		admins = append(admins,
+			model.Admin{
+				Model: model.Model{ID: a.ID},
+			},
+		)
+	}
+
 	sessionComment := &model.SessionComment{
+		Admins:      admins,
 		AdminId:     adminID,
 		SessionId:   sessionID,
 		Timestamp:   sessionTimestamp,
@@ -538,18 +596,18 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 	createSessionCommentSpan.Finish()
 
 	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createSessionComment", tracer.ResourceName("sendgrid.sendCommentMention"))
-	commentMentionEmailSpan.SetTag("count", len(taggedAdminEmails))
-	if len(taggedAdminEmails) > 0 {
+	commentMentionEmailSpan.SetTag("count", len(taggedAdmins))
+	if len(taggedAdmins) > 0 {
 		tos := []*mail.Email{}
 
-		for _, email := range taggedAdminEmails {
-			tos = append(tos, &mail.Email{Address: *email})
+		for _, admin := range taggedAdmins {
+			tos = append(tos, &mail.Email{Address: admin.Email})
 		}
 		m := mail.NewV3Mail()
 		from := mail.NewEmail("Highlight", "notifications@highlight.run")
 		viewLink := fmt.Sprintf("%v?commentId=%v&ts=%v", sessionURL, sessionComment.ID, time)
 		m.SetFrom(from)
-		m.SetTemplateID(SendGridCommentEmailTemplateID)
+		m.SetTemplateID(SendGridSessionCommentEmailTemplateID)
 
 		p := mail.NewPersonalization()
 		p.AddTos(tos...)
@@ -582,6 +640,71 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*bool, error) {
 	if err := r.DB.Delete(&model.SessionComment{Model: model.Model{ID: id}}).Error; err != nil {
 		return nil, e.Wrap(err, "error session comment")
+	}
+	return &model.T, nil
+}
+
+func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, errorURL string, authorName string) (*model.ErrorComment, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	admins := []model.Admin{}
+	for _, a := range taggedAdmins {
+		admins = append(admins,
+			model.Admin{
+				Model: model.Model{ID: a.ID},
+			},
+		)
+	}
+
+	errorComment := &model.ErrorComment{
+		Admins:  admins,
+		AdminId: adminID,
+		ErrorId: errorGroupID,
+		Text:    text,
+	}
+	createErrorCommentSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment", tracer.ResourceName("db.createErrorComment"))
+	if err := r.DB.Create(errorComment).Error; err != nil {
+		return nil, e.Wrap(err, "error creating error comment")
+	}
+	createErrorCommentSpan.Finish()
+
+	commentMentionEmailSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.createErrorComment", tracer.ResourceName("sendgrid.sendCommentMention"))
+	commentMentionEmailSpan.SetTag("count", len(taggedAdmins))
+	if len(taggedAdmins) > 0 {
+		tos := []*mail.Email{}
+
+		for _, admin := range taggedAdmins {
+			tos = append(tos, &mail.Email{Address: admin.Email})
+		}
+		m := mail.NewV3Mail()
+		from := mail.NewEmail("Highlight", "notifications@highlight.run")
+		viewLink := fmt.Sprintf("%v", errorURL)
+		m.SetFrom(from)
+		m.SetTemplateID(SendGridErrorCommentEmailTemplateId)
+
+		p := mail.NewPersonalization()
+		p.AddTos(tos...)
+		p.SetDynamicTemplateData("Author_Name", authorName)
+		p.SetDynamicTemplateData("Comment_Link", viewLink)
+		p.SetDynamicTemplateData("Comment_Body", textForEmail)
+
+		m.AddPersonalizations(p)
+
+		resp, err := r.MailClient.Send(m)
+		fmt.Println(resp.StatusCode, resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
+		}
+	}
+	commentMentionEmailSpan.Finish()
+	return errorComment, nil
+}
+
+func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*bool, error) {
+	if err := r.DB.Delete(&model.ErrorComment{Model: model.Model{ID: id}}).Error; err != nil {
+		return nil, e.Wrap(err, "error deleting error_comment")
 	}
 	return &model.T, nil
 }
@@ -803,6 +926,44 @@ func (r *queryResolver) SessionComments(ctx context.Context, sessionID int) ([]*
 	return sessionComments, nil
 }
 
+func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.SessionComment, error) {
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving user")
+	}
+	var sessionComments []*model.SessionComment
+	if err := r.DB.Debug().Model(admin).Association("SessionComments").Find(&sessionComments); err != nil {
+		return nil, e.Wrap(err, "error getting session comments for")
+	}
+
+	return sessionComments, nil
+}
+
+func (r *queryResolver) ErrorComments(ctx context.Context, errorGroupID int) ([]*model.ErrorComment, error) {
+	if _, err := r.isAdminErrorGroupOwner(ctx, errorGroupID); err != nil {
+		return nil, e.Wrap(err, "admin not error owner")
+	}
+
+	errorComments := []*model.ErrorComment{}
+	if err := r.DB.Where(model.ErrorComment{ErrorId: errorGroupID}).Order("created_at asc").Find(&errorComments).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error comments for error_group")
+	}
+	return errorComments, nil
+}
+
+func (r *queryResolver) ErrorCommentsForAdmin(ctx context.Context) ([]*model.ErrorComment, error) {
+	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieving user")
+	}
+	var errorComments []*model.ErrorComment
+	if err := r.DB.Debug().Model(admin).Association("ErrorComments").Find(&errorComments); err != nil {
+		return nil, e.Wrap(err, "error getting error comments for admin")
+	}
+
+	return errorComments, nil
+}
+
 func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*model.Admin, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
@@ -843,6 +1004,47 @@ func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizati
 	}
 
 	return &count, nil
+}
+
+func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error) {
+	if err := r.DB.Model(&model.SessionComment{}).Where(&model.SessionComment{
+		AdminId: adminID,
+	}).First(&model.SessionComment{}).Error; err != nil {
+		return &model.F, nil
+	}
+
+	return &model.T, nil
+}
+
+func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, orgID int) ([]*modelInputs.SanitizedSlackChannel, error) {
+	org, err := r.isAdminInOrganization(ctx, orgID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting org")
+	}
+	ret := []*modelInputs.SanitizedSlackChannel{}
+	chs, err := org.IntegratedSlackChannels()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieiving existing channels")
+	}
+	for _, ch := range chs {
+		ret = append(ret, &modelInputs.SanitizedSlackChannel{
+			WebhookChannel:   &ch.WebhookChannel,
+			WebhookChannelID: &ch.WebhookChannelID,
+		})
+	}
+	return ret, nil
+}
+
+func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model.Session, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	session := model.Session{}
+	if err := r.DB.Model(&session).Where(&model.Session{OrganizationID: organizationID, Viewed: &model.T}).First(&session).Error; err != nil {
+		return &session, nil
+	}
+	return &session, nil
 }
 
 func (r *queryResolver) DailySessionsCount(ctx context.Context, organizationID int, dateRange modelInputs.DateRangeInput) ([]*model.DailySessionCount, error) {
@@ -1069,8 +1271,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	var queriedSessionsCount model.SessionCount
 
 	g.Go(func() error {
-		// Filter out sessions that are processed but have a length of 0. In this case the player won't work because there are no events to replay.
-		whereClause += "AND NOT ((processed = true AND length = 0)) "
+		// Filter out sessions that are processed but have a length of 1000 (1 second).
+		whereClause += "AND NOT ((processed = true AND length < 1000)) "
 		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsQuery"))
 
 		if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
@@ -1316,6 +1518,7 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 
 	name := ""
 	email := ""
+	photo_url := ""
 
 	if admin.Name != nil {
 		name = *admin.Name
@@ -1323,15 +1526,22 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 	if admin.Email != nil {
 		email = *admin.Email
 	}
+	if admin.PhotoURL != nil {
+		photo_url = *admin.PhotoURL
+	}
 
 	sanitizedAdmin := &modelInputs.SanitizedAdmin{
-		ID:    admin.ID,
-		Name:  &name,
-		Email: email,
+		ID:       admin.ID,
+		Name:     &name,
+		Email:    email,
+		PhotoURL: &photo_url,
 	}
 
 	return sanitizedAdmin, nil
 }
+
+// ErrorComment returns generated.ErrorCommentResolver implementation.
+func (r *Resolver) ErrorComment() generated.ErrorCommentResolver { return &errorCommentResolver{r} }
 
 // ErrorGroup returns generated.ErrorGroupResolver implementation.
 func (r *Resolver) ErrorGroup() generated.ErrorGroupResolver { return &errorGroupResolver{r} }
@@ -1359,6 +1569,7 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
 type errorSegmentResolver struct{ *Resolver }

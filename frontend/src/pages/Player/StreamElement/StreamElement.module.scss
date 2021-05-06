@@ -3,9 +3,8 @@
 .eventWrapper {
     display: flex;
     align-items: center;
-    font-size: 15px;
+    font-size: 12px;
     height: max-content;
-    padding: 0 30px;
 }
 
 .streamElement {
@@ -14,7 +13,7 @@
     height: 100%;
     color: black;
     display: grid;
-    grid-template-columns: 1fr 1fr min-content;
+    grid-template-columns: 100px 1fr min-content;
     padding: 5px 10px 5px 10px;
     align-items: center;
     color: #959595;
@@ -38,22 +37,25 @@
 
     .goToButton {
         color: white;
-        fill: white;
+
+        svg {
+            fill: white;
+        }
     }
 }
 
 .eventTime {
     height: 100%;
-    text-align: left;
-    min-width: 40px;
     padding: 5px;
+    padding-right: 0;
     margin-left: 10px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
 }
 
 .iconWrapper {
     padding: 5px;
-    width: max-content;
-    flex-grow: 1;
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -73,15 +75,15 @@
 }
 
 .defaultIcon {
-    fill: #959595;
-    width: 20px;
-    height: 20px;
+    fill: var(--color-gray-500);
+    width: var(--size-medium);
+    height: var(--size-medium);
 }
 
 .tiltedIcon {
     transform: rotate(-20deg);
-    width: 20px;
-    height: 20px;
+    width: var(--size--medium);
+    height: var(--size--medium);
 }
 
 .eventContent {
@@ -103,10 +105,10 @@
 
 .eventText {
     height: 100%;
-    width: 100%;
     align-items: center;
     display: flex;
     margin-left: 10px;
+    color: var(--color-gray-500);
 }
 
 .selectedEventText {
@@ -122,13 +124,10 @@
         'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
     border: 1px solid #e4e8eb;
     background-color: #f9f9f9;
-    border-radius: 8px;
-    height: 30px;
-    margin-left: 10px;
-    padding-left: 10px;
-    line-height: 30px;
-    font-size: 12px;
-    color: grey;
+    border-radius: var(--size-xxSmall);
+    height: 20px;
+    padding: 0 var(--size-xxSmall);
+    color: var(--color-gray-500);
     width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -154,16 +153,22 @@
 }
 
 .codeBlock {
+    font-size: 10px;
     font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
         'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
 }
 
 .goToButton {
+    color: var(--color-gray-500);
     grid-column-start: 1;
 
     &:hover {
         color: $text-primary;
         fill: $text-primary;
+
+        svg {
+            fill: $text-primary;
+        }
     }
 }
 

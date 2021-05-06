@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -22,8 +22,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string) (*model.Session, error) {
-	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, firstloadVersion, clientVersion, clientConfig)
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string) (*model.Session, error) {
+	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, firstloadVersion, clientVersion, clientConfig, environment)
 
 	if err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
@@ -228,6 +228,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			Browser:        sessionObj.BrowserName,
 			Trace:          &traceString,
 			Timestamp:      v.Timestamp,
+			Payload:        v.Payload,
 		}
 
 		//create error fields array

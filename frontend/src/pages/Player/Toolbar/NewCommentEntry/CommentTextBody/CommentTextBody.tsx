@@ -1,20 +1,10 @@
 import React from 'react';
 import styles from './CommentTextBody.module.scss';
 import commentTextBodyClassNames from './CommentTextBody.module.css';
-import {
-    MentionsInput,
-    Mention,
-    OnChangeHandlerFunc,
-    SuggestionDataItem,
-} from 'react-mentions';
+import { MentionsInput, Mention, OnChangeHandlerFunc } from 'react-mentions';
 import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
 import classNames from 'classnames';
-
-export interface AdminSuggestion extends SuggestionDataItem {
-    email?: string;
-    photo_url?: string | null;
-    name?: string;
-}
+import { AdminSuggestion } from '../../../../../components/Comment/Comment';
 
 interface Props {
     commentText: string;
@@ -97,7 +87,7 @@ const Suggestion = ({
                     <span
                         className={classNames(styles.email, styles.longValue)}
                     >
-                        {suggestion.id}
+                        {suggestion.email}
                     </span>
                 )}
             </div>

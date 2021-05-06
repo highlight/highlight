@@ -14,6 +14,7 @@ import {
     PushPayloadDocument,
 } from './graph/generated/operations';
 import StackTrace from 'stacktrace-js';
+import stringify from 'json-stringify-safe';
 import { print } from 'graphql';
 
 import {
@@ -56,6 +57,7 @@ export type HighlightClassOptions = {
     enableSegmentIntegration?: boolean;
     enableStrictPrivacy?: boolean;
     firstloadVersion?: string;
+    environment?: 'development' | 'production' | 'staging' | string;
 };
 
 /**
@@ -108,6 +110,7 @@ export class Highlight {
     debugOptions: DebugOptions;
     listeners: listenerHandler[];
     firstloadVersion: string;
+    environment: string;
     _optionsInternal: HighlightClassOptionsInternal;
     _backendUrl: string;
 
@@ -132,6 +135,19 @@ export class Highlight {
             headers: {},
         });
         this.graphqlSDK = getSdk(client);
+        if (
+            options.environment === 'production' ||
+            options.environment === 'development' ||
+            options.environment === 'staging'
+        ) {
+            this.environment = options.environment;
+        } else {
+            this.environment = 'production';
+            HighlightWarning(
+                'init',
+                'custom environment names are not currently supported, "production" was used instead'
+            );
+        }
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
         } else if (typeof options.organizationID === 'number') {
@@ -158,12 +174,12 @@ export class Highlight {
         if (source === 'segment') {
             addCustomEvent(
                 'Segment Identify',
-                JSON.stringify({ user_identifier, ...user_object })
+                stringify({ user_identifier, ...user_object })
             );
         } else {
             addCustomEvent(
                 'Identify',
-                JSON.stringify({ user_identifier, ...user_object })
+                stringify({ user_identifier, ...user_object })
             );
         }
         this.sessionData.userIdentifier = user_identifier;
@@ -175,13 +191,13 @@ export class Highlight {
         });
         const sourceString = source === 'segment' ? source : 'default';
         this.logger.log(
-            `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${JSON.stringify(
+            `Identify (${user_identifier}, source: ${sourceString}) w/ obj: ${stringify(
                 user_object
             )} @ ${process.env.PUBLIC_GRAPH_URI}`
         );
     }
 
-    async pushCustomError(message: string) {
+    async pushCustomError(message: string, payload?: string) {
         const result = await StackTrace.get();
         const frames = result.slice(1);
         this.errors.push({
@@ -193,6 +209,7 @@ export class Highlight {
             columnNumber: frames[0].columnNumber ?? 0,
             trace: frames,
             timestamp: new Date().toISOString(),
+            payload: payload,
         });
     }
 
@@ -216,10 +233,10 @@ export class Highlight {
             if (typeArg?.source === 'segment') {
                 addCustomEvent<string>(
                     'Segment Track',
-                    JSON.stringify(properties_obj)
+                    stringify(properties_obj)
                 );
             } else {
-                addCustomEvent<string>('Track', JSON.stringify(properties_obj));
+                addCustomEvent<string>('Track', stringify(properties_obj));
             }
             await this.graphqlSDK.addTrackProperties({
                 session_id: this.sessionData.sessionID.toString(),
@@ -230,7 +247,7 @@ export class Highlight {
             this.logger.log(
                 `AddTrackProperties to session (${
                     this.sessionData.sessionID
-                }, source: ${sourceString}) w/ obj: ${JSON.stringify(
+                }, source: ${sourceString}) w/ obj: ${stringify(
                     properties_obj
                 )} @ ${process.env.PUBLIC_GRAPH_URI}`
             );
@@ -266,6 +283,7 @@ export class Highlight {
                     clientVersion: packageJson['version'],
                     firstloadVersion: this.firstloadVersion,
                     clientConfig: JSON.stringify(this._optionsInternal),
+                    environment: this.environment,
                 });
                 this.sessionData.sessionID = parseInt(
                     gr?.initializeSession?.id || '0'
@@ -361,7 +379,7 @@ export class Highlight {
                     ConsoleListener((c: ConsoleMessage) => {
                         if (c.type == 'Error' && c.value && c.trace)
                             highlightThis.errors.push({
-                                event: JSON.stringify(c.value),
+                                event: stringify(c.value),
                                 type: 'console.error',
                                 url: window.location.href,
                                 source: c.trace[0].fileName
@@ -423,6 +441,7 @@ export class Highlight {
             HighlightWarning('initializeSession', e);
         }
         window.addEventListener('beforeunload', () => {
+            addCustomEvent('Page Unload', '');
             window.sessionStorage.setItem(
                 'sessionData',
                 JSON.stringify(this.sessionData)
@@ -430,7 +449,17 @@ export class Highlight {
         });
     }
 
-    stopRecording() {
+    /**
+     * Stops Highlight from recording.
+     * @param manual The end user requested to stop recording.
+     */
+    stopRecording(manual?: boolean) {
+        if (manual) {
+            addCustomEvent(
+                'Stop',
+                'H.stop() was called which stops Highlight from recording.'
+            );
+        }
         this.listeners.forEach((stop: listenerHandler) => stop());
         this.listeners = [];
     }
@@ -485,8 +514,8 @@ export class Highlight {
                 );
         }
 
-        const resourcesString = JSON.stringify({ resources: resources });
-        const messagesString = JSON.stringify({ messages: this.messages });
+        const resourcesString = stringify({ resources: resources });
+        const messagesString = stringify({ messages: this.messages });
         this.logger.log(
             `Sending: ${this.events.length} events, ${this.messages.length} messages, ${resources.length} network resources, ${this.errors.length} errors \nTo: ${process.env.PUBLIC_GRAPH_URI}\nOrg: ${this.organizationID}\nSessionID: ${this.sessionData.sessionID}`
         );

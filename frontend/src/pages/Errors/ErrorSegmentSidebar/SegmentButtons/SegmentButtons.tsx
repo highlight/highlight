@@ -101,6 +101,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                         <Button
                             className={commonStyles.submitButton}
                             type="primary"
+                            htmlType="submit"
                         >
                             {loading ? (
                                 <CircularSpinner

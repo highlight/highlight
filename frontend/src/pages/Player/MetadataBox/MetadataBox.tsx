@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { Avatar } from '../../../components/Avatar/Avatar';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
@@ -10,15 +10,9 @@ import {
     useGetSessionQuery,
     useMarkSessionAsStarredMutation,
 } from '../../../graph/generated/hooks';
-import { Field } from '../../../components/Field/Field';
 import Skeleton from 'react-loading-skeleton';
 import { message } from 'antd';
-
-type Field = {
-    type: string;
-    name: string;
-    value: string;
-};
+import { getMajorVersion } from './utils/utils';
 
 export const MetadataBox = () => {
     const { session_id } = useParams<{ session_id: string }>();
@@ -46,22 +40,6 @@ export const MetadataBox = () => {
         },
     });
     const created = new Date(data?.session?.created_at ?? 0);
-    const [parsedFields, setParsedFields] = useState<Array<Field>>([]);
-
-    useEffect(() => {
-        const fields = data?.session?.fields?.filter((f) => {
-            if (
-                f &&
-                f.type === 'user' &&
-                f.name !== 'identifier' &&
-                f.value.length
-            ) {
-                return true;
-            }
-            return false;
-        }) as Field[];
-        setParsedFields(fields);
-    }, [data]);
 
     return (
         <div className={styles.locationBox}>
@@ -94,10 +72,10 @@ export const MetadataBox = () => {
                 </div>
                 <div className={styles.userAvatarWrapper}>
                     {loading ? (
-                        <Skeleton circle={true} height={60} width={60} />
+                        <Skeleton circle={true} height={36} width={36} />
                     ) : (
                         <Avatar
-                            style={{ width: 75 }}
+                            style={{ width: 36 }}
                             seed={data?.session?.identifier ?? ''}
                         />
                     )}
@@ -112,78 +90,45 @@ export const MetadataBox = () => {
                         ) : (
                             <>
                                 <div className={styles.userIdHeader}>
-                                    {data?.session?.identifier}
+                                    {data?.session?.identifier ||
+                                        `User#${data?.session?.user_id}`}
                                 </div>
-                                {data?.session?.user_id && (
-                                    <div className={styles.userIdSubHeader}>
-                                        User#{data?.session?.user_id}
-                                    </div>
-                                )}
-                                {data?.session?.object_storage_enabled ? (
-                                    <div className={styles.userIdSubHeader}>
-                                        {`${
-                                            data.session.payload_size / 1000000
-                                        }`}
-                                        mb
-                                    </div>
-                                ) : (
-                                    <></>
-                                )}
-                            </>
-                        )}
-                    </div>
-                    {!(!parsedFields?.length || loading) && (
-                        <div className={styles.tagDiv}>
-                            <div className={styles.tagWrapper}>
-                                {parsedFields?.map((f, i) => (
-                                    <Field
-                                        key={i.toString()}
-                                        color={'normal'}
-                                        k={f.name}
-                                        v={f.value}
-                                    ></Field>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                    <div className={styles.userInfoWrapper}>
-                        {loading ? (
-                            <>
-                                <Skeleton
-                                    count={3}
-                                    style={{ height: 15, marginBottom: 5 }}
-                                />
-                            </>
-                        ) : (
-                            <>
-                                <div className={styles.userText}>
-                                    {data?.session?.city
-                                        ? data.session.city + ', '
-                                        : ''}
-                                    {data?.session?.state
-                                        ? data.session.state + ' '
-                                        : ''}
-                                    {data?.session?.postal
-                                        ? data.session.postal
-                                        : ''}
-                                </div>
-                                <div className={styles.userText}>
+                                <div className={styles.userIdSubHeader}>
                                     {created.toLocaleString('en-us', {
                                         day: 'numeric',
-                                        month: 'long',
+                                        month: 'short',
                                         year: 'numeric',
+                                        weekday: 'long',
+                                    })}
+                                </div>
+                                <div className={styles.userIdSubHeader}>
+                                    {created.toLocaleString('en-us', {
+                                        second: '2-digit',
                                         hour: '2-digit',
                                         minute: '2-digit',
                                         timeZoneName: 'short',
                                     })}
                                 </div>
-                                {data?.session?.browser_name && (
-                                    <div className={styles.userText}>
-                                        {data?.session.os_name},{' '}
-                                        {data?.session.browser_name} -{' '}
-                                        {data?.session.browser_version}
-                                    </div>
-                                )}
+                                <div className={styles.userIdSubHeader}>
+                                    {data?.session?.browser_name && (
+                                        <>
+                                            <span>
+                                                {data?.session.browser_name}{' '}
+                                                {getMajorVersion(
+                                                    data?.session
+                                                        .browser_version
+                                                )}
+                                            </span>
+                                            <span> • </span>
+                                            <span>
+                                                {data?.session.os_name}{' '}
+                                                {getMajorVersion(
+                                                    data?.session.os_version
+                                                )}
+                                            </span>
+                                        </>
+                                    )}
+                                </div>
                             </>
                         )}
                     </div>

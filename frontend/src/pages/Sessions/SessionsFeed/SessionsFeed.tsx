@@ -34,6 +34,7 @@ import {
 } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import FirstTimeDecorations from './components/FirstTimeDecorations/FirstTimeDecorations';
+import Dot from '../../../components/Dot/Dot';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
@@ -325,6 +326,7 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                 <div className={styles.bottomText}>
                                     {created.toLocaleString('en-us', {
                                         hour: '2-digit',
+                                        second: '2-digit',
                                         minute: '2-digit',
                                         timeZoneName: 'short',
                                     })}
@@ -349,11 +351,7 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                 </div>
                             </div>
                             <div className={styles.readMarkerContainer}>
-                                {session?.viewed ? (
-                                    <></>
-                                ) : (
-                                    <div className={styles.readMarker}></div>
-                                )}
+                                {!session?.viewed && <Dot />}
                             </div>
                         </div>
                     </div>

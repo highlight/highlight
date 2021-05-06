@@ -1,4 +1,5 @@
 import { ErrorMessage } from '../../../frontend/src/util/shared-types';
+import stringify from 'json-stringify-safe';
 import StackTrace from 'stacktrace-js';
 
 export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
@@ -13,7 +14,7 @@ export const ErrorListener = (callback: (e: ErrorMessage) => void) => {
         if (error) {
             StackTrace.fromError(error).then((result) => {
                 callback({
-                    event: JSON.stringify(event),
+                    event: stringify(event),
                     type: 'window.onerror',
                     url: window.location.href,
                     source: source ? source : '',

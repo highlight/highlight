@@ -1,3 +1,5 @@
+@import 'src/static/shared.scss';
+
 .header {
     width: 100%;
     height: 80px;
@@ -64,6 +66,7 @@
     position: absolute;
     top: 17px;
     transform: scale(2, 2);
+    fill: $highlight-purple;
 }
 
 .trialCloseStyle {
@@ -130,5 +133,6 @@
     align-items: center;
     justify-content: center;
     margin-left: auto;
+    column-gap: var(--size-large);
     z-index: 200;
 }

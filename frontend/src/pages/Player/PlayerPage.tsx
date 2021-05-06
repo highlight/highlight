@@ -19,7 +19,6 @@ import { HighlightEvent } from './HighlightEvent';
 import useResizeAware from 'react-resize-aware';
 import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
-import { SidebarContext } from '../../components/Sidebar/SidebarContext';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
 import { usePlayer } from './PlayerHook/PlayerHook';
@@ -31,6 +30,10 @@ import classNames from 'classnames';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import Modal from '../../components/Modal/Modal';
 import CommentButton, { Coordinates2D } from './CommentButton/CommentButton';
+import Tabs from '../../components/Tabs/Tabs';
+import CommentStream from './CommentStream/CommentStream';
+import MetadataPanel from './MetadataPanel/MetadataPanel';
+import Card from '../../components/Card/Card';
 
 export const Player = () => {
     const { session_id } = useParams<{
@@ -49,7 +52,6 @@ export const Player = () => {
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
-    const { setOpenSidebar } = useContext(SidebarContext);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [showRightPanelPreference] = useLocalStorage(
         'highlightMenuShowRightPanel',
@@ -70,10 +72,6 @@ export const Player = () => {
             });
         }
     }, [session_id, markSessionAsViewed]);
-
-    useEffect(() => {
-        setOpenSidebar(false);
-    }, [setOpenSidebar]);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     const resizePlayer = (replayer: Replayer): boolean => {
@@ -140,6 +138,45 @@ export const Player = () => {
                             ref={playerWrapperRef}
                         >
                             {resizeListener}
+                            {replayerState ===
+                                ReplayerState.SessionRecordingStopped && (
+                                <div
+                                    className={
+                                        styles.manuallyStoppedMessageContainer
+                                    }
+                                    style={{
+                                        height: replayer?.wrapper.getBoundingClientRect()
+                                            .height,
+                                        width: replayer?.wrapper.getBoundingClientRect()
+                                            .width,
+                                    }}
+                                >
+                                    <Card title="Session recording manually stopped">
+                                        <p>
+                                            <a
+                                                href="https://docs.highlight.run/reference#stop"
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                <code>H.stop()</code>
+                                            </a>{' '}
+                                            was called during the session.
+                                            Calling this method stops the
+                                            session recording. If you expect the
+                                            recording to continue please check
+                                            where you are calling{' '}
+                                            <a
+                                                href="https://docs.highlight.run/reference#stop"
+                                                target="_blank"
+                                                rel="noreferrer"
+                                            >
+                                                <code>H.stop()</code>
+                                            </a>
+                                            .
+                                        </p>
+                                    </Card>
+                                </div>
+                            )}
                             <CommentButton
                                 setModalPosition={setCommentModalPosition}
                                 isReplayerReady={isReplayerReady}
@@ -173,7 +210,23 @@ export const Player = () => {
                 {shouldShowRightPanel && (
                     <div className={styles.playerRightSection}>
                         <MetadataBox />
-                        <EventStream />
+                        <Tabs
+                            key="PlayerRightPanel"
+                            tabs={[
+                                {
+                                    title: 'Events',
+                                    panelContent: <EventStream />,
+                                },
+                                {
+                                    title: 'Comments',
+                                    panelContent: <CommentStream />,
+                                },
+                                {
+                                    title: 'Metadata',
+                                    panelContent: <MetadataPanel />,
+                                },
+                            ]}
+                        />
                     </div>
                 )}
                 <Modal
@@ -280,7 +333,7 @@ const EventStream = () => {
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
                 {!events.length ? (
-                    <div className={styles.skeletonContainer}>
+                    <div>
                         <Skeleton
                             count={4}
                             height={35}

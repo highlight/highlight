@@ -22,7 +22,6 @@
 .mentions--multiLine .mentions__highlighter {
   border: 1px solid transparent;
   padding: 0px;
-  min-height: 63px;
   font-weight: 200;
 }
 
@@ -31,6 +30,7 @@
   padding: 0px;
   outline: 0;
   font-weight: 200;
+  cursor: inherit;
 }
 
 .mentions__suggestions__list {

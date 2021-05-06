@@ -1,6 +1,5 @@
-import React, { useContext } from 'react';
+import React, { useContext, useRef } from 'react';
 import styles from './Sidebar.module.scss';
-import { SidebarContext } from './SidebarContext';
 import classNames from 'classnames/bind';
 import { Link, useParams, useLocation } from 'react-router-dom';
 import {
@@ -8,7 +7,6 @@ import {
     WorkspaceDropdown,
 } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
 import { ReactComponent as SessionsIcon } from '../../static/sessions-icon.svg';
-import { ReactComponent as ErrorsIcon } from '../../static/errors-icon.svg';
 import { ReactComponent as SetupIcon } from '../../static/setup-icon.svg';
 import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg';
 import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
@@ -17,10 +15,13 @@ import { DemoContext } from '../../DemoContext';
 import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import Tooltip from '../Tooltip/Tooltip';
+import Changelog from '../Changelog/Changelog';
+import SvgErrorsIcon from '../../static/ErrorsIcon';
+import { SidebarState, useSidebarContext } from './SidebarContext';
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { openSidebar } = useContext(SidebarContext);
+    const { state, setState } = useSidebarContext();
     const { data, loading: loadingBillingDetails } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
@@ -31,10 +32,18 @@ export const Sidebar = () => {
             <div
                 className={classNames([
                     styles.sideBar,
-                    openSidebar ? styles.open : undefined,
+                    state === SidebarState.Expanded ||
+                    state === SidebarState.TemporarilyExpanded
+                        ? styles.open
+                        : undefined,
                 ])}
+                onMouseLeave={() => {
+                    if (state === SidebarState.TemporarilyExpanded) {
+                        setState(SidebarState.Collapsed);
+                    }
+                }}
             >
-                <div style={{ width: '100%', padding: '20px 20px 10px 20px' }}>
+                <div style={{ width: '100%' }}>
                     <WorkspaceDropdown />
                 </div>
                 <SidebarItem text="Sessions" route="sessions">
@@ -44,13 +53,12 @@ export const Sidebar = () => {
                 </SidebarItem>
                 <SidebarItem text="Errors" route="errors">
                     <div className={styles.iconWrapper}>
-                        <ErrorsIcon
+                        <SvgErrorsIcon
                             className={classNames(styles.icon, styles.rotated)}
                         />
                     </div>
                 </SidebarItem>
                 <div className={styles.settingsDivider} />
-                <div className={styles.settingsTitle}>Settings</div>
                 <SidebarItem text="Setup" route="setup">
                     <div className={styles.iconWrapper}>
                         <SetupIcon
@@ -68,11 +76,15 @@ export const Sidebar = () => {
                         <TeamIcon className={styles.icon} />
                     </div>
                 </SidebarItem>
-                <SidebarItem text="Billing" route="billing">
-                    <div className={styles.iconWrapper}>
-                        <CreditCardIcon className={styles.icon} />
-                    </div>
-                </SidebarItem>
+                {process.env.REACT_APP_ONPREM !== 'true' ? (
+                    <SidebarItem text="Billing" route="billing">
+                        <div className={styles.iconWrapper}>
+                            <CreditCardIcon className={styles.icon} />
+                        </div>
+                    </SidebarItem>
+                ) : (
+                    <> </>
+                )}
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
                         {!loadingBillingDetails &&
@@ -85,15 +97,23 @@ export const Sidebar = () => {
                         ) : (
                             <></>
                         )}
-                        <Link to={'/about/terms'} className={styles.bottomLink}>
-                            Terms of Service
-                        </Link>
-                        <Link
-                            className={styles.bottomLink}
-                            to={'/about/privacy'}
-                        >
-                            Privacy Policy
-                        </Link>
+                        <div className={styles.bottomContainer}>
+                            <div className={styles.bottomLinkContainer}>
+                                <Link
+                                    to={'/about/terms'}
+                                    className={styles.bottomLink}
+                                >
+                                    Terms of Service
+                                </Link>
+                                <Link
+                                    className={styles.bottomLink}
+                                    to={'/about/privacy'}
+                                >
+                                    Privacy Policy
+                                </Link>
+                            </div>
+                            <Changelog className={styles.changelogButton} />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -102,15 +122,35 @@ export const Sidebar = () => {
 };
 
 const StaticSidebar = () => {
+    const { setState } = useSidebarContext();
+    const timerId = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     return (
         <>
-            <div className={styles.staticSidebarWrapper}>
+            <div
+                className={classNames(
+                    styles.staticSidebarWrapper,
+                    styles.sideBar
+                )}
+                onMouseEnter={() => {
+                    const id = setTimeout(() => {
+                        setState(SidebarState.TemporarilyExpanded);
+                    }, 1000);
+                    timerId.current = id;
+                }}
+                onMouseLeave={() => {
+                    if (timerId.current) {
+                        clearTimeout(timerId.current);
+                        timerId.current = null;
+                    }
+                }}
+            >
                 <MiniWorkspaceIcon />
                 <MiniSidebarItem route="sessions" text="Sessions">
                     <SessionsIcon className={styles.icon} />
                 </MiniSidebarItem>
                 <MiniSidebarItem route="errors" text="Errors">
-                    <ErrorsIcon
+                    <SvgErrorsIcon
                         className={classNames(styles.icon, styles.rotated)}
                     />
                 </MiniSidebarItem>
@@ -129,6 +169,17 @@ const StaticSidebar = () => {
                 <MiniSidebarItem route="billing" text="Billing">
                     <CreditCardIcon className={styles.icon} />
                 </MiniSidebarItem>
+                <div
+                    className={styles.changelogContainer}
+                    onMouseEnter={() => {
+                        if (timerId.current) {
+                            clearTimeout(timerId.current);
+                            timerId.current = null;
+                        }
+                    }}
+                >
+                    <Changelog />
+                </div>
             </div>
             <div style={{ paddingLeft: 62, height: '100%' }} />
         </>

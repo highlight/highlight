@@ -79,6 +79,39 @@ type Organization struct {
 	SlackWebhookURL       *string
 	SlackWebhookChannel   *string
 	SlackWebhookChannelID *string
+	SlackChannels         *string
+}
+
+type SlackChannel struct {
+	WebhookAccessToken string
+	WebhookURL         string
+	WebhookChannel     string
+	WebhookChannelID   string
+}
+
+func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
+	parsedChannels := []SlackChannel{}
+	if u.SlackChannels != nil {
+		err := json.Unmarshal([]byte(*u.SlackChannels), &parsedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing details json")
+		}
+	}
+	repeat := false
+	for _, c := range parsedChannels {
+		if u.SlackWebhookChannelID != nil && c.WebhookChannelID == *u.SlackWebhookChannelID {
+			repeat = true
+		}
+	}
+	if u.SlackWebhookChannel != nil && !repeat {
+		parsedChannels = append(parsedChannels, SlackChannel{
+			WebhookAccessToken: *u.SlackAccessToken,
+			WebhookURL:         *u.SlackWebhookURL,
+			WebhookChannel:     *u.SlackWebhookChannel,
+			WebhookChannelID:   *u.SlackWebhookChannelID,
+		})
+	}
+	return parsedChannels, nil
 }
 
 func (u *Organization) VerboseID() string {
@@ -111,11 +144,13 @@ func (u *Organization) BeforeCreate(tx *gorm.DB) (err error) {
 
 type Admin struct {
 	Model
-	Name          *string
-	Email         *string
-	PhotoURL      *string        `json:"photo_url"`
-	UID           *string        `gorm:"unique_index"`
-	Organizations []Organization `gorm:"many2many:organization_admins;"`
+	Name            *string
+	Email           *string
+	PhotoURL        *string          `json:"photo_url"`
+	UID             *string          `gorm:"unique_index"`
+	Organizations   []Organization   `gorm:"many2many:organization_admins;"`
+	SessionComments []SessionComment `gorm:"many2many:session_comment_admins;"`
+	ErrorComments   []ErrorComment   `gorm:"many2many:error_comment_admins;"`
 }
 
 type EmailSignup struct {
@@ -162,6 +197,7 @@ type Session struct {
 	Length       int64    `json:"length"`
 	ActiveLength int64    `json:"active_length"`
 	Fields       []*Field `json:"fields" gorm:"many2many:session_fields;"`
+	Environment  string   `json:"environment"`
 	UserObject   JSONB    `json:"user_object" sql:"type:jsonb"`
 	// Whether this is the first session created by this user.
 	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
@@ -178,8 +214,9 @@ type Session struct {
 	// The client configuration that the end-user sets up. This is used for debugging purposes.
 	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
 
-	ObjectStorageEnabled *bool  `json:"object_storage_enabled"`
-	PayloadSize          *int64 `json:"payload_size"`
+	ObjectStorageEnabled *bool   `json:"object_storage_enabled"`
+	PayloadSize          *int64  `json:"payload_size"`
+	MigrationState       *string `json:"migration_state"`
 }
 
 type Field struct {
@@ -312,6 +349,7 @@ type ErrorObject struct {
 	Browser        string
 	Trace          *string   `json:"trace"`
 	Timestamp      time.Time `json:"timestamp"`
+	Payload        *string   `json:"payload"`
 }
 
 type ErrorGroup struct {
@@ -336,12 +374,21 @@ type ErrorField struct {
 
 type SessionComment struct {
 	Model
+	Admins      []Admin `gorm:"many2many:session_comment_admins;"`
 	AdminId     int
 	SessionId   int
 	Timestamp   int
 	Text        string
 	XCoordinate float64
 	YCoordinate float64
+}
+
+type ErrorComment struct {
+	Model
+	Admins  []Admin `gorm:"many2many:error_comment_admins;"`
+	AdminId int
+	ErrorId int
+	Text    string
 }
 
 func SetupDB() *gorm.DB {
@@ -381,6 +428,7 @@ func SetupDB() *gorm.DB {
 		&EmailSignup{},
 		&ResourcesObject{},
 		&SessionComment{},
+		&ErrorComment{},
 	); err != nil {
 		log.Fatalf("Error migrating db: %v", err)
 	}

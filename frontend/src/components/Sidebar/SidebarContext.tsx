@@ -1,11 +1,21 @@
 import React from 'react';
+import { createContext } from '../../util/context/context';
 
-export const SidebarContext = React.createContext<{
-    openSidebar: boolean;
-    setOpenSidebar: React.Dispatch<React.SetStateAction<boolean>>;
-}>({
-    openSidebar: true,
-    /* eslint-disable */
-    setOpenSidebar: (_) => {},
-    /* eslint-enable */
-});
+export enum SidebarState {
+    /** The user has explicitly collapsed the sidebar. */
+    Collapsed,
+    /** The user has explicitly expanded the sidebar. */
+    Expanded,
+    /** The app opened the sidebar temporarily. This was not done by the user explicitly. */
+    TemporarilyExpanded,
+}
+interface SidebarContext {
+    state: SidebarState;
+    setState: React.Dispatch<React.SetStateAction<SidebarState>>;
+    toggleSidebar: () => void;
+}
+
+export const [
+    useSidebarContext,
+    SidebarContextProvider,
+] = createContext<SidebarContext>('SidebarContext');

@@ -1,4 +1,5 @@
 import { Replayer, ReplayerEvents } from '@highlight-run/rrweb';
+import { customEvent } from '@highlight-run/rrweb/dist/types';
 import useLocalStorage from '@rehooks/local-storage';
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -112,6 +113,12 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             });
             r.on(ReplayerEvents.Finish, () => {
                 setState(ReplayerState.Paused);
+            });
+            r.on('event-cast', (e: any) => {
+                const event = e as HighlightEvent;
+                if ((event as customEvent)?.data?.tag === 'Stop') {
+                    setState(ReplayerState.SessionRecordingStopped);
+                }
             });
             setEvents(newEvents);
             if (eventsData?.errors) {
@@ -262,6 +269,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             case ReplayerState.Paused:
             case ReplayerState.LoadedAndUntouched:
             case ReplayerState.LoadedWithDeepLink:
+            case ReplayerState.SessionRecordingStopped:
                 pause(newTime);
                 return;
 

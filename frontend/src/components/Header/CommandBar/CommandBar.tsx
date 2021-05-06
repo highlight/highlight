@@ -1,12 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import CommandPalette, { Command } from 'react-command-palette';
 import { RouteComponentProps } from 'react-router';
 import { useParams, withRouter } from 'react-router-dom';
-import {
-    useGetAdminQuery,
-    useGetOrganizationSuggestionLazyQuery,
-} from '../../../graph/generated/hooks';
+import { useGetOrganizationSuggestionLazyQuery } from '../../../graph/generated/hooks';
 import {
     CommandWithoutId,
     getNavigationCommands,
@@ -14,6 +11,7 @@ import {
 } from './CommandBarCommands';
 import CommandBarCommand from './components/CommandBarCommand';
 import styles from './CommandBar.module.scss';
+import useHighlightAdminFlag from '../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 
 const THEME = {
     container: styles.container,
@@ -41,23 +39,19 @@ const CommandPaletteComponent: React.FC<RouteComponentProps> = ({
         getOrganizations,
         { data },
     ] = useGetOrganizationSuggestionLazyQuery();
-    const { loading: a_loading, data: a_data } = useGetAdminQuery({
-        skip: false,
-    });
+    const { isHighlightAdmin } = useHighlightAdminFlag();
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
-    const [isHighlightUser, setIsHighlightUser] = useState(false);
-    const playerCommands = usePlayerCommands(isHighlightUser);
+    const playerCommands = usePlayerCommands(isHighlightAdmin);
 
     useEffect(() => {
-        if (!a_loading && a_data?.admin?.email.includes('@highlight.run')) {
-            setIsHighlightUser(true);
+        if (isHighlightAdmin) {
             getOrganizations({
                 variables: { query: '' },
             });
         }
-    }, [a_data?.admin?.email, a_loading, getOrganizations]);
+    }, [getOrganizations, isHighlightAdmin]);
 
     const organizationCommands: CommandWithoutId[] =
         data?.organizationSuggestion?.map((o, index) => {

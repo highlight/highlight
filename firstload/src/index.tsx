@@ -14,6 +14,7 @@ export type HighlightOptions = {
     disableNetworkRecording?: boolean;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
+    environment?: 'development' | 'staging' | 'production' | string;
     /**
      * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
      * @example
@@ -31,7 +32,7 @@ type HighlightPublicInterface = {
     init: (orgID: number | string, debug?: HighlightOptions) => void;
     identify: (identify: string, obj: any) => void;
     track: (event: string, obj: any) => void;
-    error: (message: string) => void;
+    error: (message: string, payload?: { [key: string]: string }) => void;
     getSessionURL: () => Promise<string>;
     start: () => void;
     /** Stops the session and error recording. */
@@ -76,6 +77,7 @@ export const H: HighlightPublicInterface = {
                     enableSegmentIntegration: options?.enableSegmentIntegration,
                     enableStrictPrivacy: options?.enableStrictPrivacy || false,
                     firstloadVersion: packageJson['version'],
+                    environment: options?.environment || 'production',
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);
@@ -85,9 +87,11 @@ export const H: HighlightPublicInterface = {
             HighlightWarning('init', e);
         }
     },
-    error: (message: string) => {
+    error: (message: string, payload?: { [key: string]: string }) => {
         try {
-            H.onHighlightReady(() => highlight_obj.pushCustomError(message));
+            H.onHighlightReady(() =>
+                highlight_obj.pushCustomError(message, JSON.stringify(payload))
+            );
         } catch (e) {
             HighlightWarning('error', e);
         }
@@ -120,7 +124,11 @@ export const H: HighlightPublicInterface = {
         }
     },
     stop: () => {
-        highlight_obj.stopRecording();
+        try {
+            H.onHighlightReady(() => highlight_obj.stopRecording(true));
+        } catch (e) {
+            HighlightWarning('stop', e);
+        }
     },
     identify: (identifier: string, obj: any) => {
         try {
