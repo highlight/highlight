@@ -3,20 +3,19 @@ import React, { useContext } from 'react';
 import {
     Maybe,
     SanitizedAdmin,
-    SessionComment,
+    SessionComment as SessionCommentType,
 } from '../../../../graph/generated/schemas';
 import CommentPinIcon from '../../../../static/comment-pin.png';
 import styles from './PlayerSessionComment.module.scss';
 import commentButtonStyles from '../PlayerCommentCanvas.module.scss';
-import SessionCommentHeader from '../../../../components/Comment/SessionComment/SessionCommentHeader';
-import CommentTextBody from '../../Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import ReplayerContext from '../../ReplayerContext';
 import TransparentPopover from '../../../../components/Popover/TransparentPopover';
+import { SessionCommentCard } from '../../../../components/Comment/SessionComment/SessionComment';
 
 interface Props {
     comment: Maybe<
         { __typename?: 'SessionComment' } & Pick<
-            SessionComment,
+            SessionCommentType,
             | 'id'
             | 'timestamp'
             | 'created_at'
@@ -65,18 +64,10 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
                 placement="right"
                 visible
                 content={
-                    <div
-                        className={classNames(styles.commentContainer, {
-                            [styles.activeComment]:
-                                deepLinkedCommentId === comment.id,
-                        })}
-                    >
-                        <SessionCommentHeader
-                            key={comment.id}
-                            comment={comment}
-                        />
-                        <CommentTextBody commentText={comment.text} />
-                    </div>
+                    <SessionCommentCard
+                        comment={comment}
+                        deepLinkedCommentId={deepLinkedCommentId}
+                    />
                 }
                 align={{ offset: [0, 12] }}
                 defaultVisible={deepLinkedCommentId === comment.id}
