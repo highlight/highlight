@@ -59,7 +59,6 @@ export const Sidebar = () => {
                     </div>
                 </SidebarItem>
                 <div className={styles.settingsDivider} />
-                <div className={styles.settingsTitle}>Settings</div>
                 <SidebarItem text="Setup" route="setup">
                     <div className={styles.iconWrapper}>
                         <SetupIcon
