@@ -7,7 +7,7 @@ import {
 } from '../../../../graph/generated/schemas';
 import CommentPinIcon from '../../../../static/comment-pin.png';
 import styles from './PlayerSessionComment.module.scss';
-import commentButtonStyles from '../CommentButton.module.scss';
+import commentButtonStyles from '../PlayerCommentCanvas.module.scss';
 import SessionCommentHeader from '../../Toolbar/TimelineAnnotation/SessionCommentHeader';
 import CommentTextBody from '../../Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import ReplayerContext from '../../ReplayerContext';

@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import playerStyles from '../PlayerPage.module.scss';
 import ReplayerContext from '../ReplayerContext';
-import styles from './CommentButton.module.scss';
+import styles from './PlayerCommentCanvas.module.scss';
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { useParams } from 'react-router-dom';
 import PlayerSessionComment from './PlayerSessionComment/PlayerSessionComment';

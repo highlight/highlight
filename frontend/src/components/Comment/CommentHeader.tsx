@@ -5,7 +5,7 @@ import {
     GetAdminQuery,
     GetAdminsQuery,
 } from '../../graph/generated/operations';
-import styles from './Comment.module.scss';
+import styles from './CommentHeader.module.scss';
 import classNames from 'classnames';
 import moment from 'moment';
 import { HiDotsHorizontal } from 'react-icons/hi';

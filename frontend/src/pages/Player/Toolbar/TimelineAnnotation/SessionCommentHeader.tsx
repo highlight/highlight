@@ -3,7 +3,7 @@ import React, { useContext } from 'react';
 import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
 import { onGetLinkWithTimestamp } from '../../ShareButton/utils/utils';
 import { PlayerSearchParameters } from '../../PlayerHook/utils';
-import { CommentHeader } from '../../../../components/Comment/Comment';
+import { CommentHeader } from '../../../../components/Comment/CommentHeader';
 import {
     useDeleteSessionCommentMutation,
     useGetSessionQuery,

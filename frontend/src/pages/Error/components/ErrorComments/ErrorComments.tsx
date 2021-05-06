@@ -17,7 +17,7 @@ import {
     AdminSuggestion,
     CommentHeader,
     parseAdminSuggestions,
-} from '../../../../components/Comment/Comment';
+} from '../../../../components/Comment/CommentHeader';
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
 
 const ErrorComments = () => {
