@@ -179,12 +179,14 @@ export const Player = () => {
                                     </Card>
                                 </div>
                             )}
-                            <PlayerCommentCanvas
-                                setModalPosition={setCommentModalPosition}
-                                isReplayerReady={isReplayerReady}
-                                modalPosition={commentModalPosition}
-                                setCommentPosition={setCommentPosition}
-                            />
+                            {isReplayerReady && (
+                                <PlayerCommentCanvas
+                                    setModalPosition={setCommentModalPosition}
+                                    isReplayerReady={isReplayerReady}
+                                    modalPosition={commentModalPosition}
+                                    setCommentPosition={setCommentPosition}
+                                />
+                            )}
                             <div
                                 style={{
                                     visibility: isReplayerReady
