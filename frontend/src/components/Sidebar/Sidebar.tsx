@@ -43,7 +43,7 @@ export const Sidebar = () => {
                     }
                 }}
             >
-                <div style={{ width: '100%', padding: '20px 20px 10px 20px' }}>
+                <div style={{ width: '100%' }}>
                     <WorkspaceDropdown />
                 </div>
                 <SidebarItem text="Sessions" route="sessions">
@@ -128,7 +128,10 @@ const StaticSidebar = () => {
     return (
         <>
             <div
-                className={styles.staticSidebarWrapper}
+                className={classNames(
+                    styles.staticSidebarWrapper,
+                    styles.sideBar
+                )}
                 onMouseEnter={() => {
                     const id = setTimeout(() => {
                         setState(SidebarState.TemporarilyExpanded);
