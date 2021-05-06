@@ -196,7 +196,10 @@ func (w *Worker) Start() {
 		// TODO: This should be deleted at some point.
 		sessionsToWipe := []*model.Session{}
 		if err := w.Resolver.DB.Where(`
-		(processed = ? AND organization_id = 1 
+		(
+			processed = ? 
+			AND 
+			organization_id = 1 
 			AND 
 			(migration_state != 'late-s3-push' OR migration_state IS NULL) 
 			AND 
