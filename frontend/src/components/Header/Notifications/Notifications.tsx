@@ -39,7 +39,7 @@ const Notifications = () => {
         setUnreadNotificationsCount(unreadCount);
     }, [notifications, readNotifications]);
 
-    if (loading) {
+    if (loading || notifications.length === 0) {
         return null;
     }
 
