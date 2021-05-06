@@ -294,13 +294,13 @@ input SanitizedSlackChannelInput {
     webhook_channel_id: String
 }
 
-input SanitizedErrorAlertInput {
+input ErrorAlertInput {
     ChannelsToNotify: [SanitizedSlackChannelInput]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int64!
 }
 
-type SanitizedErrorAlert {
+type ErrorAlert {
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int64!
@@ -367,7 +367,7 @@ type Query {
     segments(organization_id: ID!): [Segment]
     error_segments(organization_id: ID!): [ErrorSegment]
     recording_settings(organization_id: ID!): RecordingSettings
-    error_alert(organization_id: ID!): SanitizedErrorAlert
+    error_alert(organization_id: ID!): ErrorAlert
 }
 
 type Mutation {
@@ -446,6 +446,6 @@ type Mutation {
     deleteErrorComment(id: ID!): Boolean
     updateErrorAlert(
         organization_id: ID!
-        error_alert: SanitizedErrorAlertInput
-    ): SanitizedErrorAlert
+        error_alert: ErrorAlertInput
+    ): ErrorAlert
 }

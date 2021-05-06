@@ -333,14 +333,14 @@ export type SanitizedSlackChannelInput = {
     webhook_channel_id?: Maybe<Scalars['String']>;
 };
 
-export type SanitizedErrorAlertInput = {
+export type ErrorAlertInput = {
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannelInput>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int64'];
 };
 
-export type SanitizedErrorAlert = {
-    __typename?: 'SanitizedErrorAlert';
+export type ErrorAlert = {
+    __typename?: 'ErrorAlert';
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int64'];
@@ -379,7 +379,7 @@ export type Query = {
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     recording_settings?: Maybe<RecordingSettings>;
-    error_alert?: Maybe<SanitizedErrorAlert>;
+    error_alert?: Maybe<ErrorAlert>;
 };
 
 export type QuerySessionArgs = {
@@ -532,7 +532,7 @@ export type Mutation = {
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
-    updateErrorAlert?: Maybe<SanitizedErrorAlert>;
+    updateErrorAlert?: Maybe<ErrorAlert>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -663,5 +663,5 @@ export type MutationDeleteErrorCommentArgs = {
 
 export type MutationUpdateErrorAlertArgs = {
     organization_id: Scalars['ID'];
-    error_alert?: Maybe<SanitizedErrorAlertInput>;
+    error_alert?: Maybe<ErrorAlertInput>;
 };

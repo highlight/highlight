@@ -85,8 +85,8 @@ type Organization struct {
 	ErrorAlert *string
 }
 
-func (u *Organization) GetErrorAlert() (*modelInputs.SanitizedErrorAlert, error) {
-	parsedConfig := modelInputs.SanitizedErrorAlert{}
+func (u *Organization) GetErrorAlert() (*modelInputs.ErrorAlert, error) {
+	parsedConfig := modelInputs.ErrorAlert{}
 	if u.ErrorAlert != nil {
 		err := json.Unmarshal([]byte(*u.ErrorAlert), &parsedConfig)
 		if err != nil {
@@ -98,7 +98,7 @@ func (u *Organization) GetErrorAlert() (*modelInputs.SanitizedErrorAlert, error)
 		for i := range defaultExclude {
 			parsedExclude = append(parsedExclude, &defaultExclude[i])
 		}
-		parsedConfig = modelInputs.SanitizedErrorAlert{
+		parsedConfig = modelInputs.ErrorAlert{
 			ChannelsToNotify:     []*modelInputs.SanitizedSlackChannel{},
 			ExcludedEnvironments: parsedExclude,
 			CountThreshold:       1,

@@ -19,6 +19,18 @@ type DateRangeInput struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
+type ErrorAlert struct {
+	ChannelsToNotify     []*SanitizedSlackChannel `json:"ChannelsToNotify"`
+	ExcludedEnvironments []*string                `json:"ExcludedEnvironments"`
+	CountThreshold       int64                    `json:"CountThreshold"`
+}
+
+type ErrorAlertInput struct {
+	ChannelsToNotify     []*SanitizedSlackChannelInput `json:"ChannelsToNotify"`
+	ExcludedEnvironments []*string                     `json:"ExcludedEnvironments"`
+	CountThreshold       int64                         `json:"CountThreshold"`
+}
+
 type ErrorMetadata struct {
 	ErrorID    int       `json:"error_id"`
 	SessionID  int       `json:"session_id"`
@@ -65,18 +77,6 @@ type SanitizedAdminInput struct {
 	ID    int     `json:"id"`
 	Name  *string `json:"name"`
 	Email string  `json:"email"`
-}
-
-type SanitizedErrorAlert struct {
-	ChannelsToNotify     []*SanitizedSlackChannel `json:"ChannelsToNotify"`
-	ExcludedEnvironments []*string                `json:"ExcludedEnvironments"`
-	CountThreshold       int64                    `json:"CountThreshold"`
-}
-
-type SanitizedErrorAlertInput struct {
-	ChannelsToNotify     []*SanitizedSlackChannelInput `json:"ChannelsToNotify"`
-	ExcludedEnvironments []*string                     `json:"ExcludedEnvironments"`
-	CountThreshold       int64                         `json:"CountThreshold"`
 }
 
 type SanitizedSlackChannel struct {

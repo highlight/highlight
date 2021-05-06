@@ -993,8 +993,8 @@ export type GetErrorAlertQueryVariables = Types.Exact<{
 
 export type GetErrorAlertQuery = { __typename?: 'Query' } & {
     error_alert?: Types.Maybe<
-        { __typename?: 'SanitizedErrorAlert' } & Pick<
-            Types.SanitizedErrorAlert,
+        { __typename?: 'ErrorAlert' } & Pick<
+            Types.ErrorAlert,
             'ExcludedEnvironments' | 'CountThreshold'
         > & {
                 ChannelsToNotify: Array<

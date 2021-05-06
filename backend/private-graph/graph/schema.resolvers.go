@@ -709,7 +709,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlert *modelInputs.SanitizedErrorAlertInput) (*modelInputs.SanitizedErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlert *modelInputs.ErrorAlertInput) (*modelInputs.ErrorAlert, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -721,7 +721,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID 
 			WebhookChannelID: c.WebhookChannelID,
 		})
 	}
-	errorAlertParams := modelInputs.SanitizedErrorAlert{
+	errorAlertParams := modelInputs.ErrorAlert{
 		ChannelsToNotify:     parsedChannels,
 		ExcludedEnvironments: errorAlert.ExcludedEnvironments,
 		CountThreshold:       errorAlert.CountThreshold,
@@ -1525,7 +1525,7 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 	return recordingSettings, nil
 }
 
-func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*modelInputs.SanitizedErrorAlert, error) {
+func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*modelInputs.ErrorAlert, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
