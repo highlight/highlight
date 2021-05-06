@@ -7,7 +7,7 @@ import SlackIntegration from './SlackIntegration/SlackIntegration';
 
 export const AlertsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { data, loading } = useGetErrorAlertQuery({
+    const { data } = useGetErrorAlertQuery({
         variables: { organization_id: organization_id },
     });
     console.log(data);
