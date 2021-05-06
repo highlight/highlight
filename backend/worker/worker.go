@@ -156,7 +156,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
 		if err := w.pushToObjectStorageAndWipe(ctx, s, &state); err != nil {
-			log.Errorf("error pushing to object and wiping from db (%v)", s.ID)
+			log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
 		}
 	}
 	return nil
@@ -195,7 +195,17 @@ func (w *Worker) Start() {
 		}
 		// TODO: This should be deleted at some point.
 		sessionsToWipe := []*model.Session{}
-		if err := w.Resolver.DB.Where("(processed = ? AND organization_id = 1 AND migration_state != 'late-s3-push' AND (object_storage_enabled IS NULL OR object_storage_enabled = false))", true).Limit(15).Find(&sessionsToWipe).Error; err != nil {
+		if err := w.Resolver.DB.Where(`
+		(
+			processed = ? 
+			AND 
+			organization_id = 1 
+			AND 
+			(migration_state != 'late-s3-push' OR migration_state IS NULL) 
+			AND 
+			(object_storage_enabled IS NULL OR object_storage_enabled = false)
+		)
+		`, true).Limit(15).Find(&sessionsToWipe).Error; err != nil {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			continue
 		}
