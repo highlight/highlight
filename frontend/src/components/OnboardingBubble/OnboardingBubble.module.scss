@@ -1,6 +1,8 @@
+@import 'src/static/shared.scss';
+
 .container {
     --button-width: 160px;
-    position: absolute;
+    position: fixed;
     bottom: var(--size-xLarge);
     right: 24px;
     z-index: 999999;
@@ -73,6 +75,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
+    color: black;
     row-gap: var(--size-medium);
 
     li {
@@ -89,6 +92,9 @@
             column-gap: var(--size-xSmall);
         }
     }
+    .stepIncomplete {
+        color: black;
+    }
 
     .stepCompleted {
         text-decoration: line-through;
@@ -99,13 +105,25 @@
     }
 
     .checkIcon {
-        height: var(--size-large);
-        width: var(--size-large);
-        color: var(--color-gray-400);
+        height: 10px;
+        width: 10px;
+        color: var(--text-primary-inverted);
+        fill: var(--text-primary-inverted);
+    }
+}
 
-        &.checkIconCompleted {
-            color: var(--color-green);
-        }
+.checkWrapper {
+    padding: 3px;
+    background-color: var(--color-gray-400);
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &.checkWrapperCompleted {
+        background-color: var(--color-green);
     }
 }
 
