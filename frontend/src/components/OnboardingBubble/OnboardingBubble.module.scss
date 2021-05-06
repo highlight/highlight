@@ -1,8 +1,9 @@
 .container {
     --button-width: 160px;
-    position: absolute;
+    position: fixed;
     bottom: var(--size-xLarge);
     right: 24px;
+    bottom: 24px;
     z-index: 999999;
     opacity: 0;
 
