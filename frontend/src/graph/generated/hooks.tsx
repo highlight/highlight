@@ -3013,3 +3013,64 @@ export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
     Types.GetDailyErrorsCountQuery,
     Types.GetDailyErrorsCountQueryVariables
 >;
+export const GetErrorAlertDocument = gql`
+    query GetErrorAlert($organization_id: ID!) {
+        error_alert(organization_id: $organization_id) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
+    }
+`;
+
+/**
+ * __useGetErrorAlertQuery__
+ *
+ * To run a query within a React component, call `useGetErrorAlertQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorAlertQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetErrorAlertQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetErrorAlertQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetErrorAlertQuery,
+        Types.GetErrorAlertQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetErrorAlertQuery,
+        Types.GetErrorAlertQueryVariables
+    >(GetErrorAlertDocument, baseOptions);
+}
+export function useGetErrorAlertLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetErrorAlertQuery,
+        Types.GetErrorAlertQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetErrorAlertQuery,
+        Types.GetErrorAlertQueryVariables
+    >(GetErrorAlertDocument, baseOptions);
+}
+export type GetErrorAlertQueryHookResult = ReturnType<
+    typeof useGetErrorAlertQuery
+>;
+export type GetErrorAlertLazyQueryHookResult = ReturnType<
+    typeof useGetErrorAlertLazyQuery
+>;
+export type GetErrorAlertQueryResult = Apollo.QueryResult<
+    Types.GetErrorAlertQuery,
+    Types.GetErrorAlertQueryVariables
+>;

@@ -17,6 +17,7 @@ import (
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -80,6 +81,30 @@ type Organization struct {
 	SlackWebhookChannel   *string
 	SlackWebhookChannelID *string
 	SlackChannels         *string
+	// Alerts
+	ErrorAlert *string
+}
+
+func (u *Organization) GetErrorAlert() (*modelInputs.SanitizedErrorAlert, error) {
+	parsedConfig := modelInputs.SanitizedErrorAlert{}
+	if u.ErrorAlert != nil {
+		err := json.Unmarshal([]byte(*u.ErrorAlert), &parsedConfig)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing alerts json")
+		}
+	} else {
+		defaultExclude := []string{"development", "staging"}
+		parsedExclude := []*string{}
+		for i := range defaultExclude {
+			parsedExclude = append(parsedExclude, &defaultExclude[i])
+		}
+		parsedConfig = modelInputs.SanitizedErrorAlert{
+			ChannelsToNotify:     []*modelInputs.SanitizedSlackChannel{},
+			ExcludedEnvironments: parsedExclude,
+			CountThreshold:       1,
+		}
+	}
+	return &parsedConfig, nil
 }
 
 type SlackChannel struct {

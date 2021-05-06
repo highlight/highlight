@@ -67,7 +67,24 @@ type SanitizedAdminInput struct {
 	Email string  `json:"email"`
 }
 
+type SanitizedErrorAlert struct {
+	ChannelsToNotify     []*SanitizedSlackChannel `json:"ChannelsToNotify"`
+	ExcludedEnvironments []*string                `json:"ExcludedEnvironments"`
+	CountThreshold       int64                    `json:"CountThreshold"`
+}
+
+type SanitizedErrorAlertInput struct {
+	ChannelsToNotify     []*SanitizedSlackChannelInput `json:"ChannelsToNotify"`
+	ExcludedEnvironments []*string                     `json:"ExcludedEnvironments"`
+	CountThreshold       int64                         `json:"CountThreshold"`
+}
+
 type SanitizedSlackChannel struct {
+	WebhookChannel   *string `json:"webhook_channel"`
+	WebhookChannelID *string `json:"webhook_channel_id"`
+}
+
+type SanitizedSlackChannelInput struct {
 	WebhookChannel   *string `json:"webhook_channel"`
 	WebhookChannelID *string `json:"webhook_channel_id"`
 }

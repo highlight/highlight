@@ -986,3 +986,25 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
         >
     >;
 };
+
+export type GetErrorAlertQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type GetErrorAlertQuery = { __typename?: 'Query' } & {
+    error_alert?: Types.Maybe<
+        { __typename?: 'SanitizedErrorAlert' } & Pick<
+            Types.SanitizedErrorAlert,
+            'ExcludedEnvironments' | 'CountThreshold'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};

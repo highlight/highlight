@@ -194,6 +194,7 @@ type ComplexityRoot struct {
 		MarkSessionAsStarred           func(childComplexity int, id int, starred *bool) int
 		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
 		SendAdminInvite                func(childComplexity int, organizationID int, email string) int
+		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlert *model.SanitizedErrorAlertInput) int
 	}
 
 	Organization struct {
@@ -217,6 +218,7 @@ type ComplexityRoot struct {
 		BillingDetails                func(childComplexity int, organizationID int) int
 		DailyErrorsCount              func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
 		DailySessionsCount            func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
+		ErrorAlert                    func(childComplexity int, organizationID int) int
 		ErrorComments                 func(childComplexity int, errorGroupID int) int
 		ErrorCommentsForAdmin         func(childComplexity int) int
 		ErrorFieldSuggestion          func(childComplexity int, organizationID int, name string, query string) int
@@ -255,6 +257,12 @@ type ComplexityRoot struct {
 		ID       func(childComplexity int) int
 		Name     func(childComplexity int) int
 		PhotoURL func(childComplexity int) int
+	}
+
+	SanitizedErrorAlert struct {
+		ChannelsToNotify     func(childComplexity int) int
+		CountThreshold       func(childComplexity int) int
+		ExcludedEnvironments func(childComplexity int) int
 	}
 
 	SanitizedSlackChannel struct {
@@ -376,6 +384,7 @@ type MutationResolver interface {
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
+	UpdateErrorAlert(ctx context.Context, organizationID int, errorAlert *model.SanitizedErrorAlertInput) (*model.SanitizedErrorAlert, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -409,6 +418,7 @@ type QueryResolver interface {
 	Segments(ctx context.Context, organizationID int) ([]*model1.Segment, error)
 	ErrorSegments(ctx context.Context, organizationID int) ([]*model1.ErrorSegment, error)
 	RecordingSettings(ctx context.Context, organizationID int) (*model1.RecordingSettings, error)
+	ErrorAlert(ctx context.Context, organizationID int) (*model.SanitizedErrorAlert, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -1196,6 +1206,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SendAdminInvite(childComplexity, args["organization_id"].(int), args["email"].(string)), true
 
+	case "Mutation.updateErrorAlert":
+		if e.complexity.Mutation.UpdateErrorAlert == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateErrorAlert_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["organization_id"].(int), args["error_alert"].(*model.SanitizedErrorAlertInput)), true
+
 	case "Organization.billing_email":
 		if e.complexity.Organization.BillingEmail == nil {
 			break
@@ -1318,6 +1340,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.DailySessionsCount(childComplexity, args["organization_id"].(int), args["date_range"].(model.DateRangeInput)), true
+
+	case "Query.error_alert":
+		if e.complexity.Query.ErrorAlert == nil {
+			break
+		}
+
+		args, err := ec.field_Query_error_alert_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorAlert(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.error_comments":
 		if e.complexity.Query.ErrorComments == nil {
@@ -1652,6 +1686,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SanitizedAdmin.PhotoURL(childComplexity), true
+
+	case "SanitizedErrorAlert.ChannelsToNotify":
+		if e.complexity.SanitizedErrorAlert.ChannelsToNotify == nil {
+			break
+		}
+
+		return e.complexity.SanitizedErrorAlert.ChannelsToNotify(childComplexity), true
+
+	case "SanitizedErrorAlert.CountThreshold":
+		if e.complexity.SanitizedErrorAlert.CountThreshold == nil {
+			break
+		}
+
+		return e.complexity.SanitizedErrorAlert.CountThreshold(childComplexity), true
+
+	case "SanitizedErrorAlert.ExcludedEnvironments":
+		if e.complexity.SanitizedErrorAlert.ExcludedEnvironments == nil {
+			break
+		}
+
+		return e.complexity.SanitizedErrorAlert.ExcludedEnvironments(childComplexity), true
 
 	case "SanitizedSlackChannel.webhook_channel":
 		if e.complexity.SanitizedSlackChannel.WebhookChannel == nil {
@@ -2386,6 +2441,23 @@ type SanitizedSlackChannel {
     webhook_channel_id: String
 }
 
+input SanitizedSlackChannelInput {
+    webhook_channel: String
+    webhook_channel_id: String
+}
+
+input SanitizedErrorAlertInput {
+    ChannelsToNotify: [SanitizedSlackChannelInput]!
+    ExcludedEnvironments: [String]!
+    CountThreshold: Int64!
+}
+
+type SanitizedErrorAlert {
+    ChannelsToNotify: [SanitizedSlackChannel]!
+    ExcludedEnvironments: [String]!
+    CountThreshold: Int64!
+}
+
 type Query {
     session(id: ID!): Session
     events(session_id: ID!): [Any]
@@ -2447,6 +2519,7 @@ type Query {
     segments(organization_id: ID!): [Segment]
     error_segments(organization_id: ID!): [ErrorSegment]
     recording_settings(organization_id: ID!): RecordingSettings
+    error_alert(organization_id: ID!): SanitizedErrorAlert
 }
 
 type Mutation {
@@ -2523,6 +2596,10 @@ type Mutation {
         author_name: String!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
+    updateErrorAlert(
+        organization_id: ID!
+        error_alert: SanitizedErrorAlertInput
+    ): SanitizedErrorAlert
 }
 `, BuiltIn: false},
 }
@@ -3204,6 +3281,30 @@ func (ec *executionContext) field_Mutation_sendAdminInvite_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateErrorAlert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 *model.SanitizedErrorAlertInput
+	if tmp, ok := rawArgs["error_alert"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_alert"))
+		arg1, err = ec.unmarshalOSanitizedErrorAlertInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedErrorAlertInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["error_alert"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3309,6 +3410,21 @@ func (ec *executionContext) field_Query_dailySessionsCount_args(ctx context.Cont
 		}
 	}
 	args["date_range"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_error_alert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
 	return args, nil
 }
 
@@ -7050,6 +7166,45 @@ func (ec *executionContext) _Mutation_deleteErrorComment(ctx context.Context, fi
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_updateErrorAlert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateErrorAlert_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateErrorAlert(rctx, args["organization_id"].(int), args["error_alert"].(*model.SanitizedErrorAlertInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SanitizedErrorAlert)
+	fc.Result = res
+	return ec.marshalOSanitizedErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedErrorAlert(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8529,6 +8684,45 @@ func (ec *executionContext) _Query_recording_settings(ctx context.Context, field
 	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_error_alert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_error_alert_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorAlert(rctx, args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SanitizedErrorAlert)
+	fc.Result = res
+	return ec.marshalOSanitizedErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedErrorAlert(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8837,6 +9031,111 @@ func (ec *executionContext) _SanitizedAdmin_photo_url(ctx context.Context, field
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SanitizedErrorAlert_ChannelsToNotify(ctx context.Context, field graphql.CollectedField, obj *model.SanitizedErrorAlert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SanitizedErrorAlert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ChannelsToNotify, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.SanitizedSlackChannel)
+	fc.Result = res
+	return ec.marshalNSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SanitizedErrorAlert_ExcludedEnvironments(ctx context.Context, field graphql.CollectedField, obj *model.SanitizedErrorAlert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SanitizedErrorAlert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExcludedEnvironments, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*string)
+	fc.Result = res
+	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SanitizedErrorAlert_CountThreshold(ctx context.Context, field graphql.CollectedField, obj *model.SanitizedErrorAlert) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "SanitizedErrorAlert",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CountThreshold, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SanitizedSlackChannel_webhook_channel(ctx context.Context, field graphql.CollectedField, obj *model.SanitizedSlackChannel) (ret graphql.Marshaler) {
@@ -11890,6 +12189,70 @@ func (ec *executionContext) unmarshalInputSanitizedAdminInput(ctx context.Contex
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputSanitizedErrorAlertInput(ctx context.Context, obj interface{}) (model.SanitizedErrorAlertInput, error) {
+	var it model.SanitizedErrorAlertInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "ChannelsToNotify":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ChannelsToNotify"))
+			it.ChannelsToNotify, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "ExcludedEnvironments":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ExcludedEnvironments"))
+			it.ExcludedEnvironments, err = ec.unmarshalNString2ᚕᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "CountThreshold":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CountThreshold"))
+			it.CountThreshold, err = ec.unmarshalNInt642int64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputSanitizedSlackChannelInput(ctx context.Context, obj interface{}) (model.SanitizedSlackChannelInput, error) {
+	var it model.SanitizedSlackChannelInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "webhook_channel":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook_channel"))
+			it.WebhookChannel, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "webhook_channel_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook_channel_id"))
+			it.WebhookChannelID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context, obj interface{}) (model.SearchParamsInput, error) {
 	var it model.SearchParamsInput
 	var asMap = obj.(map[string]interface{})
@@ -12791,6 +13154,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createErrorComment(ctx, field)
 		case "deleteErrorComment":
 			out.Values[i] = ec._Mutation_deleteErrorComment(ctx, field)
+		case "updateErrorAlert":
+			out.Values[i] = ec._Mutation_updateErrorAlert(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -13260,6 +13625,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_recording_settings(ctx, field)
 				return res
 			})
+		case "error_alert":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_error_alert(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -13337,6 +13713,43 @@ func (ec *executionContext) _SanitizedAdmin(ctx context.Context, sel ast.Selecti
 			}
 		case "photo_url":
 			out.Values[i] = ec._SanitizedAdmin_photo_url(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var sanitizedErrorAlertImplementors = []string{"SanitizedErrorAlert"}
+
+func (ec *executionContext) _SanitizedErrorAlert(ctx context.Context, sel ast.SelectionSet, obj *model.SanitizedErrorAlert) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sanitizedErrorAlertImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SanitizedErrorAlert")
+		case "ChannelsToNotify":
+			out.Values[i] = ec._SanitizedErrorAlert_ChannelsToNotify(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "ExcludedEnvironments":
+			out.Values[i] = ec._SanitizedErrorAlert_ExcludedEnvironments(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "CountThreshold":
+			out.Values[i] = ec._SanitizedErrorAlert_CountThreshold(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -14419,6 +14832,27 @@ func (ec *executionContext) marshalNSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋh
 	return ret
 }
 
+func (ec *executionContext) unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx context.Context, v interface{}) ([]*model.SanitizedSlackChannelInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*model.SanitizedSlackChannelInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalOSanitizedSlackChannelInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) marshalNSearchParams2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐSearchParams(ctx context.Context, sel ast.SelectionSet, v model1.SearchParams) graphql.Marshaler {
 	return ec._SearchParams(ctx, sel, &v)
 }
@@ -15393,11 +15827,34 @@ func (ec *executionContext) unmarshalOSanitizedAdminInput2ᚖgithubᚗcomᚋhigh
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOSanitizedErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedErrorAlert(ctx context.Context, sel ast.SelectionSet, v *model.SanitizedErrorAlert) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SanitizedErrorAlert(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSanitizedErrorAlertInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedErrorAlertInput(ctx context.Context, v interface{}) (*model.SanitizedErrorAlertInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSanitizedErrorAlertInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalOSanitizedSlackChannel2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx context.Context, sel ast.SelectionSet, v *model.SanitizedSlackChannel) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._SanitizedSlackChannel(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOSanitizedSlackChannelInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx context.Context, v interface{}) (*model.SanitizedSlackChannelInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputSanitizedSlackChannelInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOSearchParamsInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSearchParamsInput(ctx context.Context, v interface{}) (*model.SearchParamsInput, error) {
