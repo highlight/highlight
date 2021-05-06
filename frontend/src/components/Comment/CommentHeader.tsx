@@ -55,9 +55,11 @@ export const CommentHeader = ({
     comment,
     menu,
     children,
+    footer,
 }: PropsWithChildren<{
     comment: any;
     menu: JSX.Element;
+    footer?: React.ReactNode;
 }>) => {
     return (
         <>
@@ -84,6 +86,7 @@ export const CommentHeader = ({
                     </Dropdown>
                 </span>
                 <div className={styles.childrenContainer}>{children}</div>
+                {footer && <div className={styles.footer}>{footer}</div>}
             </div>
         </>
     );

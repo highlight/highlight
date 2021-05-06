@@ -12,6 +12,7 @@ interface Props {
     deepLinkedCommentId?: string | null;
     hasShadow?: boolean;
     menuItems?: CommentHeaderMenuItem[];
+    footer?: React.ReactNode;
 }
 
 export const SessionCommentCard = ({
@@ -19,6 +20,7 @@ export const SessionCommentCard = ({
     deepLinkedCommentId,
     hasShadow,
     menuItems,
+    footer,
 }: Props) => {
     return (
         <div
@@ -31,18 +33,20 @@ export const SessionCommentCard = ({
                 comment={comment}
                 deepLinkedCommentId={deepLinkedCommentId}
                 menuItems={menuItems}
+                footer={footer}
             />
         </div>
     );
 };
 
-export const SessionComment = ({ comment, menuItems }: Props) => {
+export const SessionComment = ({ comment, menuItems, footer }: Props) => {
     return (
         <>
             <SessionCommentHeader
                 key={comment.id}
                 comment={comment}
                 menuItems={menuItems}
+                footer={footer}
             >
                 <CommentTextBody commentText={comment.text} />
             </SessionCommentHeader>

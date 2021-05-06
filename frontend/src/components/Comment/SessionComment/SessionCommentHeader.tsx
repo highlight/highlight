@@ -16,6 +16,7 @@ import { H } from 'highlight.run';
 interface Props {
     comment: ParsedSessionComment;
     menuItems?: CommentHeaderMenuItem[];
+    footer?: React.ReactNode;
 }
 
 export interface CommentHeaderMenuItem {
@@ -27,6 +28,7 @@ const SessionCommentHeader = ({
     comment,
     children,
     menuItems,
+    footer,
 }: PropsWithChildren<Props>) => {
     const { session_id } = useParams<{ session_id: string }>();
     const { pause } = useContext(ReplayerContext);
@@ -105,7 +107,7 @@ const SessionCommentHeader = ({
     );
 
     return (
-        <CommentHeader comment={comment} menu={menu}>
+        <CommentHeader comment={comment} menu={menu} footer={footer}>
             {children}
         </CommentHeader>
     );

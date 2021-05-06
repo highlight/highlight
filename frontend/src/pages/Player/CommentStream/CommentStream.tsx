@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { VirtuosoHandle, Virtuoso } from 'react-virtuoso';
 import { SessionCommentCard } from '../../../components/Comment/SessionComment/SessionComment';
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
+import { MillisToMinutesAndSeconds } from '../../../util/time';
 import styles from './CommentStream.module.scss';
 
 const CommentStream = () => {
@@ -31,7 +32,16 @@ const CommentStream = () => {
                             key={comment.id || index}
                             className={styles.comment}
                         >
-                            <SessionCommentCard comment={comment} />
+                            <SessionCommentCard
+                                comment={comment}
+                                footer={
+                                    <p className={styles.timestamp}>
+                                        {MillisToMinutesAndSeconds(
+                                            comment?.timestamp || 0
+                                        )}
+                                    </p>
+                                }
+                            />
                         </div>
                     )}
                 />

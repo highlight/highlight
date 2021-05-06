@@ -15,6 +15,7 @@
 
 .childrenContainer {
     grid-column-start: 2;
+    grid-column-end: 4;
 }
 
 .commentAuthor {
@@ -56,4 +57,10 @@
 .endActions {
     align-self: flex-start;
     margin-left: auto;
+}
+
+.footer {
+    grid-column-start: 3;
+    grid-row-start: 3;
+    justify-self: flex-end;
 }
