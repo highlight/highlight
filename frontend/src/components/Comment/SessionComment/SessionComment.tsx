@@ -8,13 +8,19 @@ import classNames from 'classnames';
 interface Props {
     comment: ParsedSessionComment;
     deepLinkedCommentId?: string | null;
+    hasShadow?: boolean;
 }
 
-export const SessionCommentCard = ({ comment, deepLinkedCommentId }: Props) => {
+export const SessionCommentCard = ({
+    comment,
+    deepLinkedCommentId,
+    hasShadow,
+}: Props) => {
     return (
         <div
             className={classNames(styles.container, {
                 [styles.deepLinkedComment]: deepLinkedCommentId === comment.id,
+                [styles.hasShadow]: hasShadow,
             })}
         >
             <SessionComment
@@ -25,7 +31,7 @@ export const SessionCommentCard = ({ comment, deepLinkedCommentId }: Props) => {
     );
 };
 
-export const SessionComment = ({ comment, deepLinkedCommentId }: Props) => {
+export const SessionComment = ({ comment }: Props) => {
     return (
         <>
             <SessionCommentHeader key={comment.id} comment={comment} />

@@ -3,17 +3,19 @@
     border: 1px solid var(--color-gray-300);
     border-radius: var(--size-xSmall);
     padding: var(--size-xSmall) calc(var(--size-xSmall) + 11px);
-    width: 350px;
+    width: 100%;
     position: relative;
     z-index: 9999;
     text-align: left;
-    margin-top: calc(var(--size-small) * -1);
-    box-shadow: var(--box-shadow);
     overflow: hidden;
 
     & > p {
         font-size: 14px;
         font-weight: 200;
+    }
+
+    &.hasShadow {
+        box-shadow: var(--box-shadow);
     }
 }
 

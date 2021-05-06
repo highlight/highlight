@@ -7,10 +7,10 @@ import {
 } from '../../graph/generated/operations';
 import styles from './CommentHeader.module.scss';
 import classNames from 'classnames';
-import moment from 'moment';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { AdminAvatar } from '../Avatar/Avatar';
 import { SanitizedAdminInput } from '../../graph/generated/schemas';
+import RelativeTime from '../RelativeTime/RelativeTime';
 
 export interface AdminSuggestion extends SuggestionDataItem {
     email?: string;
@@ -65,7 +65,7 @@ export const CommentHeader = ({
                 {comment.author.name || comment.author.email.split('@')[0]}
             </span>
             <span className={styles.commentUpdatedTime}>
-                {moment(comment.updated_at).fromNow()}
+                <RelativeTime datetime={comment.updated_at} />
             </span>
             <span className={styles.endActions}>
                 <Dropdown

@@ -64,10 +64,13 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
                 placement="right"
                 visible
                 content={
-                    <SessionCommentCard
-                        comment={comment}
-                        deepLinkedCommentId={deepLinkedCommentId}
-                    />
+                    <div className={styles.sessionCommentCardContainer}>
+                        <SessionCommentCard
+                            comment={comment}
+                            deepLinkedCommentId={deepLinkedCommentId}
+                            hasShadow
+                        />
+                    </div>
                 }
                 align={{ offset: [0, 12] }}
                 defaultVisible={deepLinkedCommentId === comment.id}

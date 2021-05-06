@@ -3,6 +3,7 @@ import { useHistory, useParams } from 'react-router-dom';
 import { VirtuosoHandle, Virtuoso } from 'react-virtuoso';
 import { AdminAvatar } from '../../../components/Avatar/Avatar';
 import GoToButton from '../../../components/Button/GoToButton';
+import { SessionCommentCard } from '../../../components/Comment/SessionComment/SessionComment';
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { PlayerSearchParameters } from '../PlayerHook/utils';
@@ -33,46 +34,52 @@ const CommentStream = () => {
                     ref={virtuoso}
                     overscan={500}
                     data={sessionCommentsData?.session_comments}
-                    itemContent={(_index, comment: any) => (
-                        <div key={comment?.id} className={styles.comment}>
-                            <div className={styles.header}>
-                                <AdminAvatar
-                                    adminInfo={comment.author}
-                                    size={25}
-                                />
-                                <h2>
-                                    {comment?.author.name ||
-                                        comment?.author.email}
-                                </h2>
-                                <p className={styles.timestamp}>
-                                    {MillisToMinutesAndSeconds(
-                                        comment?.timestamp || 0
-                                    )}
-                                </p>
-                            </div>
-                            <CommentTextBody
-                                commentText={comment?.text || ''}
-                            />
-                            <GoToButton
-                                className={styles.goToButton}
-                                onClick={() => {
-                                    if (comment?.id) {
-                                        const urlSearchParams = new URLSearchParams();
-                                        urlSearchParams.append(
-                                            PlayerSearchParameters.commentId,
-                                            comment?.id
-                                        );
-
-                                        history.replace(
-                                            `${
-                                                history.location.pathname
-                                            }?${urlSearchParams.toString()}`
-                                        );
-                                        pause(comment?.timestamp);
-                                    }
-                                }}
-                            />
+                    itemContent={(index, comment: any) => (
+                        <div
+                            key={comment.id || index}
+                            className={styles.comment}
+                        >
+                            <SessionCommentCard comment={comment} />
                         </div>
+                        // <div key={comment?.id} className={styles.comment}>
+                        //     <div className={styles.header}>
+                        //         <AdminAvatar
+                        //             adminInfo={comment.author}
+                        //             size={25}
+                        //         />
+                        //         <h2>
+                        //             {comment?.author.name ||
+                        //                 comment?.author.email}
+                        //         </h2>
+                        //         <p className={styles.timestamp}>
+                        //             {MillisToMinutesAndSeconds(
+                        //                 comment?.timestamp || 0
+                        //             )}
+                        //         </p>
+                        //     </div>
+                        //     <CommentTextBody
+                        //         commentText={comment?.text || ''}
+                        //     />
+                        //     <GoToButton
+                        //         className={styles.goToButton}
+                        //         onClick={() => {
+                        //             if (comment?.id) {
+                        //                 const urlSearchParams = new URLSearchParams();
+                        //                 urlSearchParams.append(
+                        //                     PlayerSearchParameters.commentId,
+                        //                     comment?.id
+                        //                 );
+
+                        //                 history.replace(
+                        //                     `${
+                        //                         history.location.pathname
+                        //                     }?${urlSearchParams.toString()}`
+                        //                 );
+                        //                 pause(comment?.timestamp);
+                        //             }
+                        //         }}
+                        //     />
+                        // </div>
                     )}
                 />
             )}
