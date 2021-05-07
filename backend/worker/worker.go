@@ -89,7 +89,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrapf(err, "error deleting all network resource records with length %v", len(resourcesObject))
 	}
 	if err := w.Resolver.DB.Unscoped().Delete(&messagesObj).Error; err != nil {
-		return errors.Wrap(err, "error deleting all console message records with %v")
+		return errors.Wrapf(err, "error deleting all console message records with %v")
 	}
 	fmt.Println("parsed: ", s.ID)
 	return nil
