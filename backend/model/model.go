@@ -17,6 +17,7 @@ import (
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -80,6 +81,30 @@ type Organization struct {
 	SlackWebhookChannel   *string
 	SlackWebhookChannelID *string
 	SlackChannels         *string
+	// Alerts
+	ErrorAlert *string
+}
+
+func (u *Organization) GetErrorAlert() (*modelInputs.ErrorAlert, error) {
+	parsedConfig := modelInputs.ErrorAlert{}
+	if u.ErrorAlert != nil {
+		err := json.Unmarshal([]byte(*u.ErrorAlert), &parsedConfig)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing alerts json")
+		}
+	} else {
+		defaultExclude := []string{"development", "staging"}
+		parsedExclude := []*string{}
+		for i := range defaultExclude {
+			parsedExclude = append(parsedExclude, &defaultExclude[i])
+		}
+		parsedConfig = modelInputs.ErrorAlert{
+			ChannelsToNotify:     []*modelInputs.SanitizedSlackChannel{},
+			ExcludedEnvironments: parsedExclude,
+			CountThreshold:       1,
+		}
+	}
+	return &parsedConfig, nil
 }
 
 type SlackChannel struct {
@@ -194,10 +219,11 @@ type Session struct {
 	// Tells us if the session has been parsed by a worker.
 	Processed *bool `json:"processed"`
 	// The length of a session.
-	Length      int64    `json:"length"`
-	Fields      []*Field `json:"fields" gorm:"many2many:session_fields;"`
-	Environment string   `json:"environment"`
-	UserObject  JSONB    `json:"user_object" sql:"type:jsonb"`
+	Length       int64    `json:"length"`
+	ActiveLength int64    `json:"active_length"`
+	Fields       []*Field `json:"fields" gorm:"many2many:session_fields;"`
+	Environment  string   `json:"environment"`
+	UserObject   JSONB    `json:"user_object" sql:"type:jsonb"`
 	// Whether this is the first session created by this user.
 	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`

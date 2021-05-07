@@ -43,11 +43,9 @@
 }
 
 .workspaceIconMiniWrapper {
-    padding: 5px;
+    padding: 6px;
     border: 1px solid #eaeaea;
     border-radius: 8px;
-    margin-top: 20px;
-    margin-bottom: 5px;
     cursor: pointer;
 }
 
@@ -147,7 +145,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 10px 10px 6px;
+    padding: var(--size-xSmall) var(--size-small);
     border-radius: 8px;
     color: black;
     font-size: 16px;

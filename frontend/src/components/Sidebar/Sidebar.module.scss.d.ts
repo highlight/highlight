@@ -18,6 +18,5 @@ export const rowText: string;
 export const selected: string;
 export const selectedDiv: string;
 export const settingsDivider: string;
-export const settingsTitle: string;
 export const sideBar: string;
 export const staticSidebarWrapper: string;

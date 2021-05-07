@@ -2,6 +2,7 @@ package worker
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
@@ -20,6 +21,8 @@ import (
 )
 
 // Worker is a job runner that parses sessions
+const MIN_INACTIVE_DURATION = 10
+
 type Worker struct {
 	Resolver *mgraph.Resolver
 	S3Client *storage.StorageClient
@@ -130,6 +133,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Calculate total session length and write the length to the session.
 	diff := CalculateSessionLength(firstEventsParsed, lastEventsParsed)
 	length := diff.Milliseconds()
+	activeLength, err := getActiveDuration(events)
+	if err != nil {
+		return errors.Wrap(err, "error parsing active length")
+	}
+	activeLengthSec := activeLength.Milliseconds()
 
 	// Delete the session if the length of the session is 0.
 	// 1. Nothing happened in the session
@@ -145,8 +153,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
-			Processed: &model.T,
-			Length:    length,
+			Processed:    &model.T,
+			Length:       length,
+			ActiveLength: activeLengthSec,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -237,4 +246,39 @@ func CalculateSessionLength(first *parse.ReplayEvents, last *parse.ReplayEvents)
 	}
 	d = end.Sub(start)
 	return d
+}
+
+func getActiveDuration(events []model.EventsObject) (*time.Duration, error) {
+	d := time.Duration(0)
+	// unnests the events from EventObjects
+	allEvents := []*parse.ReplayEvent{}
+	for _, eventObj := range events {
+		subEvents, err := parse.EventsFromString(eventObj.Events)
+		if err != nil {
+			return nil, err
+		}
+		allEvents = append(allEvents, subEvents.Events...)
+	}
+	// Iterate through all events and sum up time between interactions
+	prevUserEvent := &parse.ReplayEvent{}
+	for _, eventObj := range allEvents {
+		if eventObj.Type == 3 {
+			aux := struct {
+				Source float64 `json:"source"`
+			}{}
+			if err := json.Unmarshal([]byte(eventObj.Data), &aux); err != nil {
+				return nil, err
+			}
+			if aux.Source > 0 && aux.Source <= 5 {
+				if prevUserEvent != (&parse.ReplayEvent{}) {
+					diff := eventObj.Timestamp.Sub(prevUserEvent.Timestamp)
+					if diff.Seconds() <= MIN_INACTIVE_DURATION {
+						d += eventObj.Timestamp.Sub(prevUserEvent.Timestamp)
+					}
+				}
+				prevUserEvent = eventObj
+			}
+		}
+	}
+	return &d, nil
 }

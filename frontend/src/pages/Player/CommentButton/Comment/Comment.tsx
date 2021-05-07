@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import {
     Maybe,
     SanitizedAdmin,
@@ -11,6 +11,7 @@ import commentButtonStyles from '../CommentButton.module.scss';
 import SessionCommentHeader from '../../Toolbar/TimelineAnnotation/CommentHeader';
 import CommentTextBody from '../../Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import ReplayerContext from '../../ReplayerContext';
+import TransparentPopover from '../../../../components/Popover/TransparentPopover';
 
 interface Props {
     comment: Maybe<
@@ -35,7 +36,6 @@ interface Props {
 }
 
 const Comment = ({ comment, deepLinkedCommentId }: Props) => {
-    const [showing, setShowing] = useState(false);
     const { pause } = useContext(ReplayerContext);
 
     if (!comment) {
@@ -58,40 +58,37 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
                 e.stopPropagation();
             }}
         >
-            <button
-                onClick={() => {
-                    pause(comment.timestamp);
-                }}
-                className={classNames(
-                    commentButtonStyles.commentIndicator,
-                    styles.commentPinButton
-                )}
-                onMouseEnter={() => {
-                    setShowing(true);
-                }}
-                onMouseLeave={() => {
-                    setShowing(false);
-                }}
+            <TransparentPopover
+                placement="right"
+                content={
+                    <div
+                        className={classNames(styles.commentContainer, {
+                            [styles.activeComment]:
+                                deepLinkedCommentId === comment.id,
+                        })}
+                    >
+                        <SessionCommentHeader
+                            key={comment.id}
+                            comment={comment}
+                        />
+                        <CommentTextBody commentText={comment.text} />
+                    </div>
+                }
+                align={{ offset: [0, 12] }}
+                defaultVisible={deepLinkedCommentId === comment.id}
             >
-                <img src={CommentPinIcon} />
-            </button>
-            {(showing || deepLinkedCommentId === comment.id) && (
-                <div
-                    onMouseEnter={() => {
-                        setShowing(true);
+                <button
+                    onClick={() => {
+                        pause(comment.timestamp);
                     }}
-                    onMouseLeave={() => {
-                        setShowing(false);
-                    }}
-                    className={classNames(styles.commentContainer, {
-                        [styles.activeComment]:
-                            deepLinkedCommentId === comment.id,
-                    })}
+                    className={classNames(
+                        commentButtonStyles.commentIndicator,
+                        styles.commentPinButton
+                    )}
                 >
-                    <SessionCommentHeader key={comment.id} comment={comment} />
-                    <CommentTextBody commentText={comment.text} />
-                </div>
-            )}
+                    <img src={CommentPinIcon} />
+                </button>
+            </TransparentPopover>
         </div>
     );
 };

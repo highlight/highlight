@@ -1,11 +1,12 @@
-import moment from 'moment';
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/utils';
 import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import SvgErrorsIcon from '../../../../static/ErrorsIcon';
 import SvgMessageIcon from '../../../../static/MessageIcon';
+import { AdminAvatar } from '../../../Avatar/Avatar';
 import Dot from '../../../Dot/Dot';
+import RelativeTime from '../../../RelativeTime/RelativeTime';
 import notificationStyles from '../Notification.module.scss';
 import { NotificationType } from '../utils/utils';
 
@@ -28,13 +29,21 @@ const CommentNotification = ({
             to={getLink(notification, organization_id)}
             onClick={onViewHandler}
         >
-            <div className={notificationStyles.notificationIconContainer}>
-                {getIcon(notification.type)}
+            <div className={notificationStyles.notificationStartColumn}>
+                <div className={notificationStyles.notificationIconContainer}>
+                    {getIcon(notification.type)}
+                </div>
+
+                <AdminAvatar adminInfo={notification.author} size={30} />
             </div>
             <div className={notificationStyles.notificationBody}>
-                <h3>{getTitle(notification)}</h3>
+                <h3 className={notificationStyles.title}>
+                    {getTitle(notification)}
+                </h3>
+                <span className={notificationStyles.timestamp}>
+                    <RelativeTime datetime={notification?.updated_at} />
+                </span>
                 <CommentTextBody commentText={notification?.text || ''} />
-                {moment(notification?.updated_at).fromNow()}
             </div>
             <div className={notificationStyles.dotContainer}>
                 {!viewed && <Dot />}
@@ -54,16 +63,26 @@ const getIcon = (type: NotificationType) => {
     }
 };
 
-const getTitle = (notification: any) => {
+const getTitle = (notification: any): React.ReactNode => {
     const notificationAuthor =
         notification?.author.name || notification?.author.email;
+    let suffix = 'mentioned you';
 
     switch (notification.type as NotificationType) {
         case NotificationType.ErrorComment:
-            return `${notificationAuthor} commented on an error`;
+            suffix = 'mentioned you';
+            break;
         case NotificationType.SessionComment:
-            return `${notificationAuthor} commented on a session`;
+            suffix = 'mentioned you';
+            break;
     }
+
+    return (
+        <>
+            {notificationAuthor}{' '}
+            <span className={notificationStyles.titleSuffix}>{suffix}</span>
+        </>
+    );
 };
 
 const getLink = (notification: any, organization_id: string) => {

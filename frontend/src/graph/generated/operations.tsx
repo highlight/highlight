@@ -545,6 +545,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'postal'
                     | 'created_at'
                     | 'length'
+                    | 'active_length'
                     | 'viewed'
                     | 'starred'
                     | 'processed'
@@ -984,5 +985,27 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
                 'date' | 'count'
             >
         >
+    >;
+};
+
+export type GetErrorAlertQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type GetErrorAlertQuery = { __typename?: 'Query' } & {
+    error_alert?: Types.Maybe<
+        { __typename?: 'ErrorAlert' } & Pick<
+            Types.ErrorAlert,
+            'ExcludedEnvironments' | 'CountThreshold'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
     >;
 };

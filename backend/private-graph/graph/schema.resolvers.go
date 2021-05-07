@@ -709,6 +709,36 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlert *modelInputs.ErrorAlertInput) (*modelInputs.ErrorAlert, error) {
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+	parsedChannels := []*modelInputs.SanitizedSlackChannel{}
+	for _, c := range errorAlert.ChannelsToNotify {
+		parsedChannels = append(parsedChannels, &modelInputs.SanitizedSlackChannel{
+			WebhookChannel:   c.WebhookChannel,
+			WebhookChannelID: c.WebhookChannelID,
+		})
+	}
+	errorAlertParams := modelInputs.ErrorAlert{
+		ChannelsToNotify:     parsedChannels,
+		ExcludedEnvironments: errorAlert.ExcludedEnvironments,
+		CountThreshold:       errorAlert.CountThreshold,
+	}
+	channelBytes, err := json.Marshal(errorAlertParams)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshaling error alerts")
+	}
+	errorAlertString := string(channelBytes)
+	if err := r.DB.Model(org).Updates(&model.Organization{
+		ErrorAlert: &errorAlertString,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org error alert fields")
+	}
+	return &errorAlertParams, nil
+}
+
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
 	if _, err := r.isAdminSessionOwner(ctx, id); err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
@@ -1167,8 +1197,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	fieldsSpan.Finish()
 
-	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed"
-	joinClause := "FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, user_object, viewed, array_agg(t.field_id) fieldIds FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows"
+	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, active_length, user_object, viewed"
+	joinClause := "FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, active_length, user_object, viewed, array_agg(t.field_id) fieldIds FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows"
 	whereClause := ` `
 
 	whereClause += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -1493,6 +1523,18 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 		recordingSettings = newRecordSettings
 	}
 	return recordingSettings, nil
+}
+
+func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*modelInputs.ErrorAlert, error) {
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+	ret, err := org.GetErrorAlert()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieiving error alert")
+	}
+	return ret, nil
 }
 
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {

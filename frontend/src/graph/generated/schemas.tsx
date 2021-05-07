@@ -39,6 +39,7 @@ export type Session = {
     identifier: Scalars['String'];
     created_at?: Maybe<Scalars['Time']>;
     length?: Maybe<Scalars['Int']>;
+    active_length?: Maybe<Scalars['Int']>;
     user_object?: Maybe<Scalars['Any']>;
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
@@ -328,6 +329,24 @@ export type SanitizedSlackChannel = {
     webhook_channel_id?: Maybe<Scalars['String']>;
 };
 
+export type SanitizedSlackChannelInput = {
+    webhook_channel?: Maybe<Scalars['String']>;
+    webhook_channel_id?: Maybe<Scalars['String']>;
+};
+
+export type ErrorAlertInput = {
+    ChannelsToNotify: Array<Maybe<SanitizedSlackChannelInput>>;
+    ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
+    CountThreshold: Scalars['Int64'];
+};
+
+export type ErrorAlert = {
+    __typename?: 'ErrorAlert';
+    ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
+    ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
+    CountThreshold: Scalars['Int64'];
+};
+
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -361,6 +380,7 @@ export type Query = {
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     recording_settings?: Maybe<RecordingSettings>;
+    error_alert?: Maybe<ErrorAlert>;
 };
 
 export type QuerySessionArgs = {
@@ -485,6 +505,10 @@ export type QueryRecording_SettingsArgs = {
     organization_id: Scalars['ID'];
 };
 
+export type QueryError_AlertArgs = {
+    organization_id: Scalars['ID'];
+};
+
 export type Mutation = {
     __typename?: 'Mutation';
     createOrganization?: Maybe<Organization>;
@@ -509,6 +533,7 @@ export type Mutation = {
     deleteSessionComment?: Maybe<Scalars['Boolean']>;
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
+    updateErrorAlert?: Maybe<ErrorAlert>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -635,4 +660,9 @@ export type MutationCreateErrorCommentArgs = {
 
 export type MutationDeleteErrorCommentArgs = {
     id: Scalars['ID'];
+};
+
+export type MutationUpdateErrorAlertArgs = {
+    organization_id: Scalars['ID'];
+    error_alert?: Maybe<ErrorAlertInput>;
 };
