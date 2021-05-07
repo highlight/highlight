@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
     Maybe,
     SanitizedAdmin,
@@ -39,6 +39,13 @@ interface Props {
  */
 const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
     const { pause } = useContext(ReplayerContext);
+    const [visible, setVisible] = useState(deepLinkedCommentId === comment?.id);
+
+    useEffect(() => {
+        if (deepLinkedCommentId) {
+            setVisible(deepLinkedCommentId === comment?.id);
+        }
+    }, [comment?.id, deepLinkedCommentId]);
 
     if (!comment) {
         return null;
@@ -59,6 +66,12 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
             onClick={(e) => {
                 e.stopPropagation();
             }}
+            onMouseEnter={() => {
+                setVisible(true);
+            }}
+            onMouseLeave={() => {
+                setVisible(false);
+            }}
         >
             <TransparentPopover
                 placement="right"
@@ -72,6 +85,7 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
                     </div>
                 }
                 align={{ offset: [0, 12] }}
+                visible={visible}
                 defaultVisible={deepLinkedCommentId === comment.id}
             >
                 <button
