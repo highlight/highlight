@@ -1,7 +1,5 @@
-@import 'src/static/shared.scss';
-
 .commentUpdatedTime {
-    color: $text-label;
+    color: var(--color-gray-500);
     font-weight: 200;
     flex-shrink: 0;
     font-size: 12px;
