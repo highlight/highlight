@@ -86,7 +86,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error deleting all event records")
 	}
 	if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
-		return errors.Wrap(err, "error deleting all network resource records")
+		return errors.Wrapf(err, "error deleting all network resource records with length %")
 	}
 	if err := w.Resolver.DB.Unscoped().Delete(&messagesObj).Error; err != nil {
 		return errors.Wrap(err, "error deleting all console message records")
