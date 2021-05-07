@@ -82,8 +82,8 @@
             height: var(--size-medium);
             width: var(--size-medium);
             z-index: 1;
-            margin-top: -2px;
-            margin-left: -2px;
+            margin-top: -4px;
+            margin-left: -4px;
         }
 
         & svg {
@@ -99,7 +99,7 @@
     }
 
     .timestamp {
-        font-size: 10px !important;
+        font-size: 12px !important;
         margin-bottom: var(--size-xxSmall);
     }
 
