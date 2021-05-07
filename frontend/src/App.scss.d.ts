@@ -1,3 +1,4 @@
+export const antDropdown: string;
 export const antDropdownMenuItem: string;
 export const antMentions: string;
 export const antMentionsFocused: string;
