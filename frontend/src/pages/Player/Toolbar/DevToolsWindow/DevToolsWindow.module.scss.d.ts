@@ -1,4 +1,4 @@
-export const devToolsSelectWrapper: string;
+export const closeStyle: string;
 export const devToolsType: string;
 export const devToolsWrapper: string;
 export const emptySection: string;
