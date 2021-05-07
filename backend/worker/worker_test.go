@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-test/deep"
 	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/model"
 )
 
 func TestCalculateSessionLength(t *testing.T) {
@@ -94,6 +95,131 @@ func TestCalculateSessionLength(t *testing.T) {
 	for i, tt := range tables {
 		got := CalculateSessionLength(tt.firstEvents, tt.lastEvents)
 		if diff := deep.Equal(tt.wantDifference, got); diff != nil {
+			t.Errorf("[%v]: %v", i, diff)
+		}
+	}
+}
+
+func TestGetActiveDuration(t *testing.T) {
+	tables := []struct {
+		events             []model.EventsObject
+		wantActiveDuration time.Duration
+	}{
+		{
+			[]model.EventsObject{{
+				Events: `
+				{
+					"events": [{
+						"data": {"test": 5},
+						"timestamp": 0,
+						"type": 4
+					}]
+				}
+				`}},
+			time.Duration(0 * time.Hour),
+		},
+		{
+			[]model.EventsObject{},
+			time.Duration(0 * time.Hour),
+		},
+		{
+			[]model.EventsObject{{
+				Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"timestamp": 0,
+						"type": 3
+					}]
+				}
+				`},
+				{
+					Events: `
+					{
+						"events": [{
+							"data": {"source": 5},
+							"timestamp": 5000,
+							"type": 3
+						}]
+					}
+					`}},
+			time.Duration(5 * time.Second),
+		},
+		{
+			[]model.EventsObject{{
+				Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"timestamp": 0,
+						"type": 3
+					}]
+				}`},
+				{
+					Events: `
+					{
+						"events": [{
+							"data": {"source": 5},
+							"timestamp": 20000,
+							"type": 3
+						}]
+					}
+					`}},
+			time.Duration(0 * time.Second),
+		},
+		{
+			[]model.EventsObject{{
+				Events: `
+				{
+					"events": [{
+						"data": {"source": 5},
+						"timestamp": 0,
+						"type": 3
+					}]
+				}`},
+				{
+					Events: `
+					{
+						"events": [{
+							"data": {"test": 5},
+							"timestamp": 500,
+							"type": 4
+						}]
+					}`},
+				{
+					Events: `
+					{
+						"events": [{
+							"data": {"source": 5},
+							"timestamp": 1000,
+							"type": 3
+						}]
+					}`},
+				{
+					Events: `
+						{
+							"events": [{
+								"data": {"source": 5},
+								"timestamp": 2000,
+								"type": 3
+							}]
+						}`},
+				{
+					Events: `
+					{
+						"events": [{
+							"data": {"source": 5},
+							"timestamp": 20000,
+							"type": 3
+						}]
+					}
+					`}},
+			time.Duration(2 * time.Second),
+		},
+	}
+	for i, tt := range tables {
+		got, _ := getActiveDuration(tt.events)
+		if diff := deep.Equal(&tt.wantActiveDuration, got); diff != nil {
 			t.Errorf("[%v]: %v", i, diff)
 		}
 	}

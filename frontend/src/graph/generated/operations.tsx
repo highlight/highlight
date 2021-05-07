@@ -545,6 +545,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'postal'
                     | 'created_at'
                     | 'length'
+                    | 'active_length'
                     | 'viewed'
                     | 'starred'
                     | 'processed'

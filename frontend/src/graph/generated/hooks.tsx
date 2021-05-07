@@ -1745,6 +1745,7 @@ export const GetSessionsDocument = gql`
                 postal
                 created_at
                 length
+                active_length
                 viewed
                 starred
                 processed

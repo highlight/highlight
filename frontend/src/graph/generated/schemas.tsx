@@ -39,6 +39,7 @@ export type Session = {
     identifier: Scalars['String'];
     created_at?: Maybe<Scalars['Time']>;
     length?: Maybe<Scalars['Int']>;
+    active_length?: Maybe<Scalars['Int']>;
     user_object?: Maybe<Scalars['Any']>;
     fields?: Maybe<Array<Maybe<Field>>>;
     viewed?: Maybe<Scalars['Boolean']>;
