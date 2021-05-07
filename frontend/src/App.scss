@@ -55,14 +55,33 @@
 
 .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
     font-weight: 400 !important;
+    color: var(--text-primary) !important;
 }
 
 .ant-tabs-tab {
     margin: 0 16px 0 16px !important;
 }
 
+.ant-tabs-tab::after {
+    content: '';
+    position: absolute;
+    height: 3px;
+    background: var(--color-gray-400);
+    width: 100%;
+    bottom: 0;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    border-radius: 5px;
+}
+
+.ant-tabs-tab:hover.ant-tabs-tab::after {
+    opacity: 1;
+}
+
 .ant-tabs-ink-bar {
     height: 3px !important;
+    background: var(--text-primary) !important;
+    border-radius: 5px;
 }
 
 .ant-tabs-nav {
