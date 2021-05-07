@@ -1,9 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { VirtuosoHandle, Virtuoso } from 'react-virtuoso';
 import { SessionCommentCard } from '../../../components/Comment/SessionComment/SessionComment';
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
+import { PlayerSearchParameters } from '../PlayerHook/utils';
 import styles from './CommentStream.module.scss';
 
 const CommentStream = () => {
@@ -14,6 +15,19 @@ const CommentStream = () => {
         },
     });
     const virtuoso = useRef<VirtuosoHandle>(null);
+    const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
+        new URLSearchParams(location.search).get(
+            PlayerSearchParameters.commentId
+        )
+    );
+
+    useEffect(() => {
+        const commentId = new URLSearchParams(location.search).get(
+            PlayerSearchParameters.commentId
+        );
+        setDeepLinkedCommentId(commentId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.search]);
 
     return (
         <div className={styles.commentStream}>
@@ -33,6 +47,7 @@ const CommentStream = () => {
                             className={styles.comment}
                         >
                             <SessionCommentCard
+                                deepLinkedCommentId={deepLinkedCommentId}
                                 comment={comment}
                                 footer={
                                     <p className={styles.timestamp}>

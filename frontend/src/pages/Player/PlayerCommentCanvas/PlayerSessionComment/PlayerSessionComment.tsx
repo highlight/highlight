@@ -62,7 +62,6 @@ const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
         >
             <TransparentPopover
                 placement="right"
-                visible
                 content={
                     <div className={styles.sessionCommentCardContainer}>
                         <SessionCommentCard

@@ -16,10 +16,9 @@
     &.hasShadow {
         box-shadow: var(--box-shadow);
     }
-}
 
-.deepLinkedComment {
     &:before {
+        opacity: 0;
         content: '';
         height: 100%;
         width: 5px;
@@ -27,5 +26,12 @@
         position: absolute;
         top: 0;
         left: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+}
+
+.deepLinkedComment {
+    &:before {
+        opacity: 1;
     }
 }

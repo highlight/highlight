@@ -10,7 +10,7 @@ import {
     useDeleteSessionCommentMutation,
     useGetSessionQuery,
 } from '../../../graph/generated/hooks';
-import { useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import { H } from 'highlight.run';
 
 interface Props {
@@ -35,6 +35,7 @@ const SessionCommentHeader = ({
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
         refetchQueries: ['GetSessionComments'],
     });
+    const history = useHistory();
     const { data } = useGetSessionQuery({
         variables: {
             id: session_id,
@@ -61,6 +62,17 @@ const SessionCommentHeader = ({
             </Menu.Item>
             <Menu.Item
                 onClick={() => {
+                    const urlSearchParams = new URLSearchParams();
+                    urlSearchParams.append(
+                        PlayerSearchParameters.commentId,
+                        comment?.id
+                    );
+
+                    history.replace(
+                        `${
+                            history.location.pathname
+                        }?${urlSearchParams.toString()}`
+                    );
                     pause(comment.timestamp);
                 }}
             >
