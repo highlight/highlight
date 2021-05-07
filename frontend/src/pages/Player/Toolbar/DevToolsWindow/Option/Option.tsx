@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React from 'react';
 
 import devStyles from '../DevToolsWindow.module.scss';
@@ -36,15 +37,10 @@ export const Option = ({
     }
     return (
         <div
-            className={devStyles.option}
+            className={classNames(devStyles.option, {
+                [devStyles.selected]: selected,
+            })}
             onClick={onSelect}
-            style={{
-                color: selected ? '#5629c6' : '#959595',
-                fontWeight: selected ? 400 : 300,
-                borderBottom: selected
-                    ? '3px solid #5629c6'
-                    : '3px solid white',
-            }}
         >
             {getDisplayName(optionValue)}
         </div>
