@@ -10,7 +10,10 @@ const RelativeTime = ({ datetime }: Props) => {
     const momentDatetime = moment(datetime);
 
     return (
-        <Tooltip title={momentDatetime.format('MMMM Do YYYY, h:mm A')}>
+        <Tooltip
+            title={momentDatetime.format('MMMM Do YYYY, h:mm A')}
+            align={{ offset: [0, 8] }}
+        >
             <span>{momentDatetime.fromNow()}</span>
         </Tooltip>
     );

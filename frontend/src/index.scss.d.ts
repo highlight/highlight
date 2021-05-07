@@ -9,6 +9,7 @@ export const antSliderHandleDragging: string;
 export const antSliderRail: string;
 export const antSliderTrack: string;
 export const antSwitchChecked: string;
+export const antTooltip: string;
 export const antTooltipArrowContent: string;
 export const antTooltipInner: string;
 export const antTooltipOpen: string;
