@@ -20,6 +20,10 @@
     font-weight: 300;
 }
 
+.ant-dropdown {
+    z-index: 999999 !important;
+}
+
 .ant-dropdown-menu-item {
     font-weight: 300 !important;
 }

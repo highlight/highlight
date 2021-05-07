@@ -2,10 +2,10 @@ import classNames from 'classnames';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import playerStyles from '../PlayerPage.module.scss';
 import ReplayerContext from '../ReplayerContext';
-import styles from './CommentButton.module.scss';
+import styles from './PlayerCommentCanvas.module.scss';
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { useParams } from 'react-router-dom';
-import Comment from './Comment/Comment';
+import PlayerSessionComment from './PlayerSessionComment/PlayerSessionComment';
 import CommentPinIcon from '../../../static/comment-pin.png';
 import useLocalStorage from '@rehooks/local-storage';
 import { EventsForTimeline, PlayerSearchParameters } from '../PlayerHook/utils';
@@ -25,7 +25,7 @@ interface Props {
     >;
 }
 
-const CommentButton = ({
+const PlayerCommentCanvas = ({
     setModalPosition,
     isReplayerReady,
     modalPosition,
@@ -147,7 +147,7 @@ const CommentButton = ({
                     (comment) =>
                         comment &&
                         showCommentsOverlaid && (
-                            <Comment
+                            <PlayerSessionComment
                                 key={comment.id}
                                 comment={comment}
                                 deepLinkedCommentId={deepLinkedCommentId}
@@ -159,4 +159,4 @@ const CommentButton = ({
     );
 };
 
-export default CommentButton;
+export default PlayerCommentCanvas;

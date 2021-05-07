@@ -3,8 +3,7 @@ import Popover from '../../../../components/Popover/Popover';
 import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
-import SessionCommentHeader from './CommentHeader';
-import CommentTextBody from '../NewCommentEntry/CommentTextBody/CommentTextBody';
+import { SessionComment } from '../../../../components/Comment/SessionComment/SessionComment';
 
 interface Props {
     comment: ParsedSessionComment;
@@ -20,13 +19,12 @@ function TimelineCommentAnnotation({ comment }: Props): ReactElement {
             key={comment.id}
             content={
                 <div className={styles.popoverContent}>
-                    <CommentTextBody commentText={comment.text} />
+                    <SessionComment comment={comment} />
                 </div>
             }
             onVisibleChange={(visible) => {
                 setIsTooltipOpen(visible);
             }}
-            title={<SessionCommentHeader comment={comment} />}
         >
             <TimelineAnnotation
                 isSelected={isTooltipOpen}

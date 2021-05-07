@@ -1,16 +1,16 @@
 import { Dropdown } from 'antd';
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import { SuggestionDataItem } from 'react-mentions';
 import {
     GetAdminQuery,
     GetAdminsQuery,
 } from '../../graph/generated/operations';
-import styles from './Comment.module.scss';
+import styles from './CommentHeader.module.scss';
 import classNames from 'classnames';
-import moment from 'moment';
 import { HiDotsHorizontal } from 'react-icons/hi';
 import { AdminAvatar } from '../Avatar/Avatar';
 import { SanitizedAdminInput } from '../../graph/generated/schemas';
+import RelativeTime from '../RelativeTime/RelativeTime';
 
 export interface AdminSuggestion extends SuggestionDataItem {
     email?: string;
@@ -54,30 +54,40 @@ export const parseAdminSuggestions = (
 export const CommentHeader = ({
     comment,
     menu,
-}: {
+    children,
+    footer,
+}: PropsWithChildren<{
     comment: any;
     menu: JSX.Element;
-}) => {
+    footer?: React.ReactNode;
+}>) => {
     return (
-        <div className={classNames(styles.commentHeader)}>
-            <AdminAvatar adminInfo={comment.author} size={25} />
-            <span className={styles.commentAuthor}>
-                {comment.author.name || comment.author.email.split('@')[0]}
-            </span>
-            <span className={styles.commentUpdatedTime}>
-                {moment(comment.updated_at).fromNow()}
-            </span>
-            <span className={styles.endActions}>
-                <Dropdown
-                    overlay={menu}
-                    placement="bottomLeft"
-                    trigger={['click']}
-                >
-                    <button className={styles.ellipsisButton}>
-                        <HiDotsHorizontal />
-                    </button>
-                </Dropdown>
-            </span>
-        </div>
+        <>
+            <div className={classNames(styles.commentHeader)}>
+                <AdminAvatar adminInfo={comment.author} size={30} />
+                <div className={styles.textContainer}>
+                    <span className={styles.commentAuthor}>
+                        {comment.author.name ||
+                            comment.author.email.split('@')[0]}
+                    </span>
+                    <span className={styles.commentUpdatedTime}>
+                        <RelativeTime datetime={comment.updated_at} />
+                    </span>
+                </div>
+                <span className={styles.endActions}>
+                    <Dropdown
+                        overlay={menu}
+                        placement="bottomLeft"
+                        trigger={['click']}
+                    >
+                        <button className={styles.ellipsisButton}>
+                            <HiDotsHorizontal />
+                        </button>
+                    </Dropdown>
+                </span>
+                <div className={styles.childrenContainer}>{children}</div>
+                {footer && <div className={styles.footer}>{footer}</div>}
+            </div>
+        </>
     );
 };

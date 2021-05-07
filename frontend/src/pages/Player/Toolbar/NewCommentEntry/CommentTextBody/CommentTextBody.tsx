@@ -4,7 +4,7 @@ import commentTextBodyClassNames from './CommentTextBody.module.css';
 import { MentionsInput, Mention, OnChangeHandlerFunc } from 'react-mentions';
 import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
 import classNames from 'classnames';
-import { AdminSuggestion } from '../../../../../components/Comment/Comment';
+import { AdminSuggestion } from '../../../../../components/Comment/CommentHeader';
 
 interface Props {
     commentText: string;

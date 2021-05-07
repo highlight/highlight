@@ -1,0 +1,30 @@
+.comment {
+    position: absolute;
+    z-index: 9999;
+    display: flex;
+    cursor: auto;
+
+    .commentPinButton {
+        background: none;
+        border: none;
+        cursor: pointer;
+        outline: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-right: var(--size-medium);
+    }
+
+    & > .commentPinButton {
+        position: relative;
+        z-index: 99;
+    }
+
+    &:hover {
+        z-index: 10000;
+    }
+}
+
+.sessionCommentCardContainer {
+    width: 350px;
+}

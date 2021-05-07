@@ -13,7 +13,6 @@ import { Duration } from '../../util/time';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { CommandBar } from './CommandBar/CommandBar';
 import Notifications from './Notifications/Notifications';
-import useHighlightAdminFlag from '../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 
 type HeaderProps = {
     trialTimeRemaining?: Duration;
@@ -24,7 +23,6 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
     const { demo } = useContext(DemoContext);
     const { state, toggleSidebar } = useSidebarContext();
     const { trialTimeRemaining } = props;
-    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     return (
         <>
@@ -57,7 +55,7 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
                         </Link>
                     </div>
                     <div className={styles.rightHeader}>
-                        {isHighlightAdmin && <Notifications />}
+                        <Notifications />
                         <UserDropdown />
                     </div>
                 </div>

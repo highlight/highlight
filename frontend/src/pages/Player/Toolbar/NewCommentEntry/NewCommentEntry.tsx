@@ -8,7 +8,7 @@ import { Form, message } from 'antd';
 import { useParams } from 'react-router-dom';
 import styles from './NewCommentEntry.module.scss';
 import { MillisToMinutesAndSeconds } from '../../../../util/time';
-import { Coordinates2D } from '../../CommentButton/CommentButton';
+import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
 import useLocalStorage from '@rehooks/local-storage';
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import ReplayerContext from '../../ReplayerContext';
@@ -19,7 +19,7 @@ import Button from '../../../../components/Button/Button/Button';
 import {
     AdminSuggestion,
     parseAdminSuggestions,
-} from '../../../../components/Comment/Comment';
+} from '../../../../components/Comment/CommentHeader';
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
 // import html2canvas from 'html2canvas';
 

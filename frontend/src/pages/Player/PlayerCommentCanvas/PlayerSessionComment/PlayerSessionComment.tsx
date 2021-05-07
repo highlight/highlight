@@ -3,20 +3,19 @@ import React, { useContext } from 'react';
 import {
     Maybe,
     SanitizedAdmin,
-    SessionComment,
+    SessionComment as SessionCommentType,
 } from '../../../../graph/generated/schemas';
 import CommentPinIcon from '../../../../static/comment-pin.png';
-import styles from './Comment.module.scss';
-import commentButtonStyles from '../CommentButton.module.scss';
-import SessionCommentHeader from '../../Toolbar/TimelineAnnotation/CommentHeader';
-import CommentTextBody from '../../Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
+import styles from './PlayerSessionComment.module.scss';
+import commentButtonStyles from '../PlayerCommentCanvas.module.scss';
 import ReplayerContext from '../../ReplayerContext';
 import TransparentPopover from '../../../../components/Popover/TransparentPopover';
+import { SessionCommentCard } from '../../../../components/Comment/SessionComment/SessionComment';
 
 interface Props {
     comment: Maybe<
         { __typename?: 'SessionComment' } & Pick<
-            SessionComment,
+            SessionCommentType,
             | 'id'
             | 'timestamp'
             | 'created_at'
@@ -35,7 +34,10 @@ interface Props {
     deepLinkedCommentId: string | null;
 }
 
-const Comment = ({ comment, deepLinkedCommentId }: Props) => {
+/**
+ * A comment that is rendered onto the Player relative to where the comment was made.
+ */
+const PlayerSessionComment = ({ comment, deepLinkedCommentId }: Props) => {
     const { pause } = useContext(ReplayerContext);
 
     if (!comment) {
@@ -61,17 +63,12 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
             <TransparentPopover
                 placement="right"
                 content={
-                    <div
-                        className={classNames(styles.commentContainer, {
-                            [styles.activeComment]:
-                                deepLinkedCommentId === comment.id,
-                        })}
-                    >
-                        <SessionCommentHeader
-                            key={comment.id}
+                    <div className={styles.sessionCommentCardContainer}>
+                        <SessionCommentCard
                             comment={comment}
+                            deepLinkedCommentId={deepLinkedCommentId}
+                            hasShadow
                         />
-                        <CommentTextBody commentText={comment.text} />
                     </div>
                 }
                 align={{ offset: [0, 12] }}
@@ -93,4 +90,4 @@ const Comment = ({ comment, deepLinkedCommentId }: Props) => {
     );
 };
 
-export default Comment;
+export default PlayerSessionComment;

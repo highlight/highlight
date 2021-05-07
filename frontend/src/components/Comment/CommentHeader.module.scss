@@ -1,0 +1,64 @@
+.commentUpdatedTime {
+    color: var(--color-gray-500);
+    font-weight: 200;
+    flex-shrink: 0;
+    font-size: 12px;
+}
+
+.commentHeader {
+    display: grid;
+    grid-template-columns: 30px auto auto;
+    gap: var(--size-xSmall) var(--size-small);
+}
+
+.childrenContainer {
+    grid-column-start: 2;
+    grid-column-end: 4;
+}
+
+.commentAuthor {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 400;
+    font-size: 14px;
+    color: var(--text-primary);
+    line-height: initial;
+}
+
+.textContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+.ellipsisButton {
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--button-border-radius);
+    height: var(--size-large);
+    width: var(--size-large);
+    padding: 0;
+
+    &:hover {
+        background: var(--color-gray-300);
+    }
+
+    &:active {
+        background: var(--color-gray-400);
+    }
+}
+
+.endActions {
+    align-self: flex-start;
+    margin-left: auto;
+}
+
+.footer {
+    grid-column-start: 3;
+    grid-row-start: 3;
+    justify-self: flex-end;
+}
