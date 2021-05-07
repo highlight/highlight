@@ -1,38 +1,33 @@
 .button {
     border-radius: 50%;
-    height: var(--size-large);
-    width: var(--size-large);
+    height: var(--size-xLarge);
+    width: var(--size-xLarge);
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--color-purple);
+    color: var(--text-primary);
 
     &:hover {
         background: var(--color-purple-200);
     }
 
-    & > svg {
-        height: var(--size-medium);
-        width: var(--size-medium);
+    .iconContainer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
     }
 
-    &.hasUnreadNotifications {
-        color: var(--color-red);
+    .dotContainer {
+        position: absolute;
+        right: 4px;
+        top: 2px;
     }
-}
 
-.buttonContainer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    column-gap: var(--size-xxSmall);
-
-    p {
-        margin: 0;
-        font-size: 14px;
-        font-weight: 400;
-        color: var(--color-red);
+    svg {
+        height: calc(var(--size-icon) + var(--size-xSmall));
+        width: calc(var(--size-icon) + var(--size-xSmall));
     }
 }
 
