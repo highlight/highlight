@@ -28,6 +28,14 @@
     font-weight: 300 !important;
 }
 
+.ant-tabs {
+    height: 100%;
+}
+
+.ant-tabs-nav-wrap {
+    padding: 0 var(--size-large);
+}
+
 .ant-tabs-content {
     display: flex;
     width: 100%;

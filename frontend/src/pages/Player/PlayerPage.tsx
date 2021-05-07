@@ -215,7 +215,8 @@ export const Player = () => {
                     <div className={styles.playerRightSection}>
                         <MetadataBox />
                         <Tabs
-                            key="PlayerRightPanel"
+                            centered
+                            id="PlayerRightPanel"
                             tabs={[
                                 {
                                     title: 'Events',

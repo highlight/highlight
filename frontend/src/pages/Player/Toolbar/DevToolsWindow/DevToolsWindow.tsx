@@ -3,14 +3,13 @@ import ResizePanel from 'react-resize-panel-ts';
 
 import { ConsolePage } from './ConsolePage/ConsolePage';
 import { ResourcePage } from './ResourcePage/ResourcePage';
-import {
-    DevToolTabs,
-    useDevToolsContext,
-} from '../DevToolsContext/DevToolsContext';
+import { useDevToolsContext } from '../DevToolsContext/DevToolsContext';
 
 import styles from './DevToolsWindow.module.scss';
 import ErrorsPage from './ErrorsPage/ErrorsPage';
-import { DevToolsSelect } from './Option/Option';
+import Tabs, { TabItem } from '../../../../components/Tabs/Tabs';
+import SvgCloseIcon from '../../../../static/CloseIcon';
+import DOMInteractionsToggle from '../../DOMInteractionsToggle/DOMInteractionsToggle';
 
 export const DevToolsWindow = ({
     time,
@@ -19,19 +18,22 @@ export const DevToolsWindow = ({
     time: number;
     startTime: number;
 }) => {
-    const { openDevTools, selectedTab } = useDevToolsContext();
+    const { openDevTools, setOpenDevTools } = useDevToolsContext();
 
-    const getPage = (tab: DevToolTabs) => {
-        switch (tab) {
-            case DevToolTabs.Errors:
-                return <ErrorsPage />;
-            case DevToolTabs.Network:
-                return <ResourcePage startTime={startTime} time={time} />;
-            case DevToolTabs.Console:
-            default:
-                return <ConsolePage time={time} />;
-        }
-    };
+    const TABS: TabItem[] = [
+        {
+            title: 'Errors',
+            panelContent: <ErrorsPage />,
+        },
+        {
+            title: 'Console',
+            panelContent: <ConsolePage time={time} />,
+        },
+        {
+            title: 'Network',
+            panelContent: <ResourcePage startTime={startTime} time={time} />,
+        },
+    ];
 
     if (!openDevTools) {
         return null;
@@ -45,8 +47,20 @@ export const DevToolsWindow = ({
             borderClass={styles.resizeBorder}
         >
             <div className={styles.devToolsWrapper}>
-                <DevToolsSelect />
-                {getPage(selectedTab)}
+                <Tabs
+                    tabs={TABS}
+                    id="DevTools"
+                    noPadding
+                    tabBarExtraContent={
+                        <>
+                            <DOMInteractionsToggle />
+                            <SvgCloseIcon
+                                className={styles.closeStyle}
+                                onClick={() => setOpenDevTools(false)}
+                            />
+                        </>
+                    }
+                />
             </div>
         </ResizePanel>
     );
