@@ -258,6 +258,7 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 	if err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
+	admin, err := r.Query().Admin(ctx)
 	var secret string
 	if org.Secret == nil {
 		uid := xid.New().String()
@@ -270,22 +271,22 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 	}
 	inviteLink := os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/invite/" + secret
 	to := &mail.Email{Address: email}
-	subject := "Highlight Invite Link!"
-	content := fmt.Sprintf(`
-	Hi there, <br><br>
 
-	You've just been invited to the '%v' Highlight workspace! <br><br>
-
-	Click <a href="%v">this</a> link, login, and you should be good to go!<br><br>
-
-	Cheers, <br>
-	The Highlight Team <br>
-	`, *org.Name, inviteLink)
-
+	m := mail.NewV3Mail()
 	from := mail.NewEmail("Highlight", "notifications@highlight.run")
-	message := mail.NewSingleEmail(from, subject, to, content, fmt.Sprintf("<p>%v</p>", content))
-	_, err = r.MailClient.Send(message)
-	if err != nil {
+	m.SetFrom(from)
+	m.SetTemplateID(SendAdminInviteEmailTemplateID)
+
+	p := mail.NewPersonalization()
+	p.AddTos(to)
+	p.SetDynamicTemplateData("Admin_Invitor", admin.Name)
+	p.SetDynamicTemplateData("Organization_Name", org.Name)
+	p.SetDynamicTemplateData("Invite_Link", inviteLink)
+
+	m.AddPersonalizations(p)
+
+	_, sendGridErr := r.MailClient.Send(m)
+	if sendGridErr != nil {
 		return nil, fmt.Errorf("error sending sendgrid email: %v", err)
 	}
 	return &email, nil
@@ -627,8 +628,7 @@ func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizatio
 
 		m.AddPersonalizations(p)
 
-		resp, err := r.MailClient.Send(m)
-		fmt.Println(resp.StatusCode, resp.Body)
+		_, err := r.MailClient.Send(m)
 		if err != nil {
 			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
 		}
@@ -692,8 +692,7 @@ func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationI
 
 		m.AddPersonalizations(p)
 
-		resp, err := r.MailClient.Send(m)
-		fmt.Println(resp.StatusCode, resp.Body)
+		_, err := r.MailClient.Send(m)
 		if err != nil {
 			return nil, fmt.Errorf("error sending sendgrid email for comments mentions: %v", err)
 		}
