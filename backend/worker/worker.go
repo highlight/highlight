@@ -85,14 +85,20 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
 	// Delete all the events_objects in the DB.
-	if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
-		return errors.Wrapf(err, "error deleting all event records with length: %v", len(events))
+	if len(events) > 0 {
+		if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
+			return errors.Wrapf(err, "error deleting all event records with length: %v", len(events))
+		}
 	}
-	if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
-		return errors.Wrapf(err, "error deleting all network resource records with length %v", len(resourcesObject))
+	if len(resourcesObject) > 0 {
+		if err := w.Resolver.DB.Unscoped().Delete(&resourcesObject).Error; err != nil {
+			return errors.Wrapf(err, "error deleting all network resource records with length %v", len(resourcesObject))
+		}
 	}
-	if err := w.Resolver.DB.Unscoped().Delete(&messagesObj).Error; err != nil {
-		return errors.Wrapf(err, "error deleting all messages with length %v", len(messagesObj))
+	if len(messagesObj) > 0 {
+		if err := w.Resolver.DB.Unscoped().Delete(&messagesObj).Error; err != nil {
+			return errors.Wrapf(err, "error deleting all messages with length %v", len(messagesObj))
+		}
 	}
 	fmt.Println("parsed: ", s.ID)
 	return nil
