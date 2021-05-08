@@ -62,14 +62,48 @@
 .option {
     padding-top: var(--size-small);
     padding-bottom: var(--size-xSmall);
-    color: #5629c6;
+    color: var(--color-gray-500);
     transition: 0.2s;
     margin: 0px 15px 0px 15px;
     font-size: 14px;
     font-weight: 300;
+    position: relative;
     cursor: pointer;
     display: flex;
     align-items: center;
+    border-bottom: 3px solid transparent;
+
+    &::after {
+        content: '';
+        position: absolute;
+        height: 3px;
+        width: 100%;
+        bottom: -3px;
+        background: var(--color-gray-400);
+        opacity: 0;
+
+        transition: opacity 0.2s ease-in-out;
+        border-radius: 5px;
+    }
+
+    &:hover {
+        &::after {
+            opacity: 1;
+        }
+    }
+
+    &.selected {
+        color: var(--text-primary);
+        font-weight: 400;
+        border-bottom: 3px solid var(--text-primary);
+
+        &:hover {
+            &::after {
+                opacity: 1;
+                background: var(--text-primary);
+            }
+        }
+    }
 }
 
 .topBar {
