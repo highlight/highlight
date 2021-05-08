@@ -4,18 +4,30 @@ import { Tabs as AntDesignTabs, TabsProps } from 'antd';
 const { TabPane } = AntDesignTabs;
 import styles from './Tabs.module.scss';
 import useLocalStorage from '@rehooks/local-storage';
+import classNames from 'classnames';
 
-type Props = Pick<TabsProps, 'animated'> & {
-    tabs: {
-        title: string;
-        panelContent: React.ReactNode;
-    }[];
-    key: string;
+export interface TabItem {
+    title: string;
+    panelContent: React.ReactNode;
+}
+
+type Props = Pick<TabsProps, 'animated' | 'tabBarExtraContent' | 'centered'> & {
+    tabs: TabItem[];
+    /** A unique value to distinguish this tab with other tabs. */
+    id: string;
+    /** Whether the tab contents has the default padding. */
+    noPadding?: boolean;
 };
 
-const Tabs = ({ tabs, key, ...props }: Props) => {
+const Tabs = ({
+    tabs,
+    id,
+    noPadding = false,
+    tabBarExtraContent,
+    ...props
+}: Props) => {
     const [activeTab, setActiveTab] = useLocalStorage(
-        `tabs-${key}-active-tab`,
+        `tabs-${id || 'unknown'}-active-tab`,
         tabs[0].title || '0'
     );
 
@@ -25,11 +37,23 @@ const Tabs = ({ tabs, key, ...props }: Props) => {
             onChange={(activeKey) => {
                 setActiveTab(activeKey);
             }}
-            centered
+            tabBarExtraContent={
+                tabBarExtraContent ? (
+                    <div className={styles.extraContentContainer}>
+                        {tabBarExtraContent}
+                    </div>
+                ) : null
+            }
             {...props}
         >
             {tabs.map(({ panelContent, title }) => (
-                <TabPane key={title} tab={title} className={styles.tabPane}>
+                <TabPane
+                    key={title}
+                    tab={title}
+                    className={classNames(styles.tabPane, {
+                        [styles.withPadding]: !noPadding,
+                    })}
+                >
                     {panelContent}
                 </TabPane>
             ))}

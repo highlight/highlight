@@ -28,7 +28,11 @@ const TransparentPopover: React.FC<TransparentPopoverProps> = ({
     ...props
 }) => {
     return (
-        <AntDesignPopover overlayClassName={styles.popover} {...props}>
+        <AntDesignPopover
+            overlayClassName={styles.popover}
+            {...props}
+            destroyTooltipOnHide
+        >
             {children}
         </AntDesignPopover>
     );

@@ -1,5 +1,15 @@
 .tabPane {
     height: 100%;
-    padding: var(--size-small) var(--size-small);
     overflow-y: auto;
+
+    &.withPadding {
+        padding: var(--size-small) var(--size-small);
+    }
+}
+
+.extraContentContainer {
+    display: flex;
+    column-gap: var(--size-medium);
+    align-items: center;
+    padding-right: var(--size-large);
 }

@@ -8,9 +8,9 @@ import NotificationItem from './NotificationItem/NotificationItem';
 import { processNotifications } from './utils/utils';
 import SvgBellIcon from '../../../static/BellIcon';
 import useLocalStorage from '@rehooks/local-storage';
-import SvgBellFilledIcon from '../../../static/BellFilledIcon';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
+import Dot from '../../Dot/Dot';
 
 const Notifications = () => {
     const [notifications, setNotifications] = useState<any[]>([]);
@@ -86,23 +86,16 @@ const Notifications = () => {
                 </div>
             }
         >
-            <div className={styles.buttonContainer}>
-                <Button
-                    type="text"
-                    className={classNames(styles.button, {
-                        [styles.hasUnreadNotifications]: unreadNotificationsCount,
-                    })}
-                >
-                    {unreadNotificationsCount ? (
-                        <SvgBellFilledIcon />
-                    ) : (
-                        <SvgBellIcon />
+            <Button type="text" className={classNames(styles.button)}>
+                <div className={styles.iconContainer}>
+                    {unreadNotificationsCount !== 0 && (
+                        <div className={styles.dotContainer}>
+                            <Dot pulse />
+                        </div>
                     )}
-                </Button>
-                {unreadNotificationsCount !== 0 && (
-                    <p>{unreadNotificationsCount}</p>
-                )}
-            </div>
+                    <SvgBellIcon />
+                </div>
+            </Button>
         </Popover>
     );
 };

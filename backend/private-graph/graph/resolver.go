@@ -25,6 +25,7 @@ import (
 var (
 	WhitelistedUID                        = os.Getenv("WHITELISTED_FIREBASE_ACCOUNT")
 	DemoSession                           = os.Getenv("DEMO_SESSION")
+	SendAdminInviteEmailTemplateID        = "d-bca4f9a932ef418a923cbd2d90d2790b"
 	SendGridSessionCommentEmailTemplateID = "d-6de8f2ba10164000a2b83d9db8e3b2e3"
 	SendGridErrorCommentEmailTemplateId   = "d-7929ce90c6514282a57fdaf7af408704"
 )

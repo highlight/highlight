@@ -1,13 +1,7 @@
+import classNames from 'classnames';
 import React from 'react';
 
 import devStyles from '../DevToolsWindow.module.scss';
-import styles from './Option.module.scss';
-import { ReactComponent as Close } from '../../../../../static/close.svg';
-import {
-    DevToolTabs,
-    useDevToolsContext,
-} from '../../DevToolsContext/DevToolsContext';
-import DOMInteractionsToggle from '../../../DOMInteractionsToggle/DOMInteractionsToggle';
 
 const DISPLAY_NAMES: { [key: string]: string } = {
     iframe: 'iFrame',
@@ -43,53 +37,12 @@ export const Option = ({
     }
     return (
         <div
-            className={devStyles.option}
+            className={classNames(devStyles.option, {
+                [devStyles.selected]: selected,
+            })}
             onClick={onSelect}
-            style={{
-                color: selected ? '#5629c6' : '#959595',
-                fontWeight: selected ? 400 : 300,
-                borderBottom: selected
-                    ? '3px solid #5629c6'
-                    : '3px solid white',
-            }}
         >
             {getDisplayName(optionValue)}
-        </div>
-    );
-};
-
-export const DevToolsSelect = () => {
-    const {
-        setOpenDevTools,
-        selectedTab,
-        setSelectedTab,
-    } = useDevToolsContext();
-
-    const TABS = [
-        { key: DevToolTabs.Errors, displayName: 'Errors' },
-        { key: DevToolTabs.Console, displayName: 'Console' },
-        { key: DevToolTabs.Network, displayName: 'Network' },
-    ];
-
-    return (
-        <div className={devStyles.devToolsSelectWrapper}>
-            {TABS.map(({ displayName, key }) => (
-                <Option
-                    key={key}
-                    selected={selectedTab === key}
-                    onSelect={() => {
-                        setSelectedTab(key);
-                    }}
-                    optionValue={displayName}
-                />
-            ))}
-            <div className={styles.endActions}>
-                <DOMInteractionsToggle />
-                <Close
-                    className={styles.closeStyle}
-                    onClick={() => setOpenDevTools(false)}
-                />
-            </div>
         </div>
     );
 };

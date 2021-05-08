@@ -1,4 +1,4 @@
-export const devToolsSelectWrapper: string;
+export const closeStyle: string;
 export const devToolsType: string;
 export const devToolsWrapper: string;
 export const emptySection: string;
@@ -8,6 +8,7 @@ export const optionsWrapper: string;
 export const resizeBorder: string;
 export const resizeContainer: string;
 export const resizeHandle: string;
+export const selected: string;
 export const skeletonWrapper: string;
 export const toggleWrapper: string;
 export const topBar: string;

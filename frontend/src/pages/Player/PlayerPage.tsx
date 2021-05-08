@@ -29,7 +29,9 @@ import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import Modal from '../../components/Modal/Modal';
-import CommentButton, { Coordinates2D } from './CommentButton/CommentButton';
+import PlayerCommentCanvas, {
+    Coordinates2D,
+} from './PlayerCommentCanvas/PlayerCommentCanvas';
 import Tabs from '../../components/Tabs/Tabs';
 import CommentStream from './CommentStream/CommentStream';
 import MetadataPanel from './MetadataPanel/MetadataPanel';
@@ -177,12 +179,14 @@ export const Player = () => {
                                     </Card>
                                 </div>
                             )}
-                            <CommentButton
-                                setModalPosition={setCommentModalPosition}
-                                isReplayerReady={isReplayerReady}
-                                modalPosition={commentModalPosition}
-                                setCommentPosition={setCommentPosition}
-                            />
+                            {isReplayerReady && (
+                                <PlayerCommentCanvas
+                                    setModalPosition={setCommentModalPosition}
+                                    isReplayerReady={isReplayerReady}
+                                    modalPosition={commentModalPosition}
+                                    setCommentPosition={setCommentPosition}
+                                />
+                            )}
                             <div
                                 style={{
                                     visibility: isReplayerReady
@@ -211,7 +215,8 @@ export const Player = () => {
                     <div className={styles.playerRightSection}>
                         <MetadataBox />
                         <Tabs
-                            key="PlayerRightPanel"
+                            centered
+                            id="PlayerRightPanel"
                             tabs={[
                                 {
                                     title: 'Events',

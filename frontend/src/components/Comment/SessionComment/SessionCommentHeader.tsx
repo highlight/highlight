@@ -1,26 +1,41 @@
 import { Menu, message } from 'antd';
-import React, { useContext } from 'react';
-import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
-import { onGetLinkWithTimestamp } from '../../ShareButton/utils/utils';
-import { PlayerSearchParameters } from '../../PlayerHook/utils';
-import { CommentHeader } from '../../../../components/Comment/Comment';
+import React, { PropsWithChildren, useContext } from 'react';
+import ReplayerContext, {
+    ParsedSessionComment,
+} from '../../../pages/Player/ReplayerContext';
+import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
+import { PlayerSearchParameters } from '../../../pages/Player/PlayerHook/utils';
+import { CommentHeader } from '../CommentHeader';
 import {
     useDeleteSessionCommentMutation,
     useGetSessionQuery,
-} from '../../../../graph/generated/hooks';
-import { useParams } from 'react-router-dom';
+} from '../../../graph/generated/hooks';
+import { useHistory, useParams } from 'react-router-dom';
 import { H } from 'highlight.run';
 
 interface Props {
     comment: ParsedSessionComment;
+    menuItems?: CommentHeaderMenuItem[];
+    footer?: React.ReactNode;
 }
 
-const SessionCommentHeader = ({ comment }: Props) => {
+export interface CommentHeaderMenuItem {
+    label: string;
+    onClick: () => void;
+}
+
+const SessionCommentHeader = ({
+    comment,
+    children,
+    menuItems,
+    footer,
+}: PropsWithChildren<Props>) => {
     const { session_id } = useParams<{ session_id: string }>();
     const { pause } = useContext(ReplayerContext);
     const [deleteSessionComment] = useDeleteSessionCommentMutation({
         refetchQueries: ['GetSessionComments'],
     });
+    const history = useHistory();
     const { data } = useGetSessionQuery({
         variables: {
             id: session_id,
@@ -47,6 +62,17 @@ const SessionCommentHeader = ({ comment }: Props) => {
             </Menu.Item>
             <Menu.Item
                 onClick={() => {
+                    const urlSearchParams = new URLSearchParams();
+                    urlSearchParams.append(
+                        PlayerSearchParameters.commentId,
+                        comment?.id
+                    );
+
+                    history.replace(
+                        `${
+                            history.location.pathname
+                        }?${urlSearchParams.toString()}`
+                    );
                     pause(comment.timestamp);
                 }}
             >
@@ -84,10 +110,19 @@ const SessionCommentHeader = ({ comment }: Props) => {
                     Create Linear issue
                 </Menu.Item>
             )}
+            {menuItems?.map((menuItem, index) => (
+                <Menu.Item onClick={menuItem.onClick} key={index}>
+                    {menuItem.label}
+                </Menu.Item>
+            ))}
         </Menu>
     );
 
-    return <CommentHeader comment={comment} menu={menu} />;
+    return (
+        <CommentHeader comment={comment} menu={menu} footer={footer}>
+            {children}
+        </CommentHeader>
+    );
 };
 
 export default SessionCommentHeader;

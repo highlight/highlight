@@ -17,7 +17,7 @@ import {
     AdminSuggestion,
     CommentHeader,
     parseAdminSuggestions,
-} from '../../../../components/Comment/Comment';
+} from '../../../../components/Comment/CommentHeader';
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
 
 const ErrorComments = () => {
@@ -131,7 +131,7 @@ const ErrorComments = () => {
                 {errorCommentsData?.error_comments.map(
                     (comment) =>
                         comment && (
-                            <Comment key={comment.id} comment={comment} />
+                            <ErrorComment key={comment.id} comment={comment} />
                         )
                 )}
             </div>
@@ -183,14 +183,15 @@ const ErrorComments = () => {
     );
 };
 
-const Comment = ({ comment }: any) => (
+const ErrorComment = ({ comment }: any) => (
     <div className={styles.commentDiv}>
-        <ErrorCommentHeader comment={comment} />
-        <CommentTextBody commentText={comment.text} />
+        <ErrorCommentHeader comment={comment}>
+            <CommentTextBody commentText={comment.text} />
+        </ErrorCommentHeader>
     </div>
 );
 
-const ErrorCommentHeader = ({ comment }: any) => {
+const ErrorCommentHeader = ({ comment, children }: any) => {
     const [deleteSessionComment] = useDeleteErrorCommentMutation({
         refetchQueries: ['GetErrorComments'],
     });
@@ -211,7 +212,11 @@ const ErrorCommentHeader = ({ comment }: any) => {
         </Menu>
     );
 
-    return <CommentHeader menu={menu} comment={comment} />;
+    return (
+        <CommentHeader menu={menu} comment={comment}>
+            {children}
+        </CommentHeader>
+    );
 };
 
 export default ErrorComments;

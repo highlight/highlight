@@ -1,13 +1,10 @@
-import React, { useContext, useRef } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { VirtuosoHandle, Virtuoso } from 'react-virtuoso';
-import { AdminAvatar } from '../../../components/Avatar/Avatar';
-import GoToButton from '../../../components/Button/GoToButton';
+import { SessionCommentCard } from '../../../components/Comment/SessionComment/SessionComment';
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { PlayerSearchParameters } from '../PlayerHook/utils';
-import ReplayerContext from '../ReplayerContext';
-import CommentTextBody from '../Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import styles from './CommentStream.module.scss';
 
 const CommentStream = () => {
@@ -17,9 +14,20 @@ const CommentStream = () => {
             session_id: session_id,
         },
     });
-    const { pause } = useContext(ReplayerContext);
-    const history = useHistory();
     const virtuoso = useRef<VirtuosoHandle>(null);
+    const [deepLinkedCommentId, setDeepLinkedCommentId] = useState(
+        new URLSearchParams(location.search).get(
+            PlayerSearchParameters.commentId
+        )
+    );
+
+    useEffect(() => {
+        const commentId = new URLSearchParams(location.search).get(
+            PlayerSearchParameters.commentId
+        );
+        setDeepLinkedCommentId(commentId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location.search]);
 
     return (
         <div className={styles.commentStream}>
@@ -33,44 +41,21 @@ const CommentStream = () => {
                     ref={virtuoso}
                     overscan={500}
                     data={sessionCommentsData?.session_comments}
-                    itemContent={(_index, comment: any) => (
-                        <div key={comment?.id} className={styles.comment}>
-                            <div className={styles.header}>
-                                <AdminAvatar
-                                    adminInfo={comment.author}
-                                    size={25}
-                                />
-                                <h2>
-                                    {comment?.author.name ||
-                                        comment?.author.email}
-                                </h2>
-                                <p className={styles.timestamp}>
-                                    {MillisToMinutesAndSeconds(
-                                        comment?.timestamp || 0
-                                    )}
-                                </p>
-                            </div>
-                            <CommentTextBody
-                                commentText={comment?.text || ''}
-                            />
-                            <GoToButton
-                                className={styles.goToButton}
-                                onClick={() => {
-                                    if (comment?.id) {
-                                        const urlSearchParams = new URLSearchParams();
-                                        urlSearchParams.append(
-                                            PlayerSearchParameters.commentId,
-                                            comment?.id
-                                        );
-
-                                        history.replace(
-                                            `${
-                                                history.location.pathname
-                                            }?${urlSearchParams.toString()}`
-                                        );
-                                        pause(comment?.timestamp);
-                                    }
-                                }}
+                    itemContent={(index, comment: any) => (
+                        <div
+                            key={comment.id || index}
+                            className={styles.comment}
+                        >
+                            <SessionCommentCard
+                                deepLinkedCommentId={deepLinkedCommentId}
+                                comment={comment}
+                                footer={
+                                    <p className={styles.timestamp}>
+                                        {MillisToMinutesAndSeconds(
+                                            comment?.timestamp || 0
+                                        )}
+                                    </p>
+                                }
                             />
                         </div>
                     )}
