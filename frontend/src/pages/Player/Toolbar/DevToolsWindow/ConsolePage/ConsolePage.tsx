@@ -237,7 +237,6 @@ const ConsoleRender = ({ m }: { m: Array<any> | string }) => {
                 typeof r === 'object' ? (
                     <ReactJson
                         style={{
-                            fontFamily: 'AvenirNext',
                             fontWeight: 300,
                             margin: 10,
                         }}

@@ -1,7 +1,7 @@
 body {
     margin: 0;
     font-weight: 300;
-    font-family: AvenirNext;
+    font-family: Steradian;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -128,3 +128,51 @@ a {
     src: url(./font/AvenirNext-UltraLight.woff2);
     font-weight: 100;
 }
+
+@font-face {
+    font-family: Steradian;
+    src: url(./font/Steradian-Black.otf);
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: Steradian;
+    src: url(./font/Steradian-Bold.otf);
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: Steradian;
+    src: url(./font/Steradian-Medium.otf);
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: Steradian;
+    src: url(./font/Steradian-Regular.otf);
+    font-weight: 300;
+}
+
+@font-face {
+    font-family: Steradian;
+    src: url(./font/Steradian-Light.otf);
+    font-weight: 200;
+}
+
+@font-face {
+    font-family: Steradian;
+    src: url(./font/Steradian-ExtraLight.otf);
+    font-weight: 100;
+}
+
+// @font-face {
+//     font-family: Steradian;
+//     src: url(./font/Steradian-UltraLight.otf);
+//     font-weight: 100;
+// }
+
+// @font-face {
+//     font-family: Steradian;
+//     src: url(./font/Steradian-Thin.otf);
+//     font-weight: 100;
+// }
