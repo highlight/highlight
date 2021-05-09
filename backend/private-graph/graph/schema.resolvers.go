@@ -961,7 +961,7 @@ func (r *queryResolver) SessionCommentsForAdmin(ctx context.Context) ([]*model.S
 		return nil, e.Wrap(err, "error retrieving user")
 	}
 	var sessionComments []*model.SessionComment
-	if err := r.DB.Debug().Model(admin).Association("SessionComments").Find(&sessionComments); err != nil {
+	if err := r.DB.Model(admin).Association("SessionComments").Find(&sessionComments); err != nil {
 		return nil, e.Wrap(err, "error getting session comments for")
 	}
 
@@ -986,7 +986,7 @@ func (r *queryResolver) ErrorCommentsForAdmin(ctx context.Context) ([]*model.Err
 		return nil, e.Wrap(err, "error retrieving user")
 	}
 	var errorComments []*model.ErrorComment
-	if err := r.DB.Debug().Model(admin).Association("ErrorComments").Find(&errorComments); err != nil {
+	if err := r.DB.Model(admin).Association("ErrorComments").Find(&errorComments); err != nil {
 		return nil, e.Wrap(err, "error getting error comments for admin")
 	}
 
