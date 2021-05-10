@@ -5,4 +5,14 @@
         color: $text-primary-inverted;
         text-decoration: underline;
     }
+
+    table {
+        border-collapse: collapse;
+        border-spacing: 0;
+        width: 100%;
+
+        td:first-of-type {
+            padding-right: var(--size-small);
+        }
+    }
 }
