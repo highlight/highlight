@@ -308,14 +308,44 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                 </div>
                             </div>
                             <div className={styles.sessionTextSection}>
-                                <div className={styles.topText}>
-                                    {session?.processed &&
-                                    segment_id !== LIVE_SEGMENT_ID
-                                        ? MillisToMinutesAndSecondsVerbose(
-                                              session.length || 0
-                                          )
-                                        : 'Live'}
-                                </div>
+                                <Tooltip
+                                    title={
+                                        session?.processed ? (
+                                            <table>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Active:</td>
+                                                        <td>
+                                                            {MillisToMinutesAndSecondsVerbose(
+                                                                session.active_length ||
+                                                                    0
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Total:</td>
+                                                        <td>
+                                                            {MillisToMinutesAndSecondsVerbose(
+                                                                session.length ||
+                                                                    0
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        ) : null
+                                    }
+                                    align={{ offset: [-40, 0] }}
+                                >
+                                    <div className={styles.topText}>
+                                        {session?.processed &&
+                                        segment_id !== LIVE_SEGMENT_ID
+                                            ? MillisToMinutesAndSecondsVerbose(
+                                                  session.active_length || 0
+                                              )
+                                            : 'Live'}
+                                    </div>
+                                </Tooltip>
                                 <div className={styles.middleText}>
                                     {created.toLocaleString('en-us', {
                                         day: 'numeric',
