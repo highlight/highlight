@@ -3,6 +3,7 @@
         "esbenp.prettier-vscode",
         "golang.go",
         "dbaeumer.vscode-eslint",
-        "graphql.vscode-graphql"
+        "graphql.vscode-graphql",
+        "sysoev.vscode-open-in-github"
     ]
 }

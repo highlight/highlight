@@ -33,5 +33,9 @@
   "editor.colorDecorators": true,
   "[typescriptreact]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "openInGitHub.defaultBranch": "master",
+  "openInGitHub.defaultRemote": "origin",
+  "openInGithub.maxBuffer": 512000,
+  "openInGitHub.excludeCurrentRevision": false,
 }
