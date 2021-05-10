@@ -2029,10 +2029,10 @@
   dependencies:
     "@hapi/hoek" "^8.3.0"
 
-"@highlight-run/rrweb@0.11.2":
-  version "0.11.2"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.11.2.tgz#7b5dd5eedb54b7e66d4fc9e9922b5f8a9498742f"
-  integrity sha512-J9/P/fWi0rJ5eeILokhYNTpOa8jIgHvqaWlEEIbrVu2x2N71QUm8tW48S520qhmr3oO+NwcxWMst2yLdP47ZQQ==
+"@highlight-run/rrweb@0.11.3":
+  version "0.11.3"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.11.3.tgz#4b674b0c5dc068cda149db254974c5d2f7f52673"
+  integrity sha512-3LBSKRUwLytlyfj2wJR2BeJiZQTXqM622FtQauO+PH7labea+VCB6dKCLJngLKU/L7WBmxH/7UyL0e6893vSiA==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
@@ -7866,6 +7866,11 @@ hosted-git-info@^2.1.4:
   resolved "https://registry.yarnpkg.com/hosted-git-info/-/hosted-git-info-2.8.8.tgz#7539bd4bc1e0e0a895815a2e0262420b12858488"
   integrity sha512-f/wzC2QaWBs7t9IYqB4T3sR1xviIViXJRJTWBlx2Gf3g0Xi5vI7Yy4koXQ1c9OYDGHN9sBy1DQ2AB8fqZBWhUg==
 
+hotkeys-js@3.8.3:
+  version "3.8.3"
+  resolved "https://registry.yarnpkg.com/hotkeys-js/-/hotkeys-js-3.8.3.tgz#0331c2cde770e62d51d5d023133f7c4395f59008"
+  integrity sha512-rUmoryG4lEAtkjF5tcYaihrVoE86Fdw1BLqO/UiBWOOF56h32a6ax8oV4urBlinVtNNtArLlBq8igGfZf2tQnw==
+
 hpack.js@^2.1.6:
   version "2.1.6"
   resolved "https://registry.yarnpkg.com/hpack.js/-/hpack.js-2.1.6.tgz#87774c0949e513f42e84575b3c45681fade2a0b2"
@@ -12909,6 +12914,13 @@ react-hook-form@^6.9.1:
   version "6.15.1"
   resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-6.15.1.tgz#57d887ec4dac5a6c0099902171aa39cc893f7bca"
   integrity sha512-bL0LQuQ3OlM3JYfbacKtBPLOHhmgYz8Lj6ivMrvu2M6e1wnt4sbGRtPEPYCc/8z3WDbjrMwfAfLX92OsB65pFA==
+
+react-hotkeys-hook@^3.3.1:
+  version "3.3.1"
+  resolved "https://registry.yarnpkg.com/react-hotkeys-hook/-/react-hotkeys-hook-3.3.1.tgz#8b03b0b2741d59f91b9b7564e8221c92e3230010"
+  integrity sha512-y6eCMEysh09lIgRQvIC76L7ehqUWf/7h8VlqT6w7RRnim5CX5CXldo64+CjWanIcgr++q5yTNwr7A/8DXA1u9A==
+  dependencies:
+    hotkeys-js "3.8.3"
 
 react-icons@^3.11.0:
   version "3.11.0"
