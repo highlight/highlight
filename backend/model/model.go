@@ -199,7 +199,8 @@ type SessionCount struct {
 
 type Session struct {
 	Model
-	UserID int `json:"user_id"`
+	UserID      int `json:"user_id"`
+	Fingerprint int `json:"fingerprint"`
 	// User provided identifier (see IdentifySession)
 	Identifier     string `json:"identifier"`
 	OrganizationID int    `json:"organization_id"`
