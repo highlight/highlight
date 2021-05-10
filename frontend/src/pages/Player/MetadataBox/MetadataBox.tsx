@@ -80,58 +80,55 @@ export const MetadataBox = () => {
                         />
                     )}
                 </div>
-                <div className={styles.userContentWrapper}>
-                    <div className={styles.headerWrapper}>
-                        {loading ? (
-                            <Skeleton
-                                count={2}
-                                style={{ height: 20, marginBottom: 5 }}
-                            />
-                        ) : (
-                            <>
-                                <div className={styles.userIdHeader}>
-                                    {data?.session?.identifier ||
-                                        `User#${data?.session?.user_id}`}
-                                </div>
-                                <div className={styles.userIdSubHeader}>
-                                    {created.toLocaleString('en-us', {
-                                        day: 'numeric',
-                                        month: 'short',
-                                        year: 'numeric',
-                                        weekday: 'long',
-                                    })}
-                                </div>
-                                <div className={styles.userIdSubHeader}>
-                                    {created.toLocaleString('en-us', {
-                                        second: '2-digit',
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                        timeZoneName: 'short',
-                                    })}
-                                </div>
-                                <div className={styles.userIdSubHeader}>
-                                    {data?.session?.browser_name && (
-                                        <>
-                                            <span>
-                                                {data?.session.browser_name}{' '}
-                                                {getMajorVersion(
-                                                    data?.session
-                                                        .browser_version
-                                                )}
-                                            </span>
-                                            <span> • </span>
-                                            <span>
-                                                {data?.session.os_name}{' '}
-                                                {getMajorVersion(
-                                                    data?.session.os_version
-                                                )}
-                                            </span>
-                                        </>
-                                    )}
-                                </div>
-                            </>
-                        )}
-                    </div>
+                <div className={styles.headerWrapper}>
+                    {loading ? (
+                        <Skeleton
+                            count={2}
+                            style={{ height: 20, marginBottom: 5 }}
+                        />
+                    ) : (
+                        <>
+                            <h4 className={styles.userIdHeader}>
+                                {data?.session?.identifier ||
+                                    `User#${data?.session?.user_id}`}
+                            </h4>
+                            <div className={styles.userIdSubHeader}>
+                                {created.toLocaleString('en-us', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric',
+                                    weekday: 'long',
+                                })}
+                            </div>
+                            <div className={styles.userIdSubHeader}>
+                                {created.toLocaleString('en-us', {
+                                    second: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    timeZoneName: 'short',
+                                })}
+                            </div>
+                            <div className={styles.userIdSubHeader}>
+                                {data?.session?.browser_name && (
+                                    <>
+                                        <span>
+                                            {data?.session.browser_name}{' '}
+                                            {getMajorVersion(
+                                                data?.session.browser_version
+                                            )}
+                                        </span>
+                                        <span> • </span>
+                                        <span>
+                                            {data?.session.os_name}{' '}
+                                            {getMajorVersion(
+                                                data?.session.os_version
+                                            )}
+                                        </span>
+                                    </>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
             </>
         </div>

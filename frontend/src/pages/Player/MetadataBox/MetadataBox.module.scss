@@ -22,15 +22,6 @@
     padding: 10px 30px 0 30px;
 }
 
-.userContentWrapper {
-    display: flex;
-    flex-direction: column;
-    row-gap: var(--size-xxSmall);
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-}
-
 .avatarWrapper {
     height: 100%;
     display: flex;
@@ -56,12 +47,15 @@
 }
 
 .userIdHeader {
+    margin: 0;
     font-size: 14px;
     color: var(--color-black);
     font-weight: 300;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    // Spacing for the star icon.
+    width: calc(100% - 50px);
 }
 
 .userIdSubHeader {
