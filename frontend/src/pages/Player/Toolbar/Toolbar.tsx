@@ -36,6 +36,7 @@ import SpeedControl from './SpeedControl/SpeedControl';
 import SvgRedoIcon from '../../../static/RedoIcon';
 import SvgUndoIcon from '../../../static/UndoIcon';
 import SvgPlayIcon from '../../../static/PlayIcon';
+import { getNewTimeWithSkip, usePlayerHotKeys } from '../utils/hooks';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -48,6 +49,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         sessionIntervals,
         sessionCommentIntervals,
     } = useContext(ReplayerContext);
+    usePlayerHotKeys();
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
@@ -188,11 +190,6 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         return newTime;
     };
 
-    /**
-     * The time to skip along the timeline. Used to skip X time back or forwards.
-     */
-    const SKIP_DURATION = 7000;
-
     const disableControls = state === ReplayerState.Loading;
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
@@ -280,92 +277,103 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
             </div>
             <div className={styles.toolbarSection}>
                 <div className={styles.toolbarLeftSection}>
-                    <button
-                        className={classNames(
-                            styles.playSection,
-                            styles.button
-                        )}
-                        disabled={disableControls || disablePlayButton}
-                        onClick={() => {
-                            console.log(
-                                `[Highlight] Player Info: \nPlayback Time: ${time}\nClient Position: ${sliderClientX}`
-                            );
-                            if (isPaused) {
-                                play(time);
-                            } else {
-                                pause(time);
-                            }
-                        }}
+                    <Tooltip
+                        title={isPaused ? 'Play (space)' : 'Pause (space)'}
                     >
-                        {isPaused ? (
-                            <SvgPlayIcon
+                        <button
+                            className={classNames(
+                                styles.playSection,
+                                styles.button
+                            )}
+                            disabled={disableControls || disablePlayButton}
+                            onClick={() => {
+                                if (isPaused) {
+                                    play(time);
+                                } else {
+                                    pause(time);
+                                }
+                            }}
+                        >
+                            {isPaused ? (
+                                <SvgPlayIcon
+                                    fill="inherit"
+                                    className={classNames(
+                                        styles.playButtonStyle,
+                                        styles.icon
+                                    )}
+                                />
+                            ) : (
+                                <FaPause
+                                    fill="inherit"
+                                    className={classNames(
+                                        styles.playButtonStyle,
+                                        styles.icon
+                                    )}
+                                />
+                            )}
+                        </button>
+                    </Tooltip>
+
+                    <Tooltip title="Skip 5 seconds backward (Left arrow)">
+                        <button
+                            className={classNames(
+                                styles.undoSection,
+                                styles.button
+                            )}
+                            disabled={disableControls}
+                            onClick={() => {
+                                const newTime = getNewTimeWithSkip({
+                                    time,
+                                    direction: 'backwards',
+                                });
+                                if (isPaused) {
+                                    pause(newTime);
+                                } else {
+                                    play(newTime);
+                                }
+                            }}
+                        >
+                            <SvgUndoIcon
                                 fill="inherit"
                                 className={classNames(
-                                    styles.playButtonStyle,
+                                    styles.skipButtonStyle,
                                     styles.icon
                                 )}
                             />
-                        ) : (
-                            <FaPause
+                        </button>
+                    </Tooltip>
+
+                    <Tooltip title="Skip 5 seconds forward (Right arrow)">
+                        <button
+                            className={classNames(
+                                styles.redoSection,
+                                styles.button
+                            )}
+                            disabled={disableControls}
+                            onClick={() => {
+                                const totalTime =
+                                    replayer?.getMetaData().totalTime ?? 0;
+                                const newTime = getNewTimeWithSkip({
+                                    time,
+                                    totalTime,
+                                    direction: 'forwards',
+                                });
+                                if (isPaused) {
+                                    pause(newTime);
+                                } else {
+                                    play(newTime);
+                                }
+                            }}
+                        >
+                            <SvgRedoIcon
                                 fill="inherit"
                                 className={classNames(
-                                    styles.playButtonStyle,
+                                    styles.skipButtonStyle,
                                     styles.icon
                                 )}
                             />
-                        )}
-                    </button>
-                    <button
-                        className={classNames(
-                            styles.undoSection,
-                            styles.button
-                        )}
-                        disabled={disableControls}
-                        onClick={() => {
-                            const newTime = Math.max(time - SKIP_DURATION, 0);
-                            if (isPaused) {
-                                pause(newTime);
-                            } else {
-                                play(newTime);
-                            }
-                        }}
-                    >
-                        <SvgUndoIcon
-                            fill="inherit"
-                            className={classNames(
-                                styles.skipButtonStyle,
-                                styles.icon
-                            )}
-                        />
-                    </button>
-                    <button
-                        className={classNames(
-                            styles.redoSection,
-                            styles.button
-                        )}
-                        disabled={disableControls}
-                        onClick={() => {
-                            const totalTime =
-                                replayer?.getMetaData().totalTime ?? 0;
-                            const newTime = Math.min(
-                                time + SKIP_DURATION,
-                                totalTime
-                            );
-                            if (isPaused) {
-                                pause(newTime);
-                            } else {
-                                play(newTime);
-                            }
-                        }}
-                    >
-                        <SvgRedoIcon
-                            fill="inherit"
-                            className={classNames(
-                                styles.skipButtonStyle,
-                                styles.icon
-                            )}
-                        />
-                    </button>
+                        </button>
+                    </Tooltip>
                     <div className={styles.timeSection}>
                         {disableControls ? (
                             <Skeleton count={1} width="100px" />
