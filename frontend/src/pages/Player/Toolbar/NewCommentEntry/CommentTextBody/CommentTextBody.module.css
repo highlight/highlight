@@ -1,5 +1,6 @@
 .mentions {
-  font-size: 14px;
+  font-size: 14px !important;
+  line-height: initial;
 }
 
 .mentions--singleLine .mentions__control {
@@ -16,20 +17,20 @@
 }
 
 .mentions--multiLine .mentions__control {
-  font-size: 14px;
+  font-size: 14px !important;
 }
 
 .mentions--multiLine .mentions__highlighter {
   border: 1px solid transparent;
   padding: 0px;
-  font-weight: 200;
+  font-weight: 300;
 }
 
 .mentions--multiLine .mentions__input {
   border: 1px solid transparent;
   padding: 0px;
   outline: 0;
-  font-weight: 200;
+  font-weight: 300;
   cursor: inherit;
 }
 
@@ -52,7 +53,7 @@
 
 .mentions__mention {
   position: relative;
-  font-weight: 300 !important;
+  font-weight: 400 !important;
   z-index: 1;
   color: var(--color-purple-400);
   pointer-events: none;

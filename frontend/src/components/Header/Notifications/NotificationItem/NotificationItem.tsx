@@ -40,9 +40,9 @@ const CommentNotification = ({
                 <h3 className={notificationStyles.title}>
                     {getTitle(notification)}
                 </h3>
-                <span className={notificationStyles.timestamp}>
+                <p className={notificationStyles.timestamp}>
                     <RelativeTime datetime={notification?.updated_at} />
-                </span>
+                </p>
                 <CommentTextBody commentText={notification?.text || ''} />
             </div>
             <div className={notificationStyles.dotContainer}>

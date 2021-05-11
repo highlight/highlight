@@ -46,10 +46,10 @@ export const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
 
     const header = (
         <div className={styles.headerWrapper}>
-            <div className={styles.header}>
+            <h4 className={styles.header}>
                 {title}
                 {titleSideComponent}
-            </div>
+            </h4>
             {searchCount > 0 && (
                 <SearchCountBubble>{searchCount}</SearchCountBubble>
             )}

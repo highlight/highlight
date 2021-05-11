@@ -1,4 +1,5 @@
 export const active: string;
+export const body: string;
 export const changelogContainer: string;
 export const container: string;
 export const date: string;

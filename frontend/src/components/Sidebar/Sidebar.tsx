@@ -206,7 +206,7 @@ const SidebarItem: React.FC<{
                 ])}
             >
                 {children}
-                <span className={styles.rowText}>{text}</span>
+                <h3 className={styles.rowText}>{text}</h3>
             </div>
         </Link>
     );

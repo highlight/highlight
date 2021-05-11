@@ -37,9 +37,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 400;
+    font-weight: 500;
+    font-family: var(--header-font-family);
     font-size: 14px;
     color: white;
+    line-height: initial;
 }
 
 .workspaceIconMiniWrapper {
@@ -129,7 +131,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     align-items: center;
-    margin-left: 10px;
+    margin-left: 10px !important;
 }
 
 .orgNameWrapper {

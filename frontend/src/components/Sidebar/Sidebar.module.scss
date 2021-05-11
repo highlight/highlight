@@ -8,7 +8,7 @@
     z-index: 40;
     width: 280px;
     top: 80px;
-    border-right: 1px solid #eaeaea;
+    border-right: 1px solid var(--color-gray-300);
     transition: margin-left 0.3s ease-in-out;
     margin-left: -280px;
     display: flex;
@@ -73,7 +73,7 @@
 }
 
 .bottomLink {
-    color: #808080;
+    color: var(--color-gray-500);
     text-decoration: underline;
     font-size: 12px;
     margin-top: 8px;
@@ -85,7 +85,7 @@
 }
 
 .miniRow {
-    color: black !important;
+    color: var(--text-primary) !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,7 +93,7 @@
 }
 
 .row {
-    color: black !important;
+    color: var(--text-primary) !important;
     align-items: center;
     width: 100%;
     font-size: 16px;
@@ -108,8 +108,8 @@
     padding: 8px;
     border-radius: 8px;
     transition: 0.3s;
-    fill: #808080;
-    color: #808080;
+    fill: var(--color-gray-500);
+    color: var(--color-gray-500);
 }
 
 .miniSidebarIconWrapper:hover {
@@ -130,8 +130,12 @@
 
 .selected {
     background-color: #f4f4f4 !important;
-    color: black !important;
-    fill: black !important;
+    color: var(--text-primary) !important;
+    fill: var(--text-primary) !important;
+
+    h3 {
+        color: var(--text-primary) !important;
+    }
 }
 
 .rotated {
@@ -146,8 +150,8 @@
     padding: var(--size-xSmall) var(--size-small);
     border-radius: 6px;
     transition: 0.3s background-color;
-    color: #808080;
-    fill: #808080;
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
 }
 
 .innerButton:hover {
@@ -162,8 +166,10 @@
 .rowText {
     font-size: 15px;
     display: flex;
-    margin-left: 15px;
+    margin-left: 15px !important;
+    color: var(--color-gray-500);
     line-height: 1;
+    font-weight: 400;
     align-items: center;
 }
 

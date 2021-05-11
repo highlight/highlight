@@ -23,16 +23,14 @@ export const BillingPlanCard = ({
     );
     return (
         <div className={styles.billingPlanCard}>
-            <div className={styles.billingPlanTitle}>
-                {billingPlan.planName}
-            </div>
-            <div
+            <h3 className={styles.billingPlanTitle}>{billingPlan.planName}</h3>
+            <p
                 className={classNames(
                     commonStyles.title,
                     styles.billingPlanPrice
                 )}
-            >{`$${billingPlan.monthlyPrice}`}</div>
-            <div className={styles.billingFrequency}>billed monthly</div>
+            >{`$${billingPlan.monthlyPrice}`}</p>
+            <p className={styles.billingFrequency}>billed monthly</p>
             <div className={styles.advertisedFeaturesWrapper}>
                 {advertisedFeatureDivs}
             </div>

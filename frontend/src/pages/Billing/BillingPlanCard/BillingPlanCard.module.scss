@@ -9,10 +9,7 @@
 }
 
 .billingPlanTitle {
-    font-size: 20px;
-    font-weight: 400;
     color: $highlight-purple;
-    margin: 5px 0;
 }
 
 .billingFrequency {
@@ -20,7 +17,7 @@
 }
 
 .billingPlanPrice {
-    margin-bottom: 5px;
+    margin: 0 !important;
 }
 
 .advertisedFeaturesWrapper {

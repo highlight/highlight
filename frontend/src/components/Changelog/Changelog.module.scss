@@ -8,7 +8,13 @@
     .date {
         color: var(--color-gray-500);
         font-size: 12px;
+        font-weight: 400;
+        margin-top: 0 !important;
         margin-bottom: var(--size-xxSmall) !important;
+    }
+
+    .body {
+        margin-bottom: 0 !important;
     }
 }
 
@@ -62,7 +68,7 @@
 
 .popoverHeader {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     column-gap: var(--size-xSmall);
     margin: 0 calc(var(--size-medium) * -1);
@@ -75,6 +81,6 @@
     a {
         margin-bottom: var(--size-xSmall);
         font-size: 13px;
-        font-weight: 300;
+        font-weight: 400;
     }
 }
