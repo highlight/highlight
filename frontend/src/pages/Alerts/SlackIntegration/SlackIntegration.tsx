@@ -6,6 +6,7 @@ import { useAddSlackIntegrationToWorkspaceMutation } from '../../../graph/genera
 import { Maybe } from '../../../graph/generated/schemas';
 import integrationDetectorStyles from '../../Setup/IntegrationDetector/IntegrationDetector.module.scss';
 import { ReactComponent as CheckIcon } from '../../../static/verify-check.svg';
+import useLocalStorage from '@rehooks/local-storage';
 
 interface Props {
     redirectPath: string;
@@ -22,6 +23,10 @@ const SlackIntegration = ({ redirectPath, integratedChannel }: Props) => {
         boolean | undefined
     >(undefined);
     const searchLocation = window.location.search;
+    const [, setHasStartedOnboarding] = useLocalStorage(
+        `highlight-started-onboarding-${organization_id}`,
+        false
+    );
 
     const redirectUriOrigin = `${process.env.REACT_APP_FRONTEND_URI}/${organization_id}`;
 
@@ -74,6 +79,9 @@ const SlackIntegration = ({ redirectPath, integratedChannel }: Props) => {
     return (
         <a
             href={`https://slack.com/oauth/v2/authorize?client_id=1354469824468.1868913469441&scope=incoming-webhook&redirect_uri=${redirectUriOrigin}/${redirectPath}`}
+            onClick={() => {
+                setHasStartedOnboarding(true);
+            }}
         >
             {integrationLoading ? (
                 'loading'
