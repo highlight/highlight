@@ -59,18 +59,18 @@ export const WorkspaceTeam = () => {
     return (
         <div className={styles.teamPageWrapper}>
             <div className={styles.teamPage}>
-                <div className={styles.title}>Invite A Member</div>
-                <div className={styles.subTitle}>
+                <h2>Invite A Member</h2>
+                <p className={styles.subTitle}>
                     Invite a your team to your Workspace.
-                </div>
+                </p>
                 <div className={styles.box}>
                     <form onSubmit={handleSubmit(onSubmit)}>
-                        <div className={styles.boxTitle}>Invite Your Team</div>
-                        <div className={styles.boxSubTitle}>
+                        <h3>Invite Your Team</h3>
+                        <p className={styles.boxSubTitle}>
                             Invite a team member to '
                             {`${orgData?.organization?.name}`}' by entering an
                             email below.
-                        </div>
+                        </p>
                         <div className={styles.buttonRow}>
                             <input
                                 className={commonStyles.input}
@@ -107,7 +107,7 @@ export const WorkspaceTeam = () => {
                     </form>
                 </div>
                 <div className={styles.box}>
-                    <div className={styles.title}>Members</div>
+                    <h3>Members</h3>
                     {loading ? (
                         <Skeleton />
                     ) : (
@@ -123,11 +123,11 @@ export const WorkspaceTeam = () => {
                                         size={45}
                                     />
                                     <div className={styles.userDetails}>
-                                        <div className={styles.name}>
+                                        <h4 className={styles.name}>
                                             {a?.name
                                                 ? a?.name
                                                 : a?.email.split('@')[0]}
-                                        </div>
+                                        </h4>
                                         <div className={styles.email}>
                                             {a?.email}
                                         </div>

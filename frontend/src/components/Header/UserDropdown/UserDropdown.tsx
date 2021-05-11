@@ -38,12 +38,12 @@ export const UserDropdown = () => {
                                 />
                             </div>
                             <div className={styles.userCopy}>
-                                <div className={styles.dropdownName}>
+                                <h4 className={styles.dropdownName}>
                                     {a_data?.admin?.name}
-                                </div>
-                                <div className={styles.dropdownEmail}>
+                                </h4>
+                                <p className={styles.dropdownEmail}>
                                     {a_data?.admin?.email}
-                                </div>
+                                </p>
                             </div>
                         </div>
                         <div

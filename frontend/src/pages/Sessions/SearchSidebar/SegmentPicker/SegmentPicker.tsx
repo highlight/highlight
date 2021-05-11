@@ -119,13 +119,13 @@ export const SegmentPicker = () => {
                 style={{ display: 'flex' }}
             >
                 <div className={styles.modalWrapper}>
-                    <div className={styles.modalSubTitle}>
+                    <p className={styles.modalSubTitle}>
                         {`This action is irreversible. Do you want to delete ${
                             segmentToDelete?.name
                                 ? `'${segmentToDelete.name}'`
                                 : 'this segment'
                         }?`}
-                    </div>
+                    </p>
                     <Button
                         type="primary"
                         className={commonStyles.submitButton}

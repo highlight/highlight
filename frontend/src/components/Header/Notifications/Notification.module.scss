@@ -95,7 +95,8 @@
 
     .timestamp {
         font-size: 12px !important;
-        margin-bottom: var(--size-xxSmall);
+        margin-top: 0 !important;
+        margin-bottom: var(--size-xxSmall) !important;
     }
 
     .title {
@@ -110,12 +111,13 @@
 
 .popoverTitle {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
     column-gap: var(--size-xSmall);
     margin: 0 calc(var(--size-medium) * -1);
     margin-bottom: var(--size-medium);
     padding: 0 var(--size-medium);
+    padding-bottom: var(--size-small);
     border-bottom: 1px solid var(--color-gray-300);
 
     h3,
@@ -123,6 +125,6 @@
     a {
         margin-bottom: var(--size-xSmall);
         font-size: 13px;
-        font-weight: 300;
+        font-weight: 400;
     }
 }

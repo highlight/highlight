@@ -123,7 +123,7 @@
     font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
         'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
     border: 1px solid #e4e8eb;
-    background-color: #f9f9f9;
+    background-color: var(--color-secondary-background);
     border-radius: var(--size-xxSmall);
     height: 20px;
     padding: 0 var(--size-xxSmall);
@@ -137,7 +137,7 @@
 
 .codeBlockWrapperVerbose {
     border: 1px solid #e4e8eb;
-    background-color: #f9f9f9;
+    background-color: var(--color-secondary-background);
     border-radius: 8px;
     min-height: 30px;
     padding: 3px 8px 3px 8px;

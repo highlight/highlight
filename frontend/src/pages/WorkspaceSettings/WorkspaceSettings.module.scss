@@ -9,15 +9,8 @@
     width: 580px;
 }
 
-.title {
-    font-size: 28px;
-    font-weight: 400;
-}
-
 .subTitle {
-    margin-top: 5px;
     font-size: 18px;
-    font-weight: 300;
 }
 
 .fieldsBox {
@@ -27,12 +20,6 @@
     padding: 30px;
 }
 
-.boxTitle {
-    font-size: 20px;
-    font-weight: 400;
-    margin-bottom: 10px;
-}
-
 .dangerTitle {
-    color: red;
+    color: var(--color-red);
 }

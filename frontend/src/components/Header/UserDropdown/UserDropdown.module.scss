@@ -1,13 +1,12 @@
 .dropdownName {
-    font-weight: 400;
     font-size: 16px;
     margin-bottom: 2px;
 }
 
 .dropdownEmail {
     color: var(--color-gray-500);
-    font-weight: 300;
-    font-size: 14px;
+    margin: 0 !important;
+    margin-top: var(--size-xSmall) !important;
 }
 
 .logoutIcon {
