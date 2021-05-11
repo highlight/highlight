@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -374,7 +373,7 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, fingerprint string) (*model.Session, error) {
+func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string) (*model.Session, error) {
 	organizationID := model.FromVerboseID(organizationVerboseID)
 	organization := &model.Organization{}
 	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization).Error; err != nil {
@@ -408,15 +407,8 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	// Get the language from the request header
 	acceptLanguageString := ctx.Value("acceptLanguage").(string)
 	n := time.Now()
-	userId := 5000 + rand.Intn(5000)
-	var fingerprintInt int = 0
-	if val, err := strconv.Atoi(fingerprint); err == nil {
-		fingerprintInt = val
-	}
-
 	session := &model.Session{
-		UserID:              userId,
-		Fingerprint:         fingerprintInt,
+		UserID:              5000 + rand.Intn(5000),
 		OrganizationID:      organizationID,
 		City:                location.City,
 		State:               location.State,

@@ -11,9 +11,7 @@ export type Scalars = {
   Float: number;
   Any: any;
   Time: any;
-  Int64: any;
 };
-
 
 
 
@@ -57,7 +55,6 @@ export type MutationInitializeSessionArgs = {
   firstloadVersion: Scalars['String'];
   clientConfig: Scalars['String'];
   environment: Scalars['String'];
-  fingerprint: Scalars['String'];
 };
 
 

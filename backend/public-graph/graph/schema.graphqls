@@ -2,7 +2,6 @@
 
 scalar Any
 scalar Time
-scalar Int64
 
 type Session {
     id: ID!
@@ -34,7 +33,6 @@ type Mutation {
         firstloadVersion: String!
         clientConfig: String!
         environment: String!
-        fingerprint: String!
     ): Session
     identifySession(
         session_id: ID!
