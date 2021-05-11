@@ -17,7 +17,9 @@ export type Scalars = {
   Float: number;
   Any: any;
   Time: any;
+  Int64: any;
 };
+
 
 
 
@@ -61,6 +63,7 @@ export type MutationInitializeSessionArgs = {
   firstloadVersion: Scalars['String'];
   clientConfig: Scalars['String'];
   environment: Scalars['String'];
+  fingerprint: Scalars['String'];
 };
 
 
@@ -156,6 +159,7 @@ export type InitializeSessionMutationVariables = Types.Exact<{
   firstloadVersion: Types.Scalars['String'];
   clientConfig: Types.Scalars['String'];
   environment: Types.Scalars['String'];
+  id: Types.Scalars['String'];
 }>;
 
 
@@ -215,7 +219,7 @@ export const AddTrackPropertiesDocument = gql`
 }
     `;
 export const InitializeSessionDocument = gql`
-    mutation initializeSession($organization_verbose_id: String!, $enable_strict_privacy: Boolean!, $clientVersion: String!, $firstloadVersion: String!, $clientConfig: String!, $environment: String!) {
+    mutation initializeSession($organization_verbose_id: String!, $enable_strict_privacy: Boolean!, $clientVersion: String!, $firstloadVersion: String!, $clientConfig: String!, $environment: String!, $id: String!) {
   initializeSession(
     organization_verbose_id: $organization_verbose_id
     enable_strict_privacy: $enable_strict_privacy
@@ -223,6 +227,7 @@ export const InitializeSessionDocument = gql`
     firstloadVersion: $firstloadVersion
     clientConfig: $clientConfig
     environment: $environment
+    fingerprint: $id
   ) {
     id
     user_id
