@@ -9,20 +9,14 @@ import styles from './Header.module.scss';
 import { DemoContext } from '../../DemoContext';
 import { SidebarState, useSidebarContext } from '../Sidebar/SidebarContext';
 import classNames from 'classnames/bind';
-import { Duration } from '../../util/time';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { CommandBar } from './CommandBar/CommandBar';
 import Notifications from './Notifications/Notifications';
 
-type HeaderProps = {
-    trialTimeRemaining?: Duration;
-};
-
-export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
+export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { demo } = useContext(DemoContext);
     const { state, toggleSidebar } = useSidebarContext();
-    const { trialTimeRemaining } = props;
 
     return (
         <>
@@ -30,10 +24,8 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
             <div className={styles.header}>
                 {process.env.REACT_APP_ONPREM === 'true' ? (
                     <OnPremiseBanner />
-                ) : trialTimeRemaining ? (
-                    <TrialBanner timeRemaining={trialTimeRemaining} />
                 ) : (
-                    <></>
+                    <FreePlanBanner />
                 )}
                 <div className={styles.headerContent}>
                     <div className={styles.logoWrapper}>
@@ -64,13 +56,13 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
     );
 };
 
-const TrialBanner = ({ timeRemaining }: { timeRemaining: Duration }) => {
+const FreePlanBanner = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     return (
         <div className={styles.trialWrapper}>
             <Banner className={styles.bannerSvg} />
             <div className={classNames(styles.trialTimeText)}>
-                {timeRemaining.days}&nbsp;day(s) left in your trial. Pick a plan{' '}
+                You are currently on the free plan. Upgrade{' '}
                 <Link
                     className={styles.trialLink}
                     to={`/${organization_id}/billing`}
