@@ -278,10 +278,12 @@ export class Highlight {
                 this.sessionData = storedSessionData;
                 reloaded = true;
             } else {
-                // "this library was built to include directly into the browser, not imported."
                 // @ts-ignore
                 const client = new ClientJS();
-                const fingerprint = client.getFingerprint();
+                let fingerprint = 0;
+                if ('getFingerprint' in client) {
+                    fingerprint = client.getFingerprint();
+                }
                 const gr = await this.graphqlSDK.initializeSession({
                     organization_verbose_id: this.organizationID,
                     enable_strict_privacy: this.enableStrictPrivacy,
