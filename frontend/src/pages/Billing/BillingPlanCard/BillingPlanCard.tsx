@@ -23,9 +23,7 @@ export const BillingPlanCard = ({
     );
     return (
         <div className={styles.billingPlanCard}>
-            <div className={styles.billingPlanTitle}>
-                {billingPlan.planName}
-            </div>
+            <div className={styles.billingPlanTitle}>{billingPlan.name}</div>
             <div
                 className={classNames(
                     commonStyles.title,
@@ -42,9 +40,7 @@ export const BillingPlanCard = ({
                 onClick={onSelect}
                 className={styles.button}
             >
-                {current
-                    ? 'Current plan'
-                    : `Select ${billingPlan.planName} Plan`}
+                {current ? 'Current plan' : `Select ${billingPlan.name} Plan`}
             </Button>
         </div>
     );
