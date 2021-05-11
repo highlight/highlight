@@ -112,14 +112,14 @@ type UserPropertyInput struct {
 type PlanType string
 
 const (
-	PlanTypeNone       PlanType = "None"
+	PlanTypeFree       PlanType = "Free"
 	PlanTypeBasic      PlanType = "Basic"
 	PlanTypeStartup    PlanType = "Startup"
 	PlanTypeEnterprise PlanType = "Enterprise"
 )
 
 var AllPlanType = []PlanType{
-	PlanTypeNone,
+	PlanTypeFree,
 	PlanTypeBasic,
 	PlanTypeStartup,
 	PlanTypeEnterprise,
@@ -127,7 +127,7 @@ var AllPlanType = []PlanType{
 
 func (e PlanType) IsValid() bool {
 	switch e {
-	case PlanTypeNone, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise:
+	case PlanTypeFree, PlanTypeBasic, PlanTypeStartup, PlanTypeEnterprise:
 		return true
 	}
 	return false

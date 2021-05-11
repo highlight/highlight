@@ -9,7 +9,7 @@ export type BillingPlan = {
 
 export const freePlan: BillingPlan = {
     name: 'Free',
-    type: PlanType.None,
+    type: PlanType.Free,
     monthlyPrice: '0',
     advertisedFeatures: ['500 sessions /month', 'Unlimited dev tools access'],
 };

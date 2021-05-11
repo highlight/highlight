@@ -2207,7 +2207,7 @@ type Plan {
 }
 
 enum PlanType {
-    None
+    Free
     Basic
     Startup
     Enterprise
