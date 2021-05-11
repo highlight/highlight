@@ -1,3 +1,4 @@
+import { H } from 'highlight.run';
 import { useContext } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 import ReplayerContext, { ReplayerState } from '../ReplayerContext';
@@ -35,6 +36,7 @@ export const usePlayerHotKeys = () => {
     useHotkeys(
         'space',
         () => {
+            H.track('PlayerPausePlayKeyboardShortcut', {});
             switch (state) {
                 case ReplayerState.Playing:
                     pause(time);
@@ -55,6 +57,7 @@ export const usePlayerHotKeys = () => {
     useHotkeys(
         'left',
         () => {
+            H.track('PlayerSkipBackwardsKeyboardShortcut', {});
             const newTime = getNewTimeWithSkip({
                 time,
                 direction: 'backwards',
@@ -80,6 +83,7 @@ export const usePlayerHotKeys = () => {
     useHotkeys(
         'right',
         () => {
+            H.track('PlayerSkipForwardsKeyboardShortcut', {});
             const totalTime = replayer?.getMetaData().totalTime;
             const newTime = getNewTimeWithSkip({
                 time,
