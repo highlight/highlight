@@ -50,7 +50,7 @@ func TypeToQuota(planType backend.PlanType) int {
 
 func FromPriceID(priceID string) backend.PlanType {
 	switch priceID {
-	case os.Getenv("NONE_PLAN_PRICE_ID"):
+	case os.Getenv("FREE_PLAN_PRICE_ID"):
 		return backend.PlanTypeFree
 	case os.Getenv("BASIC_PLAN_PRICE_ID"):
 		return backend.PlanTypeBasic
@@ -65,7 +65,7 @@ func FromPriceID(priceID string) backend.PlanType {
 func ToPriceID(plan backend.PlanType) string {
 	switch plan {
 	case backend.PlanTypeFree:
-		return os.Getenv("NONE_PLAN_PRICE_ID")
+		return os.Getenv("FREE_PLAN_PRICE_ID")
 	case backend.PlanTypeBasic:
 		return os.Getenv("BASIC_PLAN_PRICE_ID")
 	case backend.PlanTypeStartup:
