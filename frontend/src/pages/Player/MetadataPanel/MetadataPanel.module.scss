@@ -7,7 +7,7 @@
         color: var(--color-black);
         font-weight: 400;
         margin: 0;
-        margin-bottom: var(--size-xSmall);
+        margin-bottom: var(--size-xSmall) !important;
     }
 
     .section {

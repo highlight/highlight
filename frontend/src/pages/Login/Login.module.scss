@@ -16,14 +16,11 @@
 
 .loginTitle {
     font-size: 23px;
-    font-weight: 400;
-    width: 300px;
 }
 
 .loginSubTitle {
     font-size: 14px;
-    font-weight: 300;
-    margin-bottom: 20px;
+    margin-bottom: 20px !important;
 }
 
 .loginFormWrapper {
@@ -50,7 +47,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #9a9a9a;
+    color: var(--color-gray-500);
     margin: 10px;
 }
 

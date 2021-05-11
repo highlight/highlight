@@ -13,6 +13,7 @@
 }
 
 .arrowWrapper {
+    font-family: var(--header-font-family);
     color: $highlight-purple;
     font-size: 16px;
     margin: 10px;
@@ -75,25 +76,25 @@
 
 .header {
     font-size: 35px;
-    font-weight: 400;
     display: flex;
     text-align: center;
     justify-content: center;
-    margin-top: 20px;
-    margin-bottom: 10px;
+    margin-top: 20px !important;
+    margin-bottom: 10px !important;
     max-width: 90vw;
 }
 
 .logoHeader {
+    font-family: var(--header-font-family);
     margin-top: 30px;
-    font-size: 16px;
     font-weight: 200;
-    margin-bottom: 20px;
-    color: #888888;
+    margin-bottom: 20px !important;
+    color: var(--color-gray-500);
     max-width: 90vw;
 }
 
 .humans {
+    margin-top: 30px;
     margin-bottom: 10px;
     height: 250px;
     max-width: 90vw;
@@ -118,7 +119,6 @@
     display: flex;
     justify-content: center;
     max-width: 500px;
-    margin-bottom: 30px;
 }
 
 .demoVideoButton {
@@ -137,7 +137,8 @@
 }
 
 .navLink {
-    color: #888888;
+    font-family: var(--header-font-family);
+    color: var(--color-gray-500);
     margin: 10px;
     font-size: 16px;
 }

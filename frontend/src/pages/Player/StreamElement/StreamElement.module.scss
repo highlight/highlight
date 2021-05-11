@@ -8,17 +8,18 @@
 }
 
 .streamElement {
+    font-family: var(--body-font-family);
     border-radius: 6px;
     width: 100%;
     height: 100%;
-    color: black;
+    color: var(--text-primary);
     display: grid;
     grid-template-columns: 100px 1fr min-content;
     padding: 5px 10px 5px 10px;
     align-items: center;
-    color: #959595;
+    color: var(--color-gray-500);
     background-color: inherit;
-    fill: #959595;
+    fill: var(--color-gray-500);
     margin-top: 6px;
     margin-bottom: 6px;
     cursor: pointer;

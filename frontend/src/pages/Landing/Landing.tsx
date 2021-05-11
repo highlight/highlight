@@ -120,9 +120,9 @@ const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
                 ></Modal>
                 <div className={styles.landingWrapper}>
                     <div className={styles.landing}>
-                        <h2 className={styles.header}>
+                        <h1 className={styles.header}>
                             Understand your app, with clarity.
-                        </h2>
+                        </h1>
                         <h3 className={styles.subHeader}>
                             Get full transparency into the errors, interactions,
                             and performance metrics on your frontend.

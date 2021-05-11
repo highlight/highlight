@@ -58,30 +58,29 @@
 }
 
 .topText {
-    color: #a8a8a8;
+    color: var(--color-gray-500);
     font-size: 12px;
-    font-weight: 200;
-    margin: 4px 0 4px 0;
+    font-weight: 200 !important;
+    margin: 4px 0 4px 0 !important;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
 .middleText {
-    color: black;
-    font-weight: 300;
+    color: var(--text-primary);
     font-size: 14px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    margin: 4px 0 8px 0;
+    margin: 4px 0 8px 0 !important;
 }
 
 .bottomText {
-    color: black;
+    color: var(--text-primary);
     font-size: 12px;
-    font-weight: 200;
-    margin: 4px 0 4px 0;
+    font-weight: 300;
+    margin: 4px 0 4px 0 !important;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
