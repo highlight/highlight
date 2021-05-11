@@ -173,18 +173,18 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	unmarshalMessagesSpan.Finish()
 
 	// unmarshal resources
-	unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.unmarshal.resources"))
-	resourcesParsed := make(map[string][]interface{})
-	if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
-		return nil, fmt.Errorf("error decoding resource data: %v", err)
-	}
-	if len(resourcesParsed["resources"]) > 0 {
-		obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
-		if err := r.DB.Create(obj).Error; err != nil {
-			return nil, e.Wrap(err, "error creating resources object")
-		}
-	}
-	unmarshalResourcesSpan.Finish()
+	// unmarshalResourcesSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.unmarshal.resources"))
+	// resourcesParsed := make(map[string][]interface{})
+	// if err := json.Unmarshal([]byte(resources), &resourcesParsed); err != nil {
+	// 	return nil, fmt.Errorf("error decoding resource data: %v", err)
+	// }
+	// if len(resourcesParsed["resources"]) > 0 {
+	// 	obj := &model.ResourcesObject{SessionID: sessionID, Resources: resources}
+	// 	if err := r.DB.Create(obj).Error; err != nil {
+	// 		return nil, e.Wrap(err, "error creating resources object")
+	// 	}
+	// }
+	// unmarshalResourcesSpan.Finish()
 
 	// increment daily error table
 	if len(errors) > 0 {
