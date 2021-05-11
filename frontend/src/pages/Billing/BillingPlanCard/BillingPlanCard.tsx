@@ -37,7 +37,11 @@ export const BillingPlanCard = ({
                 {advertisedFeatureDivs}
             </div>
 
-            <Button disabled={current} onClick={onSelect}>
+            <Button
+                disabled={current}
+                onClick={onSelect}
+                className={styles.button}
+            >
                 {current
                     ? 'Current plan'
                     : `Select ${billingPlan.planName} Plan`}
