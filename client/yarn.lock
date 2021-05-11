@@ -1843,10 +1843,10 @@
     is-promise "4.0.0"
     tslib "~2.0.1"
 
-"@highlight-run/rrweb@0.11.2":
-  version "0.11.2"
-  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.11.2.tgz#7b5dd5eedb54b7e66d4fc9e9922b5f8a9498742f"
-  integrity sha512-J9/P/fWi0rJ5eeILokhYNTpOa8jIgHvqaWlEEIbrVu2x2N71QUm8tW48S520qhmr3oO+NwcxWMst2yLdP47ZQQ==
+"@highlight-run/rrweb@0.11.3":
+  version "0.11.3"
+  resolved "https://registry.yarnpkg.com/@highlight-run/rrweb/-/rrweb-0.11.3.tgz#4b674b0c5dc068cda149db254974c5d2f7f52673"
+  integrity sha512-3LBSKRUwLytlyfj2wJR2BeJiZQTXqM622FtQauO+PH7labea+VCB6dKCLJngLKU/L7WBmxH/7UyL0e6893vSiA==
   dependencies:
     "@types/css-font-loading-module" "0.0.4"
     "@xstate/fsm" "^1.4.0"
@@ -2136,6 +2136,11 @@
   integrity sha512-Vs0hm0vPahPMYi9tDjtP66llufgO3ST16WXaSTtDGEl9cewAl3AibmxWw6TINOqHPT9z0uABKAYjT9jNSg4npw==
   dependencies:
     "@babel/types" "^7.3.0"
+
+"@types/clientjs@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@types/clientjs/-/clientjs-0.1.0.tgz#ca79f0ed0e2426fe0e74cca77a86d11309a0fcc2"
+  integrity sha512-kTBRwtvsOcRoEMKXtozlfBZ3XtC5QJKGGqZJl5WOMc8SJCFswE74aYA3WtvUWFNLepPhvodGwEJzLVZ7SUnEqw==
 
 "@types/color-name@^1.1.1":
   version "1.1.1"
@@ -3336,6 +3341,11 @@ cli-width@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/cli-width/-/cli-width-3.0.0.tgz#a2f48437a2caa9a22436e794bf071ec9e61cedf6"
   integrity sha512-FxqpkPPwu1HjuN93Omfm4h8uIanXofW0RxVEW3k5RKx+mJJYSthzNhp32Kzxxy3YAEZ/Dc/EWN1vZRY0+kOhbw==
+
+clientjs@^0.1.11:
+  version "0.1.11"
+  resolved "https://registry.yarnpkg.com/clientjs/-/clientjs-0.1.11.tgz#466e1b13c229a3cbbd8484f98531dcd658f81054"
+  integrity sha1-Rm4bE8Ipo8u9hIT5hTHc1lj4EFQ=
 
 cliui@^5.0.0:
   version "5.0.0"

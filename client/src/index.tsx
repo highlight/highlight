@@ -27,6 +27,7 @@ import { SegmentIntegrationListener } from './listeners/segment-integration-list
 import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
+import 'clientjs';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -277,6 +278,12 @@ export class Highlight {
                 this.sessionData = storedSessionData;
                 reloaded = true;
             } else {
+                // @ts-ignore
+                const client = new ClientJS();
+                let fingerprint = 0;
+                if ('getFingerprint' in client) {
+                    fingerprint = client.getFingerprint();
+                }
                 const gr = await this.graphqlSDK.initializeSession({
                     organization_verbose_id: this.organizationID,
                     enable_strict_privacy: this.enableStrictPrivacy,
@@ -284,6 +291,7 @@ export class Highlight {
                     firstloadVersion: this.firstloadVersion,
                     clientConfig: JSON.stringify(this._optionsInternal),
                     environment: this.environment,
+                    id: fingerprint.toString(),
                 });
                 this.sessionData.sessionID = parseInt(
                     gr?.initializeSession?.id || '0'
