@@ -41,6 +41,7 @@
         "html2canvas": "^1.0.0-rc.7",
         "inflight": "^1.0.6",
         "logrocket": "^1.0.14",
+        "lottie-react": "^2.1.0",
         "moment": "^2.29.1",
         "mousetrap": "^1.6.5",
         "node-sass": "4.14.1",
