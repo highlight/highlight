@@ -241,6 +241,11 @@ export type UserPropertyInput = {
     value: Scalars['String'];
 };
 
+export type User = {
+    __typename?: 'User';
+    id: Scalars['ID'];
+};
+
 export type Admin = {
     __typename?: 'Admin';
     id: Scalars['ID'];
