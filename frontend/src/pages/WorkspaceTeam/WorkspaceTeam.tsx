@@ -14,6 +14,7 @@ import {
     useSendAdminInviteMutation,
 } from '../../graph/generated/hooks';
 import Button from '../../components/Button/Button/Button';
+import useLocalStorage from '@rehooks/local-storage';
 
 type Inputs = {
     email: string;
@@ -29,6 +30,10 @@ export const WorkspaceTeam = () => {
     const { data, error, loading } = useGetAdminsQuery({
         variables: { organization_id },
     });
+    const [, setHasStartedOnboarding] = useLocalStorage(
+        `highlight-started-onboarding-${organization_id}`,
+        false
+    );
 
     const [
         sendInviteEmail,
@@ -40,6 +45,7 @@ export const WorkspaceTeam = () => {
     }, [reset]);
 
     const onSubmit = (data: Inputs) => {
+        setHasStartedOnboarding(true);
         sendInviteEmail({
             variables: {
                 organization_id,

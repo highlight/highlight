@@ -128,3 +128,19 @@
         font-weight: 400;
     }
 }
+
+.emptyStateContainer {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    width: 80%;
+    margin: 0 auto;
+    height: 300px;
+    justify-content: center;
+    align-items: center;
+}
+
+.animation {
+    height: 100px;
+    margin-bottom: var(--size-large);
+}

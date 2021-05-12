@@ -10,7 +10,7 @@ import {
     useGetAdminQuery,
     useGetOnboardingStepsQuery,
 } from '../../graph/generated/hooks';
-import { ReactComponent as CheckIcon } from '../../static/verify-check.svg';
+import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg';
 import Button from '../Button/Button/Button';
 import PillButton from '../Button/PillButton/PillButton';
 import Popover from '../Popover/Popover';
@@ -32,6 +32,10 @@ const OnboardingBubble = () => {
     }>();
     const [, setHasFinishedOnboarding] = useLocalStorage(
         `highlight-finished-onboarding-${organization_id}`,
+        false
+    );
+    const [hasStartedOnboarding] = useLocalStorage(
+        `highlight-started-onboarding-${organization_id}`,
         false
     );
     const [steps, setSteps] = useState<OnboardingStep[]>([]);
@@ -110,7 +114,12 @@ const OnboardingBubble = () => {
             setStepsNotFinishedCount(stepsNotFinishedCount);
 
             // Don't show the onboarding bubble if all the steps are completed.
-            if (!loading && called && stepsNotFinishedCount === 0) {
+            if (
+                !loading &&
+                called &&
+                stepsNotFinishedCount === 0 &&
+                hasStartedOnboarding
+            ) {
                 setRainConfetti(true);
                 message.success('You have finished onboarding 👏');
                 setTimeout(() => {
@@ -128,6 +137,7 @@ const OnboardingBubble = () => {
     }, [
         called,
         data,
+        hasStartedOnboarding,
         history,
         loading,
         organization_id,

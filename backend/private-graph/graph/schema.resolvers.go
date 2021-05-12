@@ -179,11 +179,6 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating new recording settings")
 	}
-	msg := slack.WebhookMessage{Text: fmt.
-		Sprintf("```NEW WORKSPACE \nid: %v\nname: %v\nadmin_email: %v```", org.ID, *org.Name, *admin.Email)}
-	if err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg); err != nil {
-		log.Errorf("error sending slack hook: %v", err)
-	}
 	return org, nil
 }
 
@@ -390,11 +385,6 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 
 func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (string, error) {
 	model.DB.Create(&model.EmailSignup{Email: email})
-	msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SIGNUP \nemail: %v\n```", email)}
-	err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
-	if err != nil {
-		return "", e.Wrap(err, "error sending slack hook")
-	}
 	return email, nil
 }
 
@@ -1212,11 +1202,11 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
-			whereClause += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min*60000)
+			whereClause += fmt.Sprintf("AND (active_length >= %d) ", *params.LengthRange.Min*60000)
 		}
 		if params.LengthRange.Max != nil {
 			if *params.LengthRange.Max != 60 && *params.LengthRange.Max != 0 {
-				whereClause += fmt.Sprintf("AND (length < %d) ", *params.LengthRange.Max*60000)
+				whereClause += fmt.Sprintf("AND (active_length <= %d) ", *params.LengthRange.Max*60000)
 			}
 		}
 	}
@@ -1300,8 +1290,15 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	var queriedSessionsCount model.SessionCount
 
 	g.Go(func() error {
+		whereClauseSuffix := "AND NOT ((processed = true AND length < 1000)) "
 		// Filter out sessions that are processed but have a length of 1000 (1 second).
-		whereClause += "AND NOT ((processed = true AND length < 1000)) "
+		if params.LengthRange != nil {
+			if params.LengthRange.Min != nil || params.LengthRange.Max != nil {
+				whereClauseSuffix = "AND processed = true "
+			}
+
+		}
+		whereClause += whereClauseSuffix
 		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsQuery"))
 
 		if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {

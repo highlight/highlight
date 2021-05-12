@@ -11,8 +11,12 @@ import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
 import Dot from '../../Dot/Dot';
+import { Link, useParams } from 'react-router-dom';
+import Lottie from 'lottie-react';
+import NotificationAnimation from '../../../lottie/notification.json';
 
 const Notifications = () => {
+    const { organization_id } = useParams<{ organization_id: string }>();
     const [notifications, setNotifications] = useState<any[]>([]);
     const [
         unreadNotificationsCount,
@@ -39,7 +43,7 @@ const Notifications = () => {
         setUnreadNotificationsCount(unreadCount);
     }, [notifications, readNotifications]);
 
-    if (loading || notifications.length === 0) {
+    if (loading) {
         return null;
     }
 
@@ -50,29 +54,48 @@ const Notifications = () => {
             isList
             content={
                 <div className={styles.popover}>
-                    <PopoverListContent
-                        listItems={notifications.map((notification, index) => (
-                            <NotificationItem
-                                notification={notification}
-                                key={notification?.id || index}
-                                viewed={readNotifications.includes(
-                                    notification.id
-                                )}
-                                onViewHandler={() => {
-                                    if (notification.id) {
-                                        H.track(
-                                            'Clicked on notification item',
-                                            {}
-                                        );
-                                        setReadNotifications([
-                                            ...readNotifications,
-                                            notification.id.toString(),
-                                        ]);
-                                    }
-                                }}
+                    {notifications.length !== 0 ? (
+                        <PopoverListContent
+                            listItems={notifications.map(
+                                (notification, index) => (
+                                    <NotificationItem
+                                        notification={notification}
+                                        key={notification?.id || index}
+                                        viewed={readNotifications.includes(
+                                            notification.id
+                                        )}
+                                        onViewHandler={() => {
+                                            if (notification.id) {
+                                                H.track(
+                                                    'Clicked on notification item',
+                                                    {}
+                                                );
+                                                setReadNotifications([
+                                                    ...readNotifications,
+                                                    notification.id.toString(),
+                                                ]);
+                                            }
+                                        }}
+                                    />
+                                )
+                            )}
+                        />
+                    ) : (
+                        <div className={styles.emptyStateContainer}>
+                            <Lottie
+                                animationData={NotificationAnimation}
+                                className={styles.animation}
+                                loop={false}
                             />
-                        ))}
-                    />
+                            <p>
+                                You don’t have any mentions yet.{' '}
+                                <Link to={`/${organization_id}/team`}>
+                                    Invite your team
+                                </Link>{' '}
+                                to mention them in comments.
+                            </p>
+                        </div>
+                    )}
                 </div>
             }
             onVisibleChange={(visible) => {

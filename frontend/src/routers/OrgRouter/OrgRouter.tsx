@@ -6,7 +6,6 @@ import { useIntegrated } from '../../util/integrated';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
 
 import commonStyles from '../../Common.module.scss';
-import { Duration, MillisToDaysHoursMinSeconds } from '../../util/time';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
 import ApplicationRouter from './ApplicationRouter';
@@ -19,9 +18,6 @@ import useLocalStorage from '@rehooks/local-storage';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const [trialTimeRemaining, setTrialTimeRemaining] = useState<
-        Duration | undefined
-    >(undefined);
     const { loading, error, data } = useGetOrganizationQuery({
         variables: { id: organization_id },
     });
@@ -57,15 +53,6 @@ export const OrgRouter = () => {
     };
 
     useEffect(() => {
-        const diff =
-            new Date(data?.organization?.trial_end_date ?? 0).valueOf() -
-            Date.now().valueOf();
-        const trialTimeRemaining =
-            diff > 0 ? MillisToDaysHoursMinSeconds(diff) : undefined;
-        setTrialTimeRemaining(trialTimeRemaining);
-    }, [data]);
-
-    useEffect(() => {
         window.Intercom('update', {
             hide_default_launcher: true,
         });
@@ -87,7 +74,7 @@ export const OrgRouter = () => {
                 toggleSidebar,
             }}
         >
-            <Header trialTimeRemaining={trialTimeRemaining} />
+            <Header />
             <div className={commonStyles.bodyWrapper}>
                 {error || !data?.organization ? (
                     <ErrorState

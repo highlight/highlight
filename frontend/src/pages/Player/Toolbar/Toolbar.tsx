@@ -279,100 +279,113 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                 <div className={styles.toolbarLeftSection}>
                     <Tooltip
                         title={isPaused ? 'Play (space)' : 'Pause (space)'}
+                        align={{ offset: [8, 0] }}
                     >
-                        <button
-                            className={classNames(
-                                styles.playSection,
-                                styles.button
-                            )}
-                            disabled={disableControls || disablePlayButton}
-                            onClick={() => {
-                                if (isPaused) {
-                                    play(time);
-                                } else {
-                                    pause(time);
-                                }
-                            }}
-                        >
-                            {isPaused ? (
-                                <SvgPlayIcon
+                        <div>
+                            <button
+                                className={classNames(
+                                    styles.playSection,
+                                    styles.button
+                                )}
+                                disabled={disableControls || disablePlayButton}
+                                onClick={() => {
+                                    if (isPaused) {
+                                        play(time);
+                                    } else {
+                                        pause(time);
+                                    }
+                                }}
+                            >
+                                {isPaused ? (
+                                    <SvgPlayIcon
+                                        fill="inherit"
+                                        className={classNames(
+                                            styles.playButtonStyle,
+                                            styles.icon
+                                        )}
+                                    />
+                                ) : (
+                                    <FaPause
+                                        fill="inherit"
+                                        className={classNames(
+                                            styles.playButtonStyle,
+                                            styles.icon
+                                        )}
+                                    />
+                                )}
+                            </button>
+                        </div>
+                    </Tooltip>
+
+                    <Tooltip
+                        title="Skip 5 seconds backward (Left arrow)"
+                        align={{ offset: [12, 0] }}
+                    >
+                        <div>
+                            <button
+                                className={classNames(
+                                    styles.undoSection,
+                                    styles.button
+                                )}
+                                disabled={disableControls}
+                                onClick={() => {
+                                    const newTime = getNewTimeWithSkip({
+                                        time,
+                                        direction: 'backwards',
+                                    });
+                                    if (isPaused) {
+                                        pause(newTime);
+                                    } else {
+                                        play(newTime);
+                                    }
+                                }}
+                            >
+                                <SvgUndoIcon
                                     fill="inherit"
                                     className={classNames(
-                                        styles.playButtonStyle,
+                                        styles.skipButtonStyle,
                                         styles.icon
                                     )}
                                 />
-                            ) : (
-                                <FaPause
+                            </button>
+                        </div>
+                    </Tooltip>
+
+                    <Tooltip
+                        title="Skip 5 seconds forward (Right arrow)"
+                        align={{ offset: [12, 0] }}
+                    >
+                        <div>
+                            <button
+                                className={classNames(
+                                    styles.redoSection,
+                                    styles.button
+                                )}
+                                disabled={disableControls}
+                                onClick={() => {
+                                    const totalTime =
+                                        replayer?.getMetaData().totalTime ?? 0;
+                                    const newTime = getNewTimeWithSkip({
+                                        time,
+                                        totalTime,
+                                        direction: 'forwards',
+                                    });
+                                    if (isPaused) {
+                                        pause(newTime);
+                                    } else {
+                                        play(newTime);
+                                    }
+                                }}
+                            >
+                                <SvgRedoIcon
                                     fill="inherit"
                                     className={classNames(
-                                        styles.playButtonStyle,
+                                        styles.skipButtonStyle,
                                         styles.icon
                                     )}
                                 />
-                            )}
-                        </button>
-                    </Tooltip>
-
-                    <Tooltip title="Skip 5 seconds backward (Left arrow)">
-                        <button
-                            className={classNames(
-                                styles.undoSection,
-                                styles.button
-                            )}
-                            disabled={disableControls}
-                            onClick={() => {
-                                const newTime = getNewTimeWithSkip({
-                                    time,
-                                    direction: 'backwards',
-                                });
-                                if (isPaused) {
-                                    pause(newTime);
-                                } else {
-                                    play(newTime);
-                                }
-                            }}
-                        >
-                            <SvgUndoIcon
-                                fill="inherit"
-                                className={classNames(
-                                    styles.skipButtonStyle,
-                                    styles.icon
-                                )}
-                            />
-                        </button>
-                    </Tooltip>
-
-                    <Tooltip title="Skip 5 seconds forward (Right arrow)">
-                        <button
-                            className={classNames(
-                                styles.redoSection,
-                                styles.button
-                            )}
-                            disabled={disableControls}
-                            onClick={() => {
-                                const totalTime =
-                                    replayer?.getMetaData().totalTime ?? 0;
-                                const newTime = getNewTimeWithSkip({
-                                    time,
-                                    totalTime,
-                                    direction: 'forwards',
-                                });
-                                if (isPaused) {
-                                    pause(newTime);
-                                } else {
-                                    play(newTime);
-                                }
-                            }}
-                        >
-                            <SvgRedoIcon
-                                fill="inherit"
-                                className={classNames(
-                                    styles.skipButtonStyle,
-                                    styles.icon
-                                )}
-                            />
-                        </button>
+                            </button>
+                        </div>
                     </Tooltip>
                     <div className={styles.timeSection}>
                         {disableControls ? (

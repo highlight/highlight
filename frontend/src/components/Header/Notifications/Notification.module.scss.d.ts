@@ -1,5 +1,7 @@
+export const animation: string;
 export const button: string;
 export const dotContainer: string;
+export const emptyStateContainer: string;
 export const iconContainer: string;
 export const list: string;
 export const notification: string;
