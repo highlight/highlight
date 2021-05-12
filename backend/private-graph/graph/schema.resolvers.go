@@ -1202,11 +1202,11 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 	if params.LengthRange != nil {
 		if params.LengthRange.Min != nil {
-			whereClause += fmt.Sprintf("AND (length > %d) ", *params.LengthRange.Min*60000)
+			whereClause += fmt.Sprintf("AND (length >= %d) ", *params.LengthRange.Min*60000)
 		}
 		if params.LengthRange.Max != nil {
 			if *params.LengthRange.Max != 60 && *params.LengthRange.Max != 0 {
-				whereClause += fmt.Sprintf("AND (length < %d) ", *params.LengthRange.Max*60000)
+				whereClause += fmt.Sprintf("AND (length <= %d) ", *params.LengthRange.Max*60000)
 			}
 		}
 	}
@@ -1290,8 +1290,15 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	var queriedSessionsCount model.SessionCount
 
 	g.Go(func() error {
+		whereClauseSuffix := "AND NOT ((processed = true AND length < 1000)) "
 		// Filter out sessions that are processed but have a length of 1000 (1 second).
-		whereClause += "AND NOT ((processed = true AND length < 1000)) "
+		if params.LengthRange != nil {
+			if params.LengthRange.Min != nil || params.LengthRange.Max != nil {
+				whereClauseSuffix = "AND processed = true "
+			}
+
+		}
+		whereClause += whereClauseSuffix
 		sessionsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsQuery"))
 
 		if err := r.DB.Raw(fmt.Sprintf("%s %s %s ORDER BY created_at DESC LIMIT %d", sessionsQueryPreamble, joinClause, whereClause, count)).Scan(&queriedSessions).Error; err != nil {
