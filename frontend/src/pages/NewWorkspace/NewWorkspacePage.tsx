@@ -42,10 +42,10 @@ export const NewWorkspacePage = () => {
     return (
         <div className={styles.box}>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <div className={styles.title}>Create a Workspace</div>
-                <div className={styles.subTitle}>
+                <h2 className={styles.title}>Create a Workspace</h2>
+                <p className={styles.subTitle}>
                     Enter the name of your workspace and you'll be good to go!
-                </div>
+                </p>
                 <input
                     placeholder={'Workspace Name'}
                     name="name"
