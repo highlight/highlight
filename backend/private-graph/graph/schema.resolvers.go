@@ -385,11 +385,6 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 
 func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (string, error) {
 	model.DB.Create(&model.EmailSignup{Email: email})
-	msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SIGNUP \nemail: %v\n```", email)}
-	err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
-	if err != nil {
-		return "", e.Wrap(err, "error sending slack hook")
-	}
 	return email, nil
 }
 
