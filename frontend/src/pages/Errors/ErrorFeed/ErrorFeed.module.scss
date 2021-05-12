@@ -174,7 +174,7 @@
 
     &:hover {
         cursor: pointer;
-        background-color: #eaeaea;
+        background-color: var(--color-gray-300);
 
         .actionIcon {
             color: var(--text-primary);

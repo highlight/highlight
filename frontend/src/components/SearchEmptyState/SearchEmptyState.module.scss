@@ -1,7 +1,5 @@
-@import 'src/static/shared.scss';
-
 .emptyStateSection {
-    border: 1px solid #eaeaea;
+    border: 1px solid var(--color-gray-300);
     width: max-content;
     padding: 20px;
     border-radius: 8px;

@@ -107,7 +107,9 @@ const OnPremiseBanner = () => {
     return (
         <div
             className={styles.trialWrapper}
-            style={{ backgroundColor: 'black' }}
+            style={{
+                backgroundColor: 'var(--color-primary-inverted-background',
+            }}
         >
             <Banner className={styles.bannerSvg} style={{ fill: 'black' }} />
             <div className={classNames(styles.trialTimeText)}>

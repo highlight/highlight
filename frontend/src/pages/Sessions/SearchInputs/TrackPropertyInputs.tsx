@@ -46,13 +46,13 @@ export const TrackPropertyInput = () => {
                 styles={{
                     control: (provided) => ({
                         ...provided,
-                        borderColor: '#eaeaea',
+                        borderColor: 'var(--color-gray-300)',
                         borderRadius: 8,
                         minHeight: 45,
                     }),
                     multiValue: (provided) => ({
                         ...provided,
-                        backgroundColor: '#F2EEFB',
+                        backgroundColor: 'var(--color-gray-200)',
                     }),
                 }}
                 cacheOptions
@@ -80,7 +80,7 @@ export const TrackPropertyInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <UserIcon fill="#808080" />
+                            <UserIcon fill="var(--color-gray-500)" />
                         </div>
                     ),
                     Option: (props) => <PropertyOption {...props} />,

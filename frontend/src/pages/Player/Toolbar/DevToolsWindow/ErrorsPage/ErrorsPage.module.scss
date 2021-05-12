@@ -1,12 +1,10 @@
-@import 'src/static/shared.scss';
-
 #topBar {
     grid-template-columns: 1fr;
 }
 
 .errorList {
     flex-grow: 1;
-    border-left: 1px solid #eaeaea;
+    border-left: 1px solid var(--color-gray-300);
     margin-left: 1px;
     height: 100%;
 }

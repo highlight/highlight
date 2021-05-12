@@ -6,7 +6,7 @@ export const SharedSelectStyleProps: Styles<
 > = {
     control: (provided) => ({
         ...provided,
-        borderColor: '#eaeaea',
+        borderColor: 'var(--color-gray-300)',
         borderRadius: 8,
         minHeight: 45,
     }),

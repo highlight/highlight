@@ -24,8 +24,8 @@
         }
 
         &:hover {
-            background: #f5f5f5;
-            --color-primary-background: #f5f5f5;
+            background: var(--color-gray-200);
+            --color-primary-background: var(--color-gray-200);
         }
 
         p,

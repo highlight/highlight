@@ -47,7 +47,7 @@
 }
 
 .emptyStateSection {
-    border: 1px solid #eaeaea;
+    border: 1px solid var(--color-gray-300);
     width: max-content;
     padding: 20px;
     border-radius: 8px;
@@ -233,7 +233,7 @@
 
     &:hover {
         cursor: pointer;
-        background-color: #eaeaea;
+        background-color: var(--color-gray-300);
 
         .actionIcon {
             color: var(--text-primary);
@@ -273,9 +273,9 @@
 }
 
 .starredIcon {
-    stroke: #ffd82c;
-    color: #ffd82c;
-    fill: #ffd82c;
+    stroke: var(--color-yellow-200);
+    color: var(--color-yellow-200);
+    fill: var(--color-yellow-200);
 }
 
 .sessionCard {

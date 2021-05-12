@@ -82,7 +82,7 @@
 
 .searchIcon {
     margin: 14px;
-    color: #979696;
+    color: var(--color-gray-500);
 }
 
 .searchIconWrapper {
@@ -178,7 +178,7 @@
 .optionsValue {
     font-size: 16px;
     font-weight: 300;
-    color: #a4a4a4;
+    color: var(--color-gray-400);
 }
 
 .optionsSection {

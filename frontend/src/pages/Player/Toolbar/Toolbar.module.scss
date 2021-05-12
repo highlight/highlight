@@ -1,5 +1,3 @@
-@import 'src/static/shared.scss';
-
 .sliderWrapper {
     width: 100%;
     z-index: 20;
@@ -91,7 +89,7 @@
 .dropdownInner {
     background-color: var(--color-primary-background);
     border-radius: 5px;
-    border: 1px solid #eaeaea;
+    border: 1px solid var(--color-gray-300);
     min-width: 180px;
     margin-top: 9px;
     box-shadow: 2px 2px 8px #e4e4e4;
@@ -136,7 +134,7 @@
     display: flex;
     flex-direction: row;
     z-index: 30;
-    border-left: 1px solid #eaeaea;
+    border-left: 1px solid var(--color-gray-300);
 }
 
 .playSection {
@@ -174,7 +172,7 @@
 .verticalDivider {
     height: 80%;
     width: 1px;
-    background-color: #dedede;
+    background-color: var(--color-gray-300);
     margin: 5px;
 }
 
@@ -261,12 +259,12 @@
     }
 
     &:disabled .icon {
-        color: #dfdfdf;
-        fill: #dfdfdf;
+        color: var(--color-gray-400);
+        fill: var(--color-gray-400);
 
         &:hover {
-            color: #dfdfdf;
-            fill: #dfdfdf;
+            color: var(--color-gray-400);
+            fill: var(--color-gray-400);
         }
     }
 

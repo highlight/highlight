@@ -52,7 +52,12 @@ export const NewMemberPage = () => {
                 }}
             >
                 {addLoading ? (
-                    <CircularSpinner style={{ fontSize: 18, color: 'white' }} />
+                    <CircularSpinner
+                        style={{
+                            fontSize: 18,
+                            color: 'var(--text-primary-inverted)',
+                        }}
+                    />
                 ) : (
                     'Enter Workspace'
                 )}

@@ -50,7 +50,12 @@ export const StackSection: React.FC<StackSectionProps> = ({
                     >
                         {fileName}
                     </span>
-                    <span style={{ fontWeight: 300, color: '#808080' }}>
+                    <span
+                        style={{
+                            fontWeight: 300,
+                            color: 'var(--color-gray-500)',
+                        }}
+                    >
                         &nbsp;in&nbsp;
                     </span>
                     <span
@@ -59,7 +64,12 @@ export const StackSection: React.FC<StackSectionProps> = ({
                     >
                         {functionName}
                     </span>
-                    <span style={{ fontWeight: 300, color: '#808080' }}>
+                    <span
+                        style={{
+                            fontWeight: 300,
+                            color: 'var(--color-gray-500)',
+                        }}
+                    >
                         &nbsp;at line&nbsp;
                     </span>
                     <span>

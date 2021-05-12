@@ -1,5 +1,4 @@
 @import 'src/components/Button/GoToButton/index.module.scss';
-@import 'src/static/shared.scss';
 
 .consoleButton {
     height: 30px;
@@ -43,7 +42,7 @@
     display: grid;
     grid-template-columns: 25px 1fr $go-to-button-width;
     word-break: break-all;
-    border-bottom: 1px solid #eaeaea;
+    border-bottom: 1px solid var(--color-gray-300);
     font-weight: 400;
     font-size: 12px;
     padding-bottom: 8px;

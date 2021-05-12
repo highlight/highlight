@@ -1,5 +1,4 @@
 @import 'src/components/Button/GoToButton/index.module.scss';
-@import 'src/static/shared.scss';
 
 $columns: 50px 50% 90px 90px 1fr $go-to-button-width;
 $right-padding: 12px;
@@ -33,7 +32,7 @@ $right-padding: 12px;
 .networkTableWrapper {
     height: calc(100% - 45px);
     position: relative;
-    border-left: 1px solid #eaeaea;
+    border-left: 1px solid var(--color-gray-300);
     margin-left: 1px;
 }
 

@@ -36,9 +36,9 @@
 
 .mentions__suggestions__list {
   width: 300px;
-  background: #f5f5f5;
+  background: var(--color-gray-200);
   padding: 5px 12px;
-  background: #fff;
+  background: var(--color-primary-background);
   border-radius: 2px;
   box-shadow: 0 3px 6px -4px rgb(0 0 0 / 12%), 0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);
 }
@@ -48,7 +48,7 @@
 }
 
 .mentions__suggestions__item--focused {
-  background: #f5f5f5;
+  background: var(--color-gray-200);
 }
 
 .mentions__mention {

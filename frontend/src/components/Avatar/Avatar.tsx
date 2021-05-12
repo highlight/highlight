@@ -66,7 +66,7 @@ export const AdminAvatar = ({
                 <div
                     style={{
                         backgroundColor: generateRandomColor(identifier),
-                        color: 'white',
+                        color: 'var(--text-primary-inverted)',
                         height: size,
                         width: size,
                     }}

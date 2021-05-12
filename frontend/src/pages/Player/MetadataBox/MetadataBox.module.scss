@@ -112,9 +112,9 @@
 }
 
 .starredIcon {
-    stroke: #ffd82c;
-    color: #ffd82c;
-    fill: #ffd82c;
+    stroke: var(--color-yellow-200);
+    color: var(--color-yellow-200);
+    fill: var(--color-yellow-200);
 }
 
 .unstarredIcon {

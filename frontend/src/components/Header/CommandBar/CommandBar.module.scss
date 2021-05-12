@@ -45,7 +45,7 @@
 }
 
 .suggestionHighlighted {
-    color: #fff;
+    color: var(--color-primary-background);
     background: #3a3f4b;
     border-left: 3px solid var(--color-purple);
 }

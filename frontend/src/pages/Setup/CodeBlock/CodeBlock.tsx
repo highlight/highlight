@@ -30,7 +30,7 @@ export const CodeBlock = ({
                                 marginRight: 3,
                                 height: 14,
                                 width: 14,
-                                color: 'grey',
+                                color: 'var(--color-gray-500)',
                             }}
                         />
                     </span>

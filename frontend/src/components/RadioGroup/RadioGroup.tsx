@@ -18,9 +18,9 @@ export const RadioGroup = <T extends any>({
             <div
                 key={i}
                 style={{
-                    borderColor: '#5629c6',
-                    backgroundColor: '#5629c6',
-                    color: 'white',
+                    borderColor: 'var(--color-purple)',
+                    backgroundColor: 'var(--color-purple)',
+                    color: 'var(--text-primary-inverted)',
                 }}
                 className={styles.platformOption}
                 onClick={() => onSelect(label)}
@@ -32,8 +32,8 @@ export const RadioGroup = <T extends any>({
             <div
                 key={i}
                 style={{
-                    borderColor: '#eaeaea',
-                    color: 'black',
+                    borderColor: 'var(--color-gray-300)',
+                    color: 'var(--text-primary)',
                 }}
                 className={styles.platformOption}
                 onClick={() => onSelect(label)}

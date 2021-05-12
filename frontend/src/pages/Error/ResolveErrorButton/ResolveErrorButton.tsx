@@ -37,7 +37,12 @@ export const ResolveErrorButton: React.FC<{
             style={{ outline: 'none' }}
         >
             {loading ? (
-                <CircularSpinner style={{ fontSize: 18, color: 'white' }} />
+                <CircularSpinner
+                    style={{
+                        fontSize: 18,
+                        color: 'var(--text-primary-inverted)',
+                    }}
+                />
             ) : resolved ? (
                 'Mark as Unresolved'
             ) : (

@@ -19,7 +19,8 @@
     width: 50px;
     border-radius: 8px 0 0 8px;
     border-width: 1px;
-    border-color: #eaeaea white #eaeaea #eaeaea;
+    border-color: var(--color-gray-300) white var(--color-gray-300)
+        var(--color-gray-300);
     border-style: solid;
     display: flex;
     align-items: center;
@@ -32,10 +33,11 @@
 }
 
 .titleSection {
-    border: 1px solid #eaeaea;
+    border: 1px solid var(--color-gray-300);
     padding: 20px 20px 0px 20px;
     border-radius: 8px 8px 0 0;
-    border-color: #eaeaea #eaeaea white #eaeaea;
+    border-color: var(--color-gray-300) var(--color-gray-300) white
+        var(--color-gray-300);
 }
 
 .sideTabVisible {

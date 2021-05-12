@@ -58,7 +58,10 @@ export const RequestAccessPage = () => {
                 >
                     {loading ? (
                         <CircularSpinner
-                            style={{ fontSize: 18, color: 'white' }}
+                            style={{
+                                fontSize: 18,
+                                color: 'var(--text-primary-inverted)',
+                            }}
                         />
                     ) : (
                         'Request Access'

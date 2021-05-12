@@ -478,8 +478,12 @@ const SessionSegment = ({
     ] = useLocalStorage('highlightTimelineAnnotationTypes', [
         ...EventsForTimeline,
     ]);
-    const playedColor = interval.active ? '#5629c6' : '#808080';
-    const unplayedColor = interval.active ? '#EEE7FF' : '#d2d2d2';
+    const playedColor = interval.active
+        ? 'var(--color-purple)'
+        : 'var(--color-gray-500)';
+    const unplayedColor = interval.active
+        ? 'var(--color-purple-200)'
+        : 'var(--color-gray-400)';
     const currentRawPercent =
         (time - interval.startTime) / (interval.endTime - interval.startTime);
     const isPercentInInterval = (

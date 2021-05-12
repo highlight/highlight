@@ -55,10 +55,10 @@ export const StreamElement = ({
                 style={{
                     backgroundColor:
                         hover && !selected && !isCurrent
-                            ? '#efefef7d'
+                            ? 'var(--color-gray-100)'
                             : isCurrent
-                            ? '#5629c6'
-                            : 'white',
+                            ? 'var(--color-purple)'
+                            : 'var(--color-primary-background)',
                 }}
                 key={e.identifier}
                 id={e.identifier}

@@ -110,7 +110,10 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                         >
                             {loading ? (
                                 <CircularSpinner
-                                    style={{ fontSize: 18, color: 'white' }}
+                                    style={{
+                                        fontSize: 18,
+                                        color: 'var(--text-primary-inverted)',
+                                    }}
                                 />
                             ) : (
                                 'Save As Segment'
@@ -144,7 +147,10 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                     >
                         {editSegmentOptions.loading ? (
                             <CircularSpinner
-                                style={{ fontSize: 18, color: 'white' }}
+                                style={{
+                                    fontSize: 18,
+                                    color: 'var(--text-primary-inverted)',
+                                }}
                             />
                         ) : (
                             'Update Current Segment'
