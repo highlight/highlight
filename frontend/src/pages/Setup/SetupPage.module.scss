@@ -9,7 +9,7 @@
     margin-right: -4px;
     height: 16px;
     width: 16px;
-    color: #5629c6;
+    color: var(--color-purple);
     margin-top: 6px;
     float: right;
     cursor: pointer;
@@ -38,7 +38,7 @@
 
 .callout {
     border-radius: 4px;
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
     line-height: 2;
     display: flex;
 }

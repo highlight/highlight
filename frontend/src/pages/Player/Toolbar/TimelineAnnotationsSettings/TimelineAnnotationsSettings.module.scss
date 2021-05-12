@@ -5,7 +5,7 @@
     background: none;
     cursor: pointer;
     width: 145px;
-    padding: $size-xSmall $size-medium;
+    padding: var(--size-xSmall) var(--size-medium);
 }
 
 .eventTypesContainer {
@@ -20,15 +20,15 @@
 .eventType {
     height: 14px;
     width: 14px;
-    margin-left: -$size-xSmall;
+    margin-left: calc(var(--size-xSmall) * -1);
     border: 0.5px solid var(--color-gray-300);
     border-radius: 50%;
     animation: grow 0.5s forwards;
 }
 
 .label {
-    margin-left: $size-xxSmall;
-    color: $text-label;
+    margin-left: var(--size-xxSmall);
+    color: var(--color-gray-500);
 }
 
 @keyframes grow {
@@ -52,12 +52,12 @@
 .checkboxesContainer {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: $size-xSmall;
+    gap: var(--size-xSmall);
 }
 
 .circle {
-    height: $size-small;
-    width: $size-small;
+    height: var(--size-small);
+    width: var(--size-small);
     border-radius: 50%;
     border: 0.5px solid var(--color-gray-300);
 }
@@ -65,7 +65,7 @@
 .checkBoxLabel {
     display: inline-flex;
     align-items: center;
-    gap: $size-xSmall;
+    gap: var(--size-xSmall);
     width: 90px;
     justify-content: space-between;
 }

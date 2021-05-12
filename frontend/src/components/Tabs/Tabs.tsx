@@ -44,6 +44,7 @@ const Tabs = ({
                     </div>
                 ) : null
             }
+            className={styles.tabs}
             {...props}
         >
             {tabs.map(({ panelContent, title }) => (

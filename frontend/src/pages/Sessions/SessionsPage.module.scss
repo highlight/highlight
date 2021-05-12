@@ -30,7 +30,7 @@
 .mainUserInput {
     position: relative;
     width: 100%;
-    background-color: white;
+    background-color: var(--color-primary-background);
     z-index: 500;
     display: flex;
     align-items: center;
@@ -68,7 +68,7 @@
 
 .timesIcon {
     margin-right: 4px;
-    color: #5629c6;
+    color: var(--color-purple);
     height: 100%;
 }
 
@@ -102,7 +102,7 @@
 .optionsTitle {
     font-size: 12px;
     font-weight: 400;
-    color: #5629c6;
+    color: var(--color-purple);
     margin-left: 10px;
     margin-bottom: 8px;
 }
@@ -117,12 +117,12 @@
     resize: none;
     display: inline-block;
     padding: 3px;
-    color: #5629c6;
+    color: var(--color-purple);
 }
 
 .optionKey {
     font-weight: 400;
-    color: #5629c6;
+    color: var(--color-purple);
 }
 
 .optionInputWrapper {
@@ -138,7 +138,7 @@
     justify-content: center;
     border-radius: 8px;
     cursor: pointer;
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
     margin-right: 10px;
 }
 
@@ -153,19 +153,19 @@
 }
 
 .optionsRow:hover {
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
 }
 
 .optionsKey {
     font-size: 16px;
     font-weight: 300;
-    color: black;
+    color: var(--text-primary);
 }
 
 .dropdownTitle {
     padding: 3px 10px 3px 10px;
     font-size: 13px;
-    color: #5629c6;
+    color: var(--color-purple);
     font-weight: 400;
     margin-bottom: 5px;
 }
@@ -194,7 +194,7 @@
     @include rounded-border;
     width: 100%;
     max-width: 700px;
-    background-color: white;
+    background-color: var(--color-primary-background);
     padding: 16px;
     display: flex;
     margin-top: -10px;
@@ -214,7 +214,7 @@
 }
 
 .searchInput {
-    color: black;
+    color: var(--text-primary);
     width: 100%;
     height: 100%;
     display: flex;
@@ -269,7 +269,7 @@
     text-overflow: ellipsis;
     font-size: 15px;
     font-weight: 300;
-    color: black;
+    color: var(--text-primary);
 }
 
 .blueTitle {
@@ -277,7 +277,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 15px;
-    color: #5629c6;
+    color: var(--color-purple);
     font-weight: 400;
 }
 
@@ -287,6 +287,6 @@
     text-overflow: ellipsis;
     margin-top: 3px;
     font-size: 14px;
-    color: black;
+    color: var(--text-primary);
     font-weight: 200;
 }

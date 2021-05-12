@@ -17,8 +17,8 @@
 }
 
 .input-focused {
-    border-color: red;
-    background-color: black;
+    border-color: var(--color-red);
+    background-color: var(--text-primary);
 }
 
 .suggestion {

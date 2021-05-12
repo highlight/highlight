@@ -27,7 +27,7 @@
     border-radius: 8px;
     border: 1px solid #eaeaea;
     padding: 30px;
-    background-color: white;
+    background-color: var(--color-primary-background);
     display: flex;
     flex-direction: column;
 }
@@ -52,7 +52,7 @@
 }
 
 .loginStateSwitcher {
-    color: #5629c6;
+    color: var(--color-purple);
     cursor: pointer;
 }
 

@@ -1,27 +1,25 @@
-@import 'src/static/shared.scss';
-
 .header {
     font-size: 16px;
     font-weight: 300;
-    color: $text-primary;
+    color: var(--text-primary);
     margin: 0;
-    margin-bottom: $size-medium;
+    margin-bottom: var(--size-medium);
 }
 
 .description {
     font-weight: 200;
     line-height: 20px;
     font-size: 14px;
-    color: $text-label;
+    color: var(--color-gray-500);
     margin: 0 auto;
-    margin-bottom: $size-medium;
+    margin-bottom: var(--size-medium);
     max-width: 362px;
 }
 
 .container {
-    border: 1px solid $border-light-gray;
-    padding: $size-medium;
-    padding-bottom: $size-large;
+    border: 1px solid var(--color-gray-300);
+    padding: var(--size-medium);
+    padding-bottom: var(--size-large);
     text-align: center;
     margin-bottom: 14px;
     border-radius: 8px;
@@ -37,9 +35,9 @@
 }
 
 .closeIcon {
-    color: $text-primary;
-    height: $size-small;
-    width: $size-small;
+    color: var(--text-primary);
+    height: var(--size-small);
+    width: var(--size-small);
 }
 
 .actionsContainer {
@@ -48,16 +46,16 @@
 }
 
 .link {
-    padding: $size-xSmall 0;
+    padding: var(--size-xSmall) 0;
     text-align: center;
-    background: $highlight-purple;
-    color: $text-primary-inverted;
+    background: var(--color-purple);
+    color: var(--text-primary-inverted);
     width: 211px;
     display: block;
     margin: 0 auto;
-    border-radius: $button-border-radius;
+    border-radius: var(--button-border-radius);
 
     &:hover {
-        color: $text-primary-inverted;
+        color: var(--text-primary-inverted);
     }
 }

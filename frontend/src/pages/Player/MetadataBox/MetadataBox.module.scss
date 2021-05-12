@@ -4,7 +4,7 @@
     padding: var(--size-medium) 22px;
     padding-bottom: var(--size-medium);
     column-gap: var(--size-small);
-    background-color: white;
+    background-color: var(--color-primary-background);
     max-width: 350px;
     position: relative;
 }
@@ -64,14 +64,14 @@
     text-overflow: ellipsis;
     display: block;
     overflow: hidden;
-    font-weight: 200;
     line-height: 17px;
     font-size: 12px;
     color: var(--color-gray-500);
+    margin: 0 !important;
 }
 
 .userInfoWrapper {
-    color: #808080;
+    color: var(--color-gray-500);
     font-size: 13px;
     width: 100%;
     padding-right: 25px;
@@ -80,7 +80,7 @@
 .userProfile {
     height: 60px;
     width: 60px;
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
     border-radius: 50%;
 }
 
@@ -118,9 +118,9 @@
 }
 
 .unstarredIcon {
-    stroke: #808080;
-    color: #808080;
-    fill: #808080;
+    stroke: var(--color-gray-500);
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
 }
 
 .deviceDetails {

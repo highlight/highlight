@@ -1,10 +1,10 @@
 @import 'src/static/shared.scss';
 
 .devToolsWrapper {
-    background-color: white;
+    background-color: var(--color-primary-background);
     width: 100%;
     height: 100%;
-    border-top: 1px solid $border-light-gray;
+    border-top: 1px solid var(--color-gray-300);
     display: flex;
     flex-direction: column;
 }
@@ -24,6 +24,7 @@
     height: 100%;
     padding-left: var(--size-large);
     overflow: hidden;
+    font-family: var(--header-font-family) !important;
 }
 
 .emptyWrapper {
@@ -54,7 +55,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid #5629c6;
+    border: 1px solid var(--color-purple);
     font-size: 11px;
     cursor: pointer;
 }
@@ -107,7 +108,7 @@
 }
 
 .topBar {
-    background-color: white;
+    background-color: var(--color-primary-background);
     height: 45px;
     border-bottom: 1px solid #eaeaea;
     overflow-y: auto;
@@ -125,7 +126,7 @@
 }
 
 .resizeBorder {
-    background: $border-light-gray;
+    background: var(--color-gray-300);
     width: 100%;
     height: 10px;
     cursor: ns-resize;

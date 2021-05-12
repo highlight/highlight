@@ -83,10 +83,10 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
             >
                 <ModalBody className={styles.modalWrapper}>
                     <form onSubmit={handleSubmit(onSubmit)}>
-                        <div className={styles.modalSubTitle}>
+                        <p className={styles.modalSubTitle}>
                             Enter the name of your segment and you'll be good to
                             go!
-                        </div>
+                        </p>
                         <input
                             className={commonStyles.input}
                             name="name"

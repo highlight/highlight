@@ -43,10 +43,8 @@
 }
 
 .eventText {
-    color: #808080;
-    font-size: 16px;
+    color: var(--color-gray-500);
     margin-bottom: 30px;
-    font-weight: 200;
 }
 
 .titleWrapper {
@@ -56,7 +54,7 @@
 
 .subTitle {
     font-size: 20px;
-    color: black;
+    color: var(--text-primary);
     margin-bottom: 16px;
     font-weight: 300;
 }
@@ -76,7 +74,7 @@
 }
 
 .expandButton {
-    color: $highlight-purple !important;
+    color: var(--color-purple) !important;
     cursor: pointer;
 }
 
@@ -120,7 +118,7 @@
     transition: 0.4s;
     height: 14px;
     width: 14px;
-    color: #5629c6;
+    color: var(--color-purple);
     float: right;
     cursor: pointer;
 }
@@ -142,7 +140,7 @@
     width: 100%;
     display: flex;
     justify-content: space-between;
-    color: #808080;
+    color: var(--color-gray-500);
 }
 
 .errorLogDivider {
@@ -179,13 +177,13 @@
     width: 100%;
     display: grid;
     grid-template-columns: 80px 80px 2fr 1fr 1fr 2fr;
-    color: $text-light;
+    color: var(--text-primary);
     border-bottom: 1px solid #e4e8eb;
     font-weight: 200;
     padding: 10px;
 
     &:hover {
-        background-color: #f2eefb;
+        background-color: var(--color-gray-200);
     }
 
     span {
@@ -204,7 +202,7 @@
 
 .actionButtons {
     display: flex;
-    gap: $size-xSmall;
+    gap: var(--size-xSmall);
     justify-content: flex-end;
 }
 

@@ -226,7 +226,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                                 fill={
                                     e.occurrences >
                                     Math.max(totalErrors * 0.1, 10)
-                                        ? '#C62929'
+                                        ? 'var(--color-red-500)'
                                         : '#835E00'
                                 }
                             />

@@ -31,13 +31,13 @@
 }
 
 .dropdownInner {
-    background-color: white;
+    background-color: var(--color-primary-background);
     border-radius: 8px;
     border: 1px solid #eaeaea;
     margin-right: 30px;
     margin-top: -10px;
     box-shadow: 2px 2px 8px #e4e4e4;
-    color: black;
+    color: var(--text-primary);
     overflow: hidden;
 }
 
@@ -47,7 +47,7 @@
     padding: 14px;
     display: flex;
     align-items: center;
-    color: red;
+    color: var(--color-red);
     transition: 0.2s;
 }
 
@@ -74,7 +74,7 @@
 }
 
 .accountIcon {
-    fill: #5629c6;
+    fill: var(--color-purple);
     width: 25px;
     height: 25px;
     cursor: pointer;

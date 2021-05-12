@@ -7,13 +7,13 @@
 }
 
 .ant-picker-input input::placeholder {
-    color: #808080;
+    color: var(--color-gray-500);
     font-weight: 300;
     font-size: 14px;
 }
 
 .ant-picker-suffix {
-    color: #808080;
+    color: var(--color-gray-500);
 }
 
 .ant-picker-input > input {
@@ -25,7 +25,7 @@
 }
 
 .ant-dropdown-menu-item {
-    font-weight: 300 !important;
+    font-family: var(--header-font-family);
 }
 
 .ant-tabs {
@@ -48,13 +48,11 @@
     outline-style: none;
     outline-width: initial;
     color: var(--color-gray-500);
-    font-weight: 300;
     font-size: 14px;
     transition: all 0.3s;
 }
 
 .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-    font-weight: 400 !important;
     color: var(--text-primary) !important;
 }
 
@@ -110,34 +108,8 @@ input[name='option-input'] {
     width: 100%;
 }
 
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
-}
-
 .replayer-wrapper {
     position: absolute;
-}
-
-a:hover {
-    color: #7451ca;
-}
-
-.App-header {
-    background-color: #282c34;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
 }
 
 .rc-slider {
@@ -145,31 +117,8 @@ a:hover {
     cursor: pointer;
 }
 
-.App-link {
-    color: #61dafb;
-}
-
 iframe {
-    background-color: white;
+    background-color: var(--color-primary-background);
     border: none;
     z-index: -10;
-}
-
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.ant-mentions {
-    border: none !important;
-    font-size: 14px;
-    font-weight: 200;
-}
-
-.ant-mentions-focused {
-    box-shadow: none !important;
 }

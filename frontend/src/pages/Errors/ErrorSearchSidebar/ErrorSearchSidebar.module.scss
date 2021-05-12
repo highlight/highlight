@@ -1,7 +1,7 @@
 @import 'src/static/shared.scss';
 
 .searchBar {
-    background-color: white;
+    background-color: var(--color-primary-background);
     width: 100%;
     transition: right 0.3s;
     display: flex;
@@ -13,7 +13,7 @@
 
 .sideTab {
     position: fixed;
-    background-color: white;
+    background-color: var(--color-primary-background);
     right: 0;
     top: 180px;
     height: 50px;
@@ -21,7 +21,8 @@
     width: 50px;
     border-radius: 8px 0 0 8px;
     border-width: 1px;
-    border-color: $border-light-gray white $border-light-gray $border-light-gray;
+    border-color: var(--color-gray-300) white var(--color-gray-300)
+        var(--color-gray-300);
     border-style: solid;
     display: flex;
     align-items: center;
@@ -34,10 +35,11 @@
 }
 
 .titleSection {
-    border: 1px solid $border-light-gray;
+    border: 1px solid var(--color-gray-300);
     padding: 20px 20px 0px 20px;
     border-radius: 8px 8px 0 0;
-    border-color: $border-light-gray $border-light-gray white $border-light-gray;
+    border-color: var(--color-gray-300) var(--color-gray-300) white
+        var(--color-gray-300);
 }
 
 .sideTabVisible {
@@ -65,13 +67,13 @@
 }
 
 .title {
-    color: black;
+    color: var(--text-primary);
     font-size: 20px;
     margin-bottom: 10px;
 }
 
 .subTitle {
-    color: black;
+    color: var(--text-primary);
     font-size: 11px;
     margin-top: 10px;
     margin-bottom: 8px;
@@ -98,8 +100,8 @@
     cursor: pointer;
     margin-left: 5px;
     margin-bottom: 2px;
-    color: #808080;
-    fill: #808080;
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
 }
 
 .icon {

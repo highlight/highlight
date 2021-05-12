@@ -4,7 +4,7 @@
     width: 100%;
     height: 80px;
     display: flex;
-    background-color: white;
+    background-color: var(--color-primary-background);
     border-bottom: 1px solid #eaeaea;
     position: fixed;
     z-index: 100;
@@ -46,14 +46,14 @@
 }
 
 .trialLink {
-    color: white;
+    color: var(--color-primary-background);
     text-decoration: underline;
 }
 
 .trialWrapper {
     width: 100%;
-    color: white;
-    background-color: #5629c6;
+    color: var(--color-primary-background);
+    background-color: var(--color-purple);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -66,7 +66,7 @@
     position: absolute;
     top: 17px;
     transform: scale(2.2, 2);
-    fill: $highlight-purple;
+    fill: var(--color-purple);
 }
 
 .trialCloseStyle {
@@ -76,7 +76,7 @@
     width: 8px;
     margin: 0 5px 0 5px;
     cursor: pointer;
-    fill: white;
+    fill: var(--color-primary-background);
 }
 
 .trialTimeText {
@@ -106,7 +106,7 @@
     height: 100%;
     margin-left: 20px;
     cursor: pointer;
-    color: black;
+    color: var(--text-primary);
 }
 
 .homeLink {
@@ -114,7 +114,7 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: black;
+    color: var(--text-primary);
     text-decoration: none;
 }
 
@@ -124,7 +124,7 @@
 }
 
 .logoWrapper:hover {
-    color: black;
+    color: var(--text-primary);
 }
 
 .rightHeader {

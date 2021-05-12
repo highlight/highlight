@@ -1,8 +1,8 @@
 @import 'src/static/shared.scss';
 
 .bubble {
-    background: $highlight-purple;
-    color: $text-primary-inverted;
+    background: var(--color-purple);
+    color: var(--text-primary-inverted);
     padding: 0 5px;
     font-size: 10px;
     height: 20px;

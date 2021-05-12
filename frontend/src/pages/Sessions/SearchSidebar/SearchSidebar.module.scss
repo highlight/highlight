@@ -1,5 +1,5 @@
 .searchBar {
-    background-color: white;
+    background-color: var(--color-primary-background);
     width: 100%;
     transition: right 0.3s;
     display: flex;
@@ -11,7 +11,7 @@
 
 .sideTab {
     position: fixed;
-    background-color: white;
+    background-color: var(--color-primary-background);
     right: 0;
     top: 180px;
     height: 50px;
@@ -63,13 +63,13 @@
 }
 
 .title {
-    color: black;
+    color: var(--text-primary);
     font-size: 20px;
     margin-bottom: 10px;
 }
 
 .subTitle {
-    color: black;
+    color: var(--text-primary);
     font-size: 11px;
     margin-top: 10px;
     margin-bottom: 8px;
@@ -96,8 +96,8 @@
     cursor: pointer;
     margin-left: 5px;
     margin-bottom: 2px;
-    color: #808080;
-    fill: #808080;
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
 }
 
 .icon {

@@ -21,7 +21,7 @@
 
 .emptySubTitle {
     font-size: 16px;
-    color: #808080;
+    color: var(--color-gray-500);
     font-weight: 200;
     max-width: 450px;
     display: flex;
@@ -38,7 +38,7 @@
 }
 
 .intercomButton {
-    color: $highlight-purple;
+    color: var(--color-purple);
     cursor: pointer;
     display: inline-block;
     line-height: 1;

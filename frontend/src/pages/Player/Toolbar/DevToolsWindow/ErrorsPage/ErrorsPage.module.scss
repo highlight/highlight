@@ -12,5 +12,5 @@
 }
 
 .skeleton {
-    margin: $size-small $size-xSmall;
+    margin: var(--size-small) var(--size-xSmall);
 }

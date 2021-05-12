@@ -9,7 +9,7 @@
     height: var(--size);
     width: var(--size);
     opacity: 0.5;
-    border: 1px solid white;
+    border: 1px solid var(--color-primary-background);
     transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
     border-radius: 50%;
     box-sizing: content-box;

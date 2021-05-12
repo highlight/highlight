@@ -9,14 +9,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #5629c6;
+    background-color: var(--color-purple);
     border-radius: 8px;
-    color: white;
+    color: var(--color-primary-background);
     cursor: pointer;
 }
 
 .consolePageWrapper {
-    background-color: white;
+    background-color: var(--color-primary-background);
     width: 100%;
     height: 100%;
 }
@@ -30,7 +30,7 @@
 
 .consoleStreamWrapper {
     font-family: var(--body-font-family);
-    background-color: white;
+    background-color: var(--color-primary-background);
     word-wrap: break-word;
     display: flex;
     flex-direction: column;
@@ -59,7 +59,7 @@
     width: 16px;
     height: 16px;
     margin-left: 8px;
-    fill: white;
+    fill: var(--color-primary-background);
 }
 
 .consoleButtonWrapper {
@@ -102,5 +102,5 @@
 
 .goToButton {
     visibility: hidden;
-    color: $text-primary;
+    color: var(--text-primary);
 }

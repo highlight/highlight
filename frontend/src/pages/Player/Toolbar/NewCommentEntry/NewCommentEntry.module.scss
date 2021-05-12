@@ -2,7 +2,7 @@
 
 .actionButtons {
     display: flex;
-    gap: $size-xSmall;
+    gap: var(--size-xSmall);
     justify-content: flex-end;
 }
 

@@ -14,7 +14,7 @@
 
 .arrowWrapper {
     font-family: var(--header-font-family);
-    color: $highlight-purple;
+    color: var(--color-purple);
     font-size: 16px;
     margin: 10px;
     font-weight: 300;
@@ -22,7 +22,7 @@
 }
 
 .overlayWrapper {
-    background-color: white;
+    background-color: var(--color-primary-background);
     display: flex;
     flex-direction: column;
     border: 1px solid #d9d9d9;
@@ -71,7 +71,7 @@
 }
 
 .purpleText {
-    color: $highlight-purple;
+    color: var(--color-purple);
 }
 
 .header {
@@ -108,7 +108,7 @@
 .modalWrapper {
     width: 80vw;
     border-radius: 8px;
-    background-color: black;
+    background-color: var(--text-primary);
     padding: 10px;
 }
 
@@ -126,14 +126,14 @@
     margin: 10px;
     font-size: 16px;
     cursor: pointer;
-    background-color: white;
+    background-color: var(--color-primary-background);
     border: none;
     font-weight: 300;
     transition: 0.3s color;
 }
 
 .demoVideoButton:hover {
-    color: $highlight-purple;
+    color: var(--color-purple);
 }
 
 .navLink {
@@ -186,5 +186,5 @@
     justify-content: center;
     height: 100%;
     width: 100%;
-    background-color: $highlight-purple;
+    background-color: var(--color-purple);
 }

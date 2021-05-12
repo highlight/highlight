@@ -11,12 +11,12 @@ $go-to-button-width: 63px;
     display: flex;
     align-items: center;
     padding: 5px 6px;
-    border-radius: $button-border-radius;
+    border-radius: var(--button-border-radius);
     cursor: pointer;
     width: fit-content;
 
     &:hover {
-        background: $highlight-purple-light;
+        background: var(--color-purple-200);
     }
 }
 

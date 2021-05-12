@@ -10,7 +10,7 @@
 }
 
 .billingPlanTitle {
-    color: $highlight-purple;
+    color: var(--color-purple);
 }
 
 .billingFrequency {
@@ -19,6 +19,7 @@
 }
 
 .billingPlanPrice {
+    margin-top: var(--size-xSmall) !important;
     margin-bottom: 0 !important;
 }
 

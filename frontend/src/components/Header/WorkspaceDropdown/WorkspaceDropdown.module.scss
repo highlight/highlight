@@ -15,7 +15,7 @@
     font-size: 16px;
     padding-left: 15px;
     cursor: pointer;
-    color: #5629c6;
+    color: var(--color-purple);
 }
 
 .orgItem {
@@ -40,7 +40,7 @@
     font-weight: 500;
     font-family: var(--header-font-family);
     font-size: 14px;
-    color: white;
+    color: var(--color-primary-background);
     line-height: initial;
 }
 
@@ -52,11 +52,11 @@
 }
 
 .orgItem:hover {
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
 }
 
 .orgText {
-    color: black;
+    color: var(--text-primary);
     margin-right: 20px;
     margin-left: 10px;
 }
@@ -67,23 +67,23 @@
     align-items: center;
     width: 100%;
     padding-left: 15px;
-    color: #5629c6;
+    color: var(--color-purple);
     font-size: 16px;
     cursor: pointer;
 }
 
 .newOrgDiv:hover {
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
 }
 
 .dropdownInner {
-    background-color: white;
+    background-color: var(--color-primary-background);
     border-radius: 5px;
     border: 1px solid #eaeaea;
     min-width: 220px;
     margin-top: 9px;
     box-shadow: 2px 2px 8px #e4e4e4;
-    color: black;
+    color: var(--text-primary);
 }
 
 .dropdownLogout {
@@ -93,7 +93,7 @@
     display: flex;
     align-items: center;
     padding-top: 10px;
-    color: red;
+    color: var(--color-red);
 }
 
 .dropdownLogoutText {
@@ -111,7 +111,7 @@
     margin-right: 5px;
     height: 16px;
     width: 16px;
-    color: #5629c6;
+    color: var(--color-purple);
 }
 
 .plusIcon {
@@ -120,8 +120,8 @@
     margin-left: auto;
     height: 15px;
     width: 15px;
-    color: #5629c6;
-    fill: #5629c6;
+    color: var(--color-purple);
+    fill: var(--color-purple);
 }
 
 .orgNameText {
@@ -149,6 +149,6 @@
     justify-content: center;
     padding: var(--size-xSmall) var(--size-small);
     border-radius: 8px;
-    color: black;
+    color: var(--text-primary);
     font-size: 16px;
 }

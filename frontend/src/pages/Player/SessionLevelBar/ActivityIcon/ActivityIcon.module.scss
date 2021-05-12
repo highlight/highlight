@@ -4,14 +4,14 @@
     border-radius: 50%;
     height: 7px;
     width: 7px;
-    background: $gray;
-    box-shadow: 0 0 0 0 $highlight-purple;
+    background: var(--color-gray-400);
+    box-shadow: 0 0 0 0 var(--color-purple);
     transform: scale(1);
     animation: pulse-black 2s infinite;
 }
 
 .active {
-    background: $highlight-purple;
+    background: var(--color-purple);
 }
 
 @keyframes pulse-black {

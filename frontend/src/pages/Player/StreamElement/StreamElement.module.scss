@@ -31,16 +31,16 @@
 }
 
 .currentStreamElement {
-    border: 1px solid #5629c6;
-    background-color: #5629c6;
-    color: white;
-    fill: white;
+    border: 1px solid var(--color-purple);
+    background-color: var(--color-purple);
+    color: var(--color-primary-background);
+    fill: var(--color-primary-background);
 
     .goToButton {
-        color: white;
+        color: var(--color-primary-background);
 
         svg {
-            fill: white;
+            fill: var(--color-primary-background);
         }
     }
 }
@@ -113,11 +113,11 @@
 }
 
 .selectedEventText {
-    color: $text-primary;
+    color: var(--text-primary);
 }
 
 .currentEventText {
-    color: white;
+    color: var(--color-primary-background);
 }
 
 .codeBlockWrapper {
@@ -164,11 +164,11 @@
     grid-column-start: 1;
 
     &:hover {
-        color: $text-primary;
-        fill: $text-primary;
+        color: var(--text-primary);
+        fill: var(--text-primary);
 
         svg {
-            fill: $text-primary;
+            fill: var(--text-primary);
         }
     }
 }
@@ -178,12 +178,12 @@
 }
 
 .selectedIcon {
-    fill: $text-primary;
+    fill: var(--text-primary);
     transform: rotate(180deg);
 }
 
 .currentIcon {
-    fill: white;
+    fill: var(--color-primary-background);
 }
 
 .headerRow {

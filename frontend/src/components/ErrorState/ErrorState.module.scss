@@ -1,5 +1,3 @@
-@import 'src/static/shared.scss';
-
 .errorWrapper {
     height: 100vh;
     width: 100%;
@@ -9,8 +7,6 @@
 }
 
 .errorBody {
-    font-size: 16px;
-    font-weight: 200;
     max-width: 800px;
     word-wrap: break-word;
 }
@@ -21,7 +17,6 @@
 }
 
 .expandButton {
-    color: $highlight-purple;
+    color: var(--color-purple);
     cursor: pointer;
-    font-weight: 300;
 }

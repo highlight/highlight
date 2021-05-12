@@ -2,7 +2,7 @@
 
 .tooltipOverlay {
     a {
-        color: $text-primary-inverted;
+        color: var(--text-primary-inverted);
         text-decoration: underline;
     }
 

@@ -20,34 +20,31 @@
     border-radius: 10px;
     width: 8px;
     height: 8px;
-    background-color: #c62929;
+    background-color: var(--color-red-500);
 }
 
 .topText {
-    color: #a8a8a8;
+    color: var(--color-gray-500);
     font-size: 12px;
-    font-weight: 200;
-    margin: 4px 0 4px 0;
+    margin: 4px 0 4px 0 !important;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
 
 .middleText {
-    color: black;
-    font-weight: 300;
+    color: var(--text-primary);
     font-size: 14px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    margin: 4px 0 8px 0;
+    margin: 4px 0 8px 0 !important;
 }
 
 .bottomText {
-    color: black;
+    color: var(--text-primary);
     font-size: 12px;
-    font-weight: 200;
-    margin: 4px 0 4px 0;
+    margin: 4px 0 4px 0 !important;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -96,7 +93,7 @@
 }
 
 .hoverBorderOn {
-    background-color: $highlight-purple;
+    background-color: var(--color-purple);
 }
 
 .feedWrapper {
@@ -129,7 +126,7 @@
 .mainUserInput {
     position: relative;
     width: 100%;
-    background-color: white;
+    background-color: var(--color-primary-background);
     z-index: 500;
     display: flex;
     align-items: center;
@@ -137,9 +134,10 @@
 }
 
 .resultCount {
+    font-family: var(--header-font-family);
     margin: 0px -3px;
     padding: 8px 5px 16px 5px;
-    color: #a8a8a8;
+    color: var(--color-gray-500);
     background: linear-gradient(
         to top,
         rgba(255, 255, 255, 0),
@@ -160,7 +158,7 @@
 }
 
 .errorCardAction {
-    background-color: white;
+    background-color: var(--color-primary-background);
     border: 0;
     display: none;
     position: absolute;
@@ -179,7 +177,7 @@
         background-color: #eaeaea;
 
         .actionIcon {
-            color: black;
+            color: var(--text-primary);
             fill: black;
             stroke: black;
         }
@@ -187,9 +185,9 @@
 }
 
 .actionIcon {
-    stroke: #808080;
-    color: #808080;
-    fill: #808080;
+    stroke: var(--color-gray-500);
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
 }
 
 .errorCard {
@@ -236,7 +234,7 @@
 
 .errorBarBase {
     border-radius: 2px;
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
     width: 100%;
     margin-top: 2px;
     height: 2px;
@@ -246,5 +244,5 @@
     border-radius: 2px;
     width: 100%;
     height: 0px;
-    background-color: $highlight-purple;
+    background-color: var(--color-purple);
 }

@@ -6,7 +6,7 @@
     align-items: center;
     max-width: 378px;
     min-width: 0;
-    gap: $size-xSmall;
+    gap: var(--size-xSmall);
     color: var(--color-gray-500);
     flex-shrink: 0;
 
@@ -17,7 +17,7 @@
     }
 
     a {
-        color: $text-primary;
+        color: var(--text-primary);
     }
 
     svg {

@@ -3,14 +3,15 @@
 .errorCard {
     display: flex;
     justify-content: space-between;
-    border-bottom: 1px solid $border-light-gray;
-    background-color: $primary-background-color;
-    padding: $size-medium $size-medium $size-small $size-large;
-    color: $text-primary;
+    border-bottom: 1px solid var(--color-gray-300);
+    background-color: var(--color-primary-background);
+    padding: var(--size-medium) var(--size-medium) var(--size-small)
+        var(--size-large);
+    color: var(--text-primary);
     font-size: 12px;
 
     h4 {
-        color: $alert-400;
+        color: var(--color-red-500);
         font-size: 14px;
         font-weight: 400;
     }
@@ -27,15 +28,15 @@
     &.inactive {
         h4,
         p {
-            color: $gray;
+            color: var(--color-gray-400);
         }
     }
 }
 
 .header {
     display: flex;
-    gap: $size-small;
-    margin-bottom: $size-xSmall;
+    gap: var(--size-small);
+    margin-bottom: var(--size-xSmall);
     align-items: baseline;
 }
 
@@ -50,5 +51,5 @@
 .actions {
     display: flex;
     flex-direction: column;
-    gap: $size-xSmall;
+    gap: var(--size-xSmall);
 }

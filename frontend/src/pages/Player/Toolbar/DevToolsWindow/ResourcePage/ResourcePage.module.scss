@@ -5,7 +5,7 @@ $columns: 50px 50% 90px 90px 1fr $go-to-button-width;
 $right-padding: 12px;
 
 .networkRow {
-    color: #808080;
+    color: var(--color-gray-500);
     width: 100%;
     display: grid;
     grid-template-columns: $columns;
@@ -20,7 +20,7 @@ $right-padding: 12px;
 }
 
 .networkTopBar {
-    color: #808080;
+    color: var(--color-gray-500);
     width: 100%;
     padding-left: 25px;
     padding-right: $right-padding;
@@ -52,7 +52,7 @@ $canvas-width: calc(
 }
 
 .networkStreamWrapper {
-    background-color: white;
+    background-color: var(--color-primary-background);
     word-wrap: break-word;
     display: flex;
     flex-direction: column;
@@ -63,7 +63,7 @@ $canvas-width: calc(
 
 .networkTimingColumn {
     font-size: 12px;
-    color: #808080;
+    color: var(--color-gray-500);
     font-weight: 400;
     z-index: 10;
 }
@@ -74,7 +74,7 @@ $canvas-width: calc(
 
 .networkColumn {
     font-size: 12px;
-    color: black;
+    color: var(--text-primary);
     font-weight: 400;
     display: flex;
     align-items: center;
@@ -100,12 +100,12 @@ $canvas-width: calc(
 }
 
 .timingBarEmptySection {
-    background-color: white;
+    background-color: var(--color-primary-background);
 }
 
 .timingBar {
     height: 60%;
-    background-color: #5629c6;
+    background-color: var(--color-purple);
     border-radius: 4px;
 }
 
@@ -123,7 +123,7 @@ $canvas-width: calc(
 
 .goToButton {
     visibility: hidden;
-    color: $text-primary;
+    color: var(--text-primary);
 }
 
 .resourcePageWrapper {

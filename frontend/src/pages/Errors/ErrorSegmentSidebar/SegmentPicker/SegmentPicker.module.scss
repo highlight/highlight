@@ -7,11 +7,11 @@
 }
 
 .segmentPickerInner {
-    background-color: white;
+    background-color: var(--color-primary-background);
     border-radius: 8px;
     border: 1px solid #eaeaea;
     min-width: 220px;
-    color: black;
+    color: var(--text-primary);
 
     .segmentItemWrapper:last-child .segmentItem {
         border-bottom: 0px;
@@ -24,7 +24,7 @@
     margin-right: 5px;
     height: 14px;
     width: 14px;
-    color: #5629c6;
+    color: var(--color-purple);
 }
 
 .checkIcon {
@@ -33,18 +33,18 @@
     margin-left: auto;
     height: 15px;
     width: 15px;
-    color: #5629c6;
-    fill: #5629c6;
+    color: var(--color-purple);
+    fill: var(--color-purple);
 }
 
 .trashIcon {
-    color: #808080;
-    fill: #808080;
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
     margin-bottom: 2px;
 }
 
 .segmentAction {
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
     border: 0;
     display: none;
     position: absolute;
@@ -63,7 +63,7 @@
         background-color: #eaeaea;
 
         .trashIcon {
-            color: black;
+            color: var(--text-primary);
             fill: black;
         }
     }
@@ -80,7 +80,7 @@
     justify-content: center;
     padding: 10px;
     border-radius: 8px;
-    color: black;
+    color: var(--text-primary);
     font-size: 16px;
     padding-left: 14px;
 }
@@ -91,8 +91,8 @@
     margin-left: auto;
     height: 15px;
     width: 15px;
-    color: #5629c6;
-    fill: #5629c6;
+    color: var(--color-purple);
+    fill: var(--color-purple);
 }
 
 .newSearchDiv {
@@ -101,25 +101,25 @@
     align-items: center;
     width: 100%;
     padding-left: 15px;
-    color: #5629c6;
+    color: var(--color-purple);
     font-size: 14px;
     cursor: pointer;
 }
 
 .newSearchDiv:hover {
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
 }
 
 .noSegmentsText {
     margin-top: 10px;
-    color: #808080;
+    color: var(--color-gray-500);
 }
 
 .segmentItemWrapper {
     position: relative;
 
     &:hover {
-        background-color: #f2eefb;
+        background-color: var(--color-gray-200);
 
         .segmentAction {
             display: flex;
@@ -143,13 +143,13 @@
     width: 100%;
     white-space: nowrap;
     overflow: hidden;
-    color: black;
+    color: var(--text-primary);
     margin-right: 20px;
     font-size: 14px;
 }
 
 .segmentUnselected {
-    color: #808080;
+    color: var(--color-gray-500);
 }
 
 .segmentNameText {

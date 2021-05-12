@@ -51,9 +51,9 @@
     bottom: 16px;
     text-align: center;
     width: 80px;
-    color: white;
+    color: var(--color-primary-background);
     // text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
-    background: black;
+    background: var(--text-primary);
     padding: 6px 10px;
     border-radius: 8px;
 }
@@ -68,7 +68,7 @@
     margin-top: -9px;
     transform: scale(0);
     border-radius: 20px;
-    background-color: #5629c6;
+    background-color: var(--color-purple);
     transition: all 0.3s ease-in-out;
 }
 
@@ -89,13 +89,13 @@
 }
 
 .dropdownInner {
-    background-color: white;
+    background-color: var(--color-primary-background);
     border-radius: 5px;
     border: 1px solid #eaeaea;
     min-width: 180px;
     margin-top: 9px;
     box-shadow: 2px 2px 8px #e4e4e4;
-    color: black;
+    color: var(--text-primary);
     padding: 10px 0 10px 0;
 }
 .dropdownSection {
@@ -132,7 +132,7 @@
 .toolbarSection {
     width: 100%;
     height: 50px;
-    background-color: white;
+    background-color: var(--color-primary-background);
     display: flex;
     flex-direction: row;
     z-index: 30;
@@ -187,7 +187,7 @@
     margin-top: 1px;
     margin-right: 10px;
     text-transform: uppercase;
-    color: #5629c6;
+    color: var(--color-purple);
     line-height: 1;
 }
 
@@ -196,7 +196,7 @@
     font-size: 12px;
     margin: 5px;
     margin-right: 15px;
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -214,7 +214,7 @@
 }
 
 .skipInactivity:hover {
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
 }
 
 .speedWrapper {
@@ -225,10 +225,10 @@
     justify-content: center;
     font-size: 14px;
     font-weight: 200;
-    color: white;
+    color: var(--color-primary-background);
     border-radius: 8px;
     cursor: pointer;
-    background-color: #5629c6;
+    background-color: var(--color-purple);
     margin: 10px;
 }
 
@@ -253,8 +253,8 @@
     border: none;
     outline: none;
     cursor: pointer;
-    color: $text-primary;
-    fill: $text-primary;
+    color: var(--text-primary);
+    fill: var(--text-primary);
 
     &:disabled {
         cursor: not-allowed;
@@ -292,7 +292,7 @@
     box-sizing: content-box;
     padding: 8px 0;
     width: 100%;
-    top: -$size-large;
+    top: calc(var(--size-large) * -1);
 }
 
 .popoverHeader {
@@ -311,13 +311,13 @@
 }
 
 .buttonContainer {
-    padding-top: $size-medium;
+    padding-top: var(--size-medium);
     display: flex;
     justify-content: flex-end;
 }
 
 .commentUpdatedTime {
-    color: $text-label;
+    color: var(--color-gray-500);
     font-weight: 200;
     flex-shrink: 0;
 }

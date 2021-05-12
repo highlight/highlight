@@ -16,7 +16,7 @@
 }
 
 .platformOption:hover {
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
 }
 
 .platformOption:not(:last-child) {

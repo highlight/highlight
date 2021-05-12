@@ -18,12 +18,12 @@ export const BillingPlanCard = ({
     return (
         <div className={styles.billingPlanCard}>
             <h3 className={styles.billingPlanTitle}>{billingPlan.name}</h3>
-            <div
+            <h4
                 className={classNames(
                     commonStyles.title,
                     styles.billingPlanPrice
                 )}
-            >{`$${billingPlan.monthlyPrice}`}</div>
+            >{`$${billingPlan.monthlyPrice}`}</h4>
             <p className={styles.billingFrequency}>billed monthly</p>
             <ul className={styles.advertisedFeaturesWrapper}>
                 {billingPlan.advertisedFeatures.map((featureString) => (

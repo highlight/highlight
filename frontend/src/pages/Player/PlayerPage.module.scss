@@ -12,7 +12,7 @@
     width: 100%;
     height: 10vh;
     display: flex;
-    background-color: white;
+    background-color: var(--color-primary-background);
     border-bottom: 1px solid #eaeaea;
 }
 
@@ -25,7 +25,7 @@
 
 .headerLink {
     text-decoration: none;
-    color: black;
+    color: var(--text-primary);
     margin-right: 30px;
     font-size: 18px;
     font-weight: 400;
@@ -40,7 +40,7 @@
 }
 
 .accountIcon {
-    fill: #5629c6;
+    fill: var(--color-purple);
     width: 30px;
     height: 30px;
     cursor: pointer;
@@ -48,7 +48,7 @@
 }
 
 .eventStreamContainer {
-    color: white;
+    color: var(--color-primary-background);
     width: 100%;
     height: 100%;
     overflow-y: auto;
@@ -90,7 +90,7 @@
 
 .urlAddressBar {
     border-radius: 10px;
-    background-color: white;
+    background-color: var(--color-primary-background);
     width: 80%;
     height: 55%;
     margin-right: auto;
@@ -155,7 +155,7 @@
     align-items: center;
     border-top-right-radius: 12px;
     border-top-left-radius: 12px;
-    background-color: black;
+    background-color: var(--text-primary);
 }
 
 .rrwebPlayerDiv {

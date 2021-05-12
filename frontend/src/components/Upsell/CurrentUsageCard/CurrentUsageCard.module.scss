@@ -1,22 +1,22 @@
 @import 'src/static/shared.scss';
 
 .container {
-    padding: $size-medium $size-medium;
-    border: 1px solid $border-light-gray;
+    padding: var(--size-medium);
+    border: 1px solid var(--color-gray-300);
     border-radius: 8px;
-    margin-bottom: $size-medium;
+    margin-bottom: var(--size-medium);
 }
 
 .header {
     font-size: 12px;
-    color: $text-primary;
+    color: var(--text-primary);
     margin: 0;
-    margin-bottom: $size-xSmall;
+    margin-bottom: var(--size-xSmall);
 }
 
 .description {
     font-size: 11px;
-    color: $text-primary;
+    color: var(--text-primary);
     margin: 0;
-    margin-bottom: $size-xxSmall;
+    margin-bottom: var(--size-xxSmall);
 }

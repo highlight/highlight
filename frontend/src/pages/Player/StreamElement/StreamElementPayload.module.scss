@@ -3,7 +3,7 @@
 .objectKey {
     font-size: 10px;
     font-style: normal;
-    color: $text-label;
+    color: var(--color-gray-500);
     line-height: initial;
     display: block;
     margin-bottom: var(--size-xxSmall);
@@ -18,7 +18,7 @@
 .objectValue {
     font-size: 12px;
     font-style: normal;
-    color: $text-primary;
+    color: var(--text-primary);
     line-height: initial;
 }
 

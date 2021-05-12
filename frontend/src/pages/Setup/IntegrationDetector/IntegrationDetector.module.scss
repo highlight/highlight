@@ -3,8 +3,8 @@
     width: max-content;
     padding: 0 10px 0 0px;
     border-radius: 8px;
-    background-color: white;
-    color: white;
+    background-color: var(--color-primary-background);
+    color: var(--color-primary-background);
     transition: 0.3s;
     cursor: pointer;
 }
@@ -38,11 +38,11 @@
     margin-right: 5px;
     height: 15px;
     width: 15px;
-    color: green;
-    fill: green;
+    color: var(--color-green);
+    fill: var(--color-green);
 }
 
 .verificationText {
-    color: #5629c6;
+    color: var(--color-purple);
     font-weight: 500;
 }

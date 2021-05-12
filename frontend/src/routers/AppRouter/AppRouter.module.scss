@@ -2,7 +2,7 @@
     height: 40px;
     width: 100%;
     border-radius: 6px;
-    color: black;
+    color: var(--text-primary);
     display: flex;
     padding-left: 2px;
     padding-right: 2px;
@@ -41,7 +41,7 @@
 
 .urlAddressBar {
     border-radius: 10px;
-    background-color: white;
+    background-color: var(--color-primary-background);
     width: 80%;
     height: 55%;
     margin-right: auto;
@@ -84,7 +84,7 @@
     align-items: center;
     border-top-right-radius: 12px;
     border-top-left-radius: 12px;
-    background-color: black;
+    background-color: var(--text-primary);
 }
 
 .rrwebPlayerDiv {
