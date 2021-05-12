@@ -197,6 +197,10 @@ type SessionCount struct {
 	Count int64
 }
 
+type ErrorGroupCount struct {
+	Count int64
+}
+
 type Session struct {
 	Model
 	UserID      int `json:"user_id"`
@@ -342,7 +346,7 @@ type EventsObject struct {
 
 type ErrorResults struct {
 	ErrorGroups []ErrorGroup
-	TotalCount  int
+	TotalCount  int64
 }
 
 type ErrorSearchParams struct {

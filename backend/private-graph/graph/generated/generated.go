@@ -2403,7 +2403,7 @@ type SessionResults {
 
 type ErrorResults {
     error_groups: [ErrorGroup!]!
-    totalCount: Int!
+    totalCount: Int64!
 }
 
 type SessionComment {
@@ -5788,9 +5788,9 @@ func (ec *executionContext) _ErrorResults_totalCount(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(int64)
 	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorSearchParams_date_range(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorSearchParams) (ret graphql.Marshaler) {
