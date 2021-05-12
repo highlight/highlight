@@ -111,7 +111,10 @@ const OnPremiseBanner = () => {
                 backgroundColor: 'var(--color-primary-inverted-background',
             }}
         >
-            <Banner className={styles.bannerSvg} style={{ fill: 'black' }} />
+            <Banner
+                className={styles.bannerSvg}
+                style={{ fill: 'var(--text-primary)' }}
+            />
             <div className={classNames(styles.trialTimeText)}>
                 Running Highlight On-premise{' '}
                 {`v${process.env.REACT_APP_COMMIT_SHA}`}
