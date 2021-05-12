@@ -809,9 +809,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	}
 
 	errorGroups := []model.ErrorGroup{}
+	selectPreamble := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved`
+	countPreamble := `SELECT COUNT(*)`
 
-	queryString := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved
-	FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved, array_agg(t.error_field_id) fieldIds
+	queryString := `FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved, array_agg(t.error_field_id) fieldIds
 	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -841,19 +842,37 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		queryString += fmt.Sprintf("AND (event ILIKE '%s') ", "%"+*params.Event+"%")
 	}
 
-	queryString += "ORDER BY updated_at DESC"
+	var g errgroup.Group
+	var queriedErrorGroupsCount model.ErrorGroupCount
 
-	if err := r.DB.Raw(queryString).Scan(&errorGroups).Error; err != nil {
-		return nil, e.Wrap(err, "error reading from error groups")
-	}
+	g.Go(func() error {
+		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorGroups"))
+		if err := r.DB.Raw(fmt.Sprintf("%s %s ORDER BY updated_at DESC LIMIT %d", selectPreamble, queryString, count)).Scan(&errorGroups).Error; err != nil {
+			return e.Wrap(err, "error reading from error groups")
+		}
 
-	if count > len(errorGroups) {
-		count = len(errorGroups)
+		errorGroupSpan.Finish()
+		return nil
+	})
+
+	g.Go(func() error {
+		errorGroupCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorGroupsCount"))
+		if err := r.DB.Raw(fmt.Sprintf("%s %s", countPreamble, queryString)).Scan(&queriedErrorGroupsCount).Error; err != nil {
+			return e.Wrap(err, "error counting error groups")
+		}
+
+		errorGroupCountSpan.Finish()
+		return nil
+	})
+
+	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
+	if err := g.Wait(); err != nil {
+		return nil, e.Wrap(err, "error querying error groups data")
 	}
 
 	errorResults := &model.ErrorResults{
-		ErrorGroups: errorGroups[:count],
-		TotalCount:  len(errorGroups),
+		ErrorGroups: errorGroups,
+		TotalCount:  queriedErrorGroupsCount.Count,
 	}
 	return errorResults, nil
 }

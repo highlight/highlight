@@ -243,7 +243,7 @@ type SessionResults {
 
 type ErrorResults {
     error_groups: [ErrorGroup!]!
-    totalCount: Int!
+    totalCount: Int64!
 }
 
 type SessionComment {
