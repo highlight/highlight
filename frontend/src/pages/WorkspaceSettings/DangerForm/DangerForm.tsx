@@ -40,11 +40,11 @@ export const DangerForm = () => {
                 <Skeleton />
             ) : (
                 <>
-                    <div className={styles.dangerSubTitle}>
+                    <p className={styles.dangerSubTitle}>
                         This will immediately remove all team members and
                         projects, and cancel your subscription. Please type '
                         {`${data?.organization?.name}`}' to confirm.
-                    </div>
+                    </p>
                     <div className={styles.dangerRow}>
                         <input
                             placeholder={`Please type '${data?.organization?.name}'`}

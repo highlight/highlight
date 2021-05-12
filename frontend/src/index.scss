@@ -76,6 +76,7 @@
 
 body {
     background-color: var(--color-primary-background) !important;
+    color: var(--text-primary);
     font-family: var(--body-font-family) !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -111,6 +112,10 @@ h4 {
 p {
     line-height: initial !important;
     margin: var(--size-small) 0 !important;
+}
+
+li, p, label {
+    color: var(--text-primary);
 }
 
 h3 {

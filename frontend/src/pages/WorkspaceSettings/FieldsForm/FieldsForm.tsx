@@ -46,7 +46,7 @@ export const FieldsForm = () => {
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
             <div className={styles.fieldRow}>
-                <div className={styles.fieldKey}>Name</div>
+                <label className={styles.fieldKey}>Name</label>
                 <input
                     defaultValue={
                         editData?.editOrganization?.name ||
@@ -58,7 +58,7 @@ export const FieldsForm = () => {
                 />
             </div>
             <div className={styles.fieldRow}>
-                <div className={styles.fieldKey}>Billing Email</div>
+                <label className={styles.fieldKey}>Billing Email</label>
                 <input
                     defaultValue={
                         (editData?.editOrganization?.billing_email ||
