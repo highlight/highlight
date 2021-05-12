@@ -211,6 +211,9 @@ query GetBillingDetails($organization_id: ID!) {
         }
         meter
     }
+    organization(id: $organization_id) {
+        trial_end_date
+    }
 }
 
 query GetErrorGroup($id: ID!) {

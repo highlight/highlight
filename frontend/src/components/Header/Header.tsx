@@ -70,13 +70,28 @@ const FreePlanBanner = () => {
 
     if (data?.billingDetails.plan.type !== PlanType.Free) {
         return null;
+    } else {
+        if (data?.organization?.trial_end_date) {
+            // trial_end_date is set 2 weeks ahead of when the organization was created. We want to show the banner after the organization is 7 days old.
+            const organizationAge =
+                (new Date(data?.organization.trial_end_date).getTime() -
+                    new Date().getTime()) /
+                (1000 * 60 * 60 * 24);
+
+            const currentPlanUsage =
+                data?.billingDetails.meter / data?.billingDetails.plan.quota;
+            if (organizationAge >= 7 || currentPlanUsage < 0.25) {
+                return null;
+            }
+        }
     }
 
     return (
         <div className={styles.trialWrapper}>
             <Banner className={styles.bannerSvg} />
             <div className={classNames(styles.trialTimeText)}>
-                You are currently on the free plan. Upgrade{' '}
+                You've used {data?.billingDetails.meter}/
+                {data?.billingDetails.plan.quota} of your free sessions. Upgrade{' '}
                 <Link
                     className={styles.trialLink}
                     to={`/${organization_id}/billing`}

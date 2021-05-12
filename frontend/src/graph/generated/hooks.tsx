@@ -1992,6 +1992,9 @@ export const GetBillingDetailsDocument = gql`
             }
             meter
         }
+        organization(id: $organization_id) {
+            trial_end_date
+        }
     }
 `;
 

@@ -10,7 +10,7 @@ import {
     useGetAdminQuery,
     useGetOnboardingStepsQuery,
 } from '../../graph/generated/hooks';
-import { ReactComponent as CheckIcon } from '../../static/verify-check.svg';
+import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg';
 import Button from '../Button/Button/Button';
 import PillButton from '../Button/PillButton/PillButton';
 import Popover from '../Popover/Popover';

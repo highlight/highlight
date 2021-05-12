@@ -620,6 +620,12 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
         Types.BillingDetails,
         'meter'
     > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
+    organization?: Types.Maybe<
+        { __typename?: 'Organization' } & Pick<
+            Types.Organization,
+            'trial_end_date'
+        >
+    >;
 };
 
 export type GetErrorGroupQueryVariables = Types.Exact<{
