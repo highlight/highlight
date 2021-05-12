@@ -12,6 +12,8 @@ import classNames from 'classnames/bind';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { CommandBar } from './CommandBar/CommandBar';
 import Notifications from './Notifications/Notifications';
+import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
+import { PlanType } from '../../graph/generated/schemas';
 
 export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -58,6 +60,18 @@ export const Header = () => {
 
 const FreePlanBanner = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const { data, loading } = useGetBillingDetailsQuery({
+        variables: { organization_id },
+    });
+
+    if (loading) {
+        return null;
+    }
+
+    if (data?.billingDetails.plan.type !== PlanType.Free) {
+        return null;
+    }
+
     return (
         <div className={styles.trialWrapper}>
             <Banner className={styles.bannerSvg} />
