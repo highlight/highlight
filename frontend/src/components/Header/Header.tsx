@@ -14,6 +14,7 @@ import { CommandBar } from './CommandBar/CommandBar';
 import Notifications from './Notifications/Notifications';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
+import ThemeToggle from './ThemeToggle/ThemeToggle';
 
 export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -49,6 +50,7 @@ export const Header = () => {
                         </Link>
                     </div>
                     <div className={styles.rightHeader}>
+                        <ThemeToggle />
                         <Notifications />
                         <UserDropdown />
                     </div>
