@@ -1,19 +1,19 @@
 .propertyWrapper {
+    align-items: center;
     display: flex;
     width: 100%;
-    align-items: center;
 }
 
 .propertyTag {
-    margin-left: 8px;
     color: var(--color-gray-500);
-    font-weight: 300;
     font-size: 12px;
+    font-weight: 300;
+    margin-left: 8px;
     white-space: nowrap;
 }
 
 .propertyLabel {
-    text-overflow: ellipsis;
     overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }

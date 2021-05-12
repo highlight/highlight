@@ -1,11 +1,11 @@
 .list {
-    overflow: auto;
-    max-height: 350px;
-    padding: 0;
-    margin: calc(var(--size-medium) * -1);
-    margin-bottom: 0;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
+    margin: calc(var(--size-medium) * -1);
+    margin-bottom: 0;
+    max-height: 350px;
+    overflow: auto;
+    padding: 0;
 
     &::-webkit-scrollbar {
         display: none;
@@ -18,14 +18,14 @@
     .item {
         display: block;
 
-        & > * {
+        > * {
             display: block;
             padding: var(--size-medium);
         }
 
         &:hover {
-            background: var(--color-gray-200);
             --color-primary-background: var(--color-gray-200);
+            background: var(--color-gray-200);
         }
 
         p,
@@ -34,9 +34,9 @@
         }
 
         h3 {
+            color: var(--color-black);
             font-size: 13px;
             font-weight: 300;
-            color: var(--color-black);
             line-height: normal;
         }
     }

@@ -1,65 +1,65 @@
 .homePageWrapper {
+    align-items: center;
     display: grid;
+    flex-direction: row;
+    flex-wrap: wrap;
     grid-template-columns: 3fr 2fr;
     grid-template-rows: 1fr;
-    flex-direction: row;
-    align-items: center;
+    height: 100vh;
     justify-content: center;
     width: 100%;
-    flex-wrap: wrap;
-    height: 100vh;
 }
 
 .arrowWrapper {
-    font-family: var(--header-font-family);
     color: var(--color-purple);
+    font-family: var(--header-font-family);
     font-size: 16px;
-    margin: 10px;
     font-weight: 300;
+    margin: 10px;
     transition: 0.3s margin;
 }
 
 .overlayWrapper {
     background-color: var(--color-primary-background);
+    border: 1px solid var(--color-gray-300);
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
-    border: 1px solid #d9d9d9;
-    border-radius: 8px;
     padding: 10px;
 }
 
 .arrowWrapper:hover {
     margin-left: 20px;
-    margin-right: 0px;
+    margin-right: 0;
 }
 
 .arrow {
-    margin-left: 5px;
     height: 8px;
+    margin-left: 5px;
     width: 20px;
 }
 
 @media only screen and (max-width: 1000px) {
     .homePageWrapper {
+        flex-direction: column;
         grid-template-columns: 1fr;
         grid-template-rows: 1fr 1fr;
-        flex-direction: column;
         height: 100%;
     }
 }
 
 .securityNav {
-    width: 100%;
-    padding: 20px;
     height: 100%;
+    padding: 20px;
+    width: 100%;
 }
 
 .nav {
-    display: flex;
     align-items: center;
+    display: flex;
+    height: 100%;
     padding: 30px;
     width: 100%;
-    height: 100%;
 }
 
 .highlightText {
@@ -73,28 +73,28 @@
 }
 
 .header {
-    font-size: 35px;
     display: flex;
-    text-align: center;
+    font-size: 35px;
     justify-content: center;
-    margin-top: 20px !important;
     margin-bottom: 10px !important;
+    margin-top: 20px !important;
     max-width: 90vw;
+    text-align: center;
 }
 
 .logoHeader {
+    color: var(--color-gray-500);
     font-family: var(--header-font-family);
-    margin-top: 30px;
     font-weight: 200;
     margin-bottom: 20px !important;
-    color: var(--color-gray-500);
+    margin-top: 30px;
     max-width: 90vw;
 }
 
 .humans {
-    margin-top: 30px;
-    margin-bottom: 10px;
     height: 250px;
+    margin-bottom: 10px;
+    margin-top: 30px;
     max-width: 90vw;
 }
 
@@ -104,29 +104,29 @@
 }
 
 .modalWrapper {
-    width: 80vw;
-    border-radius: 8px;
     background-color: var(--text-primary);
+    border-radius: 8px;
     padding: 10px;
+    width: 80vw;
 }
 
 .subHeader {
-    text-align: center;
+    display: flex;
     font-size: 20px;
     font-weight: 200;
-    display: flex;
     justify-content: center;
     max-width: 500px;
+    text-align: center;
 }
 
 .demoVideoButton {
-    color: var(--color-gray-500);
-    margin: 10px;
-    font-size: 16px;
-    cursor: pointer;
     background-color: var(--color-primary-background);
-    border: none;
+    border: 0;
+    color: var(--color-gray-500);
+    cursor: pointer;
+    font-size: 16px;
     font-weight: 300;
+    margin: 10px;
     transition: 0.3s color;
 }
 
@@ -135,54 +135,54 @@
 }
 
 .navLink {
-    font-family: var(--header-font-family);
     color: var(--color-gray-500);
-    margin: 10px;
+    font-family: var(--header-font-family);
     font-size: 16px;
+    margin: 10px;
 }
 
 .securityWrapper {
+    display: flex;
+    flex-direction: column;
     margin-left: auto;
     width: max-content;
-    flex-direction: column;
-    display: flex;
 }
 
 .securityLink {
     color: var(--color-gray-500);
-    margin: 0 10px 5px 10px;
     font-size: 12px;
+    margin: 0 10px 5px;
     text-decoration: underline;
 }
 
 .landing {
+    align-items: center;
     display: flex;
     flex-direction: column;
-    align-items: center;
 }
 
 .landingWrapper {
-    display: flex;
     align-items: center;
+    display: flex;
     flex-direction: column;
     height: 100%;
     justify-content: center;
 }
 
 .stylingWrapper {
+    align-items: center;
+    display: grid;
+    flex-direction: column;
+    grid-template-rows: 80px 1fr 80px;
     height: 100%;
     width: 100%;
-    display: grid;
-    grid-template-rows: 80px 1fr 80px;
-    align-items: center;
-    flex-direction: column;
 }
 
 .contentWrapper {
-    display: flex;
     align-items: center;
-    justify-content: center;
-    height: 100%;
-    width: 100%;
     background-color: var(--color-purple);
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    width: 100%;
 }

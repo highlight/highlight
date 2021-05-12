@@ -1,54 +1,54 @@
 .dropdownName {
-    font-weight: 400;
     font-size: 15px;
+    font-weight: 400;
 }
 
 .dropdownEmail {
-    font-weight: 300;
     font-size: 13px;
+    font-weight: 300;
     margin-bottom: 10px;
 }
 
 .selectedOrgItem {
     border-bottom: 1px solid var(--color-gray-300);
-    padding: 10px;
-    font-size: 16px;
-    padding-left: 15px;
-    cursor: pointer;
     color: var(--color-purple);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 10px;
+    padding-left: 15px;
 }
 
 .orgItem {
+    align-items: center;
     border-bottom: 1px solid var(--color-gray-300);
-    padding: 10px 10px 10px 6px;
-    font-size: 16px;
     cursor: pointer;
     display: flex;
-    align-items: center;
+    font-size: 16px;
+    padding: 10px 10px 10px 6px;
     width: 100%;
 }
 
 .workspaceIcon {
-    height: 26px;
-    width: 26px;
-    min-width: 26px;
-    min-height: 26px;
-    border-radius: 5px;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    font-weight: 500;
+    border-radius: 5px;
+    color: var(--color-primary-background);
+    display: flex;
     font-family: var(--header-font-family);
     font-size: 14px;
-    color: var(--color-primary-background);
+    font-weight: 500;
+    height: 26px;
+    justify-content: center;
     line-height: initial;
+    min-height: 26px;
+    min-width: 26px;
+    width: 26px;
 }
 
 .workspaceIconMiniWrapper {
-    padding: 6px;
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     cursor: pointer;
+    padding: 6px;
 }
 
 .orgItem:hover {
@@ -57,19 +57,19 @@
 
 .orgText {
     color: var(--text-primary);
-    margin-right: 20px;
     margin-left: 10px;
+    margin-right: 20px;
 }
 
 .newOrgDiv {
-    padding: 10px;
-    display: flex;
     align-items: center;
-    width: 100%;
-    padding-left: 15px;
     color: var(--color-purple);
-    font-size: 16px;
     cursor: pointer;
+    display: flex;
+    font-size: 16px;
+    padding: 10px;
+    padding-left: 15px;
+    width: 100%;
 }
 
 .newOrgDiv:hover {
@@ -78,22 +78,22 @@
 
 .dropdownInner {
     background-color: var(--color-primary-background);
-    border-radius: 5px;
     border: 1px solid var(--color-gray-300);
-    min-width: 220px;
-    margin-top: 9px;
-    box-shadow: 2px 2px 8px #e4e4e4;
+    border-radius: 5px;
+    box-shadow: 2px 2px 8px var(--color-gray-300);
     color: var(--text-primary);
+    margin-top: 9px;
+    min-width: 220px;
 }
 
 .dropdownLogout {
-    border-top: 1px solid var(--color-gray-300);
-    cursor: pointer;
-    width: 100%;
-    display: flex;
     align-items: center;
-    padding-top: 10px;
+    border-top: 1px solid var(--color-gray-300);
     color: var(--color-red);
+    cursor: pointer;
+    display: flex;
+    padding-top: 10px;
+    width: 100%;
 }
 
 .dropdownLogoutText {
@@ -106,32 +106,32 @@
 }
 
 .icon {
-    transition: 0.4s;
+    color: var(--color-purple);
+    height: 16px;
     margin-left: auto;
     margin-right: 5px;
-    height: 16px;
+    transition: 0.4s;
     width: 16px;
-    color: var(--color-purple);
 }
 
 .plusIcon {
-    margin-right: 5px;
-    margin-bottom: 2px;
-    margin-left: auto;
-    height: 15px;
-    width: 15px;
     color: var(--color-purple);
     fill: var(--color-purple);
+    height: 15px;
+    margin-bottom: 2px;
+    margin-left: auto;
+    margin-right: 5px;
+    width: 15px;
 }
 
 .orgNameText {
-    width: 100%;
-    display: flex;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     align-items: center;
+    display: flex;
     margin-left: 10px !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
 }
 
 .orgNameWrapper {
@@ -140,15 +140,15 @@
 }
 
 .dropdownHandler {
-    cursor: pointer;
-    width: 100%;
-    height: 40px;
-    border: 1px solid var(--color-gray-300);
-    display: flex;
     align-items: center;
-    justify-content: center;
-    padding: var(--size-xSmall) var(--size-small);
+    border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
     font-size: 16px;
+    height: 40px;
+    justify-content: center;
+    padding: var(--size-xSmall) var(--size-small);
+    width: 100%;
 }

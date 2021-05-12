@@ -8,8 +8,8 @@
 
 .ant-picker-input input::placeholder {
     color: var(--color-gray-500);
-    font-weight: 300;
     font-size: 14px;
+    font-weight: 300;
 }
 
 .ant-picker-suffix {
@@ -38,17 +38,17 @@
 
 .ant-tabs-content {
     display: flex;
-    width: 100%;
     height: 100%;
+    width: 100%;
 }
 
 .ant-tabs-tab-btn {
+    color: var(--color-gray-500);
+    font-size: 14px;
     outline: none;
     outline-color: initial;
     outline-style: none;
     outline-width: initial;
-    color: var(--color-gray-500);
-    font-size: 14px;
     transition: all 0.3s;
 }
 
@@ -57,19 +57,19 @@
 }
 
 .ant-tabs-tab {
-    margin: 0 16px 0 16px !important;
+    margin: 0 16px !important;
 }
 
 .ant-tabs-tab::after {
-    content: '';
-    position: absolute;
-    height: 3px;
     background: var(--color-gray-400);
-    width: 100%;
-    bottom: 0;
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
     border-radius: 5px;
+    bottom: 0;
+    content: '';
+    height: 3px;
+    opacity: 0;
+    position: absolute;
+    transition: opacity 0.2s ease-in-out;
+    width: 100%;
 }
 
 .ant-tabs-tab:hover.ant-tabs-tab::after {
@@ -77,9 +77,9 @@
 }
 
 .ant-tabs-ink-bar {
-    height: 3px !important;
     background: var(--text-primary) !important;
     border-radius: 5px;
+    height: 3px !important;
 }
 
 .ant-tabs-nav {
@@ -94,14 +94,16 @@
 }
 
 .ant-popover-inner-content {
-    padding-bottom: 0px !important;
+    padding-bottom: 0 !important;
 }
 
+/* stylelint-disable */
 input[name='option-input'] {
-    outline: none !important;
-    border: none !important;
+    /* stylelint-enable */
     background-color: transparent !important;
+    border: 0 !important;
     font-weight: 300;
+    outline: none !important;
 }
 
 .Collapsible {
@@ -113,12 +115,12 @@ input[name='option-input'] {
 }
 
 .rc-slider {
-    padding: 0 !important;
     cursor: pointer;
+    padding: 0 !important;
 }
 
 iframe {
     background-color: var(--color-primary-background);
-    border: none;
+    border: 0;
     z-index: -10;
 }

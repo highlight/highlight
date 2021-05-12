@@ -1,29 +1,29 @@
 .commentUpdatedTime {
     color: var(--color-gray-500);
-    font-weight: 200;
     flex-shrink: 0;
     font-size: 12px;
+    font-weight: 200;
 }
 
 .commentHeader {
     display: grid;
-    grid-template-columns: 30px auto auto;
     gap: var(--size-xSmall) var(--size-small);
+    grid-template-columns: 30px auto auto;
 }
 
 .childrenContainer {
-    grid-column-start: 2;
     grid-column-end: 4;
+    grid-column-start: 2;
 }
 
 .commentAuthor {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-weight: 400;
-    font-size: 14px;
     color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 400;
     line-height: initial;
     margin: 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .textContainer {
@@ -32,17 +32,17 @@
 }
 
 .ellipsisButton {
+    align-items: center;
     background: transparent;
-    border: none;
-    outline: none;
+    border: 0;
+    border-radius: var(--button-border-radius);
     cursor: pointer;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: var(--button-border-radius);
     height: var(--size-large);
-    width: var(--size-large);
+    justify-content: center;
+    outline: none;
     padding: 0;
+    width: var(--size-large);
 
     &:hover {
         background: var(--color-gray-300);

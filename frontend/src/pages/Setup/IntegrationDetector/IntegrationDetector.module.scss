@@ -1,45 +1,45 @@
 .detectorWrapper {
-    display: flex;
-    width: max-content;
-    padding: 0 10px 0 0px;
-    border-radius: 8px;
     background-color: var(--color-primary-background);
+    border-radius: 8px;
     color: var(--color-primary-background);
-    transition: 0.3s;
     cursor: pointer;
+    display: flex;
+    padding: 0 10px 0 0;
+    transition: 0.3s;
+    width: max-content;
 }
 
 .detector {
-    display: flex;
     align-items: center;
+    display: flex;
 }
 
 .loaderWrapper {
-    height: 100%;
-    display: flex;
     align-items: center;
-    justify-content: center;
     animation-duration: 5s !important;
+    display: flex;
+    height: 100%;
+    justify-content: center;
 }
 
 .textWrapper {
-    height: 100%;
-    padding: 3px;
-    margin-left: 5px;
+    align-items: center;
     cursor: pointer;
     display: flex;
-    align-items: center;
+    height: 100%;
     justify-content: center;
+    margin-left: 5px;
+    padding: 3px;
 }
 
 .checkIcon {
+    color: var(--color-green);
+    fill: var(--color-green);
+    height: 15px;
     margin-bottom: 2px;
     margin-left: 5px;
     margin-right: 5px;
-    height: 15px;
     width: 15px;
-    color: var(--color-green);
-    fill: var(--color-green);
 }
 
 .verificationText {

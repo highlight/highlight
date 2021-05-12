@@ -5,13 +5,13 @@ $right-padding: 12px;
 
 .networkRow {
     color: var(--color-gray-500);
-    width: 100%;
     display: grid;
+    font-size: 13px;
     grid-template-columns: $columns;
+    padding-bottom: 8px;
     padding-left: 25px;
     padding-right: $right-padding;
-    padding-bottom: 8px;
-    font-size: 13px;
+    width: 100%;
 
     &:hover .goToButton {
         visibility: visible;
@@ -20,20 +20,20 @@ $right-padding: 12px;
 
 .networkTopBar {
     color: var(--color-gray-500);
-    width: 100%;
+    display: grid;
+    font-size: 13px;
+    grid-template-columns: $columns;
+    height: 40px;
     padding-left: 25px;
     padding-right: $right-padding;
-    height: 40px;
-    display: grid;
-    grid-template-columns: $columns;
-    font-size: 13px;
+    width: 100%;
 }
 
 .networkTableWrapper {
-    height: calc(100% - 45px);
-    position: relative;
     border-left: 1px solid var(--color-gray-300);
+    height: calc(100% - 45px);
     margin-left: 1px;
+    position: relative;
 }
 
 // calc(total width - padding left - padding right - TYPE - NAME - TIMING - SIZE - GoToButton)
@@ -42,27 +42,27 @@ $canvas-width: calc(
 );
 
 .canvasNetworkWrapper {
-    position: absolute;
     background-attachment: fixed;
     height: 100%;
-    width: $canvas-width;
     margin-left: calc(5px + 50px + 50% + 90px + 90px);
+    position: absolute;
+    width: $canvas-width;
     z-index: 99;
 }
 
 .networkStreamWrapper {
     background-color: var(--color-primary-background);
-    word-wrap: break-word;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
     height: calc(100% - 40px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    word-wrap: break-word;
 }
 
 .networkTimingColumn {
-    font-size: 12px;
     color: var(--color-gray-500);
+    font-size: 12px;
     font-weight: 400;
     z-index: 10;
 }
@@ -72,29 +72,29 @@ $canvas-width: calc(
 }
 
 .networkColumn {
-    font-size: 12px;
-    color: var(--text-primary);
-    font-weight: 400;
-    display: flex;
     align-items: center;
+    color: var(--text-primary);
+    display: flex;
+    font-size: 12px;
+    font-weight: 400;
 }
 
 .typeSection {
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .nameSection {
-    white-space: nowrap;
     cursor: pointer;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .timingBarWrapper {
-    display: flex;
     align-items: center;
+    display: flex;
     justify-content: center;
 }
 
@@ -103,15 +103,15 @@ $canvas-width: calc(
 }
 
 .timingBar {
-    height: 60%;
     background-color: var(--color-purple);
     border-radius: 4px;
+    height: 60%;
 }
 
 .networkTimestampGrid {
     display: grid;
-    width: 100%;
     grid-template-columns: repeat(3, 33.33%);
+    width: 100%;
 }
 
 @media only screen and (max-width: 1150px) {
@@ -121,8 +121,8 @@ $canvas-width: calc(
 }
 
 .goToButton {
-    visibility: hidden;
     color: var(--text-primary);
+    visibility: hidden;
 }
 
 .resourcePageWrapper {

@@ -3,10 +3,10 @@
 }
 
 .errorList {
-    flex-grow: 1;
     border-left: 1px solid var(--color-gray-300);
-    margin-left: 1px;
+    flex-grow: 1;
     height: 100%;
+    margin-left: 1px;
 }
 
 .skeleton {

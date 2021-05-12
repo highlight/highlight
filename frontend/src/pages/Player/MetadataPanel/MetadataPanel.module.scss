@@ -3,8 +3,8 @@
     padding: 0 var(--size-small);
 
     .header {
-        font-size: 12px;
         color: var(--color-black);
+        font-size: 12px;
         font-weight: 400;
         margin: 0;
         margin-bottom: var(--size-xSmall) !important;
@@ -14,31 +14,31 @@
         margin-bottom: var(--size-xLarge);
 
         p {
-            margin: 0;
-            font-size: 12px;
             color: var(--color-gray-500);
+            font-size: 12px;
+            margin: 0;
         }
     }
 
     .tagDiv {
         display: flex;
-        width: 100%;
         padding-right: 20px;
+        width: 100%;
     }
 
     .tagWrapper {
         display: flex;
         flex: 1;
         flex-flow: row wrap;
-        overflow: hidden;
         height: 24px;
+        overflow: hidden;
     }
 }
 
 .noMetadataContainer {
     p {
-        margin: 0;
-        font-size: 12px;
         color: var(--color-gray-500);
+        font-size: 12px;
+        margin: 0;
     }
 }

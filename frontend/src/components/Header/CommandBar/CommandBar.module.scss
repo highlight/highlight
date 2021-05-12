@@ -1,43 +1,45 @@
+/* stylelint-disable */
 .container {
     font-family: var(--header-font-family);
 }
 
 .input {
-    font-size: 14px;
-    border-radius: 4px;
-    border: 2px solid #181a1f;
-    width: -webkit-fill-available;
-    padding: 6px;
-    margin: var(--size-small);
-    box-sizing: border-box;
-    outline: none;
     background-color: #202634;
-    color: #d7dae0;
+    border: 2px solid #181a1f;
+    border-radius: 4px;
+    box-sizing: border-box;
     caret-color: var(--color-purple);
+    color: #d7dae0;
+    font-size: 14px;
+    margin: var(--size-small);
+    outline: none;
+    padding: 6px;
+    width: fill-available;
 }
 
 .input-focused {
-    border-color: var(--color-red);
     background-color: var(--text-primary);
+    border-color: var(--color-red);
 }
 
 .suggestion {
-    & b {
-        color: var(--color-purple-light);
-    }
+    background-color: #2c313a;
+    border-left: 3px solid transparent;
 
     color: #9da5b4;
-    background-color: #2c313a;
-    padding: 14px 12px;
     cursor: pointer;
-    border-left: 3px solid transparent;
+    padding: 14px 12px;
+
+    b {
+        color: var(--color-purple-light);
+    }
 }
 
 .suggestionsContainerOpen {
-    overflow-y: auto;
-    border-top: 1px solid #111;
     border-bottom: 1px solid #111;
+    border-top: 1px solid #111;
     max-height: 400px;
+    overflow-y: auto;
 
     &::-webkit-scrollbar {
         display: none;
@@ -45,24 +47,24 @@
 }
 
 .suggestionHighlighted {
-    color: var(--color-primary-background);
     background: #3a3f4b;
     border-left: 3px solid var(--color-purple);
+    color: var(--color-primary-background);
 }
 
 .modal {
-    width: 605px;
-    position: absolute;
-    top: 25%;
-    left: 50%;
-    right: auto;
-    bottom: auto;
-    border: none;
     background: rgb(48, 51, 56);
-    overflow: hidden;
+    border: 0;
     border-radius: 4px;
-    outline: none;
+    bottom: auto;
     box-shadow: var(--box-shadow);
+    left: 50%;
+    outline: none;
+    overflow: hidden;
+    position: absolute;
+    right: auto;
+    top: 25%;
     // margin-right: -50%;
-    transform: translate(-50%, 0px);
+    transform: translate(-50%, 0);
+    width: 605px;
 }

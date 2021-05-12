@@ -4,9 +4,9 @@
     @include rounded-border;
     display: flex;
     flex-direction: column;
+    height: 325px;
     padding: 24px;
     width: 275px;
-    height: 325px;
 }
 
 .billingPlanTitle {
@@ -19,24 +19,24 @@
 }
 
 .billingPlanPrice {
-    margin-top: var(--size-xSmall) !important;
     margin-bottom: 0 !important;
+    margin-top: var(--size-xSmall) !important;
 }
 
 .advertisedFeaturesWrapper {
-    margin: 5px 0 10px 0;
-    padding: 0;
-    list-style: none;
     display: flex;
     flex-direction: column;
+    list-style: none;
+    margin: 5px 0 10px;
+    padding: 0;
     row-gap: var(--size-xxSmall);
 }
 
 .advertisedFeature {
-    margin: 0;
-    display: flex;
     align-items: center;
     column-gap: var(--size-xSmall);
+    display: flex;
+    margin: 0;
 
     svg {
         color: var(--color-green);
@@ -44,8 +44,8 @@
 }
 
 .button {
-    margin-top: auto;
     justify-content: center;
+    margin-top: auto;
 }
 
 .button {

@@ -1,23 +1,23 @@
 .setupWrapper {
-    width: 100%;
     display: flex;
+    width: 100%;
 }
 
 .icon {
-    transition: 0.4s;
+    color: var(--color-purple);
+    cursor: pointer;
+    float: right;
+    height: 16px;
     margin-left: auto;
     margin-right: -4px;
-    height: 16px;
-    width: 16px;
-    color: var(--color-purple);
     margin-top: 6px;
-    float: right;
-    cursor: pointer;
+    transition: 0.4s;
+    width: 16px;
 }
 
 .radioGroupWrapper {
-    margin: 20px 0px 20px 0px;
     display: flex;
+    margin: 20px 0;
 }
 
 .headingWrapper {
@@ -26,28 +26,28 @@
 }
 
 .platformOption {
-    height: 30px;
-    width: 85px;
-    display: flex;
     align-items: center;
-    justify-content: center;
     border: 1px solid var(--color-gray-300);
     cursor: pointer;
+    display: flex;
+    height: 30px;
+    justify-content: center;
     transition: 0.2s;
+    width: 85px;
 }
 
 .callout {
-    border-radius: 4px;
     background-color: var(--color-gray-200);
-    line-height: 2;
+    border-radius: 4px;
     display: flex;
+    line-height: 2;
 }
 
 .section {
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
-    padding: 20px 30px 20px 30px;
     margin-bottom: 20px;
+    padding: 20px 30px;
     transition: 0.4s;
 }
 
@@ -66,46 +66,47 @@
 }
 
 .calloutEmoji {
-    padding: 8px;
-    height: 100%;
     font-size: 20px;
+    height: 100%;
+    padding: 8px;
 }
 
 .setupPage {
-    width: 40vw;
-    min-width: 650px;
-    margin: 120px 80px 80px 80px;
-    height: max-content;
     border-radius: 8px;
+    height: max-content;
+    margin: 120px 80px 80px;
+    min-width: 650px;
+    width: 40vw;
 }
 
 .snippetHeadingTwo {
+    align-items: center;
+    display: flex;
     font-size: 20px;
     font-weight: 400;
-    display: flex;
-    align-items: center;
 }
 
 .codeBlockInlined {
     line-height: var(--size-xLarge) !important;
 }
+
 .codeBlockBasic {
+    background-color: var(--color-secondary-background);
+    border: 1px solid var(--color-gray-300);
+    border-radius: 4px;
     font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
         'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
-    border: 1px solid var(--color-gray-300);
-    background-color: var(--color-secondary-background);
-    white-space: pre;
-    width: 100%;
-    max-width: 100%;
-    position: relative;
-    margin-top: 20px;
+    font-size: 12px;
+    height: 100%;
     margin-bottom: 20px;
     margin-left: 2px;
     margin-right: 2px;
+    margin-top: 20px;
+    max-width: 100%;
     min-width: 100%;
-    resize: none;
-    font-size: 12px;
     padding: 5px;
-    border-radius: 4px;
-    height: 100%;
+    position: relative;
+    resize: none;
+    white-space: pre;
+    width: 100%;
 }

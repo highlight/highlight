@@ -1,9 +1,9 @@
 .container {
-    height: 36px;
-    display: flex;
     align-items: center;
-    padding: 10px var(--size-small);
-    column-gap: var(--size-small);
-    font-size: 12px;
     color: var(--color-gray-500);
+    column-gap: var(--size-small);
+    display: flex;
+    font-size: 12px;
+    height: 36px;
+    padding: 10px var(--size-small);
 }

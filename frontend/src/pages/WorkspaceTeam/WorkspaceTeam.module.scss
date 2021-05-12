@@ -3,30 +3,30 @@
 }
 
 .box {
-    margin-top: 20px;
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
+    margin-top: 20px;
     padding: 30px;
 }
 
 .teamPage {
-    margin: 120px 80px 80px 80px;
+    margin: 120px 80px 80px;
     width: 580px;
 }
 
 .teamPageWrapper {
-    width: 100%;
-    height: 100%;
     display: flex;
+    height: 100%;
+    width: 100%;
 }
 
 .memberCard {
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
-    padding: 10px;
     display: flex;
     flex-direction: row;
-    margin: 12px 0 12px 0;
+    margin: 12px 0;
+    padding: 10px;
 }
 
 .userDetails {
@@ -47,9 +47,9 @@
 }
 
 .buttonRow {
-    margin-top: 5px;
     display: grid;
     grid-template-columns: 1fr 120px;
+    margin-top: 5px;
 }
 
 .inviteButton {
@@ -58,5 +58,5 @@
 }
 
 .boxSubTitle {
-    margin: 10px 0 10px 0;
+    margin: 10px 0;
 }

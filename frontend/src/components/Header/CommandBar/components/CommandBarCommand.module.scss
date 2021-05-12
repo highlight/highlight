@@ -1,17 +1,17 @@
 .suggestion {
-    background: var(--header-font-family);
-    font-size: 14px;
-    color: var(--color-gray-300);
-    display: flex;
     align-items: center;
+    background: var(--header-font-family);
+    color: var(--color-gray-300);
     column-gap: var(--size-small);
+    display: flex;
+    font-size: 14px;
 }
 
 .category {
-    display: flex;
     align-items: center;
+    display: flex;
 
-    & > svg {
+    > svg {
         fill: var(--text-primary-inverted);
         height: 12px;
         width: 12px;

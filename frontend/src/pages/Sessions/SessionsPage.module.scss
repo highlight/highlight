@@ -1,23 +1,24 @@
 @import 'src/static/shared.scss';
 
 .sessionsBody {
-    width: 100%;
+    column-gap: 30px;
+    display: grid;
+    grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
+    grid-template-columns: auto 300px minmax(200px, 700px) 300px auto;
     height: 100%;
     padding-top: 100px;
-    display: grid;
-    grid-template-columns: auto 300px minmax(200px, 700px) 300px auto;
-    gap: 0px 0px;
-    grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
-    column-gap: 30px;
+    width: 100%;
 }
 
 .leftPanel {
     grid-area: Left-Panel;
     overflow-y: auto;
 }
+
 .centerPanel {
     grid-area: Center-Panel;
 }
+
 .rightPanel {
     grid-area: Right-Panel;
     overflow-y: auto;
@@ -28,20 +29,20 @@
 }
 
 .mainUserInput {
+    align-items: center;
+    background-color: var(--color-primary-background);
+    display: flex;
+    justify-content: center;
     position: relative;
     width: 100%;
-    background-color: var(--color-primary-background);
     z-index: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .sessionsSection {
-    position: relative;
     display: flex;
     flex-direction: column;
     height: 100%;
+    position: relative;
 }
 
 .advancedText {
@@ -49,16 +50,16 @@
 }
 
 .advancedIcon {
-    margin-top: 4px;
     height: 100%;
+    margin-top: 4px;
 }
 
 .advancedSearchButton {
-    cursor: pointer;
-    margin: 10px 0 0 10px;
-    display: flex;
     align-items: center;
+    cursor: pointer;
+    display: flex;
     justify-content: flex-end;
+    margin: 10px 0 0 10px;
 }
 
 .sessionsHeader {
@@ -67,89 +68,89 @@
 }
 
 .timesIcon {
-    margin-right: 4px;
     color: var(--color-purple);
     height: 100%;
+    margin-right: 4px;
 }
 
 .loadingDiv {
-    height: 50px;
-    margin-bottom: 100px;
-    display: flex;
     align-items: flex-start;
+    display: flex;
+    height: 50px;
     justify-content: flex-start;
+    margin-bottom: 100px;
 }
 
 .searchIcon {
-    margin: 14px;
     color: var(--color-gray-500);
+    margin: 14px;
 }
 
 .searchIconWrapper {
     flex: 0 1 40px;
-    width: 40px;
     height: 100%;
+    width: 40px;
 }
 
 .searchInputSection {
+    align-items: center;
+    display: flex;
     flex: 1 1 auto;
     flex-direction: row;
-    display: flex;
     height: 100%;
-    align-items: center;
 }
 
 .optionsTitle {
+    color: var(--color-purple);
     font-size: 12px;
     font-weight: 400;
-    color: var(--color-purple);
-    margin-left: 10px;
     margin-bottom: 8px;
+    margin-left: 10px;
 }
 
 .optionInput {
     background-color: transparent;
-    outline: none;
-    font-weight: 300;
-    border: none !important;
-    height: 100%;
-    overflow: hidden;
-    resize: none;
-    display: inline-block;
-    padding: 3px;
+    border: 0 !important;
     color: var(--color-purple);
+    display: inline-block;
+    font-weight: 300;
+    height: 100%;
+    outline: none;
+    overflow: hidden;
+    padding: 3px;
+    resize: none;
 }
 
 .optionKey {
-    font-weight: 400;
     color: var(--color-purple);
+    font-weight: 400;
 }
 
 .optionInputWrapper {
-    width: max-content;
-    height: max-content;
-    border: none;
-    white-space: nowrap;
-    padding-left: 10px;
-    outline: none;
-    padding-right: 3px;
-    display: flex;
     align-items: center;
-    justify-content: center;
+    background-color: var(--color-gray-200);
+    border: 0;
     border-radius: 8px;
     cursor: pointer;
-    background-color: var(--color-gray-200);
+    display: flex;
+    height: max-content;
+    justify-content: center;
     margin-right: 10px;
+    outline: none;
+    padding-left: 10px;
+    padding-right: 3px;
+    white-space: nowrap;
+    width: max-content;
 }
 
 .optionsRow {
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-block;
     padding: 3px;
     padding-left: 10px;
     padding-right: 10px;
-    display: inline-block;
-    border-radius: 8px;
     width: max-content;
-    cursor: pointer;
 }
 
 .optionsRow:hover {
@@ -157,17 +158,17 @@
 }
 
 .optionsKey {
+    color: var(--text-primary);
     font-size: 16px;
     font-weight: 300;
-    color: var(--text-primary);
 }
 
 .dropdownTitle {
-    padding: 3px 10px 3px 10px;
-    font-size: 13px;
     color: var(--color-purple);
+    font-size: 13px;
     font-weight: 400;
     margin-bottom: 5px;
+    padding: 3px 10px;
 }
 
 .dropdownSection {
@@ -176,9 +177,9 @@
 }
 
 .optionsValue {
+    color: var(--color-gray-400);
     font-size: 16px;
     font-weight: 300;
-    color: var(--color-gray-400);
 }
 
 .optionsSection {
@@ -192,37 +193,37 @@
 
 .dropdown {
     @include rounded-border;
-    width: 100%;
-    max-width: 700px;
     background-color: var(--color-primary-background);
-    padding: 16px;
     display: flex;
-    margin-top: -10px;
     flex-direction: column;
+    margin-top: -10px;
+    max-width: 700px;
+    padding: 16px;
+    width: 100%;
 }
 
 .searchBar {
     @include rounded-border;
-    margin-top: 20px;
-    margin-bottom: 25px;
-    width: 100%;
-    height: 48px;
-    display: flex;
     align-items: center;
-    padding-left: 16px;
+    display: flex;
+    height: 48px;
     justify-content: center;
+    margin-bottom: 25px;
+    margin-top: 20px;
+    padding-left: 16px;
+    width: 100%;
 }
 
 .searchInput {
-    color: var(--text-primary);
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    font-weight: 300;
-    border: none;
+    border: 0;
     border-radius: 8px;
+    color: var(--text-primary);
+    display: flex;
+    font-weight: 300;
+    height: 100%;
+    justify-content: center;
     outline: none;
+    width: 100%;
 }
 
 .mainInputDiv {
@@ -231,62 +232,62 @@
 }
 
 .sessionCard {
+    @include rounded-border;
+    align-items: center;
+    cursor: pointer;
+    display: flex;
     font-weight: 400;
     height: 80px;
-    @include rounded-border;
-    margin-top: 14px;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
     justify-content: space-between;
+    margin-bottom: 14px;
+    margin-top: 14px;
     padding: 18px;
-    cursor: pointer;
 }
 
 .sessionTextSection {
-    width: 160px;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 160px;
 }
 
 .sessionTextWrapper {
     display: flex;
-    width: 100%;
     justify-content: space-between;
+    width: 100%;
 }
 
 .playButton {
-    margin-right: 30px;
-    margin-left: 15px;
     height: 45px;
+    margin-left: 15px;
+    margin-right: 30px;
     width: 45px;
 }
 
 .regTitle {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    color: var(--text-primary);
     font-size: 15px;
     font-weight: 300;
-    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .blueTitle {
-    white-space: nowrap;
+    color: var(--color-purple);
+    font-size: 15px;
+    font-weight: 400;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-size: 15px;
-    color: var(--color-purple);
-    font-weight: 400;
+    white-space: nowrap;
 }
 
 .regSubTitle {
-    white-space: nowrap;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 200;
+    margin-top: 3px;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-top: 3px;
-    font-size: 14px;
-    color: var(--text-primary);
-    font-weight: 200;
+    white-space: nowrap;
 }

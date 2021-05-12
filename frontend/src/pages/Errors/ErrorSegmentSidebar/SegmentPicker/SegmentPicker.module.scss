@@ -1,40 +1,40 @@
 .segmentPickerMenu {
-    font-family: var(--header-font-family);
     box-shadow: none;
-    min-width: 200px;
+    font-family: var(--header-font-family);
     margin-bottom: 12px;
+    min-width: 200px;
     width: 100%;
 }
 
 .segmentPickerInner {
     background-color: var(--color-primary-background);
-    border-radius: 8px;
     border: 1px solid var(--color-gray-300);
-    min-width: 220px;
+    border-radius: 8px;
     color: var(--text-primary);
+    min-width: 220px;
 
     .segmentItemWrapper:last-child .segmentItem {
-        border-bottom: 0px;
+        border-bottom: 0;
     }
 }
 
 .downIcon {
-    transition: 0.4s;
+    color: var(--color-purple);
+    height: 14px;
     margin-left: auto;
     margin-right: 5px;
-    height: 14px;
+    transition: 0.4s;
     width: 14px;
-    color: var(--color-purple);
 }
 
 .checkIcon {
-    margin-right: 5px;
-    margin-bottom: 2px;
-    margin-left: auto;
-    height: 15px;
-    width: 15px;
     color: var(--color-purple);
     fill: var(--color-purple);
+    height: 15px;
+    margin-bottom: 2px;
+    margin-left: auto;
+    margin-right: 5px;
+    width: 15px;
 }
 
 .trashIcon {
@@ -44,66 +44,66 @@
 }
 
 .segmentAction {
+    align-items: center;
     background-color: var(--color-gray-200);
     border: 0;
+    border-radius: 5px;
+    bottom: 0;
     display: none;
-    position: absolute;
-    padding: 0px 6px;
-    width: 30px;
     height: 30px;
+    margin: auto;
+    padding: 0 6px;
+    position: absolute;
     right: 5px;
     top: 0;
-    bottom: 0;
-    margin: auto;
-    border-radius: 5px;
-    align-items: center;
+    width: 30px;
 
     &:hover {
-        cursor: pointer;
         background-color: var(--color-gray-300);
+        cursor: pointer;
 
         .trashIcon {
             color: var(--text-primary);
-            fill: black;
+            fill: var(--text-primary);
         }
     }
 }
 
 .dropdownHandler {
-    cursor: pointer;
-    width: 100%;
-    margin-top: 13px;
-    height: 40px;
-    border: 1px solid var(--color-gray-300);
-    display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 10px;
+    border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
     font-size: 16px;
+    height: 40px;
+    justify-content: center;
+    margin-top: 13px;
+    padding: 10px;
     padding-left: 14px;
+    width: 100%;
 }
 
 .plusIcon {
-    margin-right: 5px;
-    margin-bottom: 2px;
-    margin-left: auto;
-    height: 15px;
-    width: 15px;
     color: var(--color-purple);
     fill: var(--color-purple);
+    height: 15px;
+    margin-bottom: 2px;
+    margin-left: auto;
+    margin-right: 5px;
+    width: 15px;
 }
 
 .newSearchDiv {
-    padding: 10px;
-    display: flex;
     align-items: center;
-    width: 100%;
-    padding-left: 15px;
     color: var(--color-purple);
-    font-size: 14px;
     cursor: pointer;
+    display: flex;
+    font-size: 14px;
+    padding: 10px;
+    padding-left: 15px;
+    width: 100%;
 }
 
 .newSearchDiv:hover {
@@ -111,8 +111,8 @@
 }
 
 .noSegmentsText {
-    margin-top: 10px;
     color: var(--color-gray-500);
+    margin-top: 10px;
 }
 
 .segmentItemWrapper {
@@ -128,24 +128,24 @@
 }
 
 .segmentItem {
+    align-items: center;
     border-bottom: 1px solid var(--color-gray-300);
-    padding: 10px;
-    font-size: 16px;
-    padding-left: 15px;
     cursor: pointer;
     display: flex;
-    align-items: center;
+    font-size: 16px;
+    padding: 10px;
+    padding-left: 15px;
     width: 100%;
 }
 
 .segmentText {
-    text-overflow: ellipsis;
-    width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
     color: var(--text-primary);
-    margin-right: 20px;
     font-size: 14px;
+    margin-right: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
 }
 
 .segmentUnselected {
@@ -153,12 +153,12 @@
 }
 
 .segmentNameText {
-    width: 100%;
-    font-size: 14px;
     display: block;
+    font-size: 14px;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
 }
 
 .modalWrapper {

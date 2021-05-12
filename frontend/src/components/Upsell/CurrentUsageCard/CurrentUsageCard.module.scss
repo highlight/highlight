@@ -1,20 +1,20 @@
 .container {
-    padding: var(--size-medium);
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     margin-bottom: var(--size-medium);
+    padding: var(--size-medium);
 }
 
 .header {
-    font-size: 12px;
     color: var(--text-primary);
+    font-size: 12px;
     margin: 0;
     margin-bottom: var(--size-xSmall);
 }
 
 .description {
-    font-size: 11px;
     color: var(--text-primary);
+    font-size: 11px;
     margin: 0;
     margin-bottom: var(--size-xxSmall);
 }

@@ -8,11 +8,11 @@
 }
 
 .userAvatarText {
-    font-family: var(--header-font-family);
+    align-items: center;
     border-radius: 50%;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    font-family: var(--header-font-family);
     font-weight: 500;
+    justify-content: center;
     line-height: initial;
 }

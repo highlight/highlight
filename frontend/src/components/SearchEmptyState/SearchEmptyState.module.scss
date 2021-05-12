@@ -1,38 +1,38 @@
 .emptyStateSection {
-    border: 1px solid var(--color-gray-300);
-    width: max-content;
-    padding: 20px;
-    border-radius: 8px;
-    margin: 10px;
-    display: flex;
     align-items: center;
+    border: 1px solid var(--color-gray-300);
+    border-radius: 8px;
+    display: flex;
     justify-content: center;
+    margin: 10px;
+    padding: 20px;
+    width: max-content;
 }
 
 .emptyStateWrapper {
-    display: flex;
     align-items: center;
+    display: flex;
     flex-direction: column;
     height: 100%;
     width: 100%;
 }
 
 .emptySubTitle {
-    font-size: 16px;
-    color: var(--color-gray-500);
-    font-weight: 200;
-    max-width: 450px;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    text-align: center;
+    color: var(--color-gray-500);
+    display: flex;
     display: inline-block;
+    font-size: 16px;
+    font-weight: 200;
+    justify-content: center;
+    max-width: 450px;
+    text-align: center;
 }
 
 .emptyTitle {
-    margin-top: 30px;
     font-size: 18px;
     font-weight: 300;
+    margin-top: 30px;
 }
 
 .intercomButton {

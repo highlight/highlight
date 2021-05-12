@@ -1,36 +1,36 @@
 .sideBar {
     --top-offset: 80px;
-    position: fixed;
-    height: calc(100% - 80px);
-    background-color: var(--color-primary-background);
-    z-index: 40;
-    width: 280px;
-    top: 80px;
-    border-right: 1px solid var(--color-gray-300);
-    transition: margin-left 0.3s ease-in-out;
-    margin-left: -280px;
-    display: flex;
     align-items: center;
-    flex-direction: column;
+    background-color: var(--color-primary-background);
+    border-right: 1px solid var(--color-gray-300);
     box-shadow: var(--box-shadow-2);
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 80px);
+    margin-left: -280px;
     padding: var(--size-large) var(--size-medium);
+    position: fixed;
     row-gap: 16px;
+    top: 80px;
+    transition: margin-left 0.3s ease-in-out;
+    width: 280px;
+    z-index: 40;
 }
 
 .staticSidebarWrapper {
-    width: 64px;
     box-shadow: none;
     margin-left: 0;
+    width: 64px;
 }
 
 .open {
-    margin-left: 0px;
+    margin-left: 0;
 }
 
 .settingsDivider {
-    width: 90%;
-    height: 2px;
     background-color: var(--color-gray-300);
+    height: 2px;
+    width: 90%;
 }
 
 .link {
@@ -39,9 +39,9 @@
 }
 
 .bottomSection {
-    height: 100%;
     display: flex;
     flex-direction: column;
+    height: 100%;
     justify-content: flex-end;
 }
 
@@ -65,49 +65,49 @@
 .changelogButton {
     margin-right: calc(var(--size-medium) * -1);
 
-    & > button {
+    > button {
         margin-bottom: 0;
     }
 }
 
 .bottomLink {
     color: var(--color-gray-500);
-    text-decoration: underline;
     font-size: 12px;
     margin-top: 8px;
+    text-decoration: underline;
 }
 
 .link:hover {
-    text-decoration: none;
     color: inherit;
+    text-decoration: none;
 }
 
 .miniRow {
+    align-items: center;
     color: var(--text-primary) !important;
     display: flex;
-    align-items: center;
     justify-content: center;
     width: 100%;
 }
 
 .row {
-    color: var(--text-primary) !important;
     align-items: center;
-    width: 100%;
+    color: var(--text-primary) !important;
+    cursor: pointer;
     font-size: 16px;
     transition: 0.1s;
-    cursor: pointer;
+    width: 100%;
 }
 
 .miniSidebarIconWrapper {
-    display: flex;
     align-items: center;
+    border-radius: 8px;
+    color: var(--color-gray-500);
+    display: flex;
+    fill: var(--color-gray-500);
     justify-content: center;
     padding: 8px;
-    border-radius: 8px;
     transition: 0.3s;
-    fill: var(--color-gray-500);
-    color: var(--color-gray-500);
 }
 
 .miniSidebarIconWrapper:hover {
@@ -115,10 +115,10 @@
 }
 
 .iconWrapper {
-    display: flex;
     align-items: center;
-    justify-content: center;
+    display: flex;
     height: 100%;
+    justify-content: center;
 }
 
 .icon {
@@ -141,15 +141,15 @@
 }
 
 .innerButton {
-    display: flex;
-    width: 100%;
     align-items: center;
-    padding: 10px 10px 10px 10px;
-    padding: var(--size-xSmall) var(--size-small);
     border-radius: 6px;
-    transition: 0.3s background-color;
     color: var(--color-gray-500);
+    display: flex;
     fill: var(--color-gray-500);
+    padding: 10px;
+    padding: var(--size-xSmall) var(--size-small);
+    transition: 0.3s background-color;
+    width: 100%;
 }
 
 .innerButton:hover {
@@ -162,13 +162,13 @@
 }
 
 .rowText {
-    font-size: 15px;
-    display: flex;
-    margin-left: 15px !important;
-    color: var(--color-gray-500);
-    line-height: 1;
-    font-weight: 400;
     align-items: center;
+    color: var(--color-gray-500);
+    display: flex;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1;
+    margin-left: 15px !important;
 }
 
 .changelogContainer {

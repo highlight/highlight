@@ -2,29 +2,29 @@ $side: 8px;
 $vert: 2px;
 
 .keyValueWrapper {
-    display: flex;
-    border-top-left-radius: var(--size-xxSmall);
     border-bottom-left-radius: var(--size-xxSmall);
+    border-top-left-radius: var(--size-xxSmall);
+    display: flex;
 }
 
 .key {
-    padding: 0 var(--size-xSmall);
-    font-size: 12px;
-    display: flex;
     align-items: center;
-    border-top-left-radius: var(--size-xxSmall);
     border-bottom-left-radius: var(--size-xxSmall);
+    border-top-left-radius: var(--size-xxSmall);
+    display: flex;
+    font-size: 12px;
+    padding: 0 var(--size-xSmall);
 }
 
 .value {
-    padding: $vert $side $vert $side;
     font-size: 12px;
+    padding: $vert $side $vert $side;
 }
 
 .wrapper {
+    border-radius: 4px;
     display: inline-block;
     font-weight: 300 !important;
-    margin-right: 11px;
     margin-bottom: 10px;
-    border-radius: 4px;
+    margin-right: 11px;
 }

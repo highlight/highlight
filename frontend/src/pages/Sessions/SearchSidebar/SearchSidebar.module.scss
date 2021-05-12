@@ -1,43 +1,43 @@
 .searchBar {
-    background-color: var(--color-primary-background);
-    width: 100%;
-    transition: right 0.3s;
-    display: flex;
     align-items: center;
+    background-color: var(--color-primary-background);
+    display: flex;
     flex-direction: column;
-    transition: 0.3s;
     height: 100%;
+    transition: right 0.3s;
+    transition: 0.3s;
+    width: 100%;
 }
 
 .sideTab {
-    position: fixed;
+    align-items: center;
     background-color: var(--color-primary-background);
+    border-color: var(--color-gray-300) var(--color-primary-background)
+        var(--color-gray-300) var(--color-gray-300);
+    border-radius: 8px 0 0 8px;
+    border-style: solid;
+    border-width: 1px;
+    cursor: pointer;
+    display: flex;
+    height: 50px;
+    justify-content: center;
+    position: fixed;
     right: 0;
     top: 180px;
-    height: 50px;
-    cursor: pointer;
     width: 50px;
-    border-radius: 8px 0 0 8px;
-    border-width: 1px;
-    border-color: var(--color-gray-300) white var(--color-gray-300)
-        var(--color-gray-300);
-    border-style: solid;
-    display: flex;
-    align-items: center;
     z-index: 100;
-    justify-content: center;
 }
 
 .toggleSection {
-    padding: 10px 5px 5px 5px;
+    padding: 10px 5px 5px;
 }
 
 .titleSection {
     border: 1px solid var(--color-gray-300);
-    padding: 20px 20px 0px 20px;
+    border-color: var(--color-gray-300) var(--color-gray-300)
+        var(--color-primary-background) var(--color-gray-300);
     border-radius: 8px 8px 0 0;
-    border-color: var(--color-gray-300) var(--color-gray-300) white
-        var(--color-gray-300);
+    padding: 20px 20px 0;
 }
 
 .sideTabVisible {
@@ -58,10 +58,10 @@
 }
 
 .sideContentWrapper {
+    height: 100%;
+    overflow-y: auto;
     position: relative;
     width: 100%;
-    overflow-y: auto;
-    height: 100%;
 }
 
 .title {
@@ -73,8 +73,8 @@
 .subTitle {
     color: var(--text-primary);
     font-size: 11px;
-    margin-top: 10px;
     margin-bottom: 8px;
+    margin-top: 10px;
 }
 
 .emptyDiv {
@@ -90,22 +90,22 @@
 }
 
 .hideIcon {
-    transform: rotate(-90deg);
-    height: 12px;
-    width: 12px;
-    margin-left: -5px;
-    float: right;
-    cursor: pointer;
-    margin-left: 5px;
-    margin-bottom: 2px;
     color: var(--color-gray-500);
+    cursor: pointer;
     fill: var(--color-gray-500);
+    float: right;
+    height: 12px;
+    margin-bottom: 2px;
+    margin-left: -5px;
+    margin-left: 5px;
+    transform: rotate(-90deg);
+    width: 12px;
 }
 
 .icon {
-    transition: 0.4s;
-    height: 14px;
-    width: 14px;
     cursor: pointer;
+    height: 14px;
     margin-left: auto;
+    transition: 0.4s;
+    width: 14px;
 }

@@ -1,17 +1,17 @@
 .sessionToken {
-    font-size: 12px;
-    display: flex;
     align-items: center;
+    color: var(--color-gray-500);
+    display: flex;
+    flex-shrink: 0;
+    font-size: 12px;
+    gap: var(--size-xSmall);
     max-width: 378px;
     min-width: 0;
-    gap: var(--size-xSmall);
-    color: var(--color-gray-500);
-    flex-shrink: 0;
 
     > p {
+        line-height: normal;
         margin: 0;
         white-space: nowrap;
-        line-height: normal;
     }
 
     a {
@@ -19,8 +19,8 @@
     }
 
     svg {
-        flex-shrink: 0;
         fill: var(--color-gray-500);
+        flex-shrink: 0;
         height: 16px;
         width: 16px;
     }

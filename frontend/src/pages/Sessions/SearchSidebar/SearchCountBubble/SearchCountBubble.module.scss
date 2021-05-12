@@ -1,14 +1,14 @@
 .bubble {
+    align-items: center;
     background: var(--color-purple);
+    border-radius: 13px;
     color: var(--text-primary-inverted);
-    padding: 0 5px;
+    display: flex;
     font-size: 10px;
     height: 20px;
-    min-width: 20px;
-    border-radius: 13px;
-    margin-left: 9px;
-    display: flex;
     justify-content: center;
-    align-items: center;
     line-height: normal;
+    margin-left: 9px;
+    min-width: 20px;
+    padding: 0 5px;
 }

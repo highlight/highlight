@@ -1,3 +1,4 @@
+/* stylelint-disable */
 :root {
     --color-purple-200: #eee7ff;
     --color-purple-300: #bea8f1;
@@ -25,12 +26,12 @@
     --color-gray-400: #bdbdbd;
     --color-gray-500: #828282;
     --color-gray-600: #7e7e7e;
-    --color-black: #111111;
+    --color-black: #111;
 
-    --color-primary-background: #ffffff;
+    --color-primary-background: #fff;
     --color-primary-inverted-background: black;
     --color-secondary-background: #f9f9f9;
-    --text-primary-inverted: #ffffff;
+    --text-primary-inverted: #fff;
     --text-primary: var(--color-black);
 
     --size-xxLarge: 48px;
@@ -43,7 +44,7 @@
 
     --size-icon: 18px;
 
-    --box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
+    --box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
     --box-shadow-2: 0 3px 6px -4px rgb(0 0 0 / 12%),
         0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);
 
@@ -58,11 +59,11 @@
 }
 
 body {
-    margin: 0;
-    font-weight: 400 !important;
     font-family: var(--body-font-family) !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-weight: 400 !important;
+    margin: 0;
     text-rendering: geometricPrecision;
 }
 
@@ -120,8 +121,8 @@ input {
 }
 
 code {
-    user-select: all;
     margin: 0;
+    user-select: all;
 }
 
 .atom-overlay {
@@ -134,8 +135,8 @@ a {
 }
 
 .blob {
-    margin: 10px;
     height: 15px;
+    margin: 10px;
     width: 15px;
 }
 
@@ -191,8 +192,8 @@ a {
 
 .ant-message-notice-content {
     background: #1f1f1f;
-    color: var(--color-primary-background);
     border-radius: 8px;
+    color: var(--color-primary-background);
 }
 
 .ant-tooltip {
@@ -216,73 +217,73 @@ a {
 }
 
 @font-face {
+    font-display: swap;
     font-family: 'Steradian';
+    font-style: normal;
+    font-weight: 200;
     src: local('Steradian UltraLight'), local('SteradianUltraLight'),
         url('./font/SteradianUltraLight.woff2') format('woff2');
-    font-weight: 200;
-    font-style: normal;
-    font-display: swap;
 }
 
 @font-face {
+    font-display: swap;
     font-family: 'Steradian';
+    font-style: normal;
+    font-weight: normal;
     src: local('Steradian Regular'), local('SteradianRegular'),
         url('./font/SteradianRegular.woff2') format('woff2');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
 }
 
 @font-face {
+    font-display: swap;
     font-family: 'Steradian';
+    font-style: normal;
+    font-weight: 100;
     src: local('Steradian Thin'), local('SteradianThin'),
         url('./font/SteradianThin.woff2') format('woff2');
-    font-weight: 100;
-    font-style: normal;
-    font-display: swap;
 }
 
 @font-face {
+    font-display: swap;
     font-family: 'Steradian';
+    font-style: normal;
+    font-weight: 800;
     src: local('Steradian Black'), local('SteradianBlack'),
         url('./font/SteradianBlack.woff2') format('woff2');
-    font-weight: 800;
-    font-style: normal;
-    font-display: swap;
 }
 
 @font-face {
+    font-display: swap;
     font-family: 'Steradian';
+    font-style: normal;
+    font-weight: bold;
     src: local('Steradian Bold'), local('SteradianBold'),
         url('./font/SteradianBold.woff2') format('woff2');
-    font-weight: bold;
-    font-style: normal;
-    font-display: swap;
 }
 
 @font-face {
+    font-display: swap;
     font-family: 'Steradian';
+    font-style: normal;
+    font-weight: 500;
     src: local('Steradian Medium'), local('SteradianMedium'),
         url('./font/SteradianMedium.woff2') format('woff2');
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
 }
 
 @font-face {
+    font-display: swap;
     font-family: 'Steradian';
+    font-style: normal;
+    font-weight: 200;
     src: local('Steradian ExtraLight'), local('SteradianExtraLight'),
         url('./font/SteradianExtraLight.woff2') format('woff2');
-    font-weight: 200;
-    font-style: normal;
-    font-display: swap;
 }
 
 @font-face {
+    font-display: swap;
     font-family: 'Steradian';
+    font-style: normal;
+    font-weight: 300;
     src: local('Steradian Light'), local('SteradianLight'),
         url('./font/SteradianLight.woff2') format('woff2');
-    font-weight: 300;
-    font-style: normal;
-    font-display: swap;
 }

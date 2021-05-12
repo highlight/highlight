@@ -1,9 +1,10 @@
 {
-    "recommendations": [
-        "esbenp.prettier-vscode",
-        "golang.go",
-        "dbaeumer.vscode-eslint",
-        "graphql.vscode-graphql",
-        "sysoev.vscode-open-in-github"
-    ]
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "golang.go",
+    "dbaeumer.vscode-eslint",
+    "graphql.vscode-graphql",
+    "sysoev.vscode-open-in-github",
+    "stylelint.vscode-stylelint"
+  ],
 }

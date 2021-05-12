@@ -10,36 +10,36 @@
 }
 
 .errorPageRight {
+    min-width: 360px;
     padding-left: 40px;
     width: 360px;
-    min-width: 360px;
 }
 
 .errorPageRightContent {
-    position: sticky;
-    top: 120px;
-    height: calc(100vh - 120px);
     display: flex;
     flex-direction: column;
+    height: calc(100vh - 120px);
+    position: sticky;
+    top: 120px;
 }
 
 .title {
-    font-size: 26px;
-    margin-bottom: 10px;
-    font-weight: 400;
     display: inline-block;
+    font-size: 26px;
+    font-weight: 400;
+    margin-bottom: 10px;
     margin-right: 10px;
     max-width: 400px;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .errorPage {
-    margin: 120px 80px 80px 80px;
-    word-break: break-word;
     display: flex;
     justify-content: space-between;
+    margin: 120px 80px 80px;
+    word-break: break-word;
 }
 
 .eventText {
@@ -48,15 +48,15 @@
 }
 
 .titleWrapper {
-    display: flex;
     align-items: center;
+    display: flex;
 }
 
 .subTitle {
-    font-size: 20px;
     color: var(--text-primary);
-    margin-bottom: 16px;
+    font-size: 20px;
     font-weight: 300;
+    margin-bottom: 16px;
 }
 
 .fieldWrapper {
@@ -64,13 +64,13 @@
 }
 
 .subSection {
-    border-top: 1px solid #e4e8eb;
-    font-weight: 200;
-    width: 100%;
+    align-items: center;
+    border-top: 1px solid var(--color-gray-300);
     display: flex;
+    font-weight: 200;
     padding: 10px;
     padding-bottom: 10px;
-    align-items: center;
+    width: 100%;
 }
 
 .expandButton {
@@ -79,34 +79,34 @@
 }
 
 .section {
-    border: 1px solid #e4e8eb;
+    border: 1px solid var(--color-gray-300);
     border-radius: 8px;
+    display: flex;
     margin-bottom: 20px;
     transition: 0.4s;
-    display: flex;
     width: 100%;
 }
 
 .snippetHeadingTwo {
-    font-weight: 400;
-    display: flex;
     align-items: center;
+    display: flex;
+    font-weight: 400;
 }
 
 .triggerWrapper {
     display: flex;
     flex-direction: row;
+    padding: 15px 12px;
     width: 100%;
-    padding: 15px 12px 15px 12px;
 }
 
 .iconWrapper {
-    margin-left: auto;
-    cursor: pointer;
-    color: blue;
-    display: flex;
     align-items: center;
+    color: var(--color-blue-dark);
+    cursor: pointer;
+    display: flex;
     justify-content: center;
+    margin-left: auto;
     margin-right: 5px;
 }
 
@@ -115,42 +115,42 @@
 }
 
 .icon {
-    transition: 0.4s;
-    height: 14px;
-    width: 14px;
     color: var(--color-purple);
-    float: right;
     cursor: pointer;
+    float: right;
+    height: 14px;
+    transition: 0.4s;
+    width: 14px;
 }
 
 .stackTraceErrorTitle {
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .graphSection {
     flex-direction: column;
-    padding: 30px 15px 20px 15px;
+    padding: 30px 15px 20px;
 }
 
 .graphLabels {
-    margin-top: -20px;
-    padding: 0px 10px 0px 10px;
-    width: 100%;
+    color: var(--color-gray-500);
     display: flex;
     justify-content: space-between;
-    color: var(--color-gray-500);
+    margin-top: -20px;
+    padding: 0 10px;
+    width: 100%;
 }
 
 .errorLogDivider {
-    border-bottom: 1px solid #e4e8eb;
+    border-bottom: 1px solid var(--color-gray-300);
 }
 
 .errorLogCell {
     display: flex;
-    white-space: nowrap;
     overflow: hidden;
+    white-space: nowrap;
 }
 
 .errorLogOverflow {
@@ -158,13 +158,13 @@
 }
 
 .errorLogsTitle {
-    font-weight: 400;
-    width: 100%;
     display: grid;
+    font-weight: 400;
     grid-template-columns: 80px 80px 2fr 1fr 1fr 2fr;
+    width: 100%;
 
     span {
-        padding: 0px 4px;
+        padding: 0 4px;
     }
 }
 
@@ -174,30 +174,30 @@
 }
 
 .errorLogItem {
-    width: 100%;
-    display: grid;
-    grid-template-columns: 80px 80px 2fr 1fr 1fr 2fr;
+    border-bottom: 1px solid var(--color-gray-300);
     color: var(--text-primary);
-    border-bottom: 1px solid #e4e8eb;
+    display: grid;
     font-weight: 200;
+    grid-template-columns: 80px 80px 2fr 1fr 1fr 2fr;
     padding: 10px;
+    width: 100%;
 
     &:hover {
         background-color: var(--color-gray-200);
     }
 
     span {
-        white-space: nowrap;
         overflow: hidden;
+        padding: 0 6px;
         text-overflow: ellipsis;
-        padding: 0px 6px;
+        white-space: nowrap;
     }
 }
 
 .errorLogButton {
-    max-width: 240px;
-    margin: 10px auto;
     display: block;
+    margin: 10px auto;
+    max-width: 240px;
 }
 
 .actionButtons {
@@ -215,22 +215,22 @@
 }
 
 .intercomLink {
-    text-decoration: underline;
     cursor: pointer;
+    text-decoration: underline;
 }
 
 .commentInputDiv {
+    @include rounded-border;
+    align-items: center;
     display: flex;
     margin-top: var(--size-small);
     padding: var(--size-xSmall);
-    align-items: center;
-    @include rounded-border;
 }
 
 .commentDiv {
+    @include rounded-border;
     margin-bottom: var(--size-small);
     padding: var(--size-small);
-    @include rounded-border;
 }
 
 .commentsContainer {
@@ -239,7 +239,7 @@
 }
 
 .commentSection {
-    flex-grow: 1;
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
 }

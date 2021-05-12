@@ -81,6 +81,9 @@
         "rrweb-snapshot": "^0.8.2",
         "stacktrace-js": "^2.0.2",
         "stripe": "^8.128.0",
+        "stylelint": "^13.13.1",
+        "stylelint-config-sass-guidelines": "^8.0.0",
+        "stylelint-config-standard": "^22.0.0",
         "typescript": "^3.9.7",
         "use-debounce": "^5.0.1",
         "use-http": "^1.0.13",
@@ -95,8 +98,9 @@
         "build": "craco build",
         "test": "craco test",
         "eject": "react-scripts eject",
-        "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}' && yarn lint:es",
-        "lint:es": "eslint --fix src/**/*.{ts,tsx}"
+        "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}' && yarn lint:es && stylelint \"**/*.scss\"",
+        "lint:es": "eslint --fix src/**/*.{ts,tsx}",
+        "lint:css": "stylelint \"**/*.scss\" --fix"
     },
     "eslintConfig": {
         "extends": "react-app"

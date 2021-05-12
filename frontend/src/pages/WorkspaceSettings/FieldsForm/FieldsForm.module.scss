@@ -1,13 +1,13 @@
 .fieldRow {
-    margin-top: 5px;
     display: grid;
     grid-template-columns: 120px 1fr;
+    margin-top: 5px;
 }
 
 .fieldKey {
+    align-items: center;
     display: flex;
     height: 100%;
-    align-items: center;
 }
 
 .saveButton {
