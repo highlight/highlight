@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 import { useAddSlackIntegrationToWorkspaceMutation } from '../../../graph/generated/hooks';
 import { Maybe } from '../../../graph/generated/schemas';
 import integrationDetectorStyles from '../../Setup/IntegrationDetector/IntegrationDetector.module.scss';
-import { ReactComponent as CheckIcon } from '../../../static/verify-check.svg';
+import { ReactComponent as CheckIcon } from '../../../static/verify-check-icon.svg';
 import useLocalStorage from '@rehooks/local-storage';
 
 interface Props {

@@ -179,11 +179,6 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating new recording settings")
 	}
-	msg := slack.WebhookMessage{Text: fmt.
-		Sprintf("```NEW WORKSPACE \nid: %v\nname: %v\nadmin_email: %v```", org.ID, *org.Name, *admin.Email)}
-	if err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg); err != nil {
-		log.Errorf("error sending slack hook: %v", err)
-	}
 	return org, nil
 }
 
@@ -390,11 +385,6 @@ func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int
 
 func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (string, error) {
 	model.DB.Create(&model.EmailSignup{Email: email})
-	msg := slack.WebhookMessage{Text: fmt.Sprintf("```NEW SIGNUP \nemail: %v\n```", email)}
-	err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
-	if err != nil {
-		return "", e.Wrap(err, "error sending slack hook")
-	}
 	return email, nil
 }
 

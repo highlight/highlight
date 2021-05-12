@@ -1928,7 +1928,6 @@ export const GetOrganizationDocument = gql`
         organization(id: $id) {
             id
             name
-            trial_end_date
             verbose_id
             billing_email
             slack_webhook_channel
@@ -1992,6 +1991,9 @@ export const GetBillingDetailsDocument = gql`
                 quota
             }
             meter
+        }
+        organization(id: $organization_id) {
+            trial_end_date
         }
     }
 `;

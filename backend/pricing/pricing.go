@@ -35,21 +35,23 @@ func GetOrgPlanString(stripeClient *client.API, customerID string) string {
 
 func TypeToQuota(planType backend.PlanType) int {
 	switch planType {
-	case backend.PlanTypeNone:
-		return 1000
+	case backend.PlanTypeFree:
+		return 500
 	case backend.PlanTypeBasic:
-		return 20000
+		return 10000
 	case backend.PlanTypeStartup:
 		return 80000
 	case backend.PlanTypeEnterprise:
 		return 300000
 	default:
-		return 1000
+		return 500
 	}
 }
 
 func FromPriceID(priceID string) backend.PlanType {
 	switch priceID {
+	case os.Getenv("FREE_PLAN_PRICE_ID"):
+		return backend.PlanTypeFree
 	case os.Getenv("BASIC_PLAN_PRICE_ID"):
 		return backend.PlanTypeBasic
 	case os.Getenv("STARTUP_PLAN_PRICE_ID"):
@@ -57,11 +59,13 @@ func FromPriceID(priceID string) backend.PlanType {
 	case os.Getenv("ENTERPRISE_PLAN_PRICE_ID"):
 		return backend.PlanTypeEnterprise
 	}
-	return backend.PlanTypeNone
+	return backend.PlanTypeFree
 }
 
 func ToPriceID(plan backend.PlanType) string {
 	switch plan {
+	case backend.PlanTypeFree:
+		return os.Getenv("FREE_PLAN_PRICE_ID")
 	case backend.PlanTypeBasic:
 		return os.Getenv("BASIC_PLAN_PRICE_ID")
 	case backend.PlanTypeStartup:

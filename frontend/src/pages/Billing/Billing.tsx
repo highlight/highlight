@@ -2,11 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard';
-import {
-    basicPlan,
-    startupPlan,
-    enterprisePlan,
-} from './BillingPlanCard/BillingConfig';
+import { BILLING_PLANS } from './BillingPlanCard/BillingConfig';
 
 import styles from './Billing.module.scss';
 
@@ -123,32 +119,17 @@ export const Billing = () => {
                             width={275}
                         />
                     ) : (
-                        <>
+                        BILLING_PLANS.map((billingPlan) => (
                             <BillingPlanCard
+                                key={billingPlan.type}
                                 current={
                                     billingData?.billingDetails.plan.type ===
-                                    basicPlan.planName
+                                    billingPlan.name
                                 }
-                                billingPlan={basicPlan}
-                                onSelect={createOnSelect(PlanType.Basic)}
+                                billingPlan={billingPlan}
+                                onSelect={createOnSelect(billingPlan.type)}
                             ></BillingPlanCard>
-                            <BillingPlanCard
-                                current={
-                                    billingData?.billingDetails.plan.type ===
-                                    startupPlan.planName
-                                }
-                                billingPlan={startupPlan}
-                                onSelect={createOnSelect(PlanType.Startup)}
-                            ></BillingPlanCard>
-                            <BillingPlanCard
-                                current={
-                                    billingData?.billingDetails.plan.type ===
-                                    enterprisePlan.planName
-                                }
-                                billingPlan={enterprisePlan}
-                                onSelect={createOnSelect(PlanType.Enterprise)}
-                            ></BillingPlanCard>
-                        </>
+                        ))
                     )}
                 </div>
             </div>

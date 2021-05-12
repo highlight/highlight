@@ -65,7 +65,7 @@ export type Plan = {
 };
 
 export enum PlanType {
-    None = 'None',
+    Free = 'Free',
     Basic = 'Basic',
     Startup = 'Startup',
     Enterprise = 'Enterprise',

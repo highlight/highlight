@@ -9,20 +9,16 @@ import styles from './Header.module.scss';
 import { DemoContext } from '../../DemoContext';
 import { SidebarState, useSidebarContext } from '../Sidebar/SidebarContext';
 import classNames from 'classnames/bind';
-import { Duration } from '../../util/time';
 import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { CommandBar } from './CommandBar/CommandBar';
 import Notifications from './Notifications/Notifications';
+import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
+import { PlanType } from '../../graph/generated/schemas';
 
-type HeaderProps = {
-    trialTimeRemaining?: Duration;
-};
-
-export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
+export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { demo } = useContext(DemoContext);
     const { state, toggleSidebar } = useSidebarContext();
-    const { trialTimeRemaining } = props;
 
     return (
         <>
@@ -30,10 +26,8 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
             <div className={styles.header}>
                 {process.env.REACT_APP_ONPREM === 'true' ? (
                     <OnPremiseBanner />
-                ) : trialTimeRemaining ? (
-                    <TrialBanner timeRemaining={trialTimeRemaining} />
                 ) : (
-                    <></>
+                    <FreePlanBanner />
                 )}
                 <div className={styles.headerContent}>
                     <div className={styles.logoWrapper}>
@@ -64,13 +58,40 @@ export const Header: React.FunctionComponent<HeaderProps> = ({ ...props }) => {
     );
 };
 
-const TrialBanner = ({ timeRemaining }: { timeRemaining: Duration }) => {
+const FreePlanBanner = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const { data, loading } = useGetBillingDetailsQuery({
+        variables: { organization_id },
+    });
+
+    if (loading) {
+        return null;
+    }
+
+    if (data?.billingDetails.plan.type !== PlanType.Free) {
+        return null;
+    } else {
+        if (data?.organization?.trial_end_date) {
+            // trial_end_date is set 2 weeks ahead of when the organization was created. We want to show the banner after the organization is 7 days old.
+            const organizationAge =
+                (new Date(data?.organization.trial_end_date).getTime() -
+                    new Date().getTime()) /
+                (1000 * 60 * 60 * 24);
+
+            const currentPlanUsage =
+                data?.billingDetails.meter / data?.billingDetails.plan.quota;
+            if (organizationAge >= 7 || currentPlanUsage < 0.25) {
+                return null;
+            }
+        }
+    }
+
     return (
         <div className={styles.trialWrapper}>
             <Banner className={styles.bannerSvg} />
             <div className={classNames(styles.trialTimeText)}>
-                {timeRemaining.days}&nbsp;day(s) left in your trial. Pick a plan{' '}
+                You've used {data?.billingDetails.meter}/
+                {data?.billingDetails.plan.quota} of your free sessions. Upgrade{' '}
                 <Link
                     className={styles.trialLink}
                     to={`/${organization_id}/billing`}
