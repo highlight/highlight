@@ -27,8 +27,8 @@ const LimitedSessionCard = () => {
                 Looks like you’ve run out of sessions this month 😔
             </h2>
             <p className={styles.description}>
-                Due to your curent pricing plan, we’ve stopped collecting
-                sessions on your account.
+                Sessions recorded after you've reached your quota will not be
+                viewable until you upgrade.
             </p>
             <Link to="billing" className={styles.link}>
                 Upgrade plan
