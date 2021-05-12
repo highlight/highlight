@@ -57,6 +57,7 @@
 
 .orgText {
     color: var(--text-primary);
+    font-family: var(--header-font-family);
     margin-left: 10px;
     margin-right: 20px;
 }
@@ -127,6 +128,7 @@
 .orgNameText {
     align-items: center;
     display: flex;
+    font-weight: 400 !important;
     margin-left: 10px !important;
     overflow: hidden;
     text-overflow: ellipsis;

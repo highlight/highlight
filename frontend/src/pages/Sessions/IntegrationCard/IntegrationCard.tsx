@@ -11,17 +11,15 @@ export const IntegrationCard = () => {
         <>
             <div className={styles.cardWrapper}>
                 <div className={styles.card}>
-                    <div className={styles.title}>
-                        Waiting for Installation...
-                    </div>
-                    <div className={styles.text}>
+                    <h2>Waiting for Installation...</h2>
+                    <p className={styles.text}>
                         Please follow the{' '}
                         <Link to={`/${organization_id}/setup`}>
                             setup instructions
                         </Link>{' '}
                         to install Highlight. It should take less than a minute
                         for us to detect installation.
-                    </div>
+                    </p>
                     <LoadingBar width={'100%'} />
                 </div>
             </div>
