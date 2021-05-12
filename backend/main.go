@@ -75,9 +75,9 @@ func validateOrigin(request *http.Request, origin string) bool {
 var defaultPort = "8082"
 
 func main() {
-	if os.Getenv("DEPLOYMENT_KEY") != "HIGHLIGHT_ONPREM_BETA" {
-		log.Fatalf("please specify a deploy key in order to run Highlight")
-	}
+	// if os.Getenv("DEPLOYMENT_KEY") != "HIGHLIGHT_ONPREM_BETA" {
+	// 	log.Fatalf("please specify a deploy key in order to run Highlight")
+	// }
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -105,7 +105,10 @@ func main() {
 		log.Fatalf("error creating storage client: %v", err)
 	}
 
-	private.SetupAuthClient()
+	if runtimeParsed == util.PrivateGraph {
+		private.SetupAuthClient()
+	}
+
 	privateResolver := &private.Resolver{
 		DB:            db,
 		MailClient:    sendgrid.NewSendClient(sendgridKey),

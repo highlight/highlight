@@ -5,18 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
-	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -36,7 +32,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
-	fmt.Printf("starting push for: %v \n", s.ID)
+	// fmt.Printf("starting push for: %v \n", s.ID)
 	events := []model.EventsObject{}
 	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
 		return errors.Wrap(err, "retrieving events")
@@ -100,7 +96,7 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 			return errors.Wrapf(err, "error deleting all messages with length %v", len(messagesObj))
 		}
 	}
-	fmt.Println("parsed: ", s.ID)
+	// fmt.Println("parsed: ", s.ID)
 	return nil
 }
 
@@ -180,58 +176,95 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 // Start begins the worker's tasks.
 func (w *Worker) Start() {
 	ctx := context.Background()
-	for {
-		time.Sleep(1 * time.Second)
-		workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
-		workerSpan.SetTag("backend", util.Worker)
-		now := time.Now()
-		seconds := 30
-		if os.Getenv("ENVIRONMENT") == "dev" {
-			seconds = 8
-		}
-		someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
-		sessions := []*model.Session{}
-		sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
-		if err := w.Resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).Find(&sessions).Error; err != nil {
-			log.Errorf("error querying unparsed, outdated sessions: %v", err)
-			sessionsSpan.Finish()
-			continue
-		}
-		sessionsSpan.Finish()
-		for _, session := range sessions {
-			span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
-			if err := w.processSession(ctx, session); err != nil {
-				log.Errorf("error processing main session(%v): %v", session.ID, err)
-				tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
-				span.Finish()
-				continue
-			}
-			span.Finish()
-		}
-		// TODO: This should be deleted at some point.
-		sessionsToWipe := []*model.Session{}
-		if err := w.Resolver.DB.Where(`
+	// for {
+	// workerSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.operation", tracer.ResourceName("worker.unit"))
+	// workerSpan.SetTag("backend", util.Worker)
+	// now := time.Now()
+	// seconds := 30
+	// if os.Getenv("ENVIRONMENT") == "dev" {
+	// 	seconds = 8
+	// }
+	// someSecondsAgo := now.Add(time.Duration(-1*seconds) * time.Second)
+	// sessions := []*model.Session{}
+	// sessionsSpan, ctx := tracer.StartSpanFromContext(ctx, "worker.sessionsQuery", tracer.ResourceName(now.String()))
+	// if err := w.Resolver.DB.Where("(payload_updated_at < ? OR payload_updated_at IS NULL) AND (processed = ?)", someSecondsAgo, false).Find(&sessions).Error; err != nil {
+	// 	log.Errorf("error querying unparsed, outdated sessions: %v", err)
+	// 	sessionsSpan.Finish()
+	// 	continue
+	// }
+	// sessionsSpan.Finish()
+	// for _, session := range sessions {
+	// 	span, ctx := tracer.StartSpanFromContext(ctx, "worker.processSession", tracer.ResourceName(strconv.Itoa(session.ID)))
+	// 	if err := w.processSession(ctx, session); err != nil {
+	// 		log.Errorf("error processing main session(%v): %v", session.ID, err)
+	// 		tracer.WithError(e.Wrapf(err, "error processing session: %v", session.ID))
+	// 		span.Finish()
+	// 		continue
+	// 	}
+	// 	span.Finish()
+	// }
+	log.Printf("Fetching \n")
+	// TODO: This should be deleted at some point.
+	sessionsToWipe := []*model.Session{}
+	if err := w.Resolver.DB.Where(`
 		(
-			processed = ? 
-			AND 
-			organization_id = 1 
-			AND 
-			(migration_state != 'late-s3-push' OR migration_state IS NULL) 
-			AND 
+			processed = ?
+			AND
+			organization_id = 28
+			AND
+			(migration_state != 'late-s3-push' OR migration_state IS NULL)
+			AND
 			(object_storage_enabled IS NULL OR object_storage_enabled = false)
 		)
-		`, true).Limit(15).Find(&sessionsToWipe).Error; err != nil {
-			log.Errorf("error querying unparsed, outdated sessions: %v", err)
+		`, true).Find(&sessionsToWipe).Error; err != nil {
+		log.Fatalf("error querying unparsed, outdated sessions: %v", err)
+	}
+	l := len(sessionsToWipe)
+
+	sessions := make(chan *model.Session, l)
+	parsed := make(chan *int, l)
+	log.Printf("Parsing %v sessions \n", len(sessionsToWipe))
+	for wo := 1; wo <= 30; wo++ {
+		go w.work(ctx, sessions, parsed, l)
+	}
+	for _, s := range sessionsToWipe {
+		sessions <- s
+	}
+	start := time.Now()
+	for j := 1; j <= l; j++ {
+		p := <-parsed
+		if p == nil {
+			log.Errorf("error parsing, skipping")
 			continue
 		}
-		for _, session := range sessionsToWipe {
-			state := "late-s3-push"
-			if err := w.pushToObjectStorageAndWipe(ctx, session, &state); err != nil {
-				log.Errorf("error processing late session(%v): %v", session.ID, err)
-				continue
-			}
+		now := time.Now()
+		diff := now.Sub(start)
+		sessionsPerSecond := float64(j) / diff.Seconds()
+		fmt.Println(j, " / ", l, " - processed: ", *p, " - avg: ", sessionsPerSecond)
+	}
+	// for _, session := range sessionsToWipe {
+	// 	state := "late-s3-push"
+	// 	if err := w.pushToObjectStorageAndWipe(ctx, session, &state); err != nil {
+	// 		log.Errorf("error processing late session(%v): %v", session.ID, err)
+	// 		continue
+	// 	}
+	// 	bar.Add(1)
+	// 	// time.Sleep(3 * time.Second)
+	// 	// }
+	// 	// workerSpan.Finish()
+	// }
+	// bar.Finish()
+}
+
+func (w *Worker) work(ctx context.Context, sessions <-chan *model.Session, ers chan<- *int, total int) {
+	for session := range sessions {
+		state := "late-s3-push"
+		if err := w.pushToObjectStorageAndWipe(ctx, session, &state); err != nil {
+			log.Errorf("error processing late session(%v): %v", session.ID, err)
+			ers <- nil
+			continue
 		}
-		workerSpan.Finish()
+		ers <- &session.ID
 	}
 }
 

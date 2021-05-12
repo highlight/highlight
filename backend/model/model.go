@@ -420,12 +420,13 @@ type ErrorComment struct {
 func SetupDB() *gorm.DB {
 	log.Println("setting up database")
 	psqlConf := fmt.Sprintf(
-		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
-		os.Getenv("PSQL_HOST"),
-		os.Getenv("PSQL_PORT"),
-		os.Getenv("PSQL_USER"),
-		os.Getenv("PSQL_DB"),
-		os.Getenv("PSQL_PASSWORD"))
+		"host=%s port=%s user=%s dbname=%s password=%s",
+		"oregon-postgres.render.com",
+		"5432",
+		"menudatabase_user",
+		"menudatabase",
+		os.Getenv("DB_PASSWORD"),
+	)
 
 	var err error
 	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
