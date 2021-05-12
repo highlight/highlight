@@ -113,7 +113,7 @@ const OnPremiseBanner = () => {
         >
             <Banner className={styles.bannerSvg} style={{ fill: 'black' }} />
             <div className={classNames(styles.trialTimeText)}>
-                Runnning Highlight On-premise{' '}
+                Running Highlight On-premise{' '}
                 {`v${process.env.REACT_APP_COMMIT_SHA}`}
             </div>
         </div>
