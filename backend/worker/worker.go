@@ -208,6 +208,29 @@ func (w *Worker) Start() {
 			}
 			span.Finish()
 		}
+		// TODO: This should be deleted at some point.
+		sessionsToWipe := []*model.Session{}
+		if err := w.Resolver.DB.Where(`
+		(
+			processed = ? 
+			AND 
+			organization_id = 1 
+			AND 
+			(migration_state != 'late-s3-push' OR migration_state IS NULL) 
+			AND 
+			(object_storage_enabled IS NULL OR object_storage_enabled = false)
+		)
+		`, true).Limit(15).Find(&sessionsToWipe).Error; err != nil {
+			log.Errorf("error querying unparsed, outdated sessions: %v", err)
+			continue
+		}
+		for _, session := range sessionsToWipe {
+			state := "late-s3-push"
+			if err := w.pushToObjectStorageAndWipe(ctx, session, &state); err != nil {
+				log.Errorf("error processing late session(%v): %v", session.ID, err)
+				continue
+			}
+		}
 		workerSpan.Finish()
 	}
 }
