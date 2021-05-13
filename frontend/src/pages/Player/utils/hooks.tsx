@@ -51,7 +51,7 @@ export const usePlayerHotKeys = () => {
                     break;
             }
         },
-        [state, time]
+        [state, time, pause, play]
     );
 
     useHotkeys(
@@ -77,7 +77,7 @@ export const usePlayerHotKeys = () => {
                     break;
             }
         },
-        [time]
+        [time, state, pause, play]
     );
 
     useHotkeys(
@@ -105,6 +105,6 @@ export const usePlayerHotKeys = () => {
                     break;
             }
         },
-        [time, replayer]
+        [time, replayer, state, pause, play]
     );
 };
