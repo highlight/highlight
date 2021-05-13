@@ -103,9 +103,9 @@ export const WorkspaceDropdown = () => {
                         {currentOrg?.organization?.name[0]?.toUpperCase() ??
                             'H'}
                     </div>
-                    <h3 className={styles.orgNameText}>
+                    <h4 className={styles.orgNameText}>
                         {demo ? 'Highlight' : currentOrg?.organization?.name}
-                    </h3>
+                    </h4>
                 </div>
                 <DownIcon
                     className={styles.icon}
