@@ -1,23 +1,23 @@
 .setupWrapper {
-    width: 100%;
     display: flex;
+    width: 100%;
 }
 
 .icon {
-    transition: 0.4s;
+    color: var(--color-purple);
+    cursor: pointer;
+    float: right;
+    height: 16px;
     margin-left: auto;
     margin-right: -4px;
-    height: 16px;
-    width: 16px;
-    color: #5629c6;
     margin-top: 6px;
-    float: right;
-    cursor: pointer;
+    transition: 0.4s;
+    width: 16px;
 }
 
 .radioGroupWrapper {
-    margin: 20px 0px 20px 0px;
     display: flex;
+    margin: 20px 0;
 }
 
 .headingWrapper {
@@ -26,28 +26,28 @@
 }
 
 .platformOption {
-    height: 30px;
-    width: 85px;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    border: 1px solid #e4e8eb;
+    border: 1px solid var(--color-gray-300);
     cursor: pointer;
+    display: flex;
+    height: 30px;
+    justify-content: center;
     transition: 0.2s;
+    width: 85px;
 }
 
 .callout {
+    background-color: var(--color-gray-200);
     border-radius: 4px;
-    background-color: #f2eefb;
-    line-height: 2;
     display: flex;
+    line-height: 2;
 }
 
 .section {
-    border: 1px solid #e4e8eb;
+    border: 1px solid var(--color-gray-300);
     border-radius: 8px;
-    padding: 20px 30px 20px 30px;
     margin-bottom: 20px;
+    padding: 20px 30px;
     transition: 0.4s;
 }
 
@@ -56,67 +56,57 @@
     flex-direction: row;
 }
 
-.calloutInner {
-    padding: 10px;
-    padding-left: 0px;
+.subTitle {
+    font-size: 18px;
 }
 
-.subTitle {
-    margin-top: 5px;
-    font-size: 18px;
-    font-weight: 300;
+.title {
+    margin-bottom: 0 !important;
+    margin-right: var(--size-xSmall) !important;
 }
 
 .calloutEmoji {
-    padding: 8px;
-    height: 100%;
     font-size: 20px;
+    height: 100%;
+    padding: 8px;
 }
 
 .setupPage {
-    width: 40vw;
-    min-width: 650px;
-    margin: 120px 80px 80px 80px;
-    height: max-content;
     border-radius: 8px;
-}
-
-.snippetHeading {
-    font-size: 28px;
-    font-weight: 400;
+    height: max-content;
+    margin: 120px 80px 80px;
+    min-width: 650px;
+    width: 40vw;
 }
 
 .snippetHeadingTwo {
+    align-items: center;
+    display: flex;
     font-size: 20px;
     font-weight: 400;
-    display: flex;
-    align-items: center;
 }
 
-.snippetSubHeading {
-    margin-top: 10px;
-    margin-bottom: 19px;
-    font-size: 14px;
-    font-weight: 200;
+.codeBlockInlined {
+    line-height: var(--size-xLarge) !important;
 }
 
 .codeBlockBasic {
+    background-color: var(--color-secondary-background);
+    border: 1px solid var(--color-gray-300);
+    border-radius: 4px;
     font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
         'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
-    border: 1px solid #e4e8eb;
-    background-color: #f9f9f9;
-    white-space: pre;
-    width: 100%;
-    max-width: 100%;
-    position: relative;
-    margin-top: 20px;
+    font-size: 12px;
+    height: 100%;
     margin-bottom: 20px;
     margin-left: 2px;
     margin-right: 2px;
+    margin-top: 20px;
+    max-width: 100%;
     min-width: 100%;
-    resize: none;
-    font-size: 12px;
     padding: 5px;
-    border-radius: 4px;
-    height: 100%;
+    position: relative;
+    resize: none;
+    white-space: pre;
+    width: 100%;
 }

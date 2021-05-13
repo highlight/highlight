@@ -1,34 +1,32 @@
-@import 'src/static/shared.scss';
-
 .button {
-    border: none;
     background: none;
+    border: 0;
     cursor: pointer;
+    padding: var(--size-xSmall) var(--size-medium);
     width: 145px;
-    padding: $size-xSmall $size-medium;
 }
 
 .eventTypesContainer {
-    position: relative;
-    height: 14px;
-    display: flex;
     align-items: center;
-    width: fit-content;
+    display: flex;
+    height: 14px;
     margin: 0 auto;
+    position: relative;
+    width: fit-content;
 }
 
 .eventType {
-    height: 14px;
-    width: 14px;
-    margin-left: -$size-xSmall;
+    animation: grow 0.5s forwards;
     border: 0.5px solid var(--color-gray-300);
     border-radius: 50%;
-    animation: grow 0.5s forwards;
+    height: 14px;
+    margin-left: calc(var(--size-xSmall) * -1);
+    width: 14px;
 }
 
 .label {
-    margin-left: $size-xxSmall;
-    color: $text-label;
+    color: var(--color-gray-500);
+    margin-left: var(--size-xxSmall);
 }
 
 @keyframes grow {
@@ -51,23 +49,23 @@
 
 .checkboxesContainer {
     display: grid;
+    gap: var(--size-xSmall);
     grid-template-columns: 1fr 1fr;
-    gap: $size-xSmall;
 }
 
 .circle {
-    height: $size-small;
-    width: $size-small;
-    border-radius: 50%;
     border: 0.5px solid var(--color-gray-300);
+    border-radius: 50%;
+    height: var(--size-small);
+    width: var(--size-small);
 }
 
 .checkBoxLabel {
-    display: inline-flex;
     align-items: center;
-    gap: $size-xSmall;
-    width: 90px;
+    display: inline-flex;
+    gap: var(--size-xSmall);
     justify-content: space-between;
+    width: 90px;
 }
 
 .contentWrapper {

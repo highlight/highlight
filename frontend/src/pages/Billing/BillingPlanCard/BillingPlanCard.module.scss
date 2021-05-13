@@ -4,16 +4,13 @@
     @include rounded-border;
     display: flex;
     flex-direction: column;
+    height: 325px;
     padding: 24px;
     width: 275px;
-    height: 325px;
 }
 
 .billingPlanTitle {
-    font-size: 20px;
-    font-weight: 400;
-    color: $highlight-purple;
-    margin: 5px 0;
+    color: var(--color-purple);
 }
 
 .billingFrequency {
@@ -22,23 +19,24 @@
 }
 
 .billingPlanPrice {
-    margin-bottom: 0px;
+    margin-bottom: 0 !important;
+    margin-top: var(--size-xSmall) !important;
 }
 
 .advertisedFeaturesWrapper {
-    margin: 5px 0 10px 0;
-    padding: 0;
-    list-style: none;
     display: flex;
     flex-direction: column;
+    list-style: none;
+    margin: 5px 0 10px;
+    padding: 0;
     row-gap: var(--size-xxSmall);
 }
 
 .advertisedFeature {
-    margin: 0;
-    display: flex;
     align-items: center;
     column-gap: var(--size-xSmall);
+    display: flex;
+    margin: 0;
 
     svg {
         color: var(--color-green);
@@ -46,6 +44,10 @@
 }
 
 .button {
+    justify-content: center;
     margin-top: auto;
+}
+
+.button {
     justify-content: center;
 }

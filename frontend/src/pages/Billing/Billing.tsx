@@ -106,10 +106,10 @@ export const Billing = () => {
     return (
         <div className={styles.billingPageWrapper}>
             <div className={styles.billingPage}>
-                <div className={styles.title}>Billing</div>
-                <div className={styles.subTitle}>
+                <h2>Billing</h2>
+                <p className={styles.subTitle}>
                     Manage your billing information.
-                </div>
+                </p>
                 <div className={styles.billingPlanCardWrapper}>
                     {billingLoading || loading ? (
                         <Skeleton

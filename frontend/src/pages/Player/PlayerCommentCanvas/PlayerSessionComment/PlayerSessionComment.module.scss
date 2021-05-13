@@ -1,21 +1,21 @@
 .comment {
+    cursor: auto;
+    display: flex;
     position: absolute;
     z-index: 9999;
-    display: flex;
-    cursor: auto;
 
     .commentPinButton {
-        background: none;
-        border: none;
-        cursor: pointer;
-        outline: none;
-        display: flex;
         align-items: center;
+        background: none;
+        border: 0;
+        cursor: pointer;
+        display: flex;
         justify-content: center;
+        outline: none;
         padding-right: var(--size-medium);
     }
 
-    & > .commentPinButton {
+    > .commentPinButton {
         position: relative;
         z-index: 99;
     }

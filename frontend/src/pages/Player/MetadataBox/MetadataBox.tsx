@@ -92,23 +92,23 @@ export const MetadataBox = () => {
                                 {data?.session?.identifier ||
                                     `User#${data?.session?.user_id}`}
                             </h4>
-                            <div className={styles.userIdSubHeader}>
+                            <p className={styles.userIdSubHeader}>
                                 {created.toLocaleString('en-us', {
                                     day: 'numeric',
                                     month: 'short',
                                     year: 'numeric',
                                     weekday: 'long',
                                 })}
-                            </div>
-                            <div className={styles.userIdSubHeader}>
+                            </p>
+                            <p className={styles.userIdSubHeader}>
                                 {created.toLocaleString('en-us', {
                                     second: '2-digit',
                                     hour: '2-digit',
                                     minute: '2-digit',
                                     timeZoneName: 'short',
                                 })}
-                            </div>
-                            <div className={styles.userIdSubHeader}>
+                            </p>
+                            <p className={styles.userIdSubHeader}>
                                 {data?.session?.browser_name && (
                                     <>
                                         <span>
@@ -126,7 +126,7 @@ export const MetadataBox = () => {
                                         </span>
                                     </>
                                 )}
-                            </div>
+                            </p>
                         </>
                     )}
                 </div>

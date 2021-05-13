@@ -69,9 +69,9 @@ const SlackIntegration = ({ redirectPath, integratedChannel }: Props) => {
                         className={integrationDetectorStyles.checkIcon}
                     />
                 </div>
-                <div className={integrationDetectorStyles.verificationText}>
+                <p className={integrationDetectorStyles.verificationText}>
                     Alerts will be sent to {integratedChannel}.
-                </div>
+                </p>
             </div>
         );
     }

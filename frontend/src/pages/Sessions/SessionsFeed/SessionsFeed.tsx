@@ -346,28 +346,28 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                                             : 'Live'}
                                     </div>
                                 </Tooltip>
-                                <div className={styles.middleText}>
+                                <p className={styles.middleText}>
                                     {created.toLocaleString('en-us', {
                                         day: 'numeric',
                                         month: 'long',
                                         year: 'numeric',
                                     })}
-                                </div>
-                                <div className={styles.bottomText}>
+                                </p>
+                                <p className={styles.bottomText}>
                                     {created.toLocaleString('en-us', {
                                         hour: '2-digit',
                                         second: '2-digit',
                                         minute: '2-digit',
                                         timeZoneName: 'short',
                                     })}
-                                </div>
+                                </p>
                             </div>
                             <div className={styles.sessionTextSection}>
-                                <div className={styles.topText}>
+                                <p className={styles.topText}>
                                     {session?.browser_name}
                                     {session?.browser_version &&
                                         ' / ' + session?.browser_version}
-                                </div>
+                                </p>
                                 <div className={styles.middleText}>
                                     {session?.os_name}
                                     {session?.os_version &&

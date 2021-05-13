@@ -1,135 +1,133 @@
-@import 'src/static/shared.scss';
-
 .segmentPickerMenu {
     box-shadow: none;
-    min-width: 200px;
     margin-bottom: 12px;
+    min-width: 200px;
     width: 100%;
 }
 
 .segmentPickerInner {
-    background-color: white;
+    background-color: var(--color-primary-background);
+    border: 1px solid var(--color-gray-300);
     border-radius: 5px;
-    border: 1px solid #eaeaea;
+    color: var(--text-primary);
     min-width: 220px;
-    color: black;
 
     .segmentItemWrapper:last-child .segmentItem {
-        border-bottom: 0px;
+        border-bottom: 0;
     }
 }
 
 .downIcon {
-    transition: 0.4s;
+    color: var(--color-purple);
+    height: 14px;
     margin-left: auto;
     margin-right: 5px;
-    height: 14px;
+    transition: 0.4s;
     width: 14px;
-    color: #5629c6;
 }
 
 .checkIcon {
-    margin-right: 5px;
+    color: var(--color-purple);
+    fill: var(--color-purple);
+    height: 15px;
     margin-bottom: 2px;
     margin-left: auto;
-    height: 15px;
+    margin-right: 5px;
     width: 15px;
-    color: #5629c6;
-    fill: #5629c6;
 }
 
 .trashIcon {
-    color: #808080;
-    fill: #808080;
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
     margin-bottom: 2px;
 }
 
 .starIcon {
-    color: black;
-    fill: black;
-    margin-left: 6px;
-    margin-bottom: 2px;
-    padding: 1px;
+    color: var(--text-primary);
+    fill: var(--text-primary);
     height: 1rem;
+    margin-bottom: 2px;
+    margin-left: 6px;
+    padding: 1px;
 }
 
 .segmentAction {
-    background-color: #f2eefb;
+    align-items: center;
+    background-color: var(--color-gray-200);
     border: 0;
+    border-radius: 5px;
+    bottom: 0;
     display: none;
-    position: absolute;
-    padding: 0px 6px;
-    width: 30px;
     height: 30px;
+    margin: auto;
+    padding: 0 6px;
+    position: absolute;
     right: 5px;
     top: 0;
-    bottom: 0;
-    margin: auto;
-    border-radius: 5px;
-    align-items: center;
+    width: 30px;
 
     &:hover {
+        background-color: var(--color-gray-300);
         cursor: pointer;
-        background-color: #eaeaea;
 
         .trashIcon {
-            color: black;
-            fill: black;
+            color: var(--text-primary);
+            fill: var(--text-primary);
         }
     }
 }
 
 .dropdownHandler {
-    cursor: pointer;
-    width: 100%;
-    margin-top: 13px;
-    height: 40px;
-    border: 1px solid #eaeaea;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    padding: 10px;
+    border: 1px solid var(--color-gray-300);
     border-radius: 8px;
-    color: black;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
     font-size: 16px;
+    height: 40px;
+    justify-content: center;
+    margin-top: 13px;
+    padding: 10px;
     padding-left: 14px;
+    width: 100%;
 }
 
 .plusIcon {
-    margin-right: 5px;
+    color: var(--color-purple);
+    fill: var(--color-purple);
+    height: 15px;
     margin-bottom: 2px;
     margin-left: auto;
-    height: 15px;
+    margin-right: 5px;
     width: 15px;
-    color: #5629c6;
-    fill: #5629c6;
 }
 
 .newSearchDiv {
-    padding: 10px;
-    display: flex;
     align-items: center;
-    width: 100%;
-    padding-left: 15px;
-    color: #5629c6;
-    font-size: 14px;
+    color: var(--color-purple);
     cursor: pointer;
+    display: flex;
+    font-size: 14px;
+    padding: 10px;
+    padding-left: 15px;
+    width: 100%;
 }
 
 .newSearchDiv:hover {
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
 }
 
 .noSegmentsText {
+    color: var(--color-gray-500);
     margin-top: 10px;
-    color: #808080;
 }
 
 .segmentItemWrapper {
     position: relative;
 
     &:hover {
-        background-color: #f2eefb;
+        background-color: var(--color-gray-200);
 
         .segmentAction {
             display: flex;
@@ -138,65 +136,65 @@
 }
 
 .segmentItem {
-    border-bottom: 1px solid #eaeaea;
-    padding: 10px;
-    font-size: 16px;
-    padding-left: 15px;
+    align-items: center;
+    border-bottom: 1px solid var(--color-gray-300);
     cursor: pointer;
     display: flex;
-    align-items: center;
+    font-size: 16px;
+    padding: 10px;
+    padding-left: 15px;
     width: 100%;
 }
 
 .segmentText {
-    text-overflow: ellipsis;
-    width: 100%;
-    white-space: nowrap;
-    overflow: hidden;
-    color: black;
-    margin-right: 20px;
+    color: var(--text-primary);
     font-size: 14px;
+    margin-right: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
 }
 
 .segmentUnselected {
-    color: #808080;
+    color: var(--color-gray-500);
 
     .starIcon {
-        color: #808080;
-        fill: #808080;
+        color: var(--color-gray-500);
+        fill: var(--color-gray-500);
     }
 }
 
 .segmentNameText {
-    width: 100%;
-    font-size: 14px;
     display: block;
+    font-size: 14px;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
 }
 
 .liveSessionsSegment {
-    display: flex;
     align-items: center;
+    display: flex;
 }
 
 .liveSessionsCount {
-    display: flex;
-    gap: $size-xSmall;
-    margin-left: $size-xSmall;
-
-    background: #5629c6;
-    color: #ffffff;
-    padding: 0 7px;
-    font-size: 10px;
-    height: 20px;
-    min-width: 20px;
-    border-radius: 13px;
-    display: flex;
-    justify-content: center;
     align-items: center;
+
+    background: var(--color-purple);
+    border-radius: 13px;
+    color: var(--color-primary-background);
+    display: flex;
+    display: flex;
+    font-size: 10px;
+    gap: var(--size-xSmall);
+    height: 20px;
+    justify-content: center;
     line-height: normal;
+    margin-left: var(--size-xSmall);
+    min-width: 20px;
+    padding: 0 7px;
 }
 
 .liveSessionsCountInactive {
@@ -208,7 +206,5 @@
 }
 
 .modalSubTitle {
-    font-size: 14px;
-    font-weight: 300;
     margin-bottom: 20px;
 }

@@ -240,8 +240,8 @@ const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
                 context.fillStyle = 'red';
                 context.fillRect(realX, 0, 2, canvas.height);
 
-                context.font = '24px Arial';
-                context.fillStyle = '#777';
+                context.font = '24px Steradian';
+                context.fillStyle = 'var(--color-gray-500)';
 
                 const msValue = Math.max(
                     0,
@@ -304,7 +304,10 @@ const ResourceRow = ({
         <div key={p.id.toString()}>
             <div
                 style={{
-                    color: p.id === currentResource ? 'black' : '#808080',
+                    color:
+                        p.id === currentResource
+                            ? 'var(--text-primary)'
+                            : 'var(--color-gray-500)',
                     fontWeight: p.id === currentResource ? 400 : 300,
                 }}
                 className={styles.networkRow}

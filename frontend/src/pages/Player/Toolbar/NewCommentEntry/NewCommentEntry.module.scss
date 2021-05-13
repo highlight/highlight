@@ -1,8 +1,6 @@
-@import 'src/static/shared.scss';
-
 .actionButtons {
     display: flex;
-    gap: $size-xSmall;
+    gap: var(--size-xSmall);
     justify-content: flex-end;
 }
 
@@ -15,6 +13,6 @@
 }
 
 .intercomLink {
-    text-decoration: underline;
     cursor: pointer;
+    text-decoration: underline;
 }

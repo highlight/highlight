@@ -8,19 +8,25 @@
     .date {
         color: var(--color-gray-500);
         font-size: 12px;
+        font-weight: 400;
         margin-bottom: var(--size-xxSmall) !important;
+        margin-top: 0 !important;
+    }
+
+    .body {
+        margin-bottom: 0 !important;
     }
 }
 
 .indicator {
-    background: none;
-    border: none;
-    cursor: pointer;
-    height: 40px;
-    width: 40px;
-    display: flex;
     align-items: center;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    display: flex;
+    height: 40px;
     justify-content: center;
+    width: 40px;
 
     &:hover .indicatorIcon {
         background: var(--color-purple-400);
@@ -31,50 +37,50 @@
     }
 
     .indicatorIcon {
+        background: var(--color-purple-200);
         border-radius: 50%;
         height: 14px;
         width: 14px;
-        background: var(--color-purple-200);
 
         &.active {
-            background: var(--color-purple);
             animation: pulse 2s infinite;
+            background: var(--color-purple);
         }
     }
 }
 
 @keyframes pulse {
     0% {
-        transform: scale(0.95);
         box-shadow: 0 0 0 0 rgba(86, 41, 198, 0.7);
+        transform: scale(0.95);
     }
 
     70% {
-        transform: scale(1);
         box-shadow: 0 0 0 10px rgba(86, 41, 198, 0);
+        transform: scale(1);
     }
 
     100% {
-        transform: scale(0.95);
         box-shadow: 0 0 0 0 rgba(86, 41, 198, 0);
+        transform: scale(0.95);
     }
 }
 
 .popoverHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--color-gray-300);
     column-gap: var(--size-xSmall);
+    display: flex;
+    justify-content: space-between;
     margin: 0 calc(var(--size-medium) * -1);
     margin-bottom: var(--size-medium);
     padding: 0 var(--size-medium);
-    border-bottom: 1px solid var(--color-gray-300);
 
     h3,
     span,
     a {
-        margin-bottom: var(--size-xSmall);
         font-size: 13px;
-        font-weight: 300;
+        font-weight: 400;
+        margin-bottom: var(--size-xSmall);
     }
 }

@@ -14,6 +14,7 @@ import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import useLocalStorage from '@rehooks/local-storage';
 import SvgSlackLogo from '../../components/icons/SlackLogo';
 import SlackIntegration from '../Alerts/SlackIntegration/SlackIntegration';
+import classNames from 'classnames';
 
 enum PlatformType {
     Html = 'HTML',
@@ -33,13 +34,11 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
         <div className={styles.setupWrapper}>
             <div className={styles.setupPage}>
                 <div className={styles.headingWrapper}>
-                    <div className={styles.snippetHeading}>
-                        Your Highlight Snippet
-                    </div>
+                    <h2>Your Highlight Snippet</h2>
                 </div>
-                <div className={styles.subTitle}>
+                <p className={styles.subTitle}>
                     Setup Highlight in your web application!
-                </div>
+                </p>
                 <RadioGroup<PlatformType>
                     style={{ marginTop: 20, marginBottom: 20 }}
                     selectedLabel={platform}
@@ -70,15 +69,20 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             />
                         )}
                         <Section title="Identifying Users">
-                            <div className={styles.snippetSubHeading}>
+                            <p>
                                 To tag sessions with user specific identifiers
                                 (name, email, etc.), you can call the
-                                <span className={styles.codeBlockBasic}>
+                                <span
+                                    className={classNames(
+                                        styles.codeBlockBasic,
+                                        styles.codeBlockInlined
+                                    )}
+                                >
                                     {'H.identify(id: string, object: Object)'}
                                 </span>{' '}
                                 method in your javascript app. Here's an
                                 example:
-                            </div>
+                            </p>
                             <CodeBlock
                                 onCopy={() => {
                                     window.analytics.track(
@@ -111,11 +115,11 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 )
                             }
                         >
-                            <div className={styles.snippetSubHeading}>
+                            <p>
                                 Please follow the setup instructions above to
                                 install Highlight. It should take less than a
                                 minute for us to detect installation.
-                            </div>
+                            </p>
                             <IntegrationDetector
                                 integrated={integrated}
                                 verbose={true}
@@ -134,7 +138,7 @@ export const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 )
                             }
                         >
-                            <p className={styles.snippetSubHeading}>
+                            <p>
                                 Get notified of errors happening in your
                                 application.
                             </p>
@@ -162,13 +166,13 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
 
     return (
         <Section title="Installing the SDK">
-            <div className={styles.snippetSubHeading}>
+            <p>
                 Copy and paste the{' '}
                 <span className={styles.codeBlockBasic}>{'<script/>'}</span>{' '}
                 below into the
                 <span className={styles.codeBlockBasic}>{'<head/>'}</span> of
                 every page you wish to record.
-            </div>
+            </p>
             <div>
                 {loading || error ? (
                     <Skeleton />
@@ -201,17 +205,16 @@ const JsAppInstructions = ({
     return (
         <>
             <Section title="Installing the SDK">
-                <div className={styles.snippetSubHeading}>
+                <p>
                     Install the{' '}
                     <span className={styles.codeBlockBasic}>
                         {'highlight.run'}
                     </span>{' '}
                     package via your javascript package manager.
-                    <br />
-                    <CodeBlock text={`npm install highlight.run`} />
-                    Or with yarn:
-                    <CodeBlock text={`yarn add highlight.run`} />
-                </div>
+                </p>
+                <CodeBlock text={`npm install highlight.run`} />
+                <p>or with Yarn:</p>
+                <CodeBlock text={`yarn add highlight.run`} />
             </Section>
             <Section title="Initializing Highlight">
                 {platform === PlatformType.NextJs ? (
@@ -221,25 +224,27 @@ const JsAppInstructions = ({
                                 💡
                             </span>
                         </div>
-                        <div className={styles.calloutInner}>
+                        <p>
                             In Next.js, wrap all client side function calls in{' '}
                             <span className={styles.codeBlockBasic}>
                                 if (typeof window...
                             </span>
                             to force the logic to be executed client side.
-                        </div>
+                        </p>
                     </div>
                 ) : (
                     <></>
                 )}
-                <div className={styles.snippetSubHeading}>
-                    Initialize the SDK by importing Highlight like so:{' '}
-                    <CodeBlock text={`import { H } from 'highlight.run'`} />
+                <p>Initialize the SDK by importing Highlight like so: </p>
+                <CodeBlock text={`import { H } from 'highlight.run'`} />
+                <p>
                     and then calling{' '}
                     <span
                         className={styles.codeBlockBasic}
                     >{`H.init("${orgVerboseId}")`}</span>{' '}
-                    as soon as you can in your site's startup process. <br />
+                    as soon as you can in your site's startup process.
+                </p>
+                <p>
                     {platform !== PlatformType.NextJs ? (
                         <CodeBlock
                             text={`H.init("${orgVerboseId}") // "${orgVerboseId}" is your ORG_ID`}
@@ -251,6 +256,8 @@ const JsAppInstructions = ({
 }`}
                         />
                     )}
+                </p>
+                <p>
                     In{' '}
                     {platform === PlatformType.React
                         ? 'React'
@@ -259,10 +266,10 @@ const JsAppInstructions = ({
                         : 'Next.js'}
                     , it can be called at the top of your main component's file
                     like this:
-                    <br />
-                    {platform === PlatformType.React ? (
-                        <CodeBlock
-                            text={`import React from 'react';
+                </p>
+                {platform === PlatformType.React ? (
+                    <CodeBlock
+                        text={`import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.scss';
 import App from './App';
@@ -271,10 +278,10 @@ import { H } from 'highlight.run'
 H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
 
 ReactDOM.render(<App />, document.getElementById('root'));`}
-                        />
-                    ) : platform === PlatformType.Vue ? (
-                        <CodeBlock
-                            text={`import Vue from 'vue';
+                    />
+                ) : platform === PlatformType.Vue ? (
+                    <CodeBlock
+                        text={`import Vue from 'vue';
 import App from './App.vue';
 import { H } from 'highlight.run';
 
@@ -284,10 +291,10 @@ Vue.prototype.$H = H;
 new Vue({
   render: h => h(App)
 }).$mount('#app');`}
-                        />
-                    ) : (
-                        <CodeBlock
-                            text={`import '../styles/globals.css'
+                    />
+                ) : (
+                    <CodeBlock
+                        text={`import '../styles/globals.css'
 import { H } from 'highlight.run';
 
 if (typeof window !== 'undefined') {
@@ -299,9 +306,8 @@ function MyApp({ Component, pageProps }) {
 }
 
 export default MyApp`}
-                        />
-                    )}
-                </div>
+                    />
+                )}
             </Section>
         </>
     );
@@ -325,7 +331,7 @@ export const Section: FunctionComponent<SectionProps> = ({
     const trigger = (
         <div className={styles.triggerWrapper}>
             <div className={styles.snippetHeadingTwo}>
-                <span style={{ marginRight: 8 }}>{title}</span>
+                <h3 className={styles.title}>{title}</h3>
                 {!expanded && headingIcon}
             </div>
             <DownIcon

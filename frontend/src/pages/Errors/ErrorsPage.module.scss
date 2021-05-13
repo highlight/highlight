@@ -1,21 +1,22 @@
 .errorsBody {
-    width: 100%;
+    column-gap: 30px;
+    display: grid;
+    grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
+    grid-template-columns: auto 300px minmax(200px, 700px) 300px auto;
     height: 100%;
     padding-top: 100px;
-    display: grid;
-    grid-template-columns: auto 300px minmax(200px, 700px) 300px auto;
-    gap: 0px 0px;
-    grid-template-areas: '. Left-Panel Center-Panel Right-Panel .';
-    column-gap: 30px;
+    width: 100%;
 }
 
 .leftPanel {
     grid-area: Left-Panel;
     overflow-y: auto;
 }
+
 .centerPanel {
     grid-area: Center-Panel;
 }
+
 .rightPanel {
     grid-area: Right-Panel;
     overflow-y: auto;
@@ -30,8 +31,8 @@
 }
 
 .errorsSection {
-    position: relative;
     display: flex;
     flex-direction: column;
     height: 100%;
+    position: relative;
 }

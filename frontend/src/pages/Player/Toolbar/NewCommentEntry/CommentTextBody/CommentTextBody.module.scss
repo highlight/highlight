@@ -1,7 +1,7 @@
 .suggestionContainer {
-    display: flex;
     align-items: center;
     column-gap: var(--size-xSmall);
+    display: flex;
 
     .adminText {
         display: flex;
@@ -14,8 +14,8 @@
         .longValue {
             overflow: hidden;
             text-overflow: ellipsis;
-            width: 225px;
             white-space: nowrap;
+            width: 225px;
         }
     }
 }

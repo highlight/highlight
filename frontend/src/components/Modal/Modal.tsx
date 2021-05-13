@@ -36,7 +36,7 @@ const Modal: React.FC<Props> = ({ children, title, minimal, ...props }) => {
             closable={!minimal}
             bodyStyle={bodyStyle}
         >
-            {title && <h1 className={styles.title}>{title}</h1>}
+            {title && <h2>{title}</h2>}
             <main className={styles.modalContent}>{children}</main>
         </AntDesignModal>
     );

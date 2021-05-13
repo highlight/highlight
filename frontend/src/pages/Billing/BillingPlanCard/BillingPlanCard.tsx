@@ -17,14 +17,14 @@ export const BillingPlanCard = ({
 }) => {
     return (
         <div className={styles.billingPlanCard}>
-            <div className={styles.billingPlanTitle}>{billingPlan.name}</div>
-            <div
+            <h3 className={styles.billingPlanTitle}>{billingPlan.name}</h3>
+            <h4
                 className={classNames(
                     commonStyles.title,
                     styles.billingPlanPrice
                 )}
-            >{`$${billingPlan.monthlyPrice}`}</div>
-            <div className={styles.billingFrequency}>billed monthly</div>
+            >{`$${billingPlan.monthlyPrice}`}</h4>
+            <p className={styles.billingFrequency}>billed monthly</p>
             <ul className={styles.advertisedFeaturesWrapper}>
                 {billingPlan.advertisedFeatures.map((featureString) => (
                     <li

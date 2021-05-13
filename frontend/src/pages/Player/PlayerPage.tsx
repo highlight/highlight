@@ -385,7 +385,10 @@ const EventStream = () => {
 const PlayerSkeleton = ({ height }: { height: number | undefined }) => {
     const adjusted = (height ?? 80) - 80;
     return (
-        <SkeletonTheme color={'white'} highlightColor={'#f5f5f5'}>
+        <SkeletonTheme
+            color={'var(--text-primary-inverted)'}
+            highlightColor={'#f5f5f5'}
+        >
             <Skeleton height={adjusted} width={adjusted} duration={1} />
         </SkeletonTheme>
     );

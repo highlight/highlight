@@ -9,16 +9,16 @@
 }
 
 .speedButton {
-    background: var(--color-purple-200);
-    color: var(--color-purple);
-    padding: 0;
-    height: 18px;
-    width: 18px;
-    border-radius: 2px;
-    border: none;
-    display: flex;
     align-items: center;
+    background: var(--color-purple-200);
+    border: 0;
+    border-radius: 2px;
+    color: var(--color-purple);
+    display: flex;
+    height: 18px;
     justify-content: center;
+    padding: 0;
+    width: 18px;
 
     &:focus {
         background: var(--color-purple-200);
@@ -31,6 +31,6 @@
 }
 
 .speedControlContainer {
-    display: flex;
     align-items: center;
+    display: flex;
 }

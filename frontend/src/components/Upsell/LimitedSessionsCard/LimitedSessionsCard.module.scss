@@ -1,45 +1,43 @@
-@import 'src/static/shared.scss';
-
 .header {
+    color: var(--text-primary);
     font-size: 16px;
     font-weight: 300;
-    color: $text-primary;
     margin: 0;
-    margin-bottom: $size-medium;
+    margin-bottom: var(--size-medium);
 }
 
 .description {
+    color: var(--color-gray-500);
+    font-size: 14px;
     font-weight: 200;
     line-height: 20px;
-    font-size: 14px;
-    color: $text-label;
     margin: 0 auto;
-    margin-bottom: $size-medium;
+    margin-bottom: var(--size-medium);
     max-width: 362px;
 }
 
 .container {
-    border: 1px solid $border-light-gray;
-    padding: $size-medium;
-    padding-bottom: $size-large;
-    text-align: center;
-    margin-bottom: 14px;
+    border: 1px solid var(--color-gray-300);
     border-radius: 8px;
+    margin-bottom: 14px;
+    padding: var(--size-medium);
+    padding-bottom: var(--size-large);
+    text-align: center;
 }
 
 .closeButton {
+    align-items: center;
     background: none;
-    border: none;
+    border: 0;
     cursor: pointer;
     display: flex;
     justify-content: center;
-    align-items: center;
 }
 
 .closeIcon {
-    color: $text-primary;
-    height: $size-small;
-    width: $size-small;
+    color: var(--text-primary);
+    height: var(--size-small);
+    width: var(--size-small);
 }
 
 .actionsContainer {
@@ -48,16 +46,16 @@
 }
 
 .link {
-    padding: $size-xSmall 0;
-    text-align: center;
-    background: $highlight-purple;
-    color: $text-primary-inverted;
-    width: 211px;
+    background: var(--color-purple);
+    border-radius: var(--button-border-radius);
+    color: var(--text-primary-inverted);
     display: block;
     margin: 0 auto;
-    border-radius: $button-border-radius;
+    padding: var(--size-xSmall) 0;
+    text-align: center;
+    width: 211px;
 
     &:hover {
-        color: $text-primary-inverted;
+        color: var(--text-primary-inverted);
     }
 }

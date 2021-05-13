@@ -14,6 +14,7 @@ import { CommandBar } from './CommandBar/CommandBar';
 import Notifications from './Notifications/Notifications';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
+import ThemeToggle from './ThemeToggle/ThemeToggle';
 
 export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -49,6 +50,7 @@ export const Header = () => {
                         </Link>
                     </div>
                     <div className={styles.rightHeader}>
+                        <ThemeToggle />
                         <Notifications />
                         <UserDropdown />
                     </div>
@@ -107,11 +109,16 @@ const OnPremiseBanner = () => {
     return (
         <div
             className={styles.trialWrapper}
-            style={{ backgroundColor: 'black' }}
+            style={{
+                backgroundColor: 'var(--color-primary-inverted-background',
+            }}
         >
-            <Banner className={styles.bannerSvg} style={{ fill: 'black' }} />
+            <Banner
+                className={styles.bannerSvg}
+                style={{ fill: 'var(--text-primary)' }}
+            />
             <div className={classNames(styles.trialTimeText)}>
-                Runnning Highlight On-premise{' '}
+                Running Highlight On-premise{' '}
                 {`v${process.env.REACT_APP_COMMIT_SHA}`}
             </div>
         </div>

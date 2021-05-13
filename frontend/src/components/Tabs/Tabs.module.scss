@@ -8,8 +8,12 @@
 }
 
 .extraContentContainer {
-    display: flex;
-    column-gap: var(--size-medium);
     align-items: center;
+    column-gap: var(--size-medium);
+    display: flex;
     padding-right: var(--size-large);
+}
+
+.tabs {
+    font-family: var(--header-font-family) !important;
 }

@@ -2,8 +2,7 @@
 // Changes to this file requires you to restart the React dev server for the effects to take place in the browser.
 
 // https://ant.design/docs/react/customize-theme
-@font-family: AvenirNext, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-    'Noto Sans', sans-serif;
+@font-family: var(--header-font-family);
 @primary-color: #5629c6;
 @border-radius-base: 5px;
 @message-notice-content-bg: rgba(0, 0, 0, 0.85);
@@ -19,24 +18,24 @@
 @btn-primary-shadow: none;
 @btn-text-shadow: none;
 
-@btn-primary-color: #ffffff;
+@btn-primary-color: var(--text-primary-inverted);
 @btn-primary-bg: @primary-color;
 
 @btn-default-color: @primary-color;
-@btn-default-bg: #ffffff;
-@btn-default-border: #dfdfdfdf;
+@btn-default-bg: var(--color-primary-background);
+@btn-default-border: var(--color-gray-400);
 
-@btn-disable-color: #ffffff;
-@btn-disable-bg: #828282;
-@btn-disable-border: #828282;
+@btn-disable-color: var(--text-primary-inverted);
+@btn-disable-bg: var(--color-gray-500);
+@btn-disable-border: var(--color-gray-500);
 
 @btn-font-size-lg: 16px;
 @btn-font-size-sm: 12px;
 @btn-padding-horizontal-base: 16px;
 
-@btn-danger-color: #ffffff;
-@btn-danger-bg: #eb5757;
-@btn-danger-border: #eb5757;
+@btn-danger-color: var(--text-primary-inverted);
+@btn-danger-bg: var(--color-red);
+@btn-danger-border: var(--color-red);
 
 // Progress
 @progress-remaining-color: var(--color-purple-200);

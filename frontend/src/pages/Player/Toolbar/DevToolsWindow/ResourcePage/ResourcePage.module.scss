@@ -1,18 +1,17 @@
 @import 'src/components/Button/GoToButton/index.module.scss';
-@import 'src/static/shared.scss';
 
 $columns: 50px 50% 90px 90px 1fr $go-to-button-width;
 $right-padding: 12px;
 
 .networkRow {
-    color: #808080;
-    width: 100%;
+    color: var(--color-gray-500);
     display: grid;
+    font-size: 13px;
     grid-template-columns: $columns;
+    padding-bottom: 8px;
     padding-left: 25px;
     padding-right: $right-padding;
-    padding-bottom: 8px;
-    font-size: 13px;
+    width: 100%;
 
     &:hover .goToButton {
         visibility: visible;
@@ -20,21 +19,21 @@ $right-padding: 12px;
 }
 
 .networkTopBar {
-    color: #808080;
-    width: 100%;
+    color: var(--color-gray-500);
+    display: grid;
+    font-size: 13px;
+    grid-template-columns: $columns;
+    height: 40px;
     padding-left: 25px;
     padding-right: $right-padding;
-    height: 40px;
-    display: grid;
-    grid-template-columns: $columns;
-    font-size: 13px;
+    width: 100%;
 }
 
 .networkTableWrapper {
+    border-left: 1px solid var(--color-gray-300);
     height: calc(100% - 45px);
-    position: relative;
-    border-left: 1px solid #eaeaea;
     margin-left: 1px;
+    position: relative;
 }
 
 // calc(total width - padding left - padding right - TYPE - NAME - TIMING - SIZE - GoToButton)
@@ -43,27 +42,27 @@ $canvas-width: calc(
 );
 
 .canvasNetworkWrapper {
-    position: absolute;
     background-attachment: fixed;
     height: 100%;
-    width: $canvas-width;
     margin-left: calc(5px + 50px + 50% + 90px + 90px);
+    position: absolute;
+    width: $canvas-width;
     z-index: 99;
 }
 
 .networkStreamWrapper {
-    background-color: white;
-    word-wrap: break-word;
+    background-color: var(--color-primary-background);
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
     height: calc(100% - 40px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    word-wrap: break-word;
 }
 
 .networkTimingColumn {
+    color: var(--color-gray-500);
     font-size: 12px;
-    color: #808080;
     font-weight: 400;
     z-index: 10;
 }
@@ -73,46 +72,46 @@ $canvas-width: calc(
 }
 
 .networkColumn {
-    font-size: 12px;
-    color: black;
-    font-weight: 400;
-    display: flex;
     align-items: center;
+    color: var(--text-primary);
+    display: flex;
+    font-size: 12px;
+    font-weight: 400;
 }
 
 .typeSection {
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .nameSection {
-    white-space: nowrap;
     cursor: pointer;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .timingBarWrapper {
-    display: flex;
     align-items: center;
+    display: flex;
     justify-content: center;
 }
 
 .timingBarEmptySection {
-    background-color: white;
+    background-color: var(--color-primary-background);
 }
 
 .timingBar {
-    height: 60%;
-    background-color: #5629c6;
+    background-color: var(--color-purple);
     border-radius: 4px;
+    height: 60%;
 }
 
 .networkTimestampGrid {
     display: grid;
-    width: 100%;
     grid-template-columns: repeat(3, 33.33%);
+    width: 100%;
 }
 
 @media only screen and (max-width: 1150px) {
@@ -122,8 +121,8 @@ $canvas-width: calc(
 }
 
 .goToButton {
+    color: var(--text-primary);
     visibility: hidden;
-    color: $text-primary;
 }
 
 .resourcePageWrapper {

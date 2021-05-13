@@ -35,11 +35,11 @@ export const IntegrationDetector = ({
                 </div>
             </Tooltip>
             {verbose ? (
-                <div className={styles.verificationText}>
+                <p className={styles.verificationText}>
                     {integrated
                         ? 'Installation Verified.'
                         : 'Waiting for Verification.'}
-                </div>
+                </p>
             ) : (
                 <></>
             )}

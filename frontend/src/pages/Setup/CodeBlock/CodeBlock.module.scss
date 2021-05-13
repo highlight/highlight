@@ -1,36 +1,46 @@
 .copyButton {
-    top: 5px;
-    right: 5px;
-    position: absolute;
-    z-index: 10;
-    margin: 5px;
     cursor: pointer;
+    margin: 5px;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    z-index: 10;
 }
 
 .copyDiv {
-    font-size: 8px;
-    padding: 10px;
-    display: flex;
     align-items: center;
+    display: flex;
+    font-size: 8px;
     justify-content: center;
+    padding: 10px;
+}
+
+.codeBlock {
+    display: block;
+    position: relative;
 }
 
 .codeBlockWrapper {
-    overflow: auto;
+    background-color: var(--color-secondary-background);
+    border: 1px solid var(--color-gray-300);
+    border-radius: 8px;
+    display: block;
     font-family: 'Lucida Console', Monaco, Consolas, 'Courier New', Courier,
         'Lucida Sans Typewriter', 'Lucida Typewriter', monospace !important;
-    border: 1px solid #e4e8eb;
-    background-color: #f9f9f9;
+    font-size: 13px;
+    height: 100%;
+    margin-bottom: 20px;
+    margin-top: 20px;
+    max-width: 100%;
+    min-width: 100%;
+    overflow: auto;
+    padding: 10px;
+    position: relative;
+    resize: none;
     white-space: pre;
     width: 100%;
-    max-width: 100%;
-    position: relative;
-    margin-top: 20px;
-    margin-bottom: 20px;
-    min-width: 100%;
-    resize: none;
-    font-size: 13px;
-    border-radius: 8px;
-    padding: 10px;
-    height: 100%;
+
+    &:last-of-type {
+        margin-bottom: 0;
+    }
 }

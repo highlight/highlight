@@ -1,32 +1,25 @@
 .cardWrapper {
-    height: calc(100vh - 80px);
-    width: 100%;
-    display: flex;
     align-items: center;
+    display: flex;
+    height: calc(100vh - 80px);
     justify-content: center;
+    width: 100%;
 }
 
 .card {
-    width: 450px;
-    border: 1px solid #eaeaea;
-    padding: 30px;
+    border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     margin-bottom: 80px;
+    padding: 30px;
     padding-bottom: 40px;
+    width: 450px;
 }
 
-.title {
-    font-size: 24px;
-    font-weight: 400;
-    margin-bottom: 10px;
-}
 
 .text {
-    font-size: 14px;
-    font-weight: 300;
     margin-bottom: 15px;
 }
 
 .highlightText {
-    color: #5629c6;
+    color: var(--color-purple);
 }

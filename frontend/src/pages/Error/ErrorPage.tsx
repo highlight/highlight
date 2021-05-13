@@ -215,9 +215,9 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                             backgroundColor: 'rgba(0, 0, 0, 0.85)',
                             borderRadius: '5px',
                             borderWidth: 0,
-                            color: 'white',
+                            color: 'var(--text-primary-inverted)',
                         }}
-                        itemStyle={{ color: 'white' }}
+                        itemStyle={{ color: 'var(--text-primary-inverted)' }}
                     />
                     <Bar dataKey="occurrences" radius={[2, 2, 0, 0]}>
                         {errorDates.map((e, i) => (
@@ -226,8 +226,8 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                                 fill={
                                     e.occurrences >
                                     Math.max(totalErrors * 0.1, 10)
-                                        ? '#C62929'
-                                        : '#835E00'
+                                        ? 'var(--color-red-500)'
+                                        : 'var(--color-brown)'
                                 }
                             />
                         ))}

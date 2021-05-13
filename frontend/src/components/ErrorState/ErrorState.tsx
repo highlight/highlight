@@ -26,7 +26,9 @@ export const ErrorState = ({
                         {showError ? 'show less' : 'show more'}
                     </span>
                 </p>
-                {showError && <p className={styles.errorBody}>{errorString}</p>}
+                {showError && (
+                    <code className={styles.errorBody}>{errorString}</code>
+                )}
                 <div className={styles.buttonGroup}>
                     <a href={'https://app.highlight.run'}>
                         <Button type="primary">Go to my Account</Button>

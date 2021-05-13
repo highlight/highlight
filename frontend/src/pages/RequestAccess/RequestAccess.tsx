@@ -36,11 +36,11 @@ export const RequestAccessPage = () => {
     return (
         <div className={styles.box}>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <div className={styles.title}>We're in private beta!</div>
-                <div className={styles.subTitle}>
+                <h2 className={styles.title}>We're in private beta!</h2>
+                <p className={styles.subTitle}>
                     Wanna use Highlight? Request access below and we'll reach
                     out!
-                </div>
+                </p>
                 <input
                     placeholder={'Work Email'}
                     name="email"
@@ -58,7 +58,10 @@ export const RequestAccessPage = () => {
                 >
                     {loading ? (
                         <CircularSpinner
-                            style={{ fontSize: 18, color: 'white' }}
+                            style={{
+                                fontSize: 18,
+                                color: 'var(--text-primary-inverted)',
+                            }}
                         />
                     ) : (
                         'Request Access'

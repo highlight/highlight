@@ -50,13 +50,13 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                 styles={{
                     control: (provided) => ({
                         ...provided,
-                        borderColor: '#eaeaea',
+                        borderColor: 'var(--color-gray-300)',
                         borderRadius: 8,
                         minHeight: 45,
                     }),
                     multiValue: (provided) => ({
                         ...provided,
-                        backgroundColor: '#F2EEFB',
+                        backgroundColor: 'var(--color-purple-100)',
                     }),
                 }}
                 cacheOptions

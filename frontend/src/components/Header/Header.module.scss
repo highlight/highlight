@@ -1,31 +1,29 @@
-@import 'src/static/shared.scss';
-
 .header {
-    width: 100%;
-    height: 80px;
+    background-color: var(--color-primary-background);
+    border-bottom: 1px solid var(--color-gray-300);
     display: flex;
-    background-color: white;
-    border-bottom: 1px solid #eaeaea;
-    position: fixed;
-    z-index: 100;
     flex-direction: column;
+    height: 80px;
+    position: fixed;
+    width: 100%;
+    z-index: 100;
 }
 
 .hamburger {
-    transition: 0.4s;
-    margin-right: 20px;
     cursor: pointer;
     height: 24px;
+    margin-right: 20px;
+    transition: 0.4s;
     width: 24px;
 }
 
 .commandPaletteOverlay {
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    right: 0px;
-    bottom: 0px;
     background-color: rgba(0, 0, 0, 0.75);
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
 }
 
 .headerContent {
@@ -34,11 +32,11 @@
 }
 
 .searchWrapper {
-    width: 100%;
-    height: 80px;
-    display: flex;
     align-items: center;
+    display: flex;
+    height: 80px;
     justify-content: center;
+    width: 100%;
 }
 
 .trialWrapperHidden {
@@ -46,93 +44,93 @@
 }
 
 .trialLink {
-    color: white;
+    color: var(--color-primary-background);
     text-decoration: underline;
 }
 
 .trialWrapper {
-    width: 100%;
-    color: white;
-    background-color: #5629c6;
-    z-index: 1000;
-    display: flex;
     align-items: center;
+    background-color: var(--color-purple);
+    color: var(--color-primary-background);
+    display: flex;
     height: 15px;
     justify-content: center;
     transition: 1s;
+    width: 100%;
+    z-index: 1000;
 }
 
 .bannerSvg {
+    fill: var(--color-purple);
     position: absolute;
     top: 17px;
     transform: scale(2.2, 2);
-    fill: $highlight-purple;
 }
 
 .trialCloseStyle {
+    cursor: pointer;
+    fill: var(--color-primary-background);
+    height: 8px;
+    margin: 0 5px;
     position: absolute;
     right: 0;
-    height: 8px;
     width: 8px;
-    margin: 0 5px 0 5px;
-    cursor: pointer;
-    fill: white;
 }
 
 .trialTimeText {
-    z-index: 100;
     font-size: 12px;
     margin-top: 15px;
-    padding-top: 4px;
     padding-bottom: 4px;
+    padding-top: 4px;
+    z-index: 100;
 }
 
 .searchBar {
-    width: 50px;
-    height: 40px;
-    border: 1px solid #eaeaea;
-    border-radius: 8px;
-    padding-left: 14px;
-    color: #888888;
-    display: flex;
     align-items: center;
+    border: 1px solid var(--color-gray-300);
+    border-radius: 8px;
+    color: var(--color-gray-500);
+    display: flex;
+    height: 40px;
+    padding-left: 14px;
+    width: 50px;
 }
 
 .logoWrapper {
-    z-index: 10;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    height: 100%;
-    margin-left: 20px;
+    color: var(--text-primary);
     cursor: pointer;
-    color: black;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    margin-left: 20px;
+    z-index: 10;
 }
 
 .homeLink {
-    display: flex;
     align-items: center;
-    justify-content: center;
+    color: var(--text-primary);
     cursor: pointer;
-    color: black;
+    display: flex;
+    justify-content: center;
     text-decoration: none;
 }
 
 .homeLink:hover {
-    text-decoration: none;
     color: inherit;
+    text-decoration: none;
 }
 
 .logoWrapper:hover {
-    color: black;
+    color: var(--text-primary);
 }
 
 .rightHeader {
-    height: 100%;
-    display: flex;
     align-items: center;
+    column-gap: var(--size-large);
+    display: flex;
+    height: 100%;
     justify-content: center;
     margin-left: auto;
-    column-gap: var(--size-large);
     z-index: 200;
 }

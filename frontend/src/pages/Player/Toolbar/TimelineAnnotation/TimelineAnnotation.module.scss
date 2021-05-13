@@ -1,24 +1,22 @@
-@import 'src/static/shared.scss';
-
 .annotation {
     --annotation-scale: 0.1;
     --size: calc(1px * (1 / var(--annotation-scale)));
-
-    position: absolute;
-    z-index: 21;
-    height: var(--size);
-    width: var(--size);
-    opacity: 0.5;
-    border: 1px solid white;
-    transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+    animation: grow 0.5s normal;
+    border: 1px solid var(--color-primary-background);
     border-radius: 50%;
     box-sizing: content-box;
-    padding: 0;
-    outline: none;
-    flex-shrink: 0;
-    flex-grow: 0;
-    animation: grow 0.5s normal;
     cursor: pointer;
+    flex-grow: 0;
+    flex-shrink: 0;
+    height: var(--size);
+    opacity: 0.5;
+    outline: none;
+    padding: 0;
+
+    position: absolute;
+    transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+    width: var(--size);
+    z-index: 21;
 
     &:hover,
     &.selected {

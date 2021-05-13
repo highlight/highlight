@@ -127,10 +127,10 @@ export const LoginForm = () => {
                         className={styles.loginForm}
                     >
                         <div className={styles.loginTitleWrapper}>
-                            <div className={styles.loginTitle}>
+                            <h2 className={styles.loginTitle}>
                                 Welcome {signIn && 'back'} to Highlight.
-                            </div>
-                            <div className={styles.loginSubTitle}>
+                            </h2>
+                            <p className={styles.loginSubTitle}>
                                 {signIn ? (
                                     <>
                                         New here?{' '}
@@ -156,7 +156,7 @@ export const LoginForm = () => {
                                         </span>
                                     </>
                                 )}
-                            </div>
+                            </p>
                         </div>
                         <input
                             placeholder={'Email'}
@@ -208,9 +208,9 @@ export const LoginForm = () => {
                             {signIn ? 'Sign In' : 'Sign Up'}
                         </Button>
                     </form>
-                    <div className={styles.otherSigninText}>
+                    <p className={styles.otherSigninText}>
                         or sign {signIn ? 'in' : 'up'} with
-                    </div>
+                    </p>
                     <Button
                         className={classNames(
                             commonStyles.secondaryButton,

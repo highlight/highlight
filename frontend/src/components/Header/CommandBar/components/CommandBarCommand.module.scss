@@ -1,19 +1,18 @@
 .suggestion {
-    background: var(--font-family);
-    font-size: 14px;
-    color: var(--color-gray-300);
-    font-weight: 300;
-    display: flex;
     align-items: center;
+    background: var(--header-font-family);
+    color: var(--text-primary);
     column-gap: var(--size-small);
+    display: flex;
+    font-size: 14px;
 }
 
 .category {
-    display: flex;
     align-items: center;
+    display: flex;
 
-    & > svg {
-        fill: var(--text-primary-inverted);
+    > svg {
+        fill: var(--text-primary);
         height: 12px;
         width: 12px;
     }

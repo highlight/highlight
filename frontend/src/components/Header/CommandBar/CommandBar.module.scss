@@ -1,43 +1,44 @@
 .container {
-    font-family: var(--font-family);
+    font-family: var(--header-font-family);
 }
 
 .input {
-    font-size: 14px;
+    background-color: var(--color-secondary-background);
+    border: 2px solid var(--color-gray-300);
     border-radius: 4px;
-    border: 2px solid #181a1f;
-    width: -webkit-fill-available;
-    padding: 6px;
-    margin: var(--size-small);
     box-sizing: border-box;
-    outline: none;
-    background-color: #202634;
-    color: #d7dae0;
     caret-color: var(--color-purple);
+    color: var(--text-primary);
+    font-size: 14px;
+    margin: var(--size-small);
+    outline: none;
+    padding: 6px;
+    width: stretch;
 }
 
 .input-focused {
-    border-color: red;
-    background-color: black;
+    background-color: var(--text-primary);
+    border-color: var(--color-red);
 }
 
 .suggestion {
-    & b {
+    background-color: var(--color-secondary-background);
+    border-left: 3px solid transparent;
+
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 14px 12px;
+
+    b {
         color: var(--color-purple-light);
     }
-
-    color: #9da5b4;
-    background-color: #2c313a;
-    padding: 14px 12px;
-    cursor: pointer;
-    border-left: 3px solid transparent;
 }
 
 .suggestionsContainerOpen {
-    overflow-y: auto;
-    border-top: 1px solid #111;
-    border-bottom: 1px solid #111;
+    border-bottom: 1px solid var(--color-gray-300);
+    border-top: 1px solid var(--color-gray-300);
     max-height: 400px;
+    overflow-y: auto;
 
     &::-webkit-scrollbar {
         display: none;
@@ -45,24 +46,24 @@
 }
 
 .suggestionHighlighted {
-    color: #fff;
-    background: #3a3f4b;
+    background: var(--color-gray-300);
     border-left: 3px solid var(--color-purple);
+    color: var(--text-primary);
 }
 
 .modal {
-    width: 605px;
-    position: absolute;
-    top: 25%;
-    left: 50%;
-    right: auto;
-    bottom: auto;
-    border: none;
-    background: rgb(48, 51, 56);
-    overflow: hidden;
+    background: var(--color-secondary-background);
+    border: 0;
     border-radius: 4px;
+    bottom: auto;
+    box-shadow: var(--box-shadow-2);
+    left: 50%;
     outline: none;
-    box-shadow: var(--box-shadow);
+    overflow: hidden;
+    position: absolute;
+    right: auto;
+    top: 25%;
     // margin-right: -50%;
-    transform: translate(-50%, 0px);
+    transform: translate(-50%, 0);
+    width: 605px;
 }

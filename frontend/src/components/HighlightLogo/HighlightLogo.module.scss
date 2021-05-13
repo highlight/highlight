@@ -1,12 +1,13 @@
 .logoText {
+    font-family: var(--header-font-family);
     font-size: 22px;
-    font-weight: 400;
+    font-weight: 500;
     user-select: none;
 }
 
 .logo {
-    margin: 8px;
-    fill: white;
+    fill: var(--color-primary-background);
     height: 22px;
+    margin: 8px;
     width: 22px;
 }

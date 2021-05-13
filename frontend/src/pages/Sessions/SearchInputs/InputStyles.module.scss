@@ -1,7 +1,7 @@
 @import 'src/static/shared.scss';
 
 .commonInputWrapper {
-    padding: 10px 0 10px 0;
+    padding: 10px 0;
 }
 
 .searchInput {
@@ -9,45 +9,45 @@
 }
 
 .switchRow {
-    margin-bottom: 15px;
     display: flex;
+    margin-bottom: 15px;
 }
 
 .switchText {
-    margin-left: 8px;
     color: var(--color-gray-500);
+    margin-left: 8px;
 }
 
 .switchSpan {
     display: inline-block;
-    vertical-align: middle;
     line-height: normal;
+    vertical-align: middle;
 }
 
 .switchTextSelected {
-    color: black;
+    color: var(--text-primary);
 }
 
 .datePicker {
     @include rounded-border;
-    width: 100%;
-    height: 45px;
-    font-weight: 300 !important;
-    font-family: 'AvenirNext';
+    font-family: var(--header-font-family);
     font-size: 14px;
+    font-weight: 300 !important;
+    height: 45px;
+    width: 100%;
 }
 
 .iconWrapper {
-    margin: 0 10px 0 0px;
     display: flex;
-    fill: #808080 !important;
+    fill: var(--color-gray-500) !important;
+    margin: 0 10px 0 0;
 }
 
 .subTitle {
-    color: black;
+    color: var(--text-primary);
     font-size: 11px;
-    margin-top: 10px;
     margin-bottom: 8px;
+    margin-top: 10px;
 }
 
 .checkboxRow {
