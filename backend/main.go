@@ -86,7 +86,11 @@ func main() {
 
 	if env == "prod" {
 		// Connect to the datadog daemon.
-		_, err := statsd.New(statsdHost)
+		_, err := statsd.New(statsdHost, statsd.WithTags([]string{
+			"host:" + os.Getenv("RENDER_SERVICE_NAME"),
+			"service:" + os.Getenv("RENDER_SERVICE_TYPE") + "-" + os.Getenv("RENDER_INSTANCE_ID"),
+		},
+		))
 		if err != nil {
 			log.Fatalf("error connecting to statsd: %v", err)
 			return
