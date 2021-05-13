@@ -1,0 +1,13 @@
+{
+    "$schema": "http://json.schemastore.org/stylelintrc.json",
+    "extends": "stylelint-config-sass-guidelines",
+    "rules": {
+        "indentation": 4,
+        "selector-class-pattern": null,
+        "max-nesting-depth": null,
+        "scss/at-import-partial-extension-blacklist": null,
+        "selector-max-id": null,
+        "color-no-hex": true,
+        "function-parentheses-space-inside": null
+    }
+}

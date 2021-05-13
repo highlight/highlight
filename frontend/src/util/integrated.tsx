@@ -1,5 +1,6 @@
 import useLocalStorage from '@rehooks/local-storage';
 import { useEffect, useState } from 'react';
+
 import { useIsIntegratedLazyQuery } from '../graph/generated/hooks';
 
 export const useIntegrated = (

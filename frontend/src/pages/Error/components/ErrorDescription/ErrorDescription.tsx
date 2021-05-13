@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import LinesEllipsis from 'react-lines-ellipsis';
+
 import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
 import styles from '../../ErrorPage.module.scss';
 import { parseErrorDescription } from './utils/utils';

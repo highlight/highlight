@@ -1,16 +1,17 @@
 import { Dropdown } from 'antd';
+import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
+import { HiDotsHorizontal } from 'react-icons/hi';
 import { SuggestionDataItem } from 'react-mentions';
+
 import {
     GetAdminQuery,
     GetAdminsQuery,
 } from '../../graph/generated/operations';
-import styles from './CommentHeader.module.scss';
-import classNames from 'classnames';
-import { HiDotsHorizontal } from 'react-icons/hi';
-import { AdminAvatar } from '../Avatar/Avatar';
 import { SanitizedAdminInput } from '../../graph/generated/schemas';
+import { AdminAvatar } from '../Avatar/Avatar';
 import RelativeTime from '../RelativeTime/RelativeTime';
+import styles from './CommentHeader.module.scss';
 
 export interface AdminSuggestion extends SuggestionDataItem {
     email?: string;
@@ -66,10 +67,10 @@ export const CommentHeader = ({
             <div className={classNames(styles.commentHeader)}>
                 <AdminAvatar adminInfo={comment.author} size={30} />
                 <div className={styles.textContainer}>
-                    <span className={styles.commentAuthor}>
+                    <p className={styles.commentAuthor}>
                         {comment.author.name ||
                             comment.author.email.split('@')[0]}
-                    </span>
+                    </p>
                     <span className={styles.commentUpdatedTime}>
                         <RelativeTime datetime={comment.updated_at} />
                     </span>

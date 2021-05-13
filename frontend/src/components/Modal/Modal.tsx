@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
-import { ModalProps, Modal as AntDesignModal } from 'antd';
+import { Modal as AntDesignModal, ModalProps } from 'antd';
 import React from 'react';
+
 import Close from '../../static/Close';
 import styles from './Modal.module.scss';
 
@@ -36,7 +37,7 @@ const Modal: React.FC<Props> = ({ children, title, minimal, ...props }) => {
             closable={!minimal}
             bodyStyle={bodyStyle}
         >
-            {title && <h1 className={styles.title}>{title}</h1>}
+            {title && <h2>{title}</h2>}
             <main className={styles.modalContent}>{children}</main>
         </AntDesignModal>
     );

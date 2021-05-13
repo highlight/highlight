@@ -1,6 +1,7 @@
 import { DatePicker } from 'antd';
-import React from 'react';
 import moment from 'moment';
+import React from 'react';
+
 import { SearchParams, useSearchContext } from '../SearchContext/SearchContext';
 import inputStyles from './InputStyles.module.scss';
 

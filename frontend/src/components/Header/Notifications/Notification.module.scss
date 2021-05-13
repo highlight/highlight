@@ -1,20 +1,20 @@
 .button {
-    border-radius: 50%;
-    height: var(--size-xLarge);
-    width: var(--size-xLarge);
-    padding: 0;
-    display: flex;
     align-items: center;
-    justify-content: center;
+    border-radius: 50%;
     color: var(--text-primary);
+    display: flex;
+    height: var(--size-xLarge);
+    justify-content: center;
+    padding: 0;
+    width: var(--size-xLarge);
 
     &:hover {
         background: var(--color-purple-200);
     }
 
     .iconContainer {
-        display: flex;
         align-items: center;
+        display: flex;
         justify-content: center;
         position: relative;
     }
@@ -32,20 +32,20 @@
 }
 
 .popover {
+    margin-top: var(--size-xxSmall);
     max-width: 320px;
     min-width: 300px;
-    margin-top: var(--size-xxSmall);
 }
 
 .list {
-    padding: 0;
     list-style: none;
+    padding: 0;
 }
 
 .notification {
-    display: flex !important;
-    column-gap: var(--size-small);
     color: var(--color-gray-500);
+    column-gap: var(--size-small);
+    display: flex !important;
 
     &:hover {
         color: var(--color-gray-500);
@@ -62,40 +62,41 @@
         grid-template-columns: 1fr;
         grid-template-rows: 1fr;
 
-        & > * {
-            grid-row-start: 1;
+        > * {
             grid-column-start: 1;
+            grid-row-start: 1;
         }
 
         .notificationIconContainer {
-            background: var(--color-primary-background);
-            box-shadow: var(--box-shadow-2);
-            border-radius: 50%;
-            display: flex;
             align-items: center;
-            justify-content: center;
+            background: var(--color-primary-background);
+            border-radius: 50%;
+            box-shadow: var(--box-shadow-2);
+            display: flex;
             height: var(--size-medium);
+            justify-content: center;
+            margin-left: -4px;
+            margin-top: -4px;
             width: var(--size-medium);
             z-index: 1;
-            margin-top: -4px;
-            margin-left: -4px;
         }
 
-        & svg {
+        svg {
+            color: var(--text-primary);
             height: var(--size-xSmall);
             width: var(--size-xSmall);
-            color: var(--text-primary);
         }
     }
 
     .dotContainer {
-        margin-top: var(--size-xxSmall);
         margin-left: auto;
+        margin-top: var(--size-xxSmall);
     }
 
     .timestamp {
         font-size: 12px !important;
-        margin-bottom: var(--size-xxSmall);
+        margin-bottom: var(--size-xxSmall) !important;
+        margin-top: 0 !important;
     }
 
     .title {
@@ -103,39 +104,40 @@
     }
 
     .titleSuffix {
-        font-weight: 200;
         color: var(--color-gray-500);
+        font-weight: 200;
     }
 }
 
 .popoverTitle {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--color-gray-300);
     column-gap: var(--size-xSmall);
+    display: flex;
+    justify-content: space-between;
     margin: 0 calc(var(--size-medium) * -1);
     margin-bottom: var(--size-medium);
     padding: 0 var(--size-medium);
-    border-bottom: 1px solid var(--color-gray-300);
+    padding-bottom: var(--size-small);
 
     h3,
     span,
     a {
-        margin-bottom: var(--size-xSmall);
         font-size: 13px;
-        font-weight: 300;
+        font-weight: 400;
+        margin-bottom: var(--size-xSmall);
     }
 }
 
 .emptyStateContainer {
+    align-items: center;
     display: flex;
     flex-direction: column;
-    text-align: center;
-    width: 80%;
-    margin: 0 auto;
     height: 300px;
     justify-content: center;
-    align-items: center;
+    margin: 0 auto;
+    text-align: center;
+    width: 80%;
 }
 
 .animation {

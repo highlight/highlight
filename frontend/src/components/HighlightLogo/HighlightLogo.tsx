@@ -1,7 +1,7 @@
 import React from 'react';
 
-import styles from './HighlightLogo.module.scss';
 import { ReactComponent as HighlightLogoSmall } from '../../static/highlight-logo-small.svg';
+import styles from './HighlightLogo.module.scss';
 
 export const HighlightLogo = () => {
     return (

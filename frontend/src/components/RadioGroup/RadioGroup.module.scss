@@ -1,25 +1,26 @@
 .radioGroupWrapper {
-    margin: 0;
     display: flex;
+    font-family: var(--header-font-family);
+    margin: 0;
 }
 
 .platformOption {
-    height: 30px;
-    width: 85px;
-    display: flex;
     align-items: center;
-    justify-content: center;
-    border: 1px solid #e4e8eb;
+    border: 1px solid var(--color-gray-300);
     cursor: pointer;
+    display: flex;
+    height: 30px;
+    justify-content: center;
     transition: 0.2s;
+    width: 85px;
 }
 
 .platformOption:hover {
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
 }
 
 .platformOption:not(:last-child) {
-    border-right: none;
+    border-right: 0;
 }
 
 .platformOption:first-child {

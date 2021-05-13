@@ -1,15 +1,14 @@
 import React from 'react';
 import ResizePanel from 'react-resize-panel-ts';
 
-import { ConsolePage } from './ConsolePage/ConsolePage';
-import { ResourcePage } from './ResourcePage/ResourcePage';
-import { useDevToolsContext } from '../DevToolsContext/DevToolsContext';
-
-import styles from './DevToolsWindow.module.scss';
-import ErrorsPage from './ErrorsPage/ErrorsPage';
 import Tabs, { TabItem } from '../../../../components/Tabs/Tabs';
 import SvgCloseIcon from '../../../../static/CloseIcon';
 import DOMInteractionsToggle from '../../DOMInteractionsToggle/DOMInteractionsToggle';
+import { useDevToolsContext } from '../DevToolsContext/DevToolsContext';
+import { ConsolePage } from './ConsolePage/ConsolePage';
+import styles from './DevToolsWindow.module.scss';
+import ErrorsPage from './ErrorsPage/ErrorsPage';
+import { ResourcePage } from './ResourcePage/ResourcePage';
 
 export const DevToolsWindow = ({
     time,

@@ -1,29 +1,29 @@
+import { message } from 'antd';
+import classNames from 'classnames';
+import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
-import { Link, useHistory, useParams } from 'react-router-dom';
-import {
-    SearchParams,
-    useSearchContext,
-} from '../../SearchContext/SearchContext';
-import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
-import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
 import Skeleton from 'react-loading-skeleton';
+import { Link, useHistory, useParams } from 'react-router-dom';
 
 import commonStyles from '../../../../Common.module.scss';
-import styles from './SegmentPicker.module.scss';
+import Button from '../../../../components/Button/Button/Button';
+import { CircularSpinner } from '../../../../components/Loading/Loading';
+import Modal from '../../../../components/Modal/Modal';
+import Tooltip from '../../../../components/Tooltip/Tooltip';
 import {
     useDeleteSegmentMutation,
     useGetSegmentsQuery,
     useUnprocessedSessionsCountQuery,
 } from '../../../../graph/generated/hooks';
+import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
+import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
-import classNames from 'classnames';
-import { message } from 'antd';
-import { CircularSpinner } from '../../../../components/Loading/Loading';
+import {
+    SearchParams,
+    useSearchContext,
+} from '../../SearchContext/SearchContext';
 import { EmptySessionsSearchParams } from '../../SessionsPage';
-import Modal from '../../../../components/Modal/Modal';
-import Tooltip from '../../../../components/Tooltip/Tooltip';
-import Button from '../../../../components/Button/Button/Button';
-import _ from 'lodash';
+import styles from './SegmentPicker.module.scss';
 
 export const LIVE_SEGMENT_ID = 'live';
 export const STARRED_SEGMENT_ID = 'starred';
@@ -119,13 +119,13 @@ export const SegmentPicker = () => {
                 style={{ display: 'flex' }}
             >
                 <div className={styles.modalWrapper}>
-                    <div className={styles.modalSubTitle}>
+                    <p className={styles.modalSubTitle}>
                         {`This action is irreversible. Do you want to delete ${
                             segmentToDelete?.name
                                 ? `'${segmentToDelete.name}'`
                                 : 'this segment'
                         }?`}
-                    </div>
+                    </p>
                     <Button
                         type="primary"
                         className={commonStyles.submitButton}
@@ -153,7 +153,10 @@ export const SegmentPicker = () => {
                     >
                         {loading ? (
                             <CircularSpinner
-                                style={{ fontSize: 18, color: 'white' }}
+                                style={{
+                                    fontSize: 18,
+                                    color: 'var(--text-primary-inverted)',
+                                }}
                             />
                         ) : (
                             'Delete Segment'

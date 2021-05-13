@@ -1,16 +1,17 @@
+import { Switch } from 'antd';
+import classNames from 'classnames/bind';
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
-import { useSearchContext } from '../SearchContext/SearchContext';
 import AsyncCreatableSelect from 'react-select/async-creatable';
-import inputStyles from './InputStyles.module.scss';
-import { Switch } from 'antd';
+
+import { SearchMatchOption } from '../../../components/Option/Option';
+import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
 import { ReactComponent as URLIcon } from '../../../static/link.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
-import classNames from 'classnames/bind';
-import { SharedSelectStyleProps, ContainsLabel } from './SearchInputUtil';
-import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
-import { SearchMatchOption } from '../../../components/Option/Option';
+import { useSearchContext } from '../SearchContext/SearchContext';
+import inputStyles from './InputStyles.module.scss';
+import { ContainsLabel, SharedSelectStyleProps } from './SearchInputUtil';
 
 export const VisitedUrlInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();

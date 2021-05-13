@@ -1,10 +1,11 @@
-import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import { Tabs as AntDesignTabs, TabsProps } from 'antd';
+import React from 'react';
 const { TabPane } = AntDesignTabs;
-import styles from './Tabs.module.scss';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
+
+import styles from './Tabs.module.scss';
 
 export interface TabItem {
     title: string;
@@ -44,6 +45,7 @@ const Tabs = ({
                     </div>
                 ) : null
             }
+            className={styles.tabs}
             {...props}
         >
             {tabs.map(({ panelContent, title }) => (

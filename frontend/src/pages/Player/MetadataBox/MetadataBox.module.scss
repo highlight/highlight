@@ -1,87 +1,87 @@
 .locationBox {
+    background-color: var(--color-primary-background);
     box-sizing: border-box;
+    column-gap: var(--size-small);
     display: flex;
+    max-width: 350px;
     padding: var(--size-medium) 22px;
     padding-bottom: var(--size-medium);
-    column-gap: var(--size-small);
-    background-color: white;
-    max-width: 350px;
     position: relative;
 }
 
 .userAvatarWrapper {
-    display: flex;
     align-items: flex-start;
+    display: flex;
     justify-content: center;
 }
 
 .skeletonWrapper {
-    width: 350px;
     display: flex;
     flex-direction: row;
-    padding: 10px 30px 0 30px;
+    padding: 10px 30px 0;
+    width: 350px;
 }
 
 .avatarWrapper {
-    height: 100%;
     display: flex;
-    margin-right: 10px;
+    height: 100%;
     justify-content: center;
+    margin-right: 10px;
 }
 
 .headerWrapper {
-    font-weight: 400;
-    width: 100%;
-    padding-right: 20px;
     display: flex;
     flex-direction: column;
+    font-weight: 400;
+    padding-right: 20px;
     row-gap: var(--size-xxSmall);
+    width: 100%;
 }
 
 .userText {
-    width: 100%;
-    white-space: nowrap;
-    text-overflow: ellipsis;
     display: block;
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
 }
 
 .userIdHeader {
-    margin: 0;
+    color: var(--text-primary);
     font-size: 14px;
-    color: var(--color-black);
     font-weight: 300;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    margin: 0;
     overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     // Spacing for the star icon.
     width: calc(100% - 50px);
 }
 
 .userIdSubHeader {
-    width: 100%;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    display: block;
-    overflow: hidden;
-    font-weight: 200;
-    line-height: 17px;
-    font-size: 12px;
     color: var(--color-gray-500);
+    display: block;
+    font-size: 12px;
+    line-height: 17px;
+    margin: 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
 }
 
 .userInfoWrapper {
-    color: #808080;
+    color: var(--color-gray-500);
     font-size: 13px;
-    width: 100%;
     padding-right: 25px;
+    width: 100%;
 }
 
 .userProfile {
+    background-color: var(--color-gray-200);
+    border-radius: 50%;
     height: 60px;
     width: 60px;
-    background-color: #f2eefb;
-    border-radius: 50%;
 }
 
 .tagEllipsis {
@@ -92,18 +92,18 @@
 }
 
 .expandArrow {
-    flex: 0 0 16px;
     cursor: pointer;
-    opacity: 0.7;
+    flex: 0 0 16px;
     margin-top: 4px;
+    opacity: 0.7;
     transition: 0.2s;
 }
 
 .starIconWrapper {
+    margin: auto;
     position: absolute;
     right: 22px;
     top: var(--size-medium);
-    margin: auto;
     width: var(--size-medium);
 
     &:hover {
@@ -112,19 +112,19 @@
 }
 
 .starredIcon {
-    stroke: #ffd82c;
-    color: #ffd82c;
-    fill: #ffd82c;
+    color: var(--color-yellow-200);
+    fill: var(--color-yellow-200);
+    stroke: var(--color-yellow-200);
 }
 
 .unstarredIcon {
-    stroke: #808080;
-    color: #808080;
-    fill: #808080;
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
+    stroke: var(--color-gray-500);
 }
 
 .deviceDetails {
-    display: flex;
     align-items: center;
     column-gap: 6px;
+    display: flex;
 }

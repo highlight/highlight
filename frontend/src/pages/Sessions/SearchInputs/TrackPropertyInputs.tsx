@@ -1,18 +1,18 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
+import AsyncCreatableSelect from 'react-select/async-creatable';
+
+import { PropertyOption } from '../../../components/Option/Option';
+import { useGetTrackSuggestionQuery } from '../../../graph/generated/hooks';
+import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import {
     SearchParams,
     UserProperty,
     useSearchContext,
 } from '../SearchContext/SearchContext';
-
-import AsyncCreatableSelect from 'react-select/async-creatable';
 import inputStyles from './InputStyles.module.scss';
-import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import { ContainsLabel } from './SearchInputUtil';
-import { useGetTrackSuggestionQuery } from '../../../graph/generated/hooks';
-import { PropertyOption } from '../../../components/Option/Option';
 
 export const TrackPropertyInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -46,13 +46,13 @@ export const TrackPropertyInput = () => {
                 styles={{
                     control: (provided) => ({
                         ...provided,
-                        borderColor: '#eaeaea',
+                        borderColor: 'var(--color-gray-300)',
                         borderRadius: 8,
                         minHeight: 45,
                     }),
                     multiValue: (provided) => ({
                         ...provided,
-                        backgroundColor: '#F2EEFB',
+                        backgroundColor: 'var(--color-purple-100)',
                     }),
                 }}
                 cacheOptions
@@ -80,7 +80,7 @@ export const TrackPropertyInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <UserIcon fill="#808080" />
+                            <UserIcon fill="var(--color-gray-500)" />
                         </div>
                     ),
                     Option: (props) => <PropertyOption {...props} />,

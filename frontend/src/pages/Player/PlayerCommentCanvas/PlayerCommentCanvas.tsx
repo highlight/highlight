@@ -1,14 +1,15 @@
+import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import React, { useContext, useEffect, useRef, useState } from 'react';
+import { useParams } from 'react-router-dom';
+
+import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
+import CommentPinIcon from '../../../static/comment-pin.png';
+import { EventsForTimeline, PlayerSearchParameters } from '../PlayerHook/utils';
 import playerStyles from '../PlayerPage.module.scss';
 import ReplayerContext from '../ReplayerContext';
 import styles from './PlayerCommentCanvas.module.scss';
-import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
-import { useParams } from 'react-router-dom';
 import PlayerSessionComment from './PlayerSessionComment/PlayerSessionComment';
-import CommentPinIcon from '../../../static/comment-pin.png';
-import useLocalStorage from '@rehooks/local-storage';
-import { EventsForTimeline, PlayerSearchParameters } from '../PlayerHook/utils';
 
 export interface Coordinates2D {
     x: number;

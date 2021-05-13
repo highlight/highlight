@@ -1,10 +1,11 @@
-import React from 'react';
-import styles from './CommentTextBody.module.scss';
-import commentTextBodyClassNames from './CommentTextBody.module.css';
-import { MentionsInput, Mention, OnChangeHandlerFunc } from 'react-mentions';
-import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
 import classNames from 'classnames';
+import React from 'react';
+import { Mention, MentionsInput, OnChangeHandlerFunc } from 'react-mentions';
+
+import { AdminAvatar } from '../../../../../components/Avatar/Avatar';
 import { AdminSuggestion } from '../../../../../components/Comment/CommentHeader';
+import commentTextBodyClassNames from './CommentTextBody.module.css';
+import styles from './CommentTextBody.module.scss';
 
 interface Props {
     commentText: string;

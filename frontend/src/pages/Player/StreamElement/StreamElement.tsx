@@ -1,25 +1,26 @@
-import React, { useContext, useState } from 'react';
 import { EventType } from '@highlight-run/rrweb';
-import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
-import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
-import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
-import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
-import { ReactComponent as NavigateIcon } from '../../../static/navigate.svg';
-import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
-import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
-import { ReactComponent as IdentifyIcon } from '../../../static/identify.svg';
-import { ReactComponent as TrackIcon } from '../../../static/track.svg';
-import { ReactComponent as TabIcon } from '../../../static/tab.svg';
-import { HighlightEvent } from '../HighlightEvent';
-import { MillisToMinutesAndSeconds } from '../../../util/time';
-import styles from './StreamElement.module.scss';
-import GoToButton from '../../../components/Button/GoToButton';
-import ReplayerContext from '../ReplayerContext';
-import StreamElementPayload from './StreamElementPayload';
 import classNames from 'classnames/bind';
-import { BooleanParam, useQueryParam } from 'use-query-params';
-import ReactJson from 'react-json-view';
+import React, { useContext, useState } from 'react';
 import { FaBug, FaRegStopCircle } from 'react-icons/fa';
+import ReactJson from 'react-json-view';
+import { BooleanParam, useQueryParam } from 'use-query-params';
+
+import GoToButton from '../../../components/Button/GoToButton';
+import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
+import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
+import { ReactComponent as IdentifyIcon } from '../../../static/identify.svg';
+import { ReactComponent as NavigateIcon } from '../../../static/navigate.svg';
+import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
+import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
+import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
+import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
+import { ReactComponent as TabIcon } from '../../../static/tab.svg';
+import { ReactComponent as TrackIcon } from '../../../static/track.svg';
+import { MillisToMinutesAndSeconds } from '../../../util/time';
+import { HighlightEvent } from '../HighlightEvent';
+import ReplayerContext from '../ReplayerContext';
+import styles from './StreamElement.module.scss';
+import StreamElementPayload from './StreamElementPayload';
 
 export const StreamElement = ({
     e,
@@ -55,10 +56,10 @@ export const StreamElement = ({
                 style={{
                     backgroundColor:
                         hover && !selected && !isCurrent
-                            ? '#efefef7d'
+                            ? 'var(--color-gray-100)'
                             : isCurrent
-                            ? '#5629c6'
-                            : 'white',
+                            ? 'var(--color-purple)'
+                            : 'var(--color-primary-background)',
                 }}
                 key={e.identifier}
                 id={e.identifier}

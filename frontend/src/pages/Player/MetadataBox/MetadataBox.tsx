@@ -1,17 +1,17 @@
+import { message } from 'antd';
 import React, { useContext } from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
-import { Avatar } from '../../../components/Avatar/Avatar';
-import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
-import { ReactComponent as StarIcon } from '../../../static/star.svg';
 
-import styles from './MetadataBox.module.scss';
+import { Avatar } from '../../../components/Avatar/Avatar';
 import { DemoContext } from '../../../DemoContext';
 import {
     useGetSessionQuery,
     useMarkSessionAsStarredMutation,
 } from '../../../graph/generated/hooks';
-import Skeleton from 'react-loading-skeleton';
-import { message } from 'antd';
+import { ReactComponent as StarIcon } from '../../../static/star.svg';
+import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
+import styles from './MetadataBox.module.scss';
 import { getMajorVersion } from './utils/utils';
 
 export const MetadataBox = () => {
@@ -92,23 +92,23 @@ export const MetadataBox = () => {
                                 {data?.session?.identifier ||
                                     `User#${data?.session?.user_id}`}
                             </h4>
-                            <div className={styles.userIdSubHeader}>
+                            <p className={styles.userIdSubHeader}>
                                 {created.toLocaleString('en-us', {
                                     day: 'numeric',
                                     month: 'short',
                                     year: 'numeric',
                                     weekday: 'long',
                                 })}
-                            </div>
-                            <div className={styles.userIdSubHeader}>
+                            </p>
+                            <p className={styles.userIdSubHeader}>
                                 {created.toLocaleString('en-us', {
                                     second: '2-digit',
                                     hour: '2-digit',
                                     minute: '2-digit',
                                     timeZoneName: 'short',
                                 })}
-                            </div>
-                            <div className={styles.userIdSubHeader}>
+                            </p>
+                            <p className={styles.userIdSubHeader}>
                                 {data?.session?.browser_name && (
                                     <>
                                         <span>
@@ -126,7 +126,7 @@ export const MetadataBox = () => {
                                         </span>
                                     </>
                                 )}
-                            </div>
+                            </p>
                         </>
                     )}
                 </div>

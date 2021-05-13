@@ -1,27 +1,27 @@
+import { message } from 'antd';
+import classNames from 'classnames';
+import _ from 'lodash';
 import React, { useContext, useEffect, useState } from 'react';
-import { Link, useHistory, useParams } from 'react-router-dom';
-import {
-    ErrorSearchContext,
-    ErrorSearchParams,
-} from '../../ErrorSearchContext/ErrorSearchContext';
-import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
-import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
 import Skeleton from 'react-loading-skeleton';
+import { Link, useHistory, useParams } from 'react-router-dom';
 
 import commonStyles from '../../../../Common.module.scss';
-import styles from './SegmentPicker.module.scss';
+import Button from '../../../../components/Button/Button/Button';
+import { CircularSpinner } from '../../../../components/Loading/Loading';
+import Modal from '../../../../components/Modal/Modal';
 import {
     useDeleteErrorSegmentMutation,
     useGetErrorSegmentsQuery,
 } from '../../../../graph/generated/hooks';
+import { ReactComponent as CheckIcon } from '../../../../static/check.svg';
+import { ReactComponent as TrashIcon } from '../../../../static/trash.svg';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
-import classNames from 'classnames';
-import { message } from 'antd';
-import { CircularSpinner } from '../../../../components/Loading/Loading';
-import _ from 'lodash';
+import {
+    ErrorSearchContext,
+    ErrorSearchParams,
+} from '../../ErrorSearchContext/ErrorSearchContext';
 import { EmptyErrorsSearchParams } from '../../ErrorsPage';
-import Modal from '../../../../components/Modal/Modal';
-import Button from '../../../../components/Button/Button/Button';
+import styles from './SegmentPicker.module.scss';
 
 const NO_SEGMENT = 'none';
 
@@ -144,7 +144,10 @@ export const ErrorSegmentPicker = () => {
                     >
                         {loading ? (
                             <CircularSpinner
-                                style={{ fontSize: 18, color: 'white' }}
+                                style={{
+                                    fontSize: 18,
+                                    color: 'var(--text-primary-inverted)',
+                                }}
                             />
                         ) : (
                             'Delete Segment'

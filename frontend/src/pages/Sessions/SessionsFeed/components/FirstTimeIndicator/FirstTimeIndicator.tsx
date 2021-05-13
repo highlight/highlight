@@ -1,4 +1,5 @@
 import React from 'react';
+
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import styles from './FirstTimeIndicator.module.scss';
 

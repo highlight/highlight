@@ -1,14 +1,13 @@
 import React from 'react';
 
-import styles from './SessionsPage.module.scss';
-import { SegmentSidebar } from './SegmentSidebar/SegmentSidebar';
-import { SearchSidebar } from './SearchSidebar/SearchSidebar';
-import { SearchParams } from './SearchContext/SearchContext';
-import { SessionFeed } from './SessionsFeed/SessionsFeed';
-
-import { IntegrationCard } from './IntegrationCard/IntegrationCard';
-import { FeedNavigation } from './SearchSidebar/FeedNavigation/FeedNavigation';
 import { Complete } from '../../util/types';
+import { IntegrationCard } from './IntegrationCard/IntegrationCard';
+import { SearchParams } from './SearchContext/SearchContext';
+import { FeedNavigation } from './SearchSidebar/FeedNavigation/FeedNavigation';
+import { SearchSidebar } from './SearchSidebar/SearchSidebar';
+import { SegmentSidebar } from './SegmentSidebar/SegmentSidebar';
+import { SessionFeed } from './SessionsFeed/SessionsFeed';
+import styles from './SessionsPage.module.scss';
 
 /**
  * The initial search parameters. This is used when the user has not specified any search parameters.
@@ -28,7 +27,7 @@ export const EmptySessionsSearchParams: Complete<SearchParams> = {
     first_time: false,
 };
 
-export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
+const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     if (!integrated) {
         return <IntegrationCard />;
     }
@@ -50,3 +49,5 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
         </div>
     );
 };
+
+export default SessionsPage;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
+
 import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/utils';
 import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import SvgErrorsIcon from '../../../../static/ErrorsIcon';
@@ -40,9 +41,9 @@ const CommentNotification = ({
                 <h3 className={notificationStyles.title}>
                     {getTitle(notification)}
                 </h3>
-                <span className={notificationStyles.timestamp}>
+                <p className={notificationStyles.timestamp}>
                     <RelativeTime datetime={notification?.updated_at} />
-                </span>
+                </p>
                 <CommentTextBody commentText={notification?.text || ''} />
             </div>
             <div className={notificationStyles.dotContainer}>

@@ -1,9 +1,10 @@
 import React, { ReactElement, useContext, useState } from 'react';
+
+import { SessionComment } from '../../../../components/Comment/SessionComment/SessionComment';
 import Popover from '../../../../components/Popover/Popover';
 import ReplayerContext, { ParsedSessionComment } from '../../ReplayerContext';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
-import { SessionComment } from '../../../../components/Comment/SessionComment/SessionComment';
 
 interface Props {
     comment: ParsedSessionComment;

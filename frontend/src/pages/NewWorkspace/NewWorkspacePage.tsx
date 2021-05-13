@@ -1,19 +1,19 @@
 import React, { useEffect } from 'react';
-import { Redirect } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { CircularSpinner } from '../../components/Loading/Loading';
-import { client } from '../../util/graph';
+import { Redirect } from 'react-router-dom';
 
-import styles from './NewWorkspace.module.scss';
 import commonStyles from '../../Common.module.scss';
-import { useCreateOrganizationMutation } from '../../graph/generated/hooks';
 import Button from '../../components/Button/Button/Button';
+import { CircularSpinner } from '../../components/Loading/Loading';
+import { useCreateOrganizationMutation } from '../../graph/generated/hooks';
+import { client } from '../../util/graph';
+import styles from './NewWorkspace.module.scss';
 
 type Inputs = {
     name: string;
 };
 
-export const NewWorkspacePage = () => {
+const NewWorkspacePage = () => {
     const { register, handleSubmit, errors, setError } = useForm<Inputs>();
     const [
         createOrganization,
@@ -42,10 +42,10 @@ export const NewWorkspacePage = () => {
     return (
         <div className={styles.box}>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <div className={styles.title}>Create a Workspace</div>
-                <div className={styles.subTitle}>
+                <h2 className={styles.title}>Create a Workspace</h2>
+                <p className={styles.subTitle}>
                     Enter the name of your workspace and you'll be good to go!
-                </div>
+                </p>
                 <input
                     placeholder={'Workspace Name'}
                     name="name"
@@ -63,7 +63,10 @@ export const NewWorkspacePage = () => {
                 >
                     {loading ? (
                         <CircularSpinner
-                            style={{ fontSize: 18, color: 'white' }}
+                            style={{
+                                fontSize: 18,
+                                color: 'var(--text-primary-inverted)',
+                            }}
                         />
                     ) : (
                         'Create Workspace'
@@ -73,3 +76,5 @@ export const NewWorkspacePage = () => {
         </div>
     );
 };
+
+export default NewWorkspacePage;

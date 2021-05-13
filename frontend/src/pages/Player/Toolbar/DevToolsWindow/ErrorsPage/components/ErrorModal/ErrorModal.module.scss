@@ -1,8 +1,6 @@
-@import 'src/static/shared.scss';
-
 .actionsContainer {
     display: flex;
-    gap: $size-xSmall;
+    gap: var(--size-xSmall);
     justify-content: flex-end;
 }
 
@@ -11,6 +9,6 @@
 }
 
 .errorTitleContainer {
-    display: flex;
     align-items: center;
+    display: flex;
 }

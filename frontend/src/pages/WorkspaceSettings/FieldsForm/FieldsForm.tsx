@@ -1,18 +1,17 @@
-import React from 'react';
-
-import { useForm } from 'react-hook-form';
-
-import styles from './FieldsForm.module.scss';
-import commonStyles from '../../../Common.module.scss';
-import classNames from 'classnames/bind';
-import { useParams } from 'react-router-dom';
-import { CircularSpinner } from '../../../components/Loading/Loading';
 import { message } from 'antd';
+import classNames from 'classnames/bind';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { useParams } from 'react-router-dom';
+
+import commonStyles from '../../../Common.module.scss';
+import Button from '../../../components/Button/Button/Button';
+import { CircularSpinner } from '../../../components/Loading/Loading';
 import {
     useEditOrganizationMutation,
     useGetOrganizationQuery,
 } from '../../../graph/generated/hooks';
-import Button from '../../../components/Button/Button/Button';
+import styles from './FieldsForm.module.scss';
 
 type Inputs = {
     name: string;
@@ -46,7 +45,7 @@ export const FieldsForm = () => {
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
             <div className={styles.fieldRow}>
-                <div className={styles.fieldKey}>Name</div>
+                <label className={styles.fieldKey}>Name</label>
                 <input
                     defaultValue={
                         editData?.editOrganization?.name ||
@@ -58,7 +57,7 @@ export const FieldsForm = () => {
                 />
             </div>
             <div className={styles.fieldRow}>
-                <div className={styles.fieldKey}>Billing Email</div>
+                <label className={styles.fieldKey}>Billing Email</label>
                 <input
                     defaultValue={
                         (editData?.editOrganization?.billing_email ||
@@ -87,7 +86,10 @@ export const FieldsForm = () => {
                 >
                     {editLoading ? (
                         <CircularSpinner
-                            style={{ fontSize: 18, color: 'white' }}
+                            style={{
+                                fontSize: 18,
+                                color: 'var(--text-primary-inverted)',
+                            }}
                         />
                     ) : (
                         'Save'

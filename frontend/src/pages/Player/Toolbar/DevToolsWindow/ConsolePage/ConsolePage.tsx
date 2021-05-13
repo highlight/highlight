@@ -1,25 +1,25 @@
+import _ from 'lodash';
 import React, {
-    useState,
-    useEffect,
+    useCallback,
     useContext,
+    useEffect,
     useMemo,
     useRef,
-    useCallback,
+    useState,
 } from 'react';
-import { useParams } from 'react-router-dom';
-import Skeleton from 'react-loading-skeleton';
-import { Option } from '../Option/Option';
-import { ConsoleMessage } from '../../../../../util/shared-types';
-
-import styles from './ConsolePage.module.scss';
-import devStyles from '../DevToolsWindow.module.scss';
-import { DemoContext } from '../../../../../DemoContext';
-import GoToButton from '../../../../../components/Button/GoToButton';
-import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
-import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import ReactJson from 'react-json-view';
-import _ from 'lodash';
+import Skeleton from 'react-loading-skeleton';
+import { useParams } from 'react-router-dom';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+
+import GoToButton from '../../../../../components/Button/GoToButton';
+import { DemoContext } from '../../../../../DemoContext';
+import { useGetMessagesQuery } from '../../../../../graph/generated/hooks';
+import { ConsoleMessage } from '../../../../../util/shared-types';
+import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
+import devStyles from '../DevToolsWindow.module.scss';
+import { Option } from '../Option/Option';
+import styles from './ConsolePage.module.scss';
 
 interface ParsedMessage extends ConsoleMessage {
     selected?: boolean;
@@ -237,7 +237,7 @@ const ConsoleRender = ({ m }: { m: Array<any> | string }) => {
                 typeof r === 'object' ? (
                     <ReactJson
                         style={{
-                            fontFamily: 'AvenirNext',
+                            fontFamily: 'Steradian',
                             fontWeight: 300,
                             margin: 10,
                         }}

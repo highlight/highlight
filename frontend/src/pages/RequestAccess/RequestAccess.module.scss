@@ -1,21 +1,18 @@
-@import 'src/static/shared.scss';
-
 .box {
+    background-color: var(--color-primary-background);
+    border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     padding: 30px;
-    border: 1px solid #eaeaea;
     width: 380px;
-    background-color: white;
 }
 
 .title {
     font-size: 23px;
-    font-weight: 400;
-    margin-bottom: 10px;
+    margin-bottom: 10px !important;
 }
 
 .subTitle {
     font-size: 14px;
-    font-weight: 300;
-    margin-bottom: 10px;
+    line-height: 20px !important;
+    margin-bottom: 10px !important;
 }

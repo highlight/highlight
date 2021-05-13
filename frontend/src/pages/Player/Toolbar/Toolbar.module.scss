@@ -1,15 +1,13 @@
-@import 'src/static/shared.scss';
-
 .sliderWrapper {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    height: 4px;
+    outline: none;
+    padding: 0;
+    position: absolute;
     width: 100%;
     z-index: 20;
-    height: 4px;
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 0;
-    outline: none;
-    position: absolute;
 
     &:disabled {
         cursor: not-allowed;
@@ -22,16 +20,16 @@
 }
 
 .sliderMargin {
-    margin-left: 0px;
+    margin-left: 0;
 }
 
 .sliderSegment {
+    align-items: center;
+    background: none;
     display: inline-flex;
     height: 4px;
-    background: none;
-    padding: 0 0 0 1px;
     outline: none;
-    align-items: center;
+    padding: 0 0 0 1px;
 }
 
 .segmentHover {
@@ -40,22 +38,22 @@
 }
 
 .sliderRail {
-    width: 100%;
     height: 4px;
     transition: all 0.2s ease-in-out;
+    width: 100%;
 }
 
 .sliderPopover {
-    position: absolute;
-    z-index: 1000;
+    // text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
+    background: var(--text-primary);
+    border-radius: 8px;
     bottom: 16px;
+    color: var(--color-primary-background);
+    padding: 6px 10px;
+    position: absolute;
     text-align: center;
     width: 80px;
-    color: white;
-    // text-shadow: 0 0 4px rgba(0, 0, 0, 0.75);
-    background: black;
-    padding: 6px 10px;
-    border-radius: 8px;
+    z-index: 1000;
 }
 
 .sliderPopoverTime {
@@ -63,19 +61,19 @@
 }
 
 .indicator {
+    background-color: var(--color-purple);
+    border-radius: 20px;
     height: 15px;
-    width: 15px;
     margin-top: -9px;
     transform: scale(0);
-    border-radius: 20px;
-    background-color: #5629c6;
     transition: all 0.3s ease-in-out;
+    width: 15px;
 }
 
 .indicatorParent {
+    background-color: none;
     height: 15px;
     width: 15px;
-    background-color: none;
 }
 
 .playerRail {
@@ -89,81 +87,82 @@
 }
 
 .dropdownInner {
-    background-color: white;
+    background-color: var(--color-primary-background);
+    border: 1px solid var(--color-gray-300);
     border-radius: 5px;
-    border: 1px solid #eaeaea;
-    min-width: 180px;
+    box-shadow: 2px 2px 8px var(--color-gray-300);
+    color: var(--text-primary);
     margin-top: 9px;
-    box-shadow: 2px 2px 8px #e4e4e4;
-    color: black;
-    padding: 10px 0 10px 0;
+    min-width: 180px;
+    padding: 10px 0;
 }
+
 .dropdownSection {
-    height: 35px;
-    font-size: 15px;
-    display: flex;
     align-items: center;
+    display: flex;
+    font-size: 15px;
+    height: 35px;
     justify-content: center;
-    padding: 0 15px 0 15px;
+    padding: 0 15px;
 }
 
 .toolbarLeftSection {
     display: flex;
     flex-direction: row;
 
-    & > * {
+    > * {
         margin-top: 2px;
     }
 }
 
 .toolbarRightSection {
-    margin-left: auto;
+    align-items: center;
     display: flex;
     flex-direction: row;
-    align-items: center;
-    justify-content: center;
     height: 100%;
+    justify-content: center;
+    margin-left: auto;
 
-    & > * {
+    > * {
         margin-top: 2px;
     }
 }
 
 .toolbarSection {
-    width: 100%;
-    height: 50px;
-    background-color: white;
+    background-color: var(--color-primary-background);
+    border-left: 1px solid var(--color-gray-300);
     display: flex;
     flex-direction: row;
+    height: 50px;
+    width: 100%;
     z-index: 30;
-    border-left: 1px solid #eaeaea;
 }
 
 .playSection {
-    display: flex;
     align-items: center;
-    justify-content: center;
-    height: 100%;
-    margin-left: 18px;
     cursor: pointer;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    margin-left: 18px;
 }
 
 .undoSection {
-    display: flex;
     align-items: center;
-    justify-content: center;
-    height: 100%;
-    margin-left: 22px;
     cursor: pointer;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    margin-left: 22px;
 }
 
 .redoSection {
-    display: flex;
     align-items: center;
-    justify-content: center;
-    height: 100%;
-    margin-left: 24px;
     cursor: pointer;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    margin-left: 24px;
 }
 
 .playButtonStyle {
@@ -172,10 +171,10 @@
 }
 
 .verticalDivider {
+    background-color: var(--color-gray-300);
     height: 80%;
-    width: 1px;
-    background-color: #dedede;
     margin: 5px;
+    width: 1px;
 }
 
 .inactiveIcon {
@@ -184,62 +183,62 @@
 }
 
 .inactiveText {
-    margin-top: 1px;
-    margin-right: 10px;
-    text-transform: uppercase;
-    color: #5629c6;
+    color: var(--color-purple);
     line-height: 1;
+    margin-right: 10px;
+    margin-top: 1px;
+    text-transform: uppercase;
 }
 
 .skipInactivity {
-    font-weight: 300;
+    align-items: center;
+    background-color: var(--color-gray-200);
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
     font-size: 12px;
+    font-weight: 300;
+    height: 30px;
+    justify-content: center;
     margin: 5px;
     margin-right: 15px;
-    background-color: #f2eefb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: row;
-    cursor: pointer;
-    height: 30px;
-    padding: 0px 15px 0px 15px;
-    border-radius: 8px;
+    padding: 0 15px;
     transition: 0.3s;
     user-select: none;
-    -moz-user-select: none;
-    -khtml-user-select: none;
-    -webkit-user-select: none;
-    -o-user-select: none;
+    user-select: none;
+    user-select: none;
+    user-select: none;
+    user-select: none;
 }
 
 .skipInactivity:hover {
-    background-color: #f2eefb;
+    background-color: var(--color-gray-200);
 }
 
 .speedWrapper {
-    height: 30px;
-    width: 40px;
-    display: flex;
     align-items: center;
-    justify-content: center;
+    background-color: var(--color-purple);
+    border-radius: 8px;
+    color: var(--color-primary-background);
+    cursor: pointer;
+    display: flex;
     font-size: 14px;
     font-weight: 200;
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-    background-color: #5629c6;
+    height: 30px;
+    justify-content: center;
     margin: 10px;
+    width: 40px;
 }
 
 .timeSection {
-    display: flex;
     align-items: center;
-    justify-content: center;
-    height: 100%;
-    margin-left: 20px;
     color: var(--color-gray-500);
+    display: flex;
     font-size: 12px;
+    height: 100%;
+    justify-content: center;
+    margin-left: 20px;
 }
 
 .skipButtonStyle {
@@ -249,30 +248,30 @@
 
 .button {
     background: none;
-    padding: 0;
-    border: none;
-    outline: none;
+    border: 0;
+    color: var(--text-primary);
     cursor: pointer;
-    color: $text-primary;
-    fill: $text-primary;
+    fill: var(--text-primary);
+    outline: none;
+    padding: 0;
 
     &:disabled {
         cursor: not-allowed;
     }
 
     &:disabled .icon {
-        color: #dfdfdf;
-        fill: #dfdfdf;
+        color: var(--color-gray-400);
+        fill: var(--color-gray-400);
 
         &:hover {
-            color: #dfdfdf;
-            fill: #dfdfdf;
+            color: var(--color-gray-400);
+            fill: var(--color-gray-400);
         }
     }
 
     &:hover .icon {
-        color: var(--color-black);
-        fill: var(--color-black);
+        color: var(--text-primary);
+        fill: var(--text-primary);
     }
 }
 
@@ -280,46 +279,46 @@
     color: var(--color-gray-500);
     fill: var(--color-gray-500);
     height: 20px;
-    width: 20px;
     transition: color ease-in-out 0.2s;
+    width: 20px;
 }
 
 .annotationsContainer {
-    position: absolute;
-    height: 10px;
-    display: flex;
     align-items: center;
     box-sizing: content-box;
+    display: flex;
+    height: 10px;
     padding: 8px 0;
+    position: absolute;
+    top: calc(var(--size-large) * -1);
     width: 100%;
-    top: -$size-large;
 }
 
 .popoverHeader {
-    width: 240px;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 240px;
 }
 
 .popoverContent {
-    width: 240px;
-    overflow-wrap: anywhere;
-    text-overflow: ellipsis;
-    padding-bottom: var(--size-xSmall);
     overflow: hidden;
+    overflow-wrap: anywhere;
+    padding-bottom: var(--size-xSmall);
+    text-overflow: ellipsis;
+    width: 240px;
 }
 
 .buttonContainer {
-    padding-top: $size-medium;
     display: flex;
     justify-content: flex-end;
+    padding-top: var(--size-medium);
 }
 
 .commentUpdatedTime {
-    color: $text-label;
-    font-weight: 200;
+    color: var(--color-gray-500);
     flex-shrink: 0;
+    font-weight: 200;
 }
 
 .commentHeader {
@@ -334,14 +333,14 @@
 }
 
 .devToolsButton {
-    display: flex;
     align-items: center;
+    display: flex;
     margin-left: 10px;
     margin-right: 4px;
 
     .devToolsIcon {
-        width: 20px;
         color: var(--color-gray-500);
+        width: 20px;
 
         &.devToolsActive {
             color: var(--color-purple);
@@ -350,8 +349,8 @@
 }
 
 .skipInactiveButton {
-    width: 144px;
     color: var(--color-gray-500);
+    width: 144px;
 
     &.skipInactiveButtonActive {
         color: var(--color-orange-400);

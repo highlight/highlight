@@ -1,9 +1,9 @@
 .button {
-    display: flex;
     align-items: center;
+    color: var(--color-gray-500);
+    display: flex;
     justify-content: center;
     padding: var(--size-xxSmall);
-    color: var(--color-gray-500);
 
     .active {
         color: var(--color-purple);
@@ -19,7 +19,7 @@
 }
 
 .buttonContainer {
-    display: flex;
     align-items: center;
+    display: flex;
     justify-content: center;
 }

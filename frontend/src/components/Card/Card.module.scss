@@ -1,17 +1,16 @@
 .card {
-    border-radius: var(--border-radius);
-    padding: var(--size-xLarge);
-    max-width: 500px;
-    border: 1px solid var(--color-gray-300);
     background: var(--color-primary-background);
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
     color: var(--text-primary);
+    max-width: 500px;
+    padding: var(--size-xLarge);
 
     h2 {
         color: var(--text-primary);
+        font-size: 24px;
         margin: 0;
         margin-bottom: var(--size-medium);
-        font-size: 24px;
-        font-weight: 400;
     }
 
     p {

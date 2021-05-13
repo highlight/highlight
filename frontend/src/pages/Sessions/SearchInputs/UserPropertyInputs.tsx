@@ -1,20 +1,21 @@
+import { Checkbox } from 'antd';
+import { CheckboxChangeEvent } from 'antd/lib/checkbox';
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
+import AsyncCreatableSelect from 'react-select/async-creatable';
+
+import { PropertyOption } from '../../../components/Option/Option';
+import Tooltip from '../../../components/Tooltip/Tooltip';
+import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
+import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import {
     SearchParams,
     UserProperty,
     useSearchContext,
 } from '../SearchContext/SearchContext';
-import AsyncCreatableSelect from 'react-select/async-creatable';
-import { Checkbox } from 'antd';
 import inputStyles from './InputStyles.module.scss';
-import { ReactComponent as UserIcon } from '../../../static/user.svg';
 import { ContainsLabel } from './SearchInputUtil';
-import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
-import { PropertyOption } from '../../../components/Option/Option';
-import { CheckboxChangeEvent } from 'antd/lib/checkbox';
-import Tooltip from '../../../components/Tooltip/Tooltip';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -50,13 +51,13 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                 styles={{
                     control: (provided) => ({
                         ...provided,
-                        borderColor: '#eaeaea',
+                        borderColor: 'var(--color-gray-300)',
                         borderRadius: 8,
                         minHeight: 45,
                     }),
                     multiValue: (provided) => ({
                         ...provided,
-                        backgroundColor: '#F2EEFB',
+                        backgroundColor: 'var(--color-purple-100)',
                     }),
                 }}
                 cacheOptions

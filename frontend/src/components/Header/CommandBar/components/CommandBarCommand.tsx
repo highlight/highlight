@@ -1,8 +1,9 @@
 import React from 'react';
 import { Command } from 'react-command-palette';
-import styles from './CommandBarCommand.module.scss';
 import { VscArrowRight, VscDeviceCameraVideo } from 'react-icons/vsc';
+
 import { ReactComponent as TeamIcon } from '../../../../static/team-icon.svg';
+import styles from './CommandBarCommand.module.scss';
 
 type Props = Command & {
     highlight: any[];

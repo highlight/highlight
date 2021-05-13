@@ -1,12 +1,12 @@
+import { message } from 'antd';
 import React from 'react';
 import { useForm } from 'react-hook-form';
+
+import commonStyles from '../../Common.module.scss';
+import Button from '../../components/Button/Button/Button';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import { useSendEmailSignupMutation } from '../../graph/generated/hooks';
-
 import styles from './RequestAccess.module.scss';
-import commonStyles from '../../Common.module.scss';
-import { message } from 'antd';
-import Button from '../../components/Button/Button/Button';
 
 type Inputs = {
     email: string;
@@ -36,11 +36,11 @@ export const RequestAccessPage = () => {
     return (
         <div className={styles.box}>
             <form onSubmit={handleSubmit(onSubmit)}>
-                <div className={styles.title}>We're in private beta!</div>
-                <div className={styles.subTitle}>
+                <h2 className={styles.title}>We're in private beta!</h2>
+                <p className={styles.subTitle}>
                     Wanna use Highlight? Request access below and we'll reach
                     out!
-                </div>
+                </p>
                 <input
                     placeholder={'Work Email'}
                     name="email"
@@ -58,7 +58,10 @@ export const RequestAccessPage = () => {
                 >
                     {loading ? (
                         <CircularSpinner
-                            style={{ fontSize: 18, color: 'white' }}
+                            style={{
+                                fontSize: 18,
+                                color: 'var(--text-primary-inverted)',
+                            }}
                         />
                     ) : (
                         'Request Access'

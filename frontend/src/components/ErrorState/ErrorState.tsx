@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+
 import { auth } from '../../util/auth';
 import { client } from '../../util/graph';
 import Button from '../Button/Button/Button';
 import Card from '../Card/Card';
-
 import styles from './ErrorState.module.scss';
 
 export const ErrorState = ({
@@ -26,7 +26,9 @@ export const ErrorState = ({
                         {showError ? 'show less' : 'show more'}
                     </span>
                 </p>
-                {showError && <p className={styles.errorBody}>{errorString}</p>}
+                {showError && (
+                    <code className={styles.errorBody}>{errorString}</code>
+                )}
                 <div className={styles.buttonGroup}>
                     <a href={'https://app.highlight.run'}>
                         <Button type="primary">Go to my Account</Button>

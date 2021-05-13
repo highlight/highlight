@@ -1,31 +1,30 @@
-@import 'src/static/shared.scss';
-
 .objectKey {
+    color: var(--color-gray-500);
+    display: block;
     font-size: 10px;
     font-style: normal;
-    color: $text-label;
     line-height: initial;
-    display: block;
+    margin-bottom: var(--size-xxSmall);
 }
 
 .objectList {
     list-style: none;
+    margin: 6px 0;
     padding: 0;
-    margin: 6px 0px;
 }
 
 .objectValue {
+    color: var(--text-primary);
     font-size: 12px;
     font-style: normal;
-    color: $text-primary;
     line-height: initial;
 }
 
 .payload {
+    margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin: 0;
 }
 
 .objectRecord {

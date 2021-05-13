@@ -2,7 +2,8 @@
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": true,
+    "source.fixAll.stylelint": true
   },
   "go.formatTool": "gofmt",
   "go.useLanguageServer": true,
@@ -10,9 +11,9 @@
   "[go]": {
     "editor.defaultFormatter": "golang.go"
   },
-  "[scss]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
+  "css.validate": false,
+  "less.validate": false,
+  "scss.validate": false,
   "[graphql]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },

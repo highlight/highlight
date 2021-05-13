@@ -1,14 +1,13 @@
-import React, { useContext } from 'react';
-
 import { Dropdown, Skeleton } from 'antd';
-import { auth } from '../../../util/auth';
-import { client } from '../../../util/graph';
+import React, { useContext } from 'react';
 import { FiLogOut } from 'react-icons/fi';
 
-import styles from './UserDropdown.module.scss';
 import { DemoContext } from '../../../DemoContext';
 import { useGetAdminQuery } from '../../../graph/generated/hooks';
+import { auth } from '../../../util/auth';
+import { client } from '../../../util/graph';
 import { AdminAvatar } from '../../Avatar/Avatar';
+import styles from './UserDropdown.module.scss';
 
 export const UserDropdown = () => {
     const { demo } = useContext(DemoContext);
@@ -38,12 +37,12 @@ export const UserDropdown = () => {
                                 />
                             </div>
                             <div className={styles.userCopy}>
-                                <div className={styles.dropdownName}>
+                                <h4 className={styles.dropdownName}>
                                     {a_data?.admin?.name}
-                                </div>
-                                <div className={styles.dropdownEmail}>
+                                </h4>
+                                <p className={styles.dropdownEmail}>
                                     {a_data?.admin?.email}
-                                </div>
+                                </p>
                             </div>
                         </div>
                         <div

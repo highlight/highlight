@@ -1,9 +1,9 @@
 .popover {
-    border: none;
+    border: 0;
 
     :global(.ant-popover-inner) {
-        background-color: transparent;
         background-clip: initial;
+        background-color: transparent;
         border-radius: initial;
         box-shadow: none;
     }

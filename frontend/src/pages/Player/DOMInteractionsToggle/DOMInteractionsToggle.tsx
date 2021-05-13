@@ -1,6 +1,7 @@
 import useLocalStorage from '@rehooks/local-storage';
 import { Switch } from 'antd';
 import React from 'react';
+
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import styles from './DOMInteractionsToggle.module.scss';
 

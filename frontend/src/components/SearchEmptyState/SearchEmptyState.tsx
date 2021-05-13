@@ -1,13 +1,12 @@
 import React from 'react';
 
+import { ReactComponent as EmptyState } from '../../static/empty-state.svg';
 import {
     emptyStateSection,
     emptyStateWrapper,
-    emptyTitle,
     emptySubTitle,
+    emptyTitle,
 } from './SearchEmptyState.module.scss';
-
-import { ReactComponent as EmptyState } from '../../static/empty-state.svg';
 import styles from './SearchEmptyState.module.scss';
 
 export const SearchEmptyState = ({ item }: { item: string }) => (
@@ -33,11 +32,11 @@ export const SearchEmptyState = ({ item }: { item: string }) => (
                 preserveAspectRatio="xMinYMin"
             />
         </div>
-        <h1 className={emptyTitle}>Couldn't find any relevant {item} 😔</h1>
-        <h3 className={emptySubTitle}>
+        <h3 className={emptyTitle}>Couldn't find any relevant {item} 😔</h3>
+        <p className={emptySubTitle}>
             We couldn't find any {item} for your search. If you think
             something's wrong, feel free to message us on{' '}
-            <p
+            <span
                 className={styles.intercomButton}
                 onClick={() =>
                     window.Intercom('update', {
@@ -46,8 +45,8 @@ export const SearchEmptyState = ({ item }: { item: string }) => (
                 }
             >
                 intercom
-            </p>
+            </span>
             .
-        </h3>
+        </p>
     </div>
 );

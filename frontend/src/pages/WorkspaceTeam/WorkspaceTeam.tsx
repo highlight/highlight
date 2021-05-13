@@ -1,26 +1,26 @@
-import React, { useEffect, useRef } from 'react';
+import useLocalStorage from '@rehooks/local-storage';
 import { message, Skeleton } from 'antd';
+import classNames from 'classnames/bind';
+import React, { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
-import { AdminAvatar } from '../../components/Avatar/Avatar';
-import { CircularSpinner } from '../../components/Loading/Loading';
-import classNames from 'classnames/bind';
 
 import commonStyles from '../../Common.module.scss';
-import styles from './WorkspaceTeam.module.scss';
+import { AdminAvatar } from '../../components/Avatar/Avatar';
+import Button from '../../components/Button/Button/Button';
+import { CircularSpinner } from '../../components/Loading/Loading';
 import {
     useGetAdminsQuery,
     useGetOrganizationQuery,
     useSendAdminInviteMutation,
 } from '../../graph/generated/hooks';
-import Button from '../../components/Button/Button/Button';
-import useLocalStorage from '@rehooks/local-storage';
+import styles from './WorkspaceTeam.module.scss';
 
 type Inputs = {
     email: string;
 };
 
-export const WorkspaceTeam = () => {
+const WorkspaceTeam = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
@@ -65,18 +65,18 @@ export const WorkspaceTeam = () => {
     return (
         <div className={styles.teamPageWrapper}>
             <div className={styles.teamPage}>
-                <div className={styles.title}>Invite A Member</div>
-                <div className={styles.subTitle}>
+                <h2>Invite A Member</h2>
+                <p className={styles.subTitle}>
                     Invite a your team to your Workspace.
-                </div>
+                </p>
                 <div className={styles.box}>
                     <form onSubmit={handleSubmit(onSubmit)}>
-                        <div className={styles.boxTitle}>Invite Your Team</div>
-                        <div className={styles.boxSubTitle}>
+                        <h3>Invite Your Team</h3>
+                        <p className={styles.boxSubTitle}>
                             Invite a team member to '
                             {`${orgData?.organization?.name}`}' by entering an
                             email below.
-                        </div>
+                        </p>
                         <div className={styles.buttonRow}>
                             <input
                                 className={commonStyles.input}
@@ -98,7 +98,11 @@ export const WorkspaceTeam = () => {
                             >
                                 {sendLoading ? (
                                     <CircularSpinner
-                                        style={{ fontSize: 18, color: 'white' }}
+                                        style={{
+                                            fontSize: 18,
+                                            color:
+                                                'var(--text-primary-inverted)',
+                                        }}
                                     />
                                 ) : (
                                     'Invite'
@@ -113,7 +117,7 @@ export const WorkspaceTeam = () => {
                     </form>
                 </div>
                 <div className={styles.box}>
-                    <div className={styles.title}>Members</div>
+                    <h3>Members</h3>
                     {loading ? (
                         <Skeleton />
                     ) : (
@@ -129,11 +133,11 @@ export const WorkspaceTeam = () => {
                                         size={45}
                                     />
                                     <div className={styles.userDetails}>
-                                        <div className={styles.name}>
+                                        <h4 className={styles.name}>
                                             {a?.name
                                                 ? a?.name
                                                 : a?.email.split('@')[0]}
-                                        </div>
+                                        </h4>
                                         <div className={styles.email}>
                                             {a?.email}
                                         </div>
@@ -147,3 +151,5 @@ export const WorkspaceTeam = () => {
         </div>
     );
 };
+
+export default WorkspaceTeam;

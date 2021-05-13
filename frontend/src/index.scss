@@ -1,9 +1,152 @@
+/* stylelint-disable */
+:root {
+    --color-purple-100: #f2eefb;
+    --color-purple-200: #eee7ff;
+    --color-purple-300: #bea8f1;
+    --color-purple-400: #937ccc;
+    --color-purple-light: #bb6bd9;
+    --color-purple: #5629c6;
+    --color-blue-light: #56ccf2;
+    --color-blue: #2d9cdb;
+    --color-blue-dark: #2f80ed;
+    --color-green-light: #6fcf97;
+    --color-green: #27ae60;
+    --color-green-dark: #219653;
+    --color-yellow-200: #ffd82c;
+    --color-yellow: #f2c94c;
+    --color-orange-400: #ffb038;
+    --color-orange-500: #c67e29;
+    --color-brown: #835e00;
+    --color-red-200: #ffcaca;
+    --color-red-300: #ff7575;
+    --color-red: #eb5757;
+    --color-red-500: #c62929;
+    --color-gray-100: #efefef7d;
+    --color-gray-200: #f2f2f2;
+    --color-gray-300: #eaeaea;
+    --color-gray-400: #bdbdbd;
+    --color-gray-500: #828282;
+    --color-gray-600: #7e7e7e;
+    --color-black: #111;
+    --color-white: #fff;
+
+    --color-primary-background: #fff;
+    --color-primary-inverted-background: black;
+    --color-secondary-background: #f9f9f9;
+    --text-primary-inverted: #fff;
+    --text-primary: var(--color-black);
+
+    --size-xxLarge: 48px;
+    --size-xLarge: 32px;
+    --size-large: 24px;
+    --size-medium: 16px;
+    --size-small: 12px;
+    --size-xSmall: 8px;
+    --size-xxSmall: 4px;
+
+    --size-icon: 18px;
+
+    --box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+    --box-shadow-2: 0 3px 6px -4px rgb(0 0 0 / 12%),
+        0 6px 16px 0 rgb(0 0 0 / 8%), 0 9px 28px 8px rgb(0 0 0 / 5%);
+
+    --header-font-family: 'Steradian', 'Segoe UI', Roboto, 'Helvetica Neue',
+        Arial, 'Noto Sans', sans-serif;
+    --body-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+        Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol';
+
+    --button-border-radius: 5px;
+    --border-radius: var(--size-xSmall);
+}
+
+[data-theme="dark"] {
+    --color-primary-background: var(--color-black);
+    --color-primary-inverted-background: var(--color-white);
+    --color-secondary-background: var(--color-gray-500);
+    --text-primary-inverted: var(--color-black);
+    --text-primary: var(--color-white);
+
+    --color-gray-600: #efefef7d;
+    --color-gray-500: #f2f2f2;
+    --color-gray-400: #eaeaea;
+    --color-gray-300: #bdbdbd;
+    --color-gray-200: #828282;
+    --color-gray-100: #7e7e7e;
+}
+
 body {
-    margin: 0;
-    font-weight: 300;
-    font-family: AvenirNext;
+    background-color: var(--color-primary-background) !important;
+    color: var(--text-primary);
+    font-family: var(--body-font-family) !important;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-weight: 400 !important;
+    margin: 0;
+    text-rendering: geometricPrecision;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--header-font-family) !important;
+    line-height: initial !important;
+    margin: 0 !important;
+    color: var(--text-primary);
+}
+
+h2 {
+    font-size: 28px;
+}
+
+h3 {
+    font-size: 20px;
+}
+
+h4 {
+    font-weight: 400 !important;
+}
+
+p {
+    line-height: initial !important;
+    margin: var(--size-small) 0 !important;
+}
+
+li, p, label {
+    color: var(--text-primary);
+}
+
+h3 {
+    margin-bottom: var(--size-xSmall) !important;
+
+    &:last-of-type {
+        margin-bottom: 0 !important;
+    }
+}
+
+h4 {
+    margin-bottom: var(--size-xxSmall) !important;
+
+    &:last-of-type {
+        margin-bottom: 0 !important;
+    }
+}
+
+button {
+    font-family: var(--header-font-family) !important;
+    font-weight: 400 !important;
+}
+
+input {
+    font-weight: 400 !important;
+}
+
+code {
+    margin: 0;
+    user-select: all;
 }
 
 .atom-overlay {
@@ -12,12 +155,12 @@ body {
 }
 
 a {
-    color: #5629c6;
+    color: var(--color-purple);
 }
 
 .blob {
-    margin: 10px;
     height: 15px;
+    margin: 10px;
     width: 15px;
 }
 
@@ -30,51 +173,51 @@ a {
 }
 
 .ant-slider-track {
-    background-color: #5629c6;
+    background-color: var(--color-purple);
 }
 
 .ant-slider-track:hover {
-    background-color: #5629c6;
+    background-color: var(--color-purple);
 }
 
 .ant-slider:hover .ant-slider-track {
-    background-color: #5629c6;
+    background-color: var(--color-purple);
 }
 
 .ant-slider:hover .ant-slider-handle:not(.ant-tooltip-open) {
-    border-color: #5629c6;
+    border-color: var(--color-purple);
 }
 
 .ant-slider-dot {
-    border-color: #5629c6;
+    border-color: var(--color-purple);
 }
 
 .ant-slider-handle {
-    border-color: #5629c6;
+    border-color: var(--color-purple);
 }
 
 .ant-slider-handle:focus {
-    border-color: #5629c6;
+    border-color: var(--color-purple);
     box-shadow: 0 0 0 5px rgba(86, 41, 198, 0.12);
 }
 
 .ant-slider-handle:hover {
-    border-color: #5629c6;
+    border-color: var(--color-purple);
 }
 
 .ant-slider-handle-dragging.ant-slider-handle-dragging.ant-slider-handle-dragging {
-    border-color: #5629c6;
+    border-color: var(--color-purple);
     box-shadow: 0 0 0 5px rgba(86, 41, 198, 0.12);
 }
 
 .ant-switch-checked {
-    background-color: #5629c6;
+    background-color: var(--color-purple);
 }
 
 .ant-message-notice-content {
     background: #1f1f1f;
-    color: white;
     border-radius: 8px;
+    color: var(--color-primary-background);
 }
 
 .ant-tooltip {
@@ -95,40 +238,4 @@ a {
 
 .ant-skeleton-content .ant-skeleton-paragraph > li {
     border-radius: 5px;
-}
-
-@font-face {
-    font-family: AvenirNext;
-    src: url(./font/AvenirNext-Heavy.woff2);
-    font-weight: 600;
-}
-
-@font-face {
-    font-family: AvenirNext;
-    src: url(./font/AvenirNext-Bold.woff2);
-    font-weight: 500;
-}
-
-@font-face {
-    font-family: AvenirNext;
-    src: url(./font/AvenirNext-DemiBold.woff2);
-    font-weight: 400;
-}
-
-@font-face {
-    font-family: AvenirNext;
-    src: url(./font/AvenirNext-Medium.woff2);
-    font-weight: 300;
-}
-
-@font-face {
-    font-family: AvenirNext;
-    src: url(./font/AvenirNext-Regular.woff2);
-    font-weight: 200;
-}
-
-@font-face {
-    font-family: AvenirNext;
-    src: url(./font/AvenirNext-UltraLight.woff2);
-    font-weight: 100;
 }

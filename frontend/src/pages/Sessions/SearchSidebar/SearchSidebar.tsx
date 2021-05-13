@@ -1,26 +1,27 @@
-import React, { useState } from 'react';
-import styles from './SearchSidebar.module.scss';
 import classNames from 'classnames/bind';
+import React, { useState } from 'react';
+
+import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
 import { DateInput } from '../SearchInputs/DateInput';
-import { LengthInput } from '../SearchInputs/LengthInput';
 import {
     BrowserInput,
     OperatingSystemInput,
 } from '../SearchInputs/DeviceInputs';
+import { LengthInput } from '../SearchInputs/LengthInput';
 import {
-    UserPropertyInput,
-    IdentifiedUsersSwitch,
-    FirstTimeUsersSwitch,
-} from '../SearchInputs/UserPropertyInputs';
+    LiveSessionsSwitch,
+    ReferrerInput,
+    ViewedSessionsSwitch,
+    VisitedUrlInput,
+} from '../SearchInputs/SessionInputs';
 import { TrackPropertyInput } from '../SearchInputs/TrackPropertyInputs';
 import {
-    ReferrerInput,
-    VisitedUrlInput,
-    ViewedSessionsSwitch,
-    LiveSessionsSwitch,
-} from '../SearchInputs/SessionInputs';
-import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
+    FirstTimeUsersSwitch,
+    IdentifiedUsersSwitch,
+    UserPropertyInput,
+} from '../SearchInputs/UserPropertyInputs';
 import { SearchSection } from './SearchSection/SearchSection';
+import styles from './SearchSidebar.module.scss';
 
 export const SearchSidebar = () => {
     const [open, setOpen] = useState(true);

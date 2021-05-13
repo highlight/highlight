@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
+
 import Progress from '../../Progress/Progress';
 import styles from './CurrentUsageCard.module.scss';
 

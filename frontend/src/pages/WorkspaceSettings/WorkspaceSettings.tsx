@@ -1,34 +1,31 @@
+import classNames from 'classnames/bind';
 import React from 'react';
 
-import styles from './WorkspaceSettings.module.scss';
-import classNames from 'classnames/bind';
-import { FieldsForm } from './FieldsForm/FieldsForm';
 import { DangerForm } from './DangerForm/DangerForm';
+import { FieldsForm } from './FieldsForm/FieldsForm';
+import styles from './WorkspaceSettings.module.scss';
 
-export const WorkspaceSettings = () => {
+const WorkspaceSettings = () => {
     return (
         <div className={styles.settingsPageWrapper}>
             <div className={styles.settingsPage}>
-                <div className={styles.title}>Workspace Settings</div>
-                <div className={styles.subTitle}>
+                <h2>Workspace Settings</h2>
+                <p className={styles.subTitle}>
                     Manage your workspace details.
-                </div>
+                </p>
                 <div className={styles.fieldsBox}>
-                    <div className={styles.boxTitle}>Workspace Fields</div>
+                    <h3>Workspace Fields</h3>
                     <FieldsForm />
                 </div>
                 <div className={styles.fieldsBox}>
-                    <div
-                        className={classNames(
-                            styles.boxTitle,
-                            styles.dangerTitle
-                        )}
-                    >
+                    <h3 className={classNames(styles.dangerTitle)}>
                         Danger Zone
-                    </div>
+                    </h3>
                     <DangerForm />
                 </div>
             </div>
         </div>
     );
 };
+
+export default WorkspaceSettings;

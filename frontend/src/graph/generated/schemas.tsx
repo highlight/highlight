@@ -277,7 +277,7 @@ export type SessionResults = {
 export type ErrorResults = {
     __typename?: 'ErrorResults';
     error_groups: Array<ErrorGroup>;
-    totalCount: Scalars['Int'];
+    totalCount: Scalars['Int64'];
 };
 
 export type SessionComment = {

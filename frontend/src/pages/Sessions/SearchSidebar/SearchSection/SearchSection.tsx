@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import Collapsible from 'react-collapsible';
+
 import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg';
 import {
     SearchParams,
@@ -46,10 +47,10 @@ export const SearchSection: React.FunctionComponent<SearchSectionProps> = ({
 
     const header = (
         <div className={styles.headerWrapper}>
-            <div className={styles.header}>
+            <h4 className={styles.header}>
                 {title}
                 {titleSideComponent}
-            </div>
+            </h4>
             {searchCount > 0 && (
                 <SearchCountBubble>{searchCount}</SearchCountBubble>
             )}

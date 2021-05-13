@@ -1,12 +1,13 @@
 import useLocalStorage from '@rehooks/local-storage';
 import React, { useContext, useState } from 'react';
+
 import Popover from '../../../../components/Popover/Popover';
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import ReplayerContext, { ParsedHighlightEvent } from '../../ReplayerContext';
 import { getEventRenderDetails } from '../../StreamElement/StreamElement';
 import StreamElementPayload from '../../StreamElement/StreamElementPayload';
-import TimelineAnnotation from './TimelineAnnotation';
 import styles from '../Toolbar.module.scss';
+import TimelineAnnotation from './TimelineAnnotation';
 
 interface Props {
     event: ParsedHighlightEvent;

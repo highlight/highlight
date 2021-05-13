@@ -1,6 +1,7 @@
 import { Maybe } from 'highlight.run/dist/client/src/graph/generated/operations';
 import React from 'react';
 import Confetti from 'react-confetti';
+
 import { Session } from '../../../../../graph/generated/schemas';
 import FirstTimeIndicator from '../FirstTimeIndicator/FirstTimeIndicator';
 

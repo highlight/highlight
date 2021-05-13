@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
 import { Dropdown } from 'antd';
-import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
+import React, { useState } from 'react';
 
+import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
 import styles from './StandardDropdown.module.scss';
 
 type Option = {

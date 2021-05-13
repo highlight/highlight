@@ -1,14 +1,15 @@
+import { Dropdown } from 'antd';
 import React, { useEffect, useRef, useState } from 'react';
-import styles from './Landing.module.scss';
-import { ReactComponent as Humans } from '../../static/human-image.svg';
-import { ReactComponent as Logos } from '../../static/logos.svg';
+import ReactPlayer from 'react-player';
+import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
+
+import { HighlightLogo } from '../../components/HighlightLogo/HighlightLogo';
+import Modal from '../../components/Modal/Modal';
 import { ReactComponent as ArrowRight } from '../../static/arrow-right.svg';
 import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
-import { HighlightLogo } from '../../components/HighlightLogo/HighlightLogo';
-import { Link, RouteComponentProps, withRouter } from 'react-router-dom';
-import { Dropdown } from 'antd';
-import ReactPlayer from 'react-player';
-import Modal from '../../components/Modal/Modal';
+import { ReactComponent as Humans } from '../../static/human-image.svg';
+import { ReactComponent as Logos } from '../../static/logos.svg';
+import styles from './Landing.module.scss';
 
 const DEMO_VIDEO_URL =
     'https://highlight-demo-video.s3-us-west-2.amazonaws.com/v2/v2.12.264bq.1980.30fps.mp4';
@@ -120,9 +121,9 @@ const HomeInternal: React.FC<RouteComponentProps> = ({ children }) => {
                 ></Modal>
                 <div className={styles.landingWrapper}>
                     <div className={styles.landing}>
-                        <h2 className={styles.header}>
+                        <h1 className={styles.header}>
                             Understand your app, with clarity.
-                        </h2>
+                        </h1>
                         <h3 className={styles.subHeader}>
                             Get full transparency into the errors, interactions,
                             and performance metrics on your frontend.

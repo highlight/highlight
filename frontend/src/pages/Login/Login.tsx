@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import classNames from 'classnames';
+import { H } from 'highlight.run';
+import React, { useEffect, useState } from 'react';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { useForm } from 'react-hook-form';
+
+import commonStyles from '../../Common.module.scss';
+import Button from '../../components/Button/Button/Button';
+import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { LoadingPage } from '../../components/Loading/Loading';
 import { useGetAdminQuery } from '../../graph/generated/hooks';
-import commonStyles from '../../Common.module.scss';
-import { ReactComponent as GoogleLogo } from '../../static/google.svg';
-
-import styles from './Login.module.scss';
 import { AppRouter } from '../../routers/AppRouter/AppRouter';
-import { H } from 'highlight.run';
-import { useForm } from 'react-hook-form';
-import { useAuthState } from 'react-firebase-hooks/auth';
+import { ReactComponent as GoogleLogo } from '../../static/google.svg';
 import { auth, googleProvider } from '../../util/auth';
 import { Landing } from '../Landing/Landing';
 import { RequestAccessPage } from '../RequestAccess/RequestAccess';
-import { ErrorState } from '../../components/ErrorState/ErrorState';
-import Button from '../../components/Button/Button/Button';
-import classNames from 'classnames';
+import styles from './Login.module.scss';
 
 export const AuthAdminRouter = () => {
     const { loading, error, data } = useGetAdminQuery();
@@ -57,7 +57,7 @@ type Inputs = {
     password: string;
 };
 
-export const LoginForm = () => {
+const LoginForm = () => {
     const url = window.location.hostname;
     const {
         watch,
@@ -127,10 +127,10 @@ export const LoginForm = () => {
                         className={styles.loginForm}
                     >
                         <div className={styles.loginTitleWrapper}>
-                            <div className={styles.loginTitle}>
+                            <h2 className={styles.loginTitle}>
                                 Welcome {signIn && 'back'} to Highlight.
-                            </div>
-                            <div className={styles.loginSubTitle}>
+                            </h2>
+                            <p className={styles.loginSubTitle}>
                                 {signIn ? (
                                     <>
                                         New here?{' '}
@@ -156,7 +156,7 @@ export const LoginForm = () => {
                                         </span>
                                     </>
                                 )}
-                            </div>
+                            </p>
                         </div>
                         <input
                             placeholder={'Email'}
@@ -208,9 +208,9 @@ export const LoginForm = () => {
                             {signIn ? 'Sign In' : 'Sign Up'}
                         </Button>
                     </form>
-                    <div className={styles.otherSigninText}>
+                    <p className={styles.otherSigninText}>
                         or sign {signIn ? 'in' : 'up'} with
-                    </div>
+                    </p>
                     <Button
                         className={classNames(
                             commonStyles.secondaryButton,
@@ -238,3 +238,5 @@ export const LoginForm = () => {
         </Landing>
     );
 };
+
+export default LoginForm;

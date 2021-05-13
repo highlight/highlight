@@ -1,24 +1,24 @@
-import React, {
-    useState,
-    useEffect,
-    useContext,
-    useRef,
-    useCallback,
-} from 'react';
-import { useParams } from 'react-router-dom';
-import { Option } from '../Option/Option';
-import Skeleton from 'react-loading-skeleton';
-
-import devStyles from '../DevToolsWindow.module.scss';
-import styles from './ResourcePage.module.scss';
-import { DemoContext } from '../../../../../DemoContext';
-import GoToButton from '../../../../../components/Button/GoToButton';
-import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
-import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import _ from 'lodash';
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
+import Skeleton from 'react-loading-skeleton';
+import { useParams } from 'react-router-dom';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+
+import GoToButton from '../../../../../components/Button/GoToButton';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
+import { DemoContext } from '../../../../../DemoContext';
+import { useGetResourcesQuery } from '../../../../../graph/generated/hooks';
 import { formatNumber } from '../../../../../util/numbers';
+import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
+import devStyles from '../DevToolsWindow.module.scss';
+import { Option } from '../Option/Option';
+import styles from './ResourcePage.module.scss';
 
 export const ResourcePage = ({
     time,
@@ -240,8 +240,8 @@ const TimingCanvas = ({ networkRange }: { networkRange: number }) => {
                 context.fillStyle = 'red';
                 context.fillRect(realX, 0, 2, canvas.height);
 
-                context.font = '24px Arial';
-                context.fillStyle = '#777';
+                context.font = '24px Steradian';
+                context.fillStyle = 'var(--color-gray-500)';
 
                 const msValue = Math.max(
                     0,
@@ -304,7 +304,10 @@ const ResourceRow = ({
         <div key={p.id.toString()}>
             <div
                 style={{
-                    color: p.id === currentResource ? 'black' : '#808080',
+                    color:
+                        p.id === currentResource
+                            ? 'var(--text-primary)'
+                            : 'var(--color-gray-500)',
                     fontWeight: p.id === currentResource ? 400 : 300,
                 }}
                 className={styles.networkRow}

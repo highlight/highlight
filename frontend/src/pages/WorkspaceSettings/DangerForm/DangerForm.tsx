@@ -1,16 +1,17 @@
-import React from 'react';
-import commonStyles from '../../../Common.module.scss';
-import styles from './DangerForm.module.scss';
-import { useForm } from 'react-hook-form';
-import classNames from 'classnames/bind';
-import { useParams, Redirect } from 'react-router-dom';
-import { CircularSpinner } from '../../../components/Loading/Loading';
 import { Skeleton } from 'antd';
+import classNames from 'classnames/bind';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { Redirect, useParams } from 'react-router-dom';
+
+import commonStyles from '../../../Common.module.scss';
+import Button from '../../../components/Button/Button/Button';
+import { CircularSpinner } from '../../../components/Loading/Loading';
 import {
     useDeleteOrganizationMutation,
     useGetOrganizationQuery,
 } from '../../../graph/generated/hooks';
-import Button from '../../../components/Button/Button/Button';
+import styles from './DangerForm.module.scss';
 
 type Inputs = {
     text: string;
@@ -40,11 +41,11 @@ export const DangerForm = () => {
                 <Skeleton />
             ) : (
                 <>
-                    <div className={styles.dangerSubTitle}>
+                    <p className={styles.dangerSubTitle}>
                         This will immediately remove all team members and
                         projects, and cancel your subscription. Please type '
                         {`${data?.organization?.name}`}' to confirm.
-                    </div>
+                    </p>
                     <div className={styles.dangerRow}>
                         <input
                             placeholder={`Please type '${data?.organization?.name}'`}
@@ -66,7 +67,10 @@ export const DangerForm = () => {
                         >
                             {deleteLoading ? (
                                 <CircularSpinner
-                                    style={{ fontSize: 18, color: 'white' }}
+                                    style={{
+                                        fontSize: 18,
+                                        color: 'var(--text-primary-inverted)',
+                                    }}
                                 />
                             ) : (
                                 'Delete'

@@ -1,8 +1,9 @@
 import React from 'react';
 import validator from 'validator';
-import { isJson } from './utils';
-import styles from './StreamElementPayload.module.scss';
+
 import streamElementStyles from '../StreamElement/StreamElement.module.scss';
+import styles from './StreamElementPayload.module.scss';
+import { isJson } from './utils';
 
 interface StreamElementProps {
     payload?: string;

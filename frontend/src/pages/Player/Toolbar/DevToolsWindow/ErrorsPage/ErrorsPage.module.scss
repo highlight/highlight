@@ -1,16 +1,14 @@
-@import 'src/static/shared.scss';
-
 #topBar {
     grid-template-columns: 1fr;
 }
 
 .errorList {
+    border-left: 1px solid var(--color-gray-300);
     flex-grow: 1;
-    border-left: 1px solid #eaeaea;
-    margin-left: 1px;
     height: 100%;
+    margin-left: 1px;
 }
 
 .skeleton {
-    margin: $size-small $size-xSmall;
+    margin: var(--size-small) var(--size-xSmall);
 }

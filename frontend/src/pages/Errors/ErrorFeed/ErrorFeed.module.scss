@@ -1,102 +1,99 @@
 @import 'src/static/shared.scss';
 
 .avatarWrapper {
-    width: 120px;
-    height: 60px;
-    display: flex;
     align-items: flex-end;
+    display: flex;
+    height: 60px;
     justify-content: flex-end;
     padding-right: 20px;
+    width: 120px;
 }
 
 .readMarkerContainer {
-    display: flex;
     align-items: center;
-    width: 8px;
+    display: flex;
     margin-left: 6px;
+    width: 8px;
 }
 
 .readMarker {
+    background-color: var(--color-red-500);
     border-radius: 10px;
-    width: 8px;
     height: 8px;
-    background-color: #c62929;
+    width: 8px;
 }
 
 .topText {
-    color: #a8a8a8;
+    color: var(--color-gray-500);
     font-size: 12px;
-    font-weight: 200;
-    margin: 4px 0 4px 0;
+    margin: 4px 0 !important;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .middleText {
-    color: black;
-    font-weight: 300;
+    color: var(--text-primary);
     font-size: 14px;
+    margin: 4px 0 8px !important;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
-    margin: 4px 0 8px 0;
+    white-space: nowrap;
 }
 
 .bottomText {
-    color: black;
+    color: var(--text-primary);
     font-size: 12px;
-    font-weight: 200;
-    margin: 4px 0 4px 0;
+    margin: 4px 0 !important;
     overflow: hidden;
-    white-space: nowrap;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .errorTextSection {
-    width: 180px;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 180px;
 }
 
 .tagWrapper {
     display: flex;
     flex-flow: row wrap;
-    overflow: hidden;
     height: 28px;
+    overflow: hidden;
 }
 
 .errorTextWrapper {
     display: flex;
-    width: 100%;
     justify-content: space-between;
+    width: 100%;
 }
 
 .hoverBorderRight {
-    height: 60px;
-    width: 5px;
-    position: absolute;
+    background-color: transparent;
     border-radius: 5px;
-    transition: 0.3s;
+    height: 60px;
+    position: absolute;
     right: -3px;
     transition: 0.3s;
-    background-color: transparent;
+    transition: 0.3s;
+    width: 5px;
 }
 
 .hoverBorderLeft {
-    height: 60px;
-    width: 5px;
-    position: absolute;
-    border-radius: 5px;
-    transition: 0.3s;
-    left: -3px;
-    transition: 0.3s;
     background-color: transparent;
+    border-radius: 5px;
+    height: 60px;
+    left: -3px;
+    position: absolute;
+    transition: 0.3s;
+    transition: 0.3s;
+    width: 5px;
 }
 
 .hoverBorderOn {
-    background-color: $highlight-purple;
+    background-color: var(--color-purple);
 }
 
 .feedWrapper {
@@ -107,13 +104,13 @@
 .feedContent {
     display: flex;
     flex-direction: column;
-    width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
     flex-grow: 1;
     height: 200px;
     margin-top: -24px;
+    overflow-x: hidden;
+    overflow-y: auto;
     padding-top: 16px;
+    width: 100%;
 }
 
 .fixedContent {
@@ -122,29 +119,30 @@
 }
 
 .userInputWrapper {
-    width: 100%;
     margin-top: -10px;
+    width: 100%;
 }
 
 .mainUserInput {
+    align-items: center;
+    background-color: var(--color-primary-background);
+    display: flex;
+    justify-content: center;
     position: relative;
     width: 100%;
-    background-color: white;
     z-index: 500;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .resultCount {
-    margin: 0px -3px;
-    padding: 8px 5px 16px 5px;
-    color: #a8a8a8;
     background: linear-gradient(
         to top,
         rgba(255, 255, 255, 0),
         rgba(255, 255, 255, 1) 30%
     );
+    color: var(--color-gray-500);
+    font-family: var(--header-font-family);
+    margin: 0 -3px;
+    padding: 8px 5px 16px;
     width: 100%;
     z-index: 10;
 }
@@ -160,48 +158,48 @@
 }
 
 .errorCardAction {
-    background-color: white;
+    align-items: center;
+    background-color: var(--color-primary-background);
     border: 0;
+    border-radius: 5px;
+    bottom: 0;
     display: none;
-    position: absolute;
-    padding: 0px 6px;
-    width: 30px;
     height: 30px;
+    margin: auto;
+    padding: 0 6px;
+    position: absolute;
     right: 8px;
     top: 0;
-    bottom: 0;
-    margin: auto;
-    border-radius: 5px;
-    align-items: center;
+    width: 30px;
 
     &:hover {
+        background-color: var(--color-gray-300);
         cursor: pointer;
-        background-color: #eaeaea;
 
         .actionIcon {
-            color: black;
-            fill: black;
-            stroke: black;
+            color: var(--text-primary);
+            fill: var(--text-primary);
+            stroke: var(--text-primary);
         }
     }
 }
 
 .actionIcon {
-    stroke: #808080;
-    color: #808080;
-    fill: #808080;
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
+    stroke: var(--color-gray-500);
 }
 
 .errorCard {
-    position: relative;
-    font-weight: 400;
     @include rounded-border;
-    display: flex;
-    margin-bottom: 14px;
     align-items: center;
-    justify-content: space-between;
-    padding: 18px;
     cursor: pointer;
+    display: flex;
+    font-weight: 400;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding: 18px;
+    position: relative;
 
     &:not(:first-of-type) {
         margin-top: 14px;
@@ -209,17 +207,17 @@
 }
 
 .errorCardContentWrapper {
+    align-items: center;
     display: flex;
     flex-grow: 1;
-    align-items: center;
     flex-wrap: wrap;
 }
 
 .errorTextSectionWrapper {
     display: flex;
+    flex-grow: 1;
     flex-wrap: wrap;
     justify-content: space-between;
-    flex-grow: 1;
 
     @media screen and (max-width: 1200px) {
         flex-direction: column;
@@ -227,24 +225,24 @@
 }
 
 .errorBarDiv {
-    width: 20px;
-    padding: 0px 1px;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+    padding: 0 1px;
+    width: 20px;
 }
 
 .errorBarBase {
+    background-color: var(--color-gray-200);
     border-radius: 2px;
-    background-color: #f2eefb;
-    width: 100%;
-    margin-top: 2px;
     height: 2px;
+    margin-top: 2px;
+    width: 100%;
 }
 
 .errorBar {
+    background-color: var(--color-purple);
     border-radius: 2px;
+    height: 0;
     width: 100%;
-    height: 0px;
-    background-color: $highlight-purple;
 }

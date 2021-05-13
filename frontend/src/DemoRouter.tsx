@@ -1,17 +1,18 @@
-import React, { useEffect, useState } from 'react';
 import './App.scss';
 
+import React, { useEffect, useState } from 'react';
+
 import commonStyles from './Common.module.scss';
+import { Header } from './components/Header/Header';
+import { Sidebar } from './components/Sidebar/Sidebar';
 import {
     SidebarContextProvider,
     SidebarState,
 } from './components/Sidebar/SidebarContext';
-import { Sidebar } from './components/Sidebar/Sidebar';
-import { Header } from './components/Header/Header';
-import { Player } from './pages/Player/PlayerPage';
 import { DemoContext } from './DemoContext';
+import Player from './pages/Player/PlayerPage';
 
-export const DemoRouter = () => {
+const DemoRouter = () => {
     const [sidebarState, setSidebarState] = useState<SidebarState>(
         SidebarState.Collapsed
     );
@@ -64,3 +65,5 @@ export const DemoRouter = () => {
         </DemoContext.Provider>
     );
 };
+
+export default DemoRouter;

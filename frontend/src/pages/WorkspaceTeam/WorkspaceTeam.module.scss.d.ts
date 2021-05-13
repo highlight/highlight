@@ -1,6 +1,5 @@
 export const box: string;
 export const boxSubTitle: string;
-export const boxTitle: string;
 export const buttonRow: string;
 export const email: string;
 export const inviteButton: string;
@@ -9,5 +8,4 @@ export const name: string;
 export const subTitle: string;
 export const teamPage: string;
 export const teamPageWrapper: string;
-export const title: string;
 export const userDetails: string;

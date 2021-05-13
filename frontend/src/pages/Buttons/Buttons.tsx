@@ -1,7 +1,8 @@
-import React from 'react';
-import styles from './Buttons.module.scss';
-import commonStyles from '../../Common.module.scss';
 import { H } from 'highlight.run';
+import React from 'react';
+
+import commonStyles from '../../Common.module.scss';
+import styles from './Buttons.module.scss';
 export const Buttons = () => {
     return (
         <div className={styles.buttonBody}>

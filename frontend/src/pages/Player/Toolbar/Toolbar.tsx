@@ -1,42 +1,42 @@
-import React, { useState, useEffect, useRef, useContext } from 'react';
-import { FaPause } from 'react-icons/fa';
 import { useLocalStorage } from '@rehooks/local-storage';
+import classNames from 'classnames';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import Draggable from 'react-draggable';
+import { FaPause } from 'react-icons/fa';
+import Skeleton from 'react-loading-skeleton';
+
+import Button from '../../../components/Button/Button/Button';
+import Modal from '../../../components/Modal/Modal';
+import Tooltip from '../../../components/Tooltip/Tooltip';
+import { ErrorObject } from '../../../graph/generated/schemas';
+import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
+import SvgPlayIcon from '../../../static/PlayIcon';
+import SvgRedoIcon from '../../../static/RedoIcon';
+import SvgUndoIcon from '../../../static/UndoIcon';
 import {
     MillisToMinutesAndSeconds,
     MillisToMinutesAndSecondsVerbose,
 } from '../../../util/time';
-import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
-import {
-    DevToolsContextProvider,
-    DevToolTabs,
-} from './DevToolsContext/DevToolsContext';
-import Draggable from 'react-draggable';
-
-import styles from './Toolbar.module.scss';
+import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
 import ReplayerContext, {
     ParsedSessionComment,
     ParsedSessionInterval,
     ReplayerState,
 } from '../ReplayerContext';
-import classNames from 'classnames';
-import Skeleton from 'react-loading-skeleton';
-import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
-import { EventsForTimeline, EventsForTimelineKeys } from '../PlayerHook/utils';
-import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
-import { ErrorObject } from '../../../graph/generated/schemas';
-import Modal from '../../../components/Modal/Modal';
-import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
-import TimelineCommentAnnotation from './TimelineAnnotation/TimelineCommentAnnotation';
-import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
-import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
-import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
-import Button from '../../../components/Button/Button/Button';
-import Tooltip from '../../../components/Tooltip/Tooltip';
-import SpeedControl from './SpeedControl/SpeedControl';
-import SvgRedoIcon from '../../../static/RedoIcon';
-import SvgUndoIcon from '../../../static/UndoIcon';
-import SvgPlayIcon from '../../../static/PlayIcon';
 import { getNewTimeWithSkip, usePlayerHotKeys } from '../utils/hooks';
+import {
+    DevToolsContextProvider,
+    DevToolTabs,
+} from './DevToolsContext/DevToolsContext';
+import { DevToolsWindow } from './DevToolsWindow/DevToolsWindow';
+import ErrorModal from './DevToolsWindow/ErrorsPage/components/ErrorModal/ErrorModal';
+import { ErrorModalContextProvider } from './ErrorModalContext/ErrorModalContext';
+import SpeedControl from './SpeedControl/SpeedControl';
+import TimelineCommentAnnotation from './TimelineAnnotation/TimelineCommentAnnotation';
+import TimelineErrorAnnotation from './TimelineAnnotation/TimelineErrorAnnotation';
+import TimelineEventAnnotation from './TimelineAnnotation/TimelineEventAnnotation';
+import TimelineAnnotationsSettings from './TimelineAnnotationsSettings/TimelineAnnotationsSettings';
+import styles from './Toolbar.module.scss';
 
 export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     const {
@@ -478,8 +478,12 @@ const SessionSegment = ({
     ] = useLocalStorage('highlightTimelineAnnotationTypes', [
         ...EventsForTimeline,
     ]);
-    const playedColor = interval.active ? '#5629c6' : '#808080';
-    const unplayedColor = interval.active ? '#EEE7FF' : '#d2d2d2';
+    const playedColor = interval.active
+        ? 'var(--color-purple)'
+        : 'var(--color-gray-500)';
+    const unplayedColor = interval.active
+        ? 'var(--color-purple-200)'
+        : 'var(--color-gray-400)';
     const currentRawPercent =
         (time - interval.startTime) / (interval.endTime - interval.startTime);
     const isPercentInInterval = (

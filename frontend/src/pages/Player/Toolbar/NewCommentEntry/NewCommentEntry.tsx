@@ -1,26 +1,27 @@
-import React, { useContext, useMemo, useState } from 'react';
-import {
-    useCreateSessionCommentMutation,
-    useGetAdminQuery,
-    useGetAdminsQuery,
-} from '../../../../graph/generated/hooks';
-import { Form, message } from 'antd';
-import { useParams } from 'react-router-dom';
-import styles from './NewCommentEntry.module.scss';
-import { MillisToMinutesAndSeconds } from '../../../../util/time';
-import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
 import useLocalStorage from '@rehooks/local-storage';
-import { EventsForTimeline } from '../../PlayerHook/utils';
-import ReplayerContext from '../../ReplayerContext';
+import { Form, message } from 'antd';
 import { H } from 'highlight.run';
+import React, { useContext, useMemo, useState } from 'react';
 import { OnChangeHandlerFunc } from 'react-mentions';
-import CommentTextBody from './CommentTextBody/CommentTextBody';
+import { useParams } from 'react-router-dom';
+
 import Button from '../../../../components/Button/Button/Button';
 import {
     AdminSuggestion,
     parseAdminSuggestions,
 } from '../../../../components/Comment/CommentHeader';
+import {
+    useCreateSessionCommentMutation,
+    useGetAdminQuery,
+    useGetAdminsQuery,
+} from '../../../../graph/generated/hooks';
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
+import { MillisToMinutesAndSeconds } from '../../../../util/time';
+import { Coordinates2D } from '../../PlayerCommentCanvas/PlayerCommentCanvas';
+import { EventsForTimeline } from '../../PlayerHook/utils';
+import ReplayerContext from '../../ReplayerContext';
+import CommentTextBody from './CommentTextBody/CommentTextBody';
+import styles from './NewCommentEntry.module.scss';
 // import html2canvas from 'html2canvas';
 
 interface Props {

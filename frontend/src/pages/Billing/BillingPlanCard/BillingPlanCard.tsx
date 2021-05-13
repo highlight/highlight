@@ -1,10 +1,11 @@
-import React from 'react';
-import commonStyles from '../../../Common.module.scss';
-import styles from './BillingPlanCard.module.scss';
-import { BillingPlan } from './BillingConfig';
 import classNames from 'classnames/bind';
+import React from 'react';
+
+import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
 import SvgVerifyCheckIcon from '../../../static/VerifyCheckIcon';
+import { BillingPlan } from './BillingConfig';
+import styles from './BillingPlanCard.module.scss';
 
 export const BillingPlanCard = ({
     billingPlan,
@@ -17,14 +18,14 @@ export const BillingPlanCard = ({
 }) => {
     return (
         <div className={styles.billingPlanCard}>
-            <div className={styles.billingPlanTitle}>{billingPlan.name}</div>
-            <div
+            <h3 className={styles.billingPlanTitle}>{billingPlan.name}</h3>
+            <h4
                 className={classNames(
                     commonStyles.title,
                     styles.billingPlanPrice
                 )}
-            >{`$${billingPlan.monthlyPrice}`}</div>
-            <div className={styles.billingFrequency}>billed monthly</div>
+            >{`$${billingPlan.monthlyPrice}`}</h4>
+            <p className={styles.billingFrequency}>billed monthly</p>
             <ul className={styles.advertisedFeaturesWrapper}>
                 {billingPlan.advertisedFeatures.map((featureString) => (
                     <li
