@@ -37,7 +37,7 @@ import CommentStream from './CommentStream/CommentStream';
 import MetadataPanel from './MetadataPanel/MetadataPanel';
 import Card from '../../components/Card/Card';
 
-export const Player = () => {
+const Player = () => {
     const { session_id } = useParams<{
         session_id: string;
     }>();
@@ -405,3 +405,5 @@ const usefulEvent = (e: eventWithTime): boolean => {
 
     return false;
 };
+
+export default Player;

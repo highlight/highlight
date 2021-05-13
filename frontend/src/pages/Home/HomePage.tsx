@@ -27,7 +27,7 @@ type DailyCount = {
     count: number;
 };
 
-export const HomePage = () => {
+const HomePage = () => {
     return (
         <div className={styles.dashboardWrapper}>
             <div className={styles.dashboard}>
@@ -231,3 +231,5 @@ const DailyChart = ({
         </ResponsiveContainer>
     );
 };
+
+export default HomePage;

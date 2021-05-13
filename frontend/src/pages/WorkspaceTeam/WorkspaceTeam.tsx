@@ -20,7 +20,7 @@ type Inputs = {
     email: string;
 };
 
-export const WorkspaceTeam = () => {
+const WorkspaceTeam = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const emailRef = useRef<null | HTMLInputElement>(null);
     const { register, handleSubmit, errors, reset } = useForm<Inputs>();
@@ -151,3 +151,5 @@ export const WorkspaceTeam = () => {
         </div>
     );
 };
+
+export default WorkspaceTeam;

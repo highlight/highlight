@@ -21,7 +21,7 @@ export const EmptyErrorsSearchParams: Complete<ErrorSearchParams> = {
     visited_url: undefined,
 };
 
-export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
+const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
     const [segmentName, setSegmentName] = useState<string | null>(null);
     const [cachedParams, setCachedParams] = useLocalStorage<ErrorSearchParams>(
         `cachedErrorParams-${segmentName || 'no-selected-segment'}`,
@@ -69,3 +69,5 @@ export const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
         </ErrorSearchContext.Provider>
     );
 };
+
+export default ErrorsPage;

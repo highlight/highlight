@@ -23,7 +23,7 @@ enum PlatformType {
     NextJs = 'Next.js',
 }
 
-export const SetupPage = ({ integrated }: { integrated: boolean }) => {
+const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const [platform, setPlatform] = useState(PlatformType.React);
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data, loading } = useGetOrganizationQuery({
@@ -365,3 +365,5 @@ export const Section: FunctionComponent<SectionProps> = ({
         </div>
     );
 };
+
+export default SetupPage;

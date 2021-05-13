@@ -8,7 +8,7 @@ import {
 } from './components/Sidebar/SidebarContext';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { Header } from './components/Header/Header';
-import { Player } from './pages/Player/PlayerPage';
+import Player from './pages/Player/PlayerPage';
 import { DemoContext } from './DemoContext';
 
 const DemoRouter = () => {

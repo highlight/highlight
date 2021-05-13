@@ -3,8 +3,6 @@ import '../../App.scss';
 
 import styles from './AppRouter.module.scss';
 import { LoadingPage } from '../../components/Loading/Loading';
-import { NewMemberPage } from '../../pages/NewMember/NewMemberPage';
-import { NewWorkspacePage } from '../../pages/NewWorkspace/NewWorkspacePage';
 import {
     Switch,
     Route,
@@ -15,6 +13,14 @@ import { OrgRouter } from '../OrgRouter/OrgRouter';
 import { useGetOrganizationsQuery } from '../../graph/generated/hooks';
 import { Landing } from '../../pages/Landing/Landing';
 import InternalRouter from '../InternalRouter/InternalRouter';
+import loadable from '@loadable/component';
+
+const NewMemberPage = loadable(
+    () => import('../../pages/NewMember/NewMemberPage')
+);
+const NewWorkspacePage = loadable(
+    () => import('../../pages/NewWorkspace/NewWorkspacePage')
+);
 
 export const AppRouter = () => {
     const {

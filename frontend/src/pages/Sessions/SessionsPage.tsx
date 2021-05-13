@@ -28,7 +28,7 @@ export const EmptySessionsSearchParams: Complete<SearchParams> = {
     first_time: false,
 };
 
-export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
+const SessionsPage = ({ integrated }: { integrated: boolean }) => {
     if (!integrated) {
         return <IntegrationCard />;
     }
@@ -50,3 +50,5 @@ export const SessionsPage = ({ integrated }: { integrated: boolean }) => {
         </div>
     );
 };
+
+export default SessionsPage;

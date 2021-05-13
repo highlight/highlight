@@ -24,7 +24,7 @@ const getStripePromiseOrNull = () => {
 
 const stripePromiseOrNull = getStripePromiseOrNull();
 
-export const Billing = () => {
+const BillingPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { pathname } = useLocation();
     const [
@@ -136,3 +136,5 @@ export const Billing = () => {
         </div>
     );
 };
+
+export default BillingPage;

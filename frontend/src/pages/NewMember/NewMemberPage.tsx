@@ -12,7 +12,7 @@ import {
 } from '../../graph/generated/hooks';
 import Button from '../../components/Button/Button/Button';
 
-export const NewMemberPage = () => {
+const NewMemberPage = () => {
     const { invite_id, organization_id } = useParams<{
         organization_id: string;
         invite_id: string;
@@ -75,3 +75,5 @@ export const NewMemberPage = () => {
         </div>
     );
 };
+
+export default NewMemberPage;

@@ -28,7 +28,7 @@ import { parseErrorDescriptionList } from './components/ErrorDescription/utils/u
 import ErrorComments from './components/ErrorComments/ErrorComments';
 import classnames from 'classnames';
 
-export const ErrorPage = () => {
+const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
@@ -270,3 +270,5 @@ export const getHeaderFromError = (
 
     return errorMsg?.join() ?? '';
 };
+
+export default ErrorPage;

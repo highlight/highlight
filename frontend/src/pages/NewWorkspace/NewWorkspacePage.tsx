@@ -13,7 +13,7 @@ type Inputs = {
     name: string;
 };
 
-export const NewWorkspacePage = () => {
+const NewWorkspacePage = () => {
     const { register, handleSubmit, errors, setError } = useForm<Inputs>();
     const [
         createOrganization,
@@ -76,3 +76,5 @@ export const NewWorkspacePage = () => {
         </div>
     );
 };
+
+export default NewWorkspacePage;
