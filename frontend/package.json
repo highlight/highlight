@@ -81,6 +81,7 @@
         "react-virtuoso": "^1.5.4",
         "recharts": "^2.0.8",
         "rrweb-snapshot": "^0.8.2",
+        "source-map-explorer": "^2.5.2",
         "stacktrace-js": "^2.0.2",
         "stripe": "^8.128.0",
         "stylelint": "^13.13.1",
@@ -102,7 +103,8 @@
         "eject": "react-scripts eject",
         "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}' && yarn lint:es && stylelint \"**/*.scss\"",
         "lint:es": "eslint --fix src/**/*.{ts,tsx}",
-        "lint:css": "stylelint \"**/*.scss\" --fix"
+        "lint:css": "stylelint \"**/*.scss\" --fix",
+        "analyze": "source-map-explorer 'build/static/js/*.js'"
     },
     "eslintConfig": {
         "extends": "react-app"
