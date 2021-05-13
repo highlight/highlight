@@ -35,7 +35,7 @@ const EVENTS_CHUNK_SIZE = parseInt(
     10
 );
 
-export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
+export const usePlayer = (): ReplayerContextInterface => {
     const { session_id } = useParams<{ session_id: string }>();
 
     const [download] = useQueryParam('download', BooleanParam);
@@ -65,7 +65,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
         ? process.env.REACT_APP_DEMO_SESSION ?? ''
         : session_id ?? '';
 
-    const { data: eventsData } = useGetSessionPayloadQuery({
+    const { data: eventsData, loading } = useGetSessionPayloadQuery({
         variables: {
             session_id: sessionId,
         },
@@ -81,6 +81,23 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
         },
         pollInterval: 5000,
     });
+
+    // Reset all state when loading events.
+    useEffect(() => {
+        if (loading) {
+            setState(ReplayerState.Loading);
+            setErrors([]);
+            setEvents([]);
+            setScale(1);
+            setSessionCommentIntervals([]);
+            setReplayer(undefined);
+            setSelectedErrorId(undefined);
+            setTime(0);
+            setLocalStorageTime(0);
+            setSessionEndTime(0);
+            setSessionIntervals([]);
+        }
+    }, [loading, setLocalStorageTime]);
 
     // Downloads the events data only if the URL search parameter '?download=1' is present.
     useEffect(() => {
@@ -108,8 +125,20 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
                 eventsData?.events ?? []
             );
             // Load the first chunk of events. The rest of the events will be loaded in requestAnimationFrame.
+            const playerMountingRoot = document.getElementById(
+                'player'
+            ) as HTMLElement;
+            // There are existing children on an already initialized player page. We want to unmount the previously mounted player to mount the new one.
+            // Example: User is viewing Session A, they navigate to Session B. The player for Session A needs to be unmounted. If we don't unmount it then there will be 2 players on the page.
+            if (playerMountingRoot?.childNodes?.length > 0) {
+                while (playerMountingRoot.firstChild) {
+                    playerMountingRoot.removeChild(
+                        playerMountingRoot.firstChild
+                    );
+                }
+            }
             const r = new Replayer(newEvents.slice(0, EVENTS_CHUNK_SIZE), {
-                root: document.getElementById('player') as HTMLElement,
+                root: playerMountingRoot,
             });
             r.on(ReplayerEvents.Finish, () => {
                 setState(ReplayerState.Paused);
@@ -126,7 +155,7 @@ export const usePlayer = ({}: { refId: string }): ReplayerContextInterface => {
             }
             setReplayer(r);
         }
-    }, [eventsData]);
+    }, [eventsData, setLocalStorageTime]);
 
     // Loads the remaining events into Replayer.
     useEffect(() => {
