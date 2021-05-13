@@ -105,7 +105,7 @@ func TestEventsFromString(t *testing.T) {
 type fetcherMock struct{}
 
 func (u fetcherMock) fetchStylesheetData(href string) ([]byte, error) {
-	return []byte{"test"}, nil
+	return []byte("/*highlight-inject*/\n.highlight {\n    color: black;\n}"), nil
 }
 
 func TestInjectStyleSheets(t *testing.T) {
