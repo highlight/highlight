@@ -48,7 +48,6 @@ const OnboardingBubble = () => {
         loading,
         startPolling,
         stopPolling,
-        called,
         data,
     } = useGetOnboardingStepsQuery({
         variables: {
@@ -114,17 +113,16 @@ const OnboardingBubble = () => {
             setStepsNotFinishedCount(stepsNotFinishedCount);
 
             // Don't show the onboarding bubble if all the steps are completed.
-            if (
-                !loading &&
-                called &&
-                stepsNotFinishedCount === 0 &&
-                hasStartedOnboarding
-            ) {
-                setRainConfetti(true);
-                message.success('You have finished onboarding 👏');
-                setTimeout(() => {
+            if (stepsNotFinishedCount === 0) {
+                if (hasStartedOnboarding) {
+                    setRainConfetti(true);
+                    message.success('You have finished onboarding 👏');
+                    setTimeout(() => {
+                        setHasFinishedOnboarding(true);
+                    }, 1000 * 10);
+                } else {
                     setHasFinishedOnboarding(true);
-                }, 1000 * 10);
+                }
                 stopPolling();
             } else {
                 startPolling(3000);
@@ -135,11 +133,9 @@ const OnboardingBubble = () => {
             stopPolling();
         };
     }, [
-        called,
         data,
         hasStartedOnboarding,
         history,
-        loading,
         organization_id,
         setHasFinishedOnboarding,
         startPolling,
