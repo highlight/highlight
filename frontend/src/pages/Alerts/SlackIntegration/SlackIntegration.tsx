@@ -1,12 +1,13 @@
+import useLocalStorage from '@rehooks/local-storage';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import { useParams } from 'react-router-dom';
+
 import { useAddSlackIntegrationToWorkspaceMutation } from '../../../graph/generated/hooks';
 import { Maybe } from '../../../graph/generated/schemas';
-import integrationDetectorStyles from '../../Setup/IntegrationDetector/IntegrationDetector.module.scss';
 import { ReactComponent as CheckIcon } from '../../../static/verify-check-icon.svg';
-import useLocalStorage from '@rehooks/local-storage';
+import integrationDetectorStyles from '../../Setup/IntegrationDetector/IntegrationDetector.module.scss';
 
 interface Props {
     redirectPath: string;

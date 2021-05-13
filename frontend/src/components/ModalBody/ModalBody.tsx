@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import React, { HTMLProps } from 'react';
+
 import styles from './ModalBody.module.scss';
 
 /** ModalBody is used as a direct child from Modal. */

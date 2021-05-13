@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+
 import Close from '../../../static/Close';
 import styles from './LimitedSessionsCard.module.scss';
 

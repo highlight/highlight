@@ -2,11 +2,12 @@ import classNames from 'classnames';
 import moment from 'moment';
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+
+import commonStyles from '../../../../Common.module.scss';
+import Button from '../../../../components/Button/Button/Button';
+import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
 import { PlayerSearchParameters } from '../../../Player/PlayerHook/utils';
 import styles from '../../ErrorPage.module.scss';
-import commonStyles from '../../../../Common.module.scss';
-import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
-import Button from '../../../../components/Button/Button/Button';
 
 interface Props {
     errorGroup: Maybe<ErrorGroup> | undefined;

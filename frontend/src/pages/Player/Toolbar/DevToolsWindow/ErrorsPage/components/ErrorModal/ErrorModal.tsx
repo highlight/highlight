@@ -1,6 +1,7 @@
 import React from 'react';
 import { useHistory } from 'react-router';
 import { useParams } from 'react-router-dom';
+
 import Button from '../../../../../../../components/Button/Button/Button';
 import { LoadingBar } from '../../../../../../../components/Loading/Loading';
 import { useGetErrorGroupQuery } from '../../../../../../../graph/generated/hooks';

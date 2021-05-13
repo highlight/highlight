@@ -1,6 +1,7 @@
 import React from 'react';
-import { components, OptionProps } from 'react-select';
 import Highlighter from 'react-highlight-words';
+import { components, OptionProps } from 'react-select';
+
 import styles from './Option.module.scss';
 
 const SearchMatch = ({

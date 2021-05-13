@@ -1,13 +1,13 @@
 import React, { useEffect } from 'react';
-import { Redirect } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { CircularSpinner } from '../../components/Loading/Loading';
-import { client } from '../../util/graph';
+import { Redirect } from 'react-router-dom';
 
-import styles from './NewWorkspace.module.scss';
 import commonStyles from '../../Common.module.scss';
-import { useCreateOrganizationMutation } from '../../graph/generated/hooks';
 import Button from '../../components/Button/Button/Button';
+import { CircularSpinner } from '../../components/Loading/Loading';
+import { useCreateOrganizationMutation } from '../../graph/generated/hooks';
+import { client } from '../../util/graph';
+import styles from './NewWorkspace.module.scss';
 
 type Inputs = {
     name: string;

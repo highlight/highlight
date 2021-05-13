@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { message } from 'antd';
 import _ from 'lodash';
+import React, { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { RouteComponentProps, useParams, withRouter } from 'react-router-dom';
 
 import commonStyles from '../../../../Common.module.scss';
-import { useSearchContext } from '../../SearchContext/SearchContext';
-import { RouteComponentProps, useParams, withRouter } from 'react-router-dom';
+import Button from '../../../../components/Button/Button/Button';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
-import { message } from 'antd';
-import styles from './SegmentButtons.module.scss';
-import { useForm } from 'react-hook-form';
+import Modal from '../../../../components/Modal/Modal';
+import ModalBody from '../../../../components/ModalBody/ModalBody';
 import {
     useCreateSegmentMutation,
     useEditSegmentMutation,
 } from '../../../../graph/generated/hooks';
-import Modal from '../../../../components/Modal/Modal';
-import ModalBody from '../../../../components/ModalBody/ModalBody';
-import Button from '../../../../components/Button/Button/Button';
+import { useSearchContext } from '../../SearchContext/SearchContext';
+import styles from './SegmentButtons.module.scss';
 
 type Inputs = {
     name: string;

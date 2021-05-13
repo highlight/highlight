@@ -1,18 +1,19 @@
+import { Switch } from 'antd';
+import classNames from 'classnames';
 import React, { useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
-import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import AsyncCreatableSelect from 'react-select/async-creatable';
-import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
-import { ReactComponent as ErrorsIcon } from '../../../static/errors-icon.svg';
-import {
-    SharedSelectStyleProps,
-    ContainsLabel,
-} from '../../Sessions/SearchInputs/SearchInputUtil';
-import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
+
 import { SearchMatchOption } from '../../../components/Option/Option';
-import { Switch } from 'antd';
-import classNames from 'classnames';
+import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
+import { ReactComponent as ErrorsIcon } from '../../../static/errors-icon.svg';
+import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
+import {
+    ContainsLabel,
+    SharedSelectStyleProps,
+} from '../../Sessions/SearchInputs/SearchInputUtil';
+import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 
 export const EventInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();

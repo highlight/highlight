@@ -1,10 +1,11 @@
-import React from 'react';
-import commonStyles from '../../../Common.module.scss';
-import styles from './BillingPlanCard.module.scss';
-import { BillingPlan } from './BillingConfig';
 import classNames from 'classnames/bind';
+import React from 'react';
+
+import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
 import SvgVerifyCheckIcon from '../../../static/VerifyCheckIcon';
+import { BillingPlan } from './BillingConfig';
+import styles from './BillingPlanCard.module.scss';
 
 export const BillingPlanCard = ({
     billingPlan,

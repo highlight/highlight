@@ -1,20 +1,20 @@
+import useLocalStorage from '@rehooks/local-storage';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { LoadingPage } from '../../components/Loading/Loading';
-import { Header } from '../../components/Header/Header';
-import { useIntegrated } from '../../util/integrated';
-import { Sidebar } from '../../components/Sidebar/Sidebar';
 
 import commonStyles from '../../Common.module.scss';
-import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
-import ApplicationRouter from './ApplicationRouter';
+import { Header } from '../../components/Header/Header';
+import { LoadingPage } from '../../components/Loading/Loading';
+import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
+import { Sidebar } from '../../components/Sidebar/Sidebar';
 import {
     SidebarContextProvider,
     SidebarState,
 } from '../../components/Sidebar/SidebarContext';
-import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
-import useLocalStorage from '@rehooks/local-storage';
+import { useGetOrganizationQuery } from '../../graph/generated/hooks';
+import { useIntegrated } from '../../util/integrated';
+import ApplicationRouter from './ApplicationRouter';
 
 export const OrgRouter = () => {
     const { organization_id } = useParams<{ organization_id: string }>();

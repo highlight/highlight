@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { VirtuosoHandle, Virtuoso } from 'react-virtuoso';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+
 import { SessionCommentCard } from '../../../components/Comment/SessionComment/SessionComment';
 import { useGetSessionCommentsQuery } from '../../../graph/generated/hooks';
 import { MillisToMinutesAndSeconds } from '../../../util/time';

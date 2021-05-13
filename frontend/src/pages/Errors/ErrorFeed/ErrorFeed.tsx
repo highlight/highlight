@@ -1,3 +1,5 @@
+import { message } from 'antd';
+import classNames from 'classnames/bind';
 import React, {
     RefObject,
     useContext,
@@ -5,11 +7,13 @@ import React, {
     useMemo,
     useState,
 } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import styles from './ErrorFeed.module.scss';
+import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
-import classNames from 'classnames/bind';
-import { message } from 'antd';
+import { Link, useParams } from 'react-router-dom';
+
+import { Field } from '../../../components/Field/Field';
+import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
+import Tooltip from '../../../components/Tooltip/Tooltip';
 import {
     useGetErrorGroupsQuery,
     useMarkErrorGroupAsResolvedMutation,
@@ -19,17 +23,14 @@ import {
     ErrorResults,
     Maybe,
 } from '../../../graph/generated/schemas';
-import { ReactComponent as FlagIcon } from '../../../static/flag.svg';
 import { ReactComponent as ResolvedIcon } from '../../../static/checkmark.svg';
-import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
-import useInfiniteScroll from 'react-infinite-scroll-hook';
-import { gqlSanitize } from '../../../util/gqlSanitize';
-import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
+import { ReactComponent as FlagIcon } from '../../../static/flag.svg';
 import { frequencyTimeData } from '../../../util/errorCalculations';
-import { Field } from '../../../components/Field/Field';
-import { EventInput } from '../ErrorSearchInputs/EventInput';
-import Tooltip from '../../../components/Tooltip/Tooltip';
+import { gqlSanitize } from '../../../util/gqlSanitize';
 import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
+import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
+import { EventInput } from '../ErrorSearchInputs/EventInput';
+import styles from './ErrorFeed.module.scss';
 
 export type ErrorMetadata = {
     browser: string;

@@ -1,18 +1,16 @@
-import React, { RefObject, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { useSearchContext } from '../SearchContext/SearchContext';
-import styles from './SessionsFeed.module.scss';
-import Skeleton from 'react-loading-skeleton';
-import classNames from 'classnames/bind';
-import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
-import useInfiniteScroll from 'react-infinite-scroll-hook';
-import { ReactComponent as ViewedIcon } from '../../../static/viewed.svg';
-import { ReactComponent as UnviewedIcon } from '../../../static/unviewed.svg';
-import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
-import { ReactComponent as StarIcon } from '../../../static/star.svg';
-import { Avatar } from '../../../components/Avatar/Avatar';
 import { message } from 'antd';
-import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
+import classNames from 'classnames/bind';
+import React, { RefObject, useEffect, useMemo, useRef, useState } from 'react';
+import useInfiniteScroll from 'react-infinite-scroll-hook';
+import Skeleton from 'react-loading-skeleton';
+import { Link, useParams } from 'react-router-dom';
+
+import { Avatar } from '../../../components/Avatar/Avatar';
+import Dot from '../../../components/Dot/Dot';
+import { Field } from '../../../components/Field/Field';
+import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
+import Tooltip from '../../../components/Tooltip/Tooltip';
+import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
 import {
     useGetBillingDetailsQuery,
     useGetSessionsQuery,
@@ -22,19 +20,22 @@ import {
 import {
     Maybe,
     Session,
-    SessionResults,
     SessionLifecycle,
+    SessionResults,
 } from '../../../graph/generated/schemas';
-import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
-import { Field } from '../../../components/Field/Field';
-import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
+import { ReactComponent as StarIcon } from '../../../static/star.svg';
+import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
+import { ReactComponent as UnviewedIcon } from '../../../static/unviewed.svg';
+import { ReactComponent as ViewedIcon } from '../../../static/viewed.svg';
+import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
+import { useSearchContext } from '../SearchContext/SearchContext';
+import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 import {
     LIVE_SEGMENT_ID,
     STARRED_SEGMENT_ID,
 } from '../SearchSidebar/SegmentPicker/SegmentPicker';
-import Tooltip from '../../../components/Tooltip/Tooltip';
 import FirstTimeDecorations from './components/FirstTimeDecorations/FirstTimeDecorations';
-import Dot from '../../../components/Dot/Dot';
+import styles from './SessionsFeed.module.scss';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 

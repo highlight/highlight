@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import React from 'react';
+
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import { ParsedEvent } from '../../ReplayerContext';
 import { getAnnotationColor } from '../Toolbar';

@@ -1,17 +1,18 @@
 import { Menu, message } from 'antd';
+import { H } from 'highlight.run';
 import React, { PropsWithChildren, useContext } from 'react';
-import ReplayerContext, {
-    ParsedSessionComment,
-} from '../../../pages/Player/ReplayerContext';
-import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
-import { PlayerSearchParameters } from '../../../pages/Player/PlayerHook/utils';
-import { CommentHeader } from '../CommentHeader';
+import { useHistory, useParams } from 'react-router-dom';
+
 import {
     useDeleteSessionCommentMutation,
     useGetSessionQuery,
 } from '../../../graph/generated/hooks';
-import { useHistory, useParams } from 'react-router-dom';
-import { H } from 'highlight.run';
+import { PlayerSearchParameters } from '../../../pages/Player/PlayerHook/utils';
+import ReplayerContext, {
+    ParsedSessionComment,
+} from '../../../pages/Player/ReplayerContext';
+import { onGetLinkWithTimestamp } from '../../../pages/Player/ShareButton/utils/utils';
+import { CommentHeader } from '../CommentHeader';
 
 interface Props {
     comment: ParsedSessionComment;

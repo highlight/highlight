@@ -1,41 +1,43 @@
-import React, {
-    useState,
-    useRef,
-    useEffect,
-    useContext,
-    useMemo,
-    useCallback,
-} from 'react';
-import { useQueryParam, BooleanParam } from 'use-query-params';
-import { useParams } from 'react-router-dom';
-import { Replayer, EventType } from '@highlight-run/rrweb';
-import { eventWithTime } from '@highlight-run/rrweb/dist/types';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-import { Toolbar } from './Toolbar/Toolbar';
-import { StreamElement } from './StreamElement/StreamElement';
-import { MetadataBox } from './MetadataBox/MetadataBox';
-import { HighlightEvent } from './HighlightEvent';
-// @ts-ignore
-import useResizeAware from 'react-resize-aware';
-import styles from './PlayerPage.module.scss';
 import 'rc-slider/assets/index.css';
-import ReplayerContext, { ReplayerState } from './ReplayerContext';
-import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
-import { usePlayer } from './PlayerHook/PlayerHook';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
-import _ from 'lodash';
-import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
+
+import { EventType, Replayer } from '@highlight-run/rrweb';
+import { eventWithTime } from '@highlight-run/rrweb/dist/types';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
-import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
+import _ from 'lodash';
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+// @ts-ignore
+import useResizeAware from 'react-resize-aware';
+import { useParams } from 'react-router-dom';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import { BooleanParam, useQueryParam } from 'use-query-params';
+
+import Card from '../../components/Card/Card';
 import Modal from '../../components/Modal/Modal';
+import Tabs from '../../components/Tabs/Tabs';
+import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
+import CommentStream from './CommentStream/CommentStream';
+import { HighlightEvent } from './HighlightEvent';
+import { MetadataBox } from './MetadataBox/MetadataBox';
+import MetadataPanel from './MetadataPanel/MetadataPanel';
 import PlayerCommentCanvas, {
     Coordinates2D,
 } from './PlayerCommentCanvas/PlayerCommentCanvas';
-import Tabs from '../../components/Tabs/Tabs';
-import CommentStream from './CommentStream/CommentStream';
-import MetadataPanel from './MetadataPanel/MetadataPanel';
-import Card from '../../components/Card/Card';
+import { usePlayer } from './PlayerHook/PlayerHook';
+import styles from './PlayerPage.module.scss';
+import ReplayerContext, { ReplayerState } from './ReplayerContext';
+import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
+import { StreamElement } from './StreamElement/StreamElement';
+import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
+import { Toolbar } from './Toolbar/Toolbar';
 
 const Player = () => {
     const { session_id } = useParams<{

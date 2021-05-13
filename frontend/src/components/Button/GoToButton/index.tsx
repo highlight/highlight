@@ -1,7 +1,8 @@
-import React from 'react';
-import styles from './index.module.scss';
-import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
 import classNames from 'classnames';
+import React from 'react';
+
+import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
+import styles from './index.module.scss';
 
 interface GoToButtonComponentProps {
     label?: string;

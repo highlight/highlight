@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
+
 import { auth } from '../../util/auth';
 import { client } from '../../util/graph';
 import Button from '../Button/Button/Button';
 import Card from '../Card/Card';
-
 import styles from './ErrorState.module.scss';
 
 export const ErrorState = ({

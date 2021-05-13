@@ -1,19 +1,20 @@
+import { ReplayerEvents } from '@highlight-run/rrweb';
+import { customEvent } from '@highlight-run/rrweb/dist/types';
 import React, { useContext, useEffect, useState } from 'react';
-import styles from './SessionLevelBar.module.scss';
-import SessionToken from './SessionToken/SessionToken';
+import Skeleton from 'react-loading-skeleton';
+import { useParams } from 'react-router-dom';
+
+import { DemoContext } from '../../../DemoContext';
+import { useGetSessionQuery } from '../../../graph/generated/hooks';
 import { ReactComponent as LayoutIcon } from '../../../static/layout.svg';
 import { ReactComponent as LockIcon } from '../../../static/lock.svg';
 import ReplayerContext, { ReplayerState } from '../ReplayerContext';
-import { ReplayerEvents } from '@highlight-run/rrweb';
-import { customEvent } from '@highlight-run/rrweb/dist/types';
-import { findFirstEventOfType } from './utils/utils';
-import Skeleton from 'react-loading-skeleton';
-import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
-import { useParams } from 'react-router-dom';
-import { DemoContext } from '../../../DemoContext';
-import { useGetSessionQuery } from '../../../graph/generated/hooks';
 import ShareButton from '../ShareButton/ShareButton';
+import { CurrentUrlBar } from './CurrentUrlBar/CurrentUrlBar';
 import PanelDisplayControls from './PanelDisplayControls/PanelDisplayControls';
+import styles from './SessionLevelBar.module.scss';
+import SessionToken from './SessionToken/SessionToken';
+import { findFirstEventOfType } from './utils/utils';
 
 interface Viewport {
     height: number;

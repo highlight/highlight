@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
+
 import { Field } from '../../../components/Field/Field';
 import {
     useGetAdminQuery,

@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import React, { ReactElement } from 'react';
+
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import styles from './SessionToken.module.scss';
 

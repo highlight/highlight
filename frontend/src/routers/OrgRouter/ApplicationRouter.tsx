@@ -1,6 +1,7 @@
 import loadable from '@loadable/component';
 import React, { useState } from 'react';
 import { Redirect, Route, Switch, useParams } from 'react-router-dom';
+
 import { Buttons } from '../../pages/Buttons/Buttons';
 import {
     SearchContextProvider,

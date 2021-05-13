@@ -1,17 +1,17 @@
+import { message } from 'antd';
 import React, { useContext } from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
-import { Avatar } from '../../../components/Avatar/Avatar';
-import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
-import { ReactComponent as StarIcon } from '../../../static/star.svg';
 
-import styles from './MetadataBox.module.scss';
+import { Avatar } from '../../../components/Avatar/Avatar';
 import { DemoContext } from '../../../DemoContext';
 import {
     useGetSessionQuery,
     useMarkSessionAsStarredMutation,
 } from '../../../graph/generated/hooks';
-import Skeleton from 'react-loading-skeleton';
-import { message } from 'antd';
+import { ReactComponent as StarIcon } from '../../../static/star.svg';
+import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
+import styles from './MetadataBox.module.scss';
 import { getMajorVersion } from './utils/utils';
 
 export const MetadataBox = () => {

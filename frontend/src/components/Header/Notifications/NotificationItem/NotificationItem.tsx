@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
+
 import { PlayerSearchParameters } from '../../../../pages/Player/PlayerHook/utils';
 import CommentTextBody from '../../../../pages/Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
 import SvgErrorsIcon from '../../../../static/ErrorsIcon';

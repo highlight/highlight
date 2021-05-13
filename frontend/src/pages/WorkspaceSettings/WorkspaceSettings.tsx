@@ -1,9 +1,9 @@
+import classNames from 'classnames/bind';
 import React from 'react';
 
-import styles from './WorkspaceSettings.module.scss';
-import classNames from 'classnames/bind';
-import { FieldsForm } from './FieldsForm/FieldsForm';
 import { DangerForm } from './DangerForm/DangerForm';
+import { FieldsForm } from './FieldsForm/FieldsForm';
+import styles from './WorkspaceSettings.module.scss';
 
 const WorkspaceSettings = () => {
     return (

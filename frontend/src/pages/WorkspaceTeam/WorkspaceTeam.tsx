@@ -1,20 +1,20 @@
-import React, { useEffect, useRef } from 'react';
+import useLocalStorage from '@rehooks/local-storage';
 import { message, Skeleton } from 'antd';
+import classNames from 'classnames/bind';
+import React, { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useParams } from 'react-router-dom';
-import { AdminAvatar } from '../../components/Avatar/Avatar';
-import { CircularSpinner } from '../../components/Loading/Loading';
-import classNames from 'classnames/bind';
 
 import commonStyles from '../../Common.module.scss';
-import styles from './WorkspaceTeam.module.scss';
+import { AdminAvatar } from '../../components/Avatar/Avatar';
+import Button from '../../components/Button/Button/Button';
+import { CircularSpinner } from '../../components/Loading/Loading';
 import {
     useGetAdminsQuery,
     useGetOrganizationQuery,
     useSendAdminInviteMutation,
 } from '../../graph/generated/hooks';
-import Button from '../../components/Button/Button/Button';
-import useLocalStorage from '@rehooks/local-storage';
+import styles from './WorkspaceTeam.module.scss';
 
 type Inputs = {
     email: string;

@@ -1,10 +1,9 @@
+import { message } from 'antd';
 import React from 'react';
+import CopyToClipboard from 'react-copy-to-clipboard';
+import { FaCopy } from 'react-icons/fa';
 
 import styles from './CodeBlock.module.scss';
-import { message } from 'antd';
-import CopyToClipboard from 'react-copy-to-clipboard';
-
-import { FaCopy } from 'react-icons/fa';
 
 export const CodeBlock = ({
     text,

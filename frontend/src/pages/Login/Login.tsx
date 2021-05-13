@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import classNames from 'classnames';
+import { H } from 'highlight.run';
+import React, { useEffect, useState } from 'react';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { useForm } from 'react-hook-form';
+
+import commonStyles from '../../Common.module.scss';
+import Button from '../../components/Button/Button/Button';
+import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { LoadingPage } from '../../components/Loading/Loading';
 import { useGetAdminQuery } from '../../graph/generated/hooks';
-import commonStyles from '../../Common.module.scss';
-import { ReactComponent as GoogleLogo } from '../../static/google.svg';
-
-import styles from './Login.module.scss';
 import { AppRouter } from '../../routers/AppRouter/AppRouter';
-import { H } from 'highlight.run';
-import { useForm } from 'react-hook-form';
-import { useAuthState } from 'react-firebase-hooks/auth';
+import { ReactComponent as GoogleLogo } from '../../static/google.svg';
 import { auth, googleProvider } from '../../util/auth';
 import { Landing } from '../Landing/Landing';
 import { RequestAccessPage } from '../RequestAccess/RequestAccess';
-import { ErrorState } from '../../components/ErrorState/ErrorState';
-import Button from '../../components/Button/Button/Button';
-import classNames from 'classnames';
+import styles from './Login.module.scss';
 
 export const AuthAdminRouter = () => {
     const { loading, error, data } = useGetAdminQuery();

@@ -1,19 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import Button from '../../Button/Button/Button';
-import Popover from '../../Popover/Popover';
-import styles from './Notification.module.scss';
-import { useGetNotificationsQuery } from '../../../graph/generated/hooks';
-import PopoverListContent from '../../Popover/PopoverListContent';
-import NotificationItem from './NotificationItem/NotificationItem';
-import { processNotifications } from './utils/utils';
-import SvgBellIcon from '../../../static/BellIcon';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import { H } from 'highlight.run';
-import Dot from '../../Dot/Dot';
-import { Link, useParams } from 'react-router-dom';
 import Lottie from 'lottie-react';
+import React, { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+
+import { useGetNotificationsQuery } from '../../../graph/generated/hooks';
 import NotificationAnimation from '../../../lottie/notification.json';
+import SvgBellIcon from '../../../static/BellIcon';
+import Button from '../../Button/Button/Button';
+import Dot from '../../Dot/Dot';
+import Popover from '../../Popover/Popover';
+import PopoverListContent from '../../Popover/PopoverListContent';
+import styles from './Notification.module.scss';
+import NotificationItem from './NotificationItem/NotificationItem';
+import { processNotifications } from './utils/utils';
 
 const Notifications = () => {
     const { organization_id } = useParams<{ organization_id: string }>();

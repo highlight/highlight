@@ -1,22 +1,23 @@
-import React, { useContext, useRef } from 'react';
-import styles from './Sidebar.module.scss';
 import classNames from 'classnames/bind';
-import { Link, useParams, useLocation } from 'react-router-dom';
+import React, { useContext, useRef } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
+
+import { DemoContext } from '../../DemoContext';
+import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
+import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
+import SvgErrorsIcon from '../../static/ErrorsIcon';
+import { ReactComponent as SessionsIcon } from '../../static/sessions-icon.svg';
+import { ReactComponent as SetupIcon } from '../../static/setup-icon.svg';
+import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
+import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg';
+import Changelog from '../Changelog/Changelog';
 import {
     MiniWorkspaceIcon,
     WorkspaceDropdown,
 } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
-import { ReactComponent as SessionsIcon } from '../../static/sessions-icon.svg';
-import { ReactComponent as SetupIcon } from '../../static/setup-icon.svg';
-import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg';
-import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
-import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
-import { DemoContext } from '../../DemoContext';
-import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
-import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import Tooltip from '../Tooltip/Tooltip';
-import Changelog from '../Changelog/Changelog';
-import SvgErrorsIcon from '../../static/ErrorsIcon';
+import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
+import styles from './Sidebar.module.scss';
 import { SidebarState, useSidebarContext } from './SidebarContext';
 
 export const Sidebar = () => {

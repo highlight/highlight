@@ -7,6 +7,9 @@
     "plugin:prettier/recommended",
     "plugin:react-hooks/recommended"
   ],
+  "plugins": [
+    "simple-import-sort"
+  ],
   "env": {
     "commonjs": true,
     "es6": true,
@@ -76,6 +79,8 @@
           }
         ]
       }
-    ]
+    ],
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error"
   }
 }

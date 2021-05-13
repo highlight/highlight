@@ -1,9 +1,8 @@
-import hig211Metadata from './mock_data/intervalCalculationsIncorrect/metadata.json';
-import hig211AllIntervals from './mock_data/intervalCalculationsIncorrect/allIntervals.json';
-import happyPathMetadata from './mock_data/intervalCalculationsCorrect/metadata.json';
-import happyPathAllIntervals from './mock_data/intervalCalculationsCorrect/allIntervals.json';
-
 import { getSessionIntervals } from '.';
+import happyPathAllIntervals from './mock_data/intervalCalculationsCorrect/allIntervals.json';
+import happyPathMetadata from './mock_data/intervalCalculationsCorrect/metadata.json';
+import hig211AllIntervals from './mock_data/intervalCalculationsIncorrect/allIntervals.json';
+import hig211Metadata from './mock_data/intervalCalculationsIncorrect/metadata.json';
 
 describe('getSessionIntervals', () => {
     describe('Incorrect end time calculations', () => {

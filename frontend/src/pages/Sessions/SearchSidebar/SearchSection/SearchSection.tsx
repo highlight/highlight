@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import Collapsible from 'react-collapsible';
+
 import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg';
 import {
     SearchParams,

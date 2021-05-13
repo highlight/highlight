@@ -1,10 +1,11 @@
 import useLocalStorage from '@rehooks/local-storage';
 import React from 'react';
+import { BiMinus } from 'react-icons/bi';
+import { BsPlus } from 'react-icons/bs';
+
 import Button from '../../../../components/Button/Button/Button';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import styles from './SpeedControl.module.scss';
-import { BsPlus } from 'react-icons/bs';
-import { BiMinus } from 'react-icons/bi';
 
 const MIN_SPEED = 0.5;
 const MAX_SPEED = 8.0;

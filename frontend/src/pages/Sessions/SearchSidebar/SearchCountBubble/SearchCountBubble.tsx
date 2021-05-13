@@ -1,4 +1,5 @@
 import React from 'react';
+
 import styles from './SearchCountBubble.module.scss';
 
 const SearchCountBubble: React.FC = (props) => {

@@ -1,10 +1,9 @@
+import { LoadingOutlined } from '@ant-design/icons';
+import { Spin } from 'antd';
 import React from 'react';
 import BarLoader from 'react-spinners/BarLoader';
 
 import styles from './Loading.module.scss';
-
-import { Spin } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons';
 
 export const CircularSpinner = ({ style }: { style?: React.CSSProperties }) => {
     return (

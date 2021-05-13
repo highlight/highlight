@@ -1,16 +1,17 @@
 import React, { useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
-import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import AsyncCreatableSelect from 'react-select/async-creatable';
-import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
-import { ReactComponent as URLIcon } from '../../../static/link.svg';
-import {
-    SharedSelectStyleProps,
-    ContainsLabel,
-} from '../../Sessions/SearchInputs/SearchInputUtil';
-import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
+
 import { SearchMatchOption } from '../../../components/Option/Option';
+import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
+import { ReactComponent as URLIcon } from '../../../static/link.svg';
+import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
+import {
+    ContainsLabel,
+    SharedSelectStyleProps,
+} from '../../Sessions/SearchInputs/SearchInputUtil';
+import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 
 export const VisitedUrlInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();

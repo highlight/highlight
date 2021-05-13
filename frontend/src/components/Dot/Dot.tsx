@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import React from 'react';
+
 import styles from './Dot.module.scss';
 
 interface Props {
