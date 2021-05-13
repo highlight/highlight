@@ -22,6 +22,31 @@ const (
 	Custom
 )
 
+type fetcher interface {
+	fetchStylesheetData(string) ([]byte, error)
+}
+
+type networkFetcher struct{}
+
+func (n networkFetcher) fetchStylesheetData(href string) ([]byte, error) {
+	resp, err := http.Get(href)
+	if err != nil {
+		return nil, errors.Wrap(err, "error fetching styles")
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading styles")
+	}
+	body = append([]byte("/*highlight-inject*/\n"), body...)
+	return body, nil
+}
+
+var fetch fetcher
+
+func init() {
+	fetch = networkFetcher{}
+}
+
 // ReplayEvent represents a single event that represents a change on the DOM.
 type ReplayEvent struct {
 	Timestamp    time.Time       `json:"-"`
@@ -135,7 +160,7 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 		if !ok || !strings.Contains(href, "css") {
 			continue
 		}
-		data, err := fetchStylesheetData(href)
+		data, err := fetch.fetchStylesheetData(href)
 		if err != nil {
 			continue
 		}
@@ -154,19 +179,6 @@ func InjectStylesheets(inputData json.RawMessage) (json.RawMessage, error) {
 		return nil, errors.Wrap(err, "error marshaling back to json")
 	}
 	return json.RawMessage(b), nil
-}
-
-func fetchStylesheetData(href string) ([]byte, error) {
-	resp, err := http.Get(href)
-	if err != nil {
-		return nil, errors.Wrap(err, "error fetching styles")
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.Wrap(err, "error reading styles")
-	}
-	body = append([]byte("/*highlight-inject*/\n"), body...)
-	return body, nil
 }
 
 func javascriptToGolangTime(t float64) time.Time {

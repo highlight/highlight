@@ -102,8 +102,15 @@ func TestEventsFromString(t *testing.T) {
 	}
 }
 
+type fetcherMock struct{}
+
+func (u fetcherMock) fetchStylesheetData(href string) ([]byte, error) {
+	return []byte{"test"}, nil
+}
+
 func TestInjectStyleSheets(t *testing.T) {
 	// Get sample input of events and serialize.
+	fetch = fetcherMock{}
 	inputBytes, err := ioutil.ReadFile("./sample-events/input.json")
 	if err != nil {
 		t.Fatalf("error reading: %v", err)
