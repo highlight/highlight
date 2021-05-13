@@ -56,7 +56,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                     }),
                     multiValue: (provided) => ({
                         ...provided,
-                        backgroundColor: 'var(--color-gray-200)',
+                        backgroundColor: 'var(--color-purple-100)',
                     }),
                 }}
                 cacheOptions

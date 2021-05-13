@@ -52,7 +52,7 @@ export const TrackPropertyInput = () => {
                     }),
                     multiValue: (provided) => ({
                         ...provided,
-                        backgroundColor: 'var(--color-gray-200)',
+                        backgroundColor: 'var(--color-purple-100)',
                     }),
                 }}
                 cacheOptions
