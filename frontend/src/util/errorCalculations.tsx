@@ -1,4 +1,5 @@
 import moment from 'moment';
+
 import { ErrorGroup, Maybe } from '../graph/generated/schemas';
 
 /* Calculate metadata_log frequency over past n days */

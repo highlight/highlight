@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import React, { useContext } from 'react';
+
 import GoToButton from '../../../../../../../components/Button/GoToButton';
 import { ErrorObject } from '../../../../../../../graph/generated/schemas';
 import ReplayerContext from '../../../../../ReplayerContext';

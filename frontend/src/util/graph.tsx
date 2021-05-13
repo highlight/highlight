@@ -1,3 +1,5 @@
+import 'firebase/auth';
+
 import {
     ApolloClient,
     ApolloLink,
@@ -5,9 +7,7 @@ import {
     InMemoryCache,
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
-
 import * as firebase from 'firebase/app';
-import 'firebase/auth';
 
 const uri =
     process.env.REACT_APP_PRIVATE_GRAPH_URI ??

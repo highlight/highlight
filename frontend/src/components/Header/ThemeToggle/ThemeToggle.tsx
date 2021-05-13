@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
-import Button from '../../Button/Button/Button';
-import { RiMoonClearFill, RiSunLine } from 'react-icons/ri';
 import useLocalStorage from '@rehooks/local-storage';
+import React, { useEffect } from 'react';
+import { RiMoonClearFill, RiSunLine } from 'react-icons/ri';
+
 import useHighlightAdminFlag from '../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
+import Button from '../../Button/Button/Button';
 
 enum THEMES {
     Dark = 'dark',

@@ -1,12 +1,13 @@
-import React, { useEffect } from 'react';
 import Avatars from '@dicebear/avatars';
 import sprites from '@dicebear/avatars-avataaars-sprites';
+import React, { useEffect } from 'react';
+
+import { generateRandomColor } from '../../util/color';
 import {
-    userAvatarWrapper,
     userAvatar,
     userAvatarText,
+    userAvatarWrapper,
 } from './Avatar.module.scss';
-import { generateRandomColor } from '../../util/color';
 
 export const Avatar = ({
     style,

@@ -1,13 +1,12 @@
 import React from 'react';
 
+import { ReactComponent as EmptyState } from '../../static/empty-state.svg';
 import {
     emptyStateSection,
     emptyStateWrapper,
-    emptyTitle,
     emptySubTitle,
+    emptyTitle,
 } from './SearchEmptyState.module.scss';
-
-import { ReactComponent as EmptyState } from '../../static/empty-state.svg';
 import styles from './SearchEmptyState.module.scss';
 
 export const SearchEmptyState = ({ item }: { item: string }) => (

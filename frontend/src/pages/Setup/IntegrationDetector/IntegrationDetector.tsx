@@ -1,9 +1,9 @@
 import React from 'react';
 
-import styles from './IntegrationDetector.module.scss';
+import Tooltip from '../../../components/Tooltip/Tooltip';
 import { ReactComponent as CheckIcon } from '../../../static/verify-check-icon.svg';
 import ActivityIcon from '../../Player/SessionLevelBar/ActivityIcon/ActivityIcon';
-import Tooltip from '../../../components/Tooltip/Tooltip';
+import styles from './IntegrationDetector.module.scss';
 
 export const IntegrationDetector = ({
     integrated,

@@ -1,4 +1,5 @@
 import React from 'react';
+
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import { ErrorGroup, Maybe } from '../../../../graph/generated/schemas';
 import ErrorPageStyles from '../../ErrorPage.module.scss';

@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
-import { ModalProps, Modal as AntDesignModal } from 'antd';
+import { Modal as AntDesignModal, ModalProps } from 'antd';
 import React from 'react';
+
 import Close from '../../static/Close';
 import styles from './Modal.module.scss';
 

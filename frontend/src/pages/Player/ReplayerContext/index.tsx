@@ -1,8 +1,9 @@
-import { createContext } from 'react';
 import { Replayer } from '@highlight-run/rrweb';
 import { SessionInterval } from '@highlight-run/rrweb/dist/types';
-import { HighlightEvent } from '../HighlightEvent';
+import { createContext } from 'react';
+
 import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
+import { HighlightEvent } from '../HighlightEvent';
 
 export enum ReplayerState {
     Loading,

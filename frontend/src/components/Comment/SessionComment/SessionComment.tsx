@@ -1,11 +1,12 @@
+import classNames from 'classnames';
 import React from 'react';
+
 import { ParsedSessionComment } from '../../../pages/Player/ReplayerContext';
 import CommentTextBody from '../../../pages/Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
+import styles from './SessionComment.module.scss';
 import SessionCommentHeader, {
     CommentHeaderMenuItem,
 } from './SessionCommentHeader';
-import styles from './SessionComment.module.scss';
-import classNames from 'classnames';
 
 interface Props {
     comment: ParsedSessionComment;

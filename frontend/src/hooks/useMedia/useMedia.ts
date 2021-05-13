@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 const useMedia = <T>(queries: string[], values: T[], defaultValue: T) => {
     // Array containing a media query list for each query

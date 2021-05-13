@@ -1,18 +1,18 @@
-import React, { useContext, useState } from 'react';
 import { Dropdown } from 'antd';
-import { useParams, Link } from 'react-router-dom';
-import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
-import { ReactComponent as PlusIcon } from '../../../static/plus.svg';
-import { ReactComponent as CheckIcon } from '../../../static/check.svg';
+import React, { useContext, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 
-import styles from './WorkspaceDropdown.module.scss';
 import { DemoContext } from '../../../DemoContext';
 import {
     useGetOrganizationQuery,
     useGetOrganizationsQuery,
 } from '../../../graph/generated/hooks';
+import { ReactComponent as CheckIcon } from '../../../static/check.svg';
+import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
+import { ReactComponent as PlusIcon } from '../../../static/plus.svg';
 import { generateRandomColor } from '../../../util/color';
 import { SidebarState, useSidebarContext } from '../../Sidebar/SidebarContext';
+import styles from './WorkspaceDropdown.module.scss';
 
 export const MiniWorkspaceIcon = () => {
     const { setState } = useSidebarContext();

@@ -3,15 +3,15 @@ import { customEvent } from '@highlight-run/rrweb/dist/types';
 import useLocalStorage from '@rehooks/local-storage';
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useQueryParam, BooleanParam } from 'use-query-params';
+import { BooleanParam, useQueryParam } from 'use-query-params';
+
 import { DemoContext } from '../../../DemoContext';
 import {
-    useGetSessionPayloadQuery,
     useGetSessionCommentsQuery,
+    useGetSessionPayloadQuery,
 } from '../../../graph/generated/hooks';
 import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
 import { HighlightEvent } from '../HighlightEvent';
-
 import {
     ParsedSessionComment,
     ParsedSessionInterval,
@@ -19,9 +19,9 @@ import {
     ReplayerState,
 } from '../ReplayerContext';
 import {
-    getCommentsInSessionIntervals,
     addErrorsToSessionIntervals,
     addEventsToSessionIntervals,
+    getCommentsInSessionIntervals,
     getSessionIntervals,
     useSetPlayerTimestampFromSearchParam,
 } from './utils';

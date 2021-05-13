@@ -1,34 +1,34 @@
+import classNames from 'classnames';
+import classnames from 'classnames';
+import moment from 'moment';
 import React, { useEffect, useState } from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router';
-import { Field } from '../../components/Field/Field';
-import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
 import {
-    BarChart,
     Bar,
-    XAxis,
-    Tooltip as RechartsTooltip,
-    ResponsiveContainer,
+    BarChart,
     CartesianGrid,
-    YAxis,
     Cell,
+    ResponsiveContainer,
+    Tooltip as RechartsTooltip,
+    XAxis,
+    YAxis,
 } from 'recharts';
 
-import styles from './ErrorPage.module.scss';
-import Skeleton from 'react-loading-skeleton';
+import { Field } from '../../components/Field/Field';
+import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
-import moment from 'moment';
 import { frequencyTimeData } from '../../util/errorCalculations';
-import classNames from 'classnames';
-import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
-import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTable';
-import StackTraceSection from './components/StackTraceSection/StackTraceSection';
-import ErrorDescription from './components/ErrorDescription/ErrorDescription';
-import ErrorTitle from './components/ErrorTitle/ErrorTitle';
-import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
 import ErrorComments from './components/ErrorComments/ErrorComments';
-import classnames from 'classnames';
+import ErrorDescription from './components/ErrorDescription/ErrorDescription';
+import { parseErrorDescriptionList } from './components/ErrorDescription/utils/utils';
+import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTable';
+import ErrorTitle from './components/ErrorTitle/ErrorTitle';
+import StackTraceSection from './components/StackTraceSection/StackTraceSection';
+import styles from './ErrorPage.module.scss';
+import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
 
-export const ErrorPage = () => {
+const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
@@ -270,3 +270,5 @@ export const getHeaderFromError = (
 
     return errorMsg?.join() ?? '';
 };
+
+export default ErrorPage;

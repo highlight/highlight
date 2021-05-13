@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { auth } from '../../util/auth';
-import { client } from '../../util/graph';
-import { useParams, Redirect } from 'react-router-dom';
+import { Redirect, useParams } from 'react-router-dom';
 
-import styles from './NewMemberPage.module.scss';
 import commonStyles from '../../Common.module.scss';
+import Button from '../../components/Button/Button/Button';
 import { CircularSpinner, LoadingBar } from '../../components/Loading/Loading';
 import {
     useAddAdminToOrganizationMutation,
     useGetAdminQuery,
 } from '../../graph/generated/hooks';
-import Button from '../../components/Button/Button/Button';
+import { auth } from '../../util/auth';
+import { client } from '../../util/graph';
+import styles from './NewMemberPage.module.scss';
 
-export const NewMemberPage = () => {
+const NewMemberPage = () => {
     const { invite_id, organization_id } = useParams<{
         organization_id: string;
         invite_id: string;
@@ -75,3 +75,5 @@ export const NewMemberPage = () => {
         </div>
     );
 };
+
+export default NewMemberPage;

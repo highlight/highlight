@@ -5,6 +5,7 @@ import {
 } from '@highlight-run/rrweb/dist/types';
 import { useCallback, useState } from 'react';
 import { useLocation } from 'react-router';
+
 import {
     ErrorObject,
     SessionComment,

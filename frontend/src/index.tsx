@@ -1,20 +1,19 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
 import 'antd/dist/antd.css';
 import './index.scss';
 import '@highlight-run/rrweb/dist/index.css';
-import * as serviceWorker from './serviceWorker';
 
 import { ApolloProvider } from '@apollo/client';
-import { client } from './util/graph';
-import { LoginForm } from './pages/Login/Login';
-import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
-import { DemoContext } from './DemoContext';
+import loadable from '@loadable/component';
 import { H, HighlightOptions } from 'highlight.run';
-import { DemoRouter } from './DemoRouter';
+import React from 'react';
+import ReactDOM from 'react-dom';
 import { SkeletonTheme } from 'react-loading-skeleton';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
-import { About } from './pages/About/About';
+
+import { DemoContext } from './DemoContext';
+import * as serviceWorker from './serviceWorker';
+import { client } from './util/graph';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
@@ -35,6 +34,10 @@ window.Intercom('boot', {
     app_id: 'gm6369ty',
     alignment: 'left',
 });
+
+const About = loadable(() => import('./pages/About/About'));
+const DemoRouter = loadable(() => import('./DemoRouter'));
+const LoginForm = loadable(() => import('./pages/Login/Login'));
 
 const App = () => {
     return (

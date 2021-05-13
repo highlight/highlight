@@ -1,20 +1,20 @@
-import React, { useContext, useState, useEffect } from 'react';
+import { message } from 'antd';
 import _ from 'lodash';
+import React, { useContext, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { RouteComponentProps, useParams, withRouter } from 'react-router-dom';
 
 import commonStyles from '../../../../Common.module.scss';
-import { ErrorSearchContext } from '../../ErrorSearchContext/ErrorSearchContext';
-import { RouteComponentProps, useParams, withRouter } from 'react-router-dom';
+import Button from '../../../../components/Button/Button/Button';
 import { CircularSpinner } from '../../../../components/Loading/Loading';
-import { message } from 'antd';
-import styles from './SegmentButtons.module.scss';
-import { useForm } from 'react-hook-form';
+import Modal from '../../../../components/Modal/Modal';
+import ModalBody from '../../../../components/ModalBody/ModalBody';
 import {
     useCreateErrorSegmentMutation,
     useEditErrorSegmentMutation,
 } from '../../../../graph/generated/hooks';
-import ModalBody from '../../../../components/ModalBody/ModalBody';
-import Modal from '../../../../components/Modal/Modal';
-import Button from '../../../../components/Button/Button/Button';
+import { ErrorSearchContext } from '../../ErrorSearchContext/ErrorSearchContext';
+import styles from './SegmentButtons.module.scss';
 
 type Inputs = {
     name: string;

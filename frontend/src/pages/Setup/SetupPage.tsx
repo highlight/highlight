@@ -1,20 +1,20 @@
-import React, { useState, FunctionComponent } from 'react';
-
-import { CodeBlock } from './CodeBlock/CodeBlock';
-import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
-import { useParams } from 'react-router-dom';
-import styles from './SetupPage.module.scss';
-import useFetch from 'use-http';
-import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
-import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
+import useLocalStorage from '@rehooks/local-storage';
+import classNames from 'classnames';
+import { H } from 'highlight.run';
+import React, { FunctionComponent, useState } from 'react';
 import Collapsible from 'react-collapsible';
 import Skeleton from 'react-loading-skeleton';
-import { H } from 'highlight.run';
-import { useGetOrganizationQuery } from '../../graph/generated/hooks';
-import useLocalStorage from '@rehooks/local-storage';
+import { useParams } from 'react-router-dom';
+import useFetch from 'use-http';
+
 import SvgSlackLogo from '../../components/icons/SlackLogo';
+import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
+import { useGetOrganizationQuery } from '../../graph/generated/hooks';
+import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
 import SlackIntegration from '../Alerts/SlackIntegration/SlackIntegration';
-import classNames from 'classnames';
+import { CodeBlock } from './CodeBlock/CodeBlock';
+import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
+import styles from './SetupPage.module.scss';
 
 enum PlatformType {
     Html = 'HTML',
@@ -23,7 +23,7 @@ enum PlatformType {
     NextJs = 'Next.js',
 }
 
-export const SetupPage = ({ integrated }: { integrated: boolean }) => {
+const SetupPage = ({ integrated }: { integrated: boolean }) => {
     const [platform, setPlatform] = useState(PlatformType.React);
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data, loading } = useGetOrganizationQuery({
@@ -365,3 +365,5 @@ export const Section: FunctionComponent<SectionProps> = ({
         </div>
     );
 };
+
+export default SetupPage;

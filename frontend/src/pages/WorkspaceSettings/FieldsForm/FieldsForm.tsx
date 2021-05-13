@@ -1,18 +1,17 @@
-import React from 'react';
-
-import { useForm } from 'react-hook-form';
-
-import styles from './FieldsForm.module.scss';
-import commonStyles from '../../../Common.module.scss';
-import classNames from 'classnames/bind';
-import { useParams } from 'react-router-dom';
-import { CircularSpinner } from '../../../components/Loading/Loading';
 import { message } from 'antd';
+import classNames from 'classnames/bind';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { useParams } from 'react-router-dom';
+
+import commonStyles from '../../../Common.module.scss';
+import Button from '../../../components/Button/Button/Button';
+import { CircularSpinner } from '../../../components/Loading/Loading';
 import {
     useEditOrganizationMutation,
     useGetOrganizationQuery,
 } from '../../../graph/generated/hooks';
-import Button from '../../../components/Button/Button/Button';
+import styles from './FieldsForm.module.scss';
 
 type Inputs = {
     name: string;

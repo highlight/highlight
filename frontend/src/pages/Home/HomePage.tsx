@@ -1,33 +1,33 @@
+import classNames from 'classnames';
 import moment from 'moment';
 import React, { useState } from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 import {
-    useGetDailySessionsCountQuery,
-    useGetDailyErrorsCountQuery,
-} from '../../graph/generated/hooks';
-import {
-    LineChart,
-    XAxis,
-    Tooltip as RechartsTooltip,
-    ResponsiveContainer,
     CartesianGrid,
-    YAxis,
     Line,
+    LineChart,
+    ResponsiveContainer,
+    Tooltip as RechartsTooltip,
+    XAxis,
+    YAxis,
 } from 'recharts';
 
-import styles from './HomePage.module.scss';
-import classNames from 'classnames';
-import Skeleton from 'react-loading-skeleton';
-import { dailyCountData } from '../../util/dashboardCalculations';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
+import {
+    useGetDailyErrorsCountQuery,
+    useGetDailySessionsCountQuery,
+} from '../../graph/generated/hooks';
+import { dailyCountData } from '../../util/dashboardCalculations';
 import { formatNumber } from '../../util/numbers';
+import styles from './HomePage.module.scss';
 
 type DailyCount = {
     date: string;
     count: number;
 };
 
-export const HomePage = () => {
+const HomePage = () => {
     return (
         <div className={styles.dashboardWrapper}>
             <div className={styles.dashboard}>
@@ -231,3 +231,5 @@ const DailyChart = ({
         </ResponsiveContainer>
     );
 };
+
+export default HomePage;

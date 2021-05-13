@@ -1,10 +1,11 @@
-import React from 'react';
-import { useMarkErrorGroupAsResolvedMutation } from '../../../graph/generated/hooks';
-import commonStyles from '../../../Common.module.scss';
-import { useParams } from 'react-router-dom';
-import { CircularSpinner } from '../../../components/Loading/Loading';
 import { message } from 'antd';
+import React from 'react';
+import { useParams } from 'react-router-dom';
+
+import commonStyles from '../../../Common.module.scss';
 import Button from '../../../components/Button/Button/Button';
+import { CircularSpinner } from '../../../components/Loading/Loading';
+import { useMarkErrorGroupAsResolvedMutation } from '../../../graph/generated/hooks';
 
 export const ResolveErrorButton: React.FC<{
     resolved: boolean;

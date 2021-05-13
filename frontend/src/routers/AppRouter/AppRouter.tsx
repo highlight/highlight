@@ -1,20 +1,27 @@
-import React from 'react';
 import '../../App.scss';
 
-import styles from './AppRouter.module.scss';
-import { LoadingPage } from '../../components/Loading/Loading';
-import { NewMemberPage } from '../../pages/NewMember/NewMemberPage';
-import { NewWorkspacePage } from '../../pages/NewWorkspace/NewWorkspacePage';
+import loadable from '@loadable/component';
+import React from 'react';
 import {
-    Switch,
-    Route,
     BrowserRouter as Router,
     Redirect,
+    Route,
+    Switch,
 } from 'react-router-dom';
-import { OrgRouter } from '../OrgRouter/OrgRouter';
+
+import { LoadingPage } from '../../components/Loading/Loading';
 import { useGetOrganizationsQuery } from '../../graph/generated/hooks';
 import { Landing } from '../../pages/Landing/Landing';
 import InternalRouter from '../InternalRouter/InternalRouter';
+import { OrgRouter } from '../OrgRouter/OrgRouter';
+import styles from './AppRouter.module.scss';
+
+const NewMemberPage = loadable(
+    () => import('../../pages/NewMember/NewMemberPage')
+);
+const NewWorkspacePage = loadable(
+    () => import('../../pages/NewWorkspace/NewWorkspacePage')
+);
 
 export const AppRouter = () => {
     const {

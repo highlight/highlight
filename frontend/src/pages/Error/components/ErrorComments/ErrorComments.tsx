@@ -1,8 +1,15 @@
-import React, { useMemo, useState } from 'react';
-import { H } from 'highlight.run';
 import { Form, Menu, message } from 'antd';
-import styles from '../../ErrorPage.module.scss';
+import { H } from 'highlight.run';
+import React, { useMemo, useState } from 'react';
+import { OnChangeHandlerFunc } from 'react-mentions';
 import { useParams } from 'react-router-dom';
+
+import Button from '../../../../components/Button/Button/Button';
+import {
+    AdminSuggestion,
+    CommentHeader,
+    parseAdminSuggestions,
+} from '../../../../components/Comment/CommentHeader';
 import {
     useCreateErrorCommentMutation,
     useDeleteErrorCommentMutation,
@@ -10,15 +17,9 @@ import {
     useGetAdminsQuery,
     useGetErrorCommentsQuery,
 } from '../../../../graph/generated/hooks';
-import CommentTextBody from '../../../Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
-import { OnChangeHandlerFunc } from 'react-mentions';
-import Button from '../../../../components/Button/Button/Button';
-import {
-    AdminSuggestion,
-    CommentHeader,
-    parseAdminSuggestions,
-} from '../../../../components/Comment/CommentHeader';
 import { SanitizedAdminInput } from '../../../../graph/generated/schemas';
+import CommentTextBody from '../../../Player/Toolbar/NewCommentEntry/CommentTextBody/CommentTextBody';
+import styles from '../../ErrorPage.module.scss';
 
 const ErrorComments = () => {
     const { error_id, organization_id } = useParams<{

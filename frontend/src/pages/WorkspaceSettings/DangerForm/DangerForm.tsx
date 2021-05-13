@@ -1,16 +1,17 @@
-import React from 'react';
-import commonStyles from '../../../Common.module.scss';
-import styles from './DangerForm.module.scss';
-import { useForm } from 'react-hook-form';
-import classNames from 'classnames/bind';
-import { useParams, Redirect } from 'react-router-dom';
-import { CircularSpinner } from '../../../components/Loading/Loading';
 import { Skeleton } from 'antd';
+import classNames from 'classnames/bind';
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { Redirect, useParams } from 'react-router-dom';
+
+import commonStyles from '../../../Common.module.scss';
+import Button from '../../../components/Button/Button/Button';
+import { CircularSpinner } from '../../../components/Loading/Loading';
 import {
     useDeleteOrganizationMutation,
     useGetOrganizationQuery,
 } from '../../../graph/generated/hooks';
-import Button from '../../../components/Button/Button/Button';
+import styles from './DangerForm.module.scss';
 
 type Inputs = {
     text: string;

@@ -1,6 +1,7 @@
 import useLocalStorage from '@rehooks/local-storage';
 import { Checkbox, CheckboxOptionType } from 'antd';
 import React from 'react';
+
 import Button from '../../../../components/Button/Button/Button';
 import Popover from '../../../../components/Popover/Popover';
 import Tooltip from '../../../../components/Tooltip/Tooltip';

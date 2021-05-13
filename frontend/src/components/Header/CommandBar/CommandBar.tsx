@@ -1,17 +1,17 @@
 import React, { useEffect } from 'react';
-
 import CommandPalette, { Command } from 'react-command-palette';
 import { RouteComponentProps } from 'react-router';
 import { useParams, withRouter } from 'react-router-dom';
+
 import { useGetOrganizationSuggestionLazyQuery } from '../../../graph/generated/hooks';
+import useHighlightAdminFlag from '../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
+import styles from './CommandBar.module.scss';
 import {
     CommandWithoutId,
     getNavigationCommands,
     usePlayerCommands,
 } from './CommandBarCommands';
 import CommandBarCommand from './components/CommandBarCommand';
-import styles from './CommandBar.module.scss';
-import useHighlightAdminFlag from '../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 
 const THEME = {
     container: styles.container,

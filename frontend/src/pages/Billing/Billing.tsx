@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useLocation } from 'react-router-dom';
 import { loadStripe } from '@stripe/stripe-js';
-import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard';
-import { BILLING_PLANS } from './BillingPlanCard/BillingConfig';
-
-import styles from './Billing.module.scss';
-
-import Skeleton from 'react-loading-skeleton';
 import { message } from 'antd';
+import React, { useEffect, useState } from 'react';
+import Skeleton from 'react-loading-skeleton';
+import { useLocation, useParams } from 'react-router-dom';
+
 import {
     useCreateOrUpdateSubscriptionMutation,
     useGetBillingDetailsQuery,
 } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
+import styles from './Billing.module.scss';
+import { BILLING_PLANS } from './BillingPlanCard/BillingConfig';
+import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard';
 
 const getStripePromiseOrNull = () => {
     const stripe_publishable_key = process.env.REACT_APP_STRIPE_API_PK;
@@ -24,7 +23,7 @@ const getStripePromiseOrNull = () => {
 
 const stripePromiseOrNull = getStripePromiseOrNull();
 
-export const Billing = () => {
+const BillingPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { pathname } = useLocation();
     const [
@@ -136,3 +135,5 @@ export const Billing = () => {
         </div>
     );
 };
+
+export default BillingPage;

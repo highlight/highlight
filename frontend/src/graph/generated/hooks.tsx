@@ -1,7 +1,7 @@
-import * as Types from './operations';
-
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
+
+import * as Types from './operations';
 export const ErrorFieldsFragmentDoc = gql`
     fragment errorFields on ErrorObject {
         id

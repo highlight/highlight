@@ -1,16 +1,17 @@
 import classNames from 'classnames';
 import React, { useContext, useEffect, useState } from 'react';
+
+import { SessionCommentCard } from '../../../../components/Comment/SessionComment/SessionComment';
+import TransparentPopover from '../../../../components/Popover/TransparentPopover';
 import {
     Maybe,
     SanitizedAdmin,
     SessionComment as SessionCommentType,
 } from '../../../../graph/generated/schemas';
 import CommentPinIcon from '../../../../static/comment-pin.png';
-import styles from './PlayerSessionComment.module.scss';
-import commentButtonStyles from '../PlayerCommentCanvas.module.scss';
 import ReplayerContext from '../../ReplayerContext';
-import TransparentPopover from '../../../../components/Popover/TransparentPopover';
-import { SessionCommentCard } from '../../../../components/Comment/SessionComment/SessionComment';
+import commentButtonStyles from '../PlayerCommentCanvas.module.scss';
+import styles from './PlayerSessionComment.module.scss';
 
 interface Props {
     comment: Maybe<

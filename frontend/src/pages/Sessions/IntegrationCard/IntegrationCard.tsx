@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
-import { LoadingBar } from '../../../components/Loading/Loading';
 
+import { LoadingBar } from '../../../components/Loading/Loading';
 import styles from './IntegrationCard.module.scss';
 
 export const IntegrationCard = () => {

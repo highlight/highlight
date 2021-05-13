@@ -1,6 +1,7 @@
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import React from 'react';
+
 import Button from '../../../../components/Button/Button/Button';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import SvgPanelBottomIcon from '../../../../static/PanelBottomIcon';

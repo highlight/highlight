@@ -1,27 +1,34 @@
+import loadable from '@loadable/component';
 import React, { useState } from 'react';
 import { Redirect, Route, Switch, useParams } from 'react-router-dom';
-import { AlertsPage } from '../../pages/Alerts/Alerts';
-import { Billing } from '../../pages/Billing/Billing';
+
 import { Buttons } from '../../pages/Buttons/Buttons';
-import { ErrorPage } from '../../pages/Error/ErrorPage';
-import { ErrorsPage } from '../../pages/Errors/ErrorsPage';
-import { HomePage } from '../../pages/Home/HomePage';
-import { Player } from '../../pages/Player/PlayerPage';
 import {
     SearchContextProvider,
     SearchParams,
 } from '../../pages/Sessions/SearchContext/SearchContext';
-import {
-    EmptySessionsSearchParams,
-    SessionsPage,
-} from '../../pages/Sessions/SessionsPage';
-import { SetupPage } from '../../pages/Setup/SetupPage';
-import { WorkspaceSettings } from '../../pages/WorkspaceSettings/WorkspaceSettings';
-import { WorkspaceTeam } from '../../pages/WorkspaceTeam/WorkspaceTeam';
+import { EmptySessionsSearchParams } from '../../pages/Sessions/SessionsPage';
 
 interface Props {
     integrated: boolean;
 }
+
+const SessionsPage = loadable(
+    () => import('../../pages/Sessions/SessionsPage')
+);
+const Player = loadable(() => import('../../pages/Player/PlayerPage'));
+const WorkspaceSettings = loadable(
+    () => import('../../pages/WorkspaceSettings/WorkspaceSettings')
+);
+const AlertsPage = loadable(() => import('../../pages/Alerts/Alerts'));
+const ErrorPage = loadable(() => import('../../pages/Error/ErrorPage'));
+const ErrorsPage = loadable(() => import('../../pages/Errors/ErrorsPage'));
+const HomePage = loadable(() => import('../../pages/Home/HomePage'));
+const SetupPage = loadable(() => import('../../pages/Setup/SetupPage'));
+const WorkspaceTeam = loadable(
+    () => import('../../pages/WorkspaceTeam/WorkspaceTeam')
+);
+const BillingPage = loadable(() => import('../../pages/Billing/Billing'));
 
 const ApplicationRouter = ({ integrated }: Props) => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -70,7 +77,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     <WorkspaceTeam />
                 </Route>
                 <Route path="/:organization_id/billing">
-                    <Billing />
+                    <BillingPage />
                 </Route>
                 <Route path="/:organization_id/setup">
                     <SetupPage integrated={integrated} />

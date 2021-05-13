@@ -1,20 +1,20 @@
+import classNames from 'classnames/bind';
 import React, { useContext } from 'react';
-import { ReactComponent as Banner } from '../../static/banner.svg';
-import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
-import { UserDropdown } from './UserDropdown/UserDropdown';
 
-import styles from './Header.module.scss';
 import { DemoContext } from '../../DemoContext';
-import { SidebarState, useSidebarContext } from '../Sidebar/SidebarContext';
-import classNames from 'classnames/bind';
-import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
-import { CommandBar } from './CommandBar/CommandBar';
-import Notifications from './Notifications/Notifications';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
+import { ReactComponent as Banner } from '../../static/banner.svg';
+import { ReactComponent as Hamburger } from '../../static/hamburger.svg';
+import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
+import { SidebarState, useSidebarContext } from '../Sidebar/SidebarContext';
+import { CommandBar } from './CommandBar/CommandBar';
+import styles from './Header.module.scss';
+import Notifications from './Notifications/Notifications';
 import ThemeToggle from './ThemeToggle/ThemeToggle';
+import { UserDropdown } from './UserDropdown/UserDropdown';
 
 export const Header = () => {
     const { organization_id } = useParams<{ organization_id: string }>();

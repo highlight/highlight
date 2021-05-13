@@ -1,12 +1,12 @@
+import { message } from 'antd';
 import React from 'react';
 import { useForm } from 'react-hook-form';
+
+import commonStyles from '../../Common.module.scss';
+import Button from '../../components/Button/Button/Button';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import { useSendEmailSignupMutation } from '../../graph/generated/hooks';
-
 import styles from './RequestAccess.module.scss';
-import commonStyles from '../../Common.module.scss';
-import { message } from 'antd';
-import Button from '../../components/Button/Button/Button';
 
 type Inputs = {
     email: string;

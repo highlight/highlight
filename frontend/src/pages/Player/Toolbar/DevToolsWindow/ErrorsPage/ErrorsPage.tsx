@@ -1,13 +1,14 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import devStyles from '../DevToolsWindow.module.scss';
-import styles from './ErrorsPage.module.scss';
-import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard';
-import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import Skeleton from 'react-loading-skeleton';
+import { useHistory } from 'react-router-dom';
+import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+
 import ReplayerContext, { ReplayerState } from '../../../ReplayerContext';
-import { findLastActiveEventIndex } from './utils/utils';
 import { useErrorModalContext } from '../../ErrorModalContext/ErrorModalContext';
+import devStyles from '../DevToolsWindow.module.scss';
+import ErrorCard, { ErrorCardState } from './components/ErrorCard/ErrorCard';
+import styles from './ErrorsPage.module.scss';
+import { findLastActiveEventIndex } from './utils/utils';
 
 export interface ErrorsPageHistoryState {
     errorCardIndex: number;
