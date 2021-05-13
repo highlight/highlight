@@ -57,7 +57,7 @@ type Inputs = {
     password: string;
 };
 
-export const LoginForm = () => {
+const LoginForm = () => {
     const url = window.location.hostname;
     const {
         watch,
@@ -238,3 +238,5 @@ export const LoginForm = () => {
         </Landing>
     );
 };
+
+export default LoginForm;

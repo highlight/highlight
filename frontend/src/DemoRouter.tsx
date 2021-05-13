@@ -11,7 +11,7 @@ import { Header } from './components/Header/Header';
 import { Player } from './pages/Player/PlayerPage';
 import { DemoContext } from './DemoContext';
 
-export const DemoRouter = () => {
+const DemoRouter = () => {
     const [sidebarState, setSidebarState] = useState<SidebarState>(
         SidebarState.Collapsed
     );
@@ -64,3 +64,5 @@ export const DemoRouter = () => {
         </DemoContext.Provider>
     );
 };
+
+export default DemoRouter;

@@ -2,7 +2,7 @@ import React, { lazy, Suspense } from 'react';
 import { Route } from 'react-router';
 import { Switch } from 'react-router-dom';
 
-export const About = () => {
+const About = () => {
     return (
         <Switch>
             <Suspense fallback={<></>}>
@@ -23,3 +23,5 @@ export const About = () => {
         </Switch>
     );
 };
+
+export default About;

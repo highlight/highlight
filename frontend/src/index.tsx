@@ -7,14 +7,12 @@ import * as serviceWorker from './serviceWorker';
 
 import { ApolloProvider } from '@apollo/client';
 import { client } from './util/graph';
-import { LoginForm } from './pages/Login/Login';
 import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
 import { DemoContext } from './DemoContext';
 import { H, HighlightOptions } from 'highlight.run';
-import { DemoRouter } from './DemoRouter';
 import { SkeletonTheme } from 'react-loading-skeleton';
 import { QueryParamProvider } from 'use-query-params';
-import { About } from './pages/About/About';
+import loadable from '@loadable/component';
 
 const dev = process.env.NODE_ENV === 'development' ? true : false;
 const options: HighlightOptions = {
@@ -35,6 +33,10 @@ window.Intercom('boot', {
     app_id: 'gm6369ty',
     alignment: 'left',
 });
+
+const About = loadable(() => import('./pages/About/About'));
+const DemoRouter = loadable(() => import('./DemoRouter'));
+const LoginForm = loadable(() => import('./pages/Login/Login'));
 
 const App = () => {
     return (
