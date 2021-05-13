@@ -44,9 +44,7 @@ const Player = () => {
         session_id: string;
     }>();
     const [resizeListener, sizes] = useResizeAware();
-    const player = usePlayer({
-        refId: 'player',
-    });
+    const player = usePlayer();
     const {
         state: replayerState,
         scale: replayerScale,
