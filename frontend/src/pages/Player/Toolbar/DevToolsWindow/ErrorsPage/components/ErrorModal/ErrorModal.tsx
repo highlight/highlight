@@ -42,14 +42,10 @@ const ErrorModal = ({ error }: Props) => {
                                 />
                             </div>
 
-                            <h2 className={errorPageStyles.subTitle}>
-                                Stack Trace
-                            </h2>
+                            <h3>Stack Trace</h3>
                             <StackTraceSection errorGroup={data.error_group} />
 
-                            <h2 className={errorPageStyles.subTitle}>
-                                Error Frequency
-                            </h2>
+                            <h3>Error Frequency</h3>
                             <ErrorFrequencyGraph
                                 errorGroup={data.error_group}
                             />
@@ -57,6 +53,7 @@ const ErrorModal = ({ error }: Props) => {
                     )}
                     <div className={styles.actionsContainer}>
                         <Button
+                            type="primary"
                             onClick={() => {
                                 history.push(
                                     `/${organization_id}/errors/${error.error_group_id}`

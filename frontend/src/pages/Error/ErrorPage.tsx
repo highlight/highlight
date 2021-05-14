@@ -55,7 +55,7 @@ const ErrorPage = () => {
                             <ErrorDescription errorGroup={data?.error_group} />
                         )}
                     </div>
-                    <div className={styles.subTitle}>
+                    <h3>
                         {loading ? (
                             <Skeleton
                                 duration={1}
@@ -65,11 +65,11 @@ const ErrorPage = () => {
                         ) : (
                             'Stack Trace'
                         )}
-                    </div>
+                    </h3>
                     <div className={styles.fieldWrapper}>
                         <StackTraceSection errorGroup={data?.error_group} />
                     </div>
-                    <div className={styles.subTitle}>
+                    <h3>
                         {loading ? (
                             <Skeleton
                                 duration={1}
@@ -79,7 +79,7 @@ const ErrorPage = () => {
                         ) : (
                             'Error Frequency'
                         )}
-                    </div>
+                    </h3>
                     <div className={styles.fieldWrapper}>
                         <ErrorFrequencyGraph errorGroup={data?.error_group} />
                     </div>
@@ -95,13 +95,13 @@ const ErrorPage = () => {
                                 loading={loading}
                             />
                         </div>
-                        <div className={styles.subTitle}>
+                        <h3>
                             {loading ? (
                                 <Skeleton count={1} style={{ width: 280 }} />
                             ) : (
                                 'Context / Fields'
                             )}
-                        </div>
+                        </h3>
                         <div className={styles.fieldWrapper}>
                             {loading ? (
                                 <Skeleton
@@ -126,13 +126,13 @@ const ErrorPage = () => {
                                 </>
                             )}
                         </div>
-                        <div className={styles.subTitle}>
+                        <h3>
                             {loading ? (
                                 <Skeleton count={1} style={{ width: 280 }} />
                             ) : (
                                 'Comments'
                             )}
-                        </div>
+                        </h3>
                         <div
                             className={classnames(
                                 styles.fieldWrapper,

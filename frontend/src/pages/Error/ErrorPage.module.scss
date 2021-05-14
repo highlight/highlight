@@ -26,9 +26,8 @@
 .title {
     display: inline-block;
     font-size: 26px;
-    font-weight: 400;
-    margin-bottom: 10px;
-    margin-right: 10px;
+    margin-bottom: 10px !important;
+    margin-right: 10px !important;
     max-width: 400px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -50,13 +49,6 @@
 .titleWrapper {
     align-items: center;
     display: flex;
-}
-
-.subTitle {
-    color: var(--text-primary);
-    font-size: 20px;
-    font-weight: 300;
-    margin-bottom: 16px;
 }
 
 .fieldWrapper {

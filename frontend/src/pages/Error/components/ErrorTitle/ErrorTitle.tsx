@@ -12,9 +12,9 @@ interface Props {
 const ErrorTitle = ({ errorGroup }: Props) => {
     return (
         <>
-            <div className={styles.title}>
+            <h2 className={styles.title}>
                 {getHeaderFromError(errorGroup?.event ?? [])}
-            </div>
+            </h2>
             <Field
                 k={'mechanism'}
                 v={errorGroup?.type || 'window.onerror'}

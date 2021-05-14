@@ -30,7 +30,6 @@ export const section: string;
 export const snippetHeadingTwo: string;
 export const stackTraceErrorTitle: string;
 export const subSection: string;
-export const subTitle: string;
 export const title: string;
 export const titleWrapper: string;
 export const triggerWrapper: string;
