@@ -22,6 +22,8 @@ const Tooltip: React.FC<TooltipProps> = ({ children, ...props }) => {
             {...props}
             overlayClassName={styles.tooltipOverlay}
             title={props.title}
+            mouseEnterDelay={0.5}
+            destroyTooltipOnHide
         >
             {children}
         </AntDesignTooltip>
