@@ -32,7 +32,8 @@ H.start();
 
 window.Intercom('boot', {
     app_id: 'gm6369ty',
-    alignment: 'left',
+    alignment: 'right',
+    hide_default_launcher: true,
 });
 
 const About = loadable(() => import('./pages/About/About'));
