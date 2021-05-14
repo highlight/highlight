@@ -1,18 +1,7 @@
-.header {
-    color: var(--text-primary);
-    font-size: 16px;
-    font-weight: 300;
-    margin: 0;
-    margin-bottom: var(--size-medium);
-}
-
 .description {
     color: var(--color-gray-500);
-    font-size: 14px;
-    font-weight: 200;
     line-height: 20px;
-    margin: 0 auto;
-    margin-bottom: var(--size-medium);
+    margin: auto !important;
     max-width: 362px;
 }
 
@@ -51,6 +40,7 @@
     color: var(--text-primary-inverted);
     display: block;
     margin: 0 auto;
+    margin-top: var(--size-medium) !important;
     padding: var(--size-xSmall) 0;
     text-align: center;
     width: 211px;
