@@ -32,12 +32,10 @@ const HomePage = () => {
         <div className={styles.dashboardWrapper}>
             <div className={styles.dashboard}>
                 <div>
-                    <div className={styles.title}>
-                        Welcome back to Highlight.
-                    </div>
-                    <div className={styles.subTitle}>
+                    <h2>Welcome back to Highlight.</h2>
+                    <p className={styles.subTitle}>
                         Here’s an overview of your team’s sessions and errors.
-                    </div>
+                    </p>
                 </div>
                 <div className={styles.dashboardBody}>
                     <SessionCountGraph />
@@ -98,7 +96,7 @@ const SessionCountGraph = () => {
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
-                <div className={styles.chartTitle}>Sessions per day</div>
+                <h3>Sessions per day</h3>
                 <StandardDropdown
                     data={timeFilter}
                     onSelect={setDateRangeLength}
@@ -152,7 +150,7 @@ const ErrorCountGraph = () => {
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
-                <div className={styles.chartTitle}>Errors per day</div>
+                <h3>Errors per day</h3>
                 <StandardDropdown
                     data={timeFilter}
                     onSelect={setDateRangeLength}
@@ -211,15 +209,20 @@ const DailyChart = ({
                     dx={-5}
                 />
                 <RechartsTooltip
+                    trigger="click"
                     contentStyle={{
                         backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                        borderRadius: '5px',
+                        borderRadius: 'var(--border-radius)',
                         borderWidth: 0,
                         color: 'var(--text-primary-inverted)',
+                        paddingBottom: '16px',
                     }}
                     itemStyle={{
                         color: 'var(--text-primary-inverted)',
                         padding: 0,
+                    }}
+                    labelStyle={{
+                        color: 'var(--text-primary-inverted)',
                     }}
                 />
                 <Line

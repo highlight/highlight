@@ -6,14 +6,10 @@
     margin: 120px 80px 80px;
 }
 
-.title {
-    font-size: 28px;
-    font-weight: 400;
-}
 
 .subTitle {
     font-size: 18px;
-    margin-bottom: 30px;
+    margin-bottom: 30px !important;
     margin-top: 12px;
 }
 
@@ -24,10 +20,6 @@
     padding: 0 10px 30px;
 }
 
-.chartTitle {
-    font-size: 20px;
-    font-weight: 400;
-}
 
 .graphSection {
     flex-direction: column;
@@ -46,7 +38,6 @@
 .dashboardBody {
     column-gap: 30px;
     display: grid;
-    gap: 0 0;
     grid-template-areas: 'Left-Panel Right-Panel';
     grid-template-columns: minmax(400px, 1fr) minmax(400px, 1fr);
     width: 100%;
