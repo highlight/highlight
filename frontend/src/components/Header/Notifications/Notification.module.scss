@@ -101,6 +101,7 @@
 
     .title {
         font-weight: 400;
+        margin-bottom: 0 !important;
     }
 
     .titleSuffix {
@@ -120,12 +121,10 @@
     padding: 0 var(--size-medium);
     padding-bottom: var(--size-small);
 
-    h3,
-    span,
-    a {
+    h3 {
         font-size: 13px;
         font-weight: 400;
-        margin-bottom: var(--size-xSmall);
+        margin-bottom: 0 !important;
     }
 }
 
