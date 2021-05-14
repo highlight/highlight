@@ -45,7 +45,6 @@ func NewStorageClient() (*StorageClient, error) {
 		S3Client: client,
 	}, nil
 }
-
 func (s *StorageClient) PushSessionsToS3(sessionId int, organizationId int, events []model.EventsObject) (*int64, error) {
 	re := &parse.ReplayEvents{
 		Events: []*parse.ReplayEvent{},
