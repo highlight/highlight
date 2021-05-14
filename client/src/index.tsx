@@ -28,6 +28,7 @@ import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
+import { SUPPORTED_ENVIRONMENT_NAMES } from './utils/environment/environment';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -114,6 +115,7 @@ export class Highlight {
     environment: string;
     _optionsInternal: HighlightClassOptionsInternal;
     _backendUrl: string;
+    _recordingStartTime: number = 0;
 
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
@@ -136,18 +138,17 @@ export class Highlight {
             headers: {},
         });
         this.graphqlSDK = getSdk(client);
-        if (
-            options.environment === 'production' ||
-            options.environment === 'development' ||
-            options.environment === 'staging'
-        ) {
-            this.environment = options.environment;
-        } else {
-            this.environment = 'production';
-            HighlightWarning(
-                'init',
-                'custom environment names are not currently supported, "production" was used instead'
-            );
+        this.environment = 'production';
+
+        if (options.environment) {
+            if (SUPPORTED_ENVIRONMENT_NAMES.includes(options.environment)) {
+                this.environment = options.environment;
+            } else {
+                HighlightWarning(
+                    'init',
+                    'custom environment names are not currently supported, "production" was used instead. Acceptable values are: "production", "staging", and "development".'
+                );
+            }
         }
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
@@ -272,6 +273,20 @@ export class Highlight {
                 window.sessionStorage.getItem('sessionData') || '{}'
             );
             let reloaded = false;
+
+            const recordingStartTime = window.sessionStorage.getItem(
+                'highlightRecordingStartTime'
+            );
+            if (!recordingStartTime) {
+                this._recordingStartTime = new Date().getTime();
+                window.sessionStorage.setItem(
+                    'highlightRecordingStartTime',
+                    this._recordingStartTime.toString()
+                );
+            } else {
+                this._recordingStartTime = parseInt(recordingStartTime, 10);
+            }
+
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem('sessionData');
             if (storedSessionData && storedSessionData.sessionID) {
@@ -470,6 +485,10 @@ export class Highlight {
         }
         this.listeners.forEach((stop: listenerHandler) => stop());
         this.listeners = [];
+    }
+
+    getCurrentSessionTimestamp() {
+        return this._recordingStartTime;
     }
 
     // Reset the events array and push to a backend.

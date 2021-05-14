@@ -4,6 +4,7 @@ import {
     HighlightClassOptions,
 } from '../../client/src/index';
 import packageJson from '../package.json';
+import { SessionDetails } from './types/types';
 
 export type HighlightOptions = {
     // a 'true' value defaults to only loggin api interactions.
@@ -34,6 +35,7 @@ type HighlightPublicInterface = {
     track: (event: string, obj: any) => void;
     error: (message: string, payload?: { [key: string]: string }) => void;
     getSessionURL: () => Promise<string>;
+    getSessionDetails: () => Promise<SessionDetails>;
     start: () => void;
     /** Stops the session and error recording. */
     stop: () => void;
@@ -145,6 +147,35 @@ export const H: HighlightPublicInterface = {
                 if (orgID && sessionID) {
                     const res = `${HIGHLIGHT_URL}/${orgID}/sessions/${sessionID}`;
                     resolve(res);
+                } else {
+                    reject(new Error('org ID or session ID is empty'));
+                }
+            });
+        });
+    },
+    getSessionDetails: () => {
+        return new Promise<SessionDetails>((resolve, reject) => {
+            H.onHighlightReady(() => {
+                const orgID = highlight_obj.organizationID;
+                const sessionID = highlight_obj.sessionData.sessionID;
+                if (orgID && sessionID) {
+                    const currentSessionTimestamp = highlight_obj.getCurrentSessionTimestamp();
+                    const now = new Date().getTime();
+
+                    const baseUrl = `https://${HIGHLIGHT_URL}/${orgID}/sessions/${sessionID}`;
+                    const url = new URL(baseUrl);
+
+                    const urlWithTimestamp = new URL(baseUrl);
+                    urlWithTimestamp.searchParams.set(
+                        'ts',
+                        // The delta between when the session recording started and now.
+                        ((now - currentSessionTimestamp) / 1000).toString()
+                    );
+
+                    resolve({
+                        url: url.toString(),
+                        urlWithTimestamp: urlWithTimestamp.toString(),
+                    });
                 } else {
                     reject(new Error('org ID or session ID is empty'));
                 }
