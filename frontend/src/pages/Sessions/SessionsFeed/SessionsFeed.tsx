@@ -62,7 +62,12 @@ export const SessionFeed = () => {
     });
     const { searchParams, hideLiveSessions } = useSearchContext();
 
-    const { loading, fetchMore, data: sessionData } = useGetSessionsQuery({
+    const {
+        loading,
+        fetchMore,
+        data: sessionData,
+        called,
+    } = useGetSessionsQuery({
         variables: {
             params: searchParams,
             count: count + 10,
@@ -153,7 +158,7 @@ export const SessionFeed = () => {
                         />
                     ) : (
                         <>
-                            {!data.sessions.length ? (
+                            {!data.sessions.length && called && !loading ? (
                                 <SearchEmptyState item={'sessions'} />
                             ) : (
                                 <>
