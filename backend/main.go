@@ -85,6 +85,8 @@ func main() {
 
 	if sendgridKey == "" {
 		log.Warn("sendgrid api key is missing")
+	} else {
+		log.Info("sendgrid api key is present!")
 	}
 
 	port := os.Getenv("PORT")
