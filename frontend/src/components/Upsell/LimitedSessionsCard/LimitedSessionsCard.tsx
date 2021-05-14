@@ -24,9 +24,7 @@ const LimitedSessionCard = () => {
                     <Close className={styles.closeIcon} />
                 </button>
             </div>
-            <h2 className={styles.header}>
-                Looks like you’ve run out of sessions this month 😔
-            </h2>
+            <h3>Looks like you’ve run out of sessions this month 😔</h3>
             <p className={styles.description}>
                 Sessions recorded after you've reached your quota will not be
                 viewable until you upgrade.
