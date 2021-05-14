@@ -10,7 +10,6 @@ import ErrorDescription from '../../../../../../Error/components/ErrorDescriptio
 import ErrorTitle from '../../../../../../Error/components/ErrorTitle/ErrorTitle';
 import StackTraceSection from '../../../../../../Error/components/StackTraceSection/StackTraceSection';
 import { ErrorFrequencyGraph } from '../../../../../../Error/ErrorPage';
-import errorPageStyles from '../../../../../../Error/ErrorPage.module.scss';
 import styles from './ErrorModal.module.scss';
 
 interface Props {

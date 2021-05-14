@@ -50,6 +50,7 @@ const WorkspaceTeam = () => {
             variables: {
                 organization_id,
                 email: data.email,
+                base_url: window.location.origin,
             },
         }).then(() => {
             message.success(`Invite email sent to ${data.email}!`, 5);

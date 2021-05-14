@@ -248,7 +248,7 @@ func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
-func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error) {
+func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID int, email string, baseURL string) (*string, error) {
 	org, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying org")
@@ -264,7 +264,7 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 	} else {
 		secret = *org.Secret
 	}
-	inviteLink := os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/invite/" + secret
+	inviteLink := baseURL + "/" + strconv.Itoa(organizationID) + "/invite/" + secret
 	to := &mail.Email{Address: email}
 
 	m := mail.NewV3Mail()
@@ -280,9 +280,8 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 
 	m.AddPersonalizations(p)
 
-	_, sendGridErr := r.MailClient.Send(m)
-	if sendGridErr != nil {
-		return nil, fmt.Errorf("error sending sendgrid email: %v", err)
+	if resp, sendGridErr := r.MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("error sending sendgrid email -> resp-code: %v, err: %v ", resp.StatusCode, err)
 	}
 	return &email, nil
 }
