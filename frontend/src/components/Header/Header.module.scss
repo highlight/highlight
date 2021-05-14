@@ -39,10 +39,6 @@
     width: 100%;
 }
 
-.trialWrapperHidden {
-    visibility: hidden;
-}
-
 .trialLink {
     color: var(--text-primary-inverted);
     text-decoration: underline;
@@ -50,14 +46,25 @@
 
 .trialWrapper {
     align-items: center;
+    animation: enter-viewport 1s forwards;
     background-color: var(--color-purple);
     color: var(--text-primary-inverted);
     display: flex;
     height: 15px;
     justify-content: center;
-    transition: 1s;
+    position: absolute;
     width: 100%;
     z-index: 1000;
+}
+
+@keyframes enter-viewport {
+    0% {
+        transform: translateY(-100px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
 }
 
 .bannerSvg {

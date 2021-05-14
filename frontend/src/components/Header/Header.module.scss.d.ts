@@ -1,5 +1,6 @@
 export const bannerSvg: string;
 export const commandPaletteOverlay: string;
+export const enterViewport: string;
 export const hamburger: string;
 export const header: string;
 export const headerContent: string;
@@ -12,4 +13,3 @@ export const trialCloseStyle: string;
 export const trialLink: string;
 export const trialTimeText: string;
 export const trialWrapper: string;
-export const trialWrapperHidden: string;
