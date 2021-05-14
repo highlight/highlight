@@ -79,6 +79,10 @@ func main() {
 		log.Fatalf("please specify a deploy key in order to run Highlight")
 	}
 
+	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" && (os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_S3_BUCKET_NAME") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "") {
+		log.Fatalf("please specify object storage env variables in order to proceed")
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
