@@ -20,7 +20,8 @@ COPY ./.prettierrc ./
 RUN CI=false yarn build
 
 FROM alpine
-ARG SENDGRID_API_KEY
+ARG SENDGRID_API_KEY_ARG
+ENV SENDGRID_API_KEY=$SENDGRID_API_KEY_ARG
 WORKDIR /root/
 COPY --from=backend-builder /bin/backend /bin/backend
 RUN mkdir ./build
