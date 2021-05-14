@@ -1671,8 +1671,16 @@ export type GetOnboardingStepsQueryResult = Apollo.QueryResult<
     Types.GetOnboardingStepsQueryVariables
 >;
 export const SendAdminInviteDocument = gql`
-    mutation SendAdminInvite($organization_id: ID!, $email: String!) {
-        sendAdminInvite(organization_id: $organization_id, email: $email)
+    mutation SendAdminInvite(
+        $organization_id: ID!
+        $email: String!
+        $base_url: String!
+    ) {
+        sendAdminInvite(
+            organization_id: $organization_id
+            email: $email
+            base_url: $base_url
+        )
     }
 `;
 export type SendAdminInviteMutationFn = Apollo.MutationFunction<
@@ -1695,6 +1703,7 @@ export type SendAdminInviteMutationFn = Apollo.MutationFunction<
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *      email: // value for 'email'
+ *      base_url: // value for 'base_url'
  *   },
  * });
  */

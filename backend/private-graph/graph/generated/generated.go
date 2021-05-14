@@ -199,7 +199,7 @@ type ComplexityRoot struct {
 		MarkErrorGroupAsResolved       func(childComplexity int, id int, resolved *bool) int
 		MarkSessionAsStarred           func(childComplexity int, id int, starred *bool) int
 		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
-		SendAdminInvite                func(childComplexity int, organizationID int, email string) int
+		SendAdminInvite                func(childComplexity int, organizationID int, email string, baseURL string) int
 		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlert *model.ErrorAlertInput) int
 	}
 
@@ -369,7 +369,7 @@ type MutationResolver interface {
 	MarkSessionAsStarred(ctx context.Context, id int, starred *bool) (*model1.Session, error)
 	MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model1.ErrorGroup, error)
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
-	SendAdminInvite(ctx context.Context, organizationID int, email string) (*string, error)
+	SendAdminInvite(ctx context.Context, organizationID int, email string, baseURL string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
 	AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error)
 	CreateSegment(ctx context.Context, organizationID int, name string, params model.SearchParamsInput) (*model1.Segment, error)
@@ -1226,7 +1226,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SendAdminInvite(childComplexity, args["organization_id"].(int), args["email"].(string)), true
+		return e.complexity.Mutation.SendAdminInvite(childComplexity, args["organization_id"].(int), args["email"].(string), args["base_url"].(string)), true
 
 	case "Mutation.updateErrorAlert":
 		if e.complexity.Mutation.UpdateErrorAlert == nil {
@@ -2538,7 +2538,11 @@ type Mutation {
     markSessionAsStarred(id: ID!, starred: Boolean): Session
     markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
     deleteOrganization(id: ID!): Boolean
-    sendAdminInvite(organization_id: ID!, email: String!): String
+    sendAdminInvite(
+        organization_id: ID!
+        email: String!
+        base_url: String!
+    ): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
     addSlackIntegrationToWorkspace(
         organization_id: ID!
@@ -3287,6 +3291,15 @@ func (ec *executionContext) field_Mutation_sendAdminInvite_args(ctx context.Cont
 		}
 	}
 	args["email"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["base_url"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("base_url"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["base_url"] = arg2
 	return args, nil
 }
 
@@ -6678,7 +6691,7 @@ func (ec *executionContext) _Mutation_sendAdminInvite(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SendAdminInvite(rctx, args["organization_id"].(int), args["email"].(string))
+		return ec.resolvers.Mutation().SendAdminInvite(rctx, args["organization_id"].(int), args["email"].(string), args["base_url"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

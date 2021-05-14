@@ -131,8 +131,16 @@ query GetOnboardingSteps($organization_id: ID!, $admin_id: ID!) {
     }
 }
 
-mutation SendAdminInvite($organization_id: ID!, $email: String!) {
-    sendAdminInvite(organization_id: $organization_id, email: $email)
+mutation SendAdminInvite(
+    $organization_id: ID!
+    $email: String!
+    $base_url: String!
+) {
+    sendAdminInvite(
+        organization_id: $organization_id
+        email: $email
+        base_url: $base_url
+    )
 }
 
 query GetSessions(

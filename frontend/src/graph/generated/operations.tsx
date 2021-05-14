@@ -510,6 +510,7 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
 export type SendAdminInviteMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     email: Types.Scalars['String'];
+    base_url: Types.Scalars['String'];
 }>;
 
 export type SendAdminInviteMutation = { __typename?: 'Mutation' } & Pick<

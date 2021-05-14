@@ -378,7 +378,11 @@ type Mutation {
     markSessionAsStarred(id: ID!, starred: Boolean): Session
     markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
     deleteOrganization(id: ID!): Boolean
-    sendAdminInvite(organization_id: ID!, email: String!): String
+    sendAdminInvite(
+        organization_id: ID!
+        email: String!
+        base_url: String!
+    ): String
     addAdminToOrganization(organization_id: ID!, invite_id: String!): ID
     addSlackIntegrationToWorkspace(
         organization_id: ID!

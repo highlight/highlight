@@ -568,6 +568,7 @@ export type MutationDeleteOrganizationArgs = {
 export type MutationSendAdminInviteArgs = {
     organization_id: Scalars['ID'];
     email: Scalars['String'];
+    base_url: Scalars['String'];
 };
 
 export type MutationAddAdminToOrganizationArgs = {
