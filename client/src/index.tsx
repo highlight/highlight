@@ -114,6 +114,7 @@ export class Highlight {
     environment: string;
     _optionsInternal: HighlightClassOptionsInternal;
     _backendUrl: string;
+    _recordingStartTime: number = 0;
 
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
@@ -272,6 +273,20 @@ export class Highlight {
                 window.sessionStorage.getItem('sessionData') || '{}'
             );
             let reloaded = false;
+
+            const recordingStartTime = window.sessionStorage.getItem(
+                'highlightRecordingStartTime'
+            );
+            if (!recordingStartTime) {
+                this._recordingStartTime = new Date().getTime();
+                window.sessionStorage.setItem(
+                    'highlightRecordingStartTime',
+                    this._recordingStartTime.toString()
+                );
+            } else {
+                this._recordingStartTime = parseInt(recordingStartTime, 10);
+            }
+
             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
             window.sessionStorage.removeItem('sessionData');
             if (storedSessionData && storedSessionData.sessionID) {
@@ -470,6 +485,10 @@ export class Highlight {
         }
         this.listeners.forEach((stop: listenerHandler) => stop());
         this.listeners = [];
+    }
+
+    getCurrentSessionTimestamp() {
+        return this._recordingStartTime;
     }
 
     // Reset the events array and push to a backend.
