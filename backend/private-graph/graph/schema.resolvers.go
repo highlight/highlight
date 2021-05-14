@@ -1309,7 +1309,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	var queriedSessionsCount model.SessionCount
 
 	g.Go(func() error {
-		whereClauseSuffix := "AND NOT ((processed = true AND length < 1000)) "
+		whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
 		// Filter out sessions that are processed but have a length of 1000 (1 second).
 		if params.LengthRange != nil {
 			if params.LengthRange.Min != nil || params.LengthRange.Max != nil {
