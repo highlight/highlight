@@ -53,16 +53,15 @@
 
     h2 {
         font-size: 14px;
-        font-weight: 400;
         margin: 0;
-        margin-bottom: var(--size-xxSmall);
+        margin-bottom: var(--size-xxSmall) !important;
     }
 
     p {
         color: var(--color-gray-500);
         font-size: 12px;
-        margin: 0;
-        margin-bottom: var(--size-xxSmall);
+        margin: 0 !important;
+        margin-bottom: var(--size-xxSmall) !important;
     }
 }
 
@@ -84,7 +83,6 @@
             cursor: pointer;
             display: flex;
             font-size: 12px;
-            font-weight: 200;
             height: var(--size-large);
             padding: var(--size-xSmall) 0;
             width: 100%;
