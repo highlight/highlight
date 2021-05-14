@@ -44,14 +44,14 @@
 }
 
 .trialLink {
-    color: var(--color-primary-background);
+    color: var(--text-primary-inverted);
     text-decoration: underline;
 }
 
 .trialWrapper {
     align-items: center;
     background-color: var(--color-purple);
-    color: var(--color-primary-background);
+    color: var(--text-primary-inverted);
     display: flex;
     height: 15px;
     justify-content: center;
@@ -64,7 +64,7 @@
     fill: var(--color-purple);
     position: absolute;
     top: 17px;
-    transform: scale(2.2, 2);
+    transform: scale(2.5, 2);
 }
 
 .trialCloseStyle {
