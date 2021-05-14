@@ -83,6 +83,10 @@ func main() {
 		log.Fatalf("please specify object storage env variables in order to proceed")
 	}
 
+	if sendgridKey == "" {
+		log.Warn("sendgrid api key is missing")
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = defaultPort
