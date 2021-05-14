@@ -5,7 +5,6 @@ import { useParams } from 'react-router-dom';
 import commonStyles from '../../Common.module.scss';
 import { ErrorState } from '../../components/ErrorState/ErrorState';
 import { Header } from '../../components/Header/Header';
-import { LoadingPage } from '../../components/Loading/Loading';
 import OnboardingBubble from '../../components/OnboardingBubble/OnboardingBubble';
 import { Sidebar } from '../../components/Sidebar/Sidebar';
 import {
@@ -64,7 +63,7 @@ export const OrgRouter = () => {
     }, []);
 
     if (integratedLoading || loading) {
-        return <LoadingPage />;
+        return null;
     }
     return (
         <SidebarContextProvider
