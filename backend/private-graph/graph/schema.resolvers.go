@@ -279,9 +279,13 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 	p.SetDynamicTemplateData("Invite_Link", inviteLink)
 
 	m.AddPersonalizations(p)
-
 	if resp, sendGridErr := r.MailClient.Send(m); sendGridErr != nil || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("error sending sendgrid email -> resp-code: %v, err: %v ", resp.StatusCode, err)
+		estr := "error sending sendgrid email -> "
+		estr += fmt.Sprintf("resp-code: %v; ", resp)
+		if sendGridErr != nil {
+			estr += fmt.Sprintf("err: %v", sendGridErr.Error())
+		}
+		return nil, e.New(estr)
 	}
 	return &email, nil
 }
