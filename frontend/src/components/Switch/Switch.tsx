@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { Switch as AntDesignSwitch, SwitchProps } from 'antd';
 import classNames from 'classnames';
 import React from 'react';

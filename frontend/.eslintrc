@@ -77,6 +77,20 @@
               "Progress"
             ],
             "message": "Please use Progress from /src/components/Progress instead."
+          },
+          {
+            "name": "antd",
+            "importNames": [
+              "Switch"
+            ],
+            "message": "Please use Switch from /src/components/Switch instead."
+          },
+          {
+            "name": "antd",
+            "importNames": [
+              "Select"
+            ],
+            "message": "Please use Select from /src/components/Select instead."
           }
         ]
       }

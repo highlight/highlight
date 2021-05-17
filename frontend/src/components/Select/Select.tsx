@@ -1,4 +1,5 @@
 import {
+    // eslint-disable-next-line no-restricted-imports
     Select as AntDesignSelect,
     SelectProps as AntDesignSelectProps,
 } from 'antd';
