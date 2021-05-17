@@ -327,6 +327,15 @@ export type GetSessionPayloadQuery = { __typename?: 'Query' } & Pick<
         >;
     };
 
+export type GetEventsQueryVariables = Types.Exact<{
+    session_id: Types.Scalars['ID'];
+}>;
+
+export type GetEventsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'events'
+>;
+
 export type GetSessionQueryVariables = Types.Exact<{
     id: Types.Scalars['ID'];
 }>;

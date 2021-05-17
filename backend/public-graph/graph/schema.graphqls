@@ -26,6 +26,16 @@ input ReplayEventsInput {
     events: [Any]!
 }
 
+input DomEvent {
+    type: DomEventType!
+    payload: Any!
+}
+
+enum DomEventType {
+    FULL_SNAPSHOT
+    MUTATION
+}
+
 type Mutation {
     initializeSession(
         organization_verbose_id: String!
@@ -50,6 +60,7 @@ type Mutation {
         resources: String!
         errors: [ErrorObjectInput]!
     ): ID
+    pushPayloadBETA(events: [DomEvent]!): ID
 }
 
 type Query {

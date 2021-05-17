@@ -744,13 +744,24 @@ func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, er
 }
 
 func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{}, error) {
-	if os.Getenv("ENVIRONMENT") == "dev" && sessionID == 1 {
+	isDev := os.Getenv("ENVIRONMENT") == "dev"
+	if isDev && sessionID == 1 {
 		file, err := ioutil.ReadFile("./tmp/events.json")
 		if err != nil {
 			return nil, e.Wrap(err, "Failed to read temp file")
 		}
 		var data []interface{}
 
+		if err := json.Unmarshal([]byte(file), &data); err != nil {
+			return nil, e.Wrap(err, "Failed to unmarshal data from file")
+		}
+		return data, nil
+	} else if isDev && sessionID == 2 {
+		file, err := ioutil.ReadFile("./tmp/output.json")
+		if err != nil {
+			return nil, e.Wrap(err, "Failed to read temp file")
+		}
+		var data []interface{}
 		if err := json.Unmarshal([]byte(file), &data); err != nil {
 			return nil, e.Wrap(err, "Failed to unmarshal data from file")
 		}

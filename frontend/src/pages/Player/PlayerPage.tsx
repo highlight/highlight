@@ -18,12 +18,16 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import useResizeAware from 'react-resize-aware';
 import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
+import { rebuild } from 'rrweb-snapshot';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import Card from '../../components/Card/Card';
 import Modal from '../../components/Modal/Modal';
 import Tabs from '../../components/Tabs/Tabs';
-import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
+import {
+    useGetEventsQuery,
+    useMarkSessionAsViewedMutation,
+} from '../../graph/generated/hooks';
 import CommentStream from './CommentStream/CommentStream';
 import { HighlightEvent } from './HighlightEvent';
 import { MetadataBox } from './MetadataBox/MetadataBox';
@@ -38,6 +42,35 @@ import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
 import { StreamElement } from './StreamElement/StreamElement';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import { Toolbar } from './Toolbar/Toolbar';
+
+export const PlayerBETA = () => {
+    const { data } = useGetEventsQuery({ variables: { session_id: '2' } });
+    const iframeDocument = useRef<HTMLIFrameElement>(null);
+    useEffect(() => {
+        if (!data?.events?.length || !iframeDocument.current?.contentDocument) {
+            return;
+        }
+        const node = data.events[0];
+        rebuild(eve);
+        console.log(data);
+    }, [data, iframeDocument]);
+
+    return (
+        <div
+            style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+                width: '100%',
+            }}
+        >
+            <iframe ref={iframeDocument} height={500} width={500}>
+                hello
+            </iframe>
+        </div>
+    );
+};
 
 const Player = () => {
     const { session_id } = useParams<{

@@ -8,10 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -259,6 +260,19 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		return nil, e.Wrap(err, "error updating session payload time")
 	}
 	return &sessionID, nil
+}
+
+func (r *mutationResolver) PushPayloadBeta(ctx context.Context, events []*customModels.DomEvent) (*int, error) {
+	b, err := json.Marshal(events)
+	if err != nil {
+		return nil, e.Wrap(err, "error marshaling json")
+	}
+	err = ioutil.WriteFile("./tmp/output.json", b, 0644)
+	if err != nil {
+		return nil, e.Wrap(err, "error saving to file")
+	}
+	x := 6
+	return &x, nil
 }
 
 func (r *queryResolver) Ignore(ctx context.Context, id int) (interface{}, error) {

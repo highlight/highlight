@@ -1,4 +1,5 @@
 import { addCustomEvent, record } from '@highlight-run/rrweb';
+import { snapshot } from 'rrweb-snapshot';
 import {
     eventWithTime,
     listenerHandler,
@@ -12,6 +13,8 @@ import {
     getSdk,
     PushPayloadMutationVariables,
     PushPayloadDocument,
+    DomEvent,
+    DomEventType,
 } from './graph/generated/operations';
 import StackTrace from 'stacktrace-js';
 import stringify from 'json-stringify-safe';
@@ -255,221 +258,245 @@ export class Highlight {
             );
         }
     }
+
     // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
     async initialize(organization_id?: number | string) {
-        var org_id = '';
-        if (typeof organization_id === 'number') {
-            org_id = organization_id.toString();
-        } else if (typeof organization_id === 'string') {
-            org_id = organization_id;
-        } else {
-            org_id = '0';
-        }
-        try {
-            if (organization_id) {
-                this.organizationID = org_id;
-            }
-            let storedSessionData = JSON.parse(
-                window.sessionStorage.getItem('sessionData') || '{}'
-            );
-            let reloaded = false;
+        // take a fullsnapshot
+        const [node, idMap] = snapshot(document);
+        console.log('snapshot', 'map', idMap);
+        const fullSnapshotEvent: DomEvent = {
+            type: DomEventType.FullSnapshot,
+            payload: node,
+        };
+        console.log('snapshot', fullSnapshotEvent);
+        await this.graphqlSDK.PushPayloadBETA({ events: [fullSnapshotEvent] });
 
-            const recordingStartTime = window.sessionStorage.getItem(
-                'highlightRecordingStartTime'
-            );
-            if (!recordingStartTime) {
-                this._recordingStartTime = new Date().getTime();
-                window.sessionStorage.setItem(
-                    'highlightRecordingStartTime',
-                    this._recordingStartTime.toString()
-                );
-            } else {
-                this._recordingStartTime = parseInt(recordingStartTime, 10);
-            }
+        // const observer = new MutationObserver((mutations) =>
+        //     console.log('recording', mutations)
+        // );
+        // observer.observe(document, {
+        //     attributes: true,
+        //     attributeOldValue: true,
+        //     characterData: true,
+        //     characterDataOldValue: true,
+        //     childList: true,
+        //     subtree: true,
+        // });
+        // console.log('hello');
+        // setTimeout(() => {
+        //     this._save();
+        // }, SEND_FREQUENCY);
 
-            // To handle the 'Duplicate Tab' function, remove id from storage until page unload
-            window.sessionStorage.removeItem('sessionData');
-            if (storedSessionData && storedSessionData.sessionID) {
-                this.sessionData = storedSessionData;
-                reloaded = true;
-            } else {
-                // @ts-ignore
-                const client = new ClientJS();
-                let fingerprint = 0;
-                if ('getFingerprint' in client) {
-                    fingerprint = client.getFingerprint();
-                }
-                const gr = await this.graphqlSDK.initializeSession({
-                    organization_verbose_id: this.organizationID,
-                    enable_strict_privacy: this.enableStrictPrivacy,
-                    clientVersion: packageJson['version'],
-                    firstloadVersion: this.firstloadVersion,
-                    clientConfig: JSON.stringify(this._optionsInternal),
-                    environment: this.environment,
-                    id: fingerprint.toString(),
-                });
-                this.sessionData.sessionID = parseInt(
-                    gr?.initializeSession?.id || '0'
-                );
-                const organization_id = gr?.initializeSession?.organization_id;
-                this.logger.log(
-                    `Loaded Highlight
-  Remote: ${process.env.PUBLIC_GRAPH_URI}
-  Org ID: ${organization_id}
-  Verbose Org ID: ${this.organizationID}
-  SessionID: ${this.sessionData.sessionID}
-  Session Data:
-  `,
-                    gr.initializeSession
-                );
-                if (this.sessionData.userIdentifier) {
-                    this.identify(
-                        this.sessionData.userIdentifier,
-                        this.sessionData.userObject
-                    );
-                }
-            }
-            setTimeout(() => {
-                this._save();
-            }, SEND_FREQUENCY);
-            const emit = (event: eventWithTime) => {
-                this.events.push(event);
-            };
-            emit.bind(this);
-            const recordStop = record({
-                ignoreClass: 'highlight-ignore',
-                blockClass: 'highlight-block',
-                emit,
-                enableStrictPrivacy: this.enableStrictPrivacy,
-            });
-            if (recordStop) {
-                this.listeners.push(recordStop);
-            }
-            addCustomEvent('Viewport', {
-                height: window.innerHeight,
-                width: window.innerWidth,
-            });
+        //         var org_id = '';
+        //         if (typeof organization_id === 'number') {
+        //             org_id = organization_id.toString();
+        //         } else if (typeof organization_id === 'string') {
+        //             org_id = organization_id;
+        //         } else {
+        //             org_id = '0';
+        //         }
+        //         try {
+        //             if (organization_id) {
+        //                 this.organizationID = org_id;
+        //             }
+        //             let storedSessionData = JSON.parse(
+        //                 window.sessionStorage.getItem('sessionData') || '{}'
+        //             );
+        //             let reloaded = false;
 
-            const highlightThis = this;
-            if (this.enableSegmentIntegration) {
-                this.listeners.push(
-                    SegmentIntegrationListener((obj: any) => {
-                        if (obj.type === 'track') {
-                            const properties: { [key: string]: string } = {};
-                            properties['segment-event'] = obj.event;
-                            highlightThis.addProperties(properties, {
-                                type: 'track',
-                                source: 'segment',
-                            });
-                        } else if (obj.type === 'identify') {
-                            highlightThis.identify(
-                                obj.userId,
-                                obj.traits,
-                                'segment'
-                            );
-                        }
-                    })
-                );
-            }
+        //             const recordingStartTime = window.sessionStorage.getItem(
+        //                 'highlightRecordingStartTime'
+        //             );
+        //             if (!recordingStartTime) {
+        //                 this._recordingStartTime = new Date().getTime();
+        //                 window.sessionStorage.setItem(
+        //                     'highlightRecordingStartTime',
+        //                     this._recordingStartTime.toString()
+        //                 );
+        //             } else {
+        //                 this._recordingStartTime = parseInt(recordingStartTime, 10);
+        //             }
 
-            if (document.referrer) {
-                addCustomEvent<string>('Referrer', document.referrer);
-                highlightThis.addProperties(
-                    { referrer: document.referrer },
-                    { type: 'session' }
-                );
-            }
-            this.listeners.push(
-                PathListener((url: string) => {
-                    if (reloaded) {
-                        addCustomEvent<string>('Reload', url);
-                        reloaded = false;
-                        highlightThis.addProperties(
-                            { reload: true },
-                            { type: 'session' }
-                        );
-                    } else {
-                        addCustomEvent<string>('Navigate', url);
-                    }
-                    highlightThis.addProperties(
-                        { 'visited-url': url },
-                        { type: 'session' }
-                    );
-                })
-            );
-            if (!this.disableConsoleRecording) {
-                this.listeners.push(
-                    ConsoleListener((c: ConsoleMessage) => {
-                        if (c.type == 'Error' && c.value && c.trace)
-                            highlightThis.errors.push({
-                                event: stringify(c.value),
-                                type: 'console.error',
-                                url: window.location.href,
-                                source: c.trace[0].fileName
-                                    ? c.trace[0].fileName
-                                    : '',
-                                lineNumber: c.trace[0].lineNumber
-                                    ? c.trace[0].lineNumber
-                                    : 0,
-                                columnNumber: c.trace[0].columnNumber
-                                    ? c.trace[0].columnNumber
-                                    : 0,
-                                trace: c.trace,
-                                timestamp: new Date().toISOString(),
-                            });
-                        highlightThis.messages.push(c);
-                    })
-                );
-            }
-            this.listeners.push(
-                ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e))
-            );
-            this.listeners.push(
-                ViewportResizeListener((viewport) => {
-                    addCustomEvent('Viewport', viewport);
-                })
-            );
-            this.listeners.push(
-                ClickListener((clickTarget) => {
-                    if (clickTarget) {
-                        addCustomEvent('Click', clickTarget);
-                    }
-                })
-            );
-            this.listeners.push(
-                FocusListener((focusTarget) => {
-                    if (focusTarget) {
-                        addCustomEvent('Focus', focusTarget);
-                    }
-                })
-            );
-            // Send the payload as the page closes. navigator.sendBeacon guarantees that a request will be made.
-            window.addEventListener('beforeunload', () => {
-                const payload = this._getPayload();
-                let blob = new Blob(
-                    [
-                        JSON.stringify({
-                            query: print(PushPayloadDocument),
-                            variables: payload,
-                        }),
-                    ],
-                    {
-                        type: 'application/json',
-                    }
-                );
-                navigator.sendBeacon(`${this._backendUrl}`, blob);
-            });
-            this.ready = true;
-        } catch (e) {
-            HighlightWarning('initializeSession', e);
-        }
-        window.addEventListener('beforeunload', () => {
-            addCustomEvent('Page Unload', '');
-            window.sessionStorage.setItem(
-                'sessionData',
-                JSON.stringify(this.sessionData)
-            );
-        });
+        //             // To handle the 'Duplicate Tab' function, remove id from storage until page unload
+        //             window.sessionStorage.removeItem('sessionData');
+        //             if (storedSessionData && storedSessionData.sessionID) {
+        //                 this.sessionData = storedSessionData;
+        //                 reloaded = true;
+        //             } else {
+        //                 // @ts-ignore
+        //                 const client = new ClientJS();
+        //                 let fingerprint = 0;
+        //                 if ('getFingerprint' in client) {
+        //                     fingerprint = client.getFingerprint();
+        //                 }
+        //                 const gr = await this.graphqlSDK.initializeSession({
+        //                     organization_verbose_id: this.organizationID,
+        //                     enable_strict_privacy: this.enableStrictPrivacy,
+        //                     clientVersion: packageJson['version'],
+        //                     firstloadVersion: this.firstloadVersion,
+        //                     clientConfig: JSON.stringify(this._optionsInternal),
+        //                     environment: this.environment,
+        //                     id: fingerprint.toString(),
+        //                 });
+        //                 this.sessionData.sessionID = parseInt(
+        //                     gr?.initializeSession?.id || '0'
+        //                 );
+        //                 const organization_id = gr?.initializeSession?.organization_id;
+        //                 this.logger.log(
+        //                     `Loaded Highlight
+        //   Remote: ${process.env.PUBLIC_GRAPH_URI}
+        //   Org ID: ${organization_id}
+        //   Verbose Org ID: ${this.organizationID}
+        //   SessionID: ${this.sessionData.sessionID}
+        //   Session Data:
+        //   `,
+        //                     gr.initializeSession
+        //                 );
+        //                 if (this.sessionData.userIdentifier) {
+        //                     this.identify(
+        //                         this.sessionData.userIdentifier,
+        //                         this.sessionData.userObject
+        //                     );
+        //                 }
+        //             }
+        //             const emit = (event: eventWithTime) => {
+        //                 this.events.push(event);
+        //             };
+        //             emit.bind(this);
+        //             const recordStop = record({
+        //                 ignoreClass: 'highlight-ignore',
+        //                 blockClass: 'highlight-block',
+        //                 emit,
+        //                 enableStrictPrivacy: this.enableStrictPrivacy,
+        //             });
+        //             if (recordStop) {
+        //                 this.listeners.push(recordStop);
+        //             }
+        //             addCustomEvent('Viewport', {
+        //                 height: window.innerHeight,
+        //                 width: window.innerWidth,
+        //             });
+
+        //             const highlightThis = this;
+        //             if (this.enableSegmentIntegration) {
+        //                 this.listeners.push(
+        //                     SegmentIntegrationListener((obj: any) => {
+        //                         if (obj.type === 'track') {
+        //                             const properties: { [key: string]: string } = {};
+        //                             properties['segment-event'] = obj.event;
+        //                             highlightThis.addProperties(properties, {
+        //                                 type: 'track',
+        //                                 source: 'segment',
+        //                             });
+        //                         } else if (obj.type === 'identify') {
+        //                             highlightThis.identify(
+        //                                 obj.userId,
+        //                                 obj.traits,
+        //                                 'segment'
+        //                             );
+        //                         }
+        //                     })
+        //                 );
+        //             }
+
+        //             if (document.referrer) {
+        //                 addCustomEvent<string>('Referrer', document.referrer);
+        //                 highlightThis.addProperties(
+        //                     { referrer: document.referrer },
+        //                     { type: 'session' }
+        //                 );
+        //             }
+        //             this.listeners.push(
+        //                 PathListener((url: string) => {
+        //                     if (reloaded) {
+        //                         addCustomEvent<string>('Reload', url);
+        //                         reloaded = false;
+        //                         highlightThis.addProperties(
+        //                             { reload: true },
+        //                             { type: 'session' }
+        //                         );
+        //                     } else {
+        //                         addCustomEvent<string>('Navigate', url);
+        //                     }
+        //                     highlightThis.addProperties(
+        //                         { 'visited-url': url },
+        //                         { type: 'session' }
+        //                     );
+        //                 })
+        //             );
+        //             if (!this.disableConsoleRecording) {
+        //                 this.listeners.push(
+        //                     ConsoleListener((c: ConsoleMessage) => {
+        //                         if (c.type == 'Error' && c.value && c.trace)
+        //                             highlightThis.errors.push({
+        //                                 event: stringify(c.value),
+        //                                 type: 'console.error',
+        //                                 url: window.location.href,
+        //                                 source: c.trace[0].fileName
+        //                                     ? c.trace[0].fileName
+        //                                     : '',
+        //                                 lineNumber: c.trace[0].lineNumber
+        //                                     ? c.trace[0].lineNumber
+        //                                     : 0,
+        //                                 columnNumber: c.trace[0].columnNumber
+        //                                     ? c.trace[0].columnNumber
+        //                                     : 0,
+        //                                 trace: c.trace,
+        //                                 timestamp: new Date().toISOString(),
+        //                             });
+        //                         highlightThis.messages.push(c);
+        //                     })
+        //                 );
+        //             }
+        //             this.listeners.push(
+        //                 ErrorListener((e: ErrorMessage) => highlightThis.errors.push(e))
+        //             );
+        //             this.listeners.push(
+        //                 ViewportResizeListener((viewport) => {
+        //                     addCustomEvent('Viewport', viewport);
+        //                 })
+        //             );
+        //             this.listeners.push(
+        //                 ClickListener((clickTarget) => {
+        //                     if (clickTarget) {
+        //                         addCustomEvent('Click', clickTarget);
+        //                     }
+        //                 })
+        //             );
+        //             this.listeners.push(
+        //                 FocusListener((focusTarget) => {
+        //                     if (focusTarget) {
+        //                         addCustomEvent('Focus', focusTarget);
+        //                     }
+        //                 })
+        //             );
+        //             // Send the payload as the page closes. navigator.sendBeacon guarantees that a request will be made.
+        //             window.addEventListener('beforeunload', () => {
+        //                 const payload = this._getPayload();
+        //                 let blob = new Blob(
+        //                     [
+        //                         JSON.stringify({
+        //                             query: print(PushPayloadDocument),
+        //                             variables: payload,
+        //                         }),
+        //                     ],
+        //                     {
+        //                         type: 'application/json',
+        //                     }
+        //                 );
+        //                 navigator.sendBeacon(`${this._backendUrl}`, blob);
+        //             });
+        //             this.ready = true;
+        //         } catch (e) {
+        //             HighlightWarning('initializeSession', e);
+        //         }
+        //         window.addEventListener('beforeunload', () => {
+        //             addCustomEvent('Page Unload', '');
+        //             window.sessionStorage.setItem(
+        //                 'sessionData',
+        //                 JSON.stringify(this.sessionData)
+        //             );
+        //         });
     }
 
     /**

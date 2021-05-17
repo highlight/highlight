@@ -40,6 +40,16 @@ export type ReplayEventsInput = {
   events: Array<Maybe<Scalars['Any']>>;
 };
 
+export type DomEvent = {
+  type: DomEventType;
+  payload: Scalars['Any'];
+};
+
+export enum DomEventType {
+  FullSnapshot = 'FULL_SNAPSHOT',
+  Mutation = 'MUTATION'
+}
+
 export type Mutation = {
   __typename?: 'Mutation';
   initializeSession?: Maybe<Session>;
@@ -47,6 +57,7 @@ export type Mutation = {
   addTrackProperties?: Maybe<Scalars['ID']>;
   addSessionProperties?: Maybe<Scalars['ID']>;
   pushPayload?: Maybe<Scalars['ID']>;
+  pushPayloadBETA?: Maybe<Scalars['ID']>;
 };
 
 
@@ -86,6 +97,11 @@ export type MutationPushPayloadArgs = {
   messages: Scalars['String'];
   resources: Scalars['String'];
   errors: Array<Maybe<ErrorObjectInput>>;
+};
+
+
+export type MutationPushPayloadBetaArgs = {
+  events: Array<Maybe<DomEvent>>;
 };
 
 export type Query = {

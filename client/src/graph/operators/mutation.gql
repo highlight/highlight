@@ -14,6 +14,10 @@ mutation PushPayload(
     )
 }
 
+mutation PushPayloadBETA($events: [DomEvent]!) {
+    pushPayloadBETA(events: $events)
+}
+
 mutation identifySession(
     $session_id: ID!
     $user_identifier: String!

@@ -5,6 +5,10 @@ query GetSessionPayload($session_id: ID!) {
     }
 }
 
+query GetEvents($session_id: ID!) {
+    events(session_id: $session_id)
+}
+
 query GetSession($id: ID!) {
     session(id: $id) {
         os_name

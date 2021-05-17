@@ -3,8 +3,16 @@
 package model
 
 import (
+	"fmt"
+	"io"
+	"strconv"
 	"time"
 )
+
+type DomEvent struct {
+	Type    DomEventType `json:"type"`
+	Payload interface{}  `json:"payload"`
+}
 
 type ErrorObjectInput struct {
 	Event        string        `json:"event"`
@@ -20,4 +28,45 @@ type ErrorObjectInput struct {
 
 type ReplayEventsInput struct {
 	Events []interface{} `json:"events"`
+}
+
+type DomEventType string
+
+const (
+	DomEventTypeFullSnapshot DomEventType = "FULL_SNAPSHOT"
+	DomEventTypeMutation     DomEventType = "MUTATION"
+)
+
+var AllDomEventType = []DomEventType{
+	DomEventTypeFullSnapshot,
+	DomEventTypeMutation,
+}
+
+func (e DomEventType) IsValid() bool {
+	switch e {
+	case DomEventTypeFullSnapshot, DomEventTypeMutation:
+		return true
+	}
+	return false
+}
+
+func (e DomEventType) String() string {
+	return string(e)
+}
+
+func (e *DomEventType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = DomEventType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid DomEventType", str)
+	}
+	return nil
+}
+
+func (e DomEventType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Redirect, Route, Switch, useParams } from 'react-router-dom';
 
 import { Buttons } from '../../pages/Buttons/Buttons';
+import { PlayerBETA } from '../../pages/Player/PlayerPage';
 import {
     SearchContextProvider,
     SearchParams,
@@ -60,6 +61,9 @@ const ApplicationRouter = ({ integrated }: Props) => {
                     exact
                 >
                     <SessionsPage integrated={integrated} />
+                </Route>
+                <Route path="/:organization_id/sessions/2" exact>
+                    <PlayerBETA />
                 </Route>
                 <Route path="/:organization_id/sessions/:session_id" exact>
                     <Player />

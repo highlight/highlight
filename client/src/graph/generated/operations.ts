@@ -46,6 +46,16 @@ export type ReplayEventsInput = {
   events: Array<Maybe<Scalars['Any']>>;
 };
 
+export type DomEvent = {
+  type: DomEventType;
+  payload: Scalars['Any'];
+};
+
+export enum DomEventType {
+  FullSnapshot = 'FULL_SNAPSHOT',
+  Mutation = 'MUTATION'
+}
+
 export type Mutation = {
   __typename?: 'Mutation';
   initializeSession?: Maybe<Session>;
@@ -53,6 +63,7 @@ export type Mutation = {
   addTrackProperties?: Maybe<Scalars['ID']>;
   addSessionProperties?: Maybe<Scalars['ID']>;
   pushPayload?: Maybe<Scalars['ID']>;
+  pushPayloadBETA?: Maybe<Scalars['ID']>;
 };
 
 
@@ -94,6 +105,11 @@ export type MutationPushPayloadArgs = {
   errors: Array<Maybe<ErrorObjectInput>>;
 };
 
+
+export type MutationPushPayloadBetaArgs = {
+  events: Array<Maybe<DomEvent>>;
+};
+
 export type Query = {
   __typename?: 'Query';
   ignore?: Maybe<Scalars['Any']>;
@@ -116,6 +132,16 @@ export type PushPayloadMutationVariables = Types.Exact<{
 export type PushPayloadMutation = (
   { __typename?: 'Mutation' }
   & Pick<Types.Mutation, 'pushPayload'>
+);
+
+export type PushPayloadBetaMutationVariables = Types.Exact<{
+  events: Array<Types.Maybe<Types.DomEvent>> | Types.Maybe<Types.DomEvent>;
+}>;
+
+
+export type PushPayloadBetaMutation = (
+  { __typename?: 'Mutation' }
+  & Pick<Types.Mutation, 'pushPayloadBETA'>
 );
 
 export type IdentifySessionMutationVariables = Types.Exact<{
@@ -193,6 +219,11 @@ export const PushPayloadDocument = gql`
   )
 }
     `;
+export const PushPayloadBetaDocument = gql`
+    mutation PushPayloadBETA($events: [DomEvent]!) {
+  pushPayloadBETA(events: $events)
+}
+    `;
 export const IdentifySessionDocument = gql`
     mutation identifySession($session_id: ID!, $user_identifier: String!, $user_object: Any) {
   identifySession(
@@ -249,6 +280,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
   return {
     PushPayload(variables: PushPayloadMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<PushPayloadMutation> {
       return withWrapper(() => client.request<PushPayloadMutation>(print(PushPayloadDocument), variables, requestHeaders));
+    },
+    PushPayloadBETA(variables: PushPayloadBetaMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<PushPayloadBetaMutation> {
+      return withWrapper(() => client.request<PushPayloadBetaMutation>(print(PushPayloadBetaDocument), variables, requestHeaders));
     },
     identifySession(variables: IdentifySessionMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<IdentifySessionMutation> {
       return withWrapper(() => client.request<IdentifySessionMutation>(print(IdentifySessionDocument), variables, requestHeaders));
