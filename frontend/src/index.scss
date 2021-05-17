@@ -60,7 +60,7 @@
     --border-radius: var(--size-xSmall);
 }
 
-[data-theme="dark"] {
+[data-theme='dark'] {
     --color-primary-background: var(--color-black);
     --color-primary-inverted-background: var(--color-white);
     --color-secondary-background: var(--color-gray-500);
@@ -115,7 +115,9 @@ p {
     margin: var(--size-small) 0 !important;
 }
 
-li, p, label {
+li,
+p,
+label {
     color: var(--text-primary);
 }
 

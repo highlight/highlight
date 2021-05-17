@@ -1,13 +1,18 @@
 {
     "$schema": "http://json.schemastore.org/stylelintrc.json",
-    "extends": "stylelint-config-sass-guidelines",
+    "extends": [
+        "stylelint-config-sass-guidelines",
+        "stylelint-prettier",
+        "stylelint-prettier/recommended"
+    ],
     "rules": {
-        "indentation": 4,
+        "indentation": null,
         "selector-class-pattern": null,
         "max-nesting-depth": null,
         "scss/at-import-partial-extension-blacklist": null,
         "selector-max-id": null,
         "color-no-hex": true,
-        "function-parentheses-space-inside": null
+        "function-parentheses-space-inside": null,
+        "prettier/prettier": true
     }
 }

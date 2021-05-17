@@ -175,8 +175,8 @@
 .playerBody {
     --left-panel-width: 425px;
     --right-panel-width: 350px;
-
     display: grid;
+
     grid-template-columns: 1fr;
     height: 100%;
     overflow: hidden;
@@ -184,7 +184,9 @@
     width: 100%;
 
     &.withRightPanel.withLeftPanel {
-        grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
+        grid-template-columns: var(--left-panel-width) 1fr var(
+                --right-panel-width
+            );
     }
 
     &.withLeftPanel {
