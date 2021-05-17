@@ -59,7 +59,6 @@ const Player = () => {
         'highlightMenuShowRightPanel',
         true
     );
-    const shouldShowRightPanel = showRightPanelPreference;
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
@@ -129,7 +128,7 @@ const Player = () => {
         <ReplayerContext.Provider value={player}>
             <div
                 className={classNames(styles.playerBody, {
-                    [styles.noRightPanel]: !shouldShowRightPanel,
+                    [styles.noRightPanel]: !showRightPanelPreference,
                 })}
             >
                 <div className={styles.playerLeftSection}>
@@ -211,7 +210,7 @@ const Player = () => {
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
                 </div>
-                {shouldShowRightPanel && (
+                {showRightPanelPreference && (
                     <div className={styles.playerRightSection}>
                         <MetadataBox />
                         <Tabs
