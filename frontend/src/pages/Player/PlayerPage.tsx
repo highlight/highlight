@@ -55,6 +55,10 @@ const Player = () => {
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
+    const [showLeftPanelPreference] = useLocalStorage(
+        'highlightMenuShowLeftPanel',
+        false
+    );
     const [showRightPanelPreference] = useLocalStorage(
         'highlightMenuShowRightPanel',
         true
@@ -128,10 +132,16 @@ const Player = () => {
         <ReplayerContext.Provider value={player}>
             <div
                 className={classNames(styles.playerBody, {
-                    [styles.noRightPanel]: !showRightPanelPreference,
+                    [styles.withRightPanel]: showRightPanelPreference,
+                    [styles.withLeftPanel]: showLeftPanelPreference,
                 })}
             >
-                <div className={styles.playerLeftSection}>
+                {showLeftPanelPreference && (
+                    <div className={styles.playerLeftPanel}>
+                        <h2>Left Panel</h2>
+                    </div>
+                )}
+                <div className={styles.playerCenterPanel}>
                     <SessionLevelBar />
                     <div className={styles.rrwebPlayerSection}>
                         <div
@@ -211,7 +221,7 @@ const Player = () => {
                     />
                 </div>
                 {showRightPanelPreference && (
-                    <div className={styles.playerRightSection}>
+                    <div className={styles.playerRightPanel}>
                         <MetadataBox />
                         <Tabs
                             centered

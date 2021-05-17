@@ -21,7 +21,7 @@ const PanelDisplayControls = () => {
     const [
         showLeftPanelPreference,
         setShowLeftPanelPreference,
-    ] = useLocalStorage('highlightMenuShowLeftPanel', true);
+    ] = useLocalStorage('highlightMenuShowLeftPanel', false);
     const { isHighlightAdmin } = useHighlightAdminFlag();
 
     return (
