@@ -4,6 +4,7 @@ import React from 'react';
 
 import Button from '../../../../components/Button/Button/Button';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
+import useHighlightAdminFlag from '../../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 import SvgPanelBottomIcon from '../../../../static/PanelBottomIcon';
 import SvgPanelRightIcon from '../../../../static/PanelRightIcon';
 import styles from './PanelDisplayControls.module.scss';
@@ -17,11 +18,31 @@ const PanelDisplayControls = () => {
         showRightPanelPreference,
         setShowRightPanelPreference,
     ] = useLocalStorage('highlightMenuShowRightPanel', true);
+    const [
+        showLeftPanelPreference,
+        setShowLeftPanelPreference,
+    ] = useLocalStorage('highlightMenuShowLeftPanel', true);
+    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     return (
         <div className={styles.buttonContainer}>
+            {isHighlightAdmin && (
+                <PanelButton
+                    tooltipText="Activate the Sessions panel to search for sessions."
+                    onClick={() => {
+                        setShowLeftPanelPreference(!showLeftPanelPreference);
+                    }}
+                >
+                    <SvgPanelRightIcon
+                        className={classNames([
+                            { [styles.active]: showLeftPanelPreference },
+                            styles.leftPanelIcon,
+                        ])}
+                    />
+                </PanelButton>
+            )}
             <PanelButton
-                tooltipText="Activate the DevTools to see console logs, errors, and network requests"
+                tooltipText="Activate the DevTools to see console logs, errors, and network requests."
                 onClick={() => {
                     setOpenDevTools(!openDevTools);
                 }}
