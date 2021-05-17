@@ -112,3 +112,9 @@
     transition: 0.4s;
     width: 14px;
 }
+
+.checkboxContainer {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-xSmall);
+}

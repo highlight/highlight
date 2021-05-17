@@ -1,3 +1,4 @@
+export const checkboxContainer: string;
 export const emptyDiv: string;
 export const hamburgerSide: string;
 export const hideButton: string;

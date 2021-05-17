@@ -1,4 +1,3 @@
-export const checkboxRow: string;
 export const checkboxUnselected: string;
 export const commonInputWrapper: string;
 export const datePicker: string;

@@ -59,8 +59,10 @@ export const SearchSidebar = () => {
                             Excluded Properties
                         </div>
                         <UserPropertyInput include={false} />
-                        <IdentifiedUsersSwitch />
-                        <FirstTimeUsersSwitch />
+                        <div className={styles.checkboxContainer}>
+                            <IdentifiedUsersSwitch />
+                            <FirstTimeUsersSwitch />
+                        </div>
                     </SearchSection>
                     <SearchSection
                         title="Track Properties"
