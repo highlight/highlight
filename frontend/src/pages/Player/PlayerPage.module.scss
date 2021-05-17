@@ -172,6 +172,9 @@
 }
 
 .playerBody {
+    --left-panel-width: 300px;
+    --right-panel-width: 350px;
+
     display: grid;
     grid-template-columns: 1fr;
     height: 100%;
@@ -180,15 +183,15 @@
     width: 100%;
 
     &.withRightPanel.withLeftPanel {
-        grid-template-columns: 350px 1fr 350px;
+        grid-template-columns: var(--left-panel-width) 1fr var(--right-panel-width);
     }
 
     &.withLeftPanel {
-        grid-template-columns: 350px 1fr;
+        grid-template-columns: var(--left-panel-width) 1fr;
     }
 
     &.withRightPanel {
-        grid-template-columns: 1fr 350px;
+        grid-template-columns: 1fr var(--right-panel-width);
     }
 }
 
