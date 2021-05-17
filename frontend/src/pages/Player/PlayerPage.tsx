@@ -34,6 +34,7 @@ import PlayerCommentCanvas, {
 import { usePlayer } from './PlayerHook/PlayerHook';
 import styles from './PlayerPage.module.scss';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
+import SearchPanel from './SearchPanel/SearchPanel';
 import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
 import { StreamElement } from './StreamElement/StreamElement';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
@@ -138,7 +139,7 @@ const Player = () => {
             >
                 {showLeftPanelPreference && (
                     <div className={styles.playerLeftPanel}>
-                        <h2>Left Panel</h2>
+                        <SearchPanel />
                     </div>
                 )}
                 <div className={styles.playerCenterPanel}>

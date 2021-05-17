@@ -1,0 +1,26 @@
+.segmentSelect {
+    width: 150px;
+}
+
+.viewedSelect {
+    width: 100px;
+}
+
+.selectContainer {
+    display: flex;
+
+    > div {
+        margin: 0 var(--size-xxSmall);
+    }
+
+    > div:first-of-type {
+        margin-left: 0;
+    }
+}
+
+.searchPanel {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+}
