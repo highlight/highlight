@@ -29,7 +29,9 @@
 }
 
 .toggleSection {
-    padding: 10px 5px 5px;
+    display: flex;
+    padding: 10px 5px var(--size-medium);
+    row-gap: var(--size-medium);
 }
 
 .titleSection {

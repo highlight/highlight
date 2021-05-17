@@ -8,24 +8,10 @@
     padding-top: 0;
 }
 
-.switchRow {
-    display: flex;
-    margin-bottom: 15px;
-}
-
-.switchText {
-    color: var(--color-gray-500);
-    margin-left: 8px;
-}
-
 .switchSpan {
     display: inline-block;
     line-height: normal;
     vertical-align: middle;
-}
-
-.switchTextSelected {
-    color: var(--text-primary);
 }
 
 .datePicker {
