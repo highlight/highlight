@@ -30,6 +30,7 @@ function InternalPage(): ReactElement {
                     }}
                 />
             </label>
+            <input type="text" />
         </div>
     );
 }

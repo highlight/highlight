@@ -341,6 +341,7 @@ export class Highlight {
                 blockClass: 'highlight-block',
                 emit,
                 enableStrictPrivacy: this.enableStrictPrivacy,
+                maskAllInputs: this.enableStrictPrivacy,
             });
             if (recordStop) {
                 this.listeners.push(recordStop);
