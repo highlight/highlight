@@ -1,21 +1,9 @@
-.segmentSelect {
-    width: 150px;
-}
-
-.viewedSelect {
-    width: 100px;
-}
-
-.selectContainer {
+.filtersContainer {
+    align-items: center;
     display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-xSmall);
 
-    > div {
-        margin: 0 var(--size-xxSmall);
-    }
-
-    > div:first-of-type {
-        margin-left: 0;
-    }
 }
 
 .searchPanel {
