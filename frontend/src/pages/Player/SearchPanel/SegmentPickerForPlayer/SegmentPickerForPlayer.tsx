@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -17,7 +16,6 @@ const SegmentPickerForPlayer = () => {
         setSearchParams,
         setSegmentName,
         setExistingParams,
-        existingParams,
         segmentName,
     } = useSearchContext();
     const { loading, data } = useGetSegmentsQuery({
@@ -32,24 +30,6 @@ const SegmentPickerForPlayer = () => {
     );
 
     useEffect(() => {
-        if (_.isEqual(EmptySessionsSearchParams, existingParams)) {
-            const segmentParameters = gqlSanitize({
-                ...currentSegment?.params,
-            });
-            setExistingParams(segmentParameters);
-            setSearchParams(segmentParameters);
-            setSegmentName(currentSegment?.name || null);
-        }
-    }, [
-        currentSegment?.name,
-        currentSegment?.params,
-        existingParams,
-        setExistingParams,
-        setSearchParams,
-        setSegmentName,
-    ]);
-
-    useEffect(() => {
         if (currentSegment) {
             const segmentParameters = gqlSanitize({
                 ...currentSegment?.params,
@@ -57,10 +37,6 @@ const SegmentPickerForPlayer = () => {
             setExistingParams(segmentParameters);
             setSearchParams(segmentParameters);
             setSegmentName(currentSegment?.name || null);
-        } else {
-            setExistingParams(EmptySessionsSearchParams);
-            setSearchParams(EmptySessionsSearchParams);
-            setSegmentName(null);
         }
     }, [currentSegment, setExistingParams, setSearchParams, setSegmentName]);
 
@@ -75,6 +51,10 @@ const SegmentPickerForPlayer = () => {
                             value: value,
                             id: (option as any).key,
                         };
+                    } else {
+                        setExistingParams(EmptySessionsSearchParams);
+                        setSearchParams(EmptySessionsSearchParams);
+                        setSegmentName(null);
                     }
                     setSelectedSegment(nextValue);
                 }}
