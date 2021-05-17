@@ -40,9 +40,10 @@ import styles from './SessionsFeed.module.scss';
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
 export const SessionFeed = () => {
-    const { organization_id, segment_id } = useParams<{
+    const { organization_id, segment_id, session_id } = useParams<{
         organization_id: string;
         segment_id: string;
+        session_id: string;
     }>();
     const [count, setCount] = useState(10);
     const { data: billingData } = useGetBillingDetailsQuery({
@@ -168,6 +169,7 @@ export const SessionFeed = () => {
                                             <SessionCard
                                                 session={u}
                                                 key={u?.id}
+                                                selected={session_id === u?.id}
                                             />
                                         );
                                     })}
@@ -191,7 +193,13 @@ export const SessionFeed = () => {
     );
 };
 
-const SessionCard = ({ session }: { session: Maybe<Session> }) => {
+const SessionCard = ({
+    session,
+    selected,
+}: {
+    session: Maybe<Session>;
+    selected: boolean;
+}) => {
     const { organization_id, segment_id } = useParams<{
         organization_id: string;
         segment_id: string;
@@ -257,7 +265,12 @@ const SessionCard = ({ session }: { session: Maybe<Session> }) => {
                 </Tooltip>
             )}
             <Link to={`/${organization_id}/sessions/${session?.id}`}>
-                <div className={styles.sessionCard} ref={containerRef}>
+                <div
+                    className={classNames(styles.sessionCard, {
+                        [styles.selected]: selected,
+                    })}
+                    ref={containerRef}
+                >
                     <FirstTimeDecorations
                         containerRef={containerRef}
                         session={session}
