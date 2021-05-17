@@ -13,6 +13,7 @@
         "selector-max-id": null,
         "color-no-hex": true,
         "function-parentheses-space-inside": null,
-        "prettier/prettier": true
+        "prettier/prettier": true,
+        "declaration-block-semicolon-newline-after": null
     }
 }
