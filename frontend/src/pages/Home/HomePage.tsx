@@ -25,6 +25,7 @@ import styles from './HomePage.module.scss';
 type DailyCount = {
     date: string;
     count: number;
+    label: string;
 };
 
 const HomePage = () => {
@@ -85,6 +86,7 @@ const SessionCountGraph = () => {
                         .subtract(dateRangeLength - 1 - idx, 'days')
                         .format('D MMM YYYY'),
                     count: val,
+                    label: 'sessions',
                 }));
                 setSessionCountData(sessionCounts);
             }
@@ -139,6 +141,7 @@ const ErrorCountGraph = () => {
                         .subtract(dateRangeLength - 1 - idx, 'days')
                         .format('D MMM YYYY'),
                     count: val,
+                    label: 'errors',
                 }));
                 setErrorCountData(errorCounts);
             }
@@ -171,7 +174,7 @@ const DailyChart = ({
     data: Array<DailyCount>;
     lineColor?: string;
 }) => {
-    const gridColor = 'var(--color-gray-300)';
+    const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
     return (
         <ResponsiveContainer width="100%" height={250}>
@@ -194,7 +197,7 @@ const DailyChart = ({
                         moment(tickItem).format('D MMM')
                     }
                     tick={{ fontSize: '11px', fill: labelColor }}
-                    tickLine={{ stroke: labelColor }}
+                    tickLine={{ stroke: labelColor, visibility: 'hidden' }}
                     axisLine={{ stroke: gridColor }}
                     dy={5}
                 />
@@ -204,25 +207,19 @@ const DailyChart = ({
                     allowDecimals={false}
                     tickFormatter={(tickItem) => formatNumber(tickItem)}
                     tick={{ fontSize: '11px', fill: labelColor }}
-                    tickLine={{ stroke: labelColor }}
+                    tickLine={{ stroke: labelColor, visibility: 'hidden' }}
                     axisLine={{ stroke: gridColor }}
                     dx={-5}
                 />
                 <RechartsTooltip
+                    trigger="click"
                     contentStyle={{
-                        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                        borderRadius: 'var(--border-radius)',
-                        borderWidth: 0,
-                        color: 'var(--text-primary-inverted)',
                         paddingBottom: '16px',
                     }}
                     itemStyle={{
-                        color: 'var(--text-primary-inverted)',
                         padding: 0,
                     }}
-                    labelStyle={{
-                        color: 'var(--text-primary-inverted)',
-                    }}
+                    content={<CustomTooltip />}
                 />
                 <Line
                     dataKey="count"
@@ -235,3 +232,19 @@ const DailyChart = ({
 };
 
 export default HomePage;
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+        console.log(payload);
+        return (
+            <div className={styles.tooltip}>
+                <h4>{label}</h4>
+                <p>
+                    {payload[0].value} {payload[0].payload.label}
+                </p>
+            </div>
+        );
+    }
+
+    return null;
+};
