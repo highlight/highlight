@@ -34,5 +34,6 @@ export enum Feature {
  */
 const Flights: { [key in Feature]: string[] } = {
     // 244: Lorilyn McCue
-    [Feature.PlayerLeftPanel]: ['244'],
+    // 133: John Pham (johnphammail@gmail.com)
+    [Feature.PlayerLeftPanel]: ['244', '133'],
 };
