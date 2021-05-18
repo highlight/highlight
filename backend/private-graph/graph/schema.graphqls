@@ -131,6 +131,12 @@ type ErrorTrace {
     column_number: Int
 }
 
+type ReferrerTablePayload {
+    host: String!
+    count: Int!
+    percent: Float!
+}
+
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
@@ -337,6 +343,10 @@ type Query {
         organization_id: ID!
         date_range: DateRangeInput!
     ): [DailyErrorCount]!
+    referrers(
+        organization_id: ID!
+        lookBackPeriod: Int!
+    ): [ReferrerTablePayload]!
     sessions(
         organization_id: ID!
         count: Int!
