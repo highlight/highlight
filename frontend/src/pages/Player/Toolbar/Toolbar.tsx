@@ -422,26 +422,13 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             }}
                             className={styles.autoPlayButton}
                         >
-                            {autoPlayVideo ? 'Autoplay on' : 'Autoplay off'}
+                            {autoPlayVideo ? 'Autoplay On' : 'Autoplay Off'}
                         </ToggleButton>
                     </Tooltip>
                     <Tooltip
                         title="Skip the playback of the inactive portions of the session."
                         arrowPointAtCenter
                     >
-                        {/* <Button
-                            type="text"
-                            className={classNames(styles.skipInactiveButton, {
-                                [styles.skipInactiveButtonActive]: skipInactive,
-                            })}
-                            onClick={() => {
-                                setSkipInactive(!skipInactive);
-                            }}
-                        >
-                            {skipInactive
-                                ? 'Skipping inactive'
-                                : 'Skip inactive'}
-                        </Button> */}
                         <ToggleButton
                             initialValue={skipInactive}
                             onClick={() => {
@@ -450,8 +437,8 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             className={styles.skipInactiveButton}
                         >
                             {skipInactive
-                                ? 'Skipping inactive'
-                                : 'Skip inactive'}
+                                ? 'Skipping Inactive'
+                                : 'Skip Inactive'}
                         </ToggleButton>
                     </Tooltip>
                     <SpeedControl />

@@ -122,7 +122,7 @@ const TimelineAnnotationsSettings = () => {
                         ></div>
                     ))}
                     <span className={styles.label}>
-                        {selectedEventTypes.length} types...
+                        {selectedEventTypes.length} Types...
                     </span>
                 </div>
             </Button>
