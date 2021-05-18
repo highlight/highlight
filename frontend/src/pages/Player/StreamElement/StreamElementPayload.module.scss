@@ -21,7 +21,7 @@
 }
 
 .payload {
-    margin: 0;
+    margin: 0 !important;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
