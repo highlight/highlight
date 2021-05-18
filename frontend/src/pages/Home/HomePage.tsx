@@ -212,7 +212,6 @@ const DailyChart = ({
                     dx={-5}
                 />
                 <RechartsTooltip
-                    trigger="click"
                     contentStyle={{
                         paddingBottom: '16px',
                     }}
@@ -235,7 +234,6 @@ export default HomePage;
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-        console.log(payload);
         return (
             <div className={styles.tooltip}>
                 <h4>{label}</h4>
