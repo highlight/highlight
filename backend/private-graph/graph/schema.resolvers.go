@@ -1480,12 +1480,6 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, e.Wrap(err, "error creating new admin")
 		}
 		admin = newAdmin
-		msg := slack.WebhookMessage{Text: fmt.
-			Sprintf("```NEW USER \nid: %v\nname: %v\nemail: %v```", newAdmin.ID, *newAdmin.Name, *newAdmin.Email)}
-		err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
-		if err != nil {
-			log.Errorf("error sending slack hook: %v", err)
-		}
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)
