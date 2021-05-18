@@ -1,8 +1,16 @@
 .dot {
     background-color: var(--color-purple);
     border-radius: 10px;
-    height: var(--size-xSmall);
-    width: var(--size-xSmall);
+
+    &.xSmall {
+        height: var(--size-xSmall);
+        width: var(--size-xSmall);
+    }
+
+    &.xxSmall {
+        height: var(--size-xxSmall);
+        width: var(--size-xxSmall);
+    }
 }
 
 .pulse {

@@ -6,6 +6,7 @@ import { FaPause } from 'react-icons/fa';
 import Skeleton from 'react-loading-skeleton';
 
 import Button from '../../../components/Button/Button/Button';
+import ToggleButton from '../../../components/Button/ToggleButton/ToggleButton';
 import Modal from '../../../components/Modal/Modal';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import { ErrorObject } from '../../../graph/generated/schemas';
@@ -414,21 +415,21 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         title="Automatically starts the video when you open a session."
                         arrowPointAtCenter
                     >
-                        <Button
-                            type="text"
-                            className={classNames(styles.autoPlayButton)}
+                        <ToggleButton
+                            initialValue={autoPlayVideo}
                             onClick={() => {
                                 setAutoPlayVideo(!autoPlayVideo);
                             }}
+                            className={styles.autoPlayButton}
                         >
                             {autoPlayVideo ? 'Autoplay on' : 'Autoplay off'}
-                        </Button>
+                        </ToggleButton>
                     </Tooltip>
                     <Tooltip
                         title="Skip the playback of the inactive portions of the session."
                         arrowPointAtCenter
                     >
-                        <Button
+                        {/* <Button
                             type="text"
                             className={classNames(styles.skipInactiveButton, {
                                 [styles.skipInactiveButtonActive]: skipInactive,
@@ -440,7 +441,18 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             {skipInactive
                                 ? 'Skipping inactive'
                                 : 'Skip inactive'}
-                        </Button>
+                        </Button> */}
+                        <ToggleButton
+                            initialValue={skipInactive}
+                            onClick={() => {
+                                setSkipInactive(!skipInactive);
+                            }}
+                            className={styles.skipInactiveButton}
+                        >
+                            {skipInactive
+                                ? 'Skipping inactive'
+                                : 'Skip inactive'}
+                        </ToggleButton>
                     </Tooltip>
                     <SpeedControl />
                     <Tooltip

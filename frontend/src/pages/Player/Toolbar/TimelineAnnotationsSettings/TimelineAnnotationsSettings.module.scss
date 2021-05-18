@@ -2,8 +2,17 @@
     background: none;
     border: 0;
     cursor: pointer;
+    height: initial !important;
     padding: var(--size-xSmall) var(--size-medium);
     width: 145px;
+
+    &:hover {
+        background: var(--color-gray-100);
+    }
+
+    &:active {
+        background: var(--color-gray-300);
+    }
 }
 
 .eventTypesContainer {

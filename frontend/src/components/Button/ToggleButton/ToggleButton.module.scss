@@ -1,0 +1,32 @@
+.toggleButton {
+    background: transparent;
+    color: var(--color-gray-500) !important;
+    height: initial !important;
+    position: relative;
+
+    &.enabled {
+        background: var(--color-gray-200);
+        color: var(--text-primary) !important;
+
+        .dotContainer {
+            opacity: 1;
+        }
+    }
+
+    &:hover {
+        background: var(--color-gray-100);
+    }
+
+    &:active {
+        background: var(--color-gray-300);
+    }
+
+    .dotContainer {
+        bottom: calc(var(--size-xxSmall) * -1);
+        opacity: 0;
+        position: absolute;
+        right: 2.5%;
+        top: 5%;
+        transition: opacity 0.2s ease-in-out;
+    }
+}
