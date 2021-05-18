@@ -209,7 +209,6 @@ const DailyChart = ({
                     dx={-5}
                 />
                 <RechartsTooltip
-                    trigger="click"
                     contentStyle={{
                         backgroundColor: 'rgba(0, 0, 0, 0.85)',
                         borderRadius: 'var(--border-radius)',
