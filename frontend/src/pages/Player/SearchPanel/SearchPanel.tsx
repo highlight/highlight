@@ -23,7 +23,7 @@ const SearchPanel = () => {
                 <FirstTimeUsersSwitch />
             </div>
 
-            <SessionFeed />
+            <SessionFeed minimal />
         </div>
     );
 };

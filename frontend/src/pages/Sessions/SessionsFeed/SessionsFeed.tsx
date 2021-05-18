@@ -35,11 +35,16 @@ import {
     STARRED_SEGMENT_ID,
 } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import FirstTimeDecorations from './components/FirstTimeDecorations/FirstTimeDecorations';
+import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import styles from './SessionsFeed.module.scss';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
-export const SessionFeed = () => {
+interface Props {
+    minimal?: boolean;
+}
+
+export const SessionFeed = ({ minimal = false }: Props) => {
     const { organization_id, segment_id, session_id } = useParams<{
         organization_id: string;
         segment_id: string;
@@ -164,15 +169,21 @@ export const SessionFeed = () => {
                             ) : (
                                 <>
                                     {upsell && <LimitedSessionCard />}
-                                    {filteredSessions.map((u) => {
-                                        return (
+                                    {filteredSessions.map((u) =>
+                                        minimal ? (
+                                            <MinimalSessionCard
+                                                session={u}
+                                                key={u?.id}
+                                                selected={session_id === u?.id}
+                                            />
+                                        ) : (
                                             <SessionCard
                                                 session={u}
                                                 key={u?.id}
                                                 selected={session_id === u?.id}
                                             />
-                                        );
-                                    })}
+                                        )
+                                    )}
                                 </>
                             )}
                             {data.sessions.length < data.totalCount && (
