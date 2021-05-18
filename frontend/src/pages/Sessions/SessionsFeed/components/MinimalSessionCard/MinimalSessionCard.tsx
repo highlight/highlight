@@ -104,7 +104,7 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                     <div
                         className={classNames(
                             styles.hoverBorderLeft,
-                            hovered && styles.hoverBorderOn
+                            hovered && !selected && styles.hoverBorderOn
                         )}
                     />
                     <div className={styles.sessionCardContentWrapper}>

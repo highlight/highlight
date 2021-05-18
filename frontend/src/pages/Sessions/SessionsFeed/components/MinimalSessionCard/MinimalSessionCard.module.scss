@@ -171,6 +171,8 @@
 
     &::before {
         background-color: var(--color-purple);
+        border-bottom-left-radius: var(--size-xSmall);
+        border-top-left-radius: var(--size-xSmall);
         content: '';
         height: 100%;
         left: 0;
