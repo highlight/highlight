@@ -29,7 +29,10 @@
 }
 
 .toggleSection {
-    padding: 10px 5px 5px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 5px var(--size-medium);
+    row-gap: var(--size-medium);
 }
 
 .titleSection {
@@ -108,4 +111,10 @@
     margin-left: auto;
     transition: 0.4s;
     width: 14px;
+}
+
+.checkboxContainer {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-xSmall);
 }

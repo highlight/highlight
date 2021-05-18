@@ -34,6 +34,7 @@ import PlayerCommentCanvas, {
 import { usePlayer } from './PlayerHook/PlayerHook';
 import styles from './PlayerPage.module.scss';
 import ReplayerContext, { ReplayerState } from './ReplayerContext';
+import SearchPanel from './SearchPanel/SearchPanel';
 import SessionLevelBar from './SessionLevelBar/SessionLevelBar';
 import { StreamElement } from './StreamElement/StreamElement';
 import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
@@ -55,11 +56,14 @@ const Player = () => {
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
+    const [showLeftPanelPreference] = useLocalStorage(
+        'highlightMenuShowLeftPanel',
+        false
+    );
     const [showRightPanelPreference] = useLocalStorage(
         'highlightMenuShowRightPanel',
         true
     );
-    const shouldShowRightPanel = showRightPanelPreference;
     const [commentModalPosition, setCommentModalPosition] = useState<
         Coordinates2D | undefined
     >(undefined);
@@ -129,10 +133,16 @@ const Player = () => {
         <ReplayerContext.Provider value={player}>
             <div
                 className={classNames(styles.playerBody, {
-                    [styles.noRightPanel]: !shouldShowRightPanel,
+                    [styles.withRightPanel]: showRightPanelPreference,
+                    [styles.withLeftPanel]: showLeftPanelPreference,
                 })}
             >
-                <div className={styles.playerLeftSection}>
+                {showLeftPanelPreference && (
+                    <div className={styles.playerLeftPanel}>
+                        <SearchPanel />
+                    </div>
+                )}
+                <div className={styles.playerCenterPanel}>
                     <SessionLevelBar />
                     <div className={styles.rrwebPlayerSection}>
                         <div
@@ -211,8 +221,8 @@ const Player = () => {
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
                 </div>
-                {shouldShowRightPanel && (
-                    <div className={styles.playerRightSection}>
+                {showRightPanelPreference && (
+                    <div className={styles.playerRightPanel}>
                         <MetadataBox />
                         <Tabs
                             centered

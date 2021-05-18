@@ -121,7 +121,7 @@ export const IdentifiedUsersSwitch = () => {
     const { searchParams, setSearchParams } = useSearchContext();
 
     return (
-        <div className={inputStyles.checkboxRow}>
+        <div>
             <Checkbox
                 checked={searchParams.identified}
                 onChange={(e: CheckboxChangeEvent) => {
@@ -149,7 +149,7 @@ export const FirstTimeUsersSwitch = () => {
     const { searchParams, setSearchParams } = useSearchContext();
 
     return (
-        <div className={inputStyles.checkboxRow}>
+        <div>
             <Tooltip
                 title="Show only your user's first recorded session"
                 placement="left"
