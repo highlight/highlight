@@ -140,16 +140,18 @@ export const SessionFeed = ({ minimal = false }: Props) => {
 
     return (
         <>
-            <div className={styles.fixedContent}>
-                <div className={styles.mainUserInput}>
-                    <div className={styles.userInputWrapper}>
-                        <UserPropertyInput include />
+            {!minimal && (
+                <div className={styles.fixedContent}>
+                    <div className={styles.mainUserInput}>
+                        <div className={styles.userInputWrapper}>
+                            <UserPropertyInput include />
+                        </div>
                     </div>
+                    <div
+                        className={styles.resultCount}
+                    >{`${data.totalCount} sessions`}</div>
                 </div>
-                <div
-                    className={styles.resultCount}
-                >{`${data.totalCount} sessions`}</div>
-            </div>
+            )}
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
                     {loading && showLoadingSkeleton ? (

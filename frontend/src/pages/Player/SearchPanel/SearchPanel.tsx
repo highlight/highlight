@@ -1,5 +1,6 @@
 import React from 'react';
 
+import useHighlightAdminFlag from '../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 import {
     LiveSessionsSwitch,
     ViewedSessionsSwitch,
@@ -13,14 +14,20 @@ import styles from './SearchPanel.module.scss';
 import SegmentPickerForPlayer from './SegmentPickerForPlayer/SegmentPickerForPlayer';
 
 const SearchPanel = () => {
+    const { isHighlightAdmin } = useHighlightAdminFlag();
+
     return (
         <div className={styles.searchPanel}>
             <div className={styles.filtersContainer}>
                 <SegmentPickerForPlayer />
-                <ViewedSessionsSwitch />
-                <LiveSessionsSwitch />
-                <IdentifiedUsersSwitch />
-                <FirstTimeUsersSwitch />
+                {isHighlightAdmin && (
+                    <>
+                        <ViewedSessionsSwitch />
+                        <LiveSessionsSwitch />
+                        <IdentifiedUsersSwitch />
+                        <FirstTimeUsersSwitch />{' '}
+                    </>
+                )}
             </div>
 
             <SessionFeed minimal />

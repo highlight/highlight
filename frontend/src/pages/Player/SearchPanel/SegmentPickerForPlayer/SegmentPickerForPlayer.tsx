@@ -41,41 +41,38 @@ const SegmentPickerForPlayer = () => {
     }, [currentSegment, setExistingParams, setSearchParams, setSegmentName]);
 
     return (
-        <div>
-            <Select
-                value={segmentName}
-                onChange={(value, option) => {
-                    let nextValue = undefined;
-                    if (value && option) {
-                        nextValue = {
-                            value: value,
-                            id: (option as any).key,
-                        };
-                    } else {
-                        setExistingParams(EmptySessionsSearchParams);
-                        setSearchParams(EmptySessionsSearchParams);
-                        setSegmentName(null);
-                    }
-                    setSelectedSegment(nextValue);
-                }}
-                className={styles.segmentSelect}
-                placeholder="Segment: None"
-                allowClear
-                options={(data?.segments || [])
-                    .map((segment) => ({
-                        displayValue: segment?.name || '',
-                        value: segment?.name || '',
-                        id: segment?.id || '',
-                    }))
-                    .sort((a, b) =>
-                        a.displayValue.toLowerCase() >
-                        b.displayValue.toLowerCase()
-                            ? 1
-                            : -1
-                    )}
-                loading={loading}
-            />
-        </div>
+        <Select
+            value={segmentName}
+            onChange={(value, option) => {
+                let nextValue = undefined;
+                if (value && option) {
+                    nextValue = {
+                        value: value,
+                        id: (option as any).key,
+                    };
+                } else {
+                    setExistingParams(EmptySessionsSearchParams);
+                    setSearchParams(EmptySessionsSearchParams);
+                    setSegmentName(null);
+                }
+                setSelectedSegment(nextValue);
+            }}
+            className={styles.segmentSelect}
+            placeholder="Segment: None"
+            allowClear
+            options={(data?.segments || [])
+                .map((segment) => ({
+                    displayValue: segment?.name || '',
+                    value: segment?.name || '',
+                    id: segment?.id || '',
+                }))
+                .sort((a, b) =>
+                    a.displayValue.toLowerCase() > b.displayValue.toLowerCase()
+                        ? 1
+                        : -1
+                )}
+            loading={loading}
+        />
     );
 };
 
