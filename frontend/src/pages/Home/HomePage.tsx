@@ -172,7 +172,7 @@ const DailyChart = ({
     lineColor?: string;
 }) => {
     const gridColor = 'var(--color-gray-300)';
-    const labelColor = 'var(--text-primary)';
+    const labelColor = 'var(--color-gray-500)';
     return (
         <ResponsiveContainer width="100%" height={250}>
             <LineChart
