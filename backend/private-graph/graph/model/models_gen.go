@@ -66,6 +66,12 @@ type Plan struct {
 	Quota int      `json:"quota"`
 }
 
+type ReferrerTablePayload struct {
+	Host    string  `json:"host"`
+	Count   int     `json:"count"`
+	Percent float64 `json:"percent"`
+}
+
 type SanitizedAdmin struct {
 	ID       int     `json:"id"`
 	Name     *string `json:"name"`
