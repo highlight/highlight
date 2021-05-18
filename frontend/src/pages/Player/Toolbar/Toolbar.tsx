@@ -52,6 +52,10 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
     usePlayerHotKeys();
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
+    const [showLeftPanelPreference] = useLocalStorage(
+        'highlightMenuShowLeftPanel',
+        false
+    );
     const [selectedError, setSelectedError] = useState<ErrorObject | undefined>(
         undefined
     );
@@ -244,11 +248,17 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     className={styles.sliderWrapper}
                     ref={sliderWrapperRef}
                     onMouseMove={(e: React.MouseEvent<HTMLButtonElement>) =>
-                        setSliderClientX(e.clientX - 64)
+                        setSliderClientX(
+                            e.clientX - 64 - (showLeftPanelPreference ? 425 : 0)
+                        )
                     }
                     onMouseLeave={() => setSliderClientX(-1)}
                     onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                        const ratio = (e.clientX - 64) / wrapperWidth;
+                        const ratio =
+                            (e.clientX -
+                                64 -
+                                (showLeftPanelPreference ? 425 : 0)) /
+                            wrapperWidth;
                         setTime(getSliderTime(ratio));
                     }}
                 >
