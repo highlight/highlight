@@ -45,6 +45,7 @@ const ReferrersTable = () => {
             </div>
 
             <Table
+                scroll={{ y: 250 }}
                 showHeader={false}
                 columns={Columns}
                 dataSource={tableData}
