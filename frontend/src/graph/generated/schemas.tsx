@@ -158,6 +158,13 @@ export type ErrorTrace = {
     column_number?: Maybe<Scalars['Int']>;
 };
 
+export type ReferrerTablePayload = {
+    __typename?: 'ReferrerTablePayload';
+    host: Scalars['String'];
+    count: Scalars['Int'];
+    percent: Scalars['Float'];
+};
+
 export type SearchParamsInput = {
     user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
@@ -368,6 +375,7 @@ export type Query = {
     organizationHasViewedASession?: Maybe<Session>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
+    referrers: Array<Maybe<ReferrerTablePayload>>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -453,6 +461,11 @@ export type QueryDailySessionsCountArgs = {
 export type QueryDailyErrorsCountArgs = {
     organization_id: Scalars['ID'];
     date_range: DateRangeInput;
+};
+
+export type QueryReferrersArgs = {
+    organization_id: Scalars['ID'];
+    lookBackPeriod: Scalars['Int'];
 };
 
 export type QuerySessionsArgs = {

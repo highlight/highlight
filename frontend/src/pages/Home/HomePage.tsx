@@ -21,6 +21,11 @@ import {
 } from '../../graph/generated/hooks';
 import { dailyCountData } from '../../util/dashboardCalculations';
 import { formatNumber } from '../../util/numbers';
+import {
+    HomePageFiltersContext,
+    useHomePageFiltersContext,
+} from './components/HomePageFilters/HomePageFiltersContext';
+import ReferrersTable from './components/ReferrersTable/ReferrersTable';
 import styles from './HomePage.module.scss';
 
 type DailyCount = {
@@ -30,21 +35,35 @@ type DailyCount = {
 };
 
 const HomePage = () => {
+    const [dateRangeLength, setDateRangeLength] = useState<number>(
+        timeFilter[0].value
+    );
+
     return (
-        <div className={styles.dashboardWrapper}>
-            <div className={styles.dashboard}>
-                <div>
-                    <h2>Welcome back to Highlight.</h2>
-                    <p className={styles.subTitle}>
-                        Here’s an overview of your team’s sessions and errors.
-                    </p>
-                </div>
-                <div className={styles.dashboardBody}>
-                    <SessionCountGraph />
-                    <ErrorCountGraph />
+        <HomePageFiltersContext value={{ dateRangeLength, setDateRangeLength }}>
+            <div className={styles.dashboardWrapper}>
+                <div className={styles.dashboard}>
+                    <div>
+                        <h2>Welcome back to Highlight.</h2>
+                        <p className={styles.subTitle}>
+                            Here’s an overview of your team’s sessions and
+                            errors.
+                        </p>
+                    </div>
+                    <div className={styles.filtersContainer}>
+                        <StandardDropdown
+                            data={timeFilter}
+                            onSelect={setDateRangeLength}
+                        />
+                    </div>
+                    <div className={styles.dashboardBody}>
+                        <SessionCountGraph />
+                        <ErrorCountGraph />
+                        <ReferrersTable />
+                    </div>
                 </div>
             </div>
-        </div>
+        </HomePageFiltersContext>
     );
 };
 
@@ -57,8 +76,7 @@ const SessionCountGraph = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
-    // In days
-    const [dateRangeLength, setDateRangeLength] = useState(timeFilter[0].value);
+    const { dateRangeLength } = useHomePageFiltersContext();
     const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
         []
     );
@@ -100,10 +118,6 @@ const SessionCountGraph = () => {
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
                 <h3>Sessions per day</h3>
-                <StandardDropdown
-                    data={timeFilter}
-                    onSelect={setDateRangeLength}
-                />
             </div>
             <DailyChart data={sessionCountData} name="Sessions" />
         </div>
@@ -114,8 +128,7 @@ const ErrorCountGraph = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
-    // In days
-    const [dateRangeLength, setDateRangeLength] = useState(timeFilter[0].value);
+    const { dateRangeLength } = useHomePageFiltersContext();
     const [errorCountData, setErrorCountData] = useState<Array<DailyCount>>([]);
 
     const { loading } = useGetDailyErrorsCountQuery({
@@ -155,10 +168,6 @@ const ErrorCountGraph = () => {
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
                 <h3>Errors per day</h3>
-                <StandardDropdown
-                    data={timeFilter}
-                    onSelect={setDateRangeLength}
-                />
             </div>
             <DailyChart
                 data={errorCountData}
@@ -190,7 +199,7 @@ const DailyChart = ({
                 height={300}
                 data={data}
                 margin={{
-                    top: -24,
+                    top: -12,
                     right: 12,
                     left: 0,
                     bottom: 0,

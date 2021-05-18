@@ -8,8 +8,6 @@
 
 .subTitle {
     font-size: 18px;
-    margin-bottom: 30px !important;
-    margin-top: 12px;
 }
 
 .chartHeaderWrapper {
@@ -65,4 +63,10 @@
         font-size: 14px !important;
         margin: 0 !important;
     }
+}
+
+.filtersContainer {
+    display: flex;
+    justify-content: flex-end;
+    padding-bottom: var(--size-medium);
 }

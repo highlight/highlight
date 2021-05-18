@@ -124,3 +124,19 @@ iframe {
     border: 0;
     z-index: -10;
 }
+
+.ant-table-cell {
+    border-bottom: 0 !important;
+    height: var(--size-xLarge);
+    padding: 0 !important;
+
+    > * {
+        align-items: center;
+        display: flex;
+        height: 100%;
+    }
+
+    &:first-of-type {
+        padding-left: var(--size-small) !important;
+    }
+}

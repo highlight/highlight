@@ -1,0 +1,34 @@
+.tableContainer {
+    max-height: 400px;
+}
+
+.percentContainer {
+    border-left: 1px solid var(--color-gray-300);
+    color: var(--color-gray-500);
+    padding: 0 var(--size-xSmall);
+    position: relative;
+    width: 100%;
+
+    span {
+        position: relative;
+        z-index: 5;
+    }
+
+    &::after {
+        background: var(--color-blue-200);
+        content: '';
+        height: 100%;
+        left: 0;
+        opacity: 0.25;
+        position: absolute;
+        width: var(--percentage);
+        z-index: 0;
+    }
+}
+
+.countContainer {
+    display: flex;
+    font-weight: 800;
+    justify-content: flex-end;
+    padding-right: var(--size-xSmall);
+}
