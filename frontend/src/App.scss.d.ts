@@ -3,6 +3,7 @@ export const antDropdownMenuItem: string;
 export const antPickerInput: string;
 export const antPickerSuffix: string;
 export const antPopoverInnerContent: string;
+export const antTableBody: string;
 export const antTableCell: string;
 export const antTabs: string;
 export const antTabsBottom: string;

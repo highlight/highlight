@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
 import homePageStyles from '../../HomePage.module.scss';
+import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
 
 const ReferrersTable = () => {
@@ -13,9 +14,10 @@ const ReferrersTable = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
+    const { dateRangeLength } = useHomePageFiltersContext();
 
     useGetReferrersCountQuery({
-        variables: { organization_id, lookBackPeriod: 30 },
+        variables: { organization_id, lookBackPeriod: dateRangeLength },
         onCompleted: (data) => {
             if (data.referrers) {
                 const transformedData = data.referrers.map(
@@ -75,7 +77,7 @@ const Columns: ColumnsType<any> = [
         title: 'Percentage',
         dataIndex: 'percent',
         key: 'percent',
-        width: 50,
+        width: 60,
         render: (percent) => (
             <div
                 className={styles.percentContainer}

@@ -140,3 +140,7 @@ iframe {
         padding-left: var(--size-small) !important;
     }
 }
+
+.ant-table-body {
+    overflow-y: auto !important;
+}
