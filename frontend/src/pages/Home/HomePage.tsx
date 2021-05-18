@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 import {
+    Area,
     CartesianGrid,
+    ComposedChart,
     Line,
-    LineChart,
     ResponsiveContainer,
     Tooltip as RechartsTooltip,
     XAxis,
@@ -104,7 +105,7 @@ const SessionCountGraph = () => {
                     onSelect={setDateRangeLength}
                 />
             </div>
-            <DailyChart data={sessionCountData} />
+            <DailyChart data={sessionCountData} name="Sessions" />
         </div>
     );
 };
@@ -162,6 +163,7 @@ const ErrorCountGraph = () => {
             <DailyChart
                 data={errorCountData}
                 lineColor={'var(--color-orange-400)'}
+                name="Errors"
             />
         </div>
     );
@@ -170,25 +172,44 @@ const ErrorCountGraph = () => {
 const DailyChart = ({
     data,
     lineColor = 'var(--color-purple)',
+    name,
 }: {
     data: Array<DailyCount>;
     lineColor?: string;
+    name: string;
 }) => {
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
+
+    const gradientId = `${name}-colorUv`;
+
     return (
         <ResponsiveContainer width="100%" height={250}>
-            <LineChart
+            <ComposedChart
                 width={500}
                 height={300}
                 data={data}
                 margin={{
-                    top: 5,
-                    right: 35,
+                    top: -24,
+                    right: 12,
                     left: 0,
                     bottom: 0,
                 }}
             >
+                <defs>
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                            offset="5%"
+                            stopColor={lineColor}
+                            stopOpacity={0.2}
+                        />
+                        <stop
+                            offset="95%"
+                            stopColor="var(--color-primary-background)"
+                            stopOpacity={0.1}
+                        />
+                    </linearGradient>
+                </defs>
                 <CartesianGrid stroke={gridColor} />
                 <XAxis
                     dataKey="date"
@@ -224,8 +245,22 @@ const DailyChart = ({
                     dataKey="count"
                     stroke={lineColor}
                     strokeWidth={1.5}
+                    type="monotone"
+                    dot={false}
+                    activeDot={{
+                        fill: lineColor,
+                        fillOpacity: 1,
+                    }}
                 ></Line>
-            </LineChart>
+                <Area
+                    type="monotone"
+                    dataKey="count"
+                    strokeWidth={0}
+                    fillOpacity={1}
+                    fill={`url(#${gradientId})`}
+                    activeDot={false}
+                />
+            </ComposedChart>
         </ResponsiveContainer>
     );
 };
