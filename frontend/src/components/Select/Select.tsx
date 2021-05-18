@@ -5,6 +5,8 @@ import {
 } from 'antd';
 import React from 'react';
 
+import styles from './Select.module.scss';
+
 const { Option } = AntDesignSelect;
 
 type Props = Pick<
@@ -26,7 +28,11 @@ type Props = Pick<
 
 const Select = ({ options, ...props }: Props) => {
     return (
-        <AntDesignSelect {...props} disabled={props.loading}>
+        <AntDesignSelect
+            {...props}
+            disabled={props.loading}
+            dropdownClassName={styles.select}
+        >
             {options.map(({ displayValue, value, disabled, id }) => (
                 <Option key={id} value={value} disabled={disabled}>
                     {displayValue}

@@ -618,7 +618,7 @@ const TimelineAnnotationColors: {
     Navigate: '--color-yellow',
     Errors: '--color-red',
     Segment: '--color-orange-400',
-    Track: '--color-blue-light',
+    Track: '--color-blue-300',
     Comments: '--color-green-dark',
 };
 
