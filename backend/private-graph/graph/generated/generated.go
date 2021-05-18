@@ -242,6 +242,7 @@ type ComplexityRoot struct {
 		Organizations                 func(childComplexity int) int
 		PropertySuggestion            func(childComplexity int, organizationID int, query string, typeArg string) int
 		RecordingSettings             func(childComplexity int, organizationID int) int
+		Referrers                     func(childComplexity int, organizationID int, lookBackPeriod int) int
 		Resources                     func(childComplexity int, sessionID int) int
 		Segments                      func(childComplexity int, organizationID int) int
 		Session                       func(childComplexity int, id int) int
@@ -256,6 +257,12 @@ type ComplexityRoot struct {
 		Details        func(childComplexity int) int
 		ID             func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
+	}
+
+	ReferrerTablePayload struct {
+		Count   func(childComplexity int) int
+		Host    func(childComplexity int) int
+		Percent func(childComplexity int) int
 	}
 
 	SanitizedAdmin struct {
@@ -407,6 +414,7 @@ type QueryResolver interface {
 	OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model1.Session, error)
 	DailySessionsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
+	Referrers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
 	Sessions(ctx context.Context, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
@@ -1569,6 +1577,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.RecordingSettings(childComplexity, args["organization_id"].(int)), true
 
+	case "Query.referrers":
+		if e.complexity.Query.Referrers == nil {
+			break
+		}
+
+		args, err := ec.field_Query_referrers_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Referrers(childComplexity, args["organization_id"].(int), args["lookBackPeriod"].(int)), true
+
 	case "Query.resources":
 		if e.complexity.Query.Resources == nil {
 			break
@@ -1680,6 +1700,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RecordingSettings.OrganizationID(childComplexity), true
+
+	case "ReferrerTablePayload.count":
+		if e.complexity.ReferrerTablePayload.Count == nil {
+			break
+		}
+
+		return e.complexity.ReferrerTablePayload.Count(childComplexity), true
+
+	case "ReferrerTablePayload.host":
+		if e.complexity.ReferrerTablePayload.Host == nil {
+			break
+		}
+
+		return e.complexity.ReferrerTablePayload.Host(childComplexity), true
+
+	case "ReferrerTablePayload.percent":
+		if e.complexity.ReferrerTablePayload.Percent == nil {
+			break
+		}
+
+		return e.complexity.ReferrerTablePayload.Percent(childComplexity), true
 
 	case "SanitizedAdmin.email":
 		if e.complexity.SanitizedAdmin.Email == nil {
@@ -2291,6 +2332,12 @@ type ErrorTrace {
     column_number: Int
 }
 
+type ReferrerTablePayload {
+    host: String!
+    count: Int!
+    percent: Float!
+}
+
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
@@ -2497,6 +2544,10 @@ type Query {
         organization_id: ID!
         date_range: DateRangeInput!
     ): [DailyErrorCount]!
+    referrers(
+        organization_id: ID!
+        lookBackPeriod: Int!
+    ): [ReferrerTablePayload]!
     sessions(
         organization_id: ID!
         count: Int!
@@ -3744,6 +3795,30 @@ func (ec *executionContext) field_Query_recording_settings_args(ctx context.Cont
 		}
 	}
 	args["organization_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_referrers_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lookBackPeriod"] = arg1
 	return args, nil
 }
 
@@ -8351,6 +8426,48 @@ func (ec *executionContext) _Query_dailyErrorsCount(ctx context.Context, field g
 	return ec.marshalNDailyErrorCount2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐDailyErrorCount(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_referrers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_referrers_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Referrers(rctx, args["organization_id"].(int), args["lookBackPeriod"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.ReferrerTablePayload)
+	fc.Result = res
+	return ec.marshalNReferrerTablePayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐReferrerTablePayload(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9024,6 +9141,111 @@ func (ec *executionContext) _RecordingSettings_details(ctx context.Context, fiel
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ReferrerTablePayload_host(ctx context.Context, field graphql.CollectedField, obj *model.ReferrerTablePayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ReferrerTablePayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Host, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ReferrerTablePayload_count(ctx context.Context, field graphql.CollectedField, obj *model.ReferrerTablePayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ReferrerTablePayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ReferrerTablePayload_percent(ctx context.Context, field graphql.CollectedField, obj *model.ReferrerTablePayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ReferrerTablePayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Percent, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SanitizedAdmin_id(ctx context.Context, field graphql.CollectedField, obj *model.SanitizedAdmin) (ret graphql.Marshaler) {
@@ -13578,6 +13800,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
+		case "referrers":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_referrers(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "sessions":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -13765,6 +14001,43 @@ func (ec *executionContext) _RecordingSettings(ctx context.Context, sel ast.Sele
 			}
 		case "details":
 			out.Values[i] = ec._RecordingSettings_details(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var referrerTablePayloadImplementors = []string{"ReferrerTablePayload"}
+
+func (ec *executionContext) _ReferrerTablePayload(ctx context.Context, sel ast.SelectionSet, obj *model.ReferrerTablePayload) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, referrerTablePayloadImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ReferrerTablePayload")
+		case "host":
+			out.Values[i] = ec._ReferrerTablePayload_host(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "count":
+			out.Values[i] = ec._ReferrerTablePayload_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "percent":
+			out.Values[i] = ec._ReferrerTablePayload_percent(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -14814,6 +15087,43 @@ func (ec *executionContext) unmarshalNPlanType2githubᚗcomᚋhighlightᚑrunᚋ
 
 func (ec *executionContext) marshalNPlanType2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐPlanType(ctx context.Context, sel ast.SelectionSet, v model.PlanType) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) marshalNReferrerTablePayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐReferrerTablePayload(ctx context.Context, sel ast.SelectionSet, v []*model.ReferrerTablePayload) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐReferrerTablePayload(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalNSanitizedAdmin2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdmin(ctx context.Context, sel ast.SelectionSet, v model.SanitizedAdmin) graphql.Marshaler {
@@ -15888,6 +16198,13 @@ func (ec *executionContext) marshalORecordingSettings2ᚖgithubᚗcomᚋhighligh
 		return graphql.Null
 	}
 	return ec._RecordingSettings(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOReferrerTablePayload2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐReferrerTablePayload(ctx context.Context, sel ast.SelectionSet, v *model.ReferrerTablePayload) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ReferrerTablePayload(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOSanitizedAdminInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedAdminInput(ctx context.Context, v interface{}) (*model.SanitizedAdminInput, error) {
