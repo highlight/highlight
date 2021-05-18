@@ -50,7 +50,6 @@ const Notifications = () => {
 
     return (
         <Popover
-            hasBorder
             placement="bottomLeft"
             isList
             content={

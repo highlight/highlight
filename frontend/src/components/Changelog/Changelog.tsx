@@ -93,7 +93,6 @@ const Changelog = (props: HTMLProps<HTMLDivElement>) => {
             <Popover
                 align={{ offset: [18, -12] }}
                 placement="rightBottom"
-                hasBorder
                 isList
                 onVisibleChange={(visible) => {
                     if (visible) {

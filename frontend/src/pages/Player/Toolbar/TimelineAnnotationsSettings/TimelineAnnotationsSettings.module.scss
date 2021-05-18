@@ -70,4 +70,9 @@
 
 .contentWrapper {
     max-width: 300px;
+    padding-bottom: var(--size-small);
+
+    p {
+        margin-top: 0 !important;
+    }
 }
