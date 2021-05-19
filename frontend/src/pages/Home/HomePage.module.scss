@@ -14,12 +14,11 @@
     align-items: center;
     display: flex;
     justify-content: space-between;
-    padding: 0 10px;
 }
 
 .graphSection {
     flex-direction: column;
-    padding: 20px 15px;
+    padding: var(--size-large);
 }
 
 .section {

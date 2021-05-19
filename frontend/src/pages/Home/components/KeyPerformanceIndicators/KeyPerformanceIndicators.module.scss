@@ -1,6 +1,10 @@
 .keyPerformanceIndicatorsContainer {
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
     display: flex;
     flex-wrap: wrap;
-    gap: var(--size-large);
-    margin-bottom: var(--size-large);
+    gap: var(--size-xxLarge);
+    margin-bottom: var(--size-xxLarge);
+    padding: var(--size-large);
+    width: fit-content;
 }
