@@ -52,8 +52,7 @@
 
 .noDataContainer {
     align-items: center;
-    backdrop-filter: blur(3px);
-    background: var(--color-background-overlay);
+    backdrop-filter: blur(2px);
     border-radius: var(--border-radius);
     display: flex;
     height: 100%;

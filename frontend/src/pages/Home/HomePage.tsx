@@ -1,8 +1,9 @@
 import classNames from 'classnames';
+import Lottie from 'lottie-react';
 import moment from 'moment';
 import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useHistory, useParams } from 'react-router-dom';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import {
     Area,
     CartesianGrid,
@@ -21,7 +22,9 @@ import {
     useGetDailyErrorsCountQuery,
     useGetDailySessionsCountQuery,
 } from '../../graph/generated/hooks';
+import WaitingAnimation from '../../lottie/waiting.json';
 import { dailyCountData } from '../../util/dashboardCalculations';
+import { useIntegrated } from '../../util/integrated';
 import { formatNumber } from '../../util/numbers';
 import { SessionPageSearchParams } from '../Player/utils/utils';
 import {
@@ -38,10 +41,18 @@ type DailyCount = {
 };
 
 const HomePage = () => {
+    const { organization_id } = useParams<{ organization_id: string }>();
     const [dateRangeLength, setDateRangeLength] = useState<number>(
         timeFilter[0].value
     );
     const [hasData, setHasData] = useState<boolean>(true);
+    const { integrated, loading: integratedLoading } = useIntegrated(
+        parseInt(organization_id, 10)
+    );
+
+    if (integratedLoading) {
+        return null;
+    }
 
     return (
         <HomePageFiltersContext
@@ -51,18 +62,26 @@ const HomePage = () => {
                 <div className={styles.dashboard}>
                     <div className={styles.headerContainer}>
                         <div>
-                            <h2>Welcome back to Highlight.</h2>
-                            <p className={styles.subTitle}>
-                                Here’s an overview of your team’s sessions and
-                                errors.
-                            </p>
+                            <h2>
+                                {integrated
+                                    ? 'Welcome back to Highlight.'
+                                    : 'Welcome to Highlight'}
+                            </h2>
+                            {integrated && (
+                                <p className={styles.subTitle}>
+                                    Here’s an overview of your team’s sessions
+                                    and errors.
+                                </p>
+                            )}
                         </div>
-                        <div className={styles.filtersContainer}>
-                            <StandardDropdown
-                                data={timeFilter}
-                                onSelect={setDateRangeLength}
-                            />
-                        </div>
+                        {hasData && (
+                            <div className={styles.filtersContainer}>
+                                <StandardDropdown
+                                    data={timeFilter}
+                                    onSelect={setDateRangeLength}
+                                />
+                            </div>
+                        )}
                     </div>
                     <div className={styles.dashboardBody}>
                         <SessionCountGraph />
@@ -70,10 +89,34 @@ const HomePage = () => {
                         <ReferrersTable />
                         {!hasData && (
                             <div className={styles.noDataContainer}>
-                                <Card title="You're too fast!">
+                                <Card
+                                    title={
+                                        integrated
+                                            ? "You're too fast!"
+                                            : 'Waiting for Installation...'
+                                    }
+                                    animation={
+                                        <Lottie
+                                            animationData={WaitingAnimation}
+                                        />
+                                    }
+                                >
                                     <p>
-                                        We're still processing your sessions and
-                                        errors. Check back here later.
+                                        {integrated ? (
+                                            "We're still processing your sessions and errors. Check back here later."
+                                        ) : (
+                                            <>
+                                                Please follow the{' '}
+                                                <Link
+                                                    to={`/${organization_id}/setup`}
+                                                >
+                                                    setup instructions
+                                                </Link>{' '}
+                                                to install Highlight. It should
+                                                take less than a minute for us
+                                                to detect installation.
+                                            </>
+                                        )}
                                     </p>
                                 </Card>
                             </div>
