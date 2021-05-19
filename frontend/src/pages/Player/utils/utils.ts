@@ -24,4 +24,6 @@ export default copySessionShareLinkToClipboard;
 export enum SessionPageSearchParams {
     /** Automatically sets the referrer for the current segment based on the value. */
     referrer = 'referrer',
+    /** Automatically sets the date range for the current segment based on the value. */
+    date = 'date',
 }
