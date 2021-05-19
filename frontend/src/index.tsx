@@ -29,7 +29,6 @@ if (dev) {
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
-console.log('hi');
 
 window.Intercom('boot', {
     app_id: 'gm6369ty',
