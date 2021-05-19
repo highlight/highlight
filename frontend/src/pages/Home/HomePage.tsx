@@ -87,41 +87,39 @@ const HomePage = () => {
                         <SessionCountGraph />
                         <ErrorCountGraph />
                         <ReferrersTable />
-                        {!hasData && (
-                            <div className={styles.noDataContainer}>
-                                <Card
-                                    title={
-                                        integrated
-                                            ? "You're too fast!"
-                                            : 'Waiting for Installation...'
-                                    }
-                                    animation={
-                                        <Lottie
-                                            animationData={WaitingAnimation}
-                                        />
-                                    }
-                                >
-                                    <p>
-                                        {integrated ? (
-                                            "We're still processing your sessions and errors. Check back here later."
-                                        ) : (
-                                            <>
-                                                Please follow the{' '}
-                                                <Link
-                                                    to={`/${organization_id}/setup`}
-                                                >
-                                                    setup instructions
-                                                </Link>{' '}
-                                                to install Highlight. It should
-                                                take less than a minute for us
-                                                to detect installation.
-                                            </>
-                                        )}
-                                    </p>
-                                </Card>
-                            </div>
-                        )}
                     </div>
+                    {!hasData && (
+                        <div className={styles.noDataContainer}>
+                            <Card
+                                title={
+                                    integrated
+                                        ? "You're too fast!"
+                                        : 'Waiting for Installation...'
+                                }
+                                animation={
+                                    <Lottie animationData={WaitingAnimation} />
+                                }
+                            >
+                                <p>
+                                    {integrated ? (
+                                        "We're still processing your sessions and errors. Check back here later."
+                                    ) : (
+                                        <>
+                                            Please follow the{' '}
+                                            <Link
+                                                to={`/${organization_id}/setup`}
+                                            >
+                                                setup instructions
+                                            </Link>{' '}
+                                            to install Highlight. It should take
+                                            less than a minute for us to detect
+                                            installation.
+                                        </>
+                                    )}
+                                </p>
+                            </Card>
+                        </div>
+                    )}
                 </div>
             </div>
         </HomePageFiltersContext>
