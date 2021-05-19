@@ -199,7 +199,7 @@ const DailyChart = ({
                 height={300}
                 data={data}
                 margin={{
-                    top: -12,
+                    top: 0,
                     right: 12,
                     left: 0,
                     bottom: 0,
