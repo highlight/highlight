@@ -142,6 +142,7 @@ const ErrorCountGraph = () => {
     }>();
     const { dateRangeLength } = useHomePageFiltersContext();
     const [errorCountData, setErrorCountData] = useState<Array<DailyCount>>([]);
+    const history = useHistory();
 
     const { loading } = useGetDailyErrorsCountQuery({
         variables: {
@@ -185,6 +186,11 @@ const ErrorCountGraph = () => {
                 data={errorCountData}
                 lineColor={'var(--color-orange-400)'}
                 name="Errors"
+                onClickHandler={(payload: any) => {
+                    history.push(
+                        `/${organization_id}/errors?${SessionPageSearchParams.date}=${payload.activeLabel}`
+                    );
+                }}
             />
         </div>
     );

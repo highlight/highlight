@@ -24,7 +24,7 @@ export const DateInput = () => {
 
             setSearchParams((params) => ({
                 ...params,
-                date_range: getDateRange(start_date, end_date),
+                date_range: getDateRangeForDateInput(start_date, end_date),
             }));
             message.success(
                 `Showing sessions that were recorded on ${dateFromSearchParams}`
@@ -61,7 +61,10 @@ export const DateInput = () => {
                                 date_range:
                                     !start_date || !end_date
                                         ? undefined
-                                        : getDateRange(start_date, end_date),
+                                        : getDateRangeForDateInput(
+                                              start_date,
+                                              end_date
+                                          ),
                             };
                         }
                     );
@@ -71,7 +74,7 @@ export const DateInput = () => {
     );
 };
 
-const getDateRange = (
+export const getDateRangeForDateInput = (
     start_date?: moment.Moment,
     end_date?: moment.Moment
 ): { start_date: Date; end_date: Date } => {
