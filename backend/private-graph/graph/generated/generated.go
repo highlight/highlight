@@ -59,6 +59,10 @@ type ComplexityRoot struct {
 		PhotoURL func(childComplexity int) int
 	}
 
+	AverageSessionLength struct {
+		Length func(childComplexity int) int
+	}
+
 	BillingDetails struct {
 		Meter func(childComplexity int) int
 		Plan  func(childComplexity int) int
@@ -203,6 +207,10 @@ type ComplexityRoot struct {
 		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlert *model.ErrorAlertInput) int
 	}
 
+	NewUsersCount struct {
+		Count func(childComplexity int) int
+	}
+
 	Organization struct {
 		BillingEmail        func(childComplexity int) int
 		ID                  func(childComplexity int) int
@@ -221,6 +229,7 @@ type ComplexityRoot struct {
 		Admin                         func(childComplexity int) int
 		AdminHasCreatedComment        func(childComplexity int, adminID int) int
 		Admins                        func(childComplexity int, organizationID int) int
+		AverageSessionLength          func(childComplexity int, organizationID int, lookBackPeriod int) int
 		BillingDetails                func(childComplexity int, organizationID int) int
 		DailyErrorsCount              func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
 		DailySessionsCount            func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
@@ -236,6 +245,7 @@ type ComplexityRoot struct {
 		FieldSuggestion               func(childComplexity int, organizationID int, name string, query string) int
 		IsIntegrated                  func(childComplexity int, organizationID int) int
 		Messages                      func(childComplexity int, sessionID int) int
+		NewUsersCount                 func(childComplexity int, organizationID int, lookBackPeriod int) int
 		Organization                  func(childComplexity int, id int) int
 		OrganizationHasViewedASession func(childComplexity int, organizationID int) int
 		OrganizationSuggestion        func(childComplexity int, query string) int
@@ -415,6 +425,8 @@ type QueryResolver interface {
 	DailySessionsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
 	Referrers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*model.ReferrerTablePayload, error)
+	NewUsersCount(ctx context.Context, organizationID int, lookBackPeriod int) (*model.NewUsersCount, error)
+	AverageSessionLength(ctx context.Context, organizationID int, lookBackPeriod int) (*model.AverageSessionLength, error)
 	Sessions(ctx context.Context, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
@@ -481,6 +493,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Admin.PhotoURL(childComplexity), true
+
+	case "AverageSessionLength.length":
+		if e.complexity.AverageSessionLength.Length == nil {
+			break
+		}
+
+		return e.complexity.AverageSessionLength.Length(childComplexity), true
 
 	case "BillingDetails.meter":
 		if e.complexity.BillingDetails.Meter == nil {
@@ -1248,6 +1267,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["organization_id"].(int), args["error_alert"].(*model.ErrorAlertInput)), true
 
+	case "NewUsersCount.count":
+		if e.complexity.NewUsersCount.Count == nil {
+			break
+		}
+
+		return e.complexity.NewUsersCount.Count(childComplexity), true
+
 	case "Organization.billing_email":
 		if e.complexity.Organization.BillingEmail == nil {
 			break
@@ -1334,6 +1360,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Admins(childComplexity, args["organization_id"].(int)), true
+
+	case "Query.averageSessionLength":
+		if e.complexity.Query.AverageSessionLength == nil {
+			break
+		}
+
+		args, err := ec.field_Query_averageSessionLength_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AverageSessionLength(childComplexity, args["organization_id"].(int), args["lookBackPeriod"].(int)), true
 
 	case "Query.billingDetails":
 		if e.complexity.Query.BillingDetails == nil {
@@ -1509,6 +1547,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Messages(childComplexity, args["session_id"].(int)), true
+
+	case "Query.newUsersCount":
+		if e.complexity.Query.NewUsersCount == nil {
+			break
+		}
+
+		args, err := ec.field_Query_newUsersCount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.NewUsersCount(childComplexity, args["organization_id"].(int), args["lookBackPeriod"].(int)), true
 
 	case "Query.organization":
 		if e.complexity.Query.Organization == nil {
@@ -2338,6 +2388,14 @@ type ReferrerTablePayload {
     percent: Float!
 }
 
+type NewUsersCount {
+    count: Int64!
+}
+
+type AverageSessionLength {
+    length: Float!
+}
+
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
@@ -2548,6 +2606,11 @@ type Query {
         organization_id: ID!
         lookBackPeriod: Int!
     ): [ReferrerTablePayload]!
+    newUsersCount(organization_id: ID!, lookBackPeriod: Int!): NewUsersCount
+    averageSessionLength(
+        organization_id: ID!
+        lookBackPeriod: Int!
+    ): AverageSessionLength
     sessions(
         organization_id: ID!
         count: Int!
@@ -3423,6 +3486,30 @@ func (ec *executionContext) field_Query_admins_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_averageSessionLength_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lookBackPeriod"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_billingDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3702,6 +3789,30 @@ func (ec *executionContext) field_Query_messages_args(ctx context.Context, rawAr
 		}
 	}
 	args["session_id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_newUsersCount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lookBackPeriod"] = arg1
 	return args, nil
 }
 
@@ -4136,6 +4247,41 @@ func (ec *executionContext) _Admin_photo_url(ctx context.Context, field graphql.
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _AverageSessionLength_length(ctx context.Context, field graphql.CollectedField, obj *model.AverageSessionLength) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "AverageSessionLength",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Length, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _BillingDetails_plan(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
@@ -7407,6 +7553,41 @@ func (ec *executionContext) _Mutation_updateErrorAlert(ctx context.Context, fiel
 	return ec.marshalOErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorAlert(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _NewUsersCount_count(ctx context.Context, field graphql.CollectedField, obj *model.NewUsersCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "NewUsersCount",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8466,6 +8647,84 @@ func (ec *executionContext) _Query_referrers(ctx context.Context, field graphql.
 	res := resTmp.([]*model.ReferrerTablePayload)
 	fc.Result = res
 	return ec.marshalNReferrerTablePayload2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐReferrerTablePayload(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_newUsersCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_newUsersCount_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().NewUsersCount(rctx, args["organization_id"].(int), args["lookBackPeriod"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.NewUsersCount)
+	fc.Result = res
+	return ec.marshalONewUsersCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNewUsersCount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_averageSessionLength(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_averageSessionLength_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AverageSessionLength(rctx, args["organization_id"].(int), args["lookBackPeriod"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.AverageSessionLength)
+	fc.Result = res
+	return ec.marshalOAverageSessionLength2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAverageSessionLength(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12712,6 +12971,33 @@ func (ec *executionContext) _Admin(ctx context.Context, sel ast.SelectionSet, ob
 	return out
 }
 
+var averageSessionLengthImplementors = []string{"AverageSessionLength"}
+
+func (ec *executionContext) _AverageSessionLength(ctx context.Context, sel ast.SelectionSet, obj *model.AverageSessionLength) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, averageSessionLengthImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("AverageSessionLength")
+		case "length":
+			out.Values[i] = ec._AverageSessionLength_length(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var billingDetailsImplementors = []string{"BillingDetails"}
 
 func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.SelectionSet, obj *model.BillingDetails) graphql.Marshaler {
@@ -13480,6 +13766,33 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
+var newUsersCountImplementors = []string{"NewUsersCount"}
+
+func (ec *executionContext) _NewUsersCount(ctx context.Context, sel ast.SelectionSet, obj *model.NewUsersCount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, newUsersCountImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("NewUsersCount")
+		case "count":
+			out.Values[i] = ec._NewUsersCount_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var organizationImplementors = []string{"Organization"}
 
 func (ec *executionContext) _Organization(ctx context.Context, sel ast.SelectionSet, obj *model1.Organization) graphql.Marshaler {
@@ -13812,6 +14125,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
+				return res
+			})
+		case "newUsersCount":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_newUsersCount(ctx, field)
+				return res
+			})
+		case "averageSessionLength":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_averageSessionLength(ctx, field)
 				return res
 			})
 		case "sessions":
@@ -15769,6 +16104,13 @@ func (ec *executionContext) marshalOAny2ᚕinterface(ctx context.Context, sel as
 	return ret
 }
 
+func (ec *executionContext) marshalOAverageSessionLength2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAverageSessionLength(ctx context.Context, sel ast.SelectionSet, v *model.AverageSessionLength) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._AverageSessionLength(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -16144,6 +16486,13 @@ func (ec *executionContext) unmarshalOLengthRangeInput2ᚖgithubᚗcomᚋhighlig
 	}
 	res, err := ec.unmarshalInputLengthRangeInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalONewUsersCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐNewUsersCount(ctx context.Context, sel ast.SelectionSet, v *model.NewUsersCount) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._NewUsersCount(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOOrganization2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐOrganization(ctx context.Context, sel ast.SelectionSet, v []*model1.Organization) graphql.Marshaler {
