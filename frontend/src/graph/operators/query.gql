@@ -437,6 +437,24 @@ query GetReferrersCount($organization_id: ID!, $lookBackPeriod: Int!) {
     }
 }
 
+query GetNewUsersCount($organization_id: ID!, $lookBackPeriod: Int!) {
+    newUsersCount(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        count
+    }
+}
+
+query GetAverageSessionLength($organization_id: ID!, $lookBackPeriod: Int!) {
+    averageSessionLength(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        length
+    }
+}
+
 query GetDailySessionsCount(
     $organization_id: ID!
     $date_range: DateRangeInput!

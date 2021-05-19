@@ -1,7 +1,18 @@
 import React, { ReactElement, useState } from 'react';
 
+import {
+    useGetAverageSessionLengthQuery,
+    useGetNewUsersCountQuery,
+} from '../../graph/generated/hooks';
+
 function InternalPage(): ReactElement {
     const [value, setValue] = useState('foobar');
+    const {} = useGetNewUsersCountQuery({
+        variables: { lookBackPeriod: 30, organization_id: '1' },
+    });
+    const {} = useGetAverageSessionLengthQuery({
+        variables: { lookBackPeriod: 30, organization_id: '1' },
+    });
 
     return (
         <div
