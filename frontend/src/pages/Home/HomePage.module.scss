@@ -34,6 +34,7 @@
     display: grid;
     gap: var(--size-xxLarge);
     grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    position: relative;
     width: 100%;
 }
 
@@ -47,4 +48,23 @@
     display: flex;
     justify-content: space-between;
     margin-bottom: var(--size-xLarge);
+}
+
+.noDataContainer {
+    align-items: center;
+    backdrop-filter: blur(3px);
+    background: var(--color-background-overlay);
+    border-radius: var(--border-radius);
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    left: 0;
+    position: absolute;
+    top: 0;
+    transition: backdrop-filter 0.2s ease-in-out;
+    width: 100%;
+
+    &:hover {
+        backdrop-filter: blur(0);
+    }
 }

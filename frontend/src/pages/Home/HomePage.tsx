@@ -14,6 +14,7 @@ import {
     YAxis,
 } from 'recharts';
 
+import Card from '../../components/Card/Card';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import {
@@ -40,9 +41,12 @@ const HomePage = () => {
     const [dateRangeLength, setDateRangeLength] = useState<number>(
         timeFilter[0].value
     );
+    const [hasData, setHasData] = useState<boolean>(true);
 
     return (
-        <HomePageFiltersContext value={{ dateRangeLength, setDateRangeLength }}>
+        <HomePageFiltersContext
+            value={{ dateRangeLength, setDateRangeLength, hasData, setHasData }}
+        >
             <div className={styles.dashboardWrapper}>
                 <div className={styles.dashboard}>
                     <div className={styles.headerContainer}>
@@ -64,6 +68,16 @@ const HomePage = () => {
                         <SessionCountGraph />
                         <ErrorCountGraph />
                         <ReferrersTable />
+                        {!hasData && (
+                            <div className={styles.noDataContainer}>
+                                <Card title="You're too fast!">
+                                    <p>
+                                        We're still processing your sessions and
+                                        errors. Check back here later.
+                                    </p>
+                                </Card>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -80,7 +94,7 @@ const SessionCountGraph = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
-    const { dateRangeLength } = useHomePageFiltersContext();
+    const { dateRangeLength, setHasData } = useHomePageFiltersContext();
     const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
         []
     );
@@ -99,6 +113,9 @@ const SessionCountGraph = () => {
         },
         onCompleted: (response) => {
             if (response.dailySessionsCount) {
+                if (response.dailySessionsCount.length === 0) {
+                    setHasData(false);
+                }
                 const dateRangeData = dailyCountData(
                     response.dailySessionsCount,
                     dateRangeLength

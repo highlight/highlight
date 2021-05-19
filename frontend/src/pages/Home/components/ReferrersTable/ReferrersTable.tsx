@@ -1,4 +1,4 @@
-import { Table } from 'antd';
+import { ConfigProvider, Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import classNames from 'classnames';
 import React, { useState } from 'react';
@@ -17,6 +17,7 @@ import { RechartTooltip } from '../../../../components/recharts/RechartTooltip/R
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
 import { SessionPageSearchParams } from '../../../Player/utils/utils';
 import homePageStyles from '../../HomePage.module.scss';
+import EmptyCardPlaceholder from '../EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
 
@@ -46,7 +47,7 @@ const ReferrersTable = () => {
         },
     });
 
-    if (loading || tableData.length === 0) {
+    if (loading) {
         return <Skeleton count={1} style={{ width: '100%', height: 300 }} />;
     }
     const labelColor = 'var(--color-gray-500)';
@@ -65,20 +66,22 @@ const ReferrersTable = () => {
                     <h3>Referrers</h3>
                 </div>
 
-                <Table
-                    scroll={{ y: 250 }}
-                    showHeader={false}
-                    columns={Columns}
-                    dataSource={tableData}
-                    pagination={false}
-                    onRow={(record) => ({
-                        onClick: () => {
-                            history.push(
-                                `/${organization_id}/sessions?${SessionPageSearchParams.referrer}=${record.host}`
-                            );
-                        },
-                    })}
-                />
+                <ConfigProvider renderEmpty={EmptyCardPlaceholder}>
+                    <Table
+                        scroll={{ y: 250 }}
+                        showHeader={false}
+                        columns={Columns}
+                        dataSource={tableData}
+                        pagination={false}
+                        onRow={(record) => ({
+                            onClick: () => {
+                                history.push(
+                                    `/${organization_id}/sessions?${SessionPageSearchParams.referrer}=${record.host}`
+                                );
+                            },
+                        })}
+                    />
+                </ConfigProvider>
             </div>
             <div
                 className={classNames(
