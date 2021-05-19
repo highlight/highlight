@@ -11,6 +11,9 @@ jobs:
     frontend:
         runs-on: ubuntu-latest
         steps:
+            - name: Get yarn cache directory path
+              id: yarn-cache-dir-path
+              run: echo "::set-output name=dir::$(yarn cache dir)"
             - name: Checkout
               uses: actions/checkout@v2
             - name: Setup Node.js
@@ -18,6 +21,13 @@ jobs:
               with:
                   node-version: 15.11.0
                   registry-url: https://registry.npmjs.org
+            - uses: actions/cache@v2
+              id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+              with:
+                path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+                key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+                restore-keys: |
+                  ${{ runner.os }}-yarn-
             - name: Install main dependencies
               run: cd frontend && yarn install
             - name: Runs linting
