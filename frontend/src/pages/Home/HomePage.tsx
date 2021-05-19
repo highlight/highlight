@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import moment from 'moment';
 import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 import {
     Area,
     CartesianGrid,
@@ -21,6 +21,7 @@ import {
 } from '../../graph/generated/hooks';
 import { dailyCountData } from '../../util/dashboardCalculations';
 import { formatNumber } from '../../util/numbers';
+import { SessionPageSearchParams } from '../Player/utils/utils';
 import {
     HomePageFiltersContext,
     useHomePageFiltersContext,
@@ -82,6 +83,7 @@ const SessionCountGraph = () => {
     const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
         []
     );
+    const history = useHistory();
 
     const { loading } = useGetDailySessionsCountQuery({
         variables: {
@@ -121,7 +123,15 @@ const SessionCountGraph = () => {
             <div className={styles.chartHeaderWrapper}>
                 <h3>Sessions per day</h3>
             </div>
-            <DailyChart data={sessionCountData} name="Sessions" />
+            <DailyChart
+                data={sessionCountData}
+                name="Sessions"
+                onClickHandler={(payload: any) => {
+                    history.push(
+                        `/${organization_id}/sessions?${SessionPageSearchParams.date}=${payload.activeLabel}`
+                    );
+                }}
+            />
         </div>
     );
 };
@@ -184,10 +194,12 @@ const DailyChart = ({
     data,
     lineColor = 'var(--color-purple)',
     name,
+    onClickHandler,
 }: {
     data: Array<DailyCount>;
     lineColor?: string;
     name: string;
+    onClickHandler?: any;
 }) => {
     const gridColor = 'none';
     const labelColor = 'var(--color-gray-500)';
@@ -205,6 +217,11 @@ const DailyChart = ({
                     right: 12,
                     left: 0,
                     bottom: 0,
+                }}
+                onClick={(payload: any) => {
+                    if (onClickHandler) {
+                        onClickHandler(payload);
+                    }
                 }}
             >
                 <defs>
