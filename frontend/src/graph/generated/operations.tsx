@@ -978,6 +978,31 @@ export type GetReferrersCountQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetNewUsersCountQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    lookBackPeriod: Types.Scalars['Int'];
+}>;
+
+export type GetNewUsersCountQuery = { __typename?: 'Query' } & {
+    newUsersCount?: Types.Maybe<
+        { __typename?: 'NewUsersCount' } & Pick<Types.NewUsersCount, 'count'>
+    >;
+};
+
+export type GetAverageSessionLengthQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    lookBackPeriod: Types.Scalars['Int'];
+}>;
+
+export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
+    averageSessionLength?: Types.Maybe<
+        { __typename?: 'AverageSessionLength' } & Pick<
+            Types.AverageSessionLength,
+            'length'
+        >
+    >;
+};
+
 export type GetDailySessionsCountQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     date_range: Types.DateRangeInput;

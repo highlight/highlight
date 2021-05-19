@@ -165,6 +165,16 @@ export type ReferrerTablePayload = {
     percent: Scalars['Float'];
 };
 
+export type NewUsersCount = {
+    __typename?: 'NewUsersCount';
+    count: Scalars['Int64'];
+};
+
+export type AverageSessionLength = {
+    __typename?: 'AverageSessionLength';
+    length: Scalars['Float'];
+};
+
 export type SearchParamsInput = {
     user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
@@ -376,6 +386,8 @@ export type Query = {
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
     referrers: Array<Maybe<ReferrerTablePayload>>;
+    newUsersCount?: Maybe<NewUsersCount>;
+    averageSessionLength?: Maybe<AverageSessionLength>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -464,6 +476,16 @@ export type QueryDailyErrorsCountArgs = {
 };
 
 export type QueryReferrersArgs = {
+    organization_id: Scalars['ID'];
+    lookBackPeriod: Scalars['Int'];
+};
+
+export type QueryNewUsersCountArgs = {
+    organization_id: Scalars['ID'];
+    lookBackPeriod: Scalars['Int'];
+};
+
+export type QueryAverageSessionLengthArgs = {
     organization_id: Scalars['ID'];
     lookBackPeriod: Scalars['Int'];
 };
