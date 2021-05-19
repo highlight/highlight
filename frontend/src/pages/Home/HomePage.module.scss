@@ -30,13 +30,6 @@
     width: 100%;
 }
 
-.kpiContainer {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-large);
-    margin-bottom: var(--size-large);
-}
-
 .dashboardBody {
     display: grid;
     gap: var(--size-xxLarge);

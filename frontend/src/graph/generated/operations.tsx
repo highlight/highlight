@@ -962,6 +962,15 @@ export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
     'unprocessedSessionsCount'
 >;
 
+export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'unprocessedSessionsCount'
+>;
+
 export type GetReferrersCountQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     lookBackPeriod: Types.Scalars['Int'];

@@ -2897,6 +2897,60 @@ export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
     Types.UnprocessedSessionsCountQuery,
     Types.UnprocessedSessionsCountQueryVariables
 >;
+export const GetKeyPerformanceIndicatorsDocument = gql`
+    query GetKeyPerformanceIndicators($organization_id: ID!) {
+        unprocessedSessionsCount(organization_id: $organization_id)
+    }
+`;
+
+/**
+ * __useGetKeyPerformanceIndicatorsQuery__
+ *
+ * To run a query within a React component, call `useGetKeyPerformanceIndicatorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetKeyPerformanceIndicatorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetKeyPerformanceIndicatorsQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetKeyPerformanceIndicatorsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >(GetKeyPerformanceIndicatorsDocument, baseOptions);
+}
+export function useGetKeyPerformanceIndicatorsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >(GetKeyPerformanceIndicatorsDocument, baseOptions);
+}
+export type GetKeyPerformanceIndicatorsQueryHookResult = ReturnType<
+    typeof useGetKeyPerformanceIndicatorsQuery
+>;
+export type GetKeyPerformanceIndicatorsLazyQueryHookResult = ReturnType<
+    typeof useGetKeyPerformanceIndicatorsLazyQuery
+>;
+export type GetKeyPerformanceIndicatorsQueryResult = Apollo.QueryResult<
+    Types.GetKeyPerformanceIndicatorsQuery,
+    Types.GetKeyPerformanceIndicatorsQueryVariables
+>;
 export const GetReferrersCountDocument = gql`
     query GetReferrersCount($organization_id: ID!, $lookBackPeriod: Int!) {
         referrers(

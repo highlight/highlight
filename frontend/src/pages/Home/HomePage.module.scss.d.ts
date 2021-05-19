@@ -6,7 +6,6 @@ export const dashboardWrapper: string;
 export const filtersContainer: string;
 export const graphSection: string;
 export const headerContainer: string;
-export const kpiContainer: string;
 export const noDataContainer: string;
 export const section: string;
 export const subTitle: string;
