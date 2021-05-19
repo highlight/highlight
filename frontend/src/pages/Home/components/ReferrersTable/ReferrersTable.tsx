@@ -1,14 +1,13 @@
-import { ConfigProvider, Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import classNames from 'classnames';
 import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory, useParams } from 'react-router-dom';
 
+import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
 import { SessionPageSearchParams } from '../../../Player/utils/utils';
 import homePageStyles from '../../HomePage.module.scss';
-import EmptyCardPlaceholder from '../EmptyCardPlaceholder/EmptyCardPlaceholder';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
 
@@ -51,25 +50,17 @@ const ReferrersTable = () => {
             )}
         >
             <div className={homePageStyles.chartHeaderWrapper}>
-                <h3>Referrers</h3>
+                <h3>Top Referrers</h3>
             </div>
-
-            <ConfigProvider renderEmpty={EmptyCardPlaceholder}>
-                <Table
-                    scroll={{ y: 250 }}
-                    showHeader={false}
-                    columns={Columns}
-                    dataSource={tableData}
-                    pagination={false}
-                    onRow={(record) => ({
-                        onClick: () => {
-                            history.push(
-                                `/${organization_id}/sessions?${SessionPageSearchParams.referrer}=${record.host}`
-                            );
-                        },
-                    })}
-                />
-            </ConfigProvider>
+            <BarChartTable
+                columns={Columns}
+                data={tableData}
+                onClickHandler={(record) => {
+                    history.push(
+                        `/${organization_id}/sessions?${SessionPageSearchParams.referrer}=${record.host}`
+                    );
+                }}
+            />
         </div>
     );
 };
