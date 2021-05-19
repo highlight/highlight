@@ -276,7 +276,7 @@ const DailyChart = ({
 
 export default HomePage;
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+export const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
         return (
             <div className={styles.tooltip}>
