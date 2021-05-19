@@ -10,6 +10,7 @@ import {
     ErrorSearchContext,
     ErrorSearchParams,
 } from '../ErrorSearchContext/ErrorSearchContext';
+import { EmptyErrorsSearchParams } from '../ErrorsPage';
 
 const { RangePicker } = DatePicker;
 
@@ -26,8 +27,9 @@ export const DateInput = () => {
             const start_date = moment(dateFromSearchParams);
             const end_date = moment(dateFromSearchParams);
 
-            setSearchParams((params) => ({
-                ...params,
+            setSearchParams(() => ({
+                // We are explicitly clearing any existing search params so the only applied search param is the date range.
+                ...EmptyErrorsSearchParams,
                 date_range: getDateRangeForDateInput(start_date, end_date),
             }));
             message.success(

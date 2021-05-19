@@ -5,6 +5,7 @@ import { useHistory, useLocation } from 'react-router-dom';
 
 import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { SearchParams, useSearchContext } from '../SearchContext/SearchContext';
+import { EmptySessionsSearchParams } from '../SessionsPage';
 import inputStyles from './InputStyles.module.scss';
 
 const { RangePicker } = DatePicker;
@@ -22,8 +23,9 @@ export const DateInput = () => {
             const start_date = moment(dateFromSearchParams);
             const end_date = moment(dateFromSearchParams);
 
-            setSearchParams((params) => ({
-                ...params,
+            setSearchParams(() => ({
+                // We are explicitly clearing any existing search params so the only applied search param is the date range.
+                ...EmptySessionsSearchParams,
                 date_range: getDateRangeForDateInput(start_date, end_date),
             }));
             message.success(

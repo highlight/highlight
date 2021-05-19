@@ -11,6 +11,7 @@ import { ReactComponent as URLIcon } from '../../../static/link.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
 import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { useSearchContext } from '../SearchContext/SearchContext';
+import { EmptySessionsSearchParams } from '../SessionsPage';
 import inputStyles from './InputStyles.module.scss';
 import { ContainsLabel, SharedSelectStyleProps } from './SearchInputUtil';
 
@@ -116,8 +117,9 @@ export const ReferrerInput = () => {
 
     useEffect(() => {
         if (referrerFromSearchParams) {
-            setSearchParams((params) => ({
-                ...params,
+            setSearchParams(() => ({
+                // We are explicitly clearing any existing search params so the only applied search param is the referrer.
+                ...EmptySessionsSearchParams,
                 referrer: referrerFromSearchParams,
             }));
             message.success(
