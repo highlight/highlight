@@ -4,6 +4,7 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 
 import { DemoContext } from '../../DemoContext';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
+import useHighlightAdminFlag from '../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 import SvgCreditCardsIcon from '../../static/CreditCardsIcon';
 import SvgErrorsIcon from '../../static/ErrorsIcon';
 import SvgHomeIcon from '../../static/HomeIcon';
@@ -29,11 +30,11 @@ interface NavigationItem {
 }
 
 const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
-    {
-        Icon: SvgHomeIcon,
-        displayName: 'Home',
-        route: 'home',
-    },
+    // {
+    //     Icon: SvgHomeIcon,
+    //     displayName: 'Home',
+    //     route: 'home',
+    // },
     {
         Icon: SvgSessionsIcon,
         displayName: 'Sessions',
@@ -80,6 +81,7 @@ export const Sidebar = () => {
     const { data, loading: loadingBillingDetails } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
+    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     return (
         <>
@@ -101,6 +103,13 @@ export const Sidebar = () => {
                 <div style={{ width: '100%' }}>
                     <WorkspaceDropdown />
                 </div>
+                {isHighlightAdmin && (
+                    <SidebarItem text="Home" route="home">
+                        <div className={styles.iconWrapper}>
+                            <SvgHomeIcon className={styles.icon} />
+                        </div>
+                    </SidebarItem>
+                )}
                 {LEAD_NAVIGATION_ITEMS.map(({ displayName, Icon, route }) => (
                     <SidebarItem text={displayName} route={route} key={route}>
                         <div className={styles.iconWrapper}>
@@ -166,6 +175,7 @@ export const Sidebar = () => {
 const StaticSidebar = () => {
     const { setState } = useSidebarContext();
     const timerId = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     return (
         <>
@@ -188,6 +198,15 @@ const StaticSidebar = () => {
                 }}
             >
                 <MiniWorkspaceIcon />
+                {isHighlightAdmin && (
+                    <MiniSidebarItem route="home" text="Home">
+                        <SvgHomeIcon
+                            className={classNames(styles.icon)}
+                            height="32px"
+                            width="32px"
+                        />
+                    </MiniSidebarItem>
+                )}
                 {LEAD_NAVIGATION_ITEMS.map(
                     ({ Icon, displayName, route, className }) => (
                         <MiniSidebarItem
