@@ -142,12 +142,14 @@ const Columns: ColumnsType<any> = [
         title: 'Referrers',
         dataIndex: 'host',
         key: 'host',
+        width: 150,
+        render: (host) => <div className={styles.hostContainer}>{host}</div>,
     },
     {
         title: 'Views',
         dataIndex: 'count',
         key: 'count',
-        width: 100,
+        width: 75,
         align: 'right',
         render: (count) => <div className={styles.countContainer}>{count}</div>,
     },
@@ -155,7 +157,6 @@ const Columns: ColumnsType<any> = [
         title: 'Percentage',
         dataIndex: 'percent',
         key: 'percent',
-        width: 60,
         render: (percent) => (
             <div
                 className={styles.percentContainer}

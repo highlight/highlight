@@ -6,6 +6,7 @@
     border-left: 1px solid var(--color-gray-300);
     color: var(--color-gray-500);
     padding: 0 var(--size-xSmall);
+    padding-right: 0;
     position: relative;
     width: 100%;
 
@@ -31,4 +32,11 @@
     font-weight: 800;
     justify-content: flex-end;
     padding-right: var(--size-xSmall);
+}
+
+.hostContainer {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    // width: 80px;
 }
