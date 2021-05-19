@@ -6,6 +6,7 @@
     "author": "Highlight",
     "license": "MIT",
     "dependencies": {
+        "@highlight-run/rrweb": "file:.yalc/@highlight-run/rrweb",
         "concurrently": "^6.0.2"
     },
     "scripts": {

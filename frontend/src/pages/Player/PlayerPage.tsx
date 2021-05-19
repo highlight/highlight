@@ -1,6 +1,6 @@
 import 'rc-slider/assets/index.css';
 
-import { EventType, Replayer } from '@highlight-run/rrweb';
+import { EventType, rebuild, Replayer } from '@highlight-run/rrweb';
 import { eventWithTime } from '@highlight-run/rrweb/dist/types';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
@@ -18,7 +18,7 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import useResizeAware from 'react-resize-aware';
 import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
-import { rebuild } from 'rrweb-snapshot';
+// import { rebuild } from 'rrweb-snapshot';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import Card from '../../components/Card/Card';
@@ -47,11 +47,15 @@ export const PlayerBETA = () => {
     const { data } = useGetEventsQuery({ variables: { session_id: '2' } });
     const iframeDocument = useRef<HTMLIFrameElement>(null);
     useEffect(() => {
-        if (!data?.events?.length || !iframeDocument.current?.contentDocument) {
+        if (
+            data?.events?.length !== 1 ||
+            !iframeDocument.current?.contentDocument
+        ) {
             return;
         }
         const node = data.events[0];
-        rebuild(eve);
+        const doc = iframeDocument.current.contentDocument;
+        console.log(rebuild(node.payload, { doc })[0]);
         console.log(data);
     }, [data, iframeDocument]);
 
@@ -65,9 +69,7 @@ export const PlayerBETA = () => {
                 width: '100%',
             }}
         >
-            <iframe ref={iframeDocument} height={500} width={500}>
-                hello
-            </iframe>
+            <iframe ref={iframeDocument} height={300} width={300} />
         </div>
     );
 };

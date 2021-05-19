@@ -3,6 +3,7 @@ import { snapshot } from 'rrweb-snapshot';
 import {
     eventWithTime,
     listenerHandler,
+    mutationRecord,
 } from '@highlight-run/rrweb/dist/types';
 import { ConsoleListener } from './listeners/console-listener';
 import { ErrorListener } from './listeners/error-listener';
@@ -32,6 +33,10 @@ import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
 import { SUPPORTED_ENVIRONMENT_NAMES } from './utils/environment/environment';
+import {
+    INode,
+    serializedNodeWithId,
+} from '@highlight-run/rrweb/dist/snapshot';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -263,25 +268,55 @@ export class Highlight {
     async initialize(organization_id?: number | string) {
         // take a fullsnapshot
         const [node, idMap] = snapshot(document);
-        console.log('snapshot', 'map', idMap);
+        console.log('[client]');
         const fullSnapshotEvent: DomEvent = {
             type: DomEventType.FullSnapshot,
             payload: node,
         };
-        console.log('snapshot', fullSnapshotEvent);
         await this.graphqlSDK.PushPayloadBETA({ events: [fullSnapshotEvent] });
+        console.log('[initialize]', idMap);
 
-        // const observer = new MutationObserver((mutations) =>
-        //     console.log('recording', mutations)
-        // );
-        // observer.observe(document, {
-        //     attributes: true,
-        //     attributeOldValue: true,
-        //     characterData: true,
-        //     characterDataOldValue: true,
-        //     childList: true,
-        //     subtree: true,
-        // });
+        const observer = new MutationObserver((mutations: mutationRecord[]) => {
+            mutations.forEach((m) => {
+                switch (m.type) {
+                    case 'characterData': {
+                    }
+                    case 'attributes': {
+                    }
+                    case 'childList': {
+                        const t = m.target as any;
+                        const inode = t.__sn as serializedNodeWithId;
+                        if (inode) {
+                            console.log('[observer] adding to:', inode.id);
+                        } else {
+                            console.log('[observer] adding unknown');
+                        }
+                        console.log(
+                            '[observer] tagname:',
+                            (t as HTMLElement).tagName
+                        );
+                        console.log(
+                            '[observer] child list length:',
+                            m.addedNodes.length
+                        );
+                        // console.log('adding childList to', m.target);
+                        // m.addedNodes.forEach((n) => this.genAdds(n, m.target));
+                    }
+                    default:
+                        break;
+                }
+            });
+        });
+
+        observer.observe(document, {
+            attributes: true,
+            attributeOldValue: true,
+            characterData: true,
+            characterDataOldValue: true,
+            childList: true,
+            subtree: true,
+        });
+
         // console.log('hello');
         // setTimeout(() => {
         //     this._save();
