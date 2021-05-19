@@ -2,9 +2,10 @@ import { Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import classNames from 'classnames';
 import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom';
 
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
+import { SessionPageSearchParams } from '../../../Player/utils/utils';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
@@ -15,6 +16,7 @@ const ReferrersTable = () => {
         organization_id: string;
     }>();
     const { dateRangeLength } = useHomePageFiltersContext();
+    const history = useHistory();
 
     useGetReferrersCountQuery({
         variables: { organization_id, lookBackPeriod: dateRangeLength },
@@ -52,6 +54,13 @@ const ReferrersTable = () => {
                 columns={Columns}
                 dataSource={tableData}
                 pagination={false}
+                onRow={(record) => ({
+                    onClick: () => {
+                        history.push(
+                            `/${organization_id}/sessions?${SessionPageSearchParams.referrer}=${record.host}`
+                        );
+                    },
+                })}
             />
         </div>
     );
