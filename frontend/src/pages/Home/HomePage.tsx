@@ -284,7 +284,7 @@ const DailyChart = ({
                 margin={{
                     top: 0,
                     right: 0,
-                    left: -24,
+                    left: 0,
                     bottom: 0,
                 }}
                 onClick={(payload: any) => {
