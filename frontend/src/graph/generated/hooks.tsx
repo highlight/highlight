@@ -2897,6 +2897,68 @@ export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
     Types.UnprocessedSessionsCountQuery,
     Types.UnprocessedSessionsCountQueryVariables
 >;
+export const GetReferrersCountDocument = gql`
+    query GetReferrersCount($organization_id: ID!, $lookBackPeriod: Int!) {
+        referrers(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            host
+            count
+            percent
+        }
+    }
+`;
+
+/**
+ * __useGetReferrersCountQuery__
+ *
+ * To run a query within a React component, call `useGetReferrersCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetReferrersCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetReferrersCountQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      lookBackPeriod: // value for 'lookBackPeriod'
+ *   },
+ * });
+ */
+export function useGetReferrersCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >(GetReferrersCountDocument, baseOptions);
+}
+export function useGetReferrersCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >(GetReferrersCountDocument, baseOptions);
+}
+export type GetReferrersCountQueryHookResult = ReturnType<
+    typeof useGetReferrersCountQuery
+>;
+export type GetReferrersCountLazyQueryHookResult = ReturnType<
+    typeof useGetReferrersCountLazyQuery
+>;
+export type GetReferrersCountQueryResult = Apollo.QueryResult<
+    Types.GetReferrersCountQuery,
+    Types.GetReferrersCountQueryVariables
+>;
 export const GetDailySessionsCountDocument = gql`
     query GetDailySessionsCount(
         $organization_id: ID!

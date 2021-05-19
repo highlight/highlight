@@ -962,6 +962,22 @@ export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
     'unprocessedSessionsCount'
 >;
 
+export type GetReferrersCountQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    lookBackPeriod: Types.Scalars['Int'];
+}>;
+
+export type GetReferrersCountQuery = { __typename?: 'Query' } & {
+    referrers: Array<
+        Types.Maybe<
+            { __typename?: 'ReferrerTablePayload' } & Pick<
+                Types.ReferrerTablePayload,
+                'host' | 'count' | 'percent'
+            >
+        >
+    >;
+};
+
 export type GetDailySessionsCountQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     date_range: Types.DateRangeInput;

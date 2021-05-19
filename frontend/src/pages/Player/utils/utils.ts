@@ -17,3 +17,13 @@ const copySessionShareLinkToClipboard = (time: number) => {
 };
 
 export default copySessionShareLinkToClipboard;
+
+/**
+ * Search params for the Session page.
+ */
+export enum SessionPageSearchParams {
+    /** Automatically sets the referrer for the current segment based on the value. */
+    referrer = 'referrer',
+    /** Automatically sets the date range for the current segment based on the value. */
+    date = 'date',
+}
