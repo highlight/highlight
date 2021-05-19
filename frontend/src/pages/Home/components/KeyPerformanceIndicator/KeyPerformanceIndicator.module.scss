@@ -1,0 +1,13 @@
+.keyPerformanceIndicator {
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
+    padding: 20px 15px;
+
+    .value {
+        font-size: 36px !important;
+    }
+
+    .label {
+        margin: 0 !important;
+    }
+}

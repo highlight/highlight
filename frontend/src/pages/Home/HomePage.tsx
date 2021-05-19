@@ -31,6 +31,7 @@ import {
     HomePageFiltersContext,
     useHomePageFiltersContext,
 } from './components/HomePageFilters/HomePageFiltersContext';
+import KeyPerformanceIndicator from './components/KeyPerformanceIndicator/KeyPerformanceIndicator';
 import ReferrersTable from './components/ReferrersTable/ReferrersTable';
 import styles from './HomePage.module.scss';
 
@@ -82,6 +83,20 @@ const HomePage = () => {
                                 />
                             </div>
                         )}
+                    </div>
+                    <div className={styles.kpiContainer}>
+                        <KeyPerformanceIndicator
+                            value="5.2k"
+                            title="New Users"
+                        />
+                        <KeyPerformanceIndicator
+                            value="38"
+                            title="Live Users"
+                        />
+                        <KeyPerformanceIndicator
+                            value="8.4s"
+                            title="Average Active Time"
+                        />
                     </div>
                     <div className={styles.dashboardBody}>
                         <SessionCountGraph />
