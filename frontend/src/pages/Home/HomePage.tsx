@@ -43,18 +43,20 @@ const HomePage = () => {
         <HomePageFiltersContext value={{ dateRangeLength, setDateRangeLength }}>
             <div className={styles.dashboardWrapper}>
                 <div className={styles.dashboard}>
-                    <div>
-                        <h2>Welcome back to Highlight.</h2>
-                        <p className={styles.subTitle}>
-                            Here’s an overview of your team’s sessions and
-                            errors.
-                        </p>
-                    </div>
-                    <div className={styles.filtersContainer}>
-                        <StandardDropdown
-                            data={timeFilter}
-                            onSelect={setDateRangeLength}
-                        />
+                    <div className={styles.headerContainer}>
+                        <div>
+                            <h2>Welcome back to Highlight.</h2>
+                            <p className={styles.subTitle}>
+                                Here’s an overview of your team’s sessions and
+                                errors.
+                            </p>
+                        </div>
+                        <div className={styles.filtersContainer}>
+                            <StandardDropdown
+                                data={timeFilter}
+                                onSelect={setDateRangeLength}
+                            />
+                        </div>
                     </div>
                     <div className={styles.dashboardBody}>
                         <SessionCountGraph />

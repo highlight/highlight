@@ -70,3 +70,9 @@
     justify-content: flex-end;
     padding-bottom: var(--size-medium);
 }
+
+.headerContainer {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--size-xLarge);
+}
