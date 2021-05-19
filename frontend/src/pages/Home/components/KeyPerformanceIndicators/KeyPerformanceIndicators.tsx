@@ -22,11 +22,15 @@ const KeyPerformanceIndicators = () => {
             ) : (
                 <>
                     <KeyPerformanceIndicator
-                        value={formatLongNumber(data?.newUsersCount?.count)}
+                        value={formatLongNumber(
+                            data?.newUsersCount?.count || 0
+                        )}
                         title="New Users"
                     />
                     <KeyPerformanceIndicator
-                        value={formatLongNumber(data?.unprocessedSessionsCount)}
+                        value={formatLongNumber(
+                            data?.unprocessedSessionsCount || 0
+                        )}
                         title="Live Users"
                     />
                     <KeyPerformanceIndicator
