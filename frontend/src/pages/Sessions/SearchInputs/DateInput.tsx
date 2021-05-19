@@ -21,13 +21,19 @@ export const DateInput = () => {
                         : null
                 }
                 className={inputStyles.datePicker}
-                onChange={(date: any, dateStrings: [string, string]) => {
+                onChange={(_date: any, dateStrings: [string, string]) => {
+                    // Dates in local timezone.
                     const start_date = dateStrings[0]
-                        ? new Date(dateStrings[0])
+                        ? moment(dateStrings[0])
                         : undefined;
                     const end_date = dateStrings[1]
-                        ? new Date(dateStrings[1])
+                        ? moment(dateStrings[1])
                         : undefined;
+
+                    // Move the end date to the end of the day so the range is end-inclusive.
+                    const momentStartDate = moment(start_date).startOf('day');
+                    const momentEndDate = moment(end_date).endOf('day');
+
                     setSearchParams(
                         (params: SearchParams): SearchParams => {
                             return {
@@ -35,7 +41,10 @@ export const DateInput = () => {
                                 date_range:
                                     !start_date || !end_date
                                         ? undefined
-                                        : { start_date, end_date },
+                                        : {
+                                              start_date: momentStartDate.toDate(),
+                                              end_date: momentEndDate.toDate(),
+                                          },
                             };
                         }
                     );
