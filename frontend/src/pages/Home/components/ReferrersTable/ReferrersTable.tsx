@@ -4,16 +4,7 @@ import classNames from 'classnames';
 import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory, useParams } from 'react-router-dom';
-import {
-    Bar,
-    BarChart,
-    CartesianGrid,
-    Tooltip as RechartsTooltip,
-    XAxis,
-    YAxis,
-} from 'recharts';
 
-import { RechartTooltip } from '../../../../components/recharts/RechartTooltip/RechartTooltip';
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
 import { SessionPageSearchParams } from '../../../Player/utils/utils';
 import homePageStyles from '../../HomePage.module.scss';
@@ -50,91 +41,36 @@ const ReferrersTable = () => {
     if (loading) {
         return <Skeleton count={1} style={{ width: '100%', height: 300 }} />;
     }
-    const labelColor = 'var(--color-gray-500)';
-    const gridColor = 'none';
 
     return (
-        <>
-            <div
-                className={classNames(
-                    homePageStyles.section,
-                    homePageStyles.graphSection,
-                    styles.tableContainer
-                )}
-            >
-                <div className={homePageStyles.chartHeaderWrapper}>
-                    <h3>Referrers</h3>
-                </div>
+        <div
+            className={classNames(
+                homePageStyles.section,
+                homePageStyles.graphSection,
+                styles.tableContainer
+            )}
+        >
+            <div className={homePageStyles.chartHeaderWrapper}>
+                <h3>Referrers</h3>
+            </div>
 
-                <ConfigProvider renderEmpty={EmptyCardPlaceholder}>
-                    <Table
-                        scroll={{ y: 250 }}
-                        showHeader={false}
-                        columns={Columns}
-                        dataSource={tableData}
-                        pagination={false}
-                        onRow={(record) => ({
-                            onClick: () => {
-                                history.push(
-                                    `/${organization_id}/sessions?${SessionPageSearchParams.referrer}=${record.host}`
-                                );
-                            },
-                        })}
-                    />
-                </ConfigProvider>
-            </div>
-            <div
-                className={classNames(
-                    homePageStyles.section,
-                    homePageStyles.graphSection
-                )}
-            >
-                <div className={homePageStyles.chartHeaderWrapper}>
-                    <h3>Referrers</h3>
-                </div>
-                <BarChart
-                    width={500}
-                    height={300}
-                    data={tableData}
-                    margin={{
-                        top: 0,
-                        right: 12,
-                        left: -26,
-                        bottom: 0,
-                    }}
-                >
-                    <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
-                    <RechartsTooltip
-                        contentStyle={{
-                            paddingBottom: '16px',
-                        }}
-                        itemStyle={{
-                            padding: 0,
-                        }}
-                        cursor={false}
-                        content={<RechartTooltip />}
-                    />
-                    <XAxis
-                        dataKey="host"
-                        tick={{ fontSize: '11px', fill: labelColor }}
-                        tickLine={{ stroke: labelColor, visibility: 'hidden' }}
-                        axisLine={{ stroke: gridColor }}
-                        dy={5}
-                    />
-                    <YAxis
-                        tick={{ fontSize: '11px', fill: labelColor }}
-                        tickLine={{ stroke: labelColor, visibility: 'hidden' }}
-                        axisLine={{ stroke: gridColor }}
-                    />
-                    <Bar
-                        dataKey="count"
-                        fill="var(--color-purple-200)"
-                        stroke="var(--color-purple)"
-                        layout="vertical"
-                    />
-                </BarChart>
-            </div>
-        </>
+            <ConfigProvider renderEmpty={EmptyCardPlaceholder}>
+                <Table
+                    scroll={{ y: 250 }}
+                    showHeader={false}
+                    columns={Columns}
+                    dataSource={tableData}
+                    pagination={false}
+                    onRow={(record) => ({
+                        onClick: () => {
+                            history.push(
+                                `/${organization_id}/sessions?${SessionPageSearchParams.referrer}=${record.host}`
+                            );
+                        },
+                    })}
+                />
+            </ConfigProvider>
+        </div>
     );
 };
 
