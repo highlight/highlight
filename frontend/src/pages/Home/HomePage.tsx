@@ -15,6 +15,7 @@ import {
 } from 'recharts';
 
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
+import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import {
     useGetDailyErrorsCountQuery,
     useGetDailySessionsCountQuery,
@@ -273,7 +274,7 @@ const DailyChart = ({
                     itemStyle={{
                         padding: 0,
                     }}
-                    content={<CustomTooltip />}
+                    content={<RechartTooltip />}
                 />
                 <Line
                     dataKey="count"
@@ -300,18 +301,3 @@ const DailyChart = ({
 };
 
 export default HomePage;
-
-export const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-        return (
-            <div className={styles.tooltip}>
-                <h4>{label}</h4>
-                <p>
-                    {payload[0].value} {payload[0].payload.label}
-                </p>
-            </div>
-        );
-    }
-
-    return null;
-};

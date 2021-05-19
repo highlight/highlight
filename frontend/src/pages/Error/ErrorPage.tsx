@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 
 import { Field } from '../../components/Field/Field';
+import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import { frequencyTimeData } from '../../util/errorCalculations';
@@ -210,15 +211,7 @@ export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
                         allowDecimals={false}
                         hide={true}
                     />
-                    <RechartsTooltip
-                        contentStyle={{
-                            backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                            borderRadius: '5px',
-                            borderWidth: 0,
-                            color: 'var(--text-primary-inverted)',
-                        }}
-                        itemStyle={{ color: 'var(--text-primary-inverted)' }}
-                    />
+                    <RechartsTooltip content={<RechartTooltip />} />
                     <Bar dataKey="occurrences" radius={[2, 2, 0, 0]}>
                         {errorDates.map((e, i) => (
                             <Cell

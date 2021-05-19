@@ -7,4 +7,3 @@ export const graphSection: string;
 export const headerContainer: string;
 export const section: string;
 export const subTitle: string;
-export const tooltip: string;

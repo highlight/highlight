@@ -13,9 +13,9 @@ import {
     YAxis,
 } from 'recharts';
 
+import { RechartTooltip } from '../../../../components/recharts/RechartTooltip/RechartTooltip';
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
 import { SessionPageSearchParams } from '../../../Player/utils/utils';
-import { CustomTooltip } from '../../HomePage';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import styles from './ReferrersTable.module.scss';
@@ -109,7 +109,7 @@ const ReferrersTable = () => {
                             padding: 0,
                         }}
                         cursor={false}
-                        content={<CustomTooltip />}
+                        content={<RechartTooltip />}
                     />
                     <XAxis
                         dataKey="host"

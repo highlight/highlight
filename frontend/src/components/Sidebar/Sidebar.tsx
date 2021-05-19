@@ -4,12 +4,13 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 
 import { DemoContext } from '../../DemoContext';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
-import { ReactComponent as CreditCardIcon } from '../../static/credit-cards.svg';
+import SvgCreditCardsIcon from '../../static/CreditCardsIcon';
 import SvgErrorsIcon from '../../static/ErrorsIcon';
-import { ReactComponent as SessionsIcon } from '../../static/sessions-icon.svg';
-import { ReactComponent as SetupIcon } from '../../static/setup-icon.svg';
-import { ReactComponent as TeamIcon } from '../../static/team-icon.svg';
-import { ReactComponent as WorkspaceIcon } from '../../static/workspace-icon.svg';
+import SvgHomeIcon from '../../static/HomeIcon';
+import SvgSessionsIcon from '../../static/SessionsIcon';
+import SvgSetupIcon from '../../static/SetupIcon';
+import SvgTeamIcon from '../../static/TeamIcon';
+import SvgWorkspaceIcon from '../../static/WorkspaceIcon';
 import Changelog from '../Changelog/Changelog';
 import {
     MiniWorkspaceIcon,
@@ -19,6 +20,59 @@ import Tooltip from '../Tooltip/Tooltip';
 import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
 import styles from './Sidebar.module.scss';
 import { SidebarState, useSidebarContext } from './SidebarContext';
+
+interface NavigationItem {
+    Icon: (props: React.SVGProps<SVGSVGElement>) => JSX.Element;
+    displayName: string;
+    route: string;
+    className?: string;
+}
+
+const LEAD_NAVIGATION_ITEMS: NavigationItem[] = [
+    {
+        Icon: SvgHomeIcon,
+        displayName: 'Home',
+        route: 'home',
+    },
+    {
+        Icon: SvgSessionsIcon,
+        displayName: 'Sessions',
+        route: 'sessions',
+    },
+    {
+        Icon: SvgErrorsIcon,
+        displayName: 'Errors',
+        route: 'errors',
+    },
+];
+
+const END_NAVIGATION_ITEMS: NavigationItem[] = [
+    {
+        Icon: SvgSetupIcon,
+        displayName: 'Setup',
+        route: 'setup',
+        className: styles.rotated,
+    },
+    {
+        Icon: SvgWorkspaceIcon,
+        displayName: 'Workspace',
+        route: 'settings',
+    },
+    {
+        Icon: SvgTeamIcon,
+        displayName: 'Team',
+        route: 'team',
+    },
+    ...(process.env.REACT_APP_ONPREM !== 'true'
+        ? [
+              {
+                  Icon: SvgCreditCardsIcon,
+                  displayName: 'Billing',
+                  route: 'billing',
+              },
+          ]
+        : []),
+];
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -47,44 +101,31 @@ export const Sidebar = () => {
                 <div style={{ width: '100%' }}>
                     <WorkspaceDropdown />
                 </div>
-                <SidebarItem text="Sessions" route="sessions">
-                    <div className={styles.iconWrapper}>
-                        <SessionsIcon className={styles.icon} />
-                    </div>
-                </SidebarItem>
-                <SidebarItem text="Errors" route="errors">
-                    <div className={styles.iconWrapper}>
-                        <SvgErrorsIcon
-                            className={classNames(styles.icon, styles.rotated)}
-                        />
-                    </div>
-                </SidebarItem>
-                <div className={styles.settingsDivider} />
-                <SidebarItem text="Setup" route="setup">
-                    <div className={styles.iconWrapper}>
-                        <SetupIcon
-                            className={classNames(styles.icon, styles.rotated)}
-                        />
-                    </div>
-                </SidebarItem>
-                <SidebarItem text="Workspace" route="settings">
-                    <div className={styles.iconWrapper}>
-                        <WorkspaceIcon className={styles.icon} />
-                    </div>
-                </SidebarItem>
-                <SidebarItem text="Team" route="team">
-                    <div className={styles.iconWrapper}>
-                        <TeamIcon className={styles.icon} />
-                    </div>
-                </SidebarItem>
-                {process.env.REACT_APP_ONPREM !== 'true' ? (
-                    <SidebarItem text="Billing" route="billing">
+                {LEAD_NAVIGATION_ITEMS.map(({ displayName, Icon, route }) => (
+                    <SidebarItem text={displayName} route={route} key={route}>
                         <div className={styles.iconWrapper}>
-                            <CreditCardIcon className={styles.icon} />
+                            <Icon className={styles.icon} />
                         </div>
                     </SidebarItem>
-                ) : (
-                    <> </>
+                ))}
+                <div className={styles.settingsDivider} />
+                {END_NAVIGATION_ITEMS.map(
+                    ({ displayName, Icon, route, className }) => (
+                        <SidebarItem
+                            text={displayName}
+                            route={route}
+                            key={route}
+                        >
+                            <div className={styles.iconWrapper}>
+                                <Icon
+                                    className={classNames(
+                                        styles.icon,
+                                        className
+                                    )}
+                                />
+                            </div>
+                        </SidebarItem>
+                    )
                 )}
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
@@ -147,29 +188,37 @@ const StaticSidebar = () => {
                 }}
             >
                 <MiniWorkspaceIcon />
-                <MiniSidebarItem route="sessions" text="Sessions">
-                    <SessionsIcon className={styles.icon} />
-                </MiniSidebarItem>
-                <MiniSidebarItem route="errors" text="Errors">
-                    <SvgErrorsIcon
-                        className={classNames(styles.icon, styles.rotated)}
-                    />
-                </MiniSidebarItem>
+                {LEAD_NAVIGATION_ITEMS.map(
+                    ({ Icon, displayName, route, className }) => (
+                        <MiniSidebarItem
+                            route={route}
+                            text={displayName}
+                            key={route}
+                        >
+                            <Icon
+                                className={classNames(styles.icon, className)}
+                                height="32px"
+                                width="32px"
+                            />
+                        </MiniSidebarItem>
+                    )
+                )}
                 <div className={styles.settingsDivider} />
-                <MiniSidebarItem route="setup" text="Setup">
-                    <SetupIcon
-                        className={classNames(styles.icon, styles.rotated)}
-                    />
-                </MiniSidebarItem>
-                <MiniSidebarItem route="settings" text="Workspace">
-                    <WorkspaceIcon className={styles.icon} />
-                </MiniSidebarItem>
-                <MiniSidebarItem route="team" text="Team">
-                    <TeamIcon className={styles.icon} />
-                </MiniSidebarItem>
-                <MiniSidebarItem route="billing" text="Billing">
-                    <CreditCardIcon className={styles.icon} />
-                </MiniSidebarItem>
+                {END_NAVIGATION_ITEMS.map(
+                    ({ Icon, displayName, route, className }) => (
+                        <MiniSidebarItem
+                            route={route}
+                            text={displayName}
+                            key={route}
+                        >
+                            <Icon
+                                className={classNames(styles.icon, className)}
+                                height="32px"
+                                width="32px"
+                            />
+                        </MiniSidebarItem>
+                    )
+                )}
                 <div
                     className={styles.changelogContainer}
                     onMouseEnter={() => {
