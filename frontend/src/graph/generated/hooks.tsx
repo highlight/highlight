@@ -2898,8 +2898,23 @@ export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
     Types.UnprocessedSessionsCountQueryVariables
 >;
 export const GetKeyPerformanceIndicatorsDocument = gql`
-    query GetKeyPerformanceIndicators($organization_id: ID!) {
+    query GetKeyPerformanceIndicators(
+        $organization_id: ID!
+        $lookBackPeriod: Int!
+    ) {
         unprocessedSessionsCount(organization_id: $organization_id)
+        newUsersCount(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            count
+        }
+        averageSessionLength(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            length
+        }
     }
 `;
 
@@ -2916,6 +2931,7 @@ export const GetKeyPerformanceIndicatorsDocument = gql`
  * const { data, loading, error } = useGetKeyPerformanceIndicatorsQuery({
  *   variables: {
  *      organization_id: // value for 'organization_id'
+ *      lookBackPeriod: // value for 'lookBackPeriod'
  *   },
  * });
  */
