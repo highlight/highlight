@@ -62,10 +62,6 @@
     top: 0;
     transition: backdrop-filter 0.2s ease-in-out;
     width: 100%;
-
-    &:hover {
-        backdrop-filter: blur(0);
-    }
 }
 
 .composedChart {
