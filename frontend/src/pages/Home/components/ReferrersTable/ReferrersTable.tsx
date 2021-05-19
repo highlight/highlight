@@ -2,6 +2,7 @@ import { Table } from 'antd';
 import { ColumnsType } from 'antd/lib/table';
 import classNames from 'classnames';
 import React, { useState } from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { useHistory, useParams } from 'react-router-dom';
 
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
@@ -18,7 +19,7 @@ const ReferrersTable = () => {
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
 
-    useGetReferrersCountQuery({
+    const { loading } = useGetReferrersCountQuery({
         variables: { organization_id, lookBackPeriod: dateRangeLength },
         onCompleted: (data) => {
             if (data.referrers) {
@@ -35,6 +36,10 @@ const ReferrersTable = () => {
             }
         },
     });
+
+    if (loading || tableData.length === 0) {
+        return <Skeleton count={1} style={{ width: '100%', height: 300 }} />;
+    }
 
     return (
         <div
