@@ -184,7 +184,7 @@ const SessionCountGraph = () => {
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
-                <h3>Sessions per day</h3>
+                <h3>Sessions per Day</h3>
             </div>
             <DailyChart
                 data={sessionCountData}
@@ -243,7 +243,7 @@ const ErrorCountGraph = () => {
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
-                <h3>Errors per day</h3>
+                <h3>Errors per Day</h3>
             </div>
             <DailyChart
                 data={errorCountData}
