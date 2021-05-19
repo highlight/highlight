@@ -1,4 +1,5 @@
 export const chartHeaderWrapper: string;
+export const composedChart: string;
 export const dashboard: string;
 export const dashboardBody: string;
 export const dashboardWrapper: string;
