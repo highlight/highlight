@@ -220,6 +220,7 @@ query GetBillingDetails($organization_id: ID!) {
         meter
     }
     organization(id: $organization_id) {
+        id
         trial_end_date
     }
 }

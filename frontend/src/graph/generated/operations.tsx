@@ -624,7 +624,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
     organization?: Types.Maybe<
         { __typename?: 'Organization' } & Pick<
             Types.Organization,
-            'trial_end_date'
+            'id' | 'trial_end_date'
         >
     >;
 };
