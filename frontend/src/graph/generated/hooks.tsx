@@ -3086,3 +3086,121 @@ export type GetErrorAlertsQueryResult = Apollo.QueryResult<
     Types.GetErrorAlertsQuery,
     Types.GetErrorAlertsQueryVariables
 >;
+export const GetEnvironmentSuggestionDocument = gql`
+    query GetEnvironmentSuggestion($query: String!, $organization_id: ID!) {
+        environment_suggestion(
+            query: $query
+            organization_id: $organization_id
+        ) {
+            name
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetEnvironmentSuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetEnvironmentSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEnvironmentSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEnvironmentSuggestionQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetEnvironmentSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetEnvironmentSuggestionQuery,
+        Types.GetEnvironmentSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetEnvironmentSuggestionQuery,
+        Types.GetEnvironmentSuggestionQueryVariables
+    >(GetEnvironmentSuggestionDocument, baseOptions);
+}
+export function useGetEnvironmentSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetEnvironmentSuggestionQuery,
+        Types.GetEnvironmentSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetEnvironmentSuggestionQuery,
+        Types.GetEnvironmentSuggestionQueryVariables
+    >(GetEnvironmentSuggestionDocument, baseOptions);
+}
+export type GetEnvironmentSuggestionQueryHookResult = ReturnType<
+    typeof useGetEnvironmentSuggestionQuery
+>;
+export type GetEnvironmentSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetEnvironmentSuggestionLazyQuery
+>;
+export type GetEnvironmentSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetEnvironmentSuggestionQuery,
+    Types.GetEnvironmentSuggestionQueryVariables
+>;
+export const GetSlackChannelSuggestionDocument = gql`
+    query GetSlackChannelSuggestion($organization_id: ID!) {
+        slack_channel_suggestion(organization_id: $organization_id) {
+            webhook_channel
+            webhook_channel_id
+        }
+    }
+`;
+
+/**
+ * __useGetSlackChannelSuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetSlackChannelSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSlackChannelSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSlackChannelSuggestionQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetSlackChannelSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >(GetSlackChannelSuggestionDocument, baseOptions);
+}
+export function useGetSlackChannelSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >(GetSlackChannelSuggestionDocument, baseOptions);
+}
+export type GetSlackChannelSuggestionQueryHookResult = ReturnType<
+    typeof useGetSlackChannelSuggestionQuery
+>;
+export type GetSlackChannelSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetSlackChannelSuggestionLazyQuery
+>;
+export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetSlackChannelSuggestionQuery,
+    Types.GetSlackChannelSuggestionQueryVariables
+>;

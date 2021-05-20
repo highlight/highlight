@@ -326,7 +326,6 @@ type Query {
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
-    slackChannelSuggestion(org_id: ID!): [SanitizedSlackChannel]!
     organizationHasViewedASession(organization_id: ID!): Session
     dailySessionsCount(
         organization_id: ID!
@@ -368,6 +367,7 @@ type Query {
     error_alerts(organization_id: ID!): [ErrorAlert]
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
+    slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]

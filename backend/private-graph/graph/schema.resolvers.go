@@ -384,7 +384,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 
 	baseMessage := "👋 Hello from Highlight!"
 	if name := org.Name; name != nil {
-		baseMessage += fmt.Sprintf(" We'll send messages here based on your alert preferences for %v, which can be configureate at https://app.highlight.run/%v/alerts.", *name, org.ID)
+		baseMessage += fmt.Sprintf("We'll send messages here based on your alert preferences for %v, which can be configured at https://app.highlight.run/%v/alerts.", *name, org.ID)
 	}
 	msg := slack.WebhookMessage{Text: baseMessage}
 	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
@@ -1092,25 +1092,6 @@ func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int)
 	return &model.T, nil
 }
 
-func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, orgID int) ([]*modelInputs.SanitizedSlackChannel, error) {
-	org, err := r.isAdminInOrganization(ctx, orgID)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting org")
-	}
-	ret := []*modelInputs.SanitizedSlackChannel{}
-	chs, err := org.IntegratedSlackChannels()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieiving existing channels")
-	}
-	for _, ch := range chs {
-		ret = append(ret, &modelInputs.SanitizedSlackChannel{
-			WebhookChannel:   &ch.WebhookChannel,
-			WebhookChannelID: &ch.WebhookChannelID,
-		})
-	}
-	return ret, nil
-}
-
 func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model.Session, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
@@ -1519,7 +1500,7 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string,
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
-	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "session_property", Name: "environment"}).
+	res := r.DB.Debug().Where(&model.Field{OrganizationID: organizationID, Type: "session", Name: "environment"}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
 		Limit(8).
@@ -1528,6 +1509,27 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string,
 		return nil, e.Wrap(err, "error querying field suggestion")
 	}
 	return fields, nil
+}
+
+func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, organizationID int) ([]*modelInputs.SanitizedSlackChannel, error) {
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting org")
+	}
+	chs, err := org.IntegratedSlackChannels()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieiving existing channels")
+	}
+	ret := []*modelInputs.SanitizedSlackChannel{}
+	for _, ch := range chs {
+		channel := ch.WebhookChannel
+		channelID := ch.WebhookChannelID
+		ret = append(ret, &modelInputs.SanitizedSlackChannel{
+			WebhookChannel:   &channel,
+			WebhookChannelID: &channelID,
+		})
+	}
+	return ret, nil
 }
 
 func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
@@ -1701,13 +1703,3 @@ type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *errorAlertResolver) CountThreshold(ctx context.Context, obj *model.ErrorAlert) (int64, error) {
-	panic(fmt.Errorf("not implemented"))
-}

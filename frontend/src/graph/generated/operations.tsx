@@ -1019,3 +1019,35 @@ export type GetErrorAlertsQuery = { __typename?: 'Query' } & {
         >
     >;
 };
+
+export type GetEnvironmentSuggestionQueryVariables = Types.Exact<{
+    query: Types.Scalars['String'];
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type GetEnvironmentSuggestionQuery = { __typename?: 'Query' } & {
+    environment_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+            >
+        >
+    >;
+};
+
+export type GetSlackChannelSuggestionQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type GetSlackChannelSuggestionQuery = { __typename?: 'Query' } & {
+    slack_channel_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                    Types.SanitizedSlackChannel,
+                    'webhook_channel' | 'webhook_channel_id'
+                >
+            >
+        >
+    >;
+};
