@@ -1149,6 +1149,25 @@ func (r *queryResolver) NewUsersCount(ctx context.Context, organizationID int, l
 	return &modelInputs.NewUsersCount{Count: count}, nil
 }
 
+func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*modelInputs.TopUsersPayload, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var topUsersPayload = []*modelInputs.TopUsersPayload{}
+	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.topUsers"))
+	if err := r.DB.Raw(fmt.Sprintf(`SELECT identifier, SUM(active_length) as total_active_time, SUM(active_length) / (SELECT SUM(active_length) from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) as active_time_percentage
+	FROM (SELECT identifier, active_length from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) q1
+	GROUP BY identifier
+	ORDER BY total_active_time DESC
+	LIMIT 200`, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving top users")
+	}
+	topUsersSpan.Finish()
+
+	return topUsersPayload, nil
+}
+
 func (r *queryResolver) AverageSessionLength(ctx context.Context, organizationID int, lookBackPeriod int) (*modelInputs.AverageSessionLength, error) {
 	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")

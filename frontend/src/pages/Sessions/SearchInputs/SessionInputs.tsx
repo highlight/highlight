@@ -1,6 +1,5 @@
-import { message } from 'antd';
-import React, { useEffect } from 'react';
-import { useHistory, useLocation, useParams } from 'react-router-dom';
+import React from 'react';
+import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 
@@ -12,6 +11,7 @@ import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
 import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { useSearchContext } from '../SearchContext/SearchContext';
 import { EmptySessionsSearchParams } from '../SessionsPage';
+import useWatchSessionPageSearchParams from './hooks/useWatchSessionPageSearchParams';
 import inputStyles from './InputStyles.module.scss';
 import { ContainsLabel, SharedSelectStyleProps } from './SearchInputUtil';
 
@@ -84,11 +84,6 @@ export const VisitedUrlInput = () => {
 export const ReferrerInput = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useSearchContext();
-    const location = useLocation();
-    const history = useHistory();
-    const referrerFromSearchParams = new URLSearchParams(location.search).get(
-        SessionPageSearchParams.referrer
-    );
 
     const { refetch } = useGetFieldSuggestionQuery({ skip: true });
 
@@ -115,19 +110,14 @@ export const ReferrerInput = () => {
         setSearchParams((params) => ({ ...params, referrer: current?.value }));
     };
 
-    useEffect(() => {
-        if (referrerFromSearchParams) {
-            setSearchParams(() => ({
-                // We are explicitly clearing any existing search params so the only applied search param is the referrer.
-                ...EmptySessionsSearchParams,
-                referrer: referrerFromSearchParams,
-            }));
-            message.success(
-                `Showing sessions that were referred by ${referrerFromSearchParams}`
-            );
-            history.replace({ search: '' });
-        }
-    }, [history, referrerFromSearchParams, setSearchParams]);
+    useWatchSessionPageSearchParams(
+        SessionPageSearchParams.referrer,
+        (value) => ({
+            ...EmptySessionsSearchParams,
+            referrer: value,
+        }),
+        (value) => `Showing sessions that were referred by ${value}`
+    );
 
     return (
         <div className={inputStyles.commonInputWrapper}>

@@ -9,17 +9,35 @@ import { PropertyOption } from '../../../components/Option/Option';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
+import { SessionPageSearchParams } from '../../Player/utils/utils';
 import {
     SearchParams,
     UserProperty,
     useSearchContext,
 } from '../SearchContext/SearchContext';
+import { EmptySessionsSearchParams } from '../SessionsPage';
+import useWatchSessionPageSearchParams from './hooks/useWatchSessionPageSearchParams';
 import inputStyles from './InputStyles.module.scss';
 import { ContainsLabel } from './SearchInputUtil';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useSearchContext();
+
+    useWatchSessionPageSearchParams(
+        SessionPageSearchParams.identifier,
+        (value) => ({
+            // We are explicitly clearing any existing search params so the only applied search param is the identifier.
+            ...EmptySessionsSearchParams,
+            user_properties: [
+                {
+                    name: 'identifier',
+                    value,
+                },
+            ],
+        }),
+        (value) => `Showing sessions for ${value}`
+    );
 
     const { refetch } = useGetUserSuggestionQuery({ skip: true });
 
@@ -147,6 +165,11 @@ export const IdentifiedUsersSwitch = () => {
 
 export const FirstTimeUsersSwitch = () => {
     const { searchParams, setSearchParams } = useSearchContext();
+    useWatchSessionPageSearchParams(
+        SessionPageSearchParams.firstTimeUsers,
+        () => ({ ...EmptySessionsSearchParams, first_time: true }),
+        () => `Showing sessions for first time users`
+    );
 
     return (
         <div>

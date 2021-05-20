@@ -3,6 +3,8 @@ import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 
 import { useGetKeyPerformanceIndicatorsQuery } from '../../../../graph/generated/hooks';
+import { SessionPageSearchParams } from '../../../Player/utils/utils';
+import { LIVE_SEGMENT_ID } from '../../../Sessions/SearchSidebar/SegmentPicker/SegmentPicker';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
 import KeyPerformanceIndicator from './KeyPerformanceIndicator/KeyPerformanceIndicator';
 import styles from './KeyPerformanceIndicators.module.scss';
@@ -26,12 +28,16 @@ const KeyPerformanceIndicators = () => {
                             data?.newUsersCount?.count || 0
                         )}
                         title="New Users"
+                        route={`/${organization_id}/sessions?${new URLSearchParams(
+                            { [SessionPageSearchParams.firstTimeUsers]: 'true' }
+                        ).toString()}`}
                     />
                     <KeyPerformanceIndicator
                         value={formatLongNumber(
                             data?.unprocessedSessionsCount || 0
                         )}
                         title="Live Users"
+                        route={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
                     />
                     <KeyPerformanceIndicator
                         value={

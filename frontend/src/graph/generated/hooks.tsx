@@ -3152,6 +3152,66 @@ export type GetAverageSessionLengthQueryResult = Apollo.QueryResult<
     Types.GetAverageSessionLengthQuery,
     Types.GetAverageSessionLengthQueryVariables
 >;
+export const GetTopUsersDocument = gql`
+    query GetTopUsers($organization_id: ID!, $lookBackPeriod: Int!) {
+        topUsers(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            identifier
+            total_active_time
+            active_time_percentage
+        }
+    }
+`;
+
+/**
+ * __useGetTopUsersQuery__
+ *
+ * To run a query within a React component, call `useGetTopUsersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTopUsersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTopUsersQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      lookBackPeriod: // value for 'lookBackPeriod'
+ *   },
+ * });
+ */
+export function useGetTopUsersQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >(GetTopUsersDocument, baseOptions);
+}
+export function useGetTopUsersLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >(GetTopUsersDocument, baseOptions);
+}
+export type GetTopUsersQueryHookResult = ReturnType<typeof useGetTopUsersQuery>;
+export type GetTopUsersLazyQueryHookResult = ReturnType<
+    typeof useGetTopUsersLazyQuery
+>;
+export type GetTopUsersQueryResult = Apollo.QueryResult<
+    Types.GetTopUsersQuery,
+    Types.GetTopUsersQueryVariables
+>;
 export const GetDailySessionsCountDocument = gql`
     query GetDailySessionsCount(
         $organization_id: ID!

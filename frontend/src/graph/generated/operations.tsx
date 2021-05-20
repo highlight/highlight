@@ -1026,6 +1026,22 @@ export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetTopUsersQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    lookBackPeriod: Types.Scalars['Int'];
+}>;
+
+export type GetTopUsersQuery = { __typename?: 'Query' } & {
+    topUsers: Array<
+        Types.Maybe<
+            { __typename?: 'TopUsersPayload' } & Pick<
+                Types.TopUsersPayload,
+                'identifier' | 'total_active_time' | 'active_time_percentage'
+            >
+        >
+    >;
+};
+
 export type GetDailySessionsCountQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     date_range: Types.DateRangeInput;

@@ -165,6 +165,13 @@ export type ReferrerTablePayload = {
     percent: Scalars['Float'];
 };
 
+export type TopUsersPayload = {
+    __typename?: 'TopUsersPayload';
+    identifier: Scalars['String'];
+    total_active_time: Scalars['Int'];
+    active_time_percentage: Scalars['Float'];
+};
+
 export type NewUsersCount = {
     __typename?: 'NewUsersCount';
     count: Scalars['Int64'];
@@ -387,6 +394,7 @@ export type Query = {
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
     referrers: Array<Maybe<ReferrerTablePayload>>;
     newUsersCount?: Maybe<NewUsersCount>;
+    topUsers: Array<Maybe<TopUsersPayload>>;
     averageSessionLength?: Maybe<AverageSessionLength>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
@@ -481,6 +489,11 @@ export type QueryReferrersArgs = {
 };
 
 export type QueryNewUsersCountArgs = {
+    organization_id: Scalars['ID'];
+    lookBackPeriod: Scalars['Int'];
+};
+
+export type QueryTopUsersArgs = {
     organization_id: Scalars['ID'];
     lookBackPeriod: Scalars['Int'];
 };
