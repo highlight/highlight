@@ -1,7 +1,7 @@
-import { Checkbox } from 'antd';
+import { Checkbox, message } from 'antd';
 import { CheckboxChangeEvent } from 'antd/lib/checkbox';
-import React from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useHistory, useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase } from 'react-select';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 
@@ -9,17 +9,20 @@ import { PropertyOption } from '../../../components/Option/Option';
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import { useGetUserSuggestionQuery } from '../../../graph/generated/hooks';
 import { ReactComponent as UserIcon } from '../../../static/user.svg';
+import { SessionPageSearchParams } from '../../Player/utils/utils';
 import {
     SearchParams,
     UserProperty,
     useSearchContext,
 } from '../SearchContext/SearchContext';
+import { EmptySessionsSearchParams } from '../SessionsPage';
 import inputStyles from './InputStyles.module.scss';
 import { ContainsLabel } from './SearchInputUtil';
 
 export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useSearchContext();
+    const history = useHistory();
 
     const { refetch } = useGetUserSuggestionQuery({ skip: true });
 
@@ -41,6 +44,29 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
         );
         return suggestions;
     };
+
+    useEffect(() => {
+        const identifierFromSearchParams = new URLSearchParams(
+            location.search
+        ).get(SessionPageSearchParams.identifier);
+
+        if (identifierFromSearchParams) {
+            message.success(
+                `Showing sessions for ${identifierFromSearchParams}`
+            );
+            setSearchParams(() => ({
+                // We are explicitly clearing any existing search params so the only applied search param is the identifier.
+                ...EmptySessionsSearchParams,
+                user_properties: [
+                    {
+                        name: 'identifier',
+                        value: identifierFromSearchParams,
+                    },
+                ],
+            }));
+            history.replace({ search: '' });
+        }
+    }, [history, setSearchParams]);
 
     return (
         <div

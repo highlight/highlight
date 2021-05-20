@@ -27,6 +27,7 @@ import { dailyCountData } from '../../util/dashboardCalculations';
 import { useIntegrated } from '../../util/integrated';
 import { formatNumber } from '../../util/numbers';
 import { SessionPageSearchParams } from '../Player/utils/utils';
+import ActiveUsersTable from './components/ActiveUsersTable/ActiveUsersTable';
 import {
     HomePageFiltersContext,
     useHomePageFiltersContext,
@@ -89,6 +90,7 @@ const HomePage = () => {
                         <SessionCountGraph />
                         <ErrorCountGraph />
                         <ReferrersTable />
+                        <ActiveUsersTable />
                     </div>
                     {!hasData && (
                         <div className={styles.noDataContainer}>
