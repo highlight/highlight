@@ -310,6 +310,36 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type UpdateErrorAlertMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    error_alert_id: Types.Scalars['ID'];
+    count_threshold: Types.Scalars['Int'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    environments:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
+    updateErrorAlert?: Types.Maybe<
+        { __typename?: 'ErrorAlert' } & Pick<
+            Types.ErrorAlert,
+            'ExcludedEnvironments' | 'CountThreshold'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_id: Types.Scalars['ID'];
 }>;

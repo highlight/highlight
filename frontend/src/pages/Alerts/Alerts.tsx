@@ -5,6 +5,7 @@ import {
     useGetEnvironmentSuggestionQuery,
     useGetErrorAlertsQuery,
     useGetSlackChannelSuggestionQuery,
+    useUpdateErrorAlertMutation,
 } from '../../graph/generated/hooks';
 import { alertsBody } from './Alerts.module.scss';
 import SlackIntegration from './SlackIntegration/SlackIntegration';
@@ -26,6 +27,9 @@ const AlertsPage = () => {
     } = useGetSlackChannelSuggestionQuery({
         variables: { organization_id: organization_id },
     });
+
+    const mutation = useUpdateErrorAlertMutation();
+    console.log(mutation);
     // TODO: @John, we need to prepooulate/deduplicate the environments w/ 'production', 'staging' and 'development'.
     // And any additional ones should be returned in the suggestion.
     console.log('alerts', alertData, alertError);

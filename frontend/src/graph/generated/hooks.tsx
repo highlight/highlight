@@ -1141,6 +1141,75 @@ export type CreateErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorSegmentMutation,
     Types.CreateErrorSegmentMutationVariables
 >;
+export const UpdateErrorAlertDocument = gql`
+    mutation UpdateErrorAlert(
+        $organization_id: ID!
+        $error_alert_id: ID!
+        $count_threshold: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $environments: [String]!
+    ) {
+        updateErrorAlert(
+            organization_id: $organization_id
+            error_alert_id: $error_alert_id
+            count_threshold: $count_threshold
+            slack_channels: $slack_channels
+            environments: $environments
+        ) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
+    }
+`;
+export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateErrorAlertMutation,
+    Types.UpdateErrorAlertMutationVariables
+>;
+
+/**
+ * __useUpdateErrorAlertMutation__
+ *
+ * To run a mutation, you first call `useUpdateErrorAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateErrorAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateErrorAlertMutation, { data, loading, error }] = useUpdateErrorAlertMutation({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      error_alert_id: // value for 'error_alert_id'
+ *      count_threshold: // value for 'count_threshold'
+ *      slack_channels: // value for 'slack_channels'
+ *      environments: // value for 'environments'
+ *   },
+ * });
+ */
+export function useUpdateErrorAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateErrorAlertMutation,
+        Types.UpdateErrorAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateErrorAlertMutation,
+        Types.UpdateErrorAlertMutationVariables
+    >(UpdateErrorAlertDocument, baseOptions);
+}
+export type UpdateErrorAlertMutationHookResult = ReturnType<
+    typeof useUpdateErrorAlertMutation
+>;
+export type UpdateErrorAlertMutationResult = Apollo.MutationResult<Types.UpdateErrorAlertMutation>;
+export type UpdateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateErrorAlertMutation,
+    Types.UpdateErrorAlertMutationVariables
+>;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload($session_id: ID!) {
         events(session_id: $session_id)
