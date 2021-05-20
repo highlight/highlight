@@ -378,6 +378,7 @@ export type Query = {
     organizations?: Maybe<Array<Maybe<Organization>>>;
     error_alerts?: Maybe<Array<Maybe<ErrorAlert>>>;
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
+    environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
@@ -498,6 +499,11 @@ export type QueryError_AlertsArgs = {
 
 export type QueryOrganizationSuggestionArgs = {
     query: Scalars['String'];
+};
+
+export type QueryEnvironment_SuggestionArgs = {
+    query: Scalars['String'];
+    organization_id: Scalars['ID'];
 };
 
 export type QueryOrganizationArgs = {

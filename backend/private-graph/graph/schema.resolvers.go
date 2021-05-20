@@ -1514,6 +1514,22 @@ func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string
 	return orgs, nil
 }
 
+func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string, organizationID int) ([]*model.Field, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	fields := []*model.Field{}
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "session_property", Name: "environment"}).
+		Where("length(value) > ?", 0).
+		Where("value ILIKE ?", "%"+query+"%").
+		Limit(8).
+		Find(&fields)
+	if err := res.Error; err != nil {
+		return nil, e.Wrap(err, "error querying field suggestion")
+	}
+	return fields, nil
+}
+
 func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
 	org, err := r.isAdminInOrganization(ctx, id)
 	if err != nil {
