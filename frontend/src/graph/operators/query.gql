@@ -474,6 +474,17 @@ query GetAverageSessionLength($organization_id: ID!, $lookBackPeriod: Int!) {
     }
 }
 
+query GetTopUsers($organization_id: ID!, $lookBackPeriod: Int!) {
+    topUsers(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        identifier
+        total_active_time
+        active_time_percentage
+    }
+}
+
 query GetDailySessionsCount(
     $organization_id: ID!
     $date_range: DateRangeInput!

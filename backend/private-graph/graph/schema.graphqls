@@ -137,6 +137,12 @@ type ReferrerTablePayload {
     percent: Float!
 }
 
+type TopUsersPayload {
+    identifier: String!
+    total_active_time: Int!
+    active_time_percentage: Float!
+}
+
 type NewUsersCount {
     count: Int64!
 }
@@ -356,6 +362,7 @@ type Query {
         lookBackPeriod: Int!
     ): [ReferrerTablePayload]!
     newUsersCount(organization_id: ID!, lookBackPeriod: Int!): NewUsersCount
+    topUsers(organization_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
     averageSessionLength(
         organization_id: ID!
         lookBackPeriod: Int!

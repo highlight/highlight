@@ -118,6 +118,12 @@ type SearchParamsInput struct {
 	FirstTime          *bool                `json:"first_time"`
 }
 
+type TopUsersPayload struct {
+	Identifier           string  `json:"identifier"`
+	TotalActiveTime      int     `json:"total_active_time"`
+	ActiveTimePercentage float64 `json:"active_time_percentage"`
+}
+
 type UserPropertyInput struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`

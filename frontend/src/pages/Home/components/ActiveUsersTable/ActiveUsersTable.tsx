@@ -6,8 +6,8 @@ import { useHistory, useParams } from 'react-router-dom';
 
 import { Avatar } from '../../../../components/Avatar/Avatar';
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
-import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
-import mockData from '../../../../MOCK_DATA.json';
+import Tooltip from '../../../../components/Tooltip/Tooltip';
+import { useGetTopUsersQuery } from '../../../../graph/generated/hooks';
 import { SessionPageSearchParams } from '../../../Player/utils/utils';
 import homePageStyles from '../../HomePage.module.scss';
 import { useHomePageFiltersContext } from '../HomePageFilters/HomePageFiltersContext';
@@ -22,18 +22,16 @@ const ActiveUsersTable = () => {
     const { dateRangeLength } = useHomePageFiltersContext();
     const history = useHistory();
 
-    const { loading } = useGetReferrersCountQuery({
+    const { loading } = useGetTopUsersQuery({
         variables: { organization_id, lookBackPeriod: dateRangeLength },
         onCompleted: (data) => {
-            if (data.referrers) {
-                const transformedData = data.referrers.map(
-                    (referrer, index) => ({
-                        key: index,
-                        host: referrer?.host,
-                        count: referrer?.count,
-                        percent: (referrer?.percent || 0).toFixed(0),
-                    })
-                );
+            if (data.topUsers) {
+                const transformedData = data.topUsers.map((topUser, index) => ({
+                    key: index,
+                    identifier: topUser?.identifier,
+                    total_active_time: topUser?.total_active_time,
+                    active_time_percentage: topUser?.active_time_percentage,
+                }));
 
                 setTableData(transformedData);
             }
@@ -57,10 +55,10 @@ const ActiveUsersTable = () => {
             </div>
             <BarChartTable
                 columns={Columns}
-                data={mockData}
+                data={tableData}
                 onClickHandler={(record) => {
                     history.push(
-                        `/${organization_id}/sessions?${SessionPageSearchParams.identifier}=${record.user}`
+                        `/${organization_id}/sessions?${SessionPageSearchParams.identifier}=${record.identifier}`
                     );
                 }}
             />
@@ -73,8 +71,8 @@ export default ActiveUsersTable;
 const Columns: ColumnsType<any> = [
     {
         title: 'User',
-        dataIndex: 'user',
-        key: 'user',
+        dataIndex: 'identifier',
+        key: 'identifier',
         width: 250,
         render: (user) => (
             <div className={styles.hostContainer}>
@@ -85,20 +83,22 @@ const Columns: ColumnsType<any> = [
     },
     {
         title: 'Active Time',
-        dataIndex: 'active_time',
-        key: 'active_time',
+        dataIndex: 'total_active_time',
+        key: 'total_active_time',
         width: 75,
         align: 'right',
         render: (count) => (
-            <div className={styles.countContainer}>
-                {formatShortTime(count / 1000)}
-            </div>
+            <Tooltip title="Total active time the user has spent on your app">
+                <div className={styles.countContainer}>
+                    {formatShortTime(count / 1000)}
+                </div>
+            </Tooltip>
         ),
     },
     {
         title: 'Percentage',
-        dataIndex: 'percentage',
-        key: 'percentage',
+        dataIndex: 'active_time_percentage',
+        key: 'active_time_percentage',
         render: (percent) => (
             <div
                 className={styles.percentContainer}
