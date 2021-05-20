@@ -252,3 +252,11 @@ a {
 .ant-select-item {
     padding: var(--size-xSmall) var(--size-small) !important;
 }
+
+code {
+    background-color: var(--color-secondary-background);
+    border: 1px solid var(--color-gray-300);
+    border-radius: 4px;
+    padding: 5px;
+    line-height: 2;
+}
