@@ -32,7 +32,6 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
         segment_id: string;
     }>();
     const [hovered, setHovered] = useState(false);
-    const created = new Date(session?.created_at);
     const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
     const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
         update(cache) {

@@ -1,65 +1,151 @@
 import classNames from 'classnames';
+import Lottie from 'lottie-react';
 import moment from 'moment';
 import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
+import { Link, useHistory, useParams } from 'react-router-dom';
 import {
+    Area,
     CartesianGrid,
+    ComposedChart,
     Line,
-    LineChart,
     ResponsiveContainer,
     Tooltip as RechartsTooltip,
     XAxis,
     YAxis,
 } from 'recharts';
 
+import Card from '../../components/Card/Card';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
+import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import {
     useGetDailyErrorsCountQuery,
     useGetDailySessionsCountQuery,
 } from '../../graph/generated/hooks';
+import WaitingAnimation from '../../lottie/waiting.json';
 import { dailyCountData } from '../../util/dashboardCalculations';
+import { useIntegrated } from '../../util/integrated';
 import { formatNumber } from '../../util/numbers';
+import { SessionPageSearchParams } from '../Player/utils/utils';
+import ActiveUsersTable from './components/ActiveUsersTable/ActiveUsersTable';
+import {
+    HomePageFiltersContext,
+    useHomePageFiltersContext,
+} from './components/HomePageFilters/HomePageFiltersContext';
+import KeyPerformanceIndicators from './components/KeyPerformanceIndicators/KeyPerformanceIndicators';
+import ReferrersTable from './components/ReferrersTable/ReferrersTable';
 import styles from './HomePage.module.scss';
 
 type DailyCount = {
     date: string;
     count: number;
+    label: string;
 };
 
 const HomePage = () => {
+    const { organization_id } = useParams<{ organization_id: string }>();
+    const [dateRangeLength, setDateRangeLength] = useState<number>(
+        timeFilter[0].value
+    );
+    const [hasData, setHasData] = useState<boolean>(true);
+    const { integrated, loading: integratedLoading } = useIntegrated(
+        parseInt(organization_id, 10)
+    );
+
+    if (integratedLoading) {
+        return null;
+    }
+
     return (
-        <div className={styles.dashboardWrapper}>
-            <div className={styles.dashboard}>
-                <div>
-                    <h2>Welcome back to Highlight.</h2>
-                    <p className={styles.subTitle}>
-                        Here’s an overview of your team’s sessions and errors.
-                    </p>
-                </div>
-                <div className={styles.dashboardBody}>
-                    <SessionCountGraph />
-                    <ErrorCountGraph />
+        <HomePageFiltersContext
+            value={{ dateRangeLength, setDateRangeLength, hasData, setHasData }}
+        >
+            <div className={styles.dashboardWrapper}>
+                <div className={styles.dashboard}>
+                    <div className={styles.headerContainer}>
+                        <div>
+                            <h2>
+                                {integrated
+                                    ? 'Welcome back to Highlight.'
+                                    : 'Welcome to Highlight'}
+                            </h2>
+                            {integrated && (
+                                <p className={styles.subTitle}>
+                                    Here’s an overview of your team’s sessions
+                                    and errors.
+                                </p>
+                            )}
+                        </div>
+                        {hasData && (
+                            <div className={styles.filtersContainer}>
+                                <StandardDropdown
+                                    data={timeFilter}
+                                    onSelect={setDateRangeLength}
+                                />
+                            </div>
+                        )}
+                    </div>
+                    <KeyPerformanceIndicators />
+                    <div className={styles.dashboardBody}>
+                        <SessionCountGraph />
+                        <ErrorCountGraph />
+                        <ReferrersTable />
+                        <ActiveUsersTable />
+                    </div>
+                    {!hasData && (
+                        <div className={styles.noDataContainer}>
+                            <Card
+                                title={
+                                    integrated
+                                        ? "You're too fast!"
+                                        : 'Waiting for Installation...'
+                                }
+                                animation={
+                                    <Lottie animationData={WaitingAnimation} />
+                                }
+                            >
+                                <p>
+                                    {integrated ? (
+                                        "We're still processing your sessions and errors. Check back here later."
+                                    ) : (
+                                        <>
+                                            Please follow the{' '}
+                                            <Link
+                                                to={`/${organization_id}/setup`}
+                                            >
+                                                setup instructions
+                                            </Link>{' '}
+                                            to install Highlight. It should take
+                                            less than a minute for us to detect
+                                            installation.
+                                        </>
+                                    )}
+                                </p>
+                            </Card>
+                        </div>
+                    )}
                 </div>
             </div>
-        </div>
+        </HomePageFiltersContext>
     );
 };
 
 const timeFilter = [
     { label: 'Last 7 days', value: 7 },
     { label: 'Last 30 days', value: 30 },
+    { label: 'Last 90 days', value: 90 },
+    { label: 'This year', value: 30 * 12 },
 ] as const;
 
 const SessionCountGraph = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
-    // In days
-    const [dateRangeLength, setDateRangeLength] = useState(timeFilter[0].value);
+    const { dateRangeLength, setHasData } = useHomePageFiltersContext();
     const [sessionCountData, setSessionCountData] = useState<Array<DailyCount>>(
         []
     );
+    const history = useHistory();
 
     const { loading } = useGetDailySessionsCountQuery({
         variables: {
@@ -74,6 +160,9 @@ const SessionCountGraph = () => {
         },
         onCompleted: (response) => {
             if (response.dailySessionsCount) {
+                if (response.dailySessionsCount.length === 0) {
+                    setHasData(false);
+                }
                 const dateRangeData = dailyCountData(
                     response.dailySessionsCount,
                     dateRangeLength
@@ -85,6 +174,7 @@ const SessionCountGraph = () => {
                         .subtract(dateRangeLength - 1 - idx, 'days')
                         .format('D MMM YYYY'),
                     count: val,
+                    label: 'sessions',
                 }));
                 setSessionCountData(sessionCounts);
             }
@@ -96,13 +186,17 @@ const SessionCountGraph = () => {
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
-                <h3>Sessions per day</h3>
-                <StandardDropdown
-                    data={timeFilter}
-                    onSelect={setDateRangeLength}
-                />
+                <h3>Sessions per Day</h3>
             </div>
-            <DailyChart data={sessionCountData} />
+            <DailyChart
+                data={sessionCountData}
+                name="Sessions"
+                onClickHandler={(payload: any) => {
+                    history.push(
+                        `/${organization_id}/sessions?${SessionPageSearchParams.date}=${payload.activeLabel}`
+                    );
+                }}
+            />
         </div>
     );
 };
@@ -111,9 +205,9 @@ const ErrorCountGraph = () => {
     const { organization_id } = useParams<{
         organization_id: string;
     }>();
-    // In days
-    const [dateRangeLength, setDateRangeLength] = useState(timeFilter[0].value);
+    const { dateRangeLength } = useHomePageFiltersContext();
     const [errorCountData, setErrorCountData] = useState<Array<DailyCount>>([]);
+    const history = useHistory();
 
     const { loading } = useGetDailyErrorsCountQuery({
         variables: {
@@ -139,6 +233,7 @@ const ErrorCountGraph = () => {
                         .subtract(dateRangeLength - 1 - idx, 'days')
                         .format('D MMM YYYY'),
                     count: val,
+                    label: 'errors',
                 }));
                 setErrorCountData(errorCounts);
             }
@@ -150,15 +245,17 @@ const ErrorCountGraph = () => {
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
-                <h3>Errors per day</h3>
-                <StandardDropdown
-                    data={timeFilter}
-                    onSelect={setDateRangeLength}
-                />
+                <h3>Errors per Day</h3>
             </div>
             <DailyChart
                 data={errorCountData}
                 lineColor={'var(--color-orange-400)'}
+                name="Errors"
+                onClickHandler={(payload: any) => {
+                    history.push(
+                        `/${organization_id}/errors?${SessionPageSearchParams.date}=${payload.activeLabel}`
+                    );
+                }}
             />
         </div>
     );
@@ -167,25 +264,52 @@ const ErrorCountGraph = () => {
 const DailyChart = ({
     data,
     lineColor = 'var(--color-purple)',
+    name,
+    onClickHandler,
 }: {
     data: Array<DailyCount>;
     lineColor?: string;
+    name: string;
+    onClickHandler?: any;
 }) => {
-    const gridColor = 'var(--color-gray-300)';
-    const labelColor = 'var(--text-primary)';
+    const gridColor = 'none';
+    const labelColor = 'var(--color-gray-500)';
+
+    const gradientId = `${name}-colorUv`;
+
     return (
         <ResponsiveContainer width="100%" height={250}>
-            <LineChart
+            <ComposedChart
                 width={500}
                 height={300}
                 data={data}
                 margin={{
-                    top: 5,
-                    right: 35,
+                    top: 0,
+                    right: 0,
                     left: 0,
                     bottom: 0,
                 }}
+                onClick={(payload: any) => {
+                    if (onClickHandler) {
+                        onClickHandler(payload);
+                    }
+                }}
+                className={styles.composedChart}
             >
+                <defs>
+                    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                            offset="5%"
+                            stopColor={lineColor}
+                            stopOpacity={0.2}
+                        />
+                        <stop
+                            offset="95%"
+                            stopColor="var(--color-primary-background)"
+                            stopOpacity={0.1}
+                        />
+                    </linearGradient>
+                </defs>
                 <CartesianGrid stroke={gridColor} />
                 <XAxis
                     dataKey="date"
@@ -194,7 +318,7 @@ const DailyChart = ({
                         moment(tickItem).format('D MMM')
                     }
                     tick={{ fontSize: '11px', fill: labelColor }}
-                    tickLine={{ stroke: labelColor }}
+                    tickLine={{ stroke: labelColor, visibility: 'hidden' }}
                     axisLine={{ stroke: gridColor }}
                     dy={5}
                 />
@@ -204,33 +328,39 @@ const DailyChart = ({
                     allowDecimals={false}
                     tickFormatter={(tickItem) => formatNumber(tickItem)}
                     tick={{ fontSize: '11px', fill: labelColor }}
-                    tickLine={{ stroke: labelColor }}
+                    tickLine={{ stroke: labelColor, visibility: 'hidden' }}
                     axisLine={{ stroke: gridColor }}
                     dx={-5}
                 />
                 <RechartsTooltip
-                    trigger="click"
                     contentStyle={{
-                        backgroundColor: 'rgba(0, 0, 0, 0.85)',
-                        borderRadius: 'var(--border-radius)',
-                        borderWidth: 0,
-                        color: 'var(--text-primary-inverted)',
                         paddingBottom: '16px',
                     }}
                     itemStyle={{
-                        color: 'var(--text-primary-inverted)',
                         padding: 0,
                     }}
-                    labelStyle={{
-                        color: 'var(--text-primary-inverted)',
-                    }}
+                    content={<RechartTooltip />}
                 />
                 <Line
                     dataKey="count"
                     stroke={lineColor}
                     strokeWidth={1.5}
+                    type="monotone"
+                    dot={false}
+                    activeDot={{
+                        fill: lineColor,
+                        fillOpacity: 1,
+                    }}
                 ></Line>
-            </LineChart>
+                <Area
+                    type="monotone"
+                    dataKey="count"
+                    strokeWidth={0}
+                    fillOpacity={1}
+                    fill={`url(#${gradientId})`}
+                    activeDot={false}
+                />
+            </ComposedChart>
         </ResponsiveContainer>
     );
 };

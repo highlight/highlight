@@ -8,7 +8,10 @@ import Switch from '../../../components/Switch/Switch';
 import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
 import { ReactComponent as URLIcon } from '../../../static/link.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
+import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { useSearchContext } from '../SearchContext/SearchContext';
+import { EmptySessionsSearchParams } from '../SessionsPage';
+import useWatchSessionPageSearchParams from './hooks/useWatchSessionPageSearchParams';
 import inputStyles from './InputStyles.module.scss';
 import { ContainsLabel, SharedSelectStyleProps } from './SearchInputUtil';
 
@@ -106,6 +109,15 @@ export const ReferrerInput = () => {
     ) => {
         setSearchParams((params) => ({ ...params, referrer: current?.value }));
     };
+
+    useWatchSessionPageSearchParams(
+        SessionPageSearchParams.referrer,
+        (value) => ({
+            ...EmptySessionsSearchParams,
+            referrer: value,
+        }),
+        (value) => `Showing sessions that were referred by ${value}`
+    );
 
     return (
         <div className={inputStyles.commonInputWrapper}>

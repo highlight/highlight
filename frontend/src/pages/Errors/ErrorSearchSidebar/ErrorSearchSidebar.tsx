@@ -2,7 +2,7 @@ import classNames from 'classnames/bind';
 import React, { useState } from 'react';
 
 import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
-import { SearchSection } from '../../Sessions/SearchSidebar/SearchSection/SearchSection';
+import { SearchSectionForErrors as SearchSection } from '../../Sessions/SearchSidebar/SearchSection/SearchSectionForErrors';
 import { DateInput } from '../ErrorSearchInputs/DateInput';
 import {
     BrowserInput,

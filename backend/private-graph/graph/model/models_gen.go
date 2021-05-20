@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+type AverageSessionLength struct {
+	Length float64 `json:"length"`
+}
+
 type BillingDetails struct {
 	Plan  *Plan `json:"plan"`
 	Meter int64 `json:"meter"`
@@ -47,6 +51,10 @@ type ErrorTrace struct {
 type LengthRangeInput struct {
 	Min *int `json:"min"`
 	Max *int `json:"max"`
+}
+
+type NewUsersCount struct {
+	Count int64 `json:"count"`
 }
 
 type Plan struct {
@@ -96,6 +104,12 @@ type SearchParamsInput struct {
 	Identified         *bool                `json:"identified"`
 	HideViewed         *bool                `json:"hide_viewed"`
 	FirstTime          *bool                `json:"first_time"`
+}
+
+type TopUsersPayload struct {
+	Identifier           string  `json:"identifier"`
+	TotalActiveTime      int     `json:"total_active_time"`
+	ActiveTimePercentage float64 `json:"active_time_percentage"`
 }
 
 type UserPropertyInput struct {
