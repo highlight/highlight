@@ -28,10 +28,6 @@ export const EmptySessionsSearchParams: Complete<SearchParams> = {
 };
 
 const SessionsPage = ({ integrated }: { integrated: boolean }) => {
-    if (!integrated) {
-        return <IntegrationCard />;
-    }
-
     return (
         <div className={styles.sessionsBody}>
             <div className={styles.leftPanel}>
@@ -46,6 +42,7 @@ const SessionsPage = ({ integrated }: { integrated: boolean }) => {
             <div className={styles.rightPanel}>
                 <SearchSidebar />
             </div>
+            {!integrated && <IntegrationCard />}
         </div>
     );
 };

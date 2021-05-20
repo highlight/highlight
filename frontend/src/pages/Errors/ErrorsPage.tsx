@@ -38,10 +38,6 @@ const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
         setCachedParams,
     ]);
 
-    if (!integrated) {
-        return <IntegrationCard />;
-    }
-
     return (
         <ErrorSearchContext.Provider
             value={{
@@ -66,6 +62,7 @@ const ErrorsPage = ({ integrated }: { integrated: boolean }) => {
                 <div className={styles.rightPanel}>
                     <ErrorSearchSidebar />
                 </div>
+                {!integrated && <IntegrationCard />}
             </div>
         </ErrorSearchContext.Provider>
     );
