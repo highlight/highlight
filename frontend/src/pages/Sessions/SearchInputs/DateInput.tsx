@@ -1,39 +1,31 @@
-import { DatePicker, message } from 'antd';
+import { DatePicker } from 'antd';
 import moment from 'moment';
-import React, { useEffect } from 'react';
-import { useHistory, useLocation } from 'react-router-dom';
+import React from 'react';
 
 import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { SearchParams, useSearchContext } from '../SearchContext/SearchContext';
 import { EmptySessionsSearchParams } from '../SessionsPage';
+import useWatchSessionPageSearchParams from './hooks/useWatchSessionPageSearchParams';
 import inputStyles from './InputStyles.module.scss';
 
 const { RangePicker } = DatePicker;
 
 export const DateInput = () => {
     const { searchParams, setSearchParams } = useSearchContext();
-    const location = useLocation();
-    const history = useHistory();
-    const dateFromSearchParams = new URLSearchParams(location.search).get(
-        SessionPageSearchParams.date
-    );
 
-    useEffect(() => {
-        if (dateFromSearchParams) {
-            const start_date = moment(dateFromSearchParams);
-            const end_date = moment(dateFromSearchParams);
+    useWatchSessionPageSearchParams(
+        SessionPageSearchParams.date,
+        (value) => {
+            const start_date = moment(value);
+            const end_date = moment(value);
 
-            setSearchParams(() => ({
-                // We are explicitly clearing any existing search params so the only applied search param is the date range.
+            return {
                 ...EmptySessionsSearchParams,
                 date_range: getDateRangeForDateInput(start_date, end_date),
-            }));
-            message.success(
-                `Showing sessions that were recorded on ${dateFromSearchParams}`
-            );
-            history.replace({ search: '' });
-        }
-    }, [history, dateFromSearchParams, setSearchParams]);
+            };
+        },
+        (value) => `Showing sessions that were recorded on ${value}`
+    );
 
     return (
         <div className={inputStyles.commonInputWrapper}>

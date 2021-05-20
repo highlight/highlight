@@ -28,4 +28,6 @@ export enum SessionPageSearchParams {
     date = 'date',
     /** Automatically sets the identifier for the current segment based on the value. */
     identifier = 'identifier',
+    /** Automatically sets the first time users for the current segment to true. */
+    firstTimeUsers = 'firstTimeUsers',
 }

@@ -66,21 +66,18 @@ export const SearchSidebar = () => {
                     </SearchSection>
                     <SearchSection
                         title="Track Properties"
-                        open={false}
                         searchParamsKey={['track_properties']}
                     >
                         <TrackPropertyInput />
                     </SearchSection>
                     <SearchSection
                         title="Date Range"
-                        open={false}
                         searchParamsKey={['date_range']}
                     >
                         <DateInput />
                     </SearchSection>
                     <SearchSection
                         title="Device Details"
-                        open={false}
                         searchParamsKey={['os', 'browser']}
                     >
                         <OperatingSystemInput />
@@ -88,7 +85,6 @@ export const SearchSidebar = () => {
                     </SearchSection>
                     <SearchSection
                         title="Session Details"
-                        open={false}
                         searchParamsKey={[
                             'visited_url',
                             'referrer',
