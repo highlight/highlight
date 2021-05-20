@@ -75,11 +75,9 @@ const ActiveUsersTable = () => {
                             learn more here
                         </a>
                         .
-                        <br />
-                        <br /> Once we have that data, we'll be able to show you
-                        how much time your users have spent on your app.
                     </>
                 }
+                noDataTitle="No user data yet 😔"
             />
         </div>
     );
