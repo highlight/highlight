@@ -994,24 +994,28 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetErrorAlertQueryVariables = Types.Exact<{
+export type GetErrorAlertsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
 
-export type GetErrorAlertQuery = { __typename?: 'Query' } & {
-    error_alert?: Types.Maybe<
-        { __typename?: 'ErrorAlert' } & Pick<
-            Types.ErrorAlert,
-            'ExcludedEnvironments' | 'CountThreshold'
-        > & {
-                ChannelsToNotify: Array<
-                    Types.Maybe<
-                        { __typename?: 'SanitizedSlackChannel' } & Pick<
-                            Types.SanitizedSlackChannel,
-                            'webhook_channel' | 'webhook_channel_id'
-                        >
-                    >
-                >;
-            }
+export type GetErrorAlertsQuery = { __typename?: 'Query' } & {
+    error_alerts?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorAlert' } & Pick<
+                    Types.ErrorAlert,
+                    'ExcludedEnvironments' | 'CountThreshold'
+                > & {
+                        ChannelsToNotify: Array<
+                            Types.Maybe<
+                                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                    Types.SanitizedSlackChannel,
+                                    'webhook_channel' | 'webhook_channel_id'
+                                >
+                            >
+                        >;
+                    }
+            >
+        >
     >;
 };

@@ -297,20 +297,13 @@ type SanitizedSlackChannel {
 }
 
 input SanitizedSlackChannelInput {
-    webhook_channel: String
+    webhook_channel_name: String
     webhook_channel_id: String
 }
-
-input ErrorAlertInput {
-    ChannelsToNotify: [SanitizedSlackChannelInput]!
-    ExcludedEnvironments: [String]!
-    CountThreshold: Int64!
-}
-
 type ErrorAlert {
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
-    CountThreshold: Int64!
+    CountThreshold: Int!
 }
 
 type Query {
@@ -372,13 +365,13 @@ type Query {
         query: String!
     ): [ErrorField]
     organizations: [Organization]
+    error_alerts(organization_id: ID!): [ErrorAlert]
     organizationSuggestion(query: String!): [Organization]
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]
     error_segments(organization_id: ID!): [ErrorSegment]
     recording_settings(organization_id: ID!): RecordingSettings
-    error_alert(organization_id: ID!): ErrorAlert
 }
 
 type Mutation {
@@ -459,8 +452,5 @@ type Mutation {
         author_name: String!
     ): ErrorComment
     deleteErrorComment(id: ID!): Boolean
-    updateErrorAlert(
-        organization_id: ID!
-        error_alert: ErrorAlertInput
-    ): ErrorAlert
+    updateErrorAlert(organization_id: ID!, alert_id: ID!): ErrorAlert
 }

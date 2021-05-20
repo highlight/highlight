@@ -3025,9 +3025,9 @@ export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
     Types.GetDailyErrorsCountQuery,
     Types.GetDailyErrorsCountQueryVariables
 >;
-export const GetErrorAlertDocument = gql`
-    query GetErrorAlert($organization_id: ID!) {
-        error_alert(organization_id: $organization_id) {
+export const GetErrorAlertsDocument = gql`
+    query GetErrorAlerts($organization_id: ID!) {
+        error_alerts(organization_id: $organization_id) {
             ChannelsToNotify {
                 webhook_channel
                 webhook_channel_id
@@ -3039,50 +3039,50 @@ export const GetErrorAlertDocument = gql`
 `;
 
 /**
- * __useGetErrorAlertQuery__
+ * __useGetErrorAlertsQuery__
  *
- * To run a query within a React component, call `useGetErrorAlertQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorAlertQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetErrorAlertsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorAlertsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetErrorAlertQuery({
+ * const { data, loading, error } = useGetErrorAlertsQuery({
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *   },
  * });
  */
-export function useGetErrorAlertQuery(
+export function useGetErrorAlertsQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
+        Types.GetErrorAlertsQuery,
+        Types.GetErrorAlertsQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
-    >(GetErrorAlertDocument, baseOptions);
+        Types.GetErrorAlertsQuery,
+        Types.GetErrorAlertsQueryVariables
+    >(GetErrorAlertsDocument, baseOptions);
 }
-export function useGetErrorAlertLazyQuery(
+export function useGetErrorAlertsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
+        Types.GetErrorAlertsQuery,
+        Types.GetErrorAlertsQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
-    >(GetErrorAlertDocument, baseOptions);
+        Types.GetErrorAlertsQuery,
+        Types.GetErrorAlertsQueryVariables
+    >(GetErrorAlertsDocument, baseOptions);
 }
-export type GetErrorAlertQueryHookResult = ReturnType<
-    typeof useGetErrorAlertQuery
+export type GetErrorAlertsQueryHookResult = ReturnType<
+    typeof useGetErrorAlertsQuery
 >;
-export type GetErrorAlertLazyQueryHookResult = ReturnType<
-    typeof useGetErrorAlertLazyQuery
+export type GetErrorAlertsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorAlertsLazyQuery
 >;
-export type GetErrorAlertQueryResult = Apollo.QueryResult<
-    Types.GetErrorAlertQuery,
-    Types.GetErrorAlertQueryVariables
+export type GetErrorAlertsQueryResult = Apollo.QueryResult<
+    Types.GetErrorAlertsQuery,
+    Types.GetErrorAlertsQueryVariables
 >;

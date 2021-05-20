@@ -28,6 +28,36 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
+	if obj == nil {
+		return nil, e.New("empty alert object for channels to notify")
+	}
+	channelString := ""
+	if obj.ChannelsToNotify != nil {
+		channelString = *obj.ChannelsToNotify
+	}
+	sanitizedChannels := []*modelInputs.SanitizedSlackChannel{}
+	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
+		return nil, e.Wrap(err, "error unmarshaling sanitized slack channels")
+	}
+	return sanitizedChannels, nil
+}
+
+func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
+	if obj == nil {
+		return nil, e.New("empty alert object for channels to notify")
+	}
+	excludedString := ""
+	if obj.ExcludedEnvironments != nil {
+		excludedString = *obj.ExcludedEnvironments
+	}
+	sanitizedExcludedEnvironments := []*string{}
+	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
+		return nil, e.Wrap(err, "error unmarshaling sanitized excluded channels")
+	}
+	return sanitizedExcludedEnvironments, nil
+}
+
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
 	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
@@ -701,34 +731,39 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlert *modelInputs.ErrorAlertInput) (*modelInputs.ErrorAlert, error) {
-	org, err := r.isAdminInOrganization(ctx, organizationID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
-	}
-	parsedChannels := []*modelInputs.SanitizedSlackChannel{}
-	for _, c := range errorAlert.ChannelsToNotify {
-		parsedChannels = append(parsedChannels, &modelInputs.SanitizedSlackChannel{
-			WebhookChannel:   c.WebhookChannel,
-			WebhookChannelID: c.WebhookChannelID,
-		})
-	}
-	errorAlertParams := modelInputs.ErrorAlert{
-		ChannelsToNotify:     parsedChannels,
-		ExcludedEnvironments: errorAlert.ExcludedEnvironments,
-		CountThreshold:       errorAlert.CountThreshold,
-	}
-	channelBytes, err := json.Marshal(errorAlertParams)
-	if err != nil {
-		return nil, e.Wrap(err, "error marshaling error alerts")
-	}
-	errorAlertString := string(channelBytes)
-	if err := r.DB.Model(org).Updates(&model.Organization{
-		ErrorAlert: &errorAlertString,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org error alert fields")
-	}
-	return &errorAlertParams, nil
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, alertID int) (*model.ErrorAlert, error) {
+	return nil, nil
+	// if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	// 	return nil, e.Wrap(err, "admin is not in organization")
+	// }
+
+	// alerts := []*model.ErrorAlert{}
+	// if err := r.DB.Where(&model.ErrorAlert{OrganizationID: organizationID}).Find(&alerts).Error; err != nil {
+	// 	return nil, e.Wrap(err, "error querying error comments for error_group")
+	// }
+	// parsedChannels := []*modelInputs.SanitizedSlackChannel{}
+	// for _, c := range errorAlert.ChannelsToNotify {
+	// 	parsedChannels = append(parsedChannels, &modelInputs.SanitizedSlackChannel{
+	// 		WebhookChannel:   c.WebhookChannel,
+	// 		WebhookChannelID: c.WebhookChannelID,
+	// 	})
+	// }
+	// errorAlertParams := modelInputs.ErrorAlert{
+	// 	ChannelsToNotify:     parsedChannels,
+	// 	ExcludedEnvironments: errorAlert.ExcludedEnvironments,
+	// 	CountThreshold:       errorAlert.CountThreshold,
+	// }
+	// channelBytes, err := json.Marshal(errorAlertParams)
+	// if err != nil {
+	// 	return nil, e.Wrap(err, "error marshaling error alerts")
+	// }
+	// errorAlertString := string(channelBytes)
+	// if err := r.DB.Model(org).Updates(&model.Organization{
+	// 	ErrorAlert: &errorAlertString,
+	// }).Error; err != nil {
+	// 	return nil, e.Wrap(err, "error updating org error alert fields")
+	// }
+	// return &errorAlertParams, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
@@ -1457,6 +1492,18 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 	return orgs, nil
 }
 
+func (r *queryResolver) ErrorAlerts(ctx context.Context, organizationID int) ([]*model.ErrorAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	alerts := []*model.ErrorAlert{}
+	if err := r.DB.Where(&model.ErrorAlert{OrganizationID: organizationID}).Find(&alerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error alerts")
+	}
+	return alerts, nil
+}
+
 func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
 	orgs := []*model.Organization{}
 	if r.isWhitelistedAccount(ctx) {
@@ -1551,18 +1598,6 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 	return recordingSettings, nil
 }
 
-func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*modelInputs.ErrorAlert, error) {
-	org, err := r.isAdminInOrganization(ctx, organizationID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
-	}
-	ret, err := org.GetErrorAlert()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieiving error alert")
-	}
-	return ret, nil
-}
-
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
 	if obj.Params == nil {
@@ -1608,6 +1643,9 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 	return sanitizedAdmin, nil
 }
 
+// ErrorAlert returns generated.ErrorAlertResolver implementation.
+func (r *Resolver) ErrorAlert() generated.ErrorAlertResolver { return &errorAlertResolver{r} }
+
 // ErrorComment returns generated.ErrorCommentResolver implementation.
 func (r *Resolver) ErrorComment() generated.ErrorCommentResolver { return &errorCommentResolver{r} }
 
@@ -1637,6 +1675,7 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }
@@ -1646,3 +1685,13 @@ type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+func (r *errorAlertResolver) CountThreshold(ctx context.Context, obj *model.ErrorAlert) (int64, error) {
+	panic(fmt.Errorf("not implemented"))
+}

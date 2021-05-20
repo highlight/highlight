@@ -158,6 +158,13 @@ export type ErrorTrace = {
     column_number?: Maybe<Scalars['Int']>;
 };
 
+export type ReferrerTablePayload = {
+    __typename?: 'ReferrerTablePayload';
+    host: Scalars['String'];
+    count: Scalars['Int'];
+    percent: Scalars['Float'];
+};
+
 export type SearchParamsInput = {
     user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
@@ -330,21 +337,15 @@ export type SanitizedSlackChannel = {
 };
 
 export type SanitizedSlackChannelInput = {
-    webhook_channel?: Maybe<Scalars['String']>;
+    webhook_channel_name?: Maybe<Scalars['String']>;
     webhook_channel_id?: Maybe<Scalars['String']>;
-};
-
-export type ErrorAlertInput = {
-    ChannelsToNotify: Array<Maybe<SanitizedSlackChannelInput>>;
-    ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
-    CountThreshold: Scalars['Int64'];
 };
 
 export type ErrorAlert = {
     __typename?: 'ErrorAlert';
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
-    CountThreshold: Scalars['Int64'];
+    CountThreshold: Scalars['Int'];
 };
 
 export type Query = {
@@ -368,19 +369,20 @@ export type Query = {
     organizationHasViewedASession?: Maybe<Session>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
+    referrers: Array<Maybe<ReferrerTablePayload>>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
+    error_alerts?: Maybe<Array<Maybe<ErrorAlert>>>;
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     recording_settings?: Maybe<RecordingSettings>;
-    error_alert?: Maybe<ErrorAlert>;
 };
 
 export type QuerySessionArgs = {
@@ -455,6 +457,11 @@ export type QueryDailyErrorsCountArgs = {
     date_range: DateRangeInput;
 };
 
+export type QueryReferrersArgs = {
+    organization_id: Scalars['ID'];
+    lookBackPeriod: Scalars['Int'];
+};
+
 export type QuerySessionsArgs = {
     organization_id: Scalars['ID'];
     count: Scalars['Int'];
@@ -485,6 +492,10 @@ export type QueryError_Field_SuggestionArgs = {
     query: Scalars['String'];
 };
 
+export type QueryError_AlertsArgs = {
+    organization_id: Scalars['ID'];
+};
+
 export type QueryOrganizationSuggestionArgs = {
     query: Scalars['String'];
 };
@@ -502,10 +513,6 @@ export type QueryError_SegmentsArgs = {
 };
 
 export type QueryRecording_SettingsArgs = {
-    organization_id: Scalars['ID'];
-};
-
-export type QueryError_AlertArgs = {
     organization_id: Scalars['ID'];
 };
 
@@ -665,5 +672,5 @@ export type MutationDeleteErrorCommentArgs = {
 
 export type MutationUpdateErrorAlertArgs = {
     organization_id: Scalars['ID'];
-    error_alert?: Maybe<ErrorAlertInput>;
+    alert_id: Scalars['ID'];
 };
