@@ -678,5 +678,8 @@ export type MutationDeleteErrorCommentArgs = {
 
 export type MutationUpdateErrorAlertArgs = {
     organization_id: Scalars['ID'];
-    alert_id: Scalars['ID'];
+    error_alert_id: Scalars['ID'];
+    count_threshold: Scalars['Int'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
 };

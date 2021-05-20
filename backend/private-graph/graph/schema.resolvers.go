@@ -731,39 +731,42 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, alertID int) (*model.ErrorAlert, error) {
-	return nil, nil
-	// if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
-	// 	return nil, e.Wrap(err, "admin is not in organization")
-	// }
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
 
-	// alerts := []*model.ErrorAlert{}
-	// if err := r.DB.Where(&model.ErrorAlert{OrganizationID: organizationID}).Find(&alerts).Error; err != nil {
-	// 	return nil, e.Wrap(err, "error querying error comments for error_group")
-	// }
-	// parsedChannels := []*modelInputs.SanitizedSlackChannel{}
-	// for _, c := range errorAlert.ChannelsToNotify {
-	// 	parsedChannels = append(parsedChannels, &modelInputs.SanitizedSlackChannel{
-	// 		WebhookChannel:   c.WebhookChannel,
-	// 		WebhookChannelID: c.WebhookChannelID,
-	// 	})
-	// }
-	// errorAlertParams := modelInputs.ErrorAlert{
-	// 	ChannelsToNotify:     parsedChannels,
-	// 	ExcludedEnvironments: errorAlert.ExcludedEnvironments,
-	// 	CountThreshold:       errorAlert.CountThreshold,
-	// }
-	// channelBytes, err := json.Marshal(errorAlertParams)
-	// if err != nil {
-	// 	return nil, e.Wrap(err, "error marshaling error alerts")
-	// }
-	// errorAlertString := string(channelBytes)
-	// if err := r.DB.Model(org).Updates(&model.Organization{
-	// 	ErrorAlert: &errorAlertString,
-	// }).Error; err != nil {
-	// 	return nil, e.Wrap(err, "error updating org error alert fields")
-	// }
-	// return &errorAlertParams, nil
+	alert := &model.ErrorAlert{}
+	if err := r.DB.Where(&model.ErrorAlert{Model: model.Model{ID: errorAlertID}}).Find(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error alert")
+	}
+
+	sanitizedChannels := []*modelInputs.SanitizedSlackChannel{}
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments")
+	}
+	envString := string(envBytes)
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels")
+	}
+	channelsString := string(channelsBytes)
+
+	alert.ChannelsToNotify = &channelsString
+	alert.ExcludedEnvironments = &envString
+	alert.CountThreshold = countThreshold
+	if err := r.DB.Model(&model.ErrorAlert{}).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields")
+	}
+	return alert, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
