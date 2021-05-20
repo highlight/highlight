@@ -426,6 +426,25 @@ query UnprocessedSessionsCount($organization_id: ID!) {
     unprocessedSessionsCount(organization_id: $organization_id)
 }
 
+query GetKeyPerformanceIndicators(
+    $organization_id: ID!
+    $lookBackPeriod: Int!
+) {
+    unprocessedSessionsCount(organization_id: $organization_id)
+    newUsersCount(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        count
+    }
+    averageSessionLength(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        length
+    }
+}
+
 query GetReferrersCount($organization_id: ID!, $lookBackPeriod: Int!) {
     referrers(
         organization_id: $organization_id

@@ -31,6 +31,7 @@ import {
     HomePageFiltersContext,
     useHomePageFiltersContext,
 } from './components/HomePageFilters/HomePageFiltersContext';
+import KeyPerformanceIndicators from './components/KeyPerformanceIndicators/KeyPerformanceIndicators';
 import ReferrersTable from './components/ReferrersTable/ReferrersTable';
 import styles from './HomePage.module.scss';
 
@@ -83,6 +84,7 @@ const HomePage = () => {
                             </div>
                         )}
                     </div>
+                    <KeyPerformanceIndicators />
                     <div className={styles.dashboardBody}>
                         <SessionCountGraph />
                         <ErrorCountGraph />
@@ -182,7 +184,7 @@ const SessionCountGraph = () => {
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
-                <h3>Sessions per day</h3>
+                <h3>Sessions per Day</h3>
             </div>
             <DailyChart
                 data={sessionCountData}
@@ -241,7 +243,7 @@ const ErrorCountGraph = () => {
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
-                <h3>Errors per day</h3>
+                <h3>Errors per Day</h3>
             </div>
             <DailyChart
                 data={errorCountData}
@@ -281,7 +283,7 @@ const DailyChart = ({
                 data={data}
                 margin={{
                     top: 0,
-                    right: 12,
+                    right: 0,
                     left: 0,
                     bottom: 0,
                 }}

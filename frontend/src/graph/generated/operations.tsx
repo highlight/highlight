@@ -962,6 +962,29 @@ export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
     'unprocessedSessionsCount'
 >;
 
+export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    lookBackPeriod: Types.Scalars['Int'];
+}>;
+
+export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'unprocessedSessionsCount'
+> & {
+        newUsersCount?: Types.Maybe<
+            { __typename?: 'NewUsersCount' } & Pick<
+                Types.NewUsersCount,
+                'count'
+            >
+        >;
+        averageSessionLength?: Types.Maybe<
+            { __typename?: 'AverageSessionLength' } & Pick<
+                Types.AverageSessionLength,
+                'length'
+            >
+        >;
+    };
+
 export type GetReferrersCountQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     lookBackPeriod: Types.Scalars['Int'];

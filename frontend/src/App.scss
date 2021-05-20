@@ -136,10 +136,6 @@ iframe {
         display: flex;
         height: 100%;
     }
-
-    &:first-of-type {
-        padding-left: var(--size-small) !important;
-    }
 }
 
 .ant-table-body {
