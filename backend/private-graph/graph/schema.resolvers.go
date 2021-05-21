@@ -1375,6 +1375,10 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
 	}
 
+	if deviceId := params.DeviceID; deviceId != nil {
+		whereClause += fmt.Sprintf("AND (fingerprint = '%s') ", *deviceId)
+	}
+
 	//if there should be fields but aren't no sessions are returned
 	if !fieldCheck || !visitedCheck || !referrerCheck {
 		whereClause += "AND (id != id) "

@@ -166,6 +166,7 @@ input SearchParamsInput {
     length_range: LengthRangeInput
     os: String
     browser: String
+    device_id: String
     visited_url: String
     referrer: String
     identified: Boolean

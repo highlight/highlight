@@ -196,6 +196,7 @@ export type SearchParamsInput = {
     length_range?: Maybe<LengthRangeInput>;
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
+    device_id?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;

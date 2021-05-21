@@ -2491,6 +2491,7 @@ input SearchParamsInput {
     length_range: LengthRangeInput
     os: String
     browser: String
+    device_id: String
     visited_url: String
     referrer: String
     identified: Boolean
@@ -13238,6 +13239,14 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("browser"))
 			it.Browser, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "device_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("device_id"))
+			it.DeviceID, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

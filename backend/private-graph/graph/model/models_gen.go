@@ -111,6 +111,7 @@ type SearchParamsInput struct {
 	LengthRange        *LengthRangeInput    `json:"length_range"`
 	Os                 *string              `json:"os"`
 	Browser            *string              `json:"browser"`
+	DeviceID           *string              `json:"device_id"`
 	VisitedURL         *string              `json:"visited_url"`
 	Referrer           *string              `json:"referrer"`
 	Identified         *bool                `json:"identified"`
