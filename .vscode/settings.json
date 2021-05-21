@@ -13,7 +13,7 @@
   },
   "css.validate": false,
   "less.validate": false,
-  "scss.validate": false,
+  // "scss.validate": false,
   "[graphql]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -28,6 +28,9 @@
     ],
   },
   "[less]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[scss]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "editor.hover.enabled": true,

@@ -1,0 +1,14 @@
+.filtersContainer {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--size-xSmall);
+    margin-bottom: var(--size-large);
+}
+
+.searchPanel {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+}

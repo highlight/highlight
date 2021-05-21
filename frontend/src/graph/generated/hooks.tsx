@@ -2949,6 +2949,321 @@ export type UnprocessedSessionsCountQueryResult = Apollo.QueryResult<
     Types.UnprocessedSessionsCountQuery,
     Types.UnprocessedSessionsCountQueryVariables
 >;
+export const GetKeyPerformanceIndicatorsDocument = gql`
+    query GetKeyPerformanceIndicators(
+        $organization_id: ID!
+        $lookBackPeriod: Int!
+    ) {
+        unprocessedSessionsCount(organization_id: $organization_id)
+        newUsersCount(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            count
+        }
+        averageSessionLength(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            length
+        }
+    }
+`;
+
+/**
+ * __useGetKeyPerformanceIndicatorsQuery__
+ *
+ * To run a query within a React component, call `useGetKeyPerformanceIndicatorsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetKeyPerformanceIndicatorsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetKeyPerformanceIndicatorsQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      lookBackPeriod: // value for 'lookBackPeriod'
+ *   },
+ * });
+ */
+export function useGetKeyPerformanceIndicatorsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >(GetKeyPerformanceIndicatorsDocument, baseOptions);
+}
+export function useGetKeyPerformanceIndicatorsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetKeyPerformanceIndicatorsQuery,
+        Types.GetKeyPerformanceIndicatorsQueryVariables
+    >(GetKeyPerformanceIndicatorsDocument, baseOptions);
+}
+export type GetKeyPerformanceIndicatorsQueryHookResult = ReturnType<
+    typeof useGetKeyPerformanceIndicatorsQuery
+>;
+export type GetKeyPerformanceIndicatorsLazyQueryHookResult = ReturnType<
+    typeof useGetKeyPerformanceIndicatorsLazyQuery
+>;
+export type GetKeyPerformanceIndicatorsQueryResult = Apollo.QueryResult<
+    Types.GetKeyPerformanceIndicatorsQuery,
+    Types.GetKeyPerformanceIndicatorsQueryVariables
+>;
+export const GetReferrersCountDocument = gql`
+    query GetReferrersCount($organization_id: ID!, $lookBackPeriod: Int!) {
+        referrers(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            host
+            count
+            percent
+        }
+    }
+`;
+
+/**
+ * __useGetReferrersCountQuery__
+ *
+ * To run a query within a React component, call `useGetReferrersCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetReferrersCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetReferrersCountQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      lookBackPeriod: // value for 'lookBackPeriod'
+ *   },
+ * });
+ */
+export function useGetReferrersCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >(GetReferrersCountDocument, baseOptions);
+}
+export function useGetReferrersCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetReferrersCountQuery,
+        Types.GetReferrersCountQueryVariables
+    >(GetReferrersCountDocument, baseOptions);
+}
+export type GetReferrersCountQueryHookResult = ReturnType<
+    typeof useGetReferrersCountQuery
+>;
+export type GetReferrersCountLazyQueryHookResult = ReturnType<
+    typeof useGetReferrersCountLazyQuery
+>;
+export type GetReferrersCountQueryResult = Apollo.QueryResult<
+    Types.GetReferrersCountQuery,
+    Types.GetReferrersCountQueryVariables
+>;
+export const GetNewUsersCountDocument = gql`
+    query GetNewUsersCount($organization_id: ID!, $lookBackPeriod: Int!) {
+        newUsersCount(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            count
+        }
+    }
+`;
+
+/**
+ * __useGetNewUsersCountQuery__
+ *
+ * To run a query within a React component, call `useGetNewUsersCountQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetNewUsersCountQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetNewUsersCountQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      lookBackPeriod: // value for 'lookBackPeriod'
+ *   },
+ * });
+ */
+export function useGetNewUsersCountQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetNewUsersCountQuery,
+        Types.GetNewUsersCountQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetNewUsersCountQuery,
+        Types.GetNewUsersCountQueryVariables
+    >(GetNewUsersCountDocument, baseOptions);
+}
+export function useGetNewUsersCountLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetNewUsersCountQuery,
+        Types.GetNewUsersCountQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetNewUsersCountQuery,
+        Types.GetNewUsersCountQueryVariables
+    >(GetNewUsersCountDocument, baseOptions);
+}
+export type GetNewUsersCountQueryHookResult = ReturnType<
+    typeof useGetNewUsersCountQuery
+>;
+export type GetNewUsersCountLazyQueryHookResult = ReturnType<
+    typeof useGetNewUsersCountLazyQuery
+>;
+export type GetNewUsersCountQueryResult = Apollo.QueryResult<
+    Types.GetNewUsersCountQuery,
+    Types.GetNewUsersCountQueryVariables
+>;
+export const GetAverageSessionLengthDocument = gql`
+    query GetAverageSessionLength(
+        $organization_id: ID!
+        $lookBackPeriod: Int!
+    ) {
+        averageSessionLength(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            length
+        }
+    }
+`;
+
+/**
+ * __useGetAverageSessionLengthQuery__
+ *
+ * To run a query within a React component, call `useGetAverageSessionLengthQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAverageSessionLengthQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAverageSessionLengthQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      lookBackPeriod: // value for 'lookBackPeriod'
+ *   },
+ * });
+ */
+export function useGetAverageSessionLengthQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetAverageSessionLengthQuery,
+        Types.GetAverageSessionLengthQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAverageSessionLengthQuery,
+        Types.GetAverageSessionLengthQueryVariables
+    >(GetAverageSessionLengthDocument, baseOptions);
+}
+export function useGetAverageSessionLengthLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAverageSessionLengthQuery,
+        Types.GetAverageSessionLengthQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAverageSessionLengthQuery,
+        Types.GetAverageSessionLengthQueryVariables
+    >(GetAverageSessionLengthDocument, baseOptions);
+}
+export type GetAverageSessionLengthQueryHookResult = ReturnType<
+    typeof useGetAverageSessionLengthQuery
+>;
+export type GetAverageSessionLengthLazyQueryHookResult = ReturnType<
+    typeof useGetAverageSessionLengthLazyQuery
+>;
+export type GetAverageSessionLengthQueryResult = Apollo.QueryResult<
+    Types.GetAverageSessionLengthQuery,
+    Types.GetAverageSessionLengthQueryVariables
+>;
+export const GetTopUsersDocument = gql`
+    query GetTopUsers($organization_id: ID!, $lookBackPeriod: Int!) {
+        topUsers(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            identifier
+            total_active_time
+            active_time_percentage
+        }
+    }
+`;
+
+/**
+ * __useGetTopUsersQuery__
+ *
+ * To run a query within a React component, call `useGetTopUsersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTopUsersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTopUsersQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      lookBackPeriod: // value for 'lookBackPeriod'
+ *   },
+ * });
+ */
+export function useGetTopUsersQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >(GetTopUsersDocument, baseOptions);
+}
+export function useGetTopUsersLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetTopUsersQuery,
+        Types.GetTopUsersQueryVariables
+    >(GetTopUsersDocument, baseOptions);
+}
+export type GetTopUsersQueryHookResult = ReturnType<typeof useGetTopUsersQuery>;
+export type GetTopUsersLazyQueryHookResult = ReturnType<
+    typeof useGetTopUsersLazyQuery
+>;
+export type GetTopUsersQueryResult = Apollo.QueryResult<
+    Types.GetTopUsersQuery,
+    Types.GetTopUsersQueryVariables
+>;
 export const GetDailySessionsCountDocument = gql`
     query GetDailySessionsCount(
         $organization_id: ID!

@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+type AverageSessionLength struct {
+	Length float64 `json:"length"`
+}
+
 type BillingDetails struct {
 	Plan  *Plan `json:"plan"`
 	Meter int64 `json:"meter"`
@@ -61,9 +65,19 @@ type LengthRangeInput struct {
 	Max *int `json:"max"`
 }
 
+type NewUsersCount struct {
+	Count int64 `json:"count"`
+}
+
 type Plan struct {
 	Type  PlanType `json:"type"`
 	Quota int      `json:"quota"`
+}
+
+type ReferrerTablePayload struct {
+	Host    string  `json:"host"`
+	Count   int     `json:"count"`
+	Percent float64 `json:"percent"`
 }
 
 type SanitizedAdmin struct {
@@ -102,6 +116,12 @@ type SearchParamsInput struct {
 	Identified         *bool                `json:"identified"`
 	HideViewed         *bool                `json:"hide_viewed"`
 	FirstTime          *bool                `json:"first_time"`
+}
+
+type TopUsersPayload struct {
+	Identifier           string  `json:"identifier"`
+	TotalActiveTime      int     `json:"total_active_time"`
+	ActiveTimePercentage float64 `json:"active_time_percentage"`
 }
 
 type UserPropertyInput struct {

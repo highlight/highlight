@@ -1,6 +1,7 @@
-import { addCustomEvent, record } from '@highlight-run/rrweb';
+import { addCustomEvent, record, mirror } from '@highlight-run/rrweb';
 import { snapshot } from 'rrweb-snapshot';
 import {
+    addedNodeMutation,
     eventWithTime,
     listenerHandler,
     mutationRecord,
@@ -34,8 +35,10 @@ import packageJson from '../package.json';
 import 'clientjs';
 import { SUPPORTED_ENVIRONMENT_NAMES } from './utils/environment/environment';
 import {
+    IGNORED_NODE,
     INode,
     serializedNodeWithId,
+    serializeNodeWithId,
 } from '@highlight-run/rrweb/dist/snapshot';
 
 export const HighlightWarning = (context: string, msg: any) => {
@@ -273,9 +276,16 @@ export class Highlight {
             type: DomEventType.FullSnapshot,
             payload: node,
         };
+        mirror.map = idMap;
         await this.graphqlSDK.PushPayloadBETA({ events: [fullSnapshotEvent] });
-        console.log('[initialize]', idMap);
 
+        var addedSet: Set<Node | ChildNode> = new Set();
+        const generateAdds = (children: NodeListOf<ChildNode>) => {
+            children.forEach((n) => {
+                addedSet.add(n);
+                generateAdds(n.childNodes);
+            });
+        };
         const observer = new MutationObserver((mutations: mutationRecord[]) => {
             mutations.forEach((m) => {
                 switch (m.type) {
@@ -284,28 +294,30 @@ export class Highlight {
                     case 'attributes': {
                     }
                     case 'childList': {
-                        const t = m.target as any;
-                        const inode = t.__sn as serializedNodeWithId;
-                        if (inode) {
-                            console.log('[observer] adding to:', inode.id);
-                        } else {
-                            console.log('[observer] adding unknown');
-                        }
-                        console.log(
-                            '[observer] tagname:',
-                            (t as HTMLElement).tagName
-                        );
-                        console.log(
-                            '[observer] child list length:',
-                            m.addedNodes.length
-                        );
-                        // console.log('adding childList to', m.target);
-                        // m.addedNodes.forEach((n) => this.genAdds(n, m.target));
+                        const parent = m.target;
+                        addedSet.add(parent);
+                        generateAdds(parent.childNodes);
                     }
                     default:
                         break;
                 }
             });
+            const getNextId = (n: Node): number | null => {
+                let ns: Node | null = n;
+                let nextId: number | null = IGNORED_NODE; // slimDOM: ignored
+                while (nextId === IGNORED_NODE) {
+                    ns = ns && ns.nextSibling;
+                    nextId = ns && mirror.getId((ns as unknown) as INode);
+                }
+                if (
+                    nextId === -1 &&
+                    isBlocked(n.nextSibling, this.blockClass)
+                ) {
+                    nextId = null;
+                }
+                return nextId;
+            };
+            console.log('addedSet', addedSet.size);
         });
 
         observer.observe(document, {

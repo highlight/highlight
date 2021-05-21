@@ -430,6 +430,65 @@ query UnprocessedSessionsCount($organization_id: ID!) {
     unprocessedSessionsCount(organization_id: $organization_id)
 }
 
+query GetKeyPerformanceIndicators(
+    $organization_id: ID!
+    $lookBackPeriod: Int!
+) {
+    unprocessedSessionsCount(organization_id: $organization_id)
+    newUsersCount(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        count
+    }
+    averageSessionLength(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        length
+    }
+}
+
+query GetReferrersCount($organization_id: ID!, $lookBackPeriod: Int!) {
+    referrers(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        host
+        count
+        percent
+    }
+}
+
+query GetNewUsersCount($organization_id: ID!, $lookBackPeriod: Int!) {
+    newUsersCount(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        count
+    }
+}
+
+query GetAverageSessionLength($organization_id: ID!, $lookBackPeriod: Int!) {
+    averageSessionLength(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        length
+    }
+}
+
+query GetTopUsers($organization_id: ID!, $lookBackPeriod: Int!) {
+    topUsers(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        identifier
+        total_active_time
+        active_time_percentage
+    }
+}
+
 query GetDailySessionsCount(
     $organization_id: ID!
     $date_range: DateRangeInput!

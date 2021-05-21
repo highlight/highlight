@@ -1,11 +1,10 @@
-import { Switch } from 'antd';
-import classNames from 'classnames';
 import React, { useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 
 import { SearchMatchOption } from '../../../components/Option/Option';
+import Switch from '../../../components/Switch/Switch';
 import { useGetErrorFieldSuggestionQuery } from '../../../graph/generated/hooks';
 import { ReactComponent as ErrorsIcon } from '../../../static/errors-icon.svg';
 import inputStyles from '../../Sessions/SearchInputs/InputStyles.module.scss';
@@ -85,26 +84,15 @@ export const ResolvedErrorSwitch = () => {
     const { searchParams, setSearchParams } = useContext(ErrorSearchContext);
 
     return (
-        <div className={inputStyles.switchRow}>
-            <Switch
-                checked={searchParams.hide_resolved}
-                onChange={(val: boolean) => {
-                    setSearchParams((params) => ({
-                        ...params,
-                        hide_resolved: val,
-                    }));
-                }}
-            />
-            <div
-                className={classNames(inputStyles.switchText, {
-                    [inputStyles.switchTextSelected]:
-                        searchParams.hide_resolved,
-                })}
-            >
-                <span className={inputStyles.switchSpan}>
-                    Hide resolved errors
-                </span>
-            </div>
-        </div>
+        <Switch
+            checked={searchParams.hide_resolved}
+            onChange={(val: boolean) => {
+                setSearchParams((params) => ({
+                    ...params,
+                    hide_resolved: val,
+                }));
+            }}
+            label="Hide resolved errors"
+        />
     );
 };

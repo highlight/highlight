@@ -971,6 +971,86 @@ export type UnprocessedSessionsCountQuery = { __typename?: 'Query' } & Pick<
     'unprocessedSessionsCount'
 >;
 
+export type GetKeyPerformanceIndicatorsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    lookBackPeriod: Types.Scalars['Int'];
+}>;
+
+export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
+    Types.Query,
+    'unprocessedSessionsCount'
+> & {
+        newUsersCount?: Types.Maybe<
+            { __typename?: 'NewUsersCount' } & Pick<
+                Types.NewUsersCount,
+                'count'
+            >
+        >;
+        averageSessionLength?: Types.Maybe<
+            { __typename?: 'AverageSessionLength' } & Pick<
+                Types.AverageSessionLength,
+                'length'
+            >
+        >;
+    };
+
+export type GetReferrersCountQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    lookBackPeriod: Types.Scalars['Int'];
+}>;
+
+export type GetReferrersCountQuery = { __typename?: 'Query' } & {
+    referrers: Array<
+        Types.Maybe<
+            { __typename?: 'ReferrerTablePayload' } & Pick<
+                Types.ReferrerTablePayload,
+                'host' | 'count' | 'percent'
+            >
+        >
+    >;
+};
+
+export type GetNewUsersCountQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    lookBackPeriod: Types.Scalars['Int'];
+}>;
+
+export type GetNewUsersCountQuery = { __typename?: 'Query' } & {
+    newUsersCount?: Types.Maybe<
+        { __typename?: 'NewUsersCount' } & Pick<Types.NewUsersCount, 'count'>
+    >;
+};
+
+export type GetAverageSessionLengthQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    lookBackPeriod: Types.Scalars['Int'];
+}>;
+
+export type GetAverageSessionLengthQuery = { __typename?: 'Query' } & {
+    averageSessionLength?: Types.Maybe<
+        { __typename?: 'AverageSessionLength' } & Pick<
+            Types.AverageSessionLength,
+            'length'
+        >
+    >;
+};
+
+export type GetTopUsersQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    lookBackPeriod: Types.Scalars['Int'];
+}>;
+
+export type GetTopUsersQuery = { __typename?: 'Query' } & {
+    topUsers: Array<
+        Types.Maybe<
+            { __typename?: 'TopUsersPayload' } & Pick<
+                Types.TopUsersPayload,
+                'identifier' | 'total_active_time' | 'active_time_percentage'
+            >
+        >
+    >;
+};
+
 export type GetDailySessionsCountQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     date_range: Types.DateRangeInput;

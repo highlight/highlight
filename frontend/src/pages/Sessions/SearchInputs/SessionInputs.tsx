@@ -1,15 +1,17 @@
-import { Switch } from 'antd';
-import classNames from 'classnames/bind';
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 
 import { SearchMatchOption } from '../../../components/Option/Option';
+import Switch from '../../../components/Switch/Switch';
 import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
 import { ReactComponent as URLIcon } from '../../../static/link.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
+import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { useSearchContext } from '../SearchContext/SearchContext';
+import { EmptySessionsSearchParams } from '../SessionsPage';
+import useWatchSessionPageSearchParams from './hooks/useWatchSessionPageSearchParams';
 import inputStyles from './InputStyles.module.scss';
 import { ContainsLabel, SharedSelectStyleProps } from './SearchInputUtil';
 
@@ -108,6 +110,15 @@ export const ReferrerInput = () => {
         setSearchParams((params) => ({ ...params, referrer: current?.value }));
     };
 
+    useWatchSessionPageSearchParams(
+        SessionPageSearchParams.referrer,
+        (value) => ({
+            ...EmptySessionsSearchParams,
+            referrer: value,
+        }),
+        (value) => `Showing sessions that were referred by ${value}`
+    );
+
     return (
         <div className={inputStyles.commonInputWrapper}>
             <AsyncCreatableSelect
@@ -146,26 +157,16 @@ export const ViewedSessionsSwitch = () => {
     const { searchParams, setSearchParams } = useSearchContext();
 
     return (
-        <div className={inputStyles.switchRow}>
-            <Switch
-                checked={searchParams.hide_viewed}
-                onChange={(val: boolean) => {
-                    setSearchParams((params) => ({
-                        ...params,
-                        hide_viewed: val,
-                    }));
-                }}
-            />
-            <div
-                className={classNames(inputStyles.switchText, {
-                    [inputStyles.switchTextSelected]: searchParams.hide_viewed,
-                })}
-            >
-                <span className={inputStyles.switchSpan}>
-                    Hide viewed sessions
-                </span>
-            </div>
-        </div>
+        <Switch
+            label="Hide viewed sessions"
+            checked={searchParams.hide_viewed}
+            onChange={(val: boolean) => {
+                setSearchParams((params) => ({
+                    ...params,
+                    hide_viewed: val,
+                }));
+            }}
+        />
     );
 };
 
@@ -173,22 +174,12 @@ export const LiveSessionsSwitch = () => {
     const { hideLiveSessions, setHideLiveSessions } = useSearchContext();
 
     return (
-        <div className={inputStyles.switchRow}>
-            <Switch
-                checked={hideLiveSessions}
-                onChange={(val: boolean) => {
-                    setHideLiveSessions(val);
-                }}
-            />
-            <div
-                className={classNames(inputStyles.switchText, {
-                    [inputStyles.switchTextSelected]: hideLiveSessions,
-                })}
-            >
-                <span className={inputStyles.switchSpan}>
-                    Hide live sessions
-                </span>
-            </div>
-        </div>
+        <Switch
+            checked={hideLiveSessions}
+            onChange={(val: boolean) => {
+                setHideLiveSessions(val);
+            }}
+            label="Hide live sessions"
+        />
     );
 };

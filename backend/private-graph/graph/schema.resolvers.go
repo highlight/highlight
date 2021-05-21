@@ -1133,6 +1133,64 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 	return dailyErrors, nil
 }
 
+func (r *queryResolver) Referrers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	referrers := []*modelInputs.ReferrerTablePayload{}
+
+	if err := r.DB.Raw(fmt.Sprintf("SELECT DISTINCT(value) as host, COUNT(value), count(value) * 100.0 / (select count(*) from fields where name='referrer' and organization_id=%d and created_at >= NOW() - INTERVAL '%d DAY') as percent FROM (SELECT SUBSTRING(value from '(?:.*://)?(?:www\\.)?([^/]*)') AS value FROM fields WHERE name='referrer' AND organization_id=%d AND created_at >= NOW() - INTERVAL '%d DAY') t1 GROUP BY value ORDER BY count desc LIMIT 200", organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&referrers).Error; err != nil {
+		return nil, e.Wrap(err, "error getting referrers")
+	}
+
+	return referrers, nil
+}
+
+func (r *queryResolver) NewUsersCount(ctx context.Context, organizationID int, lookBackPeriod int) (*modelInputs.NewUsersCount, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var count int64
+	if err := r.DB.Raw(fmt.Sprintf("SELECT COUNT(*) FROM sessions WHERE organization_id=%d AND first_time=true AND created_at >= NOW() - INTERVAL '%d DAY'", organizationID, lookBackPeriod)).Scan(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving count of first time users")
+	}
+
+	return &modelInputs.NewUsersCount{Count: count}, nil
+}
+
+func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*modelInputs.TopUsersPayload, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var topUsersPayload = []*modelInputs.TopUsersPayload{}
+	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.topUsers"))
+	if err := r.DB.Raw(fmt.Sprintf(`SELECT identifier, SUM(active_length) as total_active_time, SUM(active_length) / (SELECT SUM(active_length) from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) as active_time_percentage
+	FROM (SELECT identifier, active_length from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) q1
+	GROUP BY identifier
+	ORDER BY total_active_time DESC
+	LIMIT 200`, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving top users")
+	}
+	topUsersSpan.Finish()
+
+	return topUsersPayload, nil
+}
+
+func (r *queryResolver) AverageSessionLength(ctx context.Context, organizationID int, lookBackPeriod int) (*modelInputs.AverageSessionLength, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+	var length float64
+	if err := r.DB.Raw(fmt.Sprintf("SELECT avg(active_length) FROM sessions WHERE organization_id=%d AND processed=true AND active_length IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY';", organizationID, lookBackPeriod)).Scan(&length).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving average length for sessions")
+	}
+
+	return &modelInputs.AverageSessionLength{Length: length}, nil
+}
+
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
@@ -1491,12 +1549,6 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 			return nil, e.Wrap(err, "error creating new admin")
 		}
 		admin = newAdmin
-		msg := slack.WebhookMessage{Text: fmt.
-			Sprintf("```NEW USER \nid: %v\nname: %v\nemail: %v```", newAdmin.ID, *newAdmin.Name, *newAdmin.Email)}
-		err = slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
-		if err != nil {
-			log.Errorf("error sending slack hook: %v", err)
-		}
 	}
 	if admin.PhotoURL == nil || admin.Name == nil {
 		firebaseUser, err := AuthClient.GetUser(context.Background(), uid)

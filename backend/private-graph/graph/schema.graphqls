@@ -131,6 +131,26 @@ type ErrorTrace {
     column_number: Int
 }
 
+type ReferrerTablePayload {
+    host: String!
+    count: Int!
+    percent: Float!
+}
+
+type TopUsersPayload {
+    identifier: String!
+    total_active_time: Int!
+    active_time_percentage: Float!
+}
+
+type NewUsersCount {
+    count: Int64!
+}
+
+type AverageSessionLength {
+    length: Float!
+}
+
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
@@ -337,6 +357,16 @@ type Query {
         organization_id: ID!
         date_range: DateRangeInput!
     ): [DailyErrorCount]!
+    referrers(
+        organization_id: ID!
+        lookBackPeriod: Int!
+    ): [ReferrerTablePayload]!
+    newUsersCount(organization_id: ID!, lookBackPeriod: Int!): NewUsersCount
+    topUsers(organization_id: ID!, lookBackPeriod: Int!): [TopUsersPayload]!
+    averageSessionLength(
+        organization_id: ID!
+        lookBackPeriod: Int!
+    ): AverageSessionLength
     sessions(
         organization_id: ID!
         count: Int!
