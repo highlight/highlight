@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { useGetNotificationsQuery } from '../../../graph/generated/hooks';
-import NotificationAnimation from '../../../lottie/notification.json';
+import NotificationAnimation from '../../../lottie/waiting.json';
 import SvgBellIcon from '../../../static/BellIcon';
 import Button from '../../Button/Button/Button';
 import Dot from '../../Dot/Dot';
@@ -53,9 +53,10 @@ const Notifications = () => {
             hasBorder
             placement="bottomLeft"
             isList
+            visible
             content={
                 <div className={styles.popover}>
-                    {notifications.length !== 0 ? (
+                    {0 !== 0 ? (
                         <PopoverListContent
                             listItems={notifications.map(
                                 (notification, index) => (
@@ -86,7 +87,6 @@ const Notifications = () => {
                             <Lottie
                                 animationData={NotificationAnimation}
                                 className={styles.animation}
-                                loop={false}
                             />
                             <p>
                                 You don’t have any mentions yet.{' '}
