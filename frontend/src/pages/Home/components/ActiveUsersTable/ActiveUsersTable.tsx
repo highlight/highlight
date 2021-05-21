@@ -61,6 +61,23 @@ const ActiveUsersTable = () => {
                         `/${organization_id}/sessions?${SessionPageSearchParams.identifier}=${record.identifier}`
                     );
                 }}
+                noDataMessage={
+                    <>
+                        It doesn't look like we have any sessions with
+                        identified users. You will need to call{' '}
+                        <code>identify()</code> in your app to identify users
+                        during their sessions. You can{' '}
+                        <a
+                            href="https://docs.highlight.run/docs/identifying-users"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            learn more here
+                        </a>
+                        .
+                    </>
+                }
+                noDataTitle="No user data yet 😔"
             />
         </div>
     );

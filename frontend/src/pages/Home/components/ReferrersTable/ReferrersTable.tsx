@@ -60,6 +60,8 @@ const ReferrersTable = () => {
                         `/${organization_id}/sessions?${SessionPageSearchParams.referrer}=${record.host}`
                     );
                 }}
+                noDataTitle="No referrer data yet 😔"
+                noDataMessage="Doesn't look like your app has been referred to yet."
             />
         </div>
     );
