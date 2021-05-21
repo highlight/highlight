@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory, useParams } from 'react-router-dom';
 
-import { Avatar } from '../../../../components/Avatar/Avatar';
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
 import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
@@ -94,7 +93,6 @@ const Columns: ColumnsType<any> = [
         width: 250,
         render: (user) => (
             <div className={styles.hostContainer}>
-                <Avatar seed={user} style={{ height: 18, width: 18 }} />
                 <span>{user}</span>
             </div>
         ),
