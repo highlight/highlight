@@ -443,6 +443,12 @@ query GetKeyPerformanceIndicators(
     ) {
         length
     }
+    userFingerprintCount(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        count
+    }
 }
 
 query GetReferrersCount($organization_id: ID!, $lookBackPeriod: Int!) {

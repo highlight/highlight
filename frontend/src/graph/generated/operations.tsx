@@ -983,6 +983,12 @@ export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
                 'length'
             >
         >;
+        userFingerprintCount?: Types.Maybe<
+            { __typename?: 'UserFingerprintCount' } & Pick<
+                Types.UserFingerprintCount,
+                'count'
+            >
+        >;
     };
 
 export type GetReferrersCountQueryVariables = Types.Exact<{

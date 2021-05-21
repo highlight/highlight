@@ -31,6 +31,20 @@ const KeyPerformanceIndicators = () => {
                         route={`/${organization_id}/sessions?${new URLSearchParams(
                             { [SessionPageSearchParams.firstTimeUsers]: 'true' }
                         ).toString()}`}
+                        tooltipText={
+                            <>
+                                New users for your app that have an identity.
+                                <br />
+                                Click to see the sessions.
+                            </>
+                        }
+                    />
+                    <KeyPerformanceIndicator
+                        value={formatLongNumber(
+                            data?.userFingerprintCount?.count || 0
+                        )}
+                        title="Devices"
+                        tooltipText="Devices that have used your application that don't have an identity associated with the device."
                     />
                     <KeyPerformanceIndicator
                         value={formatLongNumber(
@@ -38,6 +52,13 @@ const KeyPerformanceIndicators = () => {
                         )}
                         title="Live Users"
                         route={`/${organization_id}/sessions/segment/${LIVE_SEGMENT_ID}`}
+                        tooltipText={
+                            <>
+                                Users that are currently using your app.
+                                <br />
+                                Click to see the sessions.
+                            </>
+                        }
                     />
                     <KeyPerformanceIndicator
                         value={
@@ -46,6 +67,7 @@ const KeyPerformanceIndicators = () => {
                             ).toString() || ''
                         }
                         title="Average Active Time"
+                        tooltipText="The time spent by your users on your app across all sessions."
                     />
                 </>
             )}

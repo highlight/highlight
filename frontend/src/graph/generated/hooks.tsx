@@ -2915,6 +2915,12 @@ export const GetKeyPerformanceIndicatorsDocument = gql`
         ) {
             length
         }
+        userFingerprintCount(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            count
+        }
     }
 `;
 
