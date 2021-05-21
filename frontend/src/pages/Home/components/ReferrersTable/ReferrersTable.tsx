@@ -76,7 +76,11 @@ const Columns: ColumnsType<any> = [
         dataIndex: 'host',
         key: 'host',
         width: 150,
-        render: (host) => <div className={styles.hostContainer}>{host}</div>,
+        render: (host) => (
+            <div className={styles.hostContainer}>
+                <span>{host}</span>
+            </div>
+        ),
     },
     {
         title: 'Views',

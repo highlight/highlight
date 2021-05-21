@@ -50,7 +50,7 @@ export const WorkspaceDropdown = () => {
             <div className={styles.dropdownInner}>
                 {data?.organizations?.map((o) => (
                     <Link
-                        to={`/${o?.id}/setup`}
+                        to={`/${o?.id}/home`}
                         onClick={() => setVisible(false)}
                         key={o?.id}
                     >

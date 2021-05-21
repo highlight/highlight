@@ -44,7 +44,7 @@ export const Header = () => {
                         />
                         <Link
                             className={styles.homeLink}
-                            to={demo ? '/' : `/${organization_id}/sessions`}
+                            to={demo ? '/' : `/${organization_id}/home`}
                         >
                             <HighlightLogo />
                         </Link>
