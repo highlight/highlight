@@ -16,9 +16,7 @@
 .billingPlanCardWrapper {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--size-large);
     margin-top: 30px;
-}
-
-.billingPlanCardWrapper > *:not(:first-child) {
-    margin-left: 20px;
 }
