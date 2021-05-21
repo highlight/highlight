@@ -1181,7 +1181,18 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, organizationID
 }
 
 func (r *queryResolver) UserFingerprintCount(ctx context.Context, organizationID int, lookBackPeriod int) (*modelInputs.UserFingerprintCount, error) {
-	panic(fmt.Errorf("not implemented"))
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var count int64
+	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.userFingerprintCount"))
+	if err := r.DB.Raw(fmt.Sprintf("SELECT count(DISTINCT fingerprint) from sessions WHERE identifier='' AND fingerprint IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY' AND organization_id=%d AND length >= 1000;", lookBackPeriod, organizationID)).Scan(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving user fingerprint count")
+	}
+	span.Finish()
+
+	return &modelInputs.UserFingerprintCount{Count: count}, nil
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
