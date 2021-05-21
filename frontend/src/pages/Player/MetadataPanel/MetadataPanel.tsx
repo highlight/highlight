@@ -7,6 +7,7 @@ import {
     useGetAdminQuery,
     useGetSessionQuery,
 } from '../../../graph/generated/hooks';
+import { SessionPageSearchParams } from '../utils/utils';
 import styles from './MetadataPanel.module.scss';
 
 type Field = {
@@ -114,7 +115,13 @@ const MetadataPanel = () => {
                     <section>
                         <h2>Device Details</h2>
                         {data?.session?.fingerprint && (
-                            <Link to={`/${organization_id}/sessions`}>
+                            <Link
+                                to={`/${organization_id}/sessions?${new URLSearchParams(
+                                    {
+                                        [SessionPageSearchParams.deviceId]: data?.session.fingerprint.toString(),
+                                    }
+                                ).toString()}`}
+                            >
                                 Device#{data?.session?.fingerprint}
                             </Link>
                         )}
