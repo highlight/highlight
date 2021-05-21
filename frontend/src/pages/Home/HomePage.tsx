@@ -182,7 +182,7 @@ const SessionCountGraph = () => {
     });
 
     return loading ? (
-        <Skeleton count={1} style={{ width: '100%', height: 300 }} />
+        <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
@@ -241,7 +241,7 @@ const ErrorCountGraph = () => {
     });
 
     return loading ? (
-        <Skeleton count={1} style={{ width: '100%', height: 300 }} />
+        <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
