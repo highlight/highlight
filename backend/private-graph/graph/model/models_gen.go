@@ -124,6 +124,10 @@ type TopUsersPayload struct {
 	ActiveTimePercentage float64 `json:"active_time_percentage"`
 }
 
+type UserFingerprintCount struct {
+	Count int64 `json:"count"`
+}
+
 type UserPropertyInput struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`

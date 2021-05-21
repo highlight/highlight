@@ -182,6 +182,11 @@ export type AverageSessionLength = {
     length: Scalars['Float'];
 };
 
+export type UserFingerprintCount = {
+    __typename?: 'UserFingerprintCount';
+    count: Scalars['Int64'];
+};
+
 export type SearchParamsInput = {
     user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
@@ -396,6 +401,7 @@ export type Query = {
     newUsersCount?: Maybe<NewUsersCount>;
     topUsers: Array<Maybe<TopUsersPayload>>;
     averageSessionLength?: Maybe<AverageSessionLength>;
+    userFingerprintCount?: Maybe<UserFingerprintCount>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -499,6 +505,11 @@ export type QueryTopUsersArgs = {
 };
 
 export type QueryAverageSessionLengthArgs = {
+    organization_id: Scalars['ID'];
+    lookBackPeriod: Scalars['Int'];
+};
+
+export type QueryUserFingerprintCountArgs = {
     organization_id: Scalars['ID'];
     lookBackPeriod: Scalars['Int'];
 };

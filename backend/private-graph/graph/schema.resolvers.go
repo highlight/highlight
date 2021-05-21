@@ -1180,6 +1180,10 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, organizationID
 	return &modelInputs.AverageSessionLength{Length: length}, nil
 }
 
+func (r *queryResolver) UserFingerprintCount(ctx context.Context, organizationID int, lookBackPeriod int) (*modelInputs.UserFingerprintCount, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields

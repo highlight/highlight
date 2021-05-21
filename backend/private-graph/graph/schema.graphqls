@@ -151,6 +151,10 @@ type AverageSessionLength {
     length: Float!
 }
 
+type UserFingerprintCount {
+    count: Int64!
+}
+
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
@@ -367,6 +371,10 @@ type Query {
         organization_id: ID!
         lookBackPeriod: Int!
     ): AverageSessionLength
+    userFingerprintCount(
+        organization_id: ID!
+        lookBackPeriod: Int!
+    ): UserFingerprintCount
     sessions(
         organization_id: ID!
         count: Int!
