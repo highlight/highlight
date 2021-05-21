@@ -343,6 +343,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'state'
             | 'postal'
             | 'user_id'
+            | 'fingerprint'
             | 'created_at'
             | 'user_object'
             | 'identifier'

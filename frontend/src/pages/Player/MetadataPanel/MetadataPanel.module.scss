@@ -2,20 +2,24 @@
     height: 100%;
     padding: 0 var(--size-small);
 
-    .header {
+    h2 {
         color: var(--text-primary);
         font-size: 12px;
         margin: 0;
         margin-bottom: var(--size-xSmall) !important;
     }
 
-    .section {
+    section {
         margin-bottom: var(--size-xLarge);
+
+        p,
+        a {
+            font-size: 12px;
+            margin-top: 0 !important;
+        }
 
         p {
             color: var(--color-gray-500);
-            font-size: 12px;
-            margin: 0;
         }
     }
 
@@ -31,6 +35,10 @@
         flex-flow: row wrap;
         height: 24px;
         overflow: hidden;
+    }
+
+    .userDetailsSection {
+        padding-bottom: var(--size-medium);
     }
 }
 

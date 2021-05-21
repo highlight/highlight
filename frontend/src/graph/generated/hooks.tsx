@@ -1210,6 +1210,7 @@ export const GetSessionDocument = gql`
             state
             postal
             user_id
+            fingerprint
             created_at
             user_object
             identifier

@@ -19,6 +19,7 @@ export type SearchParams = {
     referrer?: string;
     identified: boolean;
     hide_viewed?: boolean;
+    device_id?: string;
     /** Whether this session is the user's first session. */
     first_time?: boolean;
 };
