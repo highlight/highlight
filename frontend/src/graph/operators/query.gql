@@ -160,6 +160,7 @@ query GetSessions(
         sessions {
             id
             user_id
+            fingerprint
             identifier
             os_name
             os_version

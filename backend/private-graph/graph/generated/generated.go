@@ -320,6 +320,7 @@ type ComplexityRoot struct {
 		EnableStrictPrivacy  func(childComplexity int) int
 		FieldGroup           func(childComplexity int) int
 		Fields               func(childComplexity int) int
+		Fingerprint          func(childComplexity int) int
 		FirstTime            func(childComplexity int) int
 		ID                   func(childComplexity int) int
 		Identifier           func(childComplexity int) int
@@ -2020,6 +2021,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Fields(childComplexity), true
 
+	case "Session.fingerprint":
+		if e.complexity.Session.Fingerprint == nil {
+			break
+		}
+
+		return e.complexity.Session.Fingerprint(childComplexity), true
+
 	case "Session.first_time":
 		if e.complexity.Session.FirstTime == nil {
 			break
@@ -2330,6 +2338,7 @@ type Field {
 type Session {
     id: ID!
     user_id: ID!
+    fingerprint: Int
     os_name: String!
     os_version: String!
     browser_name: String!
@@ -10509,6 +10518,38 @@ func (ec *executionContext) _Session_user_id(ctx context.Context, field graphql.
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_fingerprint(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Fingerprint, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Session_os_name(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14942,6 +14983,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "fingerprint":
+			out.Values[i] = ec._Session_fingerprint(ctx, field, obj)
 		case "os_name":
 			out.Values[i] = ec._Session_os_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

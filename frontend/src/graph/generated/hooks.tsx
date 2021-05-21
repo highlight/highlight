@@ -1744,6 +1744,7 @@ export const GetSessionsDocument = gql`
             sessions {
                 id
                 user_id
+                fingerprint
                 identifier
                 os_name
                 os_version

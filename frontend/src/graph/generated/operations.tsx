@@ -536,6 +536,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     Types.Session,
                     | 'id'
                     | 'user_id'
+                    | 'fingerprint'
                     | 'identifier'
                     | 'os_name'
                     | 'os_version'
