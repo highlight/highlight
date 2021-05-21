@@ -53,7 +53,6 @@ const Notifications = () => {
             hasBorder
             placement="bottomLeft"
             isList
-            visible
             content={
                 <div className={styles.popover}>
                     {0 !== 0 ? (
