@@ -99,7 +99,7 @@ const ApplicationRouter = ({ integrated }: Props) => {
                 </Route>
                 <Route path="/:organization_id">
                     {integrated ? (
-                        <Redirect to={`/${organization_id}/sessions`} />
+                        <Redirect to={`/${organization_id}/home`} />
                     ) : (
                         <Redirect to={`/${organization_id}/setup`} />
                     )}
