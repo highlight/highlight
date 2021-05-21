@@ -90,7 +90,7 @@ const Columns: ColumnsType<any> = [
         title: 'User',
         dataIndex: 'identifier',
         key: 'identifier',
-        width: 250,
+        // width: 250,
         render: (user) => (
             <div className={styles.hostContainer}>
                 <span>{user}</span>
@@ -115,6 +115,7 @@ const Columns: ColumnsType<any> = [
         title: 'Percentage',
         dataIndex: 'active_time_percentage',
         key: 'active_time_percentage',
+        width: 150,
         render: (percent) => (
             <div
                 className={styles.percentContainer}
