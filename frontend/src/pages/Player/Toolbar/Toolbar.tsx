@@ -1,5 +1,6 @@
 import { useLocalStorage } from '@rehooks/local-storage';
 import classNames from 'classnames';
+import { H } from 'highlight.run';
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import Draggable from 'react-draggable';
 import { FaPause } from 'react-icons/fa';
@@ -8,6 +9,7 @@ import Skeleton from 'react-loading-skeleton';
 import Button from '../../../components/Button/Button/Button';
 import Modal from '../../../components/Modal/Modal';
 import Tooltip from '../../../components/Tooltip/Tooltip';
+import { useGetAdminQuery } from '../../../graph/generated/hooks';
 import { ErrorObject } from '../../../graph/generated/schemas';
 import SvgDevtoolsIcon from '../../../static/DevtoolsIcon';
 import SvgPlayIcon from '../../../static/PlayIcon';
@@ -50,6 +52,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         sessionCommentIntervals,
     } = useContext(ReplayerContext);
     usePlayerHotKeys();
+    const { data: admin_data } = useGetAdminQuery({ skip: false });
     const max = replayer?.getMetaData().totalTime ?? 0;
     const sliderWrapperRef = useRef<HTMLButtonElement>(null);
     const [showLeftPanelPreference] = useLocalStorage(
@@ -114,14 +117,32 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
 
     // Automatically start the player if the user has set the preference.
     useEffect(() => {
-        if (autoPlayVideo && replayer) {
-            if (state === ReplayerState.LoadedAndUntouched) {
-                play(time);
-            } else if (state === ReplayerState.LoadedWithDeepLink) {
-                pause(time);
+        if (admin_data) {
+            if (autoPlayVideo && replayer) {
+                if (admin_data.admin?.email === 'lorilyn@impira.com') {
+                    H.track('PlayerAutoPlayOverride', {
+                        admin: 'lorilyn@impira.com',
+                    });
+                    setAutoPlayVideo(false);
+                    pause(time);
+                }
+                if (state === ReplayerState.LoadedAndUntouched) {
+                    play(time);
+                } else if (state === ReplayerState.LoadedWithDeepLink) {
+                    pause(time);
+                }
             }
         }
-    }, [autoPlayVideo, replayer, time, play, state, pause]);
+    }, [
+        admin_data,
+        autoPlayVideo,
+        pause,
+        play,
+        replayer,
+        setAutoPlayVideo,
+        state,
+        time,
+    ]);
 
     const endLogger = (e: any) => {
         let newTime = (e.x / wrapperWidth) * max;
