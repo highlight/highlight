@@ -36,14 +36,12 @@ export const ErrorSearchSidebar = () => {
                     </div>
                     <SearchSection
                         title="Date Range"
-                        open={false}
                         searchParamsKey={['date_range']}
                     >
                         <DateInput />
                     </SearchSection>
                     <SearchSection
                         title="Device Details"
-                        open={false}
                         searchParamsKey={['os', 'browser']}
                     >
                         <OperatingSystemInput />
@@ -51,7 +49,6 @@ export const ErrorSearchSidebar = () => {
                     </SearchSection>
                     <SearchSection
                         title="Event Details"
-                        open={false}
                         searchParamsKey={['visited_url']}
                     >
                         <EventInput />

@@ -5,6 +5,7 @@ import Skeleton from 'react-loading-skeleton';
 import { useHistory, useParams } from 'react-router-dom';
 
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
+import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import { useGetReferrersCountQuery } from '../../../../graph/generated/hooks';
 import { SessionPageSearchParams } from '../../../Player/utils/utils';
 import homePageStyles from '../../HomePage.module.scss';
@@ -94,7 +95,7 @@ const Columns: ColumnsType<any> = [
                 className={styles.percentContainer}
                 style={{ '--percentage': `${percent}%` } as React.CSSProperties}
             >
-                <span>{percent}%</span>
+                <span>{getPercentageDisplayValue(percent / 100)}</span>
             </div>
         ),
     },
