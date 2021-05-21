@@ -132,14 +132,12 @@
     align-items: center;
     display: flex;
     flex-direction: column;
-    height: 300px;
-    justify-content: center;
+    height: 280px;
     margin: 0 auto;
     text-align: center;
     width: 80%;
 }
 
 .animation {
-    height: 100px;
-    margin-bottom: var(--size-large);
+    width: 100%;
 }
