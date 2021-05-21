@@ -1,3 +1,4 @@
+import { H } from 'highlight.run';
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
@@ -157,6 +158,7 @@ export const DeviceIdInput = () => {
         current: ValueType<{ label: string; value: string }, false>
     ) => {
         setSearchParams((params) => ({ ...params, device_id: current?.value }));
+        H.track('DeviceIDFilter', {});
     };
 
     return (
