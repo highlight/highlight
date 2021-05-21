@@ -20,7 +20,7 @@ const KeyPerformanceIndicators = () => {
     return (
         <div className={styles.keyPerformanceIndicatorsContainer}>
             {loading ? (
-                <Skeleton count={1} style={{ width: 373.422, height: 64 }} />
+                <Skeleton count={1} style={{ width: 473.812, height: 64 }} />
             ) : (
                 <>
                     <KeyPerformanceIndicator
