@@ -19,6 +19,7 @@ import Card from '../../components/Card/Card';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import {
+    useGetAdminQuery,
     useGetDailyErrorsCountQuery,
     useGetDailySessionsCountQuery,
 } from '../../graph/generated/hooks';
@@ -43,6 +44,9 @@ type DailyCount = {
 };
 
 const HomePage = () => {
+    const { loading: adminLoading, data: adminData } = useGetAdminQuery({
+        skip: false,
+    });
     const { organization_id } = useParams<{ organization_id: string }>();
     const [dateRangeLength, setDateRangeLength] = useState<number>(
         timeFilter[0].value
@@ -52,7 +56,7 @@ const HomePage = () => {
         parseInt(organization_id, 10)
     );
 
-    if (integratedLoading) {
+    if (integratedLoading || adminLoading) {
         return null;
     }
 
@@ -66,7 +70,15 @@ const HomePage = () => {
                         <div>
                             <h2>
                                 {integrated
-                                    ? 'Welcome back to Highlight.'
+                                    ? `${
+                                          adminData?.admin?.name
+                                              ? `Hey ${
+                                                    adminData.admin.name.split(
+                                                        ' '
+                                                    )[0]
+                                                }, welcome`
+                                              : `Welcome`
+                                      } back to Highlight.`
                                     : 'Welcome to Highlight'}
                             </h2>
                             {integrated && (
