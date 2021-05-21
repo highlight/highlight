@@ -300,16 +300,20 @@ const SessionCard = ({
                                 seed={
                                     (session?.identifier
                                         ? session?.identifier
-                                        : session?.user_id.toString()) ?? ''
+                                        : (
+                                              session?.fingerprint ||
+                                              session?.user_id ||
+                                              ''
+                                          ).toString()) ?? ''
                                 }
                                 style={{ height: 60, width: 60 }}
                             />
                         </div>
                         <div className={styles.sessionTextSectionWrapper}>
                             <div className={styles.sessionTextSection}>
-                                <div
-                                    className={styles.topText}
-                                >{`User#${session?.user_id}`}</div>
+                                <div className={styles.topText}>{`Device#${
+                                    session?.fingerprint || session?.user_id
+                                }`}</div>
                                 <div
                                     className={classNames(
                                         styles.middleText,

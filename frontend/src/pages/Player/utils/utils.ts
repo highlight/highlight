@@ -30,4 +30,6 @@ export enum SessionPageSearchParams {
     identifier = 'identifier',
     /** Automatically sets the first time users for the current segment to true. */
     firstTimeUsers = 'firstTimeUsers',
+    /** Automatically sets the device id for the current segment based on the value. */
+    deviceId = 'deviceId',
 }

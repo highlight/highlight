@@ -29,6 +29,7 @@ export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
     user_id: Scalars['ID'];
+    fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
     os_version: Scalars['String'];
     browser_name: Scalars['String'];
@@ -182,6 +183,11 @@ export type AverageSessionLength = {
     length: Scalars['Float'];
 };
 
+export type UserFingerprintCount = {
+    __typename?: 'UserFingerprintCount';
+    count: Scalars['Int64'];
+};
+
 export type SearchParamsInput = {
     user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
@@ -190,6 +196,7 @@ export type SearchParamsInput = {
     length_range?: Maybe<LengthRangeInput>;
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
+    device_id?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
@@ -396,6 +403,7 @@ export type Query = {
     newUsersCount?: Maybe<NewUsersCount>;
     topUsers: Array<Maybe<TopUsersPayload>>;
     averageSessionLength?: Maybe<AverageSessionLength>;
+    userFingerprintCount?: Maybe<UserFingerprintCount>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -499,6 +507,11 @@ export type QueryTopUsersArgs = {
 };
 
 export type QueryAverageSessionLengthArgs = {
+    organization_id: Scalars['ID'];
+    lookBackPeriod: Scalars['Int'];
+};
+
+export type QueryUserFingerprintCountArgs = {
     organization_id: Scalars['ID'];
     lookBackPeriod: Scalars['Int'];
 };

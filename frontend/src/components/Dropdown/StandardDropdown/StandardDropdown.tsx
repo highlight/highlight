@@ -42,6 +42,7 @@ export const StandardDropdown = ({
             placement={'bottomLeft'}
             overlay={menu}
             onVisibleChange={(v) => setVisible(v)}
+            trigger={['click']}
         >
             <div
                 className={styles.dropdownHandler}

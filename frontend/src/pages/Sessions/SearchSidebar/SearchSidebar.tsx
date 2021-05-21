@@ -5,6 +5,7 @@ import { ReactComponent as Hamburger } from '../../../static/hamburger.svg';
 import { DateInput } from '../SearchInputs/DateInput';
 import {
     BrowserInput,
+    DeviceIdInput,
     OperatingSystemInput,
 } from '../SearchInputs/DeviceInputs';
 import { LengthInput } from '../SearchInputs/LengthInput';
@@ -78,10 +79,11 @@ export const SearchSidebar = () => {
                     </SearchSection>
                     <SearchSection
                         title="Device Details"
-                        searchParamsKey={['os', 'browser']}
+                        searchParamsKey={['os', 'browser', 'device_id']}
                     >
                         <OperatingSystemInput />
                         <BrowserInput />
+                        <DeviceIdInput />
                     </SearchSection>
                     <SearchSection
                         title="Session Details"

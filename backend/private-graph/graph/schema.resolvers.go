@@ -1180,6 +1180,21 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, organizationID
 	return &modelInputs.AverageSessionLength{Length: length}, nil
 }
 
+func (r *queryResolver) UserFingerprintCount(ctx context.Context, organizationID int, lookBackPeriod int) (*modelInputs.UserFingerprintCount, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var count int64
+	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.userFingerprintCount"))
+	if err := r.DB.Raw(fmt.Sprintf("SELECT count(DISTINCT fingerprint) from sessions WHERE identifier='' AND fingerprint IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY' AND organization_id=%d AND length >= 1000;", lookBackPeriod, organizationID)).Scan(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving user fingerprint count")
+	}
+	span.Finish()
+
+	return &modelInputs.UserFingerprintCount{Count: count}, nil
+}
+
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
 	// Find fields based on the search params
 	//included fields
@@ -1266,8 +1281,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	fieldsSpan.Finish()
 
-	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, active_length, user_object, viewed"
-	joinClause := "FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, active_length, user_object, viewed, array_agg(t.field_id) fieldIds FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows"
+	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
+	joinClause := "FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, array_agg(t.field_id) fieldIds FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows"
 	whereClause := ` `
 
 	whereClause += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -1358,6 +1373,10 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	if browser := params.Browser; browser != nil {
 		whereClause += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
+	}
+
+	if deviceId := params.DeviceID; deviceId != nil {
+		whereClause += fmt.Sprintf("AND (fingerprint = '%s') ", *deviceId)
 	}
 
 	//if there should be fields but aren't no sessions are returned

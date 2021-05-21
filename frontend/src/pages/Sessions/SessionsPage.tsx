@@ -25,6 +25,7 @@ export const EmptySessionsSearchParams: Complete<SearchParams> = {
     track_properties: [],
     visited_url: undefined,
     first_time: false,
+    device_id: undefined,
 };
 
 const SessionsPage = ({ integrated }: { integrated: boolean }) => {
