@@ -6,6 +6,7 @@ import { useHistory, useParams } from 'react-router-dom';
 
 import { Avatar } from '../../../../components/Avatar/Avatar';
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
+import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import { useGetTopUsersQuery } from '../../../../graph/generated/hooks';
 import { SessionPageSearchParams } from '../../../Player/utils/utils';
@@ -125,7 +126,7 @@ const Columns: ColumnsType<any> = [
                     } as React.CSSProperties
                 }
             >
-                <span>{(percent * 100).toFixed(0)}%</span>
+                <span>{getPercentageDisplayValue(percent)}</span>
             </div>
         ),
     },
