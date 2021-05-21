@@ -644,7 +644,7 @@ const TimelineAnnotationColors: {
     [key in EventsForTimelineKeys[number]]: string;
 } = {
     Click: '--color-purple-light',
-    Focus: '--color-blue',
+    Focus: '--color-blue-400',
     Reload: '--color-green-light',
     Navigate: '--color-yellow',
     Errors: '--color-red',
