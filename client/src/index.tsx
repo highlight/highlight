@@ -286,6 +286,15 @@ export class Highlight {
                 generateAdds(n.childNodes);
             });
         };
+        const getNextId = (n: Node): number | null => {
+            let ns: Node | null = n;
+            let nextId: number | null = IGNORED_NODE; // slimDOM: ignored
+            while (nextId === IGNORED_NODE) {
+                ns = ns && ns.nextSibling;
+                nextId = ns && mirror.getId((ns as unknown) as INode);
+            }
+            return nextId;
+        };
         const observer = new MutationObserver((mutations: mutationRecord[]) => {
             mutations.forEach((m) => {
                 switch (m.type) {
@@ -302,21 +311,8 @@ export class Highlight {
                         break;
                 }
             });
-            const getNextId = (n: Node): number | null => {
-                let ns: Node | null = n;
-                let nextId: number | null = IGNORED_NODE; // slimDOM: ignored
-                while (nextId === IGNORED_NODE) {
-                    ns = ns && ns.nextSibling;
-                    nextId = ns && mirror.getId((ns as unknown) as INode);
-                }
-                if (
-                    nextId === -1 &&
-                    isBlocked(n.nextSibling, this.blockClass)
-                ) {
-                    nextId = null;
-                }
-                return nextId;
-            };
+            for (const n of addedSet) {
+            }
             console.log('addedSet', addedSet.size);
         });
 
