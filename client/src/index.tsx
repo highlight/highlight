@@ -40,6 +40,7 @@ import {
     serializedNodeWithId,
     serializeNodeWithId,
 } from '@highlight-run/rrweb/dist/snapshot';
+import { initMutationObserver } from 'utils/dom/mutations/observer';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -268,8 +269,12 @@ export class Highlight {
     }
 
     // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
-    async initialize(organization_id?: number | string) {
+    async initialize(
+        organization_id?: number | string,
+        experimental?: boolean
+    ) {
         // take a fullsnapshot
+        const blockClass = 'highlight-block';
         const [node, idMap] = snapshot(document);
         console.log('[client]');
         const fullSnapshotEvent: DomEvent = {
@@ -277,53 +282,16 @@ export class Highlight {
             payload: node,
         };
         mirror.map = idMap;
-        await this.graphqlSDK.PushPayloadBETA({ events: [fullSnapshotEvent] });
+        initMutationObserver(
+            (mutationParam) => {
+                console.log(mutationParam);
+            },
+            blockClass,
+            false,
+            {}
+        );
 
-        var addedSet: Set<Node | ChildNode> = new Set();
-        const generateAdds = (children: NodeListOf<ChildNode>) => {
-            children.forEach((n) => {
-                addedSet.add(n);
-                generateAdds(n.childNodes);
-            });
-        };
-        const getNextId = (n: Node): number | null => {
-            let ns: Node | null = n;
-            let nextId: number | null = IGNORED_NODE; // slimDOM: ignored
-            while (nextId === IGNORED_NODE) {
-                ns = ns && ns.nextSibling;
-                nextId = ns && mirror.getId((ns as unknown) as INode);
-            }
-            return nextId;
-        };
-        const observer = new MutationObserver((mutations: mutationRecord[]) => {
-            mutations.forEach((m) => {
-                switch (m.type) {
-                    case 'characterData': {
-                    }
-                    case 'attributes': {
-                    }
-                    case 'childList': {
-                        const parent = m.target;
-                        addedSet.add(parent);
-                        generateAdds(parent.childNodes);
-                    }
-                    default:
-                        break;
-                }
-            });
-            for (const n of addedSet) {
-            }
-            console.log('addedSet', addedSet.size);
-        });
-
-        observer.observe(document, {
-            attributes: true,
-            attributeOldValue: true,
-            characterData: true,
-            characterDataOldValue: true,
-            childList: true,
-            subtree: true,
-        });
+        // await this.graphqlSDK.PushPayloadBETA({ events: [fullSnapshotEvent] });
 
         // console.log('hello');
         // setTimeout(() => {

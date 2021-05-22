@@ -1,4 +1,4 @@
-import { getElementSelector } from '../../utils/dom';
+import { getElementSelector } from '../../utils/dom/selectors';
 
 export const FocusListener = (callback: (targetSelector: string) => void) => {
     const recordFocus = (event: FocusEvent) => {

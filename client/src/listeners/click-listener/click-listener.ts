@@ -1,4 +1,4 @@
-import { getElementSelector } from '../../utils/dom';
+import { getElementSelector } from '../../utils/dom/selectors';
 
 export const ClickListener = (callback: (targetSelector: string) => void) => {
     const recordClick = (event: MouseEvent) => {
