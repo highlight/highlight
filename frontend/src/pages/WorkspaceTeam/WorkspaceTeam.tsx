@@ -9,6 +9,7 @@ import commonStyles from '../../Common.module.scss';
 import { AdminAvatar } from '../../components/Avatar/Avatar';
 import Button from '../../components/Button/Button/Button';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import {
     useGetAdminsQuery,
@@ -67,7 +68,7 @@ const WorkspaceTeam = () => {
     return (
         <LeadAlignLayout>
             <h2>Invite A Member</h2>
-            <p className={styles.subTitle}>
+            <p className={layoutStyles.subTitle}>
                 Invite a your team to your Workspace.
             </p>
             <div className={styles.box}>

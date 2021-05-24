@@ -9,6 +9,7 @@ import useFetch from 'use-http';
 
 import SvgSlackLogo from '../../components/icons/SlackLogo';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
@@ -36,7 +37,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
             <div className={styles.headingWrapper}>
                 <h2>Your Highlight Snippet</h2>
             </div>
-            <p className={styles.subTitle}>
+            <p className={layoutStyles.subTitle}>
                 Setup Highlight in your web application!
             </p>
             <RadioGroup<PlatformType>

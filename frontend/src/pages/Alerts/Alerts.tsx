@@ -1,9 +1,9 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 
+import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { useGetErrorAlertQuery } from '../../graph/generated/hooks';
-import { alertsBody } from './Alerts.module.scss';
-import SlackIntegration from './SlackIntegration/SlackIntegration';
 
 const AlertsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
@@ -12,9 +12,12 @@ const AlertsPage = () => {
     });
     console.log(data);
     return (
-        <div className={alertsBody}>
-            <SlackIntegration redirectPath="alerts" />
-        </div>
+        <LeadAlignLayout>
+            <h2>Configure your alerts</h2>
+            <p className={layoutStyles.subTitle}>
+                Configure the environments you want alerts for.
+            </p>
+        </LeadAlignLayout>
     );
 };
 

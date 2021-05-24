@@ -5,6 +5,7 @@ import Skeleton from 'react-loading-skeleton';
 import { useLocation, useParams } from 'react-router-dom';
 
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import {
     useCreateOrUpdateSubscriptionMutation,
     useGetBillingDetailsQuery,
@@ -106,7 +107,9 @@ const BillingPage = () => {
     return (
         <LeadAlignLayout>
             <h2>Billing</h2>
-            <p className={styles.subTitle}>Manage your billing information.</p>
+            <p className={layoutStyles.subTitle}>
+                Manage your billing information.
+            </p>
             <div className={styles.billingPlanCardWrapper}>
                 {BILLING_PLANS.map((billingPlan) =>
                     billingLoading || loading ? (

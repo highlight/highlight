@@ -2,6 +2,7 @@ import classNames from 'classnames/bind';
 import React from 'react';
 
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { DangerForm } from './DangerForm/DangerForm';
 import { FieldsForm } from './FieldsForm/FieldsForm';
 import styles from './WorkspaceSettings.module.scss';
@@ -10,7 +11,9 @@ const WorkspaceSettings = () => {
     return (
         <LeadAlignLayout>
             <h2>Workspace Settings</h2>
-            <p className={styles.subTitle}>Manage your workspace details.</p>
+            <p className={layoutStyles.subTitle}>
+                Manage your workspace details.
+            </p>
             <div className={styles.fieldsBox}>
                 <h3>Workspace Fields</h3>
                 <FieldsForm />
