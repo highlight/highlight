@@ -1,8 +1,3 @@
-.setupWrapper {
-    display: flex;
-    width: 100%;
-}
-
 .icon {
     color: var(--color-purple);
     cursor: pointer;
@@ -47,6 +42,7 @@
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     margin-bottom: 20px;
+    max-width: 650px;
     padding: 20px 30px;
     transition: 0.4s;
 }
@@ -69,14 +65,6 @@
     font-size: 20px;
     height: 100%;
     padding: 8px;
-}
-
-.setupPage {
-    border-radius: 8px;
-    height: max-content;
-    margin: 120px 80px 80px;
-    min-width: 650px;
-    width: 40vw;
 }
 
 .snippetHeadingTwo {

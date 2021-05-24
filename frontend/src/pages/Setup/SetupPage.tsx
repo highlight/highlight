@@ -8,6 +8,7 @@ import { useParams } from 'react-router-dom';
 import useFetch from 'use-http';
 
 import SvgSlackLogo from '../../components/icons/SlackLogo';
+import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
 import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
@@ -31,128 +32,124 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     });
 
     return (
-        <div className={styles.setupWrapper}>
-            <div className={styles.setupPage}>
-                <div className={styles.headingWrapper}>
-                    <h2>Your Highlight Snippet</h2>
-                </div>
-                <p className={styles.subTitle}>
-                    Setup Highlight in your web application!
-                </p>
-                <RadioGroup<PlatformType>
-                    style={{ marginTop: 20, marginBottom: 20 }}
-                    selectedLabel={platform}
-                    labels={[
-                        PlatformType.React,
-                        PlatformType.Vue,
-                        PlatformType.Html,
-                        PlatformType.NextJs,
-                    ]}
-                    onSelect={(p: PlatformType) => setPlatform(p)}
+        <LeadAlignLayout>
+            <div className={styles.headingWrapper}>
+                <h2>Your Highlight Snippet</h2>
+            </div>
+            <p className={styles.subTitle}>
+                Setup Highlight in your web application!
+            </p>
+            <RadioGroup<PlatformType>
+                style={{ marginTop: 20, marginBottom: 20 }}
+                selectedLabel={platform}
+                labels={[
+                    PlatformType.React,
+                    PlatformType.Vue,
+                    PlatformType.Html,
+                    PlatformType.NextJs,
+                ]}
+                onSelect={(p: PlatformType) => setPlatform(p)}
+            />
+            {!data?.organization || loading ? (
+                <Skeleton
+                    height={75}
+                    count={3}
+                    style={{ borderRadius: 8, marginBottom: 14 }}
                 />
-                {!data?.organization || loading ? (
-                    <Skeleton
-                        height={75}
-                        count={3}
-                        style={{ borderRadius: 8, marginBottom: 14 }}
-                    />
-                ) : (
-                    <>
-                        {platform === PlatformType.Html ? (
-                            <HtmlInstructions
-                                orgVerboseId={data?.organization?.verbose_id}
-                            />
-                        ) : (
-                            <JsAppInstructions
-                                orgVerboseId={data?.organization?.verbose_id}
-                                platform={platform}
-                            />
-                        )}
-                        <Section title="Identifying Users">
-                            <p>
-                                To tag sessions with user specific identifiers
-                                (name, email, etc.), you can call the
-                                <span
-                                    className={classNames(
-                                        styles.codeBlockBasic,
-                                        styles.codeBlockInlined
-                                    )}
-                                >
-                                    {'H.identify(id: string, object: Object)'}
-                                </span>{' '}
-                                method in your javascript app. Here's an
-                                example:
-                            </p>
-                            <CodeBlock
-                                onCopy={() => {
-                                    window.analytics.track(
-                                        'Copied Code Snippet',
-                                        { copied: 'code snippet' }
-                                    );
-                                    H.track(
-                                        'Copied Code Snippet (Highlight Event)',
-                                        { copied: 'code snippet' }
-                                    );
-                                }}
-                                text={
-                                    platform === PlatformType.NextJs
-                                        ? `if (typeof window !== 'undefined') {
+            ) : (
+                <>
+                    {platform === PlatformType.Html ? (
+                        <HtmlInstructions
+                            orgVerboseId={data?.organization?.verbose_id}
+                        />
+                    ) : (
+                        <JsAppInstructions
+                            orgVerboseId={data?.organization?.verbose_id}
+                            platform={platform}
+                        />
+                    )}
+                    <Section title="Identifying Users">
+                        <p>
+                            To tag sessions with user specific identifiers
+                            (name, email, etc.), you can call the
+                            <span
+                                className={classNames(
+                                    styles.codeBlockBasic,
+                                    styles.codeBlockInlined
+                                )}
+                            >
+                                {'H.identify(id: string, object: Object)'}
+                            </span>{' '}
+                            method in your javascript app. Here's an example:
+                        </p>
+                        <CodeBlock
+                            onCopy={() => {
+                                window.analytics.track('Copied Code Snippet', {
+                                    copied: 'code snippet',
+                                });
+                                H.track(
+                                    'Copied Code Snippet (Highlight Event)',
+                                    { copied: 'code snippet' }
+                                );
+                            }}
+                            text={
+                                platform === PlatformType.NextJs
+                                    ? `if (typeof window !== 'undefined') {
     H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}
     )
 }`
-                                        : `H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)`
-                                }
-                            />
-                        </Section>
-                        <Section
-                            title="Verify Installation"
-                            headingIcon={
-                                integrated && (
-                                    <IntegrationDetector
-                                        verbose={false}
-                                        integrated={integrated}
-                                    />
-                                )
+                                    : `H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)`
                             }
-                        >
-                            <p>
-                                Please follow the setup instructions above to
-                                install Highlight. It should take less than a
-                                minute for us to detect installation.
-                            </p>
-                            <IntegrationDetector
-                                integrated={integrated}
-                                verbose={true}
-                            />
-                        </Section>
-                        <Section
-                            title="Enable Slack Alerts"
-                            headingIcon={
-                                data.organization.slack_webhook_channel ? (
-                                    <IntegrationDetector
-                                        verbose={false}
-                                        integrated={integrated}
-                                    />
-                                ) : (
-                                    <SvgSlackLogo height="15" width="15" />
-                                )
+                        />
+                    </Section>
+                    <Section
+                        title="Verify Installation"
+                        headingIcon={
+                            integrated && (
+                                <IntegrationDetector
+                                    verbose={false}
+                                    integrated={integrated}
+                                />
+                            )
+                        }
+                    >
+                        <p>
+                            Please follow the setup instructions above to
+                            install Highlight. It should take less than a minute
+                            for us to detect installation.
+                        </p>
+                        <IntegrationDetector
+                            integrated={integrated}
+                            verbose={true}
+                        />
+                    </Section>
+                    <Section
+                        title="Enable Slack Alerts"
+                        headingIcon={
+                            data.organization.slack_webhook_channel ? (
+                                <IntegrationDetector
+                                    verbose={false}
+                                    integrated={integrated}
+                                />
+                            ) : (
+                                <SvgSlackLogo height="15" width="15" />
+                            )
+                        }
+                    >
+                        <p>
+                            Get notified of errors happening in your
+                            application.
+                        </p>
+                        <SlackIntegration
+                            redirectPath="setup"
+                            integratedChannel={
+                                data.organization.slack_webhook_channel
                             }
-                        >
-                            <p>
-                                Get notified of errors happening in your
-                                application.
-                            </p>
-                            <SlackIntegration
-                                redirectPath="setup"
-                                integratedChannel={
-                                    data.organization.slack_webhook_channel
-                                }
-                            />
-                        </Section>
-                    </>
-                )}
-            </div>
-        </div>
+                        />
+                    </Section>
+                </>
+            )}
+        </LeadAlignLayout>
     );
 };
 

@@ -7,8 +7,6 @@ export const icon: string;
 export const platformOption: string;
 export const radioGroupWrapper: string;
 export const section: string;
-export const setupPage: string;
-export const setupWrapper: string;
 export const snippetHeadingTwo: string;
 export const subTitle: string;
 export const title: string;

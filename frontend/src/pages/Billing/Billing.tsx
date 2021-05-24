@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useLocation, useParams } from 'react-router-dom';
 
+import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import {
     useCreateOrUpdateSubscriptionMutation,
     useGetBillingDetailsQuery,
@@ -103,36 +104,32 @@ const BillingPage = () => {
     }
 
     return (
-        <div className={styles.billingPageWrapper}>
-            <div className={styles.billingPage}>
-                <h2>Billing</h2>
-                <p className={styles.subTitle}>
-                    Manage your billing information.
-                </p>
-                <div className={styles.billingPlanCardWrapper}>
-                    {BILLING_PLANS.map((billingPlan) =>
-                        billingLoading || loading ? (
-                            <Skeleton
-                                style={{ borderRadius: 8 }}
-                                count={1}
-                                height={325}
-                                width={275}
-                            />
-                        ) : (
-                            <BillingPlanCard
-                                key={billingPlan.type}
-                                current={
-                                    billingData?.billingDetails.plan.type ===
-                                    billingPlan.name
-                                }
-                                billingPlan={billingPlan}
-                                onSelect={createOnSelect(billingPlan.type)}
-                            ></BillingPlanCard>
-                        )
-                    )}
-                </div>
+        <LeadAlignLayout>
+            <h2>Billing</h2>
+            <p className={styles.subTitle}>Manage your billing information.</p>
+            <div className={styles.billingPlanCardWrapper}>
+                {BILLING_PLANS.map((billingPlan) =>
+                    billingLoading || loading ? (
+                        <Skeleton
+                            style={{ borderRadius: 8 }}
+                            count={1}
+                            height={325}
+                            width={275}
+                        />
+                    ) : (
+                        <BillingPlanCard
+                            key={billingPlan.type}
+                            current={
+                                billingData?.billingDetails.plan.type ===
+                                billingPlan.name
+                            }
+                            billingPlan={billingPlan}
+                            onSelect={createOnSelect(billingPlan.type)}
+                        ></BillingPlanCard>
+                    )
+                )}
             </div>
-        </div>
+        </LeadAlignLayout>
     );
 };
 
