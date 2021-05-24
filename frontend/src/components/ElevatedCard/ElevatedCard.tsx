@@ -1,14 +1,18 @@
 import classNames from 'classnames';
 import React, { PropsWithChildren } from 'react';
 
-import styles from './Card.module.scss';
+import styles from './ElevatedCard.module.scss';
 
 interface Props {
     title?: string;
     animation?: React.ReactNode;
 }
 
-const Card = ({ title, children, animation }: PropsWithChildren<Props>) => {
+const ElevatedCard = ({
+    title,
+    children,
+    animation,
+}: PropsWithChildren<Props>) => {
     return (
         <div
             className={classNames(styles.card, {
@@ -22,4 +26,4 @@ const Card = ({ title, children, animation }: PropsWithChildren<Props>) => {
     );
 };
 
-export default Card;
+export default ElevatedCard;
