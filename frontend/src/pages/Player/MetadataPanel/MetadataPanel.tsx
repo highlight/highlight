@@ -64,13 +64,14 @@ const MetadataPanel = () => {
                         <h2>Session</h2>
                         {data?.session?.city && (
                             <p>
-                                {data?.session?.city}, {data?.session?.state}{' '}
-                                {data?.session?.postal}
+                                Location: {data?.session?.city},{' '}
+                                {data?.session?.state} {data?.session?.postal}
                             </p>
                         )}
                         {data?.session?.object_storage_enabled &&
                         a_data?.admin?.email.includes('highlight.run') ? (
                             <p>
+                                Session Size:{' '}
                                 {`${data.session.payload_size / 1000000}`}
                                 mb
                             </p>
@@ -80,6 +81,7 @@ const MetadataPanel = () => {
                     </section>
                     <section>
                         <h2>User Details</h2>
+                        <p>Locale: {data?.session?.language}</p>
                         {!(!parsedFields?.length || loading) ? (
                             <div className={styles.tagDiv}>
                                 <div className={styles.tagWrapper}>
