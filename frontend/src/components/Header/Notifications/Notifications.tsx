@@ -55,7 +55,7 @@ const Notifications = () => {
             isList
             content={
                 <div className={styles.popover}>
-                    {0 !== 0 ? (
+                    {notifications.length !== 0 ? (
                         <PopoverListContent
                             listItems={notifications.map(
                                 (notification, index) => (

@@ -17,6 +17,7 @@ query GetSession($id: ID!) {
         user_id
         fingerprint
         created_at
+        language
         user_object
         identifier
         starred
@@ -171,6 +172,7 @@ query GetSessions(
             state
             postal
             created_at
+            language
             length
             active_length
             viewed

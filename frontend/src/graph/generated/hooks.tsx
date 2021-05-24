@@ -1212,6 +1212,7 @@ export const GetSessionDocument = gql`
             user_id
             fingerprint
             created_at
+            language
             user_object
             identifier
             starred
@@ -1755,6 +1756,7 @@ export const GetSessionsDocument = gql`
                 state
                 postal
                 created_at
+                language
                 length
                 active_length
                 viewed
