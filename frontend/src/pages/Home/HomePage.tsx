@@ -144,8 +144,7 @@ const HomePage = () => {
 };
 
 const timeFilter = [
-    { label: 'Today 1', value: 1 },
-    { label: 'Today 2', value: 2 },
+    { label: 'Last 24 hours', value: 2 },
     { label: 'Last 7 days', value: 7 },
     { label: 'Last 30 days', value: 30 },
     { label: 'Last 90 days', value: 90 },
