@@ -49,7 +49,7 @@ const HomePage = () => {
     });
     const { organization_id } = useParams<{ organization_id: string }>();
     const [dateRangeLength, setDateRangeLength] = useState<number>(
-        timeFilter[0].value
+        timeFilter[1].value
     );
     const [hasData, setHasData] = useState<boolean>(true);
     const { integrated, loading: integratedLoading } = useIntegrated(
@@ -92,6 +92,7 @@ const HomePage = () => {
                             <div className={styles.filtersContainer}>
                                 <StandardDropdown
                                     data={timeFilter}
+                                    defaultValue={timeFilter[1]}
                                     onSelect={setDateRangeLength}
                                 />
                             </div>
@@ -143,6 +144,7 @@ const HomePage = () => {
 };
 
 const timeFilter = [
+    { label: 'Last 24 hours', value: 2 },
     { label: 'Last 7 days', value: 7 },
     { label: 'Last 30 days', value: 30 },
     { label: 'Last 90 days', value: 90 },
