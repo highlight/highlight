@@ -171,7 +171,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err := w.Resolver.DB.Model(&model.Session{}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Where("within_billing_quota = true").Count(&sessionCount).Error; err != nil {
 		return errors.Wrap(err, "error getting past month's session count")
 	}
-	withinQuota := sessionCount >= int64(quota)
+	withinQuota := sessionCount <= int64(quota)
 
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
