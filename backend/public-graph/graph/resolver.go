@@ -447,6 +447,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		"browser_name":    deviceDetails.BrowserName,
 		"browser_version": deviceDetails.BrowserVersion,
 		"environment":     environment,
+		"device_id":       strconv.Itoa(session.Fingerprint),
 	}
 	if err := r.AppendProperties(session.ID, sessionProperties, PropertyType.SESSION); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")

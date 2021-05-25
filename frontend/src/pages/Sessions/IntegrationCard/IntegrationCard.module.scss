@@ -1,24 +1,14 @@
-.cardWrapper {
+.cardContainer {
     align-items: center;
+    backdrop-filter: blur(2px);
+    border-radius: var(--border-radius);
     display: flex;
-    height: calc(100vh - 80px);
+    height: 100%;
     justify-content: center;
+    left: 0;
+    position: absolute;
+    top: 0;
+    transition: backdrop-filter 0.2s ease-in-out;
     width: 100%;
-}
-
-.card {
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    margin-bottom: 80px;
-    padding: 30px;
-    padding-bottom: 40px;
-    width: 450px;
-}
-
-.text {
-    margin-bottom: 15px;
-}
-
-.highlightText {
-    color: var(--color-purple);
+    z-index: 99;
 }

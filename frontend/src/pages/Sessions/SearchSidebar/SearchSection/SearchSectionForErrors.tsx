@@ -1,4 +1,4 @@
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import Collapsible from 'react-collapsible';
 
 import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg';
@@ -11,7 +11,7 @@ import styles from './SearchSection.module.scss';
 
 type SearchSectionProps = {
     title: string;
-    open: boolean;
+    open?: boolean;
     titleSideComponent?: React.ReactNode;
     /** The SearchParams keys that the count is based off of. */
     searchParamsKey?: (keyof ErrorSearchParams)[];
@@ -20,7 +20,7 @@ type SearchSectionProps = {
 export const SearchSectionForErrors: React.FunctionComponent<SearchSectionProps> = ({
     children,
     title,
-    open,
+    open = false,
     titleSideComponent,
     searchParamsKey = [],
 }) => {
@@ -45,6 +45,12 @@ export const SearchSectionForErrors: React.FunctionComponent<SearchSectionProps>
         [searchParams, searchParamsKey]
     );
 
+    useEffect(() => {
+        if (searchCount > 0) {
+            setIsOpen(true);
+        }
+    }, [searchCount]);
+
     const header = (
         <div className={styles.headerWrapper}>
             <h4 className={styles.header}>
@@ -65,7 +71,7 @@ export const SearchSectionForErrors: React.FunctionComponent<SearchSectionProps>
     return (
         <div className={styles.searchSectionWrapper}>
             <Collapsible
-                open={open}
+                open={isOpen}
                 onOpening={() => setIsOpen(true)}
                 onClosing={() => setIsOpen(false)}
                 trigger={header}

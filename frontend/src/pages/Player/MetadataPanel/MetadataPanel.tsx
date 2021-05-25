@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
 import { Field } from '../../../components/Field/Field';
 import {
     useGetAdminQuery,
     useGetSessionQuery,
 } from '../../../graph/generated/hooks';
+import { SessionPageSearchParams } from '../utils/utils';
 import styles from './MetadataPanel.module.scss';
 
 type Field = {
@@ -16,7 +17,10 @@ type Field = {
 };
 
 const MetadataPanel = () => {
-    const { session_id } = useParams<{ session_id: string }>();
+    const { session_id, organization_id } = useParams<{
+        session_id: string;
+        organization_id: string;
+    }>();
 
     const { loading, data } = useGetSessionQuery({
         variables: {
@@ -56,24 +60,28 @@ const MetadataPanel = () => {
                 />
             ) : (
                 <>
-                    <div className={styles.section}>
-                        <h2 className={styles.header}>Session</h2>
-                        <p>
-                            {data?.session?.city}, {data?.session?.state}{' '}
-                            {data?.session?.postal}
-                        </p>
+                    <section>
+                        <h2>Session</h2>
+                        {data?.session?.city && (
+                            <p>
+                                Location: {data?.session?.city},{' '}
+                                {data?.session?.state} {data?.session?.postal}
+                            </p>
+                        )}
                         {data?.session?.object_storage_enabled &&
                         a_data?.admin?.email.includes('highlight.run') ? (
                             <p>
+                                Session Size:{' '}
                                 {`${data.session.payload_size / 1000000}`}
                                 mb
                             </p>
                         ) : (
                             <></>
                         )}
-                    </div>
-                    <div>
-                        <h2 className={styles.header}>User details</h2>
+                    </section>
+                    <section>
+                        <h2>User Details</h2>
+                        <p>Locale: {data?.session?.language}</p>
                         {!(!parsedFields?.length || loading) ? (
                             <div className={styles.tagDiv}>
                                 <div className={styles.tagWrapper}>
@@ -92,19 +100,34 @@ const MetadataPanel = () => {
                                 <p>
                                     Did you know that you can enrich sessions
                                     with additional metadata? They'll show up
-                                    here. You can learn more{' '}
+                                    here. You can{' '}
                                     <a
                                         href="https://docs.highlight.run/docs/identifying-users"
                                         target="_blank"
                                         rel="noreferrer"
                                     >
-                                        here
+                                        learn more here
                                     </a>
                                     .
                                 </p>
                             </div>
                         )}
-                    </div>
+                    </section>
+
+                    <section>
+                        <h2>Device Details</h2>
+                        {data?.session?.fingerprint && (
+                            <Link
+                                to={`/${organization_id}/sessions?${new URLSearchParams(
+                                    {
+                                        [SessionPageSearchParams.deviceId]: data?.session.fingerprint.toString(),
+                                    }
+                                ).toString()}`}
+                            >
+                                Device#{data?.session?.fingerprint}
+                            </Link>
+                        )}
+                    </section>
                 </>
             )}
         </div>

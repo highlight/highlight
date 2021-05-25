@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { useHistory, useParams } from 'react-router-dom';
 
-import { Avatar } from '../../../../components/Avatar/Avatar';
 import BarChartTable from '../../../../components/BarChartTable/BarChartTable';
+import { getPercentageDisplayValue } from '../../../../components/BarChartTable/utils/utils';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
 import { useGetTopUsersQuery } from '../../../../graph/generated/hooks';
 import { SessionPageSearchParams } from '../../../Player/utils/utils';
@@ -61,6 +61,23 @@ const ActiveUsersTable = () => {
                         `/${organization_id}/sessions?${SessionPageSearchParams.identifier}=${record.identifier}`
                     );
                 }}
+                noDataMessage={
+                    <>
+                        It doesn't look like we have any sessions with
+                        identified users. You will need to call{' '}
+                        <code>identify()</code> in your app to identify users
+                        during their sessions. You can{' '}
+                        <a
+                            href="https://docs.highlight.run/docs/identifying-users"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            learn more here
+                        </a>
+                        .
+                    </>
+                }
+                noDataTitle="No user data yet 😔"
             />
         </div>
     );
@@ -73,10 +90,9 @@ const Columns: ColumnsType<any> = [
         title: 'User',
         dataIndex: 'identifier',
         key: 'identifier',
-        width: 250,
+        // width: 250,
         render: (user) => (
             <div className={styles.hostContainer}>
-                <Avatar seed={user} style={{ height: 18, width: 18 }} />
                 <span>{user}</span>
             </div>
         ),
@@ -99,6 +115,7 @@ const Columns: ColumnsType<any> = [
         title: 'Percentage',
         dataIndex: 'active_time_percentage',
         key: 'active_time_percentage',
+        width: 150,
         render: (percent) => (
             <div
                 className={styles.percentContainer}
@@ -108,7 +125,7 @@ const Columns: ColumnsType<any> = [
                     } as React.CSSProperties
                 }
             >
-                <span>{(percent * 100).toFixed(0)}%</span>
+                <span>{getPercentageDisplayValue(percent)}</span>
             </div>
         ),
     },

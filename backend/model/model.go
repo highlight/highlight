@@ -92,14 +92,6 @@ type ErrorAlert struct {
 	ChannelsToNotify     *string
 }
 
-type SessionAlert struct {
-	Model
-	OrganizationID       int
-	ExcludedEnvironments *string
-	CountThreshold       int
-	ChannelsToNotify     *string
-}
-
 type SlackChannel struct {
 	WebhookAccessToken string
 	WebhookURL         string
@@ -186,14 +178,6 @@ type SessionResults struct {
 	TotalCount int64
 }
 
-type SessionCount struct {
-	Count int64
-}
-
-type ErrorGroupCount struct {
-	Count int64
-}
-
 type Session struct {
 	Model
 	UserID      int `json:"user_id"`
@@ -236,6 +220,8 @@ type Session struct {
 	FirstloadVersion string `json:"firstload_version" gorm:"index"`
 	// The client configuration that the end-user sets up. This is used for debugging purposes.
 	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
+	// Determines whether this session should be viewable. This enforces billing.
+	WithinBillingQuota *bool `json:"within_billing_quota" gorm:"index;default:true"` // index? probably.
 
 	ObjectStorageEnabled *bool   `json:"object_storage_enabled"`
 	PayloadSize          *int64  `json:"payload_size"`
@@ -453,7 +439,6 @@ func SetupDB() *gorm.DB {
 		&SessionComment{},
 		&ErrorComment{},
 		&ErrorAlert{},
-		&SessionAlert{},
 	); err != nil {
 		log.Fatalf("Error migrating db: %v", err)
 	}

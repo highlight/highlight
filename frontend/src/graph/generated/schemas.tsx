@@ -29,6 +29,7 @@ export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
     user_id: Scalars['ID'];
+    fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
     os_version: Scalars['String'];
     browser_name: Scalars['String'];
@@ -36,6 +37,7 @@ export type Session = {
     city: Scalars['String'];
     state: Scalars['String'];
     postal: Scalars['String'];
+    language: Scalars['String'];
     identifier: Scalars['String'];
     created_at?: Maybe<Scalars['Time']>;
     length?: Maybe<Scalars['Int']>;
@@ -56,6 +58,7 @@ export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
     meter: Scalars['Int64'];
+    sessionsOutOfQuota: Scalars['Int64'];
 };
 
 export type Plan = {
@@ -182,6 +185,11 @@ export type AverageSessionLength = {
     length: Scalars['Float'];
 };
 
+export type UserFingerprintCount = {
+    __typename?: 'UserFingerprintCount';
+    count: Scalars['Int64'];
+};
+
 export type SearchParamsInput = {
     user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
@@ -190,6 +198,7 @@ export type SearchParamsInput = {
     length_range?: Maybe<LengthRangeInput>;
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
+    device_id?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
@@ -365,13 +374,6 @@ export type ErrorAlert = {
     CountThreshold: Scalars['Int'];
 };
 
-export type SessionAlert = {
-    __typename?: 'SessionAlert';
-    ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
-    ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
-    CountThreshold: Scalars['Int'];
-};
-
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -396,6 +398,7 @@ export type Query = {
     newUsersCount?: Maybe<NewUsersCount>;
     topUsers: Array<Maybe<TopUsersPayload>>;
     averageSessionLength?: Maybe<AverageSessionLength>;
+    userFingerprintCount?: Maybe<UserFingerprintCount>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
@@ -403,7 +406,6 @@ export type Query = {
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
     error_alerts?: Maybe<Array<Maybe<ErrorAlert>>>;
-    session_alerts?: Maybe<Array<Maybe<SessionAlert>>>;
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
@@ -502,6 +504,11 @@ export type QueryAverageSessionLengthArgs = {
     lookBackPeriod: Scalars['Int'];
 };
 
+export type QueryUserFingerprintCountArgs = {
+    organization_id: Scalars['ID'];
+    lookBackPeriod: Scalars['Int'];
+};
+
 export type QuerySessionsArgs = {
     organization_id: Scalars['ID'];
     count: Scalars['Int'];
@@ -533,10 +540,6 @@ export type QueryError_Field_SuggestionArgs = {
 };
 
 export type QueryError_AlertsArgs = {
-    organization_id: Scalars['ID'];
-};
-
-export type QuerySession_AlertsArgs = {
     organization_id: Scalars['ID'];
 };
 
@@ -594,7 +597,6 @@ export type Mutation = {
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     updateErrorAlert?: Maybe<ErrorAlert>;
-    updateSessionAlert?: Maybe<SessionAlert>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -727,14 +729,6 @@ export type MutationDeleteErrorCommentArgs = {
 export type MutationUpdateErrorAlertArgs = {
     organization_id: Scalars['ID'];
     error_alert_id: Scalars['ID'];
-    count_threshold: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    environments: Array<Maybe<Scalars['String']>>;
-};
-
-export type MutationUpdateSessionAlertArgs = {
-    organization_id: Scalars['ID'];
-    session_alert_id: Scalars['ID'];
     count_threshold: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;

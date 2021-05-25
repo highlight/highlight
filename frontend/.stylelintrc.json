@@ -14,6 +14,7 @@
         "color-no-hex": true,
         "function-parentheses-space-inside": null,
         "prettier/prettier": true,
-        "declaration-block-semicolon-newline-after": null
+        "declaration-block-semicolon-newline-after": null,
+        "selector-no-qualifying-type": null
     }
 }
