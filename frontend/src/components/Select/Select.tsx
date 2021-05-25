@@ -20,7 +20,6 @@ type Props = Pick<
     | 'allowClear'
     | 'notFoundContent'
     | 'mode'
-    | 'dropdownClassName'
 > & {
     options: {
         value: string;
@@ -30,12 +29,12 @@ type Props = Pick<
     }[];
 };
 
-const Select = ({ options, dropdownClassName, ...props }: Props) => {
+const Select = ({ options, className, ...props }: Props) => {
     return (
         <AntDesignSelect
             {...props}
             disabled={props.loading}
-            dropdownClassName={classNames(styles.select, dropdownClassName)}
+            className={classNames(className, styles.select)}
             menuItemSelectedIcon={null}
             defaultActiveFirstOption={false}
         >

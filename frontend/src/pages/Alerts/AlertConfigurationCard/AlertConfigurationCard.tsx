@@ -65,7 +65,6 @@ export const AlertConfigurationCard = ({ configuration: { name } }: Props) => {
                     options={channels}
                     mode="tags"
                     placeholder={`Select a channel(s) or person(s) to send ${name} to.`}
-                    dropdownClassName={styles.selectDropdown}
                     notFoundContent={
                         <div>
                             <h2>Not Found</h2>
@@ -82,7 +81,6 @@ export const AlertConfigurationCard = ({ configuration: { name } }: Props) => {
                     options={environments}
                     mode="multiple"
                     placeholder={`Select a environment(s) that should not trigger alerts.`}
-                    dropdownClassName={styles.selectDropdown}
                     notFoundContent={
                         <div>
                             <h2>Not Found</h2>
