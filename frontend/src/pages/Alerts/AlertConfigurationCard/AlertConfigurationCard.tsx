@@ -90,7 +90,9 @@ export const AlertConfigurationCard = ({ configuration: { name } }: Props) => {
                 />
             </section>
 
-            <Button type="primary">Save</Button>
+            <Button type="primary" className={styles.saveButton}>
+                Save
+            </Button>
         </Card>
     );
 };
