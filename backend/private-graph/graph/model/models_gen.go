@@ -14,8 +14,8 @@ type AverageSessionLength struct {
 }
 
 type BillingDetails struct {
-	Plan  *Plan `json:"plan"`
-	Meter int64 `json:"meter"`
+	Plan               *Plan `json:"plan"`
+	Meter              int64 `json:"meter"`
 	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 }
 
