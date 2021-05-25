@@ -1437,7 +1437,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 
 	var g errgroup.Group
 	var meter int64
-	var queriedSessionsOutOfQuota model.SessionsOutOfQuotaCount
+	var queriedSessionsOutOfQuota int64
 
 	g.Go(func() error {
 		meter, err = pricing.GetOrgQuota(r.DB, organizationID)
@@ -1448,7 +1448,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	})
 
 	g.Go(func() error {
-		queriedSessionsOutOfQuota.Count, err = pricing.GetOrgQuotaOverflow(ctx, r.DB, organizationID)
+		queriedSessionsOutOfQuota, err = pricing.GetOrgQuotaOverflow(ctx, r.DB, organizationID)
 		if err != nil {
 			return e.Wrap(err, "error from get quota overflow")
 		}
@@ -1465,7 +1465,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 			Quota: pricing.TypeToQuota(planType),
 		},
 		Meter:              meter,
-		SessionsOutOfQuota: queriedSessionsOutOfQuota.Count,
+		SessionsOutOfQuota: queriedSessionsOutOfQuota,
 	}
 	return details, nil
 }

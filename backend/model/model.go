@@ -197,10 +197,6 @@ type SessionCount struct {
 	Count int64
 }
 
-type SessionsOutOfQuotaCount struct {
-	Count int64
-}
-
 type ErrorGroupCount struct {
 	Count int64
 }
