@@ -2,7 +2,7 @@ import { Form } from 'antd';
 import React from 'react';
 
 import Button from '../../../components/Button/Button/Button';
-import Card from '../../../components/Card/Card';
+import Collapsible from '../../../components/Collapsible/Collapsible';
 import InputNumber from '../../../components/InputNumber/InputNumber';
 import Select from '../../../components/Select/Select';
 import styles from './AlertConfigurationCard.module.scss';
@@ -75,9 +75,7 @@ export const AlertConfigurationCard = ({
     };
 
     return (
-        <Card>
-            <h2>{name}</h2>
-
+        <Collapsible title={name} className={styles.alertConfigurationCard}>
             <Form
                 onFinish={onSubmit}
                 form={form}
@@ -157,6 +155,6 @@ export const AlertConfigurationCard = ({
                     )}
                 </Form.Item>
             </Form>
-        </Card>
+        </Collapsible>
     );
 };
