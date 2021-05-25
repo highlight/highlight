@@ -1141,6 +1141,75 @@ export type CreateErrorSegmentMutationOptions = Apollo.BaseMutationOptions<
     Types.CreateErrorSegmentMutation,
     Types.CreateErrorSegmentMutationVariables
 >;
+export const UpdateErrorAlertDocument = gql`
+    mutation UpdateErrorAlert(
+        $organization_id: ID!
+        $error_alert_id: ID!
+        $count_threshold: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $environments: [String]!
+    ) {
+        updateErrorAlert(
+            organization_id: $organization_id
+            error_alert_id: $error_alert_id
+            count_threshold: $count_threshold
+            slack_channels: $slack_channels
+            environments: $environments
+        ) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
+    }
+`;
+export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateErrorAlertMutation,
+    Types.UpdateErrorAlertMutationVariables
+>;
+
+/**
+ * __useUpdateErrorAlertMutation__
+ *
+ * To run a mutation, you first call `useUpdateErrorAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateErrorAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateErrorAlertMutation, { data, loading, error }] = useUpdateErrorAlertMutation({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      error_alert_id: // value for 'error_alert_id'
+ *      count_threshold: // value for 'count_threshold'
+ *      slack_channels: // value for 'slack_channels'
+ *      environments: // value for 'environments'
+ *   },
+ * });
+ */
+export function useUpdateErrorAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateErrorAlertMutation,
+        Types.UpdateErrorAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateErrorAlertMutation,
+        Types.UpdateErrorAlertMutationVariables
+    >(UpdateErrorAlertDocument, baseOptions);
+}
+export type UpdateErrorAlertMutationHookResult = ReturnType<
+    typeof useUpdateErrorAlertMutation
+>;
+export type UpdateErrorAlertMutationResult = Apollo.MutationResult<Types.UpdateErrorAlertMutation>;
+export type UpdateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateErrorAlertMutation,
+    Types.UpdateErrorAlertMutationVariables
+>;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload($session_id: ID!) {
         events(session_id: $session_id)
@@ -2006,6 +2075,7 @@ export const GetBillingDetailsDocument = gql`
             meter
         }
         organization(id: $organization_id) {
+            id
             trial_end_date
         }
     }
@@ -3350,9 +3420,9 @@ export type GetDailyErrorsCountQueryResult = Apollo.QueryResult<
     Types.GetDailyErrorsCountQuery,
     Types.GetDailyErrorsCountQueryVariables
 >;
-export const GetErrorAlertDocument = gql`
-    query GetErrorAlert($organization_id: ID!) {
-        error_alert(organization_id: $organization_id) {
+export const GetErrorAlertsDocument = gql`
+    query GetErrorAlerts($organization_id: ID!) {
+        error_alerts(organization_id: $organization_id) {
             ChannelsToNotify {
                 webhook_channel
                 webhook_channel_id
@@ -3364,50 +3434,168 @@ export const GetErrorAlertDocument = gql`
 `;
 
 /**
- * __useGetErrorAlertQuery__
+ * __useGetErrorAlertsQuery__
  *
- * To run a query within a React component, call `useGetErrorAlertQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetErrorAlertQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetErrorAlertsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetErrorAlertsQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetErrorAlertQuery({
+ * const { data, loading, error } = useGetErrorAlertsQuery({
  *   variables: {
  *      organization_id: // value for 'organization_id'
  *   },
  * });
  */
-export function useGetErrorAlertQuery(
+export function useGetErrorAlertsQuery(
     baseOptions: Apollo.QueryHookOptions<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
+        Types.GetErrorAlertsQuery,
+        Types.GetErrorAlertsQueryVariables
     >
 ) {
     return Apollo.useQuery<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
-    >(GetErrorAlertDocument, baseOptions);
+        Types.GetErrorAlertsQuery,
+        Types.GetErrorAlertsQueryVariables
+    >(GetErrorAlertsDocument, baseOptions);
 }
-export function useGetErrorAlertLazyQuery(
+export function useGetErrorAlertsLazyQuery(
     baseOptions?: Apollo.LazyQueryHookOptions<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
+        Types.GetErrorAlertsQuery,
+        Types.GetErrorAlertsQueryVariables
     >
 ) {
     return Apollo.useLazyQuery<
-        Types.GetErrorAlertQuery,
-        Types.GetErrorAlertQueryVariables
-    >(GetErrorAlertDocument, baseOptions);
+        Types.GetErrorAlertsQuery,
+        Types.GetErrorAlertsQueryVariables
+    >(GetErrorAlertsDocument, baseOptions);
 }
-export type GetErrorAlertQueryHookResult = ReturnType<
-    typeof useGetErrorAlertQuery
+export type GetErrorAlertsQueryHookResult = ReturnType<
+    typeof useGetErrorAlertsQuery
 >;
-export type GetErrorAlertLazyQueryHookResult = ReturnType<
-    typeof useGetErrorAlertLazyQuery
+export type GetErrorAlertsLazyQueryHookResult = ReturnType<
+    typeof useGetErrorAlertsLazyQuery
 >;
-export type GetErrorAlertQueryResult = Apollo.QueryResult<
-    Types.GetErrorAlertQuery,
-    Types.GetErrorAlertQueryVariables
+export type GetErrorAlertsQueryResult = Apollo.QueryResult<
+    Types.GetErrorAlertsQuery,
+    Types.GetErrorAlertsQueryVariables
+>;
+export const GetEnvironmentSuggestionDocument = gql`
+    query GetEnvironmentSuggestion($query: String!, $organization_id: ID!) {
+        environment_suggestion(
+            query: $query
+            organization_id: $organization_id
+        ) {
+            name
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetEnvironmentSuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetEnvironmentSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetEnvironmentSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetEnvironmentSuggestionQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetEnvironmentSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetEnvironmentSuggestionQuery,
+        Types.GetEnvironmentSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetEnvironmentSuggestionQuery,
+        Types.GetEnvironmentSuggestionQueryVariables
+    >(GetEnvironmentSuggestionDocument, baseOptions);
+}
+export function useGetEnvironmentSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetEnvironmentSuggestionQuery,
+        Types.GetEnvironmentSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetEnvironmentSuggestionQuery,
+        Types.GetEnvironmentSuggestionQueryVariables
+    >(GetEnvironmentSuggestionDocument, baseOptions);
+}
+export type GetEnvironmentSuggestionQueryHookResult = ReturnType<
+    typeof useGetEnvironmentSuggestionQuery
+>;
+export type GetEnvironmentSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetEnvironmentSuggestionLazyQuery
+>;
+export type GetEnvironmentSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetEnvironmentSuggestionQuery,
+    Types.GetEnvironmentSuggestionQueryVariables
+>;
+export const GetSlackChannelSuggestionDocument = gql`
+    query GetSlackChannelSuggestion($organization_id: ID!) {
+        slack_channel_suggestion(organization_id: $organization_id) {
+            webhook_channel
+            webhook_channel_id
+        }
+    }
+`;
+
+/**
+ * __useGetSlackChannelSuggestionQuery__
+ *
+ * To run a query within a React component, call `useGetSlackChannelSuggestionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSlackChannelSuggestionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSlackChannelSuggestionQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetSlackChannelSuggestionQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >(GetSlackChannelSuggestionDocument, baseOptions);
+}
+export function useGetSlackChannelSuggestionLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSlackChannelSuggestionQuery,
+        Types.GetSlackChannelSuggestionQueryVariables
+    >(GetSlackChannelSuggestionDocument, baseOptions);
+}
+export type GetSlackChannelSuggestionQueryHookResult = ReturnType<
+    typeof useGetSlackChannelSuggestionQuery
+>;
+export type GetSlackChannelSuggestionLazyQueryHookResult = ReturnType<
+    typeof useGetSlackChannelSuggestionLazyQuery
+>;
+export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
+    Types.GetSlackChannelSuggestionQuery,
+    Types.GetSlackChannelSuggestionQueryVariables
 >;

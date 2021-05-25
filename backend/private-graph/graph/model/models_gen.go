@@ -14,25 +14,14 @@ type AverageSessionLength struct {
 }
 
 type BillingDetails struct {
-	Plan  *Plan `json:"plan"`
-	Meter int64 `json:"meter"`
+	Plan               *Plan `json:"plan"`
+	Meter              int64 `json:"meter"`
+	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 }
 
 type DateRangeInput struct {
 	StartDate *time.Time `json:"start_date"`
 	EndDate   *time.Time `json:"end_date"`
-}
-
-type ErrorAlert struct {
-	ChannelsToNotify     []*SanitizedSlackChannel `json:"ChannelsToNotify"`
-	ExcludedEnvironments []*string                `json:"ExcludedEnvironments"`
-	CountThreshold       int64                    `json:"CountThreshold"`
-}
-
-type ErrorAlertInput struct {
-	ChannelsToNotify     []*SanitizedSlackChannelInput `json:"ChannelsToNotify"`
-	ExcludedEnvironments []*string                     `json:"ExcludedEnvironments"`
-	CountThreshold       int64                         `json:"CountThreshold"`
 }
 
 type ErrorMetadata struct {
@@ -99,8 +88,8 @@ type SanitizedSlackChannel struct {
 }
 
 type SanitizedSlackChannelInput struct {
-	WebhookChannel   *string `json:"webhook_channel"`
-	WebhookChannelID *string `json:"webhook_channel_id"`
+	WebhookChannelName *string `json:"webhook_channel_name"`
+	WebhookChannelID   *string `json:"webhook_channel_id"`
 }
 
 type SearchParamsInput struct {

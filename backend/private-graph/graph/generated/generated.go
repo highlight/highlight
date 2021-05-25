@@ -37,6 +37,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	ErrorAlert() ErrorAlertResolver
 	ErrorComment() ErrorCommentResolver
 	ErrorGroup() ErrorGroupResolver
 	ErrorObject() ErrorObjectResolver
@@ -64,8 +65,9 @@ type ComplexityRoot struct {
 	}
 
 	BillingDetails struct {
-		Meter func(childComplexity int) int
-		Plan  func(childComplexity int) int
+		Meter              func(childComplexity int) int
+		Plan               func(childComplexity int) int
+		SessionsOutOfQuota func(childComplexity int) int
 	}
 
 	DailyErrorCount struct {
@@ -204,7 +206,7 @@ type ComplexityRoot struct {
 		MarkSessionAsStarred           func(childComplexity int, id int, starred *bool) int
 		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
 		SendAdminInvite                func(childComplexity int, organizationID int, email string, baseURL string) int
-		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlert *model.ErrorAlertInput) int
+		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 	}
 
 	NewUsersCount struct {
@@ -233,7 +235,8 @@ type ComplexityRoot struct {
 		BillingDetails                func(childComplexity int, organizationID int) int
 		DailyErrorsCount              func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
 		DailySessionsCount            func(childComplexity int, organizationID int, dateRange model.DateRangeInput) int
-		ErrorAlert                    func(childComplexity int, organizationID int) int
+		EnvironmentSuggestion         func(childComplexity int, query string, organizationID int) int
+		ErrorAlerts                   func(childComplexity int, organizationID int) int
 		ErrorComments                 func(childComplexity int, errorGroupID int) int
 		ErrorCommentsForAdmin         func(childComplexity int) int
 		ErrorFieldSuggestion          func(childComplexity int, organizationID int, name string, query string) int
@@ -259,7 +262,7 @@ type ComplexityRoot struct {
 		SessionComments               func(childComplexity int, sessionID int) int
 		SessionCommentsForAdmin       func(childComplexity int) int
 		Sessions                      func(childComplexity int, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) int
-		SlackChannelSuggestion        func(childComplexity int, orgID int) int
+		SlackChannelSuggestion        func(childComplexity int, organizationID int) int
 		TopUsers                      func(childComplexity int, organizationID int, lookBackPeriod int) int
 		UnprocessedSessionsCount      func(childComplexity int, organizationID int) int
 		UserFingerprintCount          func(childComplexity int, organizationID int, lookBackPeriod int) int
@@ -376,6 +379,10 @@ type ComplexityRoot struct {
 	}
 }
 
+type ErrorAlertResolver interface {
+	ChannelsToNotify(ctx context.Context, obj *model1.ErrorAlert) ([]*model.SanitizedSlackChannel, error)
+	ExcludedEnvironments(ctx context.Context, obj *model1.ErrorAlert) ([]*string, error)
+}
 type ErrorCommentResolver interface {
 	Author(ctx context.Context, obj *model1.ErrorComment) (*model.SanitizedAdmin, error)
 }
@@ -416,7 +423,7 @@ type MutationResolver interface {
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
-	UpdateErrorAlert(ctx context.Context, organizationID int, errorAlert *model.ErrorAlertInput) (*model.ErrorAlert, error)
+	UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.ErrorAlert, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -434,7 +441,6 @@ type QueryResolver interface {
 	IsIntegrated(ctx context.Context, organizationID int) (*bool, error)
 	UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int64, error)
 	AdminHasCreatedComment(ctx context.Context, adminID int) (*bool, error)
-	SlackChannelSuggestion(ctx context.Context, orgID int) ([]*model.SanitizedSlackChannel, error)
 	OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model1.Session, error)
 	DailySessionsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailySessionCount, error)
 	DailyErrorsCount(ctx context.Context, organizationID int, dateRange model.DateRangeInput) ([]*model1.DailyErrorCount, error)
@@ -449,13 +455,15 @@ type QueryResolver interface {
 	PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model1.Field, error)
 	ErrorFieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.ErrorField, error)
 	Organizations(ctx context.Context) ([]*model1.Organization, error)
+	ErrorAlerts(ctx context.Context, organizationID int) ([]*model1.ErrorAlert, error)
 	OrganizationSuggestion(ctx context.Context, query string) ([]*model1.Organization, error)
+	EnvironmentSuggestion(ctx context.Context, query string, organizationID int) ([]*model1.Field, error)
+	SlackChannelSuggestion(ctx context.Context, organizationID int) ([]*model.SanitizedSlackChannel, error)
 	Organization(ctx context.Context, id int) (*model1.Organization, error)
 	Admin(ctx context.Context) (*model1.Admin, error)
 	Segments(ctx context.Context, organizationID int) ([]*model1.Segment, error)
 	ErrorSegments(ctx context.Context, organizationID int) ([]*model1.ErrorSegment, error)
 	RecordingSettings(ctx context.Context, organizationID int) (*model1.RecordingSettings, error)
-	ErrorAlert(ctx context.Context, organizationID int) (*model.ErrorAlert, error)
 }
 type SegmentResolver interface {
 	Params(ctx context.Context, obj *model1.Segment) (*model1.SearchParams, error)
@@ -530,6 +538,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BillingDetails.Plan(childComplexity), true
+
+	case "BillingDetails.sessionsOutOfQuota":
+		if e.complexity.BillingDetails.SessionsOutOfQuota == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.SessionsOutOfQuota(childComplexity), true
 
 	case "DailyErrorCount.count":
 		if e.complexity.DailyErrorCount.Count == nil {
@@ -1281,7 +1296,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["organization_id"].(int), args["error_alert"].(*model.ErrorAlertInput)), true
+		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["organization_id"].(int), args["error_alert_id"].(int), args["count_threshold"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
 
 	case "NewUsersCount.count":
 		if e.complexity.NewUsersCount.Count == nil {
@@ -1425,17 +1440,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.DailySessionsCount(childComplexity, args["organization_id"].(int), args["date_range"].(model.DateRangeInput)), true
 
-	case "Query.error_alert":
-		if e.complexity.Query.ErrorAlert == nil {
+	case "Query.environment_suggestion":
+		if e.complexity.Query.EnvironmentSuggestion == nil {
 			break
 		}
 
-		args, err := ec.field_Query_error_alert_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_environment_suggestion_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.ErrorAlert(childComplexity, args["organization_id"].(int)), true
+		return e.complexity.Query.EnvironmentSuggestion(childComplexity, args["query"].(string), args["organization_id"].(int)), true
+
+	case "Query.error_alerts":
+		if e.complexity.Query.ErrorAlerts == nil {
+			break
+		}
+
+		args, err := ec.field_Query_error_alerts_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ErrorAlerts(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.error_comments":
 		if e.complexity.Query.ErrorComments == nil {
@@ -1722,17 +1749,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Sessions(childComplexity, args["organization_id"].(int), args["count"].(int), args["lifecycle"].(model.SessionLifecycle), args["starred"].(bool), args["params"].(*model.SearchParamsInput)), true
 
-	case "Query.slackChannelSuggestion":
+	case "Query.slack_channel_suggestion":
 		if e.complexity.Query.SlackChannelSuggestion == nil {
 			break
 		}
 
-		args, err := ec.field_Query_slackChannelSuggestion_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_slack_channel_suggestion_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.SlackChannelSuggestion(childComplexity, args["org_id"].(int)), true
+		return e.complexity.Query.SlackChannelSuggestion(childComplexity, args["organization_id"].(int)), true
 
 	case "Query.topUsers":
 		if e.complexity.Query.TopUsers == nil {
@@ -2374,6 +2401,7 @@ type Session {
 type BillingDetails {
     plan: Plan!
     meter: Int64!
+    sessionsOutOfQuota: Int64!
 }
 
 type Plan {
@@ -2651,20 +2679,13 @@ type SanitizedSlackChannel {
 }
 
 input SanitizedSlackChannelInput {
-    webhook_channel: String
+    webhook_channel_name: String
     webhook_channel_id: String
 }
-
-input ErrorAlertInput {
-    ChannelsToNotify: [SanitizedSlackChannelInput]!
-    ExcludedEnvironments: [String]!
-    CountThreshold: Int64!
-}
-
 type ErrorAlert {
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
-    CountThreshold: Int64!
+    CountThreshold: Int!
 }
 
 type Query {
@@ -2687,7 +2708,6 @@ type Query {
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
-    slackChannelSuggestion(org_id: ID!): [SanitizedSlackChannel]!
     organizationHasViewedASession(organization_id: ID!): Session
     dailySessionsCount(
         organization_id: ID!
@@ -2736,13 +2756,15 @@ type Query {
         query: String!
     ): [ErrorField]
     organizations: [Organization]
+    error_alerts(organization_id: ID!): [ErrorAlert]
     organizationSuggestion(query: String!): [Organization]
+    environment_suggestion(query: String!, organization_id: ID!): [Field]
+    slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]
     error_segments(organization_id: ID!): [ErrorSegment]
     recording_settings(organization_id: ID!): RecordingSettings
-    error_alert(organization_id: ID!): ErrorAlert
 }
 
 type Mutation {
@@ -2825,7 +2847,10 @@ type Mutation {
     deleteErrorComment(id: ID!): Boolean
     updateErrorAlert(
         organization_id: ID!
-        error_alert: ErrorAlertInput
+        error_alert_id: ID!
+        count_threshold: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
     ): ErrorAlert
 }
 `, BuiltIn: false},
@@ -3529,15 +3554,42 @@ func (ec *executionContext) field_Mutation_updateErrorAlert_args(ctx context.Con
 		}
 	}
 	args["organization_id"] = arg0
-	var arg1 *model.ErrorAlertInput
-	if tmp, ok := rawArgs["error_alert"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_alert"))
-		arg1, err = ec.unmarshalOErrorAlertInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorAlertInput(ctx, tmp)
+	var arg1 int
+	if tmp, ok := rawArgs["error_alert_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("error_alert_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["error_alert"] = arg1
+	args["error_alert_id"] = arg1
+	var arg2 int
+	if tmp, ok := rawArgs["count_threshold"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("count_threshold"))
+		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["count_threshold"] = arg2
+	var arg3 []*model.SanitizedSlackChannelInput
+	if tmp, ok := rawArgs["slack_channels"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
+		arg3, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slack_channels"] = arg3
+	var arg4 []*string
+	if tmp, ok := rawArgs["environments"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
+		arg4, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["environments"] = arg4
 	return args, nil
 }
 
@@ -3673,7 +3725,31 @@ func (ec *executionContext) field_Query_dailySessionsCount_args(ctx context.Cont
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_error_alert_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_environment_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["query"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("query"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["query"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg1, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_error_alerts_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -4144,18 +4220,18 @@ func (ec *executionContext) field_Query_sessions_args(ctx context.Context, rawAr
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_slackChannelSuggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_slack_channel_suggestion_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
-	if tmp, ok := rawArgs["org_id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("org_id"))
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
 		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["org_id"] = arg0
+	args["organization_id"] = arg0
 	return args, nil
 }
 
@@ -4502,6 +4578,41 @@ func (ec *executionContext) _BillingDetails_meter(ctx context.Context, field gra
 	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _BillingDetails_sessionsOutOfQuota(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionsOutOfQuota, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _DailyErrorCount_organization_id(ctx context.Context, field graphql.CollectedField, obj *model1.DailyErrorCount) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4776,7 +4887,7 @@ func (ec *executionContext) _DateRange_end_date(ctx context.Context, field graph
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorAlert_ChannelsToNotify(ctx context.Context, field graphql.CollectedField, obj *model.ErrorAlert) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorAlert_ChannelsToNotify(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4787,14 +4898,14 @@ func (ec *executionContext) _ErrorAlert_ChannelsToNotify(ctx context.Context, fi
 		Object:     "ErrorAlert",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ChannelsToNotify, nil
+		return ec.resolvers.ErrorAlert().ChannelsToNotify(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4811,7 +4922,7 @@ func (ec *executionContext) _ErrorAlert_ChannelsToNotify(ctx context.Context, fi
 	return ec.marshalNSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorAlert_ExcludedEnvironments(ctx context.Context, field graphql.CollectedField, obj *model.ErrorAlert) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorAlert_ExcludedEnvironments(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4822,14 +4933,14 @@ func (ec *executionContext) _ErrorAlert_ExcludedEnvironments(ctx context.Context
 		Object:     "ErrorAlert",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.ExcludedEnvironments, nil
+		return ec.resolvers.ErrorAlert().ExcludedEnvironments(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4846,7 +4957,7 @@ func (ec *executionContext) _ErrorAlert_ExcludedEnvironments(ctx context.Context
 	return ec.marshalNString2ᚕᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorAlert_CountThreshold(ctx context.Context, field graphql.CollectedField, obj *model.ErrorAlert) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorAlert_CountThreshold(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorAlert) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -4876,9 +4987,9 @@ func (ec *executionContext) _ErrorAlert_CountThreshold(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int64)
+	res := resTmp.(int)
 	fc.Result = res
-	return ec.marshalNInt642int64(ctx, field.Selections, res)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorComment_id(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorComment) (ret graphql.Marshaler) {
@@ -7687,7 +7798,7 @@ func (ec *executionContext) _Mutation_updateErrorAlert(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateErrorAlert(rctx, args["organization_id"].(int), args["error_alert"].(*model.ErrorAlertInput))
+		return ec.resolvers.Mutation().UpdateErrorAlert(rctx, args["organization_id"].(int), args["error_alert_id"].(int), args["count_threshold"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7696,9 +7807,9 @@ func (ec *executionContext) _Mutation_updateErrorAlert(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.ErrorAlert)
+	res := resTmp.(*model1.ErrorAlert)
 	fc.Result = res
-	return ec.marshalOErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorAlert(ctx, field.Selections, res)
+	return ec.marshalOErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorAlert(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _NewUsersCount_count(ctx context.Context, field graphql.CollectedField, obj *model.NewUsersCount) (ret graphql.Marshaler) {
@@ -8590,48 +8701,6 @@ func (ec *executionContext) _Query_adminHasCreatedComment(ctx context.Context, f
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_slackChannelSuggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_slackChannelSuggestion_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SlackChannelSuggestion(rctx, args["org_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.SanitizedSlackChannel)
-	fc.Result = res
-	return ec.marshalNSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_organizationHasViewedASession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9189,6 +9258,45 @@ func (ec *executionContext) _Query_organizations(ctx context.Context, field grap
 	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_error_alerts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_error_alerts_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ErrorAlerts(rctx, args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.ErrorAlert)
+	fc.Result = res
+	return ec.marshalOErrorAlert2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorAlert(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_organizationSuggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9226,6 +9334,84 @@ func (ec *executionContext) _Query_organizationSuggestion(ctx context.Context, f
 	res := resTmp.([]*model1.Organization)
 	fc.Result = res
 	return ec.marshalOOrganization2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐOrganization(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_environment_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_environment_suggestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().EnvironmentSuggestion(rctx, args["query"].(string), args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model1.Field)
+	fc.Result = res
+	return ec.marshalOField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐField(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_slack_channel_suggestion(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_slack_channel_suggestion_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SlackChannelSuggestion(rctx, args["organization_id"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.SanitizedSlackChannel)
+	fc.Result = res
+	return ec.marshalOSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_organization(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -9414,45 +9600,6 @@ func (ec *executionContext) _Query_recording_settings(ctx context.Context, field
 	res := resTmp.(*model1.RecordingSettings)
 	fc.Result = res
 	return ec.marshalORecordingSettings2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐRecordingSettings(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_error_alert(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Query",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_error_alert_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().ErrorAlert(rctx, args["organization_id"].(int))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*model.ErrorAlert)
-	fc.Result = res
-	return ec.marshalOErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorAlert(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -13036,42 +13183,6 @@ func (ec *executionContext) unmarshalInputDateRangeInput(ctx context.Context, ob
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputErrorAlertInput(ctx context.Context, obj interface{}) (model.ErrorAlertInput, error) {
-	var it model.ErrorAlertInput
-	var asMap = obj.(map[string]interface{})
-
-	for k, v := range asMap {
-		switch k {
-		case "ChannelsToNotify":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ChannelsToNotify"))
-			it.ChannelsToNotify, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "ExcludedEnvironments":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("ExcludedEnvironments"))
-			it.ExcludedEnvironments, err = ec.unmarshalNString2ᚕᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "CountThreshold":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("CountThreshold"))
-			it.CountThreshold, err = ec.unmarshalNInt642int64(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputErrorSearchParamsInput(ctx context.Context, obj interface{}) (model.ErrorSearchParamsInput, error) {
 	var it model.ErrorSearchParamsInput
 	var asMap = obj.(map[string]interface{})
@@ -13202,11 +13313,11 @@ func (ec *executionContext) unmarshalInputSanitizedSlackChannelInput(ctx context
 
 	for k, v := range asMap {
 		switch k {
-		case "webhook_channel":
+		case "webhook_channel_name":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook_channel"))
-			it.WebhookChannel, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("webhook_channel_name"))
+			it.WebhookChannelName, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -13463,6 +13574,11 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "sessionsOutOfQuota":
+			out.Values[i] = ec._BillingDetails_sessionsOutOfQuota(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -13576,7 +13692,7 @@ func (ec *executionContext) _DateRange(ctx context.Context, sel ast.SelectionSet
 
 var errorAlertImplementors = []string{"ErrorAlert"}
 
-func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSet, obj *model.ErrorAlert) graphql.Marshaler {
+func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSet, obj *model1.ErrorAlert) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, errorAlertImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -13586,19 +13702,37 @@ func (ec *executionContext) _ErrorAlert(ctx context.Context, sel ast.SelectionSe
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ErrorAlert")
 		case "ChannelsToNotify":
-			out.Values[i] = ec._ErrorAlert_ChannelsToNotify(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorAlert_ChannelsToNotify(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "ExcludedEnvironments":
-			out.Values[i] = ec._ErrorAlert_ExcludedEnvironments(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorAlert_ExcludedEnvironments(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "CountThreshold":
 			out.Values[i] = ec._ErrorAlert_CountThreshold(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -14504,20 +14638,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_adminHasCreatedComment(ctx, field)
 				return res
 			})
-		case "slackChannelSuggestion":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_slackChannelSuggestion(ctx, field)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "organizationHasViewedASession":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -14690,6 +14810,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_organizations(ctx, field)
 				return res
 			})
+		case "error_alerts":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_error_alerts(ctx, field)
+				return res
+			})
 		case "organizationSuggestion":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -14699,6 +14830,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_organizationSuggestion(ctx, field)
+				return res
+			})
+		case "environment_suggestion":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_environment_suggestion(ctx, field)
+				return res
+			})
+		case "slack_channel_suggestion":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_slack_channel_suggestion(ctx, field)
 				return res
 			})
 		case "organization":
@@ -14754,17 +14907,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_recording_settings(ctx, field)
-				return res
-			})
-		case "error_alert":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_error_alert(ctx, field)
 				return res
 			})
 		case "__type":
@@ -16741,19 +16883,51 @@ func (ec *executionContext) unmarshalODateRangeInput2ᚖgithubᚗcomᚋhighlight
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorAlert(ctx context.Context, sel ast.SelectionSet, v *model.ErrorAlert) graphql.Marshaler {
+func (ec *executionContext) marshalOErrorAlert2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorAlert(ctx context.Context, sel ast.SelectionSet, v []*model1.ErrorAlert) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorAlert(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOErrorAlert2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorAlert(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorAlert) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._ErrorAlert(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOErrorAlertInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorAlertInput(ctx context.Context, v interface{}) (*model.ErrorAlertInput, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputErrorAlertInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOErrorComment2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorComment(ctx context.Context, sel ast.SelectionSet, v *model1.ErrorComment) graphql.Marshaler {
@@ -17139,6 +17313,46 @@ func (ec *executionContext) unmarshalOSanitizedAdminInput2ᚖgithubᚗcomᚋhigh
 	}
 	res, err := ec.unmarshalInputSanitizedAdminInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOSanitizedSlackChannel2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx context.Context, sel ast.SelectionSet, v []*model.SanitizedSlackChannel) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOSanitizedSlackChannel2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
 }
 
 func (ec *executionContext) marshalOSanitizedSlackChannel2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannel(ctx context.Context, sel ast.SelectionSet, v *model.SanitizedSlackChannel) graphql.Marshaler {

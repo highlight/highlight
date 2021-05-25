@@ -17,7 +17,6 @@ import (
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -85,26 +84,12 @@ type Organization struct {
 	ErrorAlert *string
 }
 
-func (u *Organization) GetErrorAlert() (*modelInputs.ErrorAlert, error) {
-	parsedConfig := modelInputs.ErrorAlert{}
-	if u.ErrorAlert != nil {
-		err := json.Unmarshal([]byte(*u.ErrorAlert), &parsedConfig)
-		if err != nil {
-			return nil, e.Wrap(err, "error parsing alerts json")
-		}
-	} else {
-		defaultExclude := []string{"development", "staging"}
-		parsedExclude := []*string{}
-		for i := range defaultExclude {
-			parsedExclude = append(parsedExclude, &defaultExclude[i])
-		}
-		parsedConfig = modelInputs.ErrorAlert{
-			ChannelsToNotify:     []*modelInputs.SanitizedSlackChannel{},
-			ExcludedEnvironments: parsedExclude,
-			CountThreshold:       1,
-		}
-	}
-	return &parsedConfig, nil
+type ErrorAlert struct {
+	Model
+	OrganizationID       int
+	ExcludedEnvironments *string
+	CountThreshold       int
+	ChannelsToNotify     *string
 }
 
 type SlackChannel struct {
@@ -193,14 +178,6 @@ type SessionResults struct {
 	TotalCount int64
 }
 
-type SessionCount struct {
-	Count int64
-}
-
-type ErrorGroupCount struct {
-	Count int64
-}
-
 type Session struct {
 	Model
 	UserID      int `json:"user_id"`
@@ -243,6 +220,8 @@ type Session struct {
 	FirstloadVersion string `json:"firstload_version" gorm:"index"`
 	// The client configuration that the end-user sets up. This is used for debugging purposes.
 	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
+	// Determines whether this session should be viewable. This enforces billing.
+	WithinBillingQuota *bool `json:"within_billing_quota" gorm:"index;default:true"` // index? probably.
 
 	ObjectStorageEnabled *bool   `json:"object_storage_enabled"`
 	PayloadSize          *int64  `json:"payload_size"`
@@ -459,6 +438,7 @@ func SetupDB() *gorm.DB {
 		&ResourcesObject{},
 		&SessionComment{},
 		&ErrorComment{},
+		&ErrorAlert{},
 	); err != nil {
 		log.Fatalf("Error migrating db: %v", err)
 	}
