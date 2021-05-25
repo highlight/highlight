@@ -2,4 +2,8 @@
     display: flex;
     flex-direction: column;
     row-gap: var(--size-large);
+
+    :global(.ant-form-item) {
+        margin-bottom: 0;
+    }
 }
