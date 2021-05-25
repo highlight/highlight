@@ -319,20 +319,13 @@ type SanitizedSlackChannel {
 }
 
 input SanitizedSlackChannelInput {
-    webhook_channel: String
+    webhook_channel_name: String
     webhook_channel_id: String
 }
-
-input ErrorAlertInput {
-    ChannelsToNotify: [SanitizedSlackChannelInput]!
-    ExcludedEnvironments: [String]!
-    CountThreshold: Int64!
-}
-
 type ErrorAlert {
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
-    CountThreshold: Int64!
+    CountThreshold: Int!
 }
 
 type Query {
@@ -355,7 +348,6 @@ type Query {
     isIntegrated(organization_id: ID!): Boolean
     unprocessedSessionsCount(organization_id: ID!): Int64
     adminHasCreatedComment(admin_id: ID!): Boolean
-    slackChannelSuggestion(org_id: ID!): [SanitizedSlackChannel]!
     organizationHasViewedASession(organization_id: ID!): Session
     dailySessionsCount(
         organization_id: ID!
@@ -404,13 +396,15 @@ type Query {
         query: String!
     ): [ErrorField]
     organizations: [Organization]
+    error_alerts(organization_id: ID!): [ErrorAlert]
     organizationSuggestion(query: String!): [Organization]
+    environment_suggestion(query: String!, organization_id: ID!): [Field]
+    slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
     organization(id: ID!): Organization
     admin: Admin
     segments(organization_id: ID!): [Segment]
     error_segments(organization_id: ID!): [ErrorSegment]
     recording_settings(organization_id: ID!): RecordingSettings
-    error_alert(organization_id: ID!): ErrorAlert
 }
 
 type Mutation {
@@ -493,6 +487,9 @@ type Mutation {
     deleteErrorComment(id: ID!): Boolean
     updateErrorAlert(
         organization_id: ID!
-        error_alert: ErrorAlertInput
+        error_alert_id: ID!
+        count_threshold: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
     ): ErrorAlert
 }

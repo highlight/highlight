@@ -224,6 +224,7 @@ query GetBillingDetails($organization_id: ID!) {
         meter
     }
     organization(id: $organization_id) {
+        id
         trial_end_date
     }
 }
@@ -518,13 +519,34 @@ query GetDailyErrorsCount($organization_id: ID!, $date_range: DateRangeInput!) {
     }
 }
 
-query GetErrorAlert($organization_id: ID!) {
-    error_alert(organization_id: $organization_id) {
+query GetErrorAlerts($organization_id: ID!) {
+    error_alerts(organization_id: $organization_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
         }
         ExcludedEnvironments
         CountThreshold
+    }
+}
+
+query GetEnvironmentSuggestion($query: String!, $organization_id: ID!) {
+    environment_suggestion(query: $query, organization_id: $organization_id) {
+        name
+        value
+    }
+}
+
+query GetEnvironmentSuggestion($query: String!, $organization_id: ID!) {
+    environment_suggestion(query: $query, organization_id: $organization_id) {
+        name
+        value
+    }
+}
+
+query GetSlackChannelSuggestion($organization_id: ID!) {
+    slack_channel_suggestion(organization_id: $organization_id) {
+        webhook_channel
+        webhook_channel_id
     }
 }

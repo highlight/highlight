@@ -28,6 +28,38 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+const SUGGESTION_LIMIT_CONSTANT = 8
+
+func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
+	if obj == nil {
+		return nil, e.New("empty alert object for channels to notify")
+	}
+	channelString := ""
+	if obj.ChannelsToNotify != nil {
+		channelString = *obj.ChannelsToNotify
+	}
+	sanitizedChannels := []*modelInputs.SanitizedSlackChannel{}
+	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
+		return nil, e.Wrap(err, "error unmarshaling sanitized slack channels")
+	}
+	return sanitizedChannels, nil
+}
+
+func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
+	if obj == nil {
+		return nil, e.New("empty alert object for channels to notify")
+	}
+	excludedString := ""
+	if obj.ExcludedEnvironments != nil {
+		excludedString = *obj.ExcludedEnvironments
+	}
+	sanitizedExcludedEnvironments := []*string{}
+	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
+		return nil, e.Wrap(err, "error unmarshaling sanitized excluded channels")
+	}
+	return sanitizedExcludedEnvironments, nil
+}
+
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
 	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
@@ -173,11 +205,8 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.RecordingSettings{
-		OrganizationID: org.ID,
-		Details:        nil,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating new recording settings")
+	if err := r.DB.Create(&model.ErrorAlert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating org")
 	}
 	return org, nil
 }
@@ -354,7 +383,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 
 	baseMessage := "👋 Hello from Highlight!"
 	if name := org.Name; name != nil {
-		baseMessage += fmt.Sprintf(" We'll send messages here based on your alert preferences for %v, which can be configureate at https://app.highlight.run/%v/alerts.", *name, org.ID)
+		baseMessage += fmt.Sprintf("We'll send messages here based on your alert preferences for %v, which can be configured at https://app.highlight.run/%v/alerts.", *name, org.ID)
 	}
 	msg := slack.WebhookMessage{Text: baseMessage}
 	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
@@ -701,34 +730,42 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlert *modelInputs.ErrorAlertInput) (*modelInputs.ErrorAlert, error) {
-	org, err := r.isAdminInOrganization(ctx, organizationID)
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
-	parsedChannels := []*modelInputs.SanitizedSlackChannel{}
-	for _, c := range errorAlert.ChannelsToNotify {
-		parsedChannels = append(parsedChannels, &modelInputs.SanitizedSlackChannel{
-			WebhookChannel:   c.WebhookChannel,
-			WebhookChannelID: c.WebhookChannelID,
-		})
+
+	alert := &model.ErrorAlert{}
+	if err := r.DB.Where(&model.ErrorAlert{Model: model.Model{ID: errorAlertID}}).Find(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error alert")
 	}
-	errorAlertParams := modelInputs.ErrorAlert{
-		ChannelsToNotify:     parsedChannels,
-		ExcludedEnvironments: errorAlert.ExcludedEnvironments,
-		CountThreshold:       errorAlert.CountThreshold,
+
+	sanitizedChannels := []*modelInputs.SanitizedSlackChannel{}
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
 	}
-	channelBytes, err := json.Marshal(errorAlertParams)
+
+	envBytes, err := json.Marshal(environments)
 	if err != nil {
-		return nil, e.Wrap(err, "error marshaling error alerts")
+		return nil, e.Wrap(err, "error parsing environments")
 	}
-	errorAlertString := string(channelBytes)
-	if err := r.DB.Model(org).Updates(&model.Organization{
-		ErrorAlert: &errorAlertString,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org error alert fields")
+	envString := string(envBytes)
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels")
 	}
-	return &errorAlertParams, nil
+	channelsString := string(channelsBytes)
+
+	alert.ChannelsToNotify = &channelsString
+	alert.ExcludedEnvironments = &envString
+	alert.CountThreshold = countThreshold
+	if err := r.DB.Model(&model.ErrorAlert{}).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields")
+	}
+	return alert, nil
 }
 
 func (r *queryResolver) Session(ctx context.Context, id int) (*model.Session, error) {
@@ -1055,25 +1092,6 @@ func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int)
 	}
 
 	return &model.T, nil
-}
-
-func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, orgID int) ([]*modelInputs.SanitizedSlackChannel, error) {
-	org, err := r.isAdminInOrganization(ctx, orgID)
-	if err != nil {
-		return nil, e.Wrap(err, "error getting org")
-	}
-	ret := []*modelInputs.SanitizedSlackChannel{}
-	chs, err := org.IntegratedSlackChannels()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieiving existing channels")
-	}
-	for _, ch := range chs {
-		ret = append(ret, &modelInputs.SanitizedSlackChannel{
-			WebhookChannel:   &ch.WebhookChannel,
-			WebhookChannelID: &ch.WebhookChannelID,
-		})
-	}
-	return ret, nil
 }
 
 func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model.Session, error) {
@@ -1478,7 +1496,7 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Name: name}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
-		Limit(8).
+		Limit(SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
@@ -1494,7 +1512,7 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
-		Limit(8).
+		Limit(SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
@@ -1511,7 +1529,7 @@ func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, organizationID
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
 		Where("organization_id = ?", organizationID).
-		Limit(8).
+		Limit(SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying error field suggestion")
@@ -1531,6 +1549,18 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 	return orgs, nil
 }
 
+func (r *queryResolver) ErrorAlerts(ctx context.Context, organizationID int) ([]*model.ErrorAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	alerts := []*model.ErrorAlert{}
+	if err := r.DB.Where(&model.ErrorAlert{OrganizationID: organizationID}).Find(&alerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying error alerts")
+	}
+	return alerts, nil
+}
+
 func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
 	orgs := []*model.Organization{}
 	if r.isWhitelistedAccount(ctx) {
@@ -1539,6 +1569,43 @@ func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string
 		}
 	}
 	return orgs, nil
+}
+
+func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string, organizationID int) ([]*model.Field, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	fields := []*model.Field{}
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "session", Name: "environment"}).
+		Where("length(value) > ?", 0).
+		Where("value ILIKE ?", "%"+query+"%").
+		Limit(SUGGESTION_LIMIT_CONSTANT).
+		Find(&fields)
+	if err := res.Error; err != nil {
+		return nil, e.Wrap(err, "error querying field suggestion")
+	}
+	return fields, nil
+}
+
+func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, organizationID int) ([]*modelInputs.SanitizedSlackChannel, error) {
+	org, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error getting org")
+	}
+	chs, err := org.IntegratedSlackChannels()
+	if err != nil {
+		return nil, e.Wrap(err, "error retrieiving existing channels")
+	}
+	ret := []*modelInputs.SanitizedSlackChannel{}
+	for _, ch := range chs {
+		channel := ch.WebhookChannel
+		channelID := ch.WebhookChannelID
+		ret = append(ret, &modelInputs.SanitizedSlackChannel{
+			WebhookChannel:   &channel,
+			WebhookChannelID: &channelID,
+		})
+	}
+	return ret, nil
 }
 
 func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
@@ -1625,18 +1692,6 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 	return recordingSettings, nil
 }
 
-func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*modelInputs.ErrorAlert, error) {
-	org, err := r.isAdminInOrganization(ctx, organizationID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin not found in org")
-	}
-	ret, err := org.GetErrorAlert()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieiving error alert")
-	}
-	return ret, nil
-}
-
 func (r *segmentResolver) Params(ctx context.Context, obj *model.Segment) (*model.SearchParams, error) {
 	params := &model.SearchParams{}
 	if obj.Params == nil {
@@ -1682,6 +1737,9 @@ func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionC
 	return sanitizedAdmin, nil
 }
 
+// ErrorAlert returns generated.ErrorAlertResolver implementation.
+func (r *Resolver) ErrorAlert() generated.ErrorAlertResolver { return &errorAlertResolver{r} }
+
 // ErrorComment returns generated.ErrorCommentResolver implementation.
 func (r *Resolver) ErrorComment() generated.ErrorCommentResolver { return &errorCommentResolver{r} }
 
@@ -1711,6 +1769,7 @@ func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
 }
 
+type errorAlertResolver struct{ *Resolver }
 type errorCommentResolver struct{ *Resolver }
 type errorGroupResolver struct{ *Resolver }
 type errorObjectResolver struct{ *Resolver }

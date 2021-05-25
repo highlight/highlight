@@ -310,6 +310,36 @@ export type CreateErrorSegmentMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type UpdateErrorAlertMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    error_alert_id: Types.Scalars['ID'];
+    count_threshold: Types.Scalars['Int'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    environments:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
+    updateErrorAlert?: Types.Maybe<
+        { __typename?: 'ErrorAlert' } & Pick<
+            Types.ErrorAlert,
+            'ExcludedEnvironments' | 'CountThreshold'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_id: Types.Scalars['ID'];
 }>;
@@ -628,7 +658,7 @@ export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
     organization?: Types.Maybe<
         { __typename?: 'Organization' } & Pick<
             Types.Organization,
-            'trial_end_date'
+            'id' | 'trial_end_date'
         >
     >;
 };
@@ -1084,24 +1114,60 @@ export type GetDailyErrorsCountQuery = { __typename?: 'Query' } & {
     >;
 };
 
-export type GetErrorAlertQueryVariables = Types.Exact<{
+export type GetErrorAlertsQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
 }>;
 
-export type GetErrorAlertQuery = { __typename?: 'Query' } & {
-    error_alert?: Types.Maybe<
-        { __typename?: 'ErrorAlert' } & Pick<
-            Types.ErrorAlert,
-            'ExcludedEnvironments' | 'CountThreshold'
-        > & {
-                ChannelsToNotify: Array<
-                    Types.Maybe<
-                        { __typename?: 'SanitizedSlackChannel' } & Pick<
-                            Types.SanitizedSlackChannel,
-                            'webhook_channel' | 'webhook_channel_id'
-                        >
-                    >
-                >;
-            }
+export type GetErrorAlertsQuery = { __typename?: 'Query' } & {
+    error_alerts?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorAlert' } & Pick<
+                    Types.ErrorAlert,
+                    'ExcludedEnvironments' | 'CountThreshold'
+                > & {
+                        ChannelsToNotify: Array<
+                            Types.Maybe<
+                                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                    Types.SanitizedSlackChannel,
+                                    'webhook_channel' | 'webhook_channel_id'
+                                >
+                            >
+                        >;
+                    }
+            >
+        >
+    >;
+};
+
+export type GetEnvironmentSuggestionQueryVariables = Types.Exact<{
+    query: Types.Scalars['String'];
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type GetEnvironmentSuggestionQuery = { __typename?: 'Query' } & {
+    environment_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+            >
+        >
+    >;
+};
+
+export type GetSlackChannelSuggestionQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type GetSlackChannelSuggestionQuery = { __typename?: 'Query' } & {
+    slack_channel_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                    Types.SanitizedSlackChannel,
+                    'webhook_channel' | 'webhook_channel_id'
+                >
+            >
+        >
     >;
 };

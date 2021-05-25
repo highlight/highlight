@@ -242,3 +242,26 @@ mutation CreateErrorSegment(
         }
     }
 }
+
+mutation UpdateErrorAlert(
+    $organization_id: ID!
+    $error_alert_id: ID!
+    $count_threshold: Int!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+) {
+    updateErrorAlert(
+        organization_id: $organization_id
+        error_alert_id: $error_alert_id
+        count_threshold: $count_threshold
+        slack_channels: $slack_channels
+        environments: $environments
+    ) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}

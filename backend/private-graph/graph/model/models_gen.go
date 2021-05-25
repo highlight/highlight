@@ -24,18 +24,6 @@ type DateRangeInput struct {
 	EndDate   *time.Time `json:"end_date"`
 }
 
-type ErrorAlert struct {
-	ChannelsToNotify     []*SanitizedSlackChannel `json:"ChannelsToNotify"`
-	ExcludedEnvironments []*string                `json:"ExcludedEnvironments"`
-	CountThreshold       int64                    `json:"CountThreshold"`
-}
-
-type ErrorAlertInput struct {
-	ChannelsToNotify     []*SanitizedSlackChannelInput `json:"ChannelsToNotify"`
-	ExcludedEnvironments []*string                     `json:"ExcludedEnvironments"`
-	CountThreshold       int64                         `json:"CountThreshold"`
-}
-
 type ErrorMetadata struct {
 	ErrorID    int       `json:"error_id"`
 	SessionID  int       `json:"session_id"`
@@ -100,8 +88,8 @@ type SanitizedSlackChannel struct {
 }
 
 type SanitizedSlackChannelInput struct {
-	WebhookChannel   *string `json:"webhook_channel"`
-	WebhookChannelID *string `json:"webhook_channel_id"`
+	WebhookChannelName *string `json:"webhook_channel_name"`
+	WebhookChannelID   *string `json:"webhook_channel_id"`
 }
 
 type SearchParamsInput struct {
