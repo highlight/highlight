@@ -8,4 +8,8 @@
         height: fit-content !important;
         padding: var(--size-xSmall) var(--size-xSmall) !important;
     }
+
+    :global(.ant-select-selection-placeholder) {
+        left: 14px;
+    }
 }
