@@ -34,7 +34,7 @@ func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.Er
 	if obj == nil {
 		return nil, e.New("empty alert object for channels to notify")
 	}
-	channelString := ""
+	channelString := "[]"
 	if obj.ChannelsToNotify != nil {
 		channelString = *obj.ChannelsToNotify
 	}
@@ -49,7 +49,7 @@ func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *mode
 	if obj == nil {
 		return nil, e.New("empty alert object for channels to notify")
 	}
-	excludedString := ""
+	excludedString := "[]"
 	if obj.ExcludedEnvironments != nil {
 		excludedString = *obj.ExcludedEnvironments
 	}
