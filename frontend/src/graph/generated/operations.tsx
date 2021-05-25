@@ -1171,3 +1171,46 @@ export type GetSlackChannelSuggestionQuery = { __typename?: 'Query' } & {
         >
     >;
 };
+
+export type GetAlertsPagePayloadQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
+    slack_channel_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                    Types.SanitizedSlackChannel,
+                    'webhook_channel' | 'webhook_channel_id'
+                >
+            >
+        >
+    >;
+    environment_suggestion?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+            >
+        >
+    >;
+    error_alerts?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'ErrorAlert' } & Pick<
+                    Types.ErrorAlert,
+                    'ExcludedEnvironments' | 'CountThreshold'
+                > & {
+                        ChannelsToNotify: Array<
+                            Types.Maybe<
+                                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                    Types.SanitizedSlackChannel,
+                                    'webhook_channel' | 'webhook_channel_id'
+                                >
+                            >
+                        >;
+                    }
+            >
+        >
+    >;
+};

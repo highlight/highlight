@@ -1,9 +1,11 @@
 import React from 'react';
+import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import {
+    useGetAlertsPagePayloadQuery,
     useGetEnvironmentSuggestionQuery,
     useGetErrorAlertsQuery,
     useGetSlackChannelSuggestionQuery,
@@ -32,30 +34,15 @@ const ALERT_CONFIGURATIONS = [
 ];
 const AlertsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { data: alertData, error: alertError } = useGetErrorAlertsQuery({
-        variables: { organization_id: organization_id },
-    });
-    const {
-        data: environmentData,
-        error: environmentError,
-    } = useGetEnvironmentSuggestionQuery({
-        variables: { organization_id: organization_id, query: 'p' },
-    });
-    const {
-        data: slackData,
-        error: slackError,
-    } = useGetSlackChannelSuggestionQuery({
+    const { data, loading } = useGetAlertsPagePayloadQuery({
         variables: { organization_id: organization_id },
     });
 
     const mutation = useUpdateErrorAlertMutation();
     console.log(mutation);
     // TODO: @John, we need to prepooulate/deduplicate the environments w/ 'production', 'staging' and 'development'.
-    // And any additional ones should be returned in the suggestion.
-    console.log('alerts', alertData, alertError);
-    console.log('environments', environmentData, environmentError);
-    console.log('slack_suggestion', slackData, slackError);
 
+    console.log(data);
     return (
         <LeadAlignLayout>
             <h2>Configure your alerts</h2>
@@ -64,12 +51,31 @@ const AlertsPage = () => {
             </p>
 
             <div className={styles.configurationContainer}>
-                {ALERT_CONFIGURATIONS.map((configuration) => (
-                    <AlertConfigurationCard
-                        key={configuration.name}
-                        configuration={configuration}
-                    />
-                ))}
+                {loading
+                    ? Array(3)
+                          .fill(0)
+                          .map((_, index) => (
+                              <Skeleton
+                                  key={index}
+                                  style={{
+                                      width: '100%',
+                                      height: 79,
+                                      borderRadius: 8,
+                                  }}
+                              />
+                          ))
+                    : ALERT_CONFIGURATIONS.map((configuration) => (
+                          <AlertConfigurationCard
+                              key={configuration.name}
+                              configuration={configuration}
+                              environmentOptions={
+                                  data?.environment_suggestion || []
+                              }
+                              channelSuggestions={
+                                  data?.slack_channel_suggestion || []
+                              }
+                          />
+                      ))}
             </div>
         </LeadAlignLayout>
     );

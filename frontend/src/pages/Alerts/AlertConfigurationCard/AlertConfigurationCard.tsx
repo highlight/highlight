@@ -14,10 +14,14 @@ interface AlertConfiguration {
 
 interface Props {
     configuration: AlertConfiguration;
+    environmentOptions: any[];
+    channelSuggestions: any[];
 }
 
 export const AlertConfigurationCard = ({
     configuration: { name, canControlThreshold },
+    environmentOptions,
+    channelSuggestions,
 }: Props) => {
     const [form] = Form.useForm();
 
@@ -25,45 +29,35 @@ export const AlertConfigurationCard = ({
         console.log({ ...data, name });
     };
 
-    const channels = [
-        {
-            displayValue: '#boba',
-            value: '#boba',
-            id: '#boba',
-        },
-        {
-            displayValue: '#mochi',
-            value: '#mochi',
-            id: '0',
-        },
-        {
-            displayValue: '#phamous',
-            value: '#phamous',
-            id: '2',
-        },
-    ];
+    const channels = channelSuggestions.map(
+        ({ webhook_channel, webhook_channel_id }) => ({
+            displayValue: webhook_channel,
+            value: webhook_channel_id,
+            id: webhook_channel_id,
+        })
+    );
 
     const environments = [
         {
             displayValue: 'production',
-            value: '#boba',
-            id: '#boba',
+            value: 'production',
+            id: 'production',
         },
         {
             displayValue: 'staging',
-            value: '#mochi',
-            id: '0',
+            value: 'staging',
+            id: 'staging',
         },
         {
             displayValue: 'development',
-            value: '#phamous',
-            id: '2',
+            value: 'development',
+            id: 'development',
         },
-        {
-            displayValue: "jay's laptop",
-            value: '#laptop',
-            id: '3',
-        },
+        ...environmentOptions.map(({ name, value }) => ({
+            displayValue: name,
+            value: name,
+            id: value,
+        })),
     ];
 
     const onChannelsChange = (channels: string[]) => {
