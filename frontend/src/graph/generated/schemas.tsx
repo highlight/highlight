@@ -57,6 +57,7 @@ export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
     meter: Scalars['Int64'];
+    sessionsOutOfQuota: Scalars['Int64'];
 };
 
 export type Plan = {

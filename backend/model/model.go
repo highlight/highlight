@@ -197,6 +197,10 @@ type SessionCount struct {
 	Count int64
 }
 
+type SessionsOutOfQuotaCount struct {
+	Count int64
+}
+
 type ErrorGroupCount struct {
 	Count int64
 }
@@ -243,6 +247,8 @@ type Session struct {
 	FirstloadVersion string `json:"firstload_version" gorm:"index"`
 	// The client configuration that the end-user sets up. This is used for debugging purposes.
 	ClientConfig *string `json:"client_config" sql:"type:jsonb"`
+	// Determines whether this session should be viewable. This enforces billing.
+	WithinBillingQuota *bool `json:"within_billing_quota" gorm:"index,default:true"` // index? probably.
 
 	ObjectStorageEnabled *bool   `json:"object_storage_enabled"`
 	PayloadSize          *int64  `json:"payload_size"`
