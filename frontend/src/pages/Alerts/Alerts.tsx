@@ -10,27 +10,19 @@ import styles from './Alerts.module.scss';
 const ALERT_CONFIGURATIONS = [
     {
         name: 'Error Alerts',
+        canControlThreshold: true,
     },
     {
         name: 'Session Alerts',
+        canControlThreshold: false,
     },
     {
         name: 'First Time User Alerts',
+        canControlThreshold: true,
     },
     {
         name: 'Track Event Alerts',
-    },
-    {
-        name: 'Phamous Alerts',
-    },
-    {
-        name: 'Boba Alerts',
-    },
-    {
-        name: 'Mochi Alerts',
-    },
-    {
-        name: 'Carrot Alerts',
+        canControlThreshold: false,
     },
 ];
 const AlertsPage = () => {
