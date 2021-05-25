@@ -1445,16 +1445,46 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
 	planType := pricing.FromPriceID(priceID)
-	meter, err := pricing.GetOrgQuota(r.DB, organizationID)
-	if err != nil {
-		return nil, e.Wrap(err, "error from get quota")
+
+	var g errgroup.Group
+	var meter int64
+	var queriedSessionsOutOfQuota model.SessionsOutOfQuotaCount
+
+	g.Go(func() error {
+		meter, err = pricing.GetOrgQuota(r.DB, organizationID)
+		if err != nil {
+			return e.Wrap(err, "error from get quota")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		fromClause := "FROM sessions"
+		whereClause := fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
+		whereClause += "AND (within_billing_quota = false) "
+		// TODO: do we want last 30 days or current month?
+		whereClause += fmt.Sprintf("AND (created_at > (CURRENT_DATE - INTERVAL '%d days'))", 30)
+		// whereClause += "AND (created_at >= date_trunc('month', current_date)) "
+
+		sessionsOverQuotaCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsOverQuotaCountQuery"))
+		if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s", fromClause, whereClause)).Scan(&queriedSessionsOutOfQuota).Error; err != nil {
+			return e.Wrap(err, "error querying sessions over quota count")
+		}
+		sessionsOverQuotaCountSpan.Finish()
+		return nil
+	})
+
+	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
+	if err := g.Wait(); err != nil {
+		return nil, e.Wrap(err, "error querying session data")
 	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  modelInputs.PlanType(planType.String()),
 			Quota: pricing.TypeToQuota(planType),
 		},
-		Meter: meter,
+		Meter:              meter,
+		SessionsOutOfQuota: queriedSessionsOutOfQuota.Count,
 	}
 	return details, nil
 }
