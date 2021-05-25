@@ -13,6 +13,7 @@ type Field {
 type Session {
     id: ID!
     user_id: ID!
+    fingerprint: Int
     os_name: String!
     os_version: String!
     browser_name: String!
@@ -20,6 +21,7 @@ type Session {
     city: String!
     state: String!
     postal: String!
+    language: String!
     identifier: String!
     created_at: Time
     length: Int
@@ -39,6 +41,7 @@ type Session {
 type BillingDetails {
     plan: Plan!
     meter: Int64!
+    sessionsOutOfQuota: Int64!
 }
 
 type Plan {
@@ -151,6 +154,10 @@ type AverageSessionLength {
     length: Float!
 }
 
+type UserFingerprintCount {
+    count: Int64!
+}
+
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
@@ -161,6 +168,7 @@ input SearchParamsInput {
     length_range: LengthRangeInput
     os: String
     browser: String
+    device_id: String
     visited_url: String
     referrer: String
     identified: Boolean
@@ -359,6 +367,10 @@ type Query {
         organization_id: ID!
         lookBackPeriod: Int!
     ): AverageSessionLength
+    userFingerprintCount(
+        organization_id: ID!
+        lookBackPeriod: Int!
+    ): UserFingerprintCount
     sessions(
         organization_id: ID!
         count: Int!

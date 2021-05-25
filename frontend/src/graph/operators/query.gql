@@ -15,7 +15,9 @@ query GetSession($id: ID!) {
         state
         postal
         user_id
+        fingerprint
         created_at
+        language
         user_object
         identifier
         starred
@@ -160,6 +162,7 @@ query GetSessions(
         sessions {
             id
             user_id
+            fingerprint
             identifier
             os_name
             os_version
@@ -169,6 +172,7 @@ query GetSessions(
             state
             postal
             created_at
+            language
             length
             active_length
             viewed
@@ -443,6 +447,12 @@ query GetKeyPerformanceIndicators(
         lookBackPeriod: $lookBackPeriod
     ) {
         length
+    }
+    userFingerprintCount(
+        organization_id: $organization_id
+        lookBackPeriod: $lookBackPeriod
+    ) {
+        count
     }
 }
 

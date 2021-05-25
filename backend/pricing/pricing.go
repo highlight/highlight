@@ -1,6 +1,7 @@
 package pricing
 
 import (
+	"context"
 	"os"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	e "github.com/pkg/errors"
 	stripe "github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/client"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 )
 
@@ -19,6 +21,17 @@ func GetOrgQuota(DB *gorm.DB, org_id int) (int64, error) {
 		return 0, e.Wrap(err, "error querying for session meter")
 	}
 	return meter, nil
+}
+
+func GetOrgQuotaOverflow(ctx context.Context, DB *gorm.DB, org_id int) (int64, error) {
+	year, month, _ := time.Now().Date()
+	var queriedSessionsOverQuota int64
+	sessionsOverQuotaCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsOverQuotaCountQuery"))
+	defer sessionsOverQuotaCountSpan.Finish()
+	if err := DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: org_id}).Where("within_billing_quota = false").Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&queriedSessionsOverQuota).Error; err != nil {
+		return 0, e.Wrap(err, "error querying sessions over quota count")
+	}
+	return queriedSessionsOverQuota, nil
 }
 
 func GetOrgPlanString(stripeClient *client.API, customerID string) string {

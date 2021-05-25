@@ -12,12 +12,14 @@ type Option = {
 export const StandardDropdown = ({
     data,
     onSelect,
+    defaultValue,
 }: {
     data: ReadonlyArray<Option>;
     onSelect: React.Dispatch<React.SetStateAction<any>>;
+    defaultValue?: Option;
 }) => {
     const [visible, setVisible] = useState(false);
-    const [selection, setSelection] = useState(data[0]);
+    const [selection, setSelection] = useState(defaultValue || data[0]);
     const menu = (
         <div className={styles.dropdownMenu}>
             <div className={styles.dropdownInner}>
@@ -42,6 +44,7 @@ export const StandardDropdown = ({
             placement={'bottomLeft'}
             overlay={menu}
             onVisibleChange={(v) => setVisible(v)}
+            trigger={['click']}
         >
             <div
                 className={styles.dropdownHandler}

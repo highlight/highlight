@@ -8,11 +8,27 @@ interface Props {
     columns: ColumnsType<any>;
     data: any[];
     onClickHandler: (record: any) => void;
+    /** The string shown to the user when the table has no data. */
+    noDataMessage?: string | React.ReactNode;
+    noDataTitle?: string;
 }
 
-const BarChartTable = ({ columns, data, onClickHandler }: Props) => {
+const BarChartTable = ({
+    columns,
+    data,
+    onClickHandler,
+    noDataMessage,
+    noDataTitle,
+}: Props) => {
     return (
-        <ConfigProvider renderEmpty={EmptyCardPlaceholder}>
+        <ConfigProvider
+            renderEmpty={() => (
+                <EmptyCardPlaceholder
+                    message={noDataMessage}
+                    title={noDataTitle}
+                />
+            )}
+        >
             <Table
                 scroll={{ y: 250 }}
                 showHeader={false}

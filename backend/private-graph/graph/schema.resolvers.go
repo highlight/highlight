@@ -883,7 +883,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	}
 
 	var g errgroup.Group
-	var queriedErrorGroupsCount model.ErrorGroupCount
+	var queriedErrorGroupsCount int64
 
 	g.Go(func() error {
 		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorGroups"))
@@ -912,7 +912,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 
 	errorResults := &model.ErrorResults{
 		ErrorGroups: errorGroups,
-		TotalCount:  queriedErrorGroupsCount.Count,
+		TotalCount:  queriedErrorGroupsCount,
 	}
 	return errorResults, nil
 }
@@ -1178,7 +1178,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBa
 	FROM (SELECT identifier, active_length from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) q1
 	GROUP BY identifier
 	ORDER BY total_active_time DESC
-	LIMIT 200`, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
+	LIMIT 50`, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -1196,6 +1196,21 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, organizationID
 	}
 
 	return &modelInputs.AverageSessionLength{Length: length}, nil
+}
+
+func (r *queryResolver) UserFingerprintCount(ctx context.Context, organizationID int, lookBackPeriod int) (*modelInputs.UserFingerprintCount, error) {
+	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+		return nil, e.Wrap(err, "admin not found in org")
+	}
+
+	var count int64
+	span, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.userFingerprintCount"))
+	if err := r.DB.Raw(fmt.Sprintf("SELECT count(DISTINCT fingerprint) from sessions WHERE identifier='' AND fingerprint IS NOT NULL AND created_at >= NOW() - INTERVAL '%d DAY' AND organization_id=%d AND length >= 1000;", lookBackPeriod, organizationID)).Scan(&count).Error; err != nil {
+		return nil, e.Wrap(err, "error retrieving user fingerprint count")
+	}
+	span.Finish()
+
+	return &modelInputs.UserFingerprintCount{Count: count}, nil
 }
 
 func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count int, lifecycle modelInputs.SessionLifecycle, starred bool, params *modelInputs.SearchParamsInput) (*model.SessionResults, error) {
@@ -1284,8 +1299,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	fieldsSpan.Finish()
 
-	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, active_length, user_object, viewed"
-	joinClause := "FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, created_at, deleted_at, length, active_length, user_object, viewed, array_agg(t.field_id) fieldIds FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows"
+	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
+	joinClause := "FROM (SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed, array_agg(t.field_id) fieldIds FROM sessions s INNER JOIN session_fields t ON s.id=t.session_id GROUP BY s.id) AS rows"
 	whereClause := ` `
 
 	whereClause += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -1378,6 +1393,10 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += fmt.Sprintf("AND (browser_name = '%s') ", *browser)
 	}
 
+	if deviceId := params.DeviceID; deviceId != nil {
+		whereClause += fmt.Sprintf("AND (fingerprint = '%s') ", *deviceId)
+	}
+
 	//if there should be fields but aren't no sessions are returned
 	if !fieldCheck || !visitedCheck || !referrerCheck {
 		whereClause += "AND (id != id) "
@@ -1385,7 +1404,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
-	var queriedSessionsCount model.SessionCount
+	var queriedSessionsCount int64
 
 	g.Go(func() error {
 		whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
@@ -1422,7 +1441,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	sessionList := &model.SessionResults{
 		Sessions:   queriedSessions,
-		TotalCount: queriedSessionsCount.Count,
+		TotalCount: queriedSessionsCount,
 	}
 	return sessionList, nil
 }
@@ -1432,28 +1451,39 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	customerID := ""
-	if org.StripeCustomerID != nil {
-		customerID = *org.StripeCustomerID
-	}
-	params := &stripe.CustomerParams{}
-	priceID := ""
-	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(customerID, params)
-	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
-		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
-	}
-	planType := pricing.FromPriceID(priceID)
-	meter, err := pricing.GetOrgQuota(r.DB, organizationID)
-	if err != nil {
-		return nil, e.Wrap(err, "error from get quota")
+	planType := modelInputs.PlanType(pricing.GetOrgPlanString(r.StripeClient, *org.StripeCustomerID))
+
+	var g errgroup.Group
+	var meter int64
+	var queriedSessionsOutOfQuota int64
+
+	g.Go(func() error {
+		meter, err = pricing.GetOrgQuota(r.DB, organizationID)
+		if err != nil {
+			return e.Wrap(err, "error from get quota")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		queriedSessionsOutOfQuota, err = pricing.GetOrgQuotaOverflow(ctx, r.DB, organizationID)
+		if err != nil {
+			return e.Wrap(err, "error from get quota overflow")
+		}
+		return nil
+	})
+
+	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
+	if err := g.Wait(); err != nil {
+		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  modelInputs.PlanType(planType.String()),
 			Quota: pricing.TypeToQuota(planType),
 		},
-		Meter: meter,
+		Meter:              meter,
+		SessionsOutOfQuota: queriedSessionsOutOfQuota,
 	}
 	return details, nil
 }

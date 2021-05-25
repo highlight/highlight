@@ -110,15 +110,15 @@ const BillingPage = () => {
                     Manage your billing information.
                 </p>
                 <div className={styles.billingPlanCardWrapper}>
-                    {billingLoading || loading ? (
-                        <Skeleton
-                            style={{ borderRadius: 8, marginRight: 20 }}
-                            count={3}
-                            height={300}
-                            width={275}
-                        />
-                    ) : (
-                        BILLING_PLANS.map((billingPlan) => (
+                    {BILLING_PLANS.map((billingPlan) =>
+                        billingLoading || loading ? (
+                            <Skeleton
+                                style={{ borderRadius: 8 }}
+                                count={1}
+                                height={325}
+                                width={275}
+                            />
+                        ) : (
                             <BillingPlanCard
                                 key={billingPlan.type}
                                 current={
@@ -128,7 +128,7 @@ const BillingPage = () => {
                                 billingPlan={billingPlan}
                                 onSelect={createOnSelect(billingPlan.type)}
                             ></BillingPlanCard>
-                        ))
+                        )
                     )}
                 </div>
             </div>

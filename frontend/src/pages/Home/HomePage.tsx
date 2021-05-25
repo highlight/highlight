@@ -19,6 +19,7 @@ import Card from '../../components/Card/Card';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import {
+    useGetAdminQuery,
     useGetDailyErrorsCountQuery,
     useGetDailySessionsCountQuery,
 } from '../../graph/generated/hooks';
@@ -43,16 +44,19 @@ type DailyCount = {
 };
 
 const HomePage = () => {
+    const { loading: adminLoading, data: adminData } = useGetAdminQuery({
+        skip: false,
+    });
     const { organization_id } = useParams<{ organization_id: string }>();
     const [dateRangeLength, setDateRangeLength] = useState<number>(
-        timeFilter[0].value
+        timeFilter[1].value
     );
     const [hasData, setHasData] = useState<boolean>(true);
     const { integrated, loading: integratedLoading } = useIntegrated(
         parseInt(organization_id, 10)
     );
 
-    if (integratedLoading) {
+    if (integratedLoading || adminLoading) {
         return null;
     }
 
@@ -66,7 +70,15 @@ const HomePage = () => {
                         <div>
                             <h2>
                                 {integrated
-                                    ? 'Welcome back to Highlight.'
+                                    ? `${
+                                          adminData?.admin?.name
+                                              ? `Hey ${
+                                                    adminData.admin.name.split(
+                                                        ' '
+                                                    )[0]
+                                                }, welcome`
+                                              : `Welcome`
+                                      } back to Highlight.`
                                     : 'Welcome to Highlight'}
                             </h2>
                             {integrated && (
@@ -80,6 +92,7 @@ const HomePage = () => {
                             <div className={styles.filtersContainer}>
                                 <StandardDropdown
                                     data={timeFilter}
+                                    defaultValue={timeFilter[1]}
                                     onSelect={setDateRangeLength}
                                 />
                             </div>
@@ -131,6 +144,7 @@ const HomePage = () => {
 };
 
 const timeFilter = [
+    { label: 'Last 24 hours', value: 2 },
     { label: 'Last 7 days', value: 7 },
     { label: 'Last 30 days', value: 30 },
     { label: 'Last 90 days', value: 90 },
@@ -182,7 +196,7 @@ const SessionCountGraph = () => {
     });
 
     return loading ? (
-        <Skeleton count={1} style={{ width: '100%', height: 300 }} />
+        <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>
@@ -241,7 +255,7 @@ const ErrorCountGraph = () => {
     });
 
     return loading ? (
-        <Skeleton count={1} style={{ width: '100%', height: 300 }} />
+        <Skeleton count={1} style={{ width: '100%', height: 334 }} />
     ) : (
         <div className={classNames(styles.section, styles.graphSection)}>
             <div className={styles.chartHeaderWrapper}>

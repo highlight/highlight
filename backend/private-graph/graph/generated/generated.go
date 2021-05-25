@@ -65,8 +65,9 @@ type ComplexityRoot struct {
 	}
 
 	BillingDetails struct {
-		Meter func(childComplexity int) int
-		Plan  func(childComplexity int) int
+		Meter              func(childComplexity int) int
+		Plan               func(childComplexity int) int
+		SessionsOutOfQuota func(childComplexity int) int
 	}
 
 	DailyErrorCount struct {
@@ -264,6 +265,7 @@ type ComplexityRoot struct {
 		SlackChannelSuggestion        func(childComplexity int, organizationID int) int
 		TopUsers                      func(childComplexity int, organizationID int, lookBackPeriod int) int
 		UnprocessedSessionsCount      func(childComplexity int, organizationID int) int
+		UserFingerprintCount          func(childComplexity int, organizationID int, lookBackPeriod int) int
 	}
 
 	RecordingSettings struct {
@@ -321,9 +323,11 @@ type ComplexityRoot struct {
 		EnableStrictPrivacy  func(childComplexity int) int
 		FieldGroup           func(childComplexity int) int
 		Fields               func(childComplexity int) int
+		Fingerprint          func(childComplexity int) int
 		FirstTime            func(childComplexity int) int
 		ID                   func(childComplexity int) int
 		Identifier           func(childComplexity int) int
+		Language             func(childComplexity int) int
 		Length               func(childComplexity int) int
 		OSName               func(childComplexity int) int
 		OSVersion            func(childComplexity int) int
@@ -363,6 +367,10 @@ type ComplexityRoot struct {
 
 	User struct {
 		ID func(childComplexity int) int
+	}
+
+	UserFingerprintCount struct {
+		Count func(childComplexity int) int
 	}
 
 	UserProperty struct {
@@ -440,6 +448,7 @@ type QueryResolver interface {
 	NewUsersCount(ctx context.Context, organizationID int, lookBackPeriod int) (*model.NewUsersCount, error)
 	TopUsers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*model.TopUsersPayload, error)
 	AverageSessionLength(ctx context.Context, organizationID int, lookBackPeriod int) (*model.AverageSessionLength, error)
+	UserFingerprintCount(ctx context.Context, organizationID int, lookBackPeriod int) (*model.UserFingerprintCount, error)
 	Sessions(ctx context.Context, organizationID int, count int, lifecycle model.SessionLifecycle, starred bool, params *model.SearchParamsInput) (*model1.SessionResults, error)
 	BillingDetails(ctx context.Context, organizationID int) (*model.BillingDetails, error)
 	FieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model1.Field, error)
@@ -529,6 +538,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BillingDetails.Plan(childComplexity), true
+
+	case "BillingDetails.sessionsOutOfQuota":
+		if e.complexity.BillingDetails.SessionsOutOfQuota == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.SessionsOutOfQuota(childComplexity), true
 
 	case "DailyErrorCount.count":
 		if e.complexity.DailyErrorCount.Count == nil {
@@ -1769,6 +1785,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.UnprocessedSessionsCount(childComplexity, args["organization_id"].(int)), true
 
+	case "Query.userFingerprintCount":
+		if e.complexity.Query.UserFingerprintCount == nil {
+			break
+		}
+
+		args, err := ec.field_Query_userFingerprintCount_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.UserFingerprintCount(childComplexity, args["organization_id"].(int), args["lookBackPeriod"].(int)), true
+
 	case "RecordingSettings.details":
 		if e.complexity.RecordingSettings.Details == nil {
 			break
@@ -2021,6 +2049,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Fields(childComplexity), true
 
+	case "Session.fingerprint":
+		if e.complexity.Session.Fingerprint == nil {
+			break
+		}
+
+		return e.complexity.Session.Fingerprint(childComplexity), true
+
 	case "Session.first_time":
 		if e.complexity.Session.FirstTime == nil {
 			break
@@ -2041,6 +2076,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Session.Identifier(childComplexity), true
+
+	case "Session.language":
+		if e.complexity.Session.Language == nil {
+			break
+		}
+
+		return e.complexity.Session.Language(childComplexity), true
 
 	case "Session.length":
 		if e.complexity.Session.Length == nil {
@@ -2231,6 +2273,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.ID(childComplexity), true
 
+	case "UserFingerprintCount.count":
+		if e.complexity.UserFingerprintCount.Count == nil {
+			break
+		}
+
+		return e.complexity.UserFingerprintCount.Count(childComplexity), true
+
 	case "UserProperty.name":
 		if e.complexity.UserProperty.Name == nil {
 			break
@@ -2324,6 +2373,7 @@ type Field {
 type Session {
     id: ID!
     user_id: ID!
+    fingerprint: Int
     os_name: String!
     os_version: String!
     browser_name: String!
@@ -2331,6 +2381,7 @@ type Session {
     city: String!
     state: String!
     postal: String!
+    language: String!
     identifier: String!
     created_at: Time
     length: Int
@@ -2350,6 +2401,7 @@ type Session {
 type BillingDetails {
     plan: Plan!
     meter: Int64!
+    sessionsOutOfQuota: Int64!
 }
 
 type Plan {
@@ -2462,6 +2514,10 @@ type AverageSessionLength {
     length: Float!
 }
 
+type UserFingerprintCount {
+    count: Int64!
+}
+
 # NOTE: for SearchParams, if you make a change and want it to be reflected in both Segments and the default search UI,
 # edit both Foo and FooInput
 input SearchParamsInput {
@@ -2472,6 +2528,7 @@ input SearchParamsInput {
     length_range: LengthRangeInput
     os: String
     browser: String
+    device_id: String
     visited_url: String
     referrer: String
     identified: Boolean
@@ -2670,6 +2727,10 @@ type Query {
         organization_id: ID!
         lookBackPeriod: Int!
     ): AverageSessionLength
+    userFingerprintCount(
+        organization_id: ID!
+        lookBackPeriod: Int!
+    ): UserFingerprintCount
     sessions(
         organization_id: ID!
         count: Int!
@@ -4213,6 +4274,30 @@ func (ec *executionContext) field_Query_unprocessedSessionsCount_args(ctx contex
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_userFingerprintCount_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["organization_id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("organization_id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["organization_id"] = arg0
+	var arg1 int
+	if tmp, ok := rawArgs["lookBackPeriod"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lookBackPeriod"))
+		arg1, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["lookBackPeriod"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field___Type_enumValues_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4477,6 +4562,41 @@ func (ec *executionContext) _BillingDetails_meter(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Meter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BillingDetails_sessionsOutOfQuota(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionsOutOfQuota, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8866,6 +8986,45 @@ func (ec *executionContext) _Query_averageSessionLength(ctx context.Context, fie
 	return ec.marshalOAverageSessionLength2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐAverageSessionLength(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_userFingerprintCount(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_userFingerprintCount_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().UserFingerprintCount(rctx, args["organization_id"].(int), args["lookBackPeriod"].(int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.UserFingerprintCount)
+	fc.Result = res
+	return ec.marshalOUserFingerprintCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserFingerprintCount(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -10516,6 +10675,38 @@ func (ec *executionContext) _Session_user_id(ctx context.Context, field graphql.
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_fingerprint(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Fingerprint, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalOInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Session_os_name(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -10745,6 +10936,41 @@ func (ec *executionContext) _Session_postal(ctx context.Context, field graphql.C
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Postal, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_language(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Language, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11735,6 +11961,41 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UserFingerprintCount_count(ctx context.Context, field graphql.CollectedField, obj *model.UserFingerprintCount) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "UserFingerprintCount",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Count, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserProperty_name(ctx context.Context, field graphql.CollectedField, obj *model1.UserProperty) (ret graphql.Marshaler) {
@@ -13136,6 +13397,14 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
+		case "device_id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("device_id"))
+			it.DeviceID, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "visited_url":
 			var err error
 
@@ -13302,6 +13571,11 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 			}
 		case "meter":
 			out.Values[i] = ec._BillingDetails_meter(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sessionsOutOfQuota":
+			out.Values[i] = ec._BillingDetails_sessionsOutOfQuota(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -14453,6 +14727,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_averageSessionLength(ctx, field)
 				return res
 			})
+		case "userFingerprintCount":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_userFingerprintCount(ctx, field)
+				return res
+			})
 		case "sessions":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -14893,6 +15178,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "fingerprint":
+			out.Values[i] = ec._Session_fingerprint(ctx, field, obj)
 		case "os_name":
 			out.Values[i] = ec._Session_os_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -14925,6 +15212,11 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "postal":
 			out.Values[i] = ec._Session_postal(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "language":
+			out.Values[i] = ec._Session_language(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -15137,6 +15429,33 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = graphql.MarshalString("User")
 		case "id":
 			out.Values[i] = ec._User_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var userFingerprintCountImplementors = []string{"UserFingerprintCount"}
+
+func (ec *executionContext) _UserFingerprintCount(ctx context.Context, sel ast.SelectionSet, obj *model.UserFingerprintCount) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userFingerprintCountImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserFingerprintCount")
+		case "count":
+			out.Values[i] = ec._UserFingerprintCount_count(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -17173,6 +17492,13 @@ func (ec *executionContext) marshalOTopUsersPayload2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._TopUsersPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUserFingerprintCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserFingerprintCount(ctx context.Context, sel ast.SelectionSet, v *model.UserFingerprintCount) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UserFingerprintCount(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v []*model1.UserProperty) graphql.Marshaler {

@@ -14,8 +14,9 @@ type AverageSessionLength struct {
 }
 
 type BillingDetails struct {
-	Plan  *Plan `json:"plan"`
-	Meter int64 `json:"meter"`
+	Plan               *Plan `json:"plan"`
+	Meter              int64 `json:"meter"`
+	SessionsOutOfQuota int64 `json:"sessionsOutOfQuota"`
 }
 
 type DateRangeInput struct {
@@ -99,6 +100,7 @@ type SearchParamsInput struct {
 	LengthRange        *LengthRangeInput    `json:"length_range"`
 	Os                 *string              `json:"os"`
 	Browser            *string              `json:"browser"`
+	DeviceID           *string              `json:"device_id"`
 	VisitedURL         *string              `json:"visited_url"`
 	Referrer           *string              `json:"referrer"`
 	Identified         *bool                `json:"identified"`
@@ -110,6 +112,10 @@ type TopUsersPayload struct {
 	Identifier           string  `json:"identifier"`
 	TotalActiveTime      int     `json:"total_active_time"`
 	ActiveTimePercentage float64 `json:"active_time_percentage"`
+}
+
+type UserFingerprintCount struct {
+	Count int64 `json:"count"`
 }
 
 type UserPropertyInput struct {
