@@ -1407,6 +1407,11 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += "AND (id != id) "
 	}
 
+	// Anthony's org shouldn't get sessions over the quota
+	if organizationID == 110 {
+		whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota == true) "
+	}
+
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
@@ -1456,7 +1461,13 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	planType := modelInputs.PlanType(pricing.GetOrgPlanString(r.StripeClient, *org.StripeCustomerID))
+	var stripeCustomerID string
+	if org.StripeCustomerID != nil {
+		stripeCustomerID = *org.StripeCustomerID
+	} else {
+		stripeCustomerID = ""
+	}
+	planType := pricing.GetOrgPlanString(r.StripeClient, stripeCustomerID)
 
 	var g errgroup.Group
 	var meter int64
