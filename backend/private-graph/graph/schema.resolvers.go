@@ -558,6 +558,40 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
+
+		// mark sessions as within billing quota on plan upgrade
+		go func(r *mutationResolver, organizationID int, itemList stripe.SubscriptionItemList, plan modelInputs.PlanType) {
+			isPlanUpgrade := false
+			originalPlan := itemList.Data[0].Plan
+			if originalPlan != nil {
+				switch pricing.FromPriceID(originalPlan.ID) {
+				case modelInputs.PlanTypeFree:
+					isPlanUpgrade = true
+					break
+				case modelInputs.PlanTypeBasic:
+					if plan != modelInputs.PlanTypeFree {
+						isPlanUpgrade = true
+					}
+					break
+				case modelInputs.PlanTypeStartup:
+					if plan != modelInputs.PlanTypeFree && plan != modelInputs.PlanTypeBasic {
+						isPlanUpgrade = true
+					}
+					break
+				case modelInputs.PlanTypeEnterprise:
+					if plan != modelInputs.PlanTypeFree && plan != modelInputs.PlanTypeBasic && plan != modelInputs.PlanTypeStartup {
+						isPlanUpgrade = true
+					}
+					break
+				}
+			}
+			if isPlanUpgrade {
+				original := false
+				update := true
+				r.DB.Model(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &original}).Updates(model.Session{WithinBillingQuota: &update})
+			}
+		}(r, organizationID, *c.Subscriptions.Data[0].Items, planType)
+
 		ret := ""
 		return &ret, nil
 	}
@@ -585,6 +619,13 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	if err != nil {
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
+
+	// mark sessions as within billing quota on plan upgrade
+	go func(r *mutationResolver, organizationID int) {
+		original := false
+		update := true
+		r.DB.Model(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &original}).Updates(model.Session{WithinBillingQuota: &update})
+	}(r, organizationID)
 
 	return &stripeSession.ID, nil
 }
