@@ -183,7 +183,7 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 }
 
 func (r *mutationResolver) EditOrganization(ctx context.Context, id int, name *string, billingEmail *string) (*model.Organization, error) {
-	org, err := r.isAdminInOrganization(ctx, id)
+	org, err := r.IsAdminInOrganization(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
@@ -249,7 +249,7 @@ func (r *mutationResolver) DeleteOrganization(ctx context.Context, id int) (*boo
 }
 
 func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID int, email string, baseURL string) (*string, error) {
-	org, err := r.isAdminInOrganization(ctx, organizationID)
+	org, err := r.IsAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying org")
 	}
@@ -309,7 +309,7 @@ func (r *mutationResolver) AddAdminToOrganization(ctx context.Context, organizat
 }
 
 func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, organizationID int, code string, redirectPath string) (*bool, error) {
-	org, err := r.isAdminInOrganization(ctx, organizationID)
+	org, err := r.IsAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -364,7 +364,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 }
 
 func (r *mutationResolver) CreateSegment(ctx context.Context, organizationID int, name string, params modelInputs.SearchParamsInput) (*model.Segment, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 	modelParams := InputToParams(&params)
@@ -392,7 +392,7 @@ func (r *mutationResolver) EmailSignup(ctx context.Context, email string) (strin
 }
 
 func (r *mutationResolver) EditSegment(ctx context.Context, id int, organizationID int, params modelInputs.SearchParamsInput) (*bool, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 	modelParams := InputToParams(&params)
@@ -418,7 +418,7 @@ func (r *mutationResolver) DeleteSegment(ctx context.Context, segmentID int) (*b
 }
 
 func (r *mutationResolver) CreateErrorSegment(ctx context.Context, organizationID int, name string, params modelInputs.ErrorSearchParamsInput) (*model.ErrorSegment, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 	modelParams := ErrorInputToParams(&params)
@@ -441,7 +441,7 @@ func (r *mutationResolver) CreateErrorSegment(ctx context.Context, organizationI
 }
 
 func (r *mutationResolver) EditErrorSegment(ctx context.Context, id int, organizationID int, params modelInputs.ErrorSearchParamsInput) (*bool, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 	modelParams := ErrorInputToParams(&params)
@@ -467,7 +467,7 @@ func (r *mutationResolver) DeleteErrorSegment(ctx context.Context, segmentID int
 }
 
 func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizationID int, details *string) (*model.RecordingSettings, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	rec := &model.RecordingSettings{}
@@ -485,7 +485,7 @@ func (r *mutationResolver) EditRecordingSettings(ctx context.Context, organizati
 }
 
 func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organizationID int, planType modelInputs.PlanType) (*string, error) {
-	org, err := r.isAdminInOrganization(ctx, organizationID)
+	org, err := r.IsAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -561,7 +561,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 }
 
 func (r *mutationResolver) CreateSessionComment(ctx context.Context, organizationID int, adminID int, sessionID int, sessionTimestamp int, text string, textForEmail string, xCoordinate float64, yCoordinate float64, taggedAdmins []*modelInputs.SanitizedAdminInput, sessionURL string, time float64, authorName string, sessionImage *string) (*model.SessionComment, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
@@ -638,7 +638,7 @@ func (r *mutationResolver) DeleteSessionComment(ctx context.Context, id int) (*b
 }
 
 func (r *mutationResolver) CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*modelInputs.SanitizedAdminInput, errorURL string, authorName string) (*model.ErrorComment, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
@@ -702,7 +702,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 }
 
 func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlert *modelInputs.ErrorAlertInput) (*modelInputs.ErrorAlert, error) {
-	org, err := r.isAdminInOrganization(ctx, organizationID)
+	org, err := r.IsAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
@@ -789,7 +789,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 }
 
 func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, count int, params *modelInputs.ErrorSearchParamsInput) (*model.ErrorResults, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	errorFieldIds := []int{}
@@ -1006,7 +1006,7 @@ func (r *queryResolver) ErrorCommentsForAdmin(ctx context.Context) ([]*model.Err
 }
 
 func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*model.Admin, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	admins := []*model.Admin{}
@@ -1019,7 +1019,7 @@ func (r *queryResolver) Admins(ctx context.Context, organizationID int) ([]*mode
 }
 
 func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*bool, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	var count int64
@@ -1035,7 +1035,7 @@ func (r *queryResolver) IsIntegrated(ctx context.Context, organizationID int) (*
 }
 
 func (r *queryResolver) UnprocessedSessionsCount(ctx context.Context, organizationID int) (*int64, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
@@ -1058,7 +1058,7 @@ func (r *queryResolver) AdminHasCreatedComment(ctx context.Context, adminID int)
 }
 
 func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, orgID int) ([]*modelInputs.SanitizedSlackChannel, error) {
-	org, err := r.isAdminInOrganization(ctx, orgID)
+	org, err := r.IsAdminInOrganization(ctx, orgID)
 	if err != nil {
 		return nil, e.Wrap(err, "error getting org")
 	}
@@ -1077,7 +1077,7 @@ func (r *queryResolver) SlackChannelSuggestion(ctx context.Context, orgID int) (
 }
 
 func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, organizationID int) (*model.Session, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
@@ -1089,7 +1089,7 @@ func (r *queryResolver) OrganizationHasViewedASession(ctx context.Context, organ
 }
 
 func (r *queryResolver) DailySessionsCount(ctx context.Context, organizationID int, dateRange modelInputs.DateRangeInput) ([]*model.DailySessionCount, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
@@ -1106,7 +1106,7 @@ func (r *queryResolver) DailySessionsCount(ctx context.Context, organizationID i
 }
 
 func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int, dateRange modelInputs.DateRangeInput) ([]*model.DailyErrorCount, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
@@ -1123,7 +1123,7 @@ func (r *queryResolver) DailyErrorsCount(ctx context.Context, organizationID int
 }
 
 func (r *queryResolver) Referrers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*modelInputs.ReferrerTablePayload, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
@@ -1137,7 +1137,7 @@ func (r *queryResolver) Referrers(ctx context.Context, organizationID int, lookB
 }
 
 func (r *queryResolver) NewUsersCount(ctx context.Context, organizationID int, lookBackPeriod int) (*modelInputs.NewUsersCount, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
@@ -1150,7 +1150,7 @@ func (r *queryResolver) NewUsersCount(ctx context.Context, organizationID int, l
 }
 
 func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBackPeriod int) ([]*modelInputs.TopUsersPayload, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
@@ -1169,7 +1169,7 @@ func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBa
 }
 
 func (r *queryResolver) AverageSessionLength(ctx context.Context, organizationID int, lookBackPeriod int) (*modelInputs.AverageSessionLength, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	var length float64
@@ -1181,7 +1181,7 @@ func (r *queryResolver) AverageSessionLength(ctx context.Context, organizationID
 }
 
 func (r *queryResolver) UserFingerprintCount(ctx context.Context, organizationID int, lookBackPeriod int) (*modelInputs.UserFingerprintCount, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
@@ -1429,7 +1429,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 }
 
 func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) (*modelInputs.BillingDetails, error) {
-	org, err := r.isAdminInOrganization(ctx, organizationID)
+	org, err := r.IsAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
@@ -1460,7 +1460,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 }
 
 func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model.Field, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
@@ -1476,7 +1476,7 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 }
 
 func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID int, query string, typeArg string) ([]*model.Field, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
@@ -1492,7 +1492,7 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 }
 
 func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, organizationID int, name string, query string) ([]*model.ErrorField, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.ErrorField{}
@@ -1531,7 +1531,7 @@ func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string
 }
 
 func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organization, error) {
-	org, err := r.isAdminInOrganization(ctx, id)
+	org, err := r.IsAdminInOrganization(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
@@ -1576,7 +1576,7 @@ func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
 }
 
 func (r *queryResolver) Segments(ctx context.Context, organizationID int) ([]*model.Segment, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	// list of maps, where each map represents a field query.
@@ -1588,7 +1588,7 @@ func (r *queryResolver) Segments(ctx context.Context, organizationID int) ([]*mo
 }
 
 func (r *queryResolver) ErrorSegments(ctx context.Context, organizationID int) ([]*model.ErrorSegment, error) {
-	if _, err := r.isAdminInOrganization(ctx, organizationID); err != nil {
+	if _, err := r.IsAdminInOrganization(ctx, organizationID); err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 	// list of maps, where each map represents a field query.
@@ -1615,7 +1615,7 @@ func (r *queryResolver) RecordingSettings(ctx context.Context, organizationID in
 }
 
 func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*modelInputs.ErrorAlert, error) {
-	org, err := r.isAdminInOrganization(ctx, organizationID)
+	org, err := r.IsAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}

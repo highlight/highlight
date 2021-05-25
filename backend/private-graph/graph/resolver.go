@@ -55,7 +55,7 @@ func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 
 // These are authentication methods used to make sure that data is secured.
 // This'll probably get expensive at some point; they can probably be cached.
-func (r *Resolver) isAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
+func (r *Resolver) IsAdminInOrganization(ctx context.Context, org_id int) (*model.Organization, error) {
 	if r.isWhitelistedAccount(ctx) {
 		org := &model.Organization{}
 		if err := r.DB.Where(&model.Organization{Model: model.Model{ID: org_id}}).First(&org).Error; err != nil {
@@ -162,7 +162,7 @@ func (r *Resolver) isAdminErrorGroupOwner(ctx context.Context, errorGroupID int)
 	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: errorGroupID}}).First(&errorGroup).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session")
 	}
-	_, err := r.isAdminInOrganization(ctx, errorGroup.OrganizationID)
+	_, err := r.IsAdminInOrganization(ctx, errorGroup.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
@@ -178,7 +178,7 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 	if strconv.Itoa(session_id) == DemoSession {
 		return session, nil
 	}
-	_, err := r.isAdminInOrganization(ctx, session.OrganizationID)
+	_, err := r.IsAdminInOrganization(ctx, session.OrganizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
