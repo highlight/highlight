@@ -1433,18 +1433,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	customerID := ""
-	if org.StripeCustomerID != nil {
-		customerID = *org.StripeCustomerID
-	}
-	params := &stripe.CustomerParams{}
-	priceID := ""
-	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(customerID, params)
-	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
-		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
-	}
-	planType := pricing.FromPriceID(priceID)
+	planType := modelInputs.PlanType(pricing.GetOrgPlanString(r.StripeClient, *org.StripeCustomerID))
 
 	var g errgroup.Group
 	var meter int64

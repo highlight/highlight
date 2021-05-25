@@ -11,9 +11,9 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
+	backend "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
-	"github.com/stripe/stripe-go"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -163,18 +163,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
 		return e.Wrap(err, "error querying org")
 	}
-	customerID := ""
-	if org.StripeCustomerID != nil {
-		customerID = *org.StripeCustomerID
-	}
-	params := &stripe.CustomerParams{}
-	priceID := ""
-	params.AddExpand("subscriptions")
-	c, err := w.Resolver.StripeClient.Customers.Get(customerID, params)
-	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
-		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
-	}
-	planType := pricing.FromPriceID(priceID)
+	planType := backend.PlanType(pricing.GetOrgPlanString(w.Resolver.StripeClient, *org.StripeCustomerID))
 	quota := pricing.TypeToQuota(planType)
 
 	year, month, _ := time.Now().Date()
