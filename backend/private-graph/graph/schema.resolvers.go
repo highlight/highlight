@@ -588,7 +588,9 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 			if isPlanUpgrade {
 				original := false
 				update := true
-				r.DB.Model(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &original}).Updates(model.Session{WithinBillingQuota: &update})
+				if err := r.DB.Model(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &original}).Updates(model.Session{WithinBillingQuota: &update}).Error; err != nil {
+					log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
+				}
 			}
 		}(r, organizationID, *c.Subscriptions.Data[0].Items, planType)
 
@@ -624,7 +626,9 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	go func(r *mutationResolver, organizationID int) {
 		original := false
 		update := true
-		r.DB.Model(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &original}).Updates(model.Session{WithinBillingQuota: &update})
+		if err := r.DB.Model(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &original}).Updates(model.Session{WithinBillingQuota: &update}).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
+		}
 	}(r, organizationID)
 
 	return &stripeSession.ID, nil
