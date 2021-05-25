@@ -64,8 +64,9 @@ type ComplexityRoot struct {
 	}
 
 	BillingDetails struct {
-		Meter func(childComplexity int) int
-		Plan  func(childComplexity int) int
+		Meter              func(childComplexity int) int
+		Plan               func(childComplexity int) int
+		SessionsOutOfQuota func(childComplexity int) int
 	}
 
 	DailyErrorCount struct {
@@ -529,6 +530,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.BillingDetails.Plan(childComplexity), true
+
+	case "BillingDetails.sessionsOutOfQuota":
+		if e.complexity.BillingDetails.SessionsOutOfQuota == nil {
+			break
+		}
+
+		return e.complexity.BillingDetails.SessionsOutOfQuota(childComplexity), true
 
 	case "DailyErrorCount.count":
 		if e.complexity.DailyErrorCount.Count == nil {
@@ -2365,6 +2373,7 @@ type Session {
 type BillingDetails {
     plan: Plan!
     meter: Int64!
+    sessionsOutOfQuota: Int64!
 }
 
 type Plan {
@@ -4477,6 +4486,41 @@ func (ec *executionContext) _BillingDetails_meter(ctx context.Context, field gra
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Meter, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int64)
+	fc.Result = res
+	return ec.marshalNInt642int64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _BillingDetails_sessionsOutOfQuota(ctx context.Context, field graphql.CollectedField, obj *model.BillingDetails) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "BillingDetails",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SessionsOutOfQuota, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13416,6 +13460,11 @@ func (ec *executionContext) _BillingDetails(ctx context.Context, sel ast.Selecti
 			}
 		case "meter":
 			out.Values[i] = ec._BillingDetails_meter(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "sessionsOutOfQuota":
+			out.Values[i] = ec._BillingDetails_sessionsOutOfQuota(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
