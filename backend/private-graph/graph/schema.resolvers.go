@@ -762,7 +762,12 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID 
 	alert.ChannelsToNotify = &channelsString
 	alert.ExcludedEnvironments = &envString
 	alert.CountThreshold = countThreshold
-	if err := r.DB.Model(&model.ErrorAlert{}).Updates(alert).Error; err != nil {
+	if err := r.DB.Model(&model.ErrorAlert{
+		OrganizationID: organizationID,
+		Model: model.Model{
+			ID: errorAlertID,
+		},
+	}).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
 	return alert, nil
