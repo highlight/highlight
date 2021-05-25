@@ -1,10 +1,12 @@
 import { Divider, Form } from 'antd';
 import React from 'react';
+import { useParams } from 'react-router-dom';
 
 import Button from '../../../components/Button/Button/Button';
 import Collapsible from '../../../components/Collapsible/Collapsible';
 import InputNumber from '../../../components/InputNumber/InputNumber';
 import Select from '../../../components/Select/Select';
+import { useUpdateErrorAlertMutation } from '../../../graph/generated/hooks';
 import styles from './AlertConfigurationCard.module.scss';
 
 interface AlertConfiguration {
@@ -23,10 +25,30 @@ export const AlertConfigurationCard = ({
     environmentOptions,
     channelSuggestions,
 }: Props) => {
+    const { organization_id } = useParams<{ organization_id: string }>();
     const [form] = Form.useForm();
+    const [updateErrorAlert] = useUpdateErrorAlertMutation();
 
-    const onSubmit = (data: any) => {
-        console.log({ ...data, name });
+    const onSubmit = () => {
+        console.log(form.getFieldValue('channels'), channelSuggestions);
+        updateErrorAlert({
+            variables: {
+                organization_id,
+                environments: form.getFieldValue('excludedEnvironments'),
+                count_threshold: form.getFieldValue('threshold'),
+                slack_channels: form
+                    .getFieldValue('channels')
+                    .map((webhook_channel_id: string) => ({
+                        webhook_channel_name: channelSuggestions.find(
+                            (suggestion) =>
+                                suggestion.webhook_channel_id ===
+                                webhook_channel_id
+                        ).webhook_channel,
+                        webhook_channel_id,
+                    })),
+                error_alert_id: '1',
+            },
+        });
     };
 
     const channels = channelSuggestions.map(

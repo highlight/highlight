@@ -4,13 +4,7 @@ import { useParams } from 'react-router-dom';
 
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
-import {
-    useGetAlertsPagePayloadQuery,
-    useGetEnvironmentSuggestionQuery,
-    useGetErrorAlertsQuery,
-    useGetSlackChannelSuggestionQuery,
-    useUpdateErrorAlertMutation,
-} from '../../graph/generated/hooks';
+import { useGetAlertsPagePayloadQuery } from '../../graph/generated/hooks';
 import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
 
@@ -38,11 +32,6 @@ const AlertsPage = () => {
         variables: { organization_id: organization_id },
     });
 
-    const mutation = useUpdateErrorAlertMutation();
-    console.log(mutation);
-    // TODO: @John, we need to prepooulate/deduplicate the environments w/ 'production', 'staging' and 'development'.
-
-    console.log(data);
     return (
         <LeadAlignLayout>
             <h2>Configure your alerts</h2>
