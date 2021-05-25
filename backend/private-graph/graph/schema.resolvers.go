@@ -1468,7 +1468,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 
 	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
 	if err := g.Wait(); err != nil {
-		return nil, e.Wrap(err, "error querying session data")
+		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{

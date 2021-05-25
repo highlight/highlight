@@ -159,11 +159,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	// Check if session is within billing quota
 	// TODO: this feels like too much login in the processPayload function
-	// TODO: do we want last 30 days or current month?
-	whereClause := fmt.Sprintf("AND (created_at > (CURRENT_DATE - INTERVAL '%d days')) ", 30)
-	whereClause += "AND (processed = true)"
-	// whereClause += "AND (created_at >= date_trunc('month', current_date)) "
-
 	// get quota:
 	org, err := w.Resolver.IsAdminInOrganization(ctx, s.OrganizationID)
 	if err != nil {
@@ -183,8 +178,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	planType := pricing.FromPriceID(priceID)
 	quota := pricing.TypeToQuota(planType)
 
+	year, month, _ := time.Now().Date()
 	var sessionCount int64
-	if err := w.Resolver.DB.Model(&model.Session{}).Where(whereClause).Count(&sessionCount).Error; err != nil {
+	if err := w.Resolver.DB.Model(&model.Session{}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Count(&sessionCount).Error; err != nil {
 		return errors.Wrap(err, "error getting past month's session count")
 	}
 	withinQuota := sessionCount >= int64(quota)
