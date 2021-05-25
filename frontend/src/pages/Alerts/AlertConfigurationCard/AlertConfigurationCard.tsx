@@ -1,5 +1,5 @@
-import { Divider, Form } from 'antd';
-import React from 'react';
+import { Divider, Form, message } from 'antd';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import Button from '../../../components/Button/Button/Button';
@@ -15,40 +15,54 @@ interface AlertConfiguration {
 }
 
 interface Props {
+    alert: any;
     configuration: AlertConfiguration;
     environmentOptions: any[];
     channelSuggestions: any[];
 }
 
 export const AlertConfigurationCard = ({
+    alert,
     configuration: { name, canControlThreshold },
     environmentOptions,
     channelSuggestions,
 }: Props) => {
+    const [loading, setLoading] = useState(false);
+    const [formTouched, setFormTouched] = useState(false);
     const { organization_id } = useParams<{ organization_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
 
-    const onSubmit = () => {
-        console.log(form.getFieldValue('channels'), channelSuggestions);
-        updateErrorAlert({
-            variables: {
-                organization_id,
-                environments: form.getFieldValue('excludedEnvironments'),
-                count_threshold: form.getFieldValue('threshold'),
-                slack_channels: form
-                    .getFieldValue('channels')
-                    .map((webhook_channel_id: string) => ({
-                        webhook_channel_name: channelSuggestions.find(
-                            (suggestion) =>
-                                suggestion.webhook_channel_id ===
-                                webhook_channel_id
-                        ).webhook_channel,
-                        webhook_channel_id,
-                    })),
-                error_alert_id: '1',
-            },
-        });
+    const onSubmit = async () => {
+        setLoading(true);
+        try {
+            await updateErrorAlert({
+                variables: {
+                    organization_id,
+                    environments: form.getFieldValue('excludedEnvironments'),
+                    count_threshold: form.getFieldValue('threshold'),
+                    slack_channels: form
+                        .getFieldValue('channels')
+                        .map((webhook_channel_id: string) => ({
+                            webhook_channel_name: channelSuggestions.find(
+                                (suggestion) =>
+                                    suggestion.webhook_channel_id ===
+                                    webhook_channel_id
+                            ).webhook_channel,
+                            webhook_channel_id,
+                        })),
+                    error_alert_id: alert.id,
+                },
+                refetchQueries: ['GetAlertsPagePayload'],
+            });
+            message.success(`Updated ${name}!`);
+            setFormTouched(false);
+        } catch (e) {
+            message.error(
+                `There was a problem updating ${name}. Please try again.`
+            );
+        }
+        setLoading(false);
     };
 
     const channels = channelSuggestions.map(
@@ -84,11 +98,21 @@ export const AlertConfigurationCard = ({
 
     const onChannelsChange = (channels: string[]) => {
         form.setFieldsValue({ channels });
+        setFormTouched(true);
     };
 
     const onExcludedEnvironmentsChange = (excludedEnvironments: string[]) => {
         form.setFieldsValue({ excludedEnvironments });
+        setFormTouched(true);
     };
+
+    const onThresholdChange = () => {
+        setFormTouched(true);
+    };
+
+    if (!alert) {
+        return null;
+    }
 
     return (
         <Collapsible title={name} className={styles.alertConfigurationCard}>
@@ -96,9 +120,11 @@ export const AlertConfigurationCard = ({
                 onFinish={onSubmit}
                 form={form}
                 initialValues={{
-                    threshold: 1,
-                    channels: [],
-                    excludedEnvironments: [],
+                    threshold: alert.CountThreshold,
+                    channels: alert.ChannelsToNotify.map(
+                        (channel: any) => channel.webhook_channel_id
+                    ),
+                    excludedEnvironments: alert.ExcludedEnvironments,
                 }}
             >
                 <section>
@@ -160,7 +186,7 @@ export const AlertConfigurationCard = ({
                         <h3>Threshold</h3>
                         <p>Pick how often an alert should be created.</p>
                         <Form.Item name="threshold">
-                            <InputNumber />
+                            <InputNumber onChange={onThresholdChange} />
                         </Form.Item>
                     </section>
                 )}
@@ -171,7 +197,8 @@ export const AlertConfigurationCard = ({
                             type="primary"
                             className={styles.saveButton}
                             htmlType="submit"
-                            disabled={!form.isFieldsTouched(false)}
+                            disabled={!formTouched}
+                            loading={loading}
                         >
                             Save
                         </Button>

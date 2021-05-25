@@ -1199,7 +1199,7 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
             Types.Maybe<
                 { __typename?: 'ErrorAlert' } & Pick<
                     Types.ErrorAlert,
-                    'ExcludedEnvironments' | 'CountThreshold'
+                    'ExcludedEnvironments' | 'CountThreshold' | 'id'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<

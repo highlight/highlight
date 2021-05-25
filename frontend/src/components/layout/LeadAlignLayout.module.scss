@@ -1,7 +1,7 @@
 .leadAlignLayout {
     height: min-content;
     margin: 120px 80px 20px;
-    min-width: 650px;
+    max-width: 650px;
     padding-bottom: var(--size-xxLarge);
 
     .subTitle {

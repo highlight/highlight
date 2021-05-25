@@ -3616,6 +3616,7 @@ export const GetAlertsPagePayloadDocument = gql`
             }
             ExcludedEnvironments
             CountThreshold
+            id
         }
     }
 `;

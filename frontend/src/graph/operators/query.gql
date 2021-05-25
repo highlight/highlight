@@ -560,5 +560,6 @@ query GetAlertsPagePayload($organization_id: ID!) {
         }
         ExcludedEnvironments
         CountThreshold
+        id
     }
 }
