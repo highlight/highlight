@@ -1,15 +1,3 @@
-.icon {
-    color: var(--color-purple);
-    cursor: pointer;
-    float: right;
-    height: 16px;
-    margin-left: auto;
-    margin-right: -4px;
-    margin-top: 6px;
-    transition: 0.4s;
-    width: 16px;
-}
-
 .radioGroupWrapper {
     display: flex;
     margin: 20px 0;
@@ -31,6 +19,12 @@
     width: 85px;
 }
 
+.stepsContainer {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-large);
+}
+
 .callout {
     background-color: var(--color-gray-200);
     border-radius: 4px;
@@ -38,18 +32,10 @@
     line-height: 2;
 }
 
-.section {
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    margin-bottom: 20px;
-    max-width: 650px;
-    padding: 20px 30px;
-    transition: 0.4s;
-}
-
-.triggerWrapper {
+.sectionTitleWithIcon {
+    align-items: center;
+    column-gap: var(--size-xSmall);
     display: flex;
-    flex-direction: row;
 }
 
 .subTitle {
@@ -97,4 +83,9 @@
     resize: none;
     white-space: pre;
     width: 100%;
+}
+
+.integrationContainer {
+    padding: var(--size-medium) 0;
+    padding-bottom: 0;
 }
