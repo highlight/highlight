@@ -1459,18 +1459,10 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	})
 
 	g.Go(func() error {
-		fromClause := "FROM sessions"
-		whereClause := fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
-		whereClause += "AND (within_billing_quota = false) "
-		// TODO: do we want last 30 days or current month?
-		whereClause += fmt.Sprintf("AND (created_at > (CURRENT_DATE - INTERVAL '%d days'))", 30)
-		// whereClause += "AND (created_at >= date_trunc('month', current_date)) "
-
-		sessionsOverQuotaCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsOverQuotaCountQuery"))
-		if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s", fromClause, whereClause)).Scan(&queriedSessionsOutOfQuota).Error; err != nil {
-			return e.Wrap(err, "error querying sessions over quota count")
+		queriedSessionsOutOfQuota.Count, err = pricing.GetOrgQuotaOverflow(ctx, r.DB, organizationID)
+		if err != nil {
+			return e.Wrap(err, "error from get quota overflow")
 		}
-		sessionsOverQuotaCountSpan.Finish()
 		return nil
 	})
 
