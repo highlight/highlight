@@ -323,6 +323,7 @@ input SanitizedSlackChannelInput {
     webhook_channel_id: String
 }
 type ErrorAlert {
+    id: ID!
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
