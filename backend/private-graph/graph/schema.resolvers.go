@@ -1433,28 +1433,39 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	customerID := ""
-	if org.StripeCustomerID != nil {
-		customerID = *org.StripeCustomerID
-	}
-	params := &stripe.CustomerParams{}
-	priceID := ""
-	params.AddExpand("subscriptions")
-	c, err := r.StripeClient.Customers.Get(customerID, params)
-	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
-		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
-	}
-	planType := pricing.FromPriceID(priceID)
-	meter, err := pricing.GetOrgQuota(r.DB, organizationID)
-	if err != nil {
-		return nil, e.Wrap(err, "error from get quota")
+	planType := modelInputs.PlanType(pricing.GetOrgPlanString(r.StripeClient, *org.StripeCustomerID))
+
+	var g errgroup.Group
+	var meter int64
+	var queriedSessionsOutOfQuota int64
+
+	g.Go(func() error {
+		meter, err = pricing.GetOrgQuota(r.DB, organizationID)
+		if err != nil {
+			return e.Wrap(err, "error from get quota")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		queriedSessionsOutOfQuota, err = pricing.GetOrgQuotaOverflow(ctx, r.DB, organizationID)
+		if err != nil {
+			return e.Wrap(err, "error from get quota overflow")
+		}
+		return nil
+	})
+
+	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
+	if err := g.Wait(); err != nil {
+		return nil, e.Wrap(err, "error querying session data for billing details")
 	}
 	details := &modelInputs.BillingDetails{
 		Plan: &modelInputs.Plan{
 			Type:  modelInputs.PlanType(planType.String()),
 			Quota: pricing.TypeToQuota(planType),
 		},
-		Meter: meter,
+		Meter:              meter,
+		SessionsOutOfQuota: queriedSessionsOutOfQuota,
 	}
 	return details, nil
 }

@@ -41,6 +41,7 @@ type Session {
 type BillingDetails {
     plan: Plan!
     meter: Int64!
+    sessionsOutOfQuota: Int64!
 }
 
 type Plan {

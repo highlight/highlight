@@ -9,3 +9,5 @@ build
 apollo.config.js
 .yalc
 yalc.lock
+
+**/.idea
