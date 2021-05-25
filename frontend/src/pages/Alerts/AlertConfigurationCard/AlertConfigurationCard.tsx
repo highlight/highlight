@@ -1,4 +1,4 @@
-import { Form } from 'antd';
+import { Divider, Form } from 'antd';
 import React from 'react';
 
 import Button from '../../../components/Button/Button/Button';
@@ -95,7 +95,7 @@ export const AlertConfigurationCard = ({
                         <Select
                             className={styles.channelSelect}
                             options={channels}
-                            mode="tags"
+                            mode="multiple"
                             placeholder={`Select a channel(s) or person(s) to send ${name} to.`}
                             onChange={onChannelsChange}
                             notFoundContent={
@@ -104,6 +104,19 @@ export const AlertConfigurationCard = ({
                                     <Button>CLick me</Button>
                                 </div>
                             }
+                            dropdownRender={(menu) => (
+                                <div>
+                                    {menu}
+                                    <Divider style={{ margin: '4px 0' }} />
+                                    <div className={styles.addContainer}>
+                                        Can't find the channel or person here?{' '}
+                                        <a href="">
+                                            Configure Highlight with Slack
+                                        </a>
+                                        .
+                                    </div>
+                                </div>
+                            )}
                         />
                     </Form.Item>
                 </section>
@@ -122,12 +135,6 @@ export const AlertConfigurationCard = ({
                             mode="multiple"
                             placeholder={`Select a environment(s) that should not trigger alerts.`}
                             onChange={onExcludedEnvironmentsChange}
-                            notFoundContent={
-                                <div>
-                                    <h2>Not Found</h2>
-                                    <Button>CLick me</Button>
-                                </div>
-                            }
                         />
                     </Form.Item>
                 </section>

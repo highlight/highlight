@@ -20,6 +20,7 @@ type Props = Pick<
     | 'allowClear'
     | 'notFoundContent'
     | 'mode'
+    | 'dropdownRender'
 > & {
     options: {
         value: string;
