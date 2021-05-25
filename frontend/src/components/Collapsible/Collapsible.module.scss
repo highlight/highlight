@@ -2,7 +2,6 @@
     border: 1px solid var(--color-gray-300);
     border-radius: var(--border-radius);
     cursor: pointer;
-    padding: var(--size-large);
     transition: transform 0.1s ease-in-out, border-color 0.1s ease-in-out;
     width: 100%;
 
@@ -17,9 +16,12 @@
         display: flex;
         justify-content: space-between;
         margin-bottom: var(--size-medium);
+        padding: 0 var(--size-large);
+        padding-top: var(--size-large);
 
         &.collapsed {
             margin-bottom: 0;
+            padding: var(--size-large);
         }
 
         > svg {
@@ -45,6 +47,8 @@
 
     .content {
         cursor: auto;
+        padding: var(--size-large);
+        padding-top: 0;
 
         p:first-of-type {
             margin-top: 0 !important;
