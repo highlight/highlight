@@ -319,6 +319,11 @@ type ErrorAlert {
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
 }
+type SessionAlert {
+    ChannelsToNotify: [SanitizedSlackChannel]!
+    ExcludedEnvironments: [String]!
+    CountThreshold: Int!
+}
 
 type Query {
     session(id: ID!): Session
@@ -385,6 +390,7 @@ type Query {
     ): [ErrorField]
     organizations: [Organization]
     error_alerts(organization_id: ID!): [ErrorAlert]
+    session_alerts(organization_id: ID!): [SessionAlert]
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
@@ -480,4 +486,11 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): ErrorAlert
+    updateSessionAlert(
+        organization_id: ID!
+        session_alert_id: ID!
+        count_threshold: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
 }

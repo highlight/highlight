@@ -92,6 +92,14 @@ type ErrorAlert struct {
 	ChannelsToNotify     *string
 }
 
+type SessionAlert struct {
+	Model
+	OrganizationID       int
+	ExcludedEnvironments *string
+	CountThreshold       int
+	ChannelsToNotify     *string
+}
+
 type SlackChannel struct {
 	WebhookAccessToken string
 	WebhookURL         string
@@ -445,6 +453,7 @@ func SetupDB() *gorm.DB {
 		&SessionComment{},
 		&ErrorComment{},
 		&ErrorAlert{},
+		&SessionAlert{},
 	); err != nil {
 		log.Fatalf("Error migrating db: %v", err)
 	}
