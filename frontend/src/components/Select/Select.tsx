@@ -38,6 +38,7 @@ const Select = ({ options, className, ...props }: Props) => {
             className={classNames(className, styles.select)}
             menuItemSelectedIcon={null}
             defaultActiveFirstOption={false}
+            dropdownClassName={styles.dropdown}
         >
             {options.map(({ displayValue, value, disabled, id }) => (
                 <Option key={id} value={value} disabled={disabled}>
