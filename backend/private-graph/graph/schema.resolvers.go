@@ -1456,7 +1456,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	planType := modelInputs.PlanType(pricing.GetOrgPlanString(r.StripeClient, *org.StripeCustomerID))
+	planType := pricing.GetOrgPlanString(r.StripeClient, *org.StripeCustomerID)
 
 	var g errgroup.Group
 	var meter int64

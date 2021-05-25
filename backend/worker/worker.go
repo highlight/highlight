@@ -166,7 +166,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 	var planType backend.PlanType
 	if org.StripeCustomerID != nil {
-		planType = backend.PlanType(pricing.GetOrgPlanString(w.Resolver.StripeClient, *org.StripeCustomerID))
+		planType = pricing.GetOrgPlanString(w.Resolver.StripeClient, *org.StripeCustomerID)
 	} else {
 		planType = backend.PlanTypeFree
 	}

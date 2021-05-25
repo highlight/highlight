@@ -34,7 +34,7 @@ func GetOrgQuotaOverflow(ctx context.Context, DB *gorm.DB, org_id int) (int64, e
 	return queriedSessionsOverQuota, nil
 }
 
-func GetOrgPlanString(stripeClient *client.API, customerID string) string {
+func GetOrgPlanString(stripeClient *client.API, customerID string) backend.PlanType {
 	params := &stripe.CustomerParams{}
 	priceID := ""
 	params.AddExpand("subscriptions")
@@ -42,7 +42,7 @@ func GetOrgPlanString(stripeClient *client.API, customerID string) string {
 	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
 		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
 	}
-	planType := FromPriceID(priceID).String()
+	planType := FromPriceID(priceID)
 	return planType
 }
 
