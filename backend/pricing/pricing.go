@@ -35,6 +35,9 @@ func GetOrgQuotaOverflow(ctx context.Context, DB *gorm.DB, org_id int) (int64, e
 }
 
 func GetOrgPlanString(stripeClient *client.API, customerID string) backend.PlanType {
+	if customerID == "" {
+		return backend.PlanTypeFree
+	}
 	params := &stripe.CustomerParams{}
 	priceID := ""
 	params.AddExpand("subscriptions")
