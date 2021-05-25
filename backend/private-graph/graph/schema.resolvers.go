@@ -28,6 +28,8 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
+const SUGGESTION_LIMIT_CONSTANT = 8
+
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	if obj == nil {
 		return nil, e.New("empty alert object for channels to notify")
@@ -203,11 +205,8 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.RecordingSettings{
-		OrganizationID: org.ID,
-		Details:        nil,
-	}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating new recording settings")
+	if err := r.DB.Create(&model.ErrorAlert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating org")
 	}
 	return org, nil
 }
@@ -1467,7 +1466,7 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Name: name}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
-		Limit(8).
+		Limit(SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
@@ -1483,7 +1482,7 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
-		Limit(8).
+		Limit(SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
@@ -1500,7 +1499,7 @@ func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, organizationID
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
 		Where("organization_id = ?", organizationID).
-		Limit(8).
+		Limit(SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying error field suggestion")
@@ -1547,10 +1546,10 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string,
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
-	res := r.DB.Debug().Where(&model.Field{OrganizationID: organizationID, Type: "session", Name: "environment"}).
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "session", Name: "environment"}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
-		Limit(8).
+		Limit(SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
