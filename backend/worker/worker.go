@@ -164,7 +164,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
 		return e.Wrap(err, "error querying org")
 	}
-	planType := backend.PlanType(pricing.GetOrgPlanString(w.Resolver.StripeClient, *org.StripeCustomerID))
+	var planType backend.PlanType
+	if org.StripeCustomerID != nil {
+		planType = backend.PlanType(pricing.GetOrgPlanString(w.Resolver.StripeClient, *org.StripeCustomerID))
+	} else {
+		planType = backend.PlanTypeFree
+	}
 	quota := pricing.TypeToQuota(planType)
 
 	year, month, _ := time.Now().Date()
