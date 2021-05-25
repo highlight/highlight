@@ -29,6 +29,7 @@ export type Session = {
     __typename?: 'Session';
     id: Scalars['ID'];
     user_id: Scalars['ID'];
+    fingerprint?: Maybe<Scalars['Int']>;
     os_name: Scalars['String'];
     os_version: Scalars['String'];
     browser_name: Scalars['String'];
@@ -36,6 +37,7 @@ export type Session = {
     city: Scalars['String'];
     state: Scalars['String'];
     postal: Scalars['String'];
+    language: Scalars['String'];
     identifier: Scalars['String'];
     created_at?: Maybe<Scalars['Time']>;
     length?: Maybe<Scalars['Int']>;
@@ -56,6 +58,7 @@ export type BillingDetails = {
     __typename?: 'BillingDetails';
     plan: Plan;
     meter: Scalars['Int64'];
+    sessionsOutOfQuota: Scalars['Int64'];
 };
 
 export type Plan = {
@@ -182,6 +185,11 @@ export type AverageSessionLength = {
     length: Scalars['Float'];
 };
 
+export type UserFingerprintCount = {
+    __typename?: 'UserFingerprintCount';
+    count: Scalars['Int64'];
+};
+
 export type SearchParamsInput = {
     user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
@@ -190,6 +198,7 @@ export type SearchParamsInput = {
     length_range?: Maybe<LengthRangeInput>;
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
+    device_id?: Maybe<Scalars['String']>;
     visited_url?: Maybe<Scalars['String']>;
     referrer?: Maybe<Scalars['String']>;
     identified?: Maybe<Scalars['Boolean']>;
@@ -354,15 +363,21 @@ export type SanitizedSlackChannel = {
 };
 
 export type SanitizedSlackChannelInput = {
-    webhook_channel_name?: Maybe<Scalars['String']>;
+    webhook_channel?: Maybe<Scalars['String']>;
     webhook_channel_id?: Maybe<Scalars['String']>;
+};
+
+export type ErrorAlertInput = {
+    ChannelsToNotify: Array<Maybe<SanitizedSlackChannelInput>>;
+    ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
+    CountThreshold: Scalars['Int64'];
 };
 
 export type ErrorAlert = {
     __typename?: 'ErrorAlert';
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
-    CountThreshold: Scalars['Int'];
+    CountThreshold: Scalars['Int64'];
 };
 
 export type Query = {
@@ -382,6 +397,7 @@ export type Query = {
     isIntegrated?: Maybe<Scalars['Boolean']>;
     unprocessedSessionsCount?: Maybe<Scalars['Int64']>;
     adminHasCreatedComment?: Maybe<Scalars['Boolean']>;
+    slackChannelSuggestion: Array<Maybe<SanitizedSlackChannel>>;
     organizationHasViewedASession?: Maybe<Session>;
     dailySessionsCount: Array<Maybe<DailySessionCount>>;
     dailyErrorsCount: Array<Maybe<DailyErrorCount>>;
@@ -389,21 +405,20 @@ export type Query = {
     newUsersCount?: Maybe<NewUsersCount>;
     topUsers: Array<Maybe<TopUsersPayload>>;
     averageSessionLength?: Maybe<AverageSessionLength>;
+    userFingerprintCount?: Maybe<UserFingerprintCount>;
     sessions: SessionResults;
     billingDetails: BillingDetails;
     field_suggestion?: Maybe<Array<Maybe<Field>>>;
     property_suggestion?: Maybe<Array<Maybe<Field>>>;
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
-    error_alerts?: Maybe<Array<Maybe<ErrorAlert>>>;
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
-    environment_suggestion?: Maybe<Array<Maybe<Field>>>;
-    slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
     organization?: Maybe<Organization>;
     admin?: Maybe<Admin>;
     segments?: Maybe<Array<Maybe<Segment>>>;
     error_segments?: Maybe<Array<Maybe<ErrorSegment>>>;
     recording_settings?: Maybe<RecordingSettings>;
+    error_alert?: Maybe<ErrorAlert>;
 };
 
 export type QuerySessionArgs = {
@@ -460,6 +475,10 @@ export type QueryAdminHasCreatedCommentArgs = {
     admin_id: Scalars['ID'];
 };
 
+export type QuerySlackChannelSuggestionArgs = {
+    org_id: Scalars['ID'];
+};
+
 export type QueryOrganizationHasViewedASessionArgs = {
     organization_id: Scalars['ID'];
 };
@@ -494,6 +513,11 @@ export type QueryAverageSessionLengthArgs = {
     lookBackPeriod: Scalars['Int'];
 };
 
+export type QueryUserFingerprintCountArgs = {
+    organization_id: Scalars['ID'];
+    lookBackPeriod: Scalars['Int'];
+};
+
 export type QuerySessionsArgs = {
     organization_id: Scalars['ID'];
     count: Scalars['Int'];
@@ -524,21 +548,8 @@ export type QueryError_Field_SuggestionArgs = {
     query: Scalars['String'];
 };
 
-export type QueryError_AlertsArgs = {
-    organization_id: Scalars['ID'];
-};
-
 export type QueryOrganizationSuggestionArgs = {
     query: Scalars['String'];
-};
-
-export type QueryEnvironment_SuggestionArgs = {
-    query: Scalars['String'];
-    organization_id: Scalars['ID'];
-};
-
-export type QuerySlack_Channel_SuggestionArgs = {
-    organization_id: Scalars['ID'];
 };
 
 export type QueryOrganizationArgs = {
@@ -554,6 +565,10 @@ export type QueryError_SegmentsArgs = {
 };
 
 export type QueryRecording_SettingsArgs = {
+    organization_id: Scalars['ID'];
+};
+
+export type QueryError_AlertArgs = {
     organization_id: Scalars['ID'];
 };
 
@@ -713,8 +728,5 @@ export type MutationDeleteErrorCommentArgs = {
 
 export type MutationUpdateErrorAlertArgs = {
     organization_id: Scalars['ID'];
-    error_alert_id: Scalars['ID'];
-    count_threshold: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    environments: Array<Maybe<Scalars['String']>>;
+    error_alert?: Maybe<ErrorAlertInput>;
 };
