@@ -158,11 +158,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	// Check if session is within billing quota
-	// TODO: this feels like too much login in the processPayload function
 	// get quota:
-	org, err := w.Resolver.IsAdminInOrganization(ctx, s.OrganizationID)
-	if err != nil {
-		return e.Wrap(err, "admin not found in org")
+	org := &model.Organization{}
+	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
+		return e.Wrap(err, "error querying org")
 	}
 	customerID := ""
 	if org.StripeCustomerID != nil {
