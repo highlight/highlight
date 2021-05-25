@@ -10,8 +10,10 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
+	"github.com/stripe/stripe-go"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -155,13 +157,46 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return nil
 	}
 
+	// Check if session is within billing quota
+	// TODO: this feels like too much login in the processPayload function
+	// TODO: do we want last 30 days or current month?
+	whereClause := fmt.Sprintf("AND (created_at > (CURRENT_DATE - INTERVAL '%d days')) ", 30)
+	whereClause += "AND (processed = true)"
+	// whereClause += "AND (created_at >= date_trunc('month', current_date)) "
+
+	// get quota:
+	org, err := w.Resolver.IsAdminInOrganization(ctx, s.OrganizationID)
+	if err != nil {
+		return e.Wrap(err, "admin not found in org")
+	}
+	customerID := ""
+	if org.StripeCustomerID != nil {
+		customerID = *org.StripeCustomerID
+	}
+	params := &stripe.CustomerParams{}
+	priceID := ""
+	params.AddExpand("subscriptions")
+	c, err := w.Resolver.StripeClient.Customers.Get(customerID, params)
+	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
+		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
+	}
+	planType := pricing.FromPriceID(priceID)
+	quota := pricing.TypeToQuota(planType)
+
+	var sessionCount int64
+	if err := w.Resolver.DB.Model(&model.Session{}).Where(whereClause).Count(&sessionCount).Error; err != nil {
+		return errors.Wrap(err, "error getting past month's session count")
+	}
+	withinQuota := sessionCount >= int64(quota)
+
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
-			Processed:    &model.T,
-			Length:       length,
-			ActiveLength: activeLengthSec,
+			Processed:          &model.T,
+			Length:             length,
+			ActiveLength:       activeLengthSec,
+			WithinBillingQuota: &withinQuota,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
