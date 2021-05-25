@@ -193,14 +193,6 @@ type SessionResults struct {
 	TotalCount int64
 }
 
-type SessionCount struct {
-	Count int64
-}
-
-type ErrorGroupCount struct {
-	Count int64
-}
-
 type Session struct {
 	Model
 	UserID      int `json:"user_id"`

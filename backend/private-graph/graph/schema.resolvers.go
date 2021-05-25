@@ -846,7 +846,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	}
 
 	var g errgroup.Group
-	var queriedErrorGroupsCount model.ErrorGroupCount
+	var queriedErrorGroupsCount int64
 
 	g.Go(func() error {
 		errorGroupSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorGroups"))
@@ -875,7 +875,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 
 	errorResults := &model.ErrorResults{
 		ErrorGroups: errorGroups,
-		TotalCount:  queriedErrorGroupsCount.Count,
+		TotalCount:  queriedErrorGroupsCount,
 	}
 	return errorResults, nil
 }
@@ -1386,7 +1386,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
-	var queriedSessionsCount model.SessionCount
+	var queriedSessionsCount int64
 
 	g.Go(func() error {
 		whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
@@ -1423,7 +1423,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	sessionList := &model.SessionResults{
 		Sessions:   queriedSessions,
-		TotalCount: queriedSessionsCount.Count,
+		TotalCount: queriedSessionsCount,
 	}
 	return sessionList, nil
 }
