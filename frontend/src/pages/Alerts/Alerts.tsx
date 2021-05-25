@@ -4,7 +4,35 @@ import { useParams } from 'react-router-dom';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { useGetErrorAlertQuery } from '../../graph/generated/hooks';
+import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
+import styles from './Alerts.module.scss';
 
+const ALERT_CONFIGURATIONS = [
+    {
+        name: 'Error Alerts',
+    },
+    {
+        name: 'Session Alerts',
+    },
+    {
+        name: 'First Time User Alerts',
+    },
+    {
+        name: 'Track Event Alerts',
+    },
+    {
+        name: 'Phamous Alerts',
+    },
+    {
+        name: 'Boba Alerts',
+    },
+    {
+        name: 'Mochi Alerts',
+    },
+    {
+        name: 'Carrot Alerts',
+    },
+];
 const AlertsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data } = useGetErrorAlertQuery({
@@ -17,6 +45,15 @@ const AlertsPage = () => {
             <p className={layoutStyles.subTitle}>
                 Configure the environments you want alerts for.
             </p>
+
+            <div className={styles.configurationContainer}>
+                {ALERT_CONFIGURATIONS.map((configuration) => (
+                    <AlertConfigurationCard
+                        key={configuration.name}
+                        configuration={configuration}
+                    />
+                ))}
+            </div>
         </LeadAlignLayout>
     );
 };

@@ -1,0 +1,12 @@
+.channelSelect {
+    margin-bottom: var(--size-medium);
+    width: 100%;
+
+    &:last-of-type {
+        margin-bottom: 0;
+    }
+}
+
+.selectDropdown {
+    width: 100px !important;
+}

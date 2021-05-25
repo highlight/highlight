@@ -1,0 +1,24 @@
+.card {
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
+    padding: var(--size-large);
+    width: 100%;
+
+    h2 {
+        font-size: 22px !important;
+        margin-bottom: var(--size-medium) !important;
+    }
+
+    h3 {
+        font-size: 16px !important;
+        margin-bottom: var(--size-xSmall) !important;
+    }
+
+    section {
+        padding-bottom: var(--size-medium);
+
+        &:last-of-type {
+            padding-bottom: var(--size-large);
+        }
+    }
+}

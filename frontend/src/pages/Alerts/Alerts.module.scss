@@ -1,6 +1,5 @@
-.alertsBody {
-    height: 100%;
-    padding-left: 50px;
-    padding-top: 100px;
-    width: 100%;
+.configurationContainer {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-large);
 }

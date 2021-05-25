@@ -3,6 +3,7 @@ import {
     Select as AntDesignSelect,
     SelectProps as AntDesignSelectProps,
 } from 'antd';
+import classNames from 'classnames';
 import React from 'react';
 
 import styles from './Select.module.scss';
@@ -17,6 +18,9 @@ type Props = Pick<
     | 'value'
     | 'className'
     | 'allowClear'
+    | 'notFoundContent'
+    | 'mode'
+    | 'dropdownClassName'
 > & {
     options: {
         value: string;
@@ -26,12 +30,14 @@ type Props = Pick<
     }[];
 };
 
-const Select = ({ options, ...props }: Props) => {
+const Select = ({ options, dropdownClassName, ...props }: Props) => {
     return (
         <AntDesignSelect
             {...props}
             disabled={props.loading}
-            dropdownClassName={styles.select}
+            dropdownClassName={classNames(styles.select, dropdownClassName)}
+            menuItemSelectedIcon={null}
+            defaultActiveFirstOption={false}
         >
             {options.map(({ displayValue, value, disabled, id }) => (
                 <Option key={id} value={value} disabled={disabled}>

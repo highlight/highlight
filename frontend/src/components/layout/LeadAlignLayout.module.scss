@@ -1,10 +1,11 @@
 .leadAlignLayout {
     height: min-content;
+    margin: 120px 80px 20px;
     min-width: 650px;
-    padding: 120px 80px 20px;
 
     .subTitle {
         color: var(--color-gray-500);
         font-size: 18px;
+        margin-bottom: var(--size-xLarge) !important;
     }
 }
