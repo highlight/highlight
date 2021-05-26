@@ -248,6 +248,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
 			log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
 		} else if excludedEnvironments, err := errorAlert.GetExcludedEnvironments(); err != nil {
+			log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
+		} else {
 			isExcludedEnvironment := false
 			for _, env := range excludedEnvironments {
 				if env != nil && *env == sessionObj.Environment {
