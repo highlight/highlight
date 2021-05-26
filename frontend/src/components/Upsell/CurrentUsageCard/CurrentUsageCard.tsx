@@ -35,7 +35,7 @@ export const CurrentUsageCard = () => {
                 This workspace has used {currentUsage} of its {limit} monthly
                 sessions limit ({((currentUsage / limit) * 100).toFixed(0)}%).
             </p>
-            {sessionsOutOfQuota > -1 && (
+            {sessionsOutOfQuota > 0 && (
                 <p className={styles.description}>
                     There are <b>{sessionsOutOfQuota} sessions</b> that can be
                     viewed after you upgrade.
