@@ -1,0 +1,25 @@
+.inputNumber {
+    border: 1px solid var(--color-gray-300) !important;
+    border-radius: var(--border-radius);
+    padding: var(--size-xSmall) var(--size-xSmall) !important;
+
+    :global(.ant-input-number-input) {
+        padding: 0;
+    }
+
+    &:global(.ant-input-number-focused) {
+        border-color: rgba(47, 128, 237, 0.5) !important;
+        border-right-width: 1px !important;
+        box-shadow: 0 0 0 2px rgba(47, 128, 237, 0.5) !important;
+        outline: 0;
+    }
+
+    &:global(.ant-input-number:hover) {
+        border-color: rgba(47, 128, 237, 0.5) !important;
+        border-right-width: 1px !important;
+    }
+
+    :global(.ant-input-number-handler-wrap) {
+        border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    }
+}

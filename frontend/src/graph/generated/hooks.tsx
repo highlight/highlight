@@ -3599,3 +3599,73 @@ export type GetSlackChannelSuggestionQueryResult = Apollo.QueryResult<
     Types.GetSlackChannelSuggestionQuery,
     Types.GetSlackChannelSuggestionQueryVariables
 >;
+export const GetAlertsPagePayloadDocument = gql`
+    query GetAlertsPagePayload($organization_id: ID!) {
+        slack_channel_suggestion(organization_id: $organization_id) {
+            webhook_channel
+            webhook_channel_id
+        }
+        environment_suggestion(query: "q", organization_id: $organization_id) {
+            name
+            value
+        }
+        error_alerts(organization_id: $organization_id) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+            id
+        }
+    }
+`;
+
+/**
+ * __useGetAlertsPagePayloadQuery__
+ *
+ * To run a query within a React component, call `useGetAlertsPagePayloadQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAlertsPagePayloadQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAlertsPagePayloadQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetAlertsPagePayloadQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetAlertsPagePayloadQuery,
+        Types.GetAlertsPagePayloadQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetAlertsPagePayloadQuery,
+        Types.GetAlertsPagePayloadQueryVariables
+    >(GetAlertsPagePayloadDocument, baseOptions);
+}
+export function useGetAlertsPagePayloadLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetAlertsPagePayloadQuery,
+        Types.GetAlertsPagePayloadQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetAlertsPagePayloadQuery,
+        Types.GetAlertsPagePayloadQueryVariables
+    >(GetAlertsPagePayloadDocument, baseOptions);
+}
+export type GetAlertsPagePayloadQueryHookResult = ReturnType<
+    typeof useGetAlertsPagePayloadQuery
+>;
+export type GetAlertsPagePayloadLazyQueryHookResult = ReturnType<
+    typeof useGetAlertsPagePayloadLazyQuery
+>;
+export type GetAlertsPagePayloadQueryResult = Apollo.QueryResult<
+    Types.GetAlertsPagePayloadQuery,
+    Types.GetAlertsPagePayloadQueryVariables
+>;
