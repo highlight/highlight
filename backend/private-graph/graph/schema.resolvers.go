@@ -561,33 +561,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 
 		// mark sessions as within billing quota on plan upgrade
 		// this is done when the user is already signed up for some sort of billing plan
-		go func(r *mutationResolver, organizationID int, itemList stripe.SubscriptionItemList, newPlan modelInputs.PlanType) {
-			isPlanUpgrade := true
-			originalPlan := itemList.Data[0].Plan
-			if originalPlan != nil {
-				switch pricing.FromPriceID(originalPlan.ID) {
-				case modelInputs.PlanTypeBasic:
-					if newPlan == modelInputs.PlanTypeFree {
-						isPlanUpgrade = false
-					}
-				case modelInputs.PlanTypeStartup:
-					if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic {
-						isPlanUpgrade = false
-					}
-				case modelInputs.PlanTypeEnterprise:
-					if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic || newPlan == modelInputs.PlanTypeStartup {
-						isPlanUpgrade = false
-					}
-				}
-			}
-			if isPlanUpgrade {
-				original := false
-				update := true
-				if err := r.DB.Model(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &original}).Updates(model.Session{WithinBillingQuota: &update}).Error; err != nil {
-					log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
-				}
-			}
-		}(r, organizationID, *c.Subscriptions.Data[0].Items, planType)
+		go r.MakeSessionsViewable(organizationID, planType, c.Subscriptions.Data[0].Items)
 
 		ret := ""
 		return &ret, nil
@@ -620,15 +594,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
-	go func(r *mutationResolver, organizationID int, newPlan modelInputs.PlanType) {
-		if planType != modelInputs.PlanTypeFree {
-			original := false
-			update := true
-			if err := r.DB.Model(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &original}).Updates(model.Session{WithinBillingQuota: &update}).Error; err != nil {
-				log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
-			}
-		}
-	}(r, organizationID, planType)
+	go r.MakeSessionsViewable(organizationID, planType, nil)
 
 	return &stripeSession.ID, nil
 }
