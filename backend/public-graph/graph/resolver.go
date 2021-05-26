@@ -269,7 +269,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	return nil
 }
 
-func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, session_id int, user_identifier string, url string, channels string) error {
+func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, session_id int, user_identifier string, url string, channels []*modelInputs.SanitizedSlackChannel) error {
 	organization := &model.Organization{}
 	res := r.DB.Where("id = ?", org_id).First(&organization)
 	if err := res.Error; err != nil {
@@ -285,11 +285,7 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 	errorLink := fmt.Sprintf("<https://app.highlight.run/%d/errors/%d/>", org_id, group.ID)
 	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", org_id, session_id)
 
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	if err := json.Unmarshal([]byte(channels), &sanitizedChannels); err != nil {
-		return e.Wrap(err, "error unmarshalling channels list from channels string")
-	}
-	for _, channel := range sanitizedChannels {
+	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
 			msg := slack.WebhookMessage{
 				Text:    group.Event,

@@ -8,13 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
-	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
@@ -246,25 +244,24 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		}
 
 		// Get ErrorAlert object and send respective alert
-		var g errgroup.Group
-		// error group because we will have session alerts as well
-		g.Go(func() error {
-			var errorAlert model.ErrorAlert
-			if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
-				return e.Wrap(err, "error fetching ErrorAlert object")
-			}
-			if errorAlert.ChannelsToNotify != nil && errorAlert.ExcludedEnvironments != nil && strings.Contains(*errorAlert.ExcludedEnvironments, sessionObj.Environment) {
-				if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, *errorAlert.ChannelsToNotify); err != nil {
-					return e.Wrap(err, "error sending slack error message")
+		var errorAlert model.ErrorAlert
+		if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
+			log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
+		} else if excludedEnvironments, err := errorAlert.GetExcludedEnvironments(); err != nil {
+			isExcludedEnvironment := false
+			for _, env := range excludedEnvironments {
+				if env != nil && *env == sessionObj.Environment {
+					isExcludedEnvironment = true
 				}
 			}
-			return nil
-		})
-
-		// Waits for both goroutines to finish, then logs the first non-nil error (if any).
-		if err := g.Wait(); err != nil {
-			log.Error(err)
-			continue
+			if !isExcludedEnvironment {
+				if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
+					err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
+					if err != nil {
+						log.Error(e.Wrap(err, "error sending slack error message"))
+					}
+				}
+			}
 		}
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.
 	}
