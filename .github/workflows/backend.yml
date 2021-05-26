@@ -18,12 +18,12 @@ jobs:
             - name: Format
               uses: Jerome1337/gofmt-action@v1.0.4
               with:
-                gofmt-path: './backend'
-                gofmt-flags: '-l -d'
+                  gofmt-path: './backend'
+                  gofmt-flags: '-l -d'
             - name: Run linter
               uses: golangci/golangci-lint-action@v2
               with:
-                working-directory: backend
+                  working-directory: backend
             - name: Run tests
               run: cd backend && go test ./... -v
             - name: Build binary
