@@ -31,21 +31,11 @@ import (
 const SUGGESTION_LIMIT_CONSTANT = 8
 
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
-	sanitizedChannels := []*modelInputs.SanitizedSlackChannel{}
-	sanitizedChannels, err := obj.GetChannelsToNotify()
-	if err != nil {
-		return nil, err
-	}
-	return sanitizedChannels, nil
+	return obj.GetChannelsToNotify()
 }
 
 func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
-	excludedEnvironments := []*string{}
-	excludedEnvironments, err := obj.GetExcludedEnvironments()
-	if err != nil {
-		return nil, err
-	}
-	return excludedEnvironments, nil
+	return obj.GetExcludedEnvironments()
 }
 
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
