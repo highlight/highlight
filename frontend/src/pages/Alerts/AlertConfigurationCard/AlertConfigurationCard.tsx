@@ -7,6 +7,7 @@ import Collapsible from '../../../components/Collapsible/Collapsible';
 import InputNumber from '../../../components/InputNumber/InputNumber';
 import Select from '../../../components/Select/Select';
 import { useUpdateErrorAlertMutation } from '../../../graph/generated/hooks';
+import { useSlack } from '../SlackIntegration/SlackIntegration';
 import styles from './AlertConfigurationCard.module.scss';
 
 interface AlertConfiguration {
@@ -32,6 +33,7 @@ export const AlertConfigurationCard = ({
     const { organization_id } = useParams<{ organization_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
+    const { slackUrl } = useSlack('alerts', ['GetAlertsPagePayload']);
 
     const onSubmit = async () => {
         setLoading(true);
@@ -133,33 +135,33 @@ export const AlertConfigurationCard = ({
                         Pick Slack channels or people to message when an alert
                         is created.
                     </p>
-                    <Form.Item name="channels">
-                        <Select
-                            className={styles.channelSelect}
-                            options={channels}
-                            mode="multiple"
-                            placeholder={`Select a channel(s) or person(s) to send ${name} to.`}
-                            onChange={onChannelsChange}
-                            notFoundContent={
-                                <div>
-                                    <h2>Not Found</h2>
-                                    <Button>CLick me</Button>
-                                </div>
-                            }
-                            dropdownRender={(menu) => (
-                                <div>
-                                    {menu}
-                                    <Divider style={{ margin: '4px 0' }} />
-                                    <div className={styles.addContainer}>
-                                        Can't find the channel or person here?{' '}
-                                        <a href="">
-                                            Configure Highlight with Slack
-                                        </a>
-                                        .
+                    <Form.Item shouldUpdate>
+                        {() => (
+                            <Select
+                                className={styles.channelSelect}
+                                options={channels}
+                                mode="multiple"
+                                placeholder={`Select a channel(s) or person(s) to send ${name} to.`}
+                                onChange={onChannelsChange}
+                                notFoundContent={
+                                    <div>Slack is not configured yet.</div>
+                                }
+                                dropdownRender={(menu) => (
+                                    <div>
+                                        {menu}
+                                        <Divider style={{ margin: '4px 0' }} />
+                                        <div className={styles.addContainer}>
+                                            Can't find the channel or person
+                                            here?{' '}
+                                            <a href={slackUrl}>
+                                                Configure Highlight with Slack
+                                            </a>
+                                            .
+                                        </div>
                                     </div>
-                                </div>
-                            )}
-                        />
+                                )}
+                            />
+                        )}
                     </Form.Item>
                 </section>
 

@@ -383,7 +383,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 
 	baseMessage := "👋 Hello from Highlight!"
 	if name := org.Name; name != nil {
-		baseMessage += fmt.Sprintf("We'll send messages here based on your alert preferences for %v, which can be configured at https://app.highlight.run/%v/alerts.", *name, org.ID)
+		baseMessage += fmt.Sprintf(" We'll send messages here based on your alert preferences for %v, which can be configured at https://app.highlight.run/%v/alerts.", *name, org.ID)
 	}
 	msg := slack.WebhookMessage{Text: baseMessage}
 	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
