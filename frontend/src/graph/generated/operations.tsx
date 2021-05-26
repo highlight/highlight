@@ -373,7 +373,9 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'state'
             | 'postal'
             | 'user_id'
+            | 'fingerprint'
             | 'created_at'
+            | 'language'
             | 'user_object'
             | 'identifier'
             | 'starred'
@@ -566,6 +568,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     Types.Session,
                     | 'id'
                     | 'user_id'
+                    | 'fingerprint'
                     | 'identifier'
                     | 'os_name'
                     | 'os_version'
@@ -575,6 +578,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                     | 'state'
                     | 'postal'
                     | 'created_at'
+                    | 'language'
                     | 'length'
                     | 'active_length'
                     | 'viewed'
@@ -1011,6 +1015,12 @@ export type GetKeyPerformanceIndicatorsQuery = { __typename?: 'Query' } & Pick<
             { __typename?: 'AverageSessionLength' } & Pick<
                 Types.AverageSessionLength,
                 'length'
+            >
+        >;
+        userFingerprintCount?: Types.Maybe<
+            { __typename?: 'UserFingerprintCount' } & Pick<
+                Types.UserFingerprintCount,
+                'count'
             >
         >;
     };

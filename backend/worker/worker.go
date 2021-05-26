@@ -10,6 +10,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/pricing"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -155,13 +156,37 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return nil
 	}
 
+	// Check if session is within billing quota
+	// get quota:
+	var withinQuota bool
+	org := &model.Organization{}
+	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
+		return e.Wrap(err, "error querying org")
+	}
+	var stripeCustomerID string
+	if org.StripeCustomerID != nil {
+		stripeCustomerID = *org.StripeCustomerID
+	} else {
+		stripeCustomerID = ""
+	}
+	planType := pricing.GetOrgPlanString(w.Resolver.StripeClient, stripeCustomerID)
+	quota := pricing.TypeToQuota(planType)
+
+	year, month, _ := time.Now().Date()
+	var sessionCount int64
+	if err := w.Resolver.DB.Model(&model.Session{}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Where("within_billing_quota = true OR within_billing_quota IS NULL").Count(&sessionCount).Error; err != nil {
+		return errors.Wrap(err, "error getting past month's session count")
+	}
+	withinQuota = sessionCount <= int64(quota)
+
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
-			Processed:    &model.T,
-			Length:       length,
-			ActiveLength: activeLengthSec,
+			Processed:          &model.T,
+			Length:             length,
+			ActiveLength:       activeLengthSec,
+			WithinBillingQuota: &withinQuota,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")

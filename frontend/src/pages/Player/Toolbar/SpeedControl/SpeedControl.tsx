@@ -1,10 +1,12 @@
 import useLocalStorage from '@rehooks/local-storage';
-import React from 'react';
+import { H } from 'highlight.run';
+import React, { useEffect } from 'react';
 import { BiMinus } from 'react-icons/bi';
 import { BsPlus } from 'react-icons/bs';
 
 import Button from '../../../../components/Button/Button/Button';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
+import { useGetAdminQuery } from '../../../../graph/generated/hooks';
 import styles from './SpeedControl.module.scss';
 
 const MIN_SPEED = 0.5;
@@ -13,6 +15,7 @@ const SPEED_INCREMENT = 0.5;
 const DEFAULT_SPEED = 2.0;
 
 const SpeedControl = () => {
+    const { data: admin_data } = useGetAdminQuery({ skip: false });
     const [speed, setSpeed] = useLocalStorage(
         'highlightMenuSpeed',
         DEFAULT_SPEED
@@ -29,6 +32,13 @@ const SpeedControl = () => {
 
         setSpeed(newSpeed);
     };
+
+    useEffect(() => {
+        if (admin_data?.admin?.email === 'lorilyn@impira.com') {
+            H.track('PlayerSpeedOverride', { admin: 'lorilyn@impira.com' });
+            setSpeed(1.0);
+        }
+    }, [admin_data?.admin?.email, setSpeed]);
 
     return (
         <div className={styles.speedControlContainer}>

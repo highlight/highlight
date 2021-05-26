@@ -112,7 +112,11 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                                 seed={
                                     (session?.identifier
                                         ? session?.identifier
-                                        : session?.user_id.toString()) ?? ''
+                                        : (
+                                              session?.fingerprint ||
+                                              session?.user_id ||
+                                              ''
+                                          ).toString()) ?? ''
                                 }
                                 style={{ height: 50, width: 50 }}
                             />
@@ -126,7 +130,10 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                                     )}
                                 >
                                     {session?.identifier ||
-                                        `#${session?.user_id}`}
+                                        `#${
+                                            session?.fingerprint ||
+                                            session?.user_id
+                                        }`}
                                 </div>
 
                                 {(session?.fields?.length || 0) > 0 && (

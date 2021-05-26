@@ -1279,7 +1279,9 @@ export const GetSessionDocument = gql`
             state
             postal
             user_id
+            fingerprint
             created_at
+            language
             user_object
             identifier
             starred
@@ -1813,6 +1815,7 @@ export const GetSessionsDocument = gql`
             sessions {
                 id
                 user_id
+                fingerprint
                 identifier
                 os_name
                 os_version
@@ -1822,6 +1825,7 @@ export const GetSessionsDocument = gql`
                 state
                 postal
                 created_at
+                language
                 length
                 active_length
                 viewed
@@ -2984,6 +2988,12 @@ export const GetKeyPerformanceIndicatorsDocument = gql`
             lookBackPeriod: $lookBackPeriod
         ) {
             length
+        }
+        userFingerprintCount(
+            organization_id: $organization_id
+            lookBackPeriod: $lookBackPeriod
+        ) {
+            count
         }
     }
 `;
