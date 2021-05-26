@@ -1777,33 +1777,11 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 }
 
 func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
-	if obj == nil {
-		return nil, e.New("empty alert object for channels to notify")
-	}
-	channelString := ""
-	if obj.ChannelsToNotify != nil {
-		channelString = *obj.ChannelsToNotify
-	}
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling sanitized slack channels")
-	}
-	return sanitizedChannels, nil
+	return obj.GetChannelsToNotify()
 }
 
 func (r *sessionAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.SessionAlert) ([]*string, error) {
-	if obj == nil {
-		return nil, e.New("empty alert object for channels to notify")
-	}
-	excludedString := ""
-	if obj.ExcludedEnvironments != nil {
-		excludedString = *obj.ExcludedEnvironments
-	}
-	var sanitizedExcludedEnvironments []*string
-	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling sanitized excluded channels")
-	}
-	return sanitizedExcludedEnvironments, nil
+	return obj.GetExcludedEnvironments()
 }
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
