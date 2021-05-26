@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/k0kubun/pp"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
 	"gorm.io/gorm"
@@ -35,14 +33,6 @@ type Resolver struct {
 	MailClient    *sendgrid.Client
 	StripeClient  *client.API
 	StorageClient *storage.StorageClient
-}
-
-// Prints time since 'time' and msg, fid.
-// return time.Now() to reset the clock.
-//nolint:unused,deadcode
-func profile(msg string, fid int, t time.Time) time.Time {
-	pp.Printf("%v => %s took: %v \n", fid, msg, time.Since(t))
-	return time.Now()
 }
 
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
@@ -181,13 +171,4 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
 	return session, nil
-}
-
-//nolint:unused,deadcode
-func toDuration(duration string) (time.Duration, error) {
-	d, err := strconv.ParseInt(duration, 10, 64)
-	if err != nil || d <= 0 {
-		return time.Duration(0), e.Wrap(err, "error parsing duration integer")
-	}
-	return time.Duration(int64(time.Millisecond) * d), nil
 }
