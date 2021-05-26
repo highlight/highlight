@@ -113,6 +113,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 )}
                             </span>
                         }
+                        id="highlightIntegration"
                     >
                         <p>
                             Please follow the setup instructions above to
@@ -140,6 +141,7 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                                 )}
                             </span>
                         }
+                        id="slackAlerts"
                     >
                         <p>
                             Get notified of errors happening in your
@@ -319,13 +321,19 @@ export default MyApp`}
 
 type SectionProps = {
     title: string | React.ReactNode;
+    id?: string;
 };
 
 export const Section: FunctionComponent<SectionProps> = ({
     children,
+    id,
     title,
 }) => {
-    return <Collapsible title={title}>{children}</Collapsible>;
+    return (
+        <Collapsible title={title} id={id}>
+            {children}
+        </Collapsible>
+    );
 };
 
 export default SetupPage;
