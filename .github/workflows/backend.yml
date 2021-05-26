@@ -24,6 +24,7 @@ jobs:
               uses: golangci/golangci-lint-action@v2
               with:
                   working-directory: backend
+                  only-new-issues: true
             - name: Run tests
               run: cd backend && go test ./... -v
             - name: Build binary
