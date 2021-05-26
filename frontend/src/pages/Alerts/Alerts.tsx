@@ -16,7 +16,7 @@ const AlertsPage = () => {
 
     const ALERT_CONFIGURATIONS = [
         {
-            name: 'Error Alerts',
+            name: 'Errors',
             canControlThreshold: true,
         },
         {

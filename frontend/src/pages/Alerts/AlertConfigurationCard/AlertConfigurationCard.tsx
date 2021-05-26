@@ -30,6 +30,7 @@ export const AlertConfigurationCard = ({
 }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
+    const [threshold, setThreshold] = useState(alert.CountThreshold);
     const { organization_id } = useParams<{ organization_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
@@ -108,7 +109,8 @@ export const AlertConfigurationCard = ({
         setFormTouched(true);
     };
 
-    const onThresholdChange = () => {
+    const onThresholdChange = (threshold: any) => {
+        setThreshold(threshold);
         setFormTouched(true);
     };
 
@@ -186,9 +188,14 @@ export const AlertConfigurationCard = ({
                 {canControlThreshold && (
                     <section>
                         <h3>Threshold</h3>
-                        <p>Pick how often an alert should be created.</p>
+                        <p>
+                            Pick how often an alert should be created.{' '}
+                            {threshold === 0
+                                ? `Setting the threshold to 0 means no alerts will be created.`
+                                : `This means an alert will be created for every ${threshold} errors.`}
+                        </p>
                         <Form.Item name="threshold">
-                            <InputNumber onChange={onThresholdChange} />
+                            <InputNumber onChange={onThresholdChange} min={0} />
                         </Form.Item>
                     </section>
                 )}

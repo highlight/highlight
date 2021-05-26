@@ -4,7 +4,10 @@ import React from 'react';
 
 import styles from './InputNumber.module.scss';
 
-type Props = Pick<InputNumberProps, 'value' | 'defaultValue' | 'onChange'>;
+type Props = Pick<
+    InputNumberProps,
+    'value' | 'defaultValue' | 'onChange' | 'min'
+>;
 
 const InputNumber = (props: Props) => {
     return <AntDesignInputNumber {...props} className={styles.inputNumber} />;

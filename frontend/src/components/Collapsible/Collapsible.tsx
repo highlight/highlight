@@ -1,5 +1,6 @@
+import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React from 'react';
 import ReactCollapsible from 'react-collapsible';
 
 import SvgChevronDownIcon from '../../static/ChevronDownIcon';
@@ -16,7 +17,10 @@ const Collapsible: React.FC<Props> = ({
     className,
     ...props
 }) => {
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useLocalStorage(
+        `highlight-collapsible-state-${title}`,
+        false
+    );
 
     return (
         <ReactCollapsible
@@ -41,12 +45,10 @@ const Collapsible: React.FC<Props> = ({
             }
             transitionTime={150}
             classParentString={classNames(styles.collapsible)}
-            onOpening={() => {
-                setExpanded(true);
+            handleTriggerClick={() => {
+                setExpanded(!expanded);
             }}
-            onClose={() => {
-                setExpanded(false);
-            }}
+            open={expanded}
         >
             <div className={classNames(styles.content, className)}>
                 {children}
