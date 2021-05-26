@@ -3,7 +3,6 @@ import React, { useContext, useRef } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 
 import { DemoContext } from '../../DemoContext';
-import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import useHighlightAdminFlag from '../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 import SvgBellIcon from '../../static/BellIcon';
 import SvgCreditCardsIcon from '../../static/CreditCardsIcon';
@@ -77,11 +76,7 @@ const END_NAVIGATION_ITEMS: NavigationItem[] = [
 ];
 
 export const Sidebar = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
     const { state, setState } = useSidebarContext();
-    const { data, loading: loadingBillingDetails } = useGetBillingDetailsQuery({
-        variables: { organization_id },
-    });
     const { isHighlightAdmin } = useHighlightAdminFlag();
 
     return (
@@ -140,16 +135,7 @@ export const Sidebar = () => {
 
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
-                        {!loadingBillingDetails &&
-                        data?.billingDetails.meter !== undefined &&
-                        data?.billingDetails.plan.quota !== undefined ? (
-                            <CurrentUsageCard
-                                currentUsage={data?.billingDetails.meter}
-                                limit={data?.billingDetails.plan.quota}
-                            />
-                        ) : (
-                            <></>
-                        )}
+                        <CurrentUsageCard />
                         <div className={styles.bottomContainer}>
                             <div className={styles.bottomLinkContainer}>
                                 <Link

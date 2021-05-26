@@ -2073,6 +2073,7 @@ export const GetBillingDetailsDocument = gql`
                 quota
             }
             meter
+            sessionsOutOfQuota
         }
         organization(id: $organization_id) {
             id

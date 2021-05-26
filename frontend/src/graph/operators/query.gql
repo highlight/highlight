@@ -222,6 +222,7 @@ query GetBillingDetails($organization_id: ID!) {
             quota
         }
         meter
+        sessionsOutOfQuota
     }
     organization(id: $organization_id) {
         id
