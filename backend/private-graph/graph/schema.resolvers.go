@@ -31,33 +31,21 @@ import (
 const SUGGESTION_LIMIT_CONSTANT = 8
 
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
-	if obj == nil {
-		return nil, e.New("empty alert object for channels to notify")
-	}
-	channelString := "[]"
-	if obj.ChannelsToNotify != nil {
-		channelString = *obj.ChannelsToNotify
-	}
 	sanitizedChannels := []*modelInputs.SanitizedSlackChannel{}
-	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling sanitized slack channels")
+	sanitizedChannels, err := obj.GetChannelsToNotify()
+	if err != nil {
+		return nil, err
 	}
 	return sanitizedChannels, nil
 }
 
 func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
-	if obj == nil {
-		return nil, e.New("empty alert object for channels to notify")
+	excludedEnvironments := []*string{}
+	excludedEnvironments, err := obj.GetExcludedEnvironments()
+	if err != nil {
+		return nil, err
 	}
-	excludedString := "[]"
-	if obj.ExcludedEnvironments != nil {
-		excludedString = *obj.ExcludedEnvironments
-	}
-	sanitizedExcludedEnvironments := []*string{}
-	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling sanitized excluded channels")
-	}
-	return sanitizedExcludedEnvironments, nil
+	return excludedEnvironments, nil
 }
 
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
