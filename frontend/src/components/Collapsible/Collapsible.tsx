@@ -8,6 +8,8 @@ import styles from './Collapsible.module.scss';
 
 interface Props {
     title: string | React.ReactNode;
+    /** A unique identifier for this collapsible. This should be used if title is a ReactNode. */
+    id?: string;
     className?: string;
 }
 
@@ -15,10 +17,11 @@ const Collapsible: React.FC<Props> = ({
     title,
     children,
     className,
+    id,
     ...props
 }) => {
     const [expanded, setExpanded] = useLocalStorage(
-        `highlight-collapsible-state-${title}`,
+        `highlight-collapsible-state-${id || title}`,
         false
     );
 

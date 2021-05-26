@@ -47,7 +47,7 @@
     .content {
         cursor: auto;
         padding: var(--size-large);
-        padding-top: 0;
+        padding-top: var(--size-xxSmall);
 
         p:first-of-type {
             margin-top: 0 !important;
