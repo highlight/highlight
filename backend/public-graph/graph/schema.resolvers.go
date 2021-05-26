@@ -251,7 +251,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		g.Go(func() error {
 			var errorAlert model.ErrorAlert
 			if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
-				// TODO: handle errors
+				return e.Wrap(err, "error fetching ErrorAlert object")
 			}
 			if errorAlert.ChannelsToNotify != nil && errorAlert.ExcludedEnvironments != nil && strings.Contains(*errorAlert.ExcludedEnvironments, sessionObj.Environment) {
 				if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, *errorAlert.ChannelsToNotify); err != nil {
