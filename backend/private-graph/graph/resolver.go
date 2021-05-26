@@ -39,18 +39,16 @@ type Resolver struct {
 
 // Prints time since 'time' and msg, fid.
 // return time.Now() to reset the clock.
+//nolint:unused,deadcode
 func profile(msg string, fid int, t time.Time) time.Time {
-	pp.Printf("%v => "+msg+" took: %s \n", fid, fmt.Sprintf("%s", time.Since(t)))
+	pp.Printf("%v => %s took: %v \n", fid, msg, time.Since(t))
 	return time.Now()
 }
 
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
 	uid := fmt.Sprintf("%v", ctx.Value("uid"))
 	// If the user is engineering@..., we whitelist.
-	if uid == WhitelistedUID {
-		return true
-	}
-	return false
+	return uid == WhitelistedUID
 }
 
 // These are authentication methods used to make sure that data is secured.
@@ -185,6 +183,7 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 	return session, nil
 }
 
+//nolint:unused,deadcode
 func toDuration(duration string) (time.Duration, error) {
 	d, err := strconv.ParseInt(duration, 10, 64)
 	if err != nil || d <= 0 {

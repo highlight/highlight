@@ -51,6 +51,7 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 			}
 			uid = t.UID
 		}
+		//nolint
 		ctx := context.WithValue(r.Context(), "uid", uid)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
