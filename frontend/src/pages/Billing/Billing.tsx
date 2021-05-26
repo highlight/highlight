@@ -105,7 +105,7 @@ const BillingPage = () => {
     }
 
     return (
-        <LeadAlignLayout>
+        <LeadAlignLayout fullWidth>
             <h2>Billing</h2>
             <p className={layoutStyles.subTitle}>
                 Manage your billing information.
