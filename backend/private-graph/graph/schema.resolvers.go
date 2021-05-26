@@ -560,27 +560,26 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		}
 
 		// mark sessions as within billing quota on plan upgrade
-		go func(r *mutationResolver, organizationID int, itemList stripe.SubscriptionItemList, plan modelInputs.PlanType) {
-			isPlanUpgrade := false
+		go func(r *mutationResolver, organizationID int, itemList stripe.SubscriptionItemList, newPlan modelInputs.PlanType) {
+			isPlanUpgrade := true
 			originalPlan := itemList.Data[0].Plan
 			if originalPlan != nil {
 				switch pricing.FromPriceID(originalPlan.ID) {
 				case modelInputs.PlanTypeFree:
-					isPlanUpgrade = true
 					break
 				case modelInputs.PlanTypeBasic:
-					if plan != modelInputs.PlanTypeFree {
-						isPlanUpgrade = true
+					if newPlan == modelInputs.PlanTypeFree {
+						isPlanUpgrade = false
 					}
 					break
 				case modelInputs.PlanTypeStartup:
-					if plan != modelInputs.PlanTypeFree && plan != modelInputs.PlanTypeBasic {
-						isPlanUpgrade = true
+					if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic {
+						isPlanUpgrade = false
 					}
 					break
 				case modelInputs.PlanTypeEnterprise:
-					if plan != modelInputs.PlanTypeFree && plan != modelInputs.PlanTypeBasic && plan != modelInputs.PlanTypeStartup {
-						isPlanUpgrade = true
+					if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic || newPlan == modelInputs.PlanTypeStartup {
+						isPlanUpgrade = false
 					}
 					break
 				}
