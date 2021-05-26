@@ -1,19 +1,24 @@
 import { loadStripe } from '@stripe/stripe-js';
 import { message } from 'antd';
 import React, { useEffect, useState } from 'react';
+import Confetti from 'react-confetti';
 import Skeleton from 'react-loading-skeleton';
 import { useLocation, useParams } from 'react-router-dom';
 
+import Card from '../../components/Card/Card';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
+import Progress from '../../components/Progress/Progress';
 import {
     useCreateOrUpdateSubscriptionMutation,
     useGetBillingDetailsQuery,
 } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
+import { formatNumberWithDelimiters } from '../../util/numbers';
 import styles from './Billing.module.scss';
 import { BILLING_PLANS } from './BillingPlanCard/BillingConfig';
 import { BillingPlanCard } from './BillingPlanCard/BillingPlanCard';
+import { didUpgradePlan } from './utils/utils';
 
 const getStripePromiseOrNull = () => {
     const stripe_publishable_key = process.env.REACT_APP_STRIPE_API_PK;
@@ -32,7 +37,10 @@ const BillingPage = () => {
         checkoutRedirectFailedMessage,
         setCheckoutRedirectFailedMessage,
     ] = useState<string>('');
-    const [loading, setLoading] = useState<boolean>(false);
+    const [loadingPlanType, setLoadingPlanType] = useState<PlanType | null>(
+        null
+    );
+    const [rainConfetti, setRainConfetti] = useState(false);
 
     const {
         loading: billingLoading,
@@ -63,20 +71,32 @@ const BillingPage = () => {
         }
     }, [pathname, checkoutRedirectFailedMessage, billingError]);
 
-    const createOnSelect = (plan: PlanType) => {
+    const createOnSelect = (newPlan: PlanType) => {
         return async () => {
-            setLoading(true);
+            setLoadingPlanType(newPlan);
             createOrUpdateSubscription({
                 variables: {
                     organization_id: organization_id,
-                    plan_type: plan,
+                    plan_type: newPlan,
                 },
             }).then((r) => {
                 if (!r.data?.createOrUpdateSubscription) {
-                    message.success('Billing change applied!', 5);
+                    const previousPlan = billingData!.billingDetails!.plan.type;
+                    const upgradedPlan = didUpgradePlan(previousPlan, newPlan);
+
+                    if (upgradedPlan) {
+                        setRainConfetti(true);
+                        message.success(
+                            "Thanks for upgrading your plan! As a token of our appreciation, we've made all your sessions viewable even if there's more than your new quota.",
+                            10
+                        );
+                    } else {
+                        setRainConfetti(false);
+                        message.success('Billing change applied!', 5);
+                    }
                 }
                 refetch().then(() => {
-                    setLoading(false);
+                    setLoadingPlanType(null);
                 });
             });
         };
@@ -104,15 +124,49 @@ const BillingPage = () => {
         })();
     }
 
+    /** Show upsell when the current usage is 80% of the organization's plan. */
+    const upsell =
+        (billingData?.billingDetails.meter ?? 0) /
+            (billingData?.billingDetails.plan.quota ?? 1) >=
+        0.8;
+
     return (
         <LeadAlignLayout fullWidth>
+            {rainConfetti && <Confetti recycle={false} />}
             <h2>Billing</h2>
             <p className={layoutStyles.subTitle}>
                 Manage your billing information.
             </p>
+            <Card className={styles.detailsCard}>
+                <h2>Plan Details</h2>
+                <p>
+                    This workspace is on the{' '}
+                    <b>{billingData?.billingDetails.plan.type} Plan</b> which
+                    has used{' '}
+                    {formatNumberWithDelimiters(
+                        billingData?.billingDetails.meter
+                    )}{' '}
+                    of its{' '}
+                    {formatNumberWithDelimiters(
+                        billingData?.billingDetails.plan.quota
+                    )}{' '}
+                    monthly sessions limit.
+                </p>
+                {upsell && (
+                    <p>
+                        You are nearing your monthly sessions limit. Sessions
+                        recorded after you've reached your limit will not be
+                        viewable until you upgrade your plan.
+                    </p>
+                )}
+                <Progress
+                    numerator={billingData?.billingDetails.meter}
+                    denominator={billingData?.billingDetails.plan.quota || 1}
+                />
+            </Card>
             <div className={styles.billingPlanCardWrapper}>
                 {BILLING_PLANS.map((billingPlan) =>
-                    billingLoading || loading ? (
+                    billingLoading ? (
                         <Skeleton
                             style={{ borderRadius: 8 }}
                             count={1}
@@ -128,7 +182,8 @@ const BillingPage = () => {
                             }
                             billingPlan={billingPlan}
                             onSelect={createOnSelect(billingPlan.type)}
-                        ></BillingPlanCard>
+                            loading={loadingPlanType === billingPlan.type}
+                        />
                     )
                 )}
             </div>

@@ -51,3 +51,8 @@
 .button {
     justify-content: center;
 }
+
+.currentPlan {
+    border-color: var(--color-purple);
+    box-shadow: 0 5px 8px rgba(86, 41, 198, 0.2);
+}

@@ -8,3 +8,14 @@ export const formatNumber = (n: number, decimals = 1) => {
 
     return parseFloat(res.toFixed(dm)) + sizes[i];
 };
+
+export const formatNumberWithDelimiters = (number?: number) => {
+    if (!number) {
+        return number;
+    }
+    return number.toLocaleString(
+        undefined, // leave undefined to use the visitor's browser
+        // locale or a string like 'en-US' to override it.
+        { minimumFractionDigits: 0 }
+    );
+};

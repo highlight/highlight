@@ -9,3 +9,12 @@
     gap: var(--size-large);
     margin-top: 30px;
 }
+
+.detailsCard {
+    max-width: 450px;
+
+    b {
+        color: var(--color-purple);
+        font-weight: 500;
+    }
+}
