@@ -252,6 +252,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			for _, env := range excludedEnvironments {
 				if env != nil && *env == sessionObj.Environment {
 					isExcludedEnvironment = true
+					break
 				}
 			}
 			if !isExcludedEnvironment {
