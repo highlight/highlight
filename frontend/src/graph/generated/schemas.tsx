@@ -369,6 +369,7 @@ export type SanitizedSlackChannelInput = {
 
 export type ErrorAlert = {
     __typename?: 'ErrorAlert';
+    id: Scalars['ID'];
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int'];
