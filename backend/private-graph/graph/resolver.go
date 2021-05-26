@@ -9,12 +9,10 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
-	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/k0kubun/pp"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
-	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/client"
 	"gorm.io/gorm"
 
@@ -196,28 +194,25 @@ func toDuration(duration string) (time.Duration, error) {
 	return time.Duration(int64(time.Millisecond) * d), nil
 }
 
-func (r *Resolver) MakeSessionsViewable(organizationID int, newPlan modelInputs.PlanType, itemList *stripe.SubscriptionItemList) {
+func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
 	isPlanUpgrade := true
-	if itemList != nil {
-		originalPlan := itemList.Data[0].Plan
-		if originalPlan != nil {
-			switch pricing.FromPriceID(originalPlan.ID) {
-			case modelInputs.PlanTypeBasic:
-				if newPlan == modelInputs.PlanTypeFree {
-					isPlanUpgrade = false
-				}
-			case modelInputs.PlanTypeStartup:
-				if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic {
-					isPlanUpgrade = false
-				}
-			case modelInputs.PlanTypeEnterprise:
-				if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic || newPlan == modelInputs.PlanTypeStartup {
-					isPlanUpgrade = false
-				}
-			}
+	switch originalPlan {
+	case modelInputs.PlanTypeFree:
+		if newPlan == modelInputs.PlanTypeFree {
+			isPlanUpgrade = false
 		}
-	} else if newPlan == modelInputs.PlanTypeFree {
-		isPlanUpgrade = false
+	case modelInputs.PlanTypeBasic:
+		if newPlan == modelInputs.PlanTypeFree {
+			isPlanUpgrade = false
+		}
+	case modelInputs.PlanTypeStartup:
+		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic {
+			isPlanUpgrade = false
+		}
+	case modelInputs.PlanTypeEnterprise:
+		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic || newPlan == modelInputs.PlanTypeStartup {
+			isPlanUpgrade = false
+		}
 	}
 	if isPlanUpgrade {
 		original := false
