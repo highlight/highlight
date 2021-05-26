@@ -52,6 +52,7 @@ export type Session = {
     enable_strict_privacy?: Maybe<Scalars['Boolean']>;
     object_storage_enabled?: Maybe<Scalars['Boolean']>;
     payload_size?: Maybe<Scalars['Int64']>;
+    within_billing_quota?: Maybe<Scalars['Boolean']>;
 };
 
 export type BillingDetails = {

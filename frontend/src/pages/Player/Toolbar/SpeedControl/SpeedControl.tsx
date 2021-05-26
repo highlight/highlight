@@ -14,7 +14,11 @@ const MAX_SPEED = 8.0;
 const SPEED_INCREMENT = 0.5;
 const DEFAULT_SPEED = 2.0;
 
-const SpeedControl = () => {
+interface Props {
+    disabled: boolean;
+}
+
+const SpeedControl = ({ disabled }: Props) => {
     const { data: admin_data } = useGetAdminQuery({ skip: false });
     const [speed, setSpeed] = useLocalStorage(
         'highlightMenuSpeed',
@@ -47,7 +51,7 @@ const SpeedControl = () => {
                 onClick={() => {
                     onHandleSpeedChange('DECREMENT');
                 }}
-                disabled={speed === MIN_SPEED}
+                disabled={disabled || speed === MIN_SPEED}
             >
                 <BiMinus />
             </Button>
@@ -62,7 +66,7 @@ const SpeedControl = () => {
                 onClick={() => {
                     onHandleSpeedChange('INCREMENT');
                 }}
-                disabled={speed === MAX_SPEED}
+                disabled={disabled || speed === MAX_SPEED}
             >
                 <BsPlus />
             </Button>

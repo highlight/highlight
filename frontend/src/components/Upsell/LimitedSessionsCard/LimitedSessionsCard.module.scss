@@ -33,19 +33,3 @@
     display: flex;
     justify-content: flex-end;
 }
-
-.link {
-    background: var(--color-purple);
-    border-radius: var(--button-border-radius);
-    color: var(--text-primary-inverted);
-    display: block;
-    margin: 0 auto;
-    margin-top: var(--size-medium) !important;
-    padding: var(--size-xSmall) 0;
-    text-align: center;
-    width: 211px;
-
-    &:hover {
-        color: var(--text-primary-inverted);
-    }
-}

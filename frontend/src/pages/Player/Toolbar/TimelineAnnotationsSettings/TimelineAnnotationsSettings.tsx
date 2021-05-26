@@ -43,7 +43,11 @@ const EventTypeDescriptions: EventTypesKeys = {
     Comments: 'These are comments created by you and other people on your team',
 };
 
-const TimelineAnnotationsSettings = () => {
+interface Props {
+    disabled: boolean;
+}
+
+const TimelineAnnotationsSettings = ({ disabled }: Props) => {
     const [
         selectedEventTypes,
         setSelectedEventTypes,
@@ -108,7 +112,7 @@ const TimelineAnnotationsSettings = () => {
                 </div>
             }
         >
-            <Button type="text" className={styles.button}>
+            <Button type="text" className={styles.button} disabled={disabled}>
                 <div className={styles.eventTypesContainer}>
                     {selectedEventTypes.map((eventType) => (
                         <div

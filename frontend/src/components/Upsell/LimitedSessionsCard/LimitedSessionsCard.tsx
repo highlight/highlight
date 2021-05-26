@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { useGetBillingDetailsQuery } from '../../../graph/generated/hooks';
+import ButtonLink from '../../Button/ButtonLink/ButtonLink';
 import styles from './LimitedSessionsCard.module.scss';
 
 const LimitedSessionCard = () => {
@@ -34,9 +35,7 @@ const LimitedSessionCard = () => {
                 <b>{data?.billingDetails.sessionsOutOfQuota} sessions</b> that
                 can be viewed after you upgrade.
             </p>
-            <Link to="billing" className={styles.link}>
-                Upgrade plan
-            </Link>
+            <ButtonLink to="billing">Upgrade Plan</ButtonLink>
         </section>
     );
 };

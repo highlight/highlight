@@ -5,6 +5,7 @@ import { eventWithTime } from '@highlight-run/rrweb/dist/types';
 import useLocalStorage from '@rehooks/local-storage';
 import classNames from 'classnames';
 import _ from 'lodash';
+import Lottie from 'lottie-react';
 import React, {
     useCallback,
     useContext,
@@ -20,10 +21,13 @@ import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
+import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
 import ElevatedCard from '../../components/ElevatedCard/ElevatedCard';
+import FullBleedCard from '../../components/FullBleedCard/FullBleedCard';
 import Modal from '../../components/Modal/Modal';
 import Tabs from '../../components/Tabs/Tabs';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
+import WaitingAnimation from '../../lottie/waiting.json';
 import CommentStream from './CommentStream/CommentStream';
 import { HighlightEvent } from './HighlightEvent';
 import { MetadataBox } from './MetadataBox/MetadataBox';
@@ -52,6 +56,7 @@ const Player = () => {
         setScale,
         replayer,
         time,
+        canViewSession,
     } = player;
     const playerWrapperRef = useRef<HTMLDivElement>(null);
     const newCommentModalRef = useRef<HTMLDivElement>(null);
@@ -127,20 +132,38 @@ const Player = () => {
     }, [sizes, replayer]);
 
     const isReplayerReady =
-        replayerState !== ReplayerState.Loading && replayerScale !== 1;
+        replayerState !== ReplayerState.Loading &&
+        replayerScale !== 1 &&
+        canViewSession;
+
+    const showRightPanel = showRightPanelPreference && canViewSession;
+    const showLeftPanel = showLeftPanelPreference && canViewSession;
 
     return (
         <ReplayerContext.Provider value={player}>
             <div
                 className={classNames(styles.playerBody, {
-                    [styles.withRightPanel]: showRightPanelPreference,
-                    [styles.withLeftPanel]: showLeftPanelPreference,
+                    [styles.withRightPanel]: showRightPanel,
+                    [styles.withLeftPanel]: showLeftPanel,
                 })}
             >
-                {showLeftPanelPreference && (
+                {showLeftPanel && (
                     <div className={styles.playerLeftPanel}>
                         <SearchPanel />
                     </div>
+                )}
+                {!canViewSession && (
+                    <FullBleedCard
+                        title="Session quota reached 😔"
+                        animation={<Lottie animationData={WaitingAnimation} />}
+                    >
+                        <p>
+                            This session was recorded after you reached your
+                            session quota. To view it you need to upgrade your
+                            plan.
+                        </p>
+                        <ButtonLink to="billing">Upgrade Plan</ButtonLink>
+                    </FullBleedCard>
                 )}
                 <div className={styles.playerCenterPanel}>
                     <SessionLevelBar />
@@ -221,7 +244,7 @@ const Player = () => {
                         onResize={() => replayer && resizePlayer(replayer)}
                     />
                 </div>
-                {showRightPanelPreference && (
+                {showRightPanel && (
                     <div className={styles.playerRightPanel}>
                         <MetadataBox />
                         <Tabs

@@ -382,6 +382,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'enable_strict_privacy'
             | 'object_storage_enabled'
             | 'payload_size'
+            | 'within_billing_quota'
         > & {
                 fields?: Types.Maybe<
                     Array<
