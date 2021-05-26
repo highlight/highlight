@@ -55,8 +55,7 @@ func init() {
 }
 
 func health(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("healthy"))
-	return
+	w.Write([]byte("healthy")) //nolint
 }
 
 func validateOrigin(request *http.Request, origin string) bool {
