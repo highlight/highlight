@@ -11,15 +11,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
-	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+
+	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
+	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, fingerprint string) (*model.Session, error) {
@@ -243,12 +245,26 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			continue
 		}
 
-		// Send a slack message if we're not on localhost.
-		if !strings.Contains(errorToInsert.URL, "localhost") {
-			if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL); err != nil {
-				log.Errorf("Error sending slack error message: %v", err)
-				continue
+		// Get ErrorAlert object and send respective alert
+		var g errgroup.Group
+		// error group because we will have session alerts as well
+		g.Go(func() error {
+			var errorAlert model.ErrorAlert
+			if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
+				// TODO: handle errors
 			}
+			if errorAlert.ChannelsToNotify != nil && errorAlert.ExcludedEnvironments != nil && strings.Contains(*errorAlert.ExcludedEnvironments, sessionObj.Environment) {
+				if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, *errorAlert.ChannelsToNotify); err != nil {
+					return e.Wrap(err, "error sending slack error message")
+				}
+			}
+			return nil
+		})
+
+		// Waits for both goroutines to finish, then logs the first non-nil error (if any).
+		if err := g.Wait(); err != nil {
+			log.Error(err)
+			continue
 		}
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.
 	}
