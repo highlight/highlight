@@ -7,17 +7,14 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/pricing"
-
-	log "github.com/sirupsen/logrus"
-
-	"github.com/stripe/stripe-go"
-
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/k0kubun/pp"
 	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
+	"github.com/stripe/stripe-go"
 	"github.com/stripe/stripe-go/client"
 	"gorm.io/gorm"
 
