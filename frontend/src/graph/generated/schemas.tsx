@@ -377,6 +377,7 @@ export type ErrorAlert = {
 
 export type SessionAlert = {
     __typename?: 'SessionAlert';
+    id: Scalars['ID'];
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int'];

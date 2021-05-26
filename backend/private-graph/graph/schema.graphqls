@@ -329,6 +329,7 @@ type ErrorAlert {
     CountThreshold: Int!
 }
 type SessionAlert {
+    id: ID!
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
