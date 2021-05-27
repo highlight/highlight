@@ -215,9 +215,7 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 		}
 	}
 	if isPlanUpgrade {
-		original := false
-		update := true
-		if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID}).Where(&model.Session{WithinBillingQuota: &original}).Updates(model.Session{WithinBillingQuota: &update}).Error; err != nil {
+		if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &model.F}).Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
 			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
 		}
 	}
