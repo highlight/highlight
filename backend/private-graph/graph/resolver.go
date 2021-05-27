@@ -12,6 +12,7 @@ import (
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/k0kubun/pp"
 	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/client"
 	"gorm.io/gorm"
 
@@ -191,4 +192,31 @@ func toDuration(duration string) (time.Duration, error) {
 		return time.Duration(0), e.Wrap(err, "error parsing duration integer")
 	}
 	return time.Duration(int64(time.Millisecond) * d), nil
+}
+
+func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
+	isPlanUpgrade := true
+	switch originalPlan {
+	case modelInputs.PlanTypeFree:
+		if newPlan == modelInputs.PlanTypeFree {
+			isPlanUpgrade = false
+		}
+	case modelInputs.PlanTypeBasic:
+		if newPlan == modelInputs.PlanTypeFree {
+			isPlanUpgrade = false
+		}
+	case modelInputs.PlanTypeStartup:
+		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic {
+			isPlanUpgrade = false
+		}
+	case modelInputs.PlanTypeEnterprise:
+		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic || newPlan == modelInputs.PlanTypeStartup {
+			isPlanUpgrade = false
+		}
+	}
+	if isPlanUpgrade {
+		if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &model.F}).Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
+		}
+	}
 }
