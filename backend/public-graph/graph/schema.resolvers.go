@@ -247,23 +247,26 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		var errorAlert model.ErrorAlert
 		if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
 			log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
-		} else if excludedEnvironments, err := errorAlert.GetExcludedEnvironments(); err != nil {
-			log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
 		} else {
-			isExcludedEnvironment := false
-			for _, env := range excludedEnvironments {
-				if env != nil && *env == sessionObj.Environment {
-					isExcludedEnvironment = true
-					break
+			excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
+			if err != nil {
+				log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
+			} else {
+				isExcludedEnvironment := false
+				for _, env := range excludedEnvironments {
+					if env != nil && *env == sessionObj.Environment {
+						isExcludedEnvironment = true
+						break
+					}
 				}
-			}
-			if !isExcludedEnvironment {
-				if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
-					log.Error(e.Wrap(err, "error getting channels to notify from ErrorAlert"))
-				} else {
-					err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
-					if err != nil {
-						log.Error(e.Wrap(err, "error sending slack error message"))
+				if !isExcludedEnvironment {
+					if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
+						log.Error(e.Wrap(err, "error getting channels to notify from ErrorAlert"))
+					} else {
+						err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
+						if err != nil {
+							log.Error(e.Wrap(err, "error sending slack error message"))
+						}
 					}
 				}
 			}
