@@ -1,0 +1,34 @@
+# options for analysis running
+run:
+  skip-dirs:
+    - private-graph/graph/generated
+    - public-graph/graph/generated
+
+# output configuration options
+output:
+  # sorts results by: filepath, line and column
+  sort-results: true
+
+
+# all available settings of specific linters
+linters-settings:
+  gosimple:
+    # Select the Go version to target. The default is '1.13'.
+    go: "1.14"
+
+  staticcheck:
+    # Select the Go version to target. The default is '1.13'.
+    go: "1.14"
+
+  stylecheck:
+    # Select the Go version to target. The default is '1.13'.
+    go: "1.14"
+
+  unused:
+    # Select the Go version to target. The default is '1.13'.
+    go: "1.14"
+
+issues:
+  # The list of ids of default excludes to include or disable. By default it's empty.
+  include:
+    - SA5011 # nil pointer dereference
