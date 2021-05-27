@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 
 import Button from '../../../components/Button/Button/Button';
 import Collapsible from '../../../components/Collapsible/Collapsible';
+import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import InputNumber from '../../../components/InputNumber/InputNumber';
 import Select from '../../../components/Select/Select';
 import {
@@ -18,6 +19,7 @@ interface AlertConfiguration {
     name: string;
     canControlThreshold: boolean;
     type: ALERT_TYPE;
+    description?: string;
 }
 
 interface Props {
@@ -29,7 +31,7 @@ interface Props {
 
 export const AlertConfigurationCard = ({
     alert,
-    configuration: { name, canControlThreshold, type },
+    configuration: { name, canControlThreshold, type, description },
     environmentOptions,
     channelSuggestions,
 }: Props) => {
@@ -146,7 +148,12 @@ export const AlertConfigurationCard = ({
 
     return (
         <Collapsible
-            title={name}
+            title={
+                <span className={styles.title}>
+                    {name} {description && <InfoTooltip title={description} />}
+                </span>
+            }
+            id={name}
             contentClassName={styles.alertConfigurationCard}
         >
             <Form
@@ -204,7 +211,16 @@ export const AlertConfigurationCard = ({
                     <p>
                         Pick environments that should not create alerts. Some
                         teams don't want to be woken up at 2AM if an alert is
-                        created from localhost.
+                        created from localhost. Environments can be set by
+                        passing the environment name when you{' '}
+                        <a
+                            href="https://docs.highlight.run/reference#options"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            start Highlight in your app
+                        </a>
+                        .
                     </p>
                     <Form.Item name="excludedEnvironments">
                         <Select

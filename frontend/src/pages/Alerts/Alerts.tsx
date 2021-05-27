@@ -13,24 +13,26 @@ export enum ALERT_TYPE {
     FirstTimeUser,
 }
 
+const ALERT_CONFIGURATIONS = [
+    {
+        name: 'Errors',
+        canControlThreshold: true,
+        type: ALERT_TYPE.Error,
+    },
+    {
+        name: 'First Time User',
+        canControlThreshold: false,
+        type: ALERT_TYPE.FirstTimeUser,
+        description:
+            'Get alerted when a new user starts their first journey in your application.',
+    },
+];
+
 const AlertsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data, loading } = useGetAlertsPagePayloadQuery({
         variables: { organization_id: organization_id },
     });
-
-    const ALERT_CONFIGURATIONS = [
-        {
-            name: 'Errors',
-            canControlThreshold: true,
-            type: ALERT_TYPE.Error,
-        },
-        {
-            name: 'First Time User',
-            canControlThreshold: false,
-            type: ALERT_TYPE.FirstTimeUser,
-        },
-    ];
 
     return (
         <LeadAlignLayout>
