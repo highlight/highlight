@@ -1,5 +1,5 @@
 import classNames from 'classnames/bind';
-import React, { useContext, useRef } from 'react';
+import React, { useContext } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 
 import { DemoContext } from '../../DemoContext';
@@ -78,7 +78,7 @@ const END_NAVIGATION_ITEMS: NavigationItem[] = [
 
 export const Sidebar = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
-    const { state, setState } = useSidebarContext();
+    const { state } = useSidebarContext();
     const { data, loading: loadingBillingDetails } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
@@ -90,16 +90,8 @@ export const Sidebar = () => {
             <div
                 className={classNames([
                     styles.sideBar,
-                    state === SidebarState.Expanded ||
-                    state === SidebarState.TemporarilyExpanded
-                        ? styles.open
-                        : undefined,
+                    state === SidebarState.Expanded ? styles.open : undefined,
                 ])}
-                onMouseLeave={() => {
-                    if (state === SidebarState.TemporarilyExpanded) {
-                        setState(SidebarState.Collapsed);
-                    }
-                }}
             >
                 <div style={{ width: '100%' }}>
                     <WorkspaceDropdown />
@@ -175,8 +167,6 @@ export const Sidebar = () => {
 };
 
 const StaticSidebar = () => {
-    const { setState } = useSidebarContext();
-    const timerId = useRef<ReturnType<typeof setTimeout> | null>(null);
     const { isHighlightAdmin } = useHighlightAdminFlag();
 
     return (
@@ -186,18 +176,6 @@ const StaticSidebar = () => {
                     styles.staticSidebarWrapper,
                     styles.sideBar
                 )}
-                onMouseEnter={() => {
-                    const id = setTimeout(() => {
-                        setState(SidebarState.TemporarilyExpanded);
-                    }, 1000);
-                    timerId.current = id;
-                }}
-                onMouseLeave={() => {
-                    if (timerId.current) {
-                        clearTimeout(timerId.current);
-                        timerId.current = null;
-                    }
-                }}
             >
                 <MiniWorkspaceIcon />
                 {LEAD_NAVIGATION_ITEMS.map(
@@ -242,15 +220,7 @@ const StaticSidebar = () => {
                         </div>
                     </MiniSidebarItem>
                 )}
-                <div
-                    className={styles.changelogContainer}
-                    onMouseEnter={() => {
-                        if (timerId.current) {
-                            clearTimeout(timerId.current);
-                            timerId.current = null;
-                        }
-                    }}
-                >
+                <div className={styles.changelogContainer}>
                     <Changelog />
                 </div>
             </div>

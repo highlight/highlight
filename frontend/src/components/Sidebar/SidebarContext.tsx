@@ -7,8 +7,6 @@ export enum SidebarState {
     Collapsed,
     /** The user has explicitly expanded the sidebar. */
     Expanded,
-    /** The app opened the sidebar temporarily. This was not done by the user explicitly. */
-    TemporarilyExpanded,
 }
 interface SidebarContext {
     state: SidebarState;

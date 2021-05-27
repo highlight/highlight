@@ -43,7 +43,6 @@ export const OrgRouter = () => {
                 nextState = SidebarState.Collapsed;
                 break;
             default:
-            case SidebarState.TemporarilyExpanded:
                 nextState = SidebarState.Collapsed;
                 break;
         }
