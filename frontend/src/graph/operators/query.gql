@@ -530,6 +530,17 @@ query GetErrorAlerts($organization_id: ID!) {
     }
 }
 
+query GetSessionAlerts($organization_id: ID!) {
+    session_alerts(organization_id: $organization_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}
+
 query GetEnvironmentSuggestion($query: String!, $organization_id: ID!) {
     environment_suggestion(query: $query, organization_id: $organization_id) {
         name

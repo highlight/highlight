@@ -124,6 +124,44 @@ func (obj *ErrorAlert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChann
 	return sanitizedChannels, nil
 }
 
+type SessionAlert struct {
+	Model
+	OrganizationID       int
+	ExcludedEnvironments *string
+	CountThreshold       int
+	ChannelsToNotify     *string
+}
+
+func (obj *SessionAlert) GetExcludedEnvironments() ([]*string, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for excluded environments")
+	}
+	excludedString := "[]"
+	if obj.ExcludedEnvironments != nil {
+		excludedString = *obj.ExcludedEnvironments
+	}
+	var sanitizedExcludedEnvironments []*string
+	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized excluded environments")
+	}
+	return sanitizedExcludedEnvironments, nil
+}
+
+func (obj *SessionAlert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for channels to notify")
+	}
+	channelString := "[]"
+	if obj.ChannelsToNotify != nil {
+		channelString = *obj.ChannelsToNotify
+	}
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
+	}
+	return sanitizedChannels, nil
+}
+
 type SlackChannel struct {
 	WebhookAccessToken string
 	WebhookURL         string
@@ -471,6 +509,7 @@ func SetupDB() *gorm.DB {
 		&SessionComment{},
 		&ErrorComment{},
 		&ErrorAlert{},
+		&SessionAlert{},
 	); err != nil {
 		log.Fatalf("Error migrating db: %v", err)
 	}

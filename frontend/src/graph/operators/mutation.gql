@@ -265,3 +265,26 @@ mutation UpdateErrorAlert(
         CountThreshold
     }
 }
+
+mutation UpdateSessionAlert(
+    $organization_id: ID!
+    $session_alert_id: ID!
+    $count_threshold: Int!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+) {
+    updateSessionAlert(
+        organization_id: $organization_id
+        session_alert_id: $session_alert_id
+        count_threshold: $count_threshold
+        slack_channels: $slack_channels
+        environments: $environments
+    ) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}

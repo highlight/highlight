@@ -1210,6 +1210,75 @@ export type UpdateErrorAlertMutationOptions = Apollo.BaseMutationOptions<
     Types.UpdateErrorAlertMutation,
     Types.UpdateErrorAlertMutationVariables
 >;
+export const UpdateSessionAlertDocument = gql`
+    mutation UpdateSessionAlert(
+        $organization_id: ID!
+        $session_alert_id: ID!
+        $count_threshold: Int!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $environments: [String]!
+    ) {
+        updateSessionAlert(
+            organization_id: $organization_id
+            session_alert_id: $session_alert_id
+            count_threshold: $count_threshold
+            slack_channels: $slack_channels
+            environments: $environments
+        ) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
+    }
+`;
+export type UpdateSessionAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateSessionAlertMutation,
+    Types.UpdateSessionAlertMutationVariables
+>;
+
+/**
+ * __useUpdateSessionAlertMutation__
+ *
+ * To run a mutation, you first call `useUpdateSessionAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateSessionAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateSessionAlertMutation, { data, loading, error }] = useUpdateSessionAlertMutation({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      session_alert_id: // value for 'session_alert_id'
+ *      count_threshold: // value for 'count_threshold'
+ *      slack_channels: // value for 'slack_channels'
+ *      environments: // value for 'environments'
+ *   },
+ * });
+ */
+export function useUpdateSessionAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateSessionAlertMutation,
+        Types.UpdateSessionAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateSessionAlertMutation,
+        Types.UpdateSessionAlertMutationVariables
+    >(UpdateSessionAlertDocument, baseOptions);
+}
+export type UpdateSessionAlertMutationHookResult = ReturnType<
+    typeof useUpdateSessionAlertMutation
+>;
+export type UpdateSessionAlertMutationResult = Apollo.MutationResult<Types.UpdateSessionAlertMutation>;
+export type UpdateSessionAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateSessionAlertMutation,
+    Types.UpdateSessionAlertMutationVariables
+>;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload($session_id: ID!) {
         events(session_id: $session_id)
@@ -3480,6 +3549,67 @@ export type GetErrorAlertsLazyQueryHookResult = ReturnType<
 export type GetErrorAlertsQueryResult = Apollo.QueryResult<
     Types.GetErrorAlertsQuery,
     Types.GetErrorAlertsQueryVariables
+>;
+export const GetSessionAlertsDocument = gql`
+    query GetSessionAlerts($organization_id: ID!) {
+        session_alerts(organization_id: $organization_id) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
+    }
+`;
+
+/**
+ * __useGetSessionAlertsQuery__
+ *
+ * To run a query within a React component, call `useGetSessionAlertsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionAlertsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionAlertsQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetSessionAlertsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionAlertsQuery,
+        Types.GetSessionAlertsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionAlertsQuery,
+        Types.GetSessionAlertsQueryVariables
+    >(GetSessionAlertsDocument, baseOptions);
+}
+export function useGetSessionAlertsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionAlertsQuery,
+        Types.GetSessionAlertsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionAlertsQuery,
+        Types.GetSessionAlertsQueryVariables
+    >(GetSessionAlertsDocument, baseOptions);
+}
+export type GetSessionAlertsQueryHookResult = ReturnType<
+    typeof useGetSessionAlertsQuery
+>;
+export type GetSessionAlertsLazyQueryHookResult = ReturnType<
+    typeof useGetSessionAlertsLazyQuery
+>;
+export type GetSessionAlertsQueryResult = Apollo.QueryResult<
+    Types.GetSessionAlertsQuery,
+    Types.GetSessionAlertsQueryVariables
 >;
 export const GetEnvironmentSuggestionDocument = gql`
     query GetEnvironmentSuggestion($query: String!, $organization_id: ID!) {
