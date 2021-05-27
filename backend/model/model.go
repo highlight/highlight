@@ -138,7 +138,9 @@ func (u *Organization) GetSlackWebhookURL() (*string, error) {
 		if err != nil {
 			return nil, e.Wrap(err, "error parsing details json")
 		}
-		return &parsedChannels[0].WebhookURL, nil
+		if len(parsedChannels) > 0 {
+			return &parsedChannels[0].WebhookURL, nil
+		}
 	}
 	return nil, nil
 }
