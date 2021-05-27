@@ -556,7 +556,7 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
         organization?: Types.Maybe<
             { __typename?: 'Organization' } & Pick<
                 Types.Organization,
-                'slack_webhook_channel'
+                'slack_channels'
             >
         >;
         admins?: Types.Maybe<
@@ -1256,6 +1256,25 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
                 { __typename?: 'ErrorAlert' } & Pick<
                     Types.ErrorAlert,
                     'ExcludedEnvironments' | 'CountThreshold' | 'id'
+                > & {
+                        ChannelsToNotify: Array<
+                            Types.Maybe<
+                                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                    Types.SanitizedSlackChannel,
+                                    'webhook_channel' | 'webhook_channel_id'
+                                >
+                            >
+                        >;
+                    }
+            >
+        >
+    >;
+    session_alerts?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'SessionAlert' } & Pick<
+                    Types.SessionAlert,
+                    'id' | 'ExcludedEnvironments' | 'CountThreshold'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<

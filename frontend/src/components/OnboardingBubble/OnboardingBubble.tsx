@@ -69,11 +69,11 @@ const OnboardingBubble = () => {
                 completed: data.isIntegrated || false,
             });
             STEPS.push({
-                displayName: 'Integrate with Slack',
+                displayName: 'Configure Alerts',
                 action: () => {
-                    history.push(`/${organization_id}/setup`);
+                    history.push(`/${organization_id}/alerts`);
                 },
-                completed: !!data.organization?.slack_webhook_channel,
+                completed: !!data.organization?.slack_channels,
             });
             STEPS.push({
                 displayName: 'Invite your team',
@@ -125,7 +125,7 @@ const OnboardingBubble = () => {
                     setHasFinishedOnboarding(true);
                 }
                 stopPolling();
-            } else {
+            } else if (stepsNotFinishedCount !== -1) {
                 startPolling(3000);
             }
         }
@@ -147,7 +147,7 @@ const OnboardingBubble = () => {
         return <Confetti recycle={false} />;
     }
 
-    if (loading) {
+    if (loading || stepsNotFinishedCount === -1) {
         return null;
     }
 

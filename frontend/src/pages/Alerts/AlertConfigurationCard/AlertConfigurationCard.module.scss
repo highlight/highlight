@@ -41,3 +41,9 @@
 .addContainer {
     padding: var(--size-small);
 }
+
+.title {
+    align-items: center;
+    column-gap: var(--size-xSmall);
+    display: flex;
+}

@@ -5,13 +5,13 @@ import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 import useFetch from 'use-http';
 
+import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
 import Collapsible from '../../components/Collapsible/Collapsible';
 import SvgSlackLogo from '../../components/icons/SlackLogo';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
-import SlackIntegration from '../Alerts/SlackIntegration/SlackIntegration';
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
 import styles from './SetupPage.module.scss';
@@ -144,16 +144,13 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         id="slackAlerts"
                     >
                         <p>
-                            Get notified of errors happening in your
+                            Get notified of different events happening in your
                             application.
                         </p>
                         <div className={styles.integrationContainer}>
-                            <SlackIntegration
-                                redirectPath="setup"
-                                integratedChannel={
-                                    data.organization.slack_webhook_channel
-                                }
-                            />
+                            <ButtonLink to={`/${organization_id}/alerts`}>
+                                Configure Your Alerts
+                            </ButtonLink>
                         </div>
                     </Section>
                 </div>

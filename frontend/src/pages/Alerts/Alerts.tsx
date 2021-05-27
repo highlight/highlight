@@ -8,34 +8,35 @@ import { useGetAlertsPagePayloadQuery } from '../../graph/generated/hooks';
 import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
 
+export enum ALERT_TYPE {
+    Error,
+    FirstTimeUser,
+}
+
+const ALERT_CONFIGURATIONS = [
+    {
+        name: 'Errors',
+        canControlThreshold: true,
+        type: ALERT_TYPE.Error,
+    },
+    {
+        name: 'First Time User',
+        canControlThreshold: false,
+        type: ALERT_TYPE.FirstTimeUser,
+        description:
+            'Get alerted when a new user starts their first journey in your application.',
+    },
+];
+
 const AlertsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data, loading } = useGetAlertsPagePayloadQuery({
         variables: { organization_id: organization_id },
     });
 
-    const ALERT_CONFIGURATIONS = [
-        {
-            name: 'Errors',
-            canControlThreshold: true,
-        },
-        {
-            name: 'Session Alerts',
-            canControlThreshold: false,
-        },
-        {
-            name: 'First Time User Alerts',
-            canControlThreshold: true,
-        },
-        {
-            name: 'Track Event Alerts',
-            canControlThreshold: false,
-        },
-    ];
-
     return (
         <LeadAlignLayout>
-            <h2>Configure your alerts</h2>
+            <h2>Configure Your Alerts</h2>
             <p className={layoutStyles.subTitle}>
                 Configure the environments you want alerts for.
             </p>
@@ -72,6 +73,20 @@ const AlertsPage = () => {
                             configuration={ALERT_CONFIGURATIONS[0]}
                             alert={
                                 data?.error_alerts ? data?.error_alerts[0] : {}
+                            }
+                            environmentOptions={
+                                data?.environment_suggestion || []
+                            }
+                            channelSuggestions={
+                                data?.slack_channel_suggestion || []
+                            }
+                        />
+                        <AlertConfigurationCard
+                            configuration={ALERT_CONFIGURATIONS[1]}
+                            alert={
+                                data?.session_alerts
+                                    ? data?.session_alerts[0]
+                                    : {}
                             }
                             environmentOptions={
                                 data?.environment_suggestion || []

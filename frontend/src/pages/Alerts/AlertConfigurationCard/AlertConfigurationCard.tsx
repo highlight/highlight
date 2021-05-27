@@ -4,15 +4,22 @@ import { useParams } from 'react-router-dom';
 
 import Button from '../../../components/Button/Button/Button';
 import Collapsible from '../../../components/Collapsible/Collapsible';
+import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import InputNumber from '../../../components/InputNumber/InputNumber';
 import Select from '../../../components/Select/Select';
-import { useUpdateErrorAlertMutation } from '../../../graph/generated/hooks';
+import {
+    useUpdateErrorAlertMutation,
+    useUpdateSessionAlertMutation,
+} from '../../../graph/generated/hooks';
+import { ALERT_TYPE } from '../Alerts';
 import { useSlack } from '../SlackIntegration/SlackIntegration';
 import styles from './AlertConfigurationCard.module.scss';
 
 interface AlertConfiguration {
     name: string;
     canControlThreshold: boolean;
+    type: ALERT_TYPE;
+    description?: string;
 }
 
 interface Props {
@@ -24,7 +31,7 @@ interface Props {
 
 export const AlertConfigurationCard = ({
     alert,
-    configuration: { name, canControlThreshold },
+    configuration: { name, canControlThreshold, type, description },
     environmentOptions,
     channelSuggestions,
 }: Props) => {
@@ -34,30 +41,51 @@ export const AlertConfigurationCard = ({
     const { organization_id } = useParams<{ organization_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
+    const [updateSessionAlert] = useUpdateSessionAlertMutation();
     const { slackUrl } = useSlack('alerts', ['GetAlertsPagePayload']);
 
     const onSubmit = async () => {
         setLoading(true);
         try {
-            await updateErrorAlert({
-                variables: {
-                    organization_id,
-                    environments: form.getFieldValue('excludedEnvironments'),
-                    count_threshold: form.getFieldValue('threshold'),
-                    slack_channels: form
-                        .getFieldValue('channels')
-                        .map((webhook_channel_id: string) => ({
-                            webhook_channel_name: channelSuggestions.find(
-                                (suggestion) =>
-                                    suggestion.webhook_channel_id ===
-                                    webhook_channel_id
-                            ).webhook_channel,
-                            webhook_channel_id,
-                        })),
-                    error_alert_id: alert.id,
-                },
+            const requestVariables = {
+                organization_id,
+                environments: form.getFieldValue('excludedEnvironments'),
+                count_threshold: form.getFieldValue('threshold'),
+                slack_channels: form
+                    .getFieldValue('channels')
+                    .map((webhook_channel_id: string) => ({
+                        webhook_channel_name: channelSuggestions.find(
+                            (suggestion) =>
+                                suggestion.webhook_channel_id ===
+                                webhook_channel_id
+                        ).webhook_channel,
+                        webhook_channel_id,
+                    })),
+            };
+            const requestBody = {
                 refetchQueries: ['GetAlertsPagePayload'],
-            });
+            };
+
+            switch (type) {
+                case ALERT_TYPE.Error:
+                    await updateErrorAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            error_alert_id: alert.id,
+                        },
+                    });
+                    break;
+                case ALERT_TYPE.FirstTimeUser:
+                    await updateSessionAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            session_alert_id: alert.id,
+                        },
+                    });
+                    break;
+            }
             message.success(`Updated ${name}!`);
             setFormTouched(false);
         } catch (e) {
@@ -120,7 +148,12 @@ export const AlertConfigurationCard = ({
 
     return (
         <Collapsible
-            title={name}
+            title={
+                <span className={styles.title}>
+                    {name} {description && <InfoTooltip title={description} />}
+                </span>
+            }
+            id={name}
             contentClassName={styles.alertConfigurationCard}
         >
             <Form
@@ -178,7 +211,16 @@ export const AlertConfigurationCard = ({
                     <p>
                         Pick environments that should not create alerts. Some
                         teams don't want to be woken up at 2AM if an alert is
-                        created from localhost.
+                        created from localhost. Environments can be set by
+                        passing the environment name when you{' '}
+                        <a
+                            href="https://docs.highlight.run/reference#options"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            start Highlight in your app
+                        </a>
+                        .
                     </p>
                     <Form.Item name="excludedEnvironments">
                         <Select
@@ -198,7 +240,7 @@ export const AlertConfigurationCard = ({
                             Pick how often an alert should be created.{' '}
                             {threshold === 0
                                 ? `Setting the threshold to 0 means no alerts will be created.`
-                                : `This means an alert will be created for every ${threshold} errors.`}
+                                : `This means an alert will be created for every ${threshold} ${name.toLocaleLowerCase()}.`}
                         </p>
                         <Form.Item name="threshold">
                             <InputNumber onChange={onThresholdChange} min={0} />
