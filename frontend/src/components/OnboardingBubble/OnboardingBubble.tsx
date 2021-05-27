@@ -125,7 +125,7 @@ const OnboardingBubble = () => {
                     setHasFinishedOnboarding(true);
                 }
                 stopPolling();
-            } else {
+            } else if (stepsNotFinishedCount !== -1) {
                 startPolling(3000);
             }
         }
@@ -147,7 +147,7 @@ const OnboardingBubble = () => {
         return <Confetti recycle={false} />;
     }
 
-    if (loading) {
+    if (loading || stepsNotFinishedCount === -1) {
         return null;
     }
 
