@@ -298,6 +298,9 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 					break
 				}
 			}
+			if slackWebhookURL == "" {
+				continue
+			}
 			msg := slack.WebhookMessage{
 				Text:    group.Event,
 				Channel: *channel.WebhookChannel,
