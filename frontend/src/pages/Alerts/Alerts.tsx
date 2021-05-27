@@ -36,7 +36,7 @@ const AlertsPage = () => {
 
     return (
         <LeadAlignLayout>
-            <h2>Configure your alerts</h2>
+            <h2>Configure Your Alerts</h2>
             <p className={layoutStyles.subTitle}>
                 Configure the environments you want alerts for.
             </p>

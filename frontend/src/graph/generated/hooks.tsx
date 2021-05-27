@@ -1748,7 +1748,7 @@ export type GetErrorCommentsQueryResult = Apollo.QueryResult<
 export const GetOnboardingStepsDocument = gql`
     query GetOnboardingSteps($organization_id: ID!, $admin_id: ID!) {
         organization(id: $organization_id) {
-            slack_webhook_channel
+            slack_channels
         }
         admins(organization_id: $organization_id) {
             id

@@ -69,11 +69,11 @@ const OnboardingBubble = () => {
                 completed: data.isIntegrated || false,
             });
             STEPS.push({
-                displayName: 'Integrate with Slack',
+                displayName: 'Configure Alerts',
                 action: () => {
-                    history.push(`/${organization_id}/setup`);
+                    history.push(`/${organization_id}/alerts`);
                 },
-                completed: !!data.organization?.slack_webhook_channel,
+                completed: !!data.organization?.slack_channels,
             });
             STEPS.push({
                 displayName: 'Invite your team',

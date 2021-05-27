@@ -556,7 +556,7 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
         organization?: Types.Maybe<
             { __typename?: 'Organization' } & Pick<
                 Types.Organization,
-                'slack_webhook_channel'
+                'slack_channels'
             >
         >;
         admins?: Types.Maybe<

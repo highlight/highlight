@@ -70,6 +70,7 @@ type Organization {
     billing_email: String
     trial_end_date: Time
     slack_webhook_channel: String
+    slack_channels: String
 }
 
 type Segment {
