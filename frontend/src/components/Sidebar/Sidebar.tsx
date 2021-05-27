@@ -4,6 +4,8 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 
 import { DemoContext } from '../../DemoContext';
 import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
+import useHighlightAdminFlag from '../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
+import SvgBellIcon from '../../static/BellIcon';
 import SvgCreditCardsIcon from '../../static/CreditCardsIcon';
 import SvgErrorsIcon from '../../static/ErrorsIcon';
 import SvgHomeIcon from '../../static/HomeIcon';
@@ -80,6 +82,7 @@ export const Sidebar = () => {
     const { data, loading: loadingBillingDetails } = useGetBillingDetailsQuery({
         variables: { organization_id },
     });
+    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     return (
         <>
@@ -127,6 +130,14 @@ export const Sidebar = () => {
                         </SidebarItem>
                     )
                 )}
+                {isHighlightAdmin && (
+                    <SidebarItem text="Alerts" route="alerts">
+                        <div className={styles.iconWrapper}>
+                            <SvgBellIcon className={styles.icon} />
+                        </div>
+                    </SidebarItem>
+                )}
+
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
                         {!loadingBillingDetails &&
@@ -166,6 +177,7 @@ export const Sidebar = () => {
 const StaticSidebar = () => {
     const { setState } = useSidebarContext();
     const timerId = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     return (
         <>
@@ -218,6 +230,17 @@ const StaticSidebar = () => {
                             />
                         </MiniSidebarItem>
                     )
+                )}
+                {isHighlightAdmin && (
+                    <MiniSidebarItem text="Alerts" route="alerts">
+                        <div className={styles.iconWrapper}>
+                            <SvgBellIcon
+                                className={styles.icon}
+                                height="32px"
+                                width="32px"
+                            />
+                        </div>
+                    </MiniSidebarItem>
                 )}
                 <div
                     className={styles.changelogContainer}

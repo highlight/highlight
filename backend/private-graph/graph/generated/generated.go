@@ -341,6 +341,7 @@ type ComplexityRoot struct {
 		UserID               func(childComplexity int) int
 		UserObject           func(childComplexity int) int
 		Viewed               func(childComplexity int) int
+		WithinBillingQuota   func(childComplexity int) int
 	}
 
 	SessionComment struct {
@@ -2176,6 +2177,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.Viewed(childComplexity), true
 
+	case "Session.within_billing_quota":
+		if e.complexity.Session.WithinBillingQuota == nil {
+			break
+		}
+
+		return e.complexity.Session.WithinBillingQuota(childComplexity), true
+
 	case "SessionComment.author":
 		if e.complexity.SessionComment.Author == nil {
 			break
@@ -2404,6 +2412,7 @@ type Session {
     enable_strict_privacy: Boolean
     object_storage_enabled: Boolean
     payload_size: Int64
+    within_billing_quota: Boolean
 }
 
 type BillingDetails {
@@ -11482,6 +11491,38 @@ func (ec *executionContext) _Session_payload_size(ctx context.Context, field gra
 	return ec.marshalOInt642ᚖint64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_within_billing_quota(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.WithinBillingQuota, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	fc.Result = res
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _SessionComment_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15309,6 +15350,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Session_object_storage_enabled(ctx, field, obj)
 		case "payload_size":
 			out.Values[i] = ec._Session_payload_size(ctx, field, obj)
+		case "within_billing_quota":
+			out.Values[i] = ec._Session_within_billing_quota(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

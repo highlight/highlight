@@ -6,6 +6,4 @@ export const inviteButton: string;
 export const memberCard: string;
 export const name: string;
 export const subTitle: string;
-export const teamPage: string;
-export const teamPageWrapper: string;
 export const userDetails: string;

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { auth } from '../../util/auth';
 import { client } from '../../util/graph';
 import Button from '../Button/Button/Button';
-import Card from '../Card/Card';
+import ElevatedCard from '../ElevatedCard/ElevatedCard';
 import styles from './ErrorState.module.scss';
 
 export const ErrorState = ({
@@ -16,7 +16,7 @@ export const ErrorState = ({
     const [showError, setShowError] = useState(false);
     return (
         <div className={styles.errorWrapper}>
-            <Card title="Woops, something's wrong!">
+            <ElevatedCard title="Woops, something's wrong!">
                 <p className={styles.errorBody}>
                     {message}
                     <span
@@ -47,7 +47,7 @@ export const ErrorState = ({
                         Login as a different User
                     </Button>
                 </div>
-            </Card>
+            </ElevatedCard>
         </div>
     );
 };

@@ -14,7 +14,11 @@ export function parseTime(val: number) {
     };
 }
 
-export function formatShortTime(val: number, formats = ['m', 's'], space = '') {
+export function formatShortTime(
+    val: number,
+    formats = ['d', 'h', 'm', 's'],
+    space = ''
+) {
     const { days, hours, minutes, seconds, ms } = parseTime(val);
     let t = '';
 
@@ -27,7 +31,6 @@ export function formatShortTime(val: number, formats = ['m', 's'], space = '') {
     if (!t) {
         return `0${formats[formats.length - 1]}`;
     }
-
     return t;
 }
 

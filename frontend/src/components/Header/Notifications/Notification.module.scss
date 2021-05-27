@@ -21,13 +21,13 @@
 
     .dotContainer {
         position: absolute;
-        right: 4px;
-        top: 2px;
+        right: 0;
+        top: -2px;
     }
 
     svg {
-        height: calc(var(--size-icon) + var(--size-xSmall));
-        width: calc(var(--size-icon) + var(--size-xSmall));
+        height: calc(var(--size-icon));
+        width: calc(var(--size-icon));
     }
 }
 

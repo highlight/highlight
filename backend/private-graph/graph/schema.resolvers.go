@@ -361,7 +361,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 
 	baseMessage := "👋 Hello from Highlight!"
 	if name := org.Name; name != nil {
-		baseMessage += fmt.Sprintf("We'll send messages here based on your alert preferences for %v, which can be configured at https://app.highlight.run/%v/alerts.", *name, org.ID)
+		baseMessage += fmt.Sprintf(" We'll send messages here based on your alert preferences for %v, which can be configured at https://app.highlight.run/%v/alerts.", *name, org.ID)
 	}
 	msg := slack.WebhookMessage{Text: baseMessage}
 	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
@@ -536,6 +536,15 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
+
+		// mark sessions as within billing quota on plan upgrade
+		// this is done when the user is already signed up for some sort of billing plan
+		if c.Subscriptions.Data[0].Items.Data[0].Plan != nil {
+			go r.UpdateSessionsVisibility(organizationID, planType, pricing.FromPriceID(c.Subscriptions.Data[0].Items.Data[0].Plan.ID))
+		} else {
+			log.Error("error getting original plan data from stripe client")
+		}
+
 		ret := ""
 		return &ret, nil
 	}
@@ -563,6 +572,11 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	if err != nil {
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
+
+	// mark sessions as within billing quota on plan upgrade
+	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
+	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
+	go r.UpdateSessionsVisibility(organizationID, planType, modelInputs.PlanTypeFree)
 
 	return &stripeSession.ID, nil
 }
