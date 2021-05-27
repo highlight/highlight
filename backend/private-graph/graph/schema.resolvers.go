@@ -208,6 +208,9 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(&model.ErrorAlert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
+	if err := r.DB.Create(&model.SessionAlert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session alert for new org")
+	}
 	return org, nil
 }
 
@@ -782,6 +785,44 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID 
 			ID: errorAlertID,
 		},
 	}).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields")
+	}
+	return alert, nil
+}
+
+func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	alert := &model.SessionAlert{}
+	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Find(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session alert")
+	}
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments")
+	}
+	envString := string(envBytes)
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels")
+	}
+	channelsString := string(channelsBytes)
+
+	alert.ChannelsToNotify = &channelsString
+	alert.ExcludedEnvironments = &envString
+	alert.CountThreshold = countThreshold
+	if err := r.DB.Model(&model.SessionAlert{}).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
 	}
 	return alert, nil
@@ -1591,6 +1632,18 @@ func (r *queryResolver) ErrorAlerts(ctx context.Context, organizationID int) ([]
 	return alerts, nil
 }
 
+func (r *queryResolver) SessionAlerts(ctx context.Context, organizationID int) ([]*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	var alerts []*model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{OrganizationID: organizationID}).Find(&alerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session alerts")
+	}
+	return alerts, nil
+}
+
 func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
 	orgs := []*model.Organization{}
 	if r.isWhitelistedAccount(ctx) {
@@ -1737,6 +1790,14 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
+	return obj.GetChannelsToNotify()
+}
+
+func (r *sessionAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.SessionAlert) ([]*string, error) {
+	return obj.GetExcludedEnvironments()
+}
+
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
 	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
@@ -1794,6 +1855,9 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
+// SessionAlert returns generated.SessionAlertResolver implementation.
+func (r *Resolver) SessionAlert() generated.SessionAlertResolver { return &sessionAlertResolver{r} }
+
 // SessionComment returns generated.SessionCommentResolver implementation.
 func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
@@ -1808,4 +1872,5 @@ type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
