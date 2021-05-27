@@ -2,9 +2,10 @@ import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { FunctionComponent, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import useFetch from 'use-http';
 
+import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
 import Collapsible from '../../components/Collapsible/Collapsible';
 import SvgSlackLogo from '../../components/icons/SlackLogo';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
@@ -147,9 +148,9 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             application.
                         </p>
                         <div className={styles.integrationContainer}>
-                            <Link to={`/${organization_id}/alerts`}>
+                            <ButtonLink to={`/${organization_id}/alerts`}>
                                 Configure Your Alerts
-                            </Link>
+                            </ButtonLink>
                         </div>
                     </Section>
                 </div>
