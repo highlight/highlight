@@ -260,7 +260,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 					}
 				}
 				if !isExcludedEnvironment {
-					log.Info("[org_id: %d] getting channels to notify for error alerts")
+					log.Infof("[org_id: %d] getting channels to notify for error alerts", organizationID)
 					if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
 						log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from ErrorAlert", organizationID))
 					} else {
