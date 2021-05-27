@@ -125,12 +125,23 @@ func (obj *ErrorAlert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChann
 }
 
 type SlackChannel struct {
-	WebhookAccessToken string
-	WebhookURL         string
-	WebhookChannel     string
-	WebhookChannelID   string
+	WebhookAccessToken string `json:"WebhookAccessToken"`
+	WebhookURL         string `json:"WebhookURL"`
+	WebhookChannel     string `json:"WebhookChannel"`
+	WebhookChannelID   string `json:"WebhookChannelID"`
 }
 
+func (u *Organization) GetSlackWebhookURL() (*string, error) {
+	parsedChannels := []SlackChannel{}
+	if u.SlackChannels != nil {
+		err := json.Unmarshal([]byte(*u.SlackChannels), &parsedChannels)
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing details json")
+		}
+		return &parsedChannels[0].WebhookURL, nil
+	}
+	return nil, nil
+}
 func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
 	parsedChannels := []SlackChannel{}
 	if u.SlackChannels != nil {
