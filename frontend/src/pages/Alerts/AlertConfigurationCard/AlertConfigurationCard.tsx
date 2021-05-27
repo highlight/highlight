@@ -148,6 +148,9 @@ export const AlertConfigurationCard = ({
                                 notFoundContent={
                                     <div>Slack is not configured yet.</div>
                                 }
+                                defaultValue={alert.ChannelsToNotify.map(
+                                    (channel: any) => channel.webhook_channel_id
+                                )}
                                 dropdownRender={(menu) => (
                                     <div>
                                         {menu}

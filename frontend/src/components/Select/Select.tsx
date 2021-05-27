@@ -21,6 +21,7 @@ type Props = Pick<
     | 'notFoundContent'
     | 'mode'
     | 'dropdownRender'
+    | 'defaultValue'
 > & {
     options: {
         value: string;
