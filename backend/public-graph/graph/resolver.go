@@ -275,11 +275,11 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 	if err := res.Error; err != nil {
 		return e.Wrap(err, "error messaging organization")
 	}
-	webhookURL, err := organization.IntegratedSlackChannels()
+	integratedSlackChannels, err := organization.IntegratedSlackChannels()
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for alert")
 	}
-	if len(webhookURL) <= 0 || group == nil {
+	if len(integratedSlackChannels) <= 0 || group == nil {
 		return nil
 	}
 	shortEvent := group.Event
@@ -291,6 +291,13 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
+			var slackWebhookURL string
+			for _, ch := range integratedSlackChannels {
+				if ch.WebhookChannelID == *channel.WebhookChannelID {
+					slackWebhookURL = ch.WebhookURL
+					break
+				}
+			}
 			msg := slack.WebhookMessage{
 				Text:    group.Event,
 				Channel: *channel.WebhookChannel,
@@ -324,7 +331,7 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 				},
 			}
 			err := slack.PostWebhook(
-				webhookURL[0].WebhookURL,
+				slackWebhookURL,
 				&msg,
 			)
 			if err != nil {
