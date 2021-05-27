@@ -8,6 +8,11 @@ import { useGetAlertsPagePayloadQuery } from '../../graph/generated/hooks';
 import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
 
+export enum ALERT_TYPE {
+    Error,
+    FirstTimeUser,
+}
+
 const AlertsPage = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { data, loading } = useGetAlertsPagePayloadQuery({
@@ -18,18 +23,12 @@ const AlertsPage = () => {
         {
             name: 'Errors',
             canControlThreshold: true,
+            type: ALERT_TYPE.Error,
         },
         {
-            name: 'Session Alerts',
+            name: 'First Time User',
             canControlThreshold: false,
-        },
-        {
-            name: 'First Time User Alerts',
-            canControlThreshold: true,
-        },
-        {
-            name: 'Track Event Alerts',
-            canControlThreshold: false,
+            type: ALERT_TYPE.FirstTimeUser,
         },
     ];
 
@@ -72,6 +71,20 @@ const AlertsPage = () => {
                             configuration={ALERT_CONFIGURATIONS[0]}
                             alert={
                                 data?.error_alerts ? data?.error_alerts[0] : {}
+                            }
+                            environmentOptions={
+                                data?.environment_suggestion || []
+                            }
+                            channelSuggestions={
+                                data?.slack_channel_suggestion || []
+                            }
+                        />
+                        <AlertConfigurationCard
+                            configuration={ALERT_CONFIGURATIONS[1]}
+                            alert={
+                                data?.session_alerts
+                                    ? data?.session_alerts[0]
+                                    : {}
                             }
                             environmentOptions={
                                 data?.environment_suggestion || []
