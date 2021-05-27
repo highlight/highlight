@@ -125,10 +125,10 @@ func (obj *ErrorAlert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChann
 }
 
 type SlackChannel struct {
-	WebhookAccessToken string `json:"WebhookAccessToken"`
-	WebhookURL         string `json:"WebhookURL"`
-	WebhookChannel     string `json:"WebhookChannel"`
-	WebhookChannelID   string `json:"WebhookChannelID"`
+	WebhookAccessToken string
+	WebhookURL         string
+	WebhookChannel     string
+	WebhookChannelID   string
 }
 
 func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
