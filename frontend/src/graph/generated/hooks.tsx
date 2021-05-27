@@ -3748,6 +3748,15 @@ export const GetAlertsPagePayloadDocument = gql`
             CountThreshold
             id
         }
+        session_alerts(organization_id: $organization_id) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
     }
 `;
 
