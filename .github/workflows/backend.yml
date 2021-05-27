@@ -23,7 +23,6 @@ jobs:
             - name: Run linter
               uses: golangci/golangci-lint-action@v2
               with:
-                  args: --config ./backend/golangci.yaml
                   working-directory: backend
                   only-new-issues: true
             - name: Run tests
