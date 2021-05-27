@@ -20,7 +20,7 @@ import { useParams } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
-import Card from '../../components/Card/Card';
+import ElevatedCard from '../../components/ElevatedCard/ElevatedCard';
 import Modal from '../../components/Modal/Modal';
 import Tabs from '../../components/Tabs/Tabs';
 import { useMarkSessionAsViewedMutation } from '../../graph/generated/hooks';
@@ -163,7 +163,7 @@ const Player = () => {
                                             .width,
                                     }}
                                 >
-                                    <Card title="Session recording manually stopped">
+                                    <ElevatedCard title="Session recording manually stopped">
                                         <p>
                                             <a
                                                 href="https://docs.highlight.run/reference#stop"
@@ -186,7 +186,7 @@ const Player = () => {
                                             </a>
                                             .
                                         </p>
-                                    </Card>
+                                    </ElevatedCard>
                                 </div>
                             )}
                             {isReplayerReady && (

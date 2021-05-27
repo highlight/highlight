@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Collapsible from 'react-collapsible';
 
-import { ReactComponent as DownIcon } from '../../../../static/chevron-down.svg';
+import { ReactComponent as DownIcon } from '../../../../static/chevron-down-icon.svg';
 import {
     SearchParams,
     useSearchContext,

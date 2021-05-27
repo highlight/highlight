@@ -6,7 +6,7 @@ import ReactJson from 'react-json-view';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import GoToButton from '../../../components/Button/GoToButton';
-import { ReactComponent as DownIcon } from '../../../static/chevron-down.svg';
+import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
 import { ReactComponent as IdentifyIcon } from '../../../static/identify.svg';
 import { ReactComponent as NavigateIcon } from '../../../static/navigate.svg';

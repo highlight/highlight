@@ -1,24 +1,19 @@
 import classNames from 'classnames';
-import React, { PropsWithChildren } from 'react';
+import React from 'react';
 
 import styles from './Card.module.scss';
 
-interface Props {
-    title?: string;
-    animation?: React.ReactNode;
-}
-
-const Card = ({ title, children, animation }: PropsWithChildren<Props>) => {
+const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
+    children,
+    ...props
+}) => {
     return (
-        <div
-            className={classNames(styles.card, {
-                [styles.center]: !!animation,
-            })}
+        <article
+            {...props}
+            className={classNames(styles.card, props.className)}
         >
-            {animation && <div className={styles.animation}>{animation}</div>}
-            {title && <h2>{title}</h2>}
-            <div className={styles.content}>{children}</div>
-        </div>
+            {children}
+        </article>
     );
 };
 

@@ -375,14 +375,6 @@ export type ErrorAlert = {
     CountThreshold: Scalars['Int'];
 };
 
-export type SessionAlert = {
-    __typename?: 'SessionAlert';
-    id: Scalars['ID'];
-    ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
-    ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
-    CountThreshold: Scalars['Int'];
-};
-
 export type Query = {
     __typename?: 'Query';
     session?: Maybe<Session>;
@@ -415,7 +407,6 @@ export type Query = {
     error_field_suggestion?: Maybe<Array<Maybe<ErrorField>>>;
     organizations?: Maybe<Array<Maybe<Organization>>>;
     error_alerts?: Maybe<Array<Maybe<ErrorAlert>>>;
-    session_alerts?: Maybe<Array<Maybe<SessionAlert>>>;
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
@@ -553,10 +544,6 @@ export type QueryError_AlertsArgs = {
     organization_id: Scalars['ID'];
 };
 
-export type QuerySession_AlertsArgs = {
-    organization_id: Scalars['ID'];
-};
-
 export type QueryOrganizationSuggestionArgs = {
     query: Scalars['String'];
 };
@@ -611,7 +598,6 @@ export type Mutation = {
     createErrorComment?: Maybe<ErrorComment>;
     deleteErrorComment?: Maybe<Scalars['Boolean']>;
     updateErrorAlert?: Maybe<ErrorAlert>;
-    updateSessionAlert?: Maybe<SessionAlert>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -744,14 +730,6 @@ export type MutationDeleteErrorCommentArgs = {
 export type MutationUpdateErrorAlertArgs = {
     organization_id: Scalars['ID'];
     error_alert_id: Scalars['ID'];
-    count_threshold: Scalars['Int'];
-    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
-    environments: Array<Maybe<Scalars['String']>>;
-};
-
-export type MutationUpdateSessionAlertArgs = {
-    organization_id: Scalars['ID'];
-    session_alert_id: Scalars['ID'];
     count_threshold: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;

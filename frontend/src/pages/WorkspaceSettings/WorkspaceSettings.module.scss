@@ -1,14 +1,3 @@
-.settingsPageWrapper {
-    display: flex;
-    height: 100%;
-    width: 100%;
-}
-
-.settingsPage {
-    margin: 120px 80px 80px;
-    width: 580px;
-}
-
 .subTitle {
     font-size: 18px;
 }
@@ -17,6 +6,7 @@
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     margin-top: 20px;
+    max-width: 580px;
     padding: 30px;
 }
 

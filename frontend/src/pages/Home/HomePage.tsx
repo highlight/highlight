@@ -15,8 +15,8 @@ import {
     YAxis,
 } from 'recharts';
 
-import Card from '../../components/Card/Card';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
+import ElevatedCard from '../../components/ElevatedCard/ElevatedCard';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import {
     useGetAdminQuery,
@@ -107,7 +107,7 @@ const HomePage = () => {
                     </div>
                     {!hasData && (
                         <div className={styles.noDataContainer}>
-                            <Card
+                            <ElevatedCard
                                 title={
                                     integrated
                                         ? "You're too fast!"
@@ -134,7 +134,7 @@ const HomePage = () => {
                                         </>
                                     )}
                                 </p>
-                            </Card>
+                            </ElevatedCard>
                         </div>
                     )}
                 </div>

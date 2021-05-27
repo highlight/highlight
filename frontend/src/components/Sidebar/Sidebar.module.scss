@@ -29,6 +29,7 @@
 
 .settingsDivider {
     background-color: var(--color-gray-300);
+    flex-shrink: 0;
     height: 2px;
     width: 90%;
 }
