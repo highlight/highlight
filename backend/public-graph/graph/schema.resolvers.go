@@ -8,18 +8,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
-	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
+
+	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
+	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, fingerprint string) (*model.Session, error) {
@@ -243,11 +243,32 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			continue
 		}
 
-		// Send a slack message if we're not on localhost.
-		if !strings.Contains(errorToInsert.URL, "localhost") {
-			if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL); err != nil {
-				log.Errorf("Error sending slack error message: %v", err)
-				continue
+		// Get ErrorAlert object and send respective alert
+		var errorAlert model.ErrorAlert
+		if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
+			log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
+		} else {
+			excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
+			if err != nil {
+				log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
+			} else {
+				isExcludedEnvironment := false
+				for _, env := range excludedEnvironments {
+					if env != nil && *env == sessionObj.Environment {
+						isExcludedEnvironment = true
+						break
+					}
+				}
+				if !isExcludedEnvironment {
+					if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
+						log.Error(e.Wrap(err, "error getting channels to notify from ErrorAlert"))
+					} else {
+						err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
+						if err != nil {
+							log.Error(e.Wrap(err, "error sending slack error message"))
+						}
+					}
+				}
 			}
 		}
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.
