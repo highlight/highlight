@@ -131,19 +131,6 @@ type SlackChannel struct {
 	WebhookChannelID   string `json:"WebhookChannelID"`
 }
 
-func (u *Organization) GetSlackWebhookURL() (*string, error) {
-	parsedChannels := []SlackChannel{}
-	if u.SlackChannels != nil {
-		err := json.Unmarshal([]byte(*u.SlackChannels), &parsedChannels)
-		if err != nil {
-			return nil, e.Wrap(err, "error parsing details json")
-		}
-		if len(parsedChannels) > 0 {
-			return &parsedChannels[0].WebhookURL, nil
-		}
-	}
-	return nil, nil
-}
 func (u *Organization) IntegratedSlackChannels() ([]SlackChannel, error) {
 	parsedChannels := []SlackChannel{}
 	if u.SlackChannels != nil {
