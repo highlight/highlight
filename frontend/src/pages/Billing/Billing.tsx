@@ -5,7 +5,7 @@ import Confetti from 'react-confetti';
 import Skeleton from 'react-loading-skeleton';
 import { useLocation, useParams } from 'react-router-dom';
 
-import Card from '../../components/Card/Card';
+import Collapsible from '../../components/Collapsible/Collapsible';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import Progress from '../../components/Progress/Progress';
@@ -14,6 +14,7 @@ import {
     useGetBillingDetailsQuery,
 } from '../../graph/generated/hooks';
 import { PlanType } from '../../graph/generated/schemas';
+import SvgShieldWarningIcon from '../../static/ShieldWarningIcon';
 import { formatNumberWithDelimiters } from '../../util/numbers';
 import styles from './Billing.module.scss';
 import { BILLING_PLANS } from './BillingPlanCard/BillingConfig';
@@ -137,33 +138,47 @@ const BillingPage = () => {
             <p className={layoutStyles.subTitle}>
                 Manage your billing information.
             </p>
-            <Card className={styles.detailsCard}>
-                <h2>Plan Details</h2>
-                <p>
-                    This workspace is on the{' '}
-                    <b>{billingData?.billingDetails.plan.type} Plan</b> which
-                    has used{' '}
-                    {formatNumberWithDelimiters(
-                        billingData?.billingDetails.meter
-                    )}{' '}
-                    of its{' '}
-                    {formatNumberWithDelimiters(
-                        billingData?.billingDetails.plan.quota
-                    )}{' '}
-                    monthly sessions limit.
-                </p>
-                {upsell && (
+            <div className={styles.detailsCard}>
+                <Collapsible
+                    title={
+                        <span className={styles.detailsCardTitle}>
+                            <span>Plan Details</span>{' '}
+                            {upsell && <SvgShieldWarningIcon />}
+                        </span>
+                    }
+                    id="planDetails"
+                >
                     <p>
-                        You are nearing your monthly sessions limit. Sessions
-                        recorded after you've reached your limit will not be
-                        viewable until you upgrade your plan.
+                        This workspace is on the{' '}
+                        <b>{billingData?.billingDetails.plan.type} Plan</b>{' '}
+                        which has used{' '}
+                        {formatNumberWithDelimiters(
+                            billingData?.billingDetails.meter
+                        )}{' '}
+                        of its{' '}
+                        {formatNumberWithDelimiters(
+                            billingData?.billingDetails.plan.quota
+                        )}{' '}
+                        monthly sessions limit.
                     </p>
-                )}
-                <Progress
-                    numerator={billingData?.billingDetails.meter}
-                    denominator={billingData?.billingDetails.plan.quota || 1}
-                />
-            </Card>
+                    {upsell && (
+                        <p>
+                            <span>
+                                You are nearing your monthly sessions limit.
+                                Sessions recorded after you've reached your
+                                limit will not be viewable until you upgrade
+                                your plan.
+                            </span>
+                        </p>
+                    )}
+                    <Progress
+                        numerator={billingData?.billingDetails.meter}
+                        denominator={
+                            billingData?.billingDetails.plan.quota || 1
+                        }
+                    />
+                </Collapsible>
+            </div>
             <div className={styles.billingPlanCardWrapper}>
                 {BILLING_PLANS.map((billingPlan) =>
                     billingLoading ? (

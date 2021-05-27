@@ -17,4 +17,16 @@
         color: var(--color-purple);
         font-weight: 500;
     }
+
+    .detailsCardTitle {
+        align-items: center;
+        column-gap: var(--size-xSmall);
+        display: flex;
+
+        svg {
+            color: var(--color-red);
+            height: var(--size-large);
+            width: var(--size-large);
+        }
+    }
 }

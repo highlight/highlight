@@ -119,7 +119,10 @@ export const AlertConfigurationCard = ({
     }
 
     return (
-        <Collapsible title={name} className={styles.alertConfigurationCard}>
+        <Collapsible
+            title={name}
+            contentClassName={styles.alertConfigurationCard}
+        >
             <Form
                 onFinish={onSubmit}
                 form={form}
