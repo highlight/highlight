@@ -10,13 +10,15 @@ interface Props {
     title: string | React.ReactNode;
     /** A unique identifier for this collapsible. This should be used if title is a ReactNode. */
     id?: string;
-    className?: string;
+    contentClassName?: string;
+    parentClassName?: string;
 }
 
 const Collapsible: React.FC<Props> = ({
     title,
     children,
-    className,
+    contentClassName,
+    parentClassName,
     id,
     ...props
 }) => {
@@ -47,13 +49,13 @@ const Collapsible: React.FC<Props> = ({
                 </div>
             }
             transitionTime={150}
-            classParentString={classNames(styles.collapsible)}
+            classParentString={classNames(styles.collapsible, parentClassName)}
             handleTriggerClick={() => {
                 setExpanded(!expanded);
             }}
             open={expanded}
         >
-            <div className={classNames(styles.content, className)}>
+            <div className={classNames(styles.content, contentClassName)}>
                 {children}
             </div>
         </ReactCollapsible>
