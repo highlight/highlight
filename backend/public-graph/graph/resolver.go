@@ -293,7 +293,7 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 		if channel.WebhookChannel != nil {
 			var slackWebhookURL string
 			for _, ch := range integratedSlackChannels {
-				if ch.WebhookChannelID == *channel.WebhookChannelID {
+				if channel.WebhookChannelID != nil && ch.WebhookChannelID == *channel.WebhookChannelID {
 					slackWebhookURL = ch.WebhookURL
 					break
 				}
