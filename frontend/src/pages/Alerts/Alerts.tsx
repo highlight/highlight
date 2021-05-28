@@ -45,13 +45,13 @@ const AlertsPage = () => {
 
             <div className={styles.configurationContainer}>
                 {loading ? (
-                    Array(3)
+                    Array(2)
                         .fill(0)
                         .map((_, index) => (
                             <Skeleton
                                 key={index}
                                 style={{
-                                    width: '100%',
+                                    width: '648px',
                                     height: 79,
                                     borderRadius: 8,
                                 }}
