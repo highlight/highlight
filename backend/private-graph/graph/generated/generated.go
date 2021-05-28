@@ -2618,6 +2618,7 @@ input SearchParamsInput {
     user_properties: [UserPropertyInput]
     excluded_properties: [UserPropertyInput]
     track_properties: [UserPropertyInput]
+    excluded_track_properties: [UserPropertyInput]
     date_range: DateRangeInput
     length_range: LengthRangeInput
     os: String
@@ -13854,6 +13855,14 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("track_properties"))
 			it.TrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "excluded_track_properties":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("excluded_track_properties"))
+			it.ExcludedTrackProperties, err = ec.unmarshalOUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
