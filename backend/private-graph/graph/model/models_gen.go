@@ -93,19 +93,20 @@ type SanitizedSlackChannelInput struct {
 }
 
 type SearchParamsInput struct {
-	UserProperties     []*UserPropertyInput `json:"user_properties"`
-	ExcludedProperties []*UserPropertyInput `json:"excluded_properties"`
-	TrackProperties    []*UserPropertyInput `json:"track_properties"`
-	DateRange          *DateRangeInput      `json:"date_range"`
-	LengthRange        *LengthRangeInput    `json:"length_range"`
-	Os                 *string              `json:"os"`
-	Browser            *string              `json:"browser"`
-	DeviceID           *string              `json:"device_id"`
-	VisitedURL         *string              `json:"visited_url"`
-	Referrer           *string              `json:"referrer"`
-	Identified         *bool                `json:"identified"`
-	HideViewed         *bool                `json:"hide_viewed"`
-	FirstTime          *bool                `json:"first_time"`
+	UserProperties          []*UserPropertyInput `json:"user_properties"`
+	ExcludedProperties      []*UserPropertyInput `json:"excluded_properties"`
+	TrackProperties         []*UserPropertyInput `json:"track_properties"`
+	ExcludedTrackProperties []*UserPropertyInput `json:"excluded_track_properties"`
+	DateRange               *DateRangeInput      `json:"date_range"`
+	LengthRange             *LengthRangeInput    `json:"length_range"`
+	Os                      *string              `json:"os"`
+	Browser                 *string              `json:"browser"`
+	DeviceID                *string              `json:"device_id"`
+	VisitedURL              *string              `json:"visited_url"`
+	Referrer                *string              `json:"referrer"`
+	Identified              *bool                `json:"identified"`
+	HideViewed              *bool                `json:"hide_viewed"`
+	FirstTime               *bool                `json:"first_time"`
 }
 
 type TopUsersPayload struct {
