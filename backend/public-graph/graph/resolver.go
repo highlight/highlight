@@ -302,7 +302,6 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 				log.Error("requested channel has no matching slackWebhookURL")
 				continue
 			}
-
 			msg := slack.WebhookMessage{
 				Text:    group.Event,
 				Channel: *channel.WebhookChannel,
