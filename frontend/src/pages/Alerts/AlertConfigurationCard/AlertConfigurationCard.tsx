@@ -195,7 +195,7 @@ export const AlertConfigurationCard = ({
                                             Can't find the channel or person
                                             here?{' '}
                                             <a href={slackUrl}>
-                                                Configure Highlight with Slack
+                                                Add a Slack Channel
                                             </a>
                                             .
                                         </div>
