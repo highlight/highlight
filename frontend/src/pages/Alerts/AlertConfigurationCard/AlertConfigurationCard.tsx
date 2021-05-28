@@ -1,6 +1,7 @@
 import { Divider, Form, message } from 'antd';
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import TextTransition from 'react-text-transition';
 
 import Button from '../../../components/Button/Button/Button';
 import Collapsible from '../../../components/Collapsible/Collapsible';
@@ -255,15 +256,34 @@ export const AlertConfigurationCard = ({
                         <section>
                             <h3>Threshold</h3>
                             <p>
-                                {threshold <= 0
-                                    ? `Setting the threshold to ${threshold} means no alerts will be created.`
-                                    : `An alert will be created if ${threshold} ${name.toLocaleLowerCase()} happens in a ${
-                                          lookbackPeriod.displayValue?.slice(
-                                              0,
-                                              -1
-                                          ) ||
-                                          `${DEFAULT_LOOKBACK_PERIOD} minute`
-                                      } window.`}
+                                {threshold <= 0 ? (
+                                    `Setting the threshold to ${threshold} means no alerts will be created.`
+                                ) : (
+                                    <span>
+                                        An alert will be created if{' '}
+                                        <b>
+                                            <TextTransition
+                                                text={`${threshold}`}
+                                                inline
+                                            />{' '}
+                                            {name.toLocaleLowerCase()}
+                                        </b>{' '}
+                                        happens in a{' '}
+                                        <b>
+                                            <TextTransition
+                                                inline
+                                                text={`${
+                                                    lookbackPeriod.displayValue?.slice(
+                                                        0,
+                                                        -1
+                                                    ) ||
+                                                    `${DEFAULT_LOOKBACK_PERIOD} minute`
+                                                }`}
+                                            />
+                                        </b>{' '}
+                                        window.
+                                    </span>
+                                )}
                             </p>
                             <div className={styles.frequencyContainer}>
                                 <Form.Item name="threshold">
