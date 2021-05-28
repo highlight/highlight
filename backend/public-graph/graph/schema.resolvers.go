@@ -54,8 +54,8 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session by sessionID")
 	}
-	// append user properties to session in db
-	if err := session.SetUserProperties(userProperties); err != nil {
+	// set user properties to session in db
+	if err := session.SetUserProperties(obj); err != nil {
 		return nil, e.Wrapf(err, "[org_id: %d] error appending user properties to session object {id: %d}", session.OrganizationID, sessionID)
 	}
 
