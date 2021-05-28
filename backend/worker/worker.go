@@ -220,7 +220,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 						if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
 							log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID))
 						} else {
-							err = w.SendSlackSessionMessage(organizationID, s.ID, s.Identifier, channelsToNotify)
+							err = w.SendSlackSessionMessage(organizationID, s.ID, s.Identifier, channelsToNotify, s.City, s.State, s.Postal, s.OSName, s.OSVersion, s.BrowserName, s.BrowserVersion)
 							if err != nil {
 								log.Error(e.Wrapf(err, "[org_id: %d] error sending slack session message", organizationID))
 							}
@@ -330,7 +330,7 @@ func getActiveDuration(events []model.EventsObject) (*time.Duration, error) {
 	return &d, nil
 }
 
-func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel) error {
+func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel, city string, state string, postal string, osName string, osVersion string, browserName string, browserVersion string) error {
 	log.Infof("[org_id: %d] sending slack session message", orgID)
 	organization := &model.Organization{}
 	res := w.Resolver.DB.Where("id = ?", orgID).First(&organization)
@@ -371,6 +371,9 @@ func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifie
 								slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", orgID), false, false),
 								slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false),
 								slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false),
+								slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*OS:*\n%s %s", osName, osVersion), false, false),
+								slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Browser:*\n%s %s", browserName, browserVersion), false, false),
+								slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Location:*\n%s, %s %v", city, state, postal), false, false),
 							},
 							nil,
 						),
