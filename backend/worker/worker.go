@@ -214,7 +214,6 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 					}
 				}
 				if !isExcludedEnvironment {
-					log.Infof("[org_id: %d] getting channels to notify for session alerts", organizationID)
 					if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
 						log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID))
 					} else {
@@ -332,7 +331,6 @@ func getActiveDuration(events []model.EventsObject) (*time.Duration, error) {
 }
 
 func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel, userProperties map[string]string) error {
-	log.Infof("[org_id: %d] sending slack session message", orgID)
 	organization := &model.Organization{}
 	res := w.Resolver.DB.Where("id = ?", orgID).First(&organization)
 	if err := res.Error; err != nil {
@@ -347,7 +345,6 @@ func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifie
 	}
 	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", orgID, sessionID)
 
-	log.Infof("[org_id: %d] constructing slack message for session alert", orgID)
 	var messageBlock []*slack.TextBlockObject
 	if userIdentifier != "" {
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
@@ -377,7 +374,6 @@ func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifie
 				continue
 			}
 
-			log.Infof("[org_id: %d] sending slack message to channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
 			msg := slack.WebhookMessage{
 				Channel: *channel.WebhookChannel,
 				Blocks: &slack.Blocks{
