@@ -12,7 +12,6 @@ import {
     useUpdateSessionAlertMutation,
 } from '../../../graph/generated/hooks';
 import { ALERT_TYPE } from '../Alerts';
-import { useSlack } from '../SlackIntegration/SlackIntegration';
 import styles from './AlertConfigurationCard.module.scss';
 
 interface AlertConfiguration {
@@ -27,6 +26,7 @@ interface Props {
     configuration: AlertConfiguration;
     environmentOptions: any[];
     channelSuggestions: any[];
+    slackUrl: string;
 }
 
 export const AlertConfigurationCard = ({
@@ -34,6 +34,7 @@ export const AlertConfigurationCard = ({
     configuration: { name, canControlThreshold, type, description },
     environmentOptions,
     channelSuggestions,
+    slackUrl,
 }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
@@ -42,7 +43,6 @@ export const AlertConfigurationCard = ({
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
     const [updateSessionAlert] = useUpdateSessionAlertMutation();
-    const { slackUrl } = useSlack('alerts', ['GetAlertsPagePayload']);
 
     const onSubmit = async () => {
         setLoading(true);
