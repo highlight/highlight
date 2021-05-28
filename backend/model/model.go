@@ -570,12 +570,8 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 	return ps, nil
 }
 
-func (s *Session) SetUserProperties(userProperties map[string]interface{}) error {
-	userPropertiesMap := make(map[string]string)
-	for k, v := range userProperties {
-		userPropertiesMap[k] = fmt.Sprint(v)
-	}
-	user, err := json.Marshal(userPropertiesMap)
+func (s *Session) SetUserProperties(userProperties map[string]string) error {
+	user, err := json.Marshal(userProperties)
 	if err != nil {
 		return e.Wrapf(err, "[org_id: %d] error marshalling user properties map into bytes", s.OrganizationID)
 	}

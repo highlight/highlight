@@ -43,8 +43,10 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	userProperties := map[string]string{
 		"identifier": userIdentifier,
 	}
+	userObj := make(map[string]string)
 	for k, v := range obj {
 		userProperties[k] = fmt.Sprintf("%v", v)
+		userObj[k] = fmt.Sprintf("%v", v)
 	}
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
@@ -55,7 +57,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		return nil, e.Wrap(err, "error querying session by sessionID")
 	}
 	// set user properties to session in db
-	if err := session.SetUserProperties(obj); err != nil {
+	if err := session.SetUserProperties(userObj); err != nil {
 		return nil, e.Wrapf(err, "[org_id: %d] error appending user properties to session object {id: %d}", session.OrganizationID, sessionID)
 	}
 
