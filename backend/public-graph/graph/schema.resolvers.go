@@ -242,7 +242,8 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			log.Error(e.Wrapf(err, "[org_id: %d] error updating error group: %v", organizationID, errorToInsert))
 			continue
 		}
-		go func() {
+
+		go func(r *mutationResolver, organizationID int, sessionObj *model.Session, errorToInsert *model.ErrorObject, group *model.ErrorGroup) {
 			// Get ErrorAlert object and send respective alert
 			var errorAlert model.ErrorAlert
 			if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
@@ -272,7 +273,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 					}
 				}
 			}
-		}()
+		}(r, organizationID, sessionObj, errorToInsert, group)
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.
 	}
 	putErrorsToDBSpan.Finish()

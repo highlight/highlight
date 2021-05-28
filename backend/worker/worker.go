@@ -196,7 +196,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	// send alert asynchronously
-	go func() {
+	go func(w *Worker, s *model.Session) {
 		// Get SessionAlert object and send alert if is new user
 		organizationID := s.OrganizationID
 		if s.FirstTime != nil && *s.FirstTime {
@@ -229,7 +229,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				}
 			}
 		}
-	}()
+	}(w, s)
 
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
