@@ -260,12 +260,20 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 					}
 				}
 				if !isExcludedEnvironment {
-					if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
-						log.Error(e.Wrap(err, "error getting channels to notify from ErrorAlert"))
-					} else {
-						err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
-						if err != nil {
-							log.Error(e.Wrap(err, "error sending slack error message"))
+					numErrors := int64(-1)
+					if errorAlert.CountThreshold > 1 {
+						if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{ErrorGroupID: errorAlert.ID, Model: model.Model{UpdatedAt: time.Now().Add(30 * time.Minute)}}).Count(&numErrors).Error; err != nil {
+							log.Error(e.Wrap(err, "error counting errors from past 30 minutes"))
+						}
+					}
+					if errorAlert.CountThreshold < 1 || numErrors >= int64(errorAlert.CountThreshold) {
+						if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
+							log.Error(e.Wrap(err, "error getting channels to notify from ErrorAlert"))
+						} else {
+							err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
+							if err != nil {
+								log.Error(e.Wrap(err, "error sending slack error message"))
+							}
 						}
 					}
 				}
