@@ -55,7 +55,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 		return nil, e.Wrap(err, "error querying session by sessionID")
 	}
 	// append user properties to session in db
-	if err := session.AppendUserProperties(userProperties); err != nil {
+	if err := session.SetUserProperties(userProperties); err != nil {
 		return nil, e.Wrapf(err, "[org_id: %d] error appending user properties to session object {id: %d}", session.OrganizationID, sessionID)
 	}
 
@@ -247,37 +247,35 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			continue
 		}
 
-		go func(r *mutationResolver, organizationID int, sessionObj *model.Session, errorToInsert *model.ErrorObject, group *model.ErrorGroup) {
-			// Get ErrorAlert object and send respective alert
-			var errorAlert model.ErrorAlert
-			if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
-				log.Error(e.Wrapf(err, "[org_id: %d] error fetching ErrorAlert object", organizationID))
+		// Get ErrorAlert object and send respective alert
+		var errorAlert model.ErrorAlert
+		if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
+			log.Error(e.Wrapf(err, "[org_id: %d] error fetching ErrorAlert object", organizationID))
+		} else {
+			excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
+			if err != nil {
+				log.Error(e.Wrapf(err, "[org_id: %d] error getting excluded environments from ErrorAlert", organizationID))
 			} else {
-				excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
-				if err != nil {
-					log.Error(e.Wrapf(err, "[org_id: %d] error getting excluded environments from ErrorAlert", organizationID))
-				} else {
-					isExcludedEnvironment := false
-					for _, env := range excludedEnvironments {
-						if env != nil && *env == sessionObj.Environment {
-							isExcludedEnvironment = true
-							break
-						}
+				isExcludedEnvironment := false
+				for _, env := range excludedEnvironments {
+					if env != nil && *env == sessionObj.Environment {
+						isExcludedEnvironment = true
+						break
 					}
-					if !isExcludedEnvironment {
-						log.Infof("[org_id: %d] getting channels to notify for error alerts", organizationID)
-						if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
-							log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from ErrorAlert", organizationID))
-						} else {
-							err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
-							if err != nil {
-								log.Error(e.Wrapf(err, "[org_id: %d] error sending slack error message", organizationID))
-							}
+				}
+				if !isExcludedEnvironment {
+					log.Infof("[org_id: %d] getting channels to notify for error alerts", organizationID)
+					if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
+						log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from ErrorAlert", organizationID))
+					} else {
+						err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
+						if err != nil {
+							log.Error(e.Wrapf(err, "[org_id: %d] error sending slack error message", organizationID))
 						}
 					}
 				}
 			}
-		}(r, organizationID, sessionObj, errorToInsert, group)
+		}
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.
 	}
 	putErrorsToDBSpan.Finish()

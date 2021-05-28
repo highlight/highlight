@@ -195,45 +195,42 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	// send alert asynchronously
-	go func(w *Worker, s *model.Session) {
-		// Get SessionAlert object and send alert if is new user
-		organizationID := s.OrganizationID
-		if s.FirstTime != nil && *s.FirstTime {
-			var sessionAlert model.SessionAlert
-			if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{OrganizationID: organizationID}).First(&sessionAlert).Error; err != nil {
-				log.Error(e.Wrapf(err, "[org_id: %d] error fetching SessionAlert object", organizationID))
+	// Get SessionAlert object and send alert if is new user
+	organizationID := s.OrganizationID
+	if s.FirstTime != nil && *s.FirstTime {
+		var sessionAlert model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{OrganizationID: organizationID}).First(&sessionAlert).Error; err != nil {
+			log.Error(e.Wrapf(err, "[org_id: %d] error fetching SessionAlert object", organizationID))
+		} else {
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				log.Error(e.Wrapf(err, "[org_id: %d] error getting excluded environments from SessionAlert", organizationID))
 			} else {
-				excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-				if err != nil {
-					log.Error(e.Wrapf(err, "[org_id: %d] error getting excluded environments from SessionAlert", organizationID))
-				} else {
-					isExcludedEnvironment := false
-					for _, env := range excludedEnvironments {
-						if env != nil && *env == s.Environment {
-							isExcludedEnvironment = true
-							break
-						}
+				isExcludedEnvironment := false
+				for _, env := range excludedEnvironments {
+					if env != nil && *env == s.Environment {
+						isExcludedEnvironment = true
+						break
 					}
-					if !isExcludedEnvironment {
-						log.Infof("[org_id: %d] getting channels to notify for session alerts", organizationID)
-						if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
-							log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID))
-						} else {
-							userProperties, err := s.GetUserProperties()
-							if err != nil {
-								log.Error(e.Wrapf(err, "[org_id: %d] error getting user properties from session object", s.OrganizationID))
-							}
-							err = w.SendSlackSessionMessage(organizationID, s.ID, s.Identifier, channelsToNotify, userProperties)
-							if err != nil {
-								log.Error(e.Wrapf(err, "[org_id: %d] error sending slack session message", organizationID))
-							}
+				}
+				if !isExcludedEnvironment {
+					log.Infof("[org_id: %d] getting channels to notify for session alerts", organizationID)
+					if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
+						log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID))
+					} else {
+						userProperties, err := s.GetUserProperties()
+						if err != nil {
+							log.Error(e.Wrapf(err, "[org_id: %d] error getting user properties from session object", s.OrganizationID))
+						}
+						err = w.SendSlackSessionMessage(organizationID, s.ID, s.Identifier, channelsToNotify, userProperties)
+						if err != nil {
+							log.Error(e.Wrapf(err, "[org_id: %d] error sending slack session message", organizationID))
 						}
 					}
 				}
 			}
 		}
-	}(w, s)
+	}
 
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
@@ -357,7 +354,7 @@ func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifie
 	}
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 	for k, v := range userProperties {
-		if k == "" || k == "identifier" {
+		if k == "" {
 			continue
 		}
 		if v == "" {
