@@ -9,20 +9,19 @@ import (
 	"strings"
 	"time"
 
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/slack-go/slack"
-
-	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
-	"github.com/highlight-run/highlight/backend/pricing"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
+	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 // Worker is a job runner that parses sessions
