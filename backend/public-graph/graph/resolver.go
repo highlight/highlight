@@ -349,9 +349,10 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 	return nil
 }
 
-func (r *Resolver) SendSlackSessionMessage(org_id int, session_id int, user_identifier string, channels []*modelInputs.SanitizedSlackChannel) error {
+func (r *Resolver) SendSlackSessionMessage(orgID int, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel) error {
+	log.Infof("[org_id: %d] sending slack session message", orgID)
 	organization := &model.Organization{}
-	res := r.DB.Where("id = ?", org_id).First(&organization)
+	res := r.DB.Where("id = ?", orgID).First(&organization)
 	if err := res.Error; err != nil {
 		return e.Wrap(err, "error messaging organization")
 	}
@@ -359,10 +360,10 @@ func (r *Resolver) SendSlackSessionMessage(org_id int, session_id int, user_iden
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for alert")
 	}
-	if len(integratedSlackChannels) <= 0 || user_identifier == "" {
+	if len(integratedSlackChannels) <= 0 || userIdentifier == "" {
 		return nil
 	}
-	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", org_id, session_id)
+	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", orgID, sessionID)
 
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
@@ -374,9 +375,11 @@ func (r *Resolver) SendSlackSessionMessage(org_id int, session_id int, user_iden
 				}
 			}
 			if slackWebhookURL == "" {
-				log.Error("requested channel has no matching slackWebhookURL")
+				log.Errorf("[org_id: %d] requested channel has no matching slackWebhookURL: channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
 				continue
 			}
+
+			log.Infof("[org_id: %d] sending slack message to channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
 			msg := slack.WebhookMessage{
 				Channel: *channel.WebhookChannel,
 				Blocks: &slack.Blocks{
@@ -384,8 +387,8 @@ func (r *Resolver) SendSlackSessionMessage(org_id int, session_id int, user_iden
 						slack.NewSectionBlock(
 							slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User:*\n\n", false, false),
 							[]*slack.TextBlockObject{
-								slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", org_id), false, false),
-								slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+user_identifier, false, false),
+								slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", orgID), false, false),
+								slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false),
 								slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false),
 							},
 							nil,
