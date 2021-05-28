@@ -39,6 +39,10 @@ export const AlertConfigurationCard = ({
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
     const [threshold, setThreshold] = useState(alert?.CountThreshold || 1);
+    /** lookbackPeriod units is minutes. */
+    const [lookbackPeriod, setLookbackPeriod] = useState(
+        getLookbackPeriodOption(alert.ThresholdWindow).value
+    );
     const { organization_id } = useParams<{ organization_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
@@ -142,6 +146,18 @@ export const AlertConfigurationCard = ({
         setFormTouched(true);
     };
 
+    const onLookbackPeriodChange = (
+        _lookbackPeriod: any,
+        lookbackPeriodOption: any
+    ) => {
+        setLookbackPeriod({
+            displayValue: lookbackPeriodOption.children,
+            id: lookbackPeriodOption.key,
+            value: lookbackPeriodOption.value,
+        });
+        setFormTouched(true);
+    };
+
     if (!alert) {
         return null;
     }
@@ -165,10 +181,11 @@ export const AlertConfigurationCard = ({
                         (channel: any) => channel.webhook_channel_id
                     ),
                     excludedEnvironments: alert.ExcludedEnvironments,
+                    lookbackPeriod: [lookbackPeriod],
                 }}
             >
                 <section>
-                    <h3>Channels to notify</h3>
+                    <h3>Channels to Notify</h3>
                     <p>
                         Pick Slack channels or people to message when an alert
                         is created.
@@ -207,7 +224,7 @@ export const AlertConfigurationCard = ({
                 </section>
 
                 <section>
-                    <h3>Excluded environments</h3>
+                    <h3>Excluded Environments</h3>
                     <p>
                         Pick environments that should not create alerts. Some
                         teams don't want to be woken up at 2AM if an alert is
@@ -234,18 +251,37 @@ export const AlertConfigurationCard = ({
                 </section>
 
                 {canControlThreshold && (
-                    <section>
-                        <h3>Threshold</h3>
-                        <p>
-                            Pick how often an alert should be created.{' '}
-                            {threshold === 0
-                                ? `Setting the threshold to 0 means no alerts will be created.`
-                                : `This means an alert will be created for every ${threshold} ${name.toLocaleLowerCase()}.`}
-                        </p>
-                        <Form.Item name="threshold">
-                            <InputNumber onChange={onThresholdChange} min={0} />
-                        </Form.Item>
-                    </section>
+                    <>
+                        <section>
+                            <h3>Threshold</h3>
+                            <p>
+                                {threshold <= 0
+                                    ? `Setting the threshold to ${threshold} means no alerts will be created.`
+                                    : `An alert will be created if ${threshold} ${name.toLocaleLowerCase()} happens in a ${
+                                          lookbackPeriod.displayValue?.slice(
+                                              0,
+                                              -1
+                                          ) ||
+                                          `${DEFAULT_LOOKBACK_PERIOD} minute`
+                                      } window.`}
+                            </p>
+                            <div className={styles.frequencyContainer}>
+                                <Form.Item name="threshold">
+                                    <InputNumber
+                                        onChange={onThresholdChange}
+                                        min={0}
+                                    />
+                                </Form.Item>
+                                <Form.Item name="lookbackPeriod">
+                                    <Select
+                                        className={styles.lookbackPeriodSelect}
+                                        onChange={onLookbackPeriodChange}
+                                        options={LOOKBACK_PERIODS}
+                                    />
+                                </Form.Item>
+                            </div>
+                        </section>
+                    </>
                 )}
 
                 <Form.Item shouldUpdate>
@@ -264,4 +300,50 @@ export const AlertConfigurationCard = ({
             </Form>
         </Collapsible>
     );
+};
+
+const LOOKBACK_PERIODS = [
+    {
+        displayValue: '5 minutes',
+        value: '5',
+        id: '5m',
+    },
+    {
+        displayValue: '10 minutes',
+        value: '10',
+        id: '10m',
+    },
+    {
+        displayValue: '30 minutes',
+        value: '30',
+        id: '30m',
+    },
+    {
+        displayValue: '60 minutes',
+        value: '60',
+        id: '60m',
+    },
+    {
+        displayValue: '3 hours',
+        value: `${60 * 3}`,
+        id: '3h',
+    },
+    {
+        displayValue: '12 hours',
+        value: `${60 * 12}`,
+        id: '12h',
+    },
+    {
+        displayValue: '24 hours',
+        value: `${60 * 24}`,
+        id: '24h',
+    },
+];
+
+const DEFAULT_LOOKBACK_PERIOD = '30';
+
+const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
+    const option = LOOKBACK_PERIODS.find((option) => option.value === minutes);
+
+    return option;
 };

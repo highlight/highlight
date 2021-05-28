@@ -47,3 +47,12 @@
     column-gap: var(--size-xSmall);
     display: flex;
 }
+
+.frequencyContainer {
+    column-gap: var(--size-large);
+    display: flex;
+}
+
+.lookbackPeriodSelect {
+    width: 150px !important;
+}
