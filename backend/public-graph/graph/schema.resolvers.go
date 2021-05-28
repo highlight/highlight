@@ -262,7 +262,11 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 				if !isExcludedEnvironment {
 					numErrors := int64(-1)
 					if errorAlert.CountThreshold > 1 {
-						if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{OrganizationID: organizationID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(-30*time.Minute)).Count(&numErrors).Error; err != nil {
+						if errorAlert.ThresholdWindow == nil {
+							t := 30
+							errorAlert.ThresholdWindow = &t
+						}
+						if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{OrganizationID: organizationID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
 							log.Error(e.Wrap(err, "error counting errors from past 30 minutes"))
 						}
 					}
