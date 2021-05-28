@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"golang.org/x/sync/errgroup"
-
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
@@ -249,14 +248,12 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		g.Go(func() error {
 			// Get ErrorAlert object and send respective alert
 			var errorAlert model.ErrorAlert
-			if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
-				log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
-				return e.Wrap(err, "error fetching ErrorAlert object")
+			if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
+				log.Error(e.Wrapf(err, "[org_id: %d] error fetching ErrorAlert object", organizationID))
 			} else {
 				excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
 				if err != nil {
-					log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
-					return e.Wrap(err, "error getting excluded environments from ErrorAlert")
+					log.Error(e.Wrapf(err, "[org_id: %d] error getting excluded environments from ErrorAlert", organizationID))
 				} else {
 					isExcludedEnvironment := false
 					for _, env := range excludedEnvironments {
@@ -266,14 +263,13 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 						}
 					}
 					if !isExcludedEnvironment {
+						log.Infof("[org_id: %d] getting channels to notify for error alerts", organizationID)
 						if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
-							log.Error(e.Wrap(err, "error getting channels to notify from ErrorAlert"))
-							return e.Wrap(err, "error getting channels to notify from ErrorAlert")
+							log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from ErrorAlert", organizationID))
 						} else {
 							err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
 							if err != nil {
-								log.Error(e.Wrap(err, "error sending slack error message"))
-								return e.Wrap(err, "error sending slack error message")
+								log.Error(err)
 							}
 						}
 					}
