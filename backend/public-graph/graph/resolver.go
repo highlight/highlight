@@ -270,7 +270,6 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 }
 
 func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, session_id int, user_identifier string, url string, channels []*modelInputs.SanitizedSlackChannel) error {
-	log.Infof("[org_id: %d] sending slack error message", org_id)
 	organization := &model.Organization{}
 	res := r.DB.Where("id = ?", org_id).First(&organization)
 	if err := res.Error; err != nil {
@@ -289,6 +288,7 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 	}
 	errorLink := fmt.Sprintf("<https://app.highlight.run/%d/errors/%d/>", org_id, group.ID)
 	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", org_id, session_id)
+
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
 			var slackWebhookURL string
@@ -299,11 +299,10 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 				}
 			}
 			if slackWebhookURL == "" {
-				log.Errorf("[org_id: %d] requested channel has no matching slackWebhookURL: channel %s at url %s", org_id, *channel.WebhookChannel, slackWebhookURL)
+				log.Error("requested channel has no matching slackWebhookURL")
 				continue
 			}
 
-			log.Infof("[org_id: %d] sending slack message to channel %s at url %s", org_id, *channel.WebhookChannel, slackWebhookURL)
 			msg := slack.WebhookMessage{
 				Text:    group.Event,
 				Channel: *channel.WebhookChannel,
@@ -341,7 +340,7 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 				&msg,
 			)
 			if err != nil {
-				return e.Wrapf(err, "[org_id: %d] error sending slack msg at channel %s and webhook url %s", org_id, *channel.WebhookChannel, slackWebhookURL)
+				return e.Wrap(err, "error sending slack msg")
 			}
 		}
 	}
