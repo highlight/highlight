@@ -306,7 +306,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 								log.Error(e.Wrap(err, "error getting channels to notify from SessionAlert"))
 								return e.Wrap(err, "error getting channels to notify from SessionAlert")
 							} else {
-								err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
+								err = r.SendSlackSessionMessage(organizationID, sessionID, sessionObj.Identifier, channelsToNotify)
 								if err != nil {
 									log.Error(e.Wrap(err, "error sending slack session message"))
 									return e.Wrap(err, "error sending slack session message")

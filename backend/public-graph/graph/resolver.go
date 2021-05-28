@@ -347,7 +347,7 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 	return nil
 }
 
-func (r *Resolver) SendSlackSessionMessage(org_id int, session_id int, user_identifier string, url string, channels []*modelInputs.SanitizedSlackChannel) error {
+func (r *Resolver) SendSlackSessionMessage(org_id int, session_id int, user_identifier string, channels []*modelInputs.SanitizedSlackChannel) error {
 	organization := &model.Organization{}
 	res := r.DB.Where("id = ?", org_id).First(&organization)
 	if err := res.Error; err != nil {
@@ -385,7 +385,6 @@ func (r *Resolver) SendSlackSessionMessage(org_id int, session_id int, user_iden
 								slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", org_id), false, false),
 								slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+user_identifier, false, false),
 								slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false),
-								slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+url, false, false),
 							},
 							nil,
 						),
