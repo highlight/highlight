@@ -573,7 +573,7 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 func (s *Session) SetUserProperties(userProperties map[string]interface{}) error {
 	userPropertiesMap := make(map[string]string)
 	for k, v := range userProperties {
-		userPropertiesMap[k] = fmt.Sprintln(v)
+		userPropertiesMap[k] = fmt.Sprint(v)
 	}
 	user, err := json.Marshal(userPropertiesMap)
 	if err != nil {
