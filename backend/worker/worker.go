@@ -340,7 +340,7 @@ func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifie
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for alert")
 	}
-	if len(integratedSlackChannels) <= 0 || userIdentifier == "" {
+	if len(integratedSlackChannels) <= 0 {
 		return nil
 	}
 	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", orgID, sessionID)
