@@ -349,67 +349,6 @@ func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, se
 	return nil
 }
 
-func (r *Resolver) SendSlackSessionMessage(orgID int, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel) error {
-	log.Infof("[org_id: %d] sending slack session message", orgID)
-	organization := &model.Organization{}
-	res := r.DB.Where("id = ?", orgID).First(&organization)
-	if err := res.Error; err != nil {
-		return e.Wrap(err, "error messaging organization")
-	}
-	integratedSlackChannels, err := organization.IntegratedSlackChannels()
-	if err != nil {
-		return e.Wrap(err, "error getting slack webhook url for alert")
-	}
-	if len(integratedSlackChannels) <= 0 || userIdentifier == "" {
-		return nil
-	}
-	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", orgID, sessionID)
-
-	for _, channel := range channels {
-		if channel.WebhookChannel != nil {
-			var slackWebhookURL string
-			for _, ch := range integratedSlackChannels {
-				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
-					slackWebhookURL = ch.WebhookURL
-					break
-				}
-			}
-			if slackWebhookURL == "" {
-				log.Errorf("[org_id: %d] requested channel has no matching slackWebhookURL: channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
-				continue
-			}
-
-			log.Infof("[org_id: %d] sending slack message to channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
-			msg := slack.WebhookMessage{
-				Channel: *channel.WebhookChannel,
-				Blocks: &slack.Blocks{
-					BlockSet: []slack.Block{
-						slack.NewSectionBlock(
-							slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User:*\n\n", false, false),
-							[]*slack.TextBlockObject{
-								slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", orgID), false, false),
-								slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false),
-								slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false),
-							},
-							nil,
-						),
-						slack.NewDividerBlock(),
-					},
-				},
-			}
-			err := slack.PostWebhook(
-				slackWebhookURL,
-				&msg,
-			)
-			if err != nil {
-				return e.Wrap(err, "error sending slack msg")
-			}
-		}
-	}
-
-	return nil
-}
-
 func GetLocationFromIP(ip string) (location *Location, err error) {
 	url := fmt.Sprintf("http://geolocation-db.com/json/%s", ip)
 	method := "GET"

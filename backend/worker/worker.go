@@ -8,6 +8,9 @@ import (
 	"strconv"
 	"time"
 
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/slack-go/slack"
+
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
@@ -192,6 +195,42 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
+	// send alert asynchronously
+	go func() {
+		// Get SessionAlert object and send alert if is new user
+		organizationID := s.OrganizationID
+		if s.FirstTime != nil && *s.FirstTime {
+			var sessionAlert model.SessionAlert
+			if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{OrganizationID: organizationID}).First(&sessionAlert).Error; err != nil {
+				log.Error(e.Wrapf(err, "[org_id: %d] error fetching SessionAlert object", organizationID))
+			} else {
+				excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+				if err != nil {
+					log.Error(e.Wrapf(err, "[org_id: %d] error getting excluded environments from SessionAlert", organizationID))
+				} else {
+					isExcludedEnvironment := false
+					for _, env := range excludedEnvironments {
+						if env != nil && *env == s.Environment {
+							isExcludedEnvironment = true
+							break
+						}
+					}
+					if !isExcludedEnvironment {
+						log.Infof("[org_id: %d] getting channels to notify for session alerts", organizationID)
+						if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
+							log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID))
+						} else {
+							err = w.SendSlackSessionMessage(organizationID, s.ID, s.Identifier, channelsToNotify)
+							if err != nil {
+								log.Error(e.Wrapf(err, "[org_id: %d] error sending slack session message", organizationID))
+							}
+						}
+					}
+				}
+			}
+		}
+	}()
+
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
@@ -289,4 +328,65 @@ func getActiveDuration(events []model.EventsObject) (*time.Duration, error) {
 		}
 	}
 	return &d, nil
+}
+
+func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel) error {
+	log.Infof("[org_id: %d] sending slack session message", orgID)
+	organization := &model.Organization{}
+	res := w.Resolver.DB.Where("id = ?", orgID).First(&organization)
+	if err := res.Error; err != nil {
+		return e.Wrap(err, "error messaging organization")
+	}
+	integratedSlackChannels, err := organization.IntegratedSlackChannels()
+	if err != nil {
+		return e.Wrap(err, "error getting slack webhook url for alert")
+	}
+	if len(integratedSlackChannels) <= 0 || userIdentifier == "" {
+		return nil
+	}
+	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", orgID, sessionID)
+
+	for _, channel := range channels {
+		if channel.WebhookChannel != nil {
+			var slackWebhookURL string
+			for _, ch := range integratedSlackChannels {
+				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
+					slackWebhookURL = ch.WebhookURL
+					break
+				}
+			}
+			if slackWebhookURL == "" {
+				log.Errorf("[org_id: %d] requested channel has no matching slackWebhookURL: channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
+				continue
+			}
+
+			log.Infof("[org_id: %d] sending slack message to channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
+			msg := slack.WebhookMessage{
+				Channel: *channel.WebhookChannel,
+				Blocks: &slack.Blocks{
+					BlockSet: []slack.Block{
+						slack.NewSectionBlock(
+							slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User:*\n\n", false, false),
+							[]*slack.TextBlockObject{
+								slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", orgID), false, false),
+								slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false),
+								slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false),
+							},
+							nil,
+						),
+						slack.NewDividerBlock(),
+					},
+				},
+			}
+			err := slack.PostWebhook(
+				slackWebhookURL,
+				&msg,
+			)
+			if err != nil {
+				return e.Wrap(err, "error sending slack msg")
+			}
+		}
+	}
+
+	return nil
 }

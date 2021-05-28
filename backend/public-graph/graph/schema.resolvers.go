@@ -13,7 +13,6 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
-	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
 
@@ -240,22 +239,18 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
 		group, err := r.HandleErrorAndGroup(errorToInsert, v.Trace, metaFields)
 		if err != nil {
-			log.Errorf("Error updating error group: %v", errorToInsert)
+			log.Error(e.Wrapf(err, "[org_id: %d] error updating error group: %v", organizationID, errorToInsert))
 			continue
 		}
-
-		var g errgroup.Group
-		g.Go(func() error {
+		go func() {
 			// Get ErrorAlert object and send respective alert
 			var errorAlert model.ErrorAlert
 			if err := r.DB.Model(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
 				log.Error(e.Wrapf(err, "[org_id: %d] error fetching ErrorAlert object", organizationID))
-				return e.Wrapf(err, "[org_id: %d] error fetching ErrorAlert object", organizationID)
 			} else {
 				excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
 				if err != nil {
 					log.Error(e.Wrapf(err, "[org_id: %d] error getting excluded environments from ErrorAlert", organizationID))
-					return e.Wrapf(err, "[org_id: %d] error getting excluded environments from ErrorAlert", organizationID)
 				} else {
 					isExcludedEnvironment := false
 					for _, env := range excludedEnvironments {
@@ -268,62 +263,16 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 						log.Infof("[org_id: %d] getting channels to notify for error alerts", organizationID)
 						if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
 							log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from ErrorAlert", organizationID))
-							return e.Wrapf(err, "[org_id: %d] error getting channels to notify from ErrorAlert", organizationID)
 						} else {
 							err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
 							if err != nil {
 								log.Error(e.Wrapf(err, "[org_id: %d] error sending slack error message", organizationID))
-								return e.Wrapf(err, "[org_id: %d] error sending slack error message", organizationID)
 							}
 						}
 					}
 				}
 			}
-			return nil
-		})
-		g.Go(func() error {
-			// Get SessionAlert object and send alert if is new user
-			if sessionObj.FirstTime != nil && *sessionObj.FirstTime {
-				var sessionAlert model.SessionAlert
-				if err := r.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{OrganizationID: organizationID}).First(&sessionAlert).Error; err != nil {
-					log.Error(e.Wrapf(err, "[org_id: %d] error fetching SessionAlert object", organizationID))
-					return e.Wrapf(err, "[org_id: %d] error fetching SessionAlert object", organizationID)
-				} else {
-					excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-					if err != nil {
-						log.Error(e.Wrapf(err, "[org_id: %d] error getting excluded environments from SessionAlert", organizationID))
-						return e.Wrapf(err, "[org_id: %d] error getting excluded environments from SessionAlert", organizationID)
-					} else {
-						isExcludedEnvironment := false
-						for _, env := range excludedEnvironments {
-							if env != nil && *env == sessionObj.Environment {
-								isExcludedEnvironment = true
-								break
-							}
-						}
-						if !isExcludedEnvironment {
-							log.Infof("[org_id: %d] getting channels to notify for session alerts", organizationID)
-							if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
-								log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID))
-								return e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID)
-							} else {
-								err = r.SendSlackSessionMessage(organizationID, sessionID, sessionObj.Identifier, channelsToNotify)
-								if err != nil {
-									log.Error(e.Wrapf(err, "[org_id: %d] error sending slack session message", organizationID))
-									return e.Wrapf(err, "[org_id: %d] error sending slack session message", organizationID)
-								}
-							}
-						}
-					}
-				}
-			}
-			return nil
-		})
-
-		// Waits for both goroutines to finish, then returns the first non-nil error (if any).
-		if err := g.Wait(); err != nil {
-			log.Error(e.Wrap(err, "error sending alerts"))
-		}
+		}()
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.
 	}
 	putErrorsToDBSpan.Finish()
