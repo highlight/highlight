@@ -91,6 +91,7 @@ type ErrorAlert struct {
 	OrganizationID       int
 	ExcludedEnvironments *string
 	CountThreshold       int
+	ThresholdWindow      *int
 	ChannelsToNotify     *string
 }
 
