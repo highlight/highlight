@@ -272,12 +272,11 @@ type Session struct {
 	// Tells us if the session has been parsed by a worker.
 	Processed *bool `json:"processed"`
 	// The length of a session.
-	Length         int64    `json:"length"`
-	ActiveLength   int64    `json:"active_length"`
-	Fields         []*Field `json:"fields" gorm:"many2many:session_fields;"`
-	Environment    string   `json:"environment"`
-	UserObject     JSONB    `json:"user_object" sql:"type:jsonb"`
-	UserProperties string   `json:"user_properties"`
+	Length       int64    `json:"length"`
+	ActiveLength int64    `json:"active_length"`
+	Fields       []*Field `json:"fields" gorm:"many2many:session_fields;"`
+	Environment  string   `json:"environment"`
+	UserObject   JSONB    `json:"user_object" sql:"type:jsonb"`
 	// Whether this is the first session created by this user.
 	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
@@ -569,21 +568,4 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 		ps = append(ps, output)
 	}
 	return ps, nil
-}
-
-func (s *Session) SetUserProperties(userProperties map[string]string) error {
-	user, err := json.Marshal(userProperties)
-	if err != nil {
-		return e.Wrapf(err, "[org_id: %d] error marshalling user properties map into bytes", s.OrganizationID)
-	}
-	s.UserProperties = string(user)
-	return nil
-}
-
-func (s *Session) GetUserProperties() (map[string]string, error) {
-	var userProperties map[string]string
-	if err := json.Unmarshal([]byte(s.UserProperties), &userProperties); err != nil {
-		return nil, e.Wrapf(err, "[org_id: %d] error unmarshalling user properties map into bytes", s.OrganizationID)
-	}
-	return userProperties, nil
 }
