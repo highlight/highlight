@@ -117,7 +117,12 @@ export class Highlight {
     _backendUrl: string;
     _recordingStartTime: number = 0;
 
+    static create(options: HighlightClassOptions): Highlight {
+        return new Highlight(options);
+    }
+
     constructor(options: HighlightClassOptions) {
+        console.log('options', options);
         if (typeof options?.debug === 'boolean') {
             this.debugOptions = options.debug
                 ? { clientInteractions: true }
@@ -133,7 +138,10 @@ export class Highlight {
         this.logger = new Logger(this.debugOptions.clientInteractions);
         this._backendUrl = options?.backendUrl
             ? options.backendUrl
-            : (process.env.PUBLIC_GRAPH_URI as string);
+            : process.env.PUBLIC_GRAPH_URI
+            ? process.env.PUBLIC_GRAPH_URI
+            : 'https://public.highlight.run';
+        console.log('backend url', this._backendUrl);
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
@@ -257,6 +265,7 @@ export class Highlight {
     }
     // TODO: (organization_id is only here because of old clients, we should figure out how to version stuff).
     async initialize(organization_id?: number | string) {
+        console.log('initialized core lib');
         var org_id = '';
         if (typeof organization_id === 'number') {
             org_id = organization_id.toString();
@@ -562,6 +571,10 @@ export class Highlight {
 }
 
 (window as any).Highlight = Highlight;
+
+// export let HighlightFactory = (): Highlight => {
+//     return class Highlight {};
+// };
 
 declare global {
     interface Console {

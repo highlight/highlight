@@ -44,7 +44,7 @@ type HighlightPublicInterface = {
 };
 
 interface HighlightWindow extends Window {
-    Highlight: new (options?: HighlightClassOptions) => Highlight;
+    Highlight: Highlight;
     H: HighlightPublicInterface;
 }
 
@@ -70,7 +70,8 @@ export const H: HighlightPublicInterface = {
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
             script.addEventListener('load', () => {
-                highlight_obj = new window.Highlight({
+                console.log(Highlight);
+                highlight_obj = Highlight.create({
                     organizationID: orgID,
                     debug: options?.debug,
                     backendUrl: options?.backendUrl,
@@ -82,6 +83,7 @@ export const H: HighlightPublicInterface = {
                     environment: options?.environment || 'production',
                 });
                 if (!options?.manualStart) {
+                    console.log('calling initialize');
                     highlight_obj.initialize(orgID);
                 }
             });
@@ -203,3 +205,14 @@ export const H: HighlightPublicInterface = {
 if (typeof window !== 'undefined') {
     window.H = H;
 }
+
+chrome?.runtime?.onMessage.addListener((message) => {
+    console.log(message.action);
+    console.log('[Highlight] received event from extension.');
+    H.init(1, {
+        debug: true,
+        scriptUrl: 'http://localhost:8080/dist/index.js',
+    });
+});
+
+console.log('this script has loaded, yo');
