@@ -270,7 +270,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 							log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
 						}
 					}
-					if errorAlert.CountThreshold < 1 || numErrors >= int64(errorAlert.CountThreshold) {
+					if errorAlert.CountThreshold <= 1 || numErrors >= int64(errorAlert.CountThreshold) {
 						if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
 							log.Error(e.Wrap(err, "error getting channels to notify from ErrorAlert"))
 						} else {
