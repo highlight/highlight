@@ -13,6 +13,7 @@ import {
     useUpdateSessionAlertMutation,
 } from '../../../graph/generated/hooks';
 import { ALERT_TYPE } from '../Alerts';
+import { dedupeEnvironments } from '../utils/AlertsUtils';
 import styles from './AlertConfigurationCard.module.scss';
 
 interface AlertConfiguration {
@@ -111,26 +112,13 @@ export const AlertConfigurationCard = ({
     );
 
     const environments = [
-        {
-            displayValue: 'production',
-            value: 'production',
-            id: 'production',
-        },
-        {
-            displayValue: 'staging',
-            value: 'staging',
-            id: 'staging',
-        },
-        {
-            displayValue: 'development',
-            value: 'development',
-            id: 'development',
-        },
-        ...environmentOptions.map(({ name, value }) => ({
-            displayValue: name,
-            value: name,
-            id: value,
-        })),
+        ...dedupeEnvironments(environmentOptions).map(
+            (environmentSuggestion) => ({
+                displayValue: environmentSuggestion,
+                value: environmentSuggestion,
+                id: environmentSuggestion,
+            })
+        ),
     ];
 
     const onChannelsChange = (channels: string[]) => {
