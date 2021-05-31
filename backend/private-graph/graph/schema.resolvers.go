@@ -1340,6 +1340,25 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		}
 	}
 
+	//excluded track fields
+	notTrackFieldIds := []int{}
+	notTrackFieldQuery := r.DB.Model(&model.Field{})
+
+	for _, prop := range params.ExcludedTrackProperties {
+		if prop.Name == "contains" {
+			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
+		} else {
+			notTrackFieldQuery = notTrackFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
+		}
+	}
+
+	//pluck not field ids
+	if len(params.ExcludedTrackProperties) > 0 {
+		if err := notTrackFieldQuery.Pluck("id", &notTrackFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
+		}
+	}
+
 	fieldsSpan.Finish()
 
 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
@@ -1412,6 +1431,12 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	if len(notFieldIds) > 0 {
 		for _, id := range notFieldIds {
+			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
+		}
+	}
+
+	if len(notTrackFieldIds) > 0 {
+		for _, id := range notTrackFieldIds {
 			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
 		}
 	}

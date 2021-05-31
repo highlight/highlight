@@ -166,6 +166,7 @@ input SearchParamsInput {
     user_properties: [UserPropertyInput]
     excluded_properties: [UserPropertyInput]
     track_properties: [UserPropertyInput]
+    excluded_track_properties: [UserPropertyInput]
     date_range: DateRangeInput
     length_range: LengthRangeInput
     os: String

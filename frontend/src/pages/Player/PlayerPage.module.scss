@@ -137,7 +137,18 @@
 }
 
 .rrwebPlayerSection {
-    background-color: var(--color-gray-200);
+    --background-color: var(--color-gray-200);
+    --dot-color: var(--color-gray-300);
+    --dot-size: 2px;
+    --square-size: 50px;
+
+    background-image: radial-gradient(
+        var(--dot-color) var(--dot-size),
+        var(--background-color) var(--dot-size)
+    );
+    background-position: 0 0;
+    background-size: var(--square-size) var(--square-size);
+
     flex: 2;
     height: 100%;
     width: 100%;
