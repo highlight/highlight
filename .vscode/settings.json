@@ -1,4 +1,6 @@
 {
+  "sourcegraph.url": "https://source.highlight.run",
+  "sourcegraph.defaultBranch": "master",
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "editor.codeActionsOnSave": {
