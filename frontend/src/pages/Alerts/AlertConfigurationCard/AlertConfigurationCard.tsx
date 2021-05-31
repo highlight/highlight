@@ -42,7 +42,7 @@ export const AlertConfigurationCard = ({
     const [threshold, setThreshold] = useState(alert?.CountThreshold || 1);
     /** lookbackPeriod units is minutes. */
     const [lookbackPeriod, setLookbackPeriod] = useState(
-        getLookbackPeriodOption(alert.ThresholdWindow).value
+        getLookbackPeriodOption(alert?.ThresholdWindow).value
     );
     const { organization_id } = useParams<{ organization_id: string }>();
     const [form] = Form.useForm();
@@ -364,6 +364,14 @@ const DEFAULT_LOOKBACK_PERIOD = '30';
 
 const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
     const option = LOOKBACK_PERIODS.find((option) => option.value === minutes);
+
+    if (!option) {
+        return {
+            displayValue: '30 minutes',
+            value: '30',
+            id: '30m',
+        };
+    }
 
     return option;
 };

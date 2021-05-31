@@ -571,6 +571,7 @@ query GetAlertsPagePayload($organization_id: ID!) {
         }
         ExcludedEnvironments
         CountThreshold
+        ThresholdWindow
         id
     }
     session_alerts(organization_id: $organization_id) {

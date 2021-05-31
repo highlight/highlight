@@ -376,6 +376,7 @@ export type ErrorAlert = {
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int'];
+    ThresholdWindow?: Maybe<Scalars['Int']>;
 };
 
 export type SessionAlert = {

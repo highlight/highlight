@@ -3746,6 +3746,7 @@ export const GetAlertsPagePayloadDocument = gql`
             }
             ExcludedEnvironments
             CountThreshold
+            ThresholdWindow
             id
         }
         session_alerts(organization_id: $organization_id) {

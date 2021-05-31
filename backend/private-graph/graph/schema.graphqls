@@ -330,6 +330,7 @@ type ErrorAlert {
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
+    ThresholdWindow: Int
 }
 type SessionAlert {
     id: ID!
