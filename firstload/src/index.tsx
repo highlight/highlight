@@ -70,7 +70,6 @@ export const H: HighlightPublicInterface = {
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
             script.addEventListener('load', () => {
-                console.log(Highlight);
                 highlight_obj = Highlight.create({
                     organizationID: orgID,
                     debug: options?.debug,
@@ -206,13 +205,17 @@ if (typeof window !== 'undefined') {
     window.H = H;
 }
 
-chrome?.runtime?.onMessage.addListener((message) => {
+chrome?.runtime?.onMessage.addListener((message, sender, sendResponse) => {
     console.log(message.action);
     console.log('[Highlight] received event from extension.');
     H.init(1, {
         debug: true,
         scriptUrl: 'http://localhost:8080/dist/index.js',
     });
+    H.getSessionURL().then((url) => {
+        sendResponse({ url });
+    });
+    return true;
 });
 
 console.log('this script has loaded, yo');

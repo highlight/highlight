@@ -12,7 +12,16 @@
         "48": "logo192.png",
         "128": "logo192.png"
     },
-    "permissions": ["activeTab", "tabs", "http://*/*", "https://*/*"],
-    "web_accessible_resources": ["/firstload/firstload/src/index.js"],
+    "permissions": [
+        "storage",
+        "activeTab",
+        "tabs",
+        "http://*/*",
+        "https://*/*"
+    ],
+    "web_accessible_resources": [
+        "/firstload/firstload/src/index.js",
+        "/firstload/firstload/src/index.map.js"
+    ],
     "content_security_policy": "script-src 'self' https://static.highlight.run; object-src 'self'"
 }

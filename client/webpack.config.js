@@ -17,6 +17,7 @@ module.exports = {
         headers: {
             'Access-Control-Allow-Origin': '*',
         },
+        injectClient: false,
     },
     module: {
         rules: [
