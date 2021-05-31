@@ -1146,6 +1146,7 @@ export const UpdateErrorAlertDocument = gql`
         $organization_id: ID!
         $error_alert_id: ID!
         $count_threshold: Int!
+        $threshold_window: Int!
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
     ) {
@@ -1155,6 +1156,7 @@ export const UpdateErrorAlertDocument = gql`
             count_threshold: $count_threshold
             slack_channels: $slack_channels
             environments: $environments
+            threshold_window: $threshold_window
         ) {
             ChannelsToNotify {
                 webhook_channel
@@ -1162,6 +1164,7 @@ export const UpdateErrorAlertDocument = gql`
             }
             ExcludedEnvironments
             CountThreshold
+            ThresholdWindow
         }
     }
 `;
@@ -1186,6 +1189,7 @@ export type UpdateErrorAlertMutationFn = Apollo.MutationFunction<
  *      organization_id: // value for 'organization_id'
  *      error_alert_id: // value for 'error_alert_id'
  *      count_threshold: // value for 'count_threshold'
+ *      threshold_window: // value for 'threshold_window'
  *      slack_channels: // value for 'slack_channels'
  *      environments: // value for 'environments'
  *   },

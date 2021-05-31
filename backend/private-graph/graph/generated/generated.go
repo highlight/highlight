@@ -209,7 +209,7 @@ type ComplexityRoot struct {
 		MarkSessionAsStarred           func(childComplexity int, id int, starred *bool) int
 		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
 		SendAdminInvite                func(childComplexity int, organizationID int, email string, baseURL string) int
-		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateSessionAlert             func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 	}
 
@@ -437,7 +437,7 @@ type MutationResolver interface {
 	DeleteSessionComment(ctx context.Context, id int) (*bool, error)
 	CreateErrorComment(ctx context.Context, organizationID int, adminID int, errorGroupID int, text string, textForEmail string, taggedAdmins []*model.SanitizedAdminInput, errorURL string, authorName string) (*model1.ErrorComment, error)
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
-	UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.ErrorAlert, error)
+	UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.ErrorAlert, error)
 	UpdateSessionAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
 }
 type QueryResolver interface {
@@ -1330,7 +1330,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["organization_id"].(int), args["error_alert_id"].(int), args["count_threshold"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
+		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["organization_id"].(int), args["error_alert_id"].(int), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
 
 	case "Mutation.updateSessionAlert":
 		if e.complexity.Mutation.UpdateSessionAlert == nil {
@@ -2961,6 +2961,7 @@ type Mutation {
         organization_id: ID!
         error_alert_id: ID!
         count_threshold: Int!
+        threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): ErrorAlert
@@ -3691,24 +3692,33 @@ func (ec *executionContext) field_Mutation_updateErrorAlert_args(ctx context.Con
 		}
 	}
 	args["count_threshold"] = arg2
-	var arg3 []*model.SanitizedSlackChannelInput
+	var arg3 int
+	if tmp, ok := rawArgs["threshold_window"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("threshold_window"))
+		arg3, err = ec.unmarshalNInt2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["threshold_window"] = arg3
+	var arg4 []*model.SanitizedSlackChannelInput
 	if tmp, ok := rawArgs["slack_channels"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("slack_channels"))
-		arg3, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
+		arg4, err = ec.unmarshalNSanitizedSlackChannelInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐSanitizedSlackChannelInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["slack_channels"] = arg3
-	var arg4 []*string
+	args["slack_channels"] = arg4
+	var arg5 []*string
 	if tmp, ok := rawArgs["environments"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("environments"))
-		arg4, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalNString2ᚕᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["environments"] = arg4
+	args["environments"] = arg5
 	return args, nil
 }
 
@@ -8050,7 +8060,7 @@ func (ec *executionContext) _Mutation_updateErrorAlert(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateErrorAlert(rctx, args["organization_id"].(int), args["error_alert_id"].(int), args["count_threshold"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string))
+		return ec.resolvers.Mutation().UpdateErrorAlert(rctx, args["organization_id"].(int), args["error_alert_id"].(int), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

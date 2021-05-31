@@ -501,6 +501,7 @@ type Mutation {
         organization_id: ID!
         error_alert_id: ID!
         count_threshold: Int!
+        threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): ErrorAlert

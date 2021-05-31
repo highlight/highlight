@@ -723,7 +723,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -755,6 +755,7 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID 
 	alert.ChannelsToNotify = &channelsString
 	alert.ExcludedEnvironments = &envString
 	alert.CountThreshold = countThreshold
+	alert.ThresholdWindow = &thresholdWindow
 	if err := r.DB.Model(&model.ErrorAlert{
 		OrganizationID: organizationID,
 		Model: model.Model{

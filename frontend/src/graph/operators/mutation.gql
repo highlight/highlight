@@ -247,6 +247,7 @@ mutation UpdateErrorAlert(
     $organization_id: ID!
     $error_alert_id: ID!
     $count_threshold: Int!
+    $threshold_window: Int!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
 ) {
@@ -256,6 +257,7 @@ mutation UpdateErrorAlert(
         count_threshold: $count_threshold
         slack_channels: $slack_channels
         environments: $environments
+        threshold_window: $threshold_window
     ) {
         ChannelsToNotify {
             webhook_channel
@@ -263,6 +265,7 @@ mutation UpdateErrorAlert(
         }
         ExcludedEnvironments
         CountThreshold
+        ThresholdWindow
     }
 }
 

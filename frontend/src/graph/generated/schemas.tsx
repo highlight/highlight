@@ -749,6 +749,7 @@ export type MutationUpdateErrorAlertArgs = {
     organization_id: Scalars['ID'];
     error_alert_id: Scalars['ID'];
     count_threshold: Scalars['Int'];
+    threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
 };

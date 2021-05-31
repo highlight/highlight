@@ -78,6 +78,7 @@ export const AlertConfigurationCard = ({
                         variables: {
                             ...requestVariables,
                             error_alert_id: alert.id,
+                            threshold_window: lookbackPeriod,
                         },
                     });
                     break;
@@ -151,11 +152,7 @@ export const AlertConfigurationCard = ({
         _lookbackPeriod: any,
         lookbackPeriodOption: any
     ) => {
-        setLookbackPeriod({
-            displayValue: lookbackPeriodOption.children,
-            id: lookbackPeriodOption.key,
-            value: lookbackPeriodOption.value,
-        });
+        setLookbackPeriod(lookbackPeriodOption.value);
         setFormTouched(true);
     };
 
@@ -273,7 +270,9 @@ export const AlertConfigurationCard = ({
                                             <TextTransition
                                                 inline
                                                 text={`${
-                                                    lookbackPeriod.displayValue?.slice(
+                                                    getLookbackPeriodOption(
+                                                        lookbackPeriod
+                                                    ).displayValue.slice(
                                                         0,
                                                         -1
                                                     ) ||
@@ -363,7 +362,9 @@ const LOOKBACK_PERIODS = [
 const DEFAULT_LOOKBACK_PERIOD = '30';
 
 const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
-    const option = LOOKBACK_PERIODS.find((option) => option.value === minutes);
+    const option = LOOKBACK_PERIODS.find(
+        (option) => option.value === minutes.toString()
+    );
 
     if (!option) {
         return {
