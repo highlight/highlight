@@ -314,6 +314,7 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     error_alert_id: Types.Scalars['ID'];
     count_threshold: Types.Scalars['Int'];
+    threshold_window: Types.Scalars['Int'];
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
@@ -326,7 +327,7 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
     updateErrorAlert?: Types.Maybe<
         { __typename?: 'ErrorAlert' } & Pick<
             Types.ErrorAlert,
-            'ExcludedEnvironments' | 'CountThreshold'
+            'ExcludedEnvironments' | 'CountThreshold' | 'ThresholdWindow'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -1255,7 +1256,10 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
             Types.Maybe<
                 { __typename?: 'ErrorAlert' } & Pick<
                     Types.ErrorAlert,
-                    'ExcludedEnvironments' | 'CountThreshold' | 'id'
+                    | 'ExcludedEnvironments'
+                    | 'CountThreshold'
+                    | 'ThresholdWindow'
+                    | 'id'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<

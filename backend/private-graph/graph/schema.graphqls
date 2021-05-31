@@ -330,6 +330,7 @@ type ErrorAlert {
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
+    ThresholdWindow: Int
 }
 type SessionAlert {
     id: ID!
@@ -500,6 +501,7 @@ type Mutation {
         organization_id: ID!
         error_alert_id: ID!
         count_threshold: Int!
+        threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): ErrorAlert
