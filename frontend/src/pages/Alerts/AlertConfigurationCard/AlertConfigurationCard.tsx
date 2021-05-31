@@ -351,7 +351,7 @@ const DEFAULT_LOOKBACK_PERIOD = '30';
 
 const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
     const option = LOOKBACK_PERIODS.find(
-        (option) => option.value === minutes.toString()
+        (option) => option.value === minutes?.toString()
     );
 
     if (!option) {
