@@ -21,7 +21,7 @@ const ALERT_CONFIGURATIONS = [
         type: ALERT_TYPE.Error,
     },
     {
-        name: 'First Time User',
+        name: 'New Users',
         canControlThreshold: false,
         type: ALERT_TYPE.FirstTimeUser,
         description:

@@ -168,7 +168,7 @@ export const FirstTimeUsersSwitch = () => {
     useWatchSessionPageSearchParams(
         SessionPageSearchParams.firstTimeUsers,
         () => ({ ...EmptySessionsSearchParams, first_time: true }),
-        () => `Showing sessions for first time users`
+        () => `Showing sessions for new users`
     );
 
     return (
@@ -193,7 +193,7 @@ export const FirstTimeUsersSwitch = () => {
                                 : inputStyles.checkboxUnselected
                         }
                     >
-                        Only show first time users
+                        Only show new users
                     </span>
                 </Checkbox>
             </Tooltip>
