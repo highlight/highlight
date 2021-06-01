@@ -40,6 +40,20 @@
     .userDetailsSection {
         padding-bottom: var(--size-medium);
     }
+
+    .sentenceCase {
+        text-transform: capitalize;
+    }
+
+    .infoTooltip {
+        height: var(--size-medium);
+        width: var(--size-medium);
+    }
+
+    .centerAlign {
+        align-items: center;
+        display: inline-flex;
+    }
 }
 
 .noMetadataContainer {

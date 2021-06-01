@@ -400,6 +400,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'os_version'
             | 'browser_name'
             | 'browser_version'
+            | 'environment'
             | 'city'
             | 'state'
             | 'postal'

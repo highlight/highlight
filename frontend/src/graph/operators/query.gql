@@ -11,6 +11,7 @@ query GetSession($id: ID!) {
         os_version
         browser_name
         browser_version
+        environment
         city
         state
         postal
