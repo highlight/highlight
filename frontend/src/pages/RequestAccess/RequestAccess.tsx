@@ -52,6 +52,7 @@ export const RequestAccessPage = () => {
                     {errors.email && 'Error with email ' + errors.email.message}
                 </div>
                 <Button
+                    trackingId="RequestAccess"
                     className={commonStyles.submitButton}
                     type="primary"
                     htmlType="submit"

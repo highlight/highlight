@@ -91,6 +91,7 @@ const WorkspaceTeam = () => {
                             }}
                         />
                         <Button
+                            trackingId="WorkspaceInviteMember"
                             type="primary"
                             className={classNames(
                                 commonStyles.submitButton,

@@ -45,6 +45,7 @@ export const BillingPlanCard = ({
             </ul>
 
             <Button
+                trackingId="ChangeBillingPlan"
                 disabled={current}
                 onClick={onSelect}
                 className={styles.button}

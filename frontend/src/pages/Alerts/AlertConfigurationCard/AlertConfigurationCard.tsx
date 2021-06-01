@@ -294,6 +294,7 @@ export const AlertConfigurationCard = ({
                 <Form.Item shouldUpdate>
                     {() => (
                         <Button
+                            trackingId="SaveAlertConfiguration"
                             type="primary"
                             className={styles.saveButton}
                             htmlType="submit"

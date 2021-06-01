@@ -31,10 +31,16 @@ export const ErrorState = ({
                 )}
                 <div className={styles.buttonGroup}>
                     <a href={'https://app.highlight.run'}>
-                        <Button type="primary">Go to my Account</Button>
+                        <Button
+                            type="primary"
+                            trackingId="ErrorStateGoToMyAccount"
+                        >
+                            Go to my Account
+                        </Button>
                     </a>
                     <Button
                         style={{ marginLeft: 10 }}
+                        trackingId="ErrorStateLoginAsDifferentUser"
                         onClick={async () => {
                             try {
                                 auth.signOut();

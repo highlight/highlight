@@ -77,6 +77,7 @@ export const FieldsForm = () => {
             <div className={styles.fieldRow}>
                 <div className={styles.fieldKey} />
                 <Button
+                    trackingId="WorkspaceUpdate"
                     htmlType="submit"
                     type="primary"
                     className={classNames(

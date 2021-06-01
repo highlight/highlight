@@ -200,6 +200,7 @@ export const NewCommentEntry = ({
                 {() => (
                     <div className={styles.actionButtons}>
                         <Button
+                            trackingId="CancelCreatingSessionComment"
                             htmlType="button"
                             onClick={() => {
                                 onCloseHandler();
@@ -209,6 +210,7 @@ export const NewCommentEntry = ({
                             Cancel
                         </Button>
                         <Button
+                            trackingId="CreateNewSessionComment"
                             type="primary"
                             htmlType="submit"
                             disabled={commentText.length === 0}
