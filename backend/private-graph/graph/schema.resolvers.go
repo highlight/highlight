@@ -181,10 +181,10 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}).Error; err != nil {
+	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
 	return org, nil
@@ -757,7 +757,9 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID 
 	alert.CountThreshold = countThreshold
 	alert.ThresholdWindow = &thresholdWindow
 	if err := r.DB.Model(&model.ErrorAlert{
-		OrganizationID: organizationID,
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
 		Model: model.Model{
 			ID: errorAlertID,
 		},
@@ -800,7 +802,9 @@ func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, organizationI
 	alert.ExcludedEnvironments = &envString
 	alert.CountThreshold = countThreshold
 	if err := r.DB.Model(&model.SessionAlert{
-		OrganizationID: organizationID,
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
 		Model: model.Model{
 			ID: sessionAlertID,
 		},
@@ -1633,7 +1637,7 @@ func (r *queryResolver) ErrorAlerts(ctx context.Context, organizationID int) ([]
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	alerts := []*model.ErrorAlert{}
-	if err := r.DB.Where(&model.ErrorAlert{OrganizationID: organizationID}).Find(&alerts).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alerts")
 	}
 	return alerts, nil
@@ -1645,7 +1649,7 @@ func (r *queryResolver) SessionAlerts(ctx context.Context, organizationID int) (
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	var alerts []*model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{OrganizationID: organizationID}).Find(&alerts).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session alerts")
 	}
 	return alerts, nil

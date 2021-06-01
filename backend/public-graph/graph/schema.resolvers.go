@@ -251,7 +251,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 
 		// Get ErrorAlert object and send respective alert
 		var errorAlert model.ErrorAlert
-		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{OrganizationID: organizationID}).First(&errorAlert).Error; err != nil {
+		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&errorAlert).Error; err != nil {
 			log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
 		} else {
 			excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
