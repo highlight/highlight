@@ -21,6 +21,7 @@ type Session {
     city: String!
     state: String!
     postal: String!
+    environment: String
     language: String!
     identifier: String!
     created_at: Time

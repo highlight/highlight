@@ -327,6 +327,7 @@ type ComplexityRoot struct {
 		City                 func(childComplexity int) int
 		CreatedAt            func(childComplexity int) int
 		EnableStrictPrivacy  func(childComplexity int) int
+		Environment          func(childComplexity int) int
 		FieldGroup           func(childComplexity int) int
 		Fields               func(childComplexity int) int
 		Fingerprint          func(childComplexity int) int
@@ -2100,6 +2101,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.EnableStrictPrivacy(childComplexity), true
 
+	case "Session.environment":
+		if e.complexity.Session.Environment == nil {
+			break
+		}
+
+		return e.complexity.Session.Environment(childComplexity), true
+
 	case "Session.field_group":
 		if e.complexity.Session.FieldGroup == nil {
 			break
@@ -2481,6 +2489,7 @@ type Session {
     city: String!
     state: String!
     postal: String!
+    environment: String
     language: String!
     identifier: String!
     created_at: Time
@@ -11324,6 +11333,38 @@ func (ec *executionContext) _Session_postal(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_environment(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Environment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Session_language(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15789,6 +15830,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "environment":
+			out.Values[i] = ec._Session_environment(ctx, field, obj)
 		case "language":
 			out.Values[i] = ec._Session_language(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

@@ -1348,6 +1348,7 @@ export const GetSessionDocument = gql`
             os_version
             browser_name
             browser_version
+            environment
             city
             state
             postal
