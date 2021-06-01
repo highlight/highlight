@@ -11,3 +11,4 @@ apollo.config.js
 yalc.lock
 
 **/.idea
+**/*.pem
