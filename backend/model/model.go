@@ -86,8 +86,7 @@ type Organization struct {
 	ErrorAlert *string
 }
 
-type ErrorAlert struct {
-	Model
+type Alert struct {
 	OrganizationID       int
 	ExcludedEnvironments *string
 	CountThreshold       int
@@ -95,45 +94,17 @@ type ErrorAlert struct {
 	ChannelsToNotify     *string
 }
 
-func (obj *ErrorAlert) GetExcludedEnvironments() ([]*string, error) {
-	if obj == nil {
-		return nil, e.New("empty error alert object for excluded environments")
-	}
-	excludedString := "[]"
-	if obj.ExcludedEnvironments != nil {
-		excludedString = *obj.ExcludedEnvironments
-	}
-	var sanitizedExcludedEnvironments []*string
-	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized excluded environments")
-	}
-	return sanitizedExcludedEnvironments, nil
-}
-
-func (obj *ErrorAlert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
-	if obj == nil {
-		return nil, e.New("empty error alert object for channels to notify")
-	}
-	channelString := "[]"
-	if obj.ChannelsToNotify != nil {
-		channelString = *obj.ChannelsToNotify
-	}
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
-	}
-	return sanitizedChannels, nil
+type ErrorAlert struct {
+	Model
+	Alert
 }
 
 type SessionAlert struct {
 	Model
-	OrganizationID       int
-	ExcludedEnvironments *string
-	CountThreshold       int
-	ChannelsToNotify     *string
+	Alert
 }
 
-func (obj *SessionAlert) GetExcludedEnvironments() ([]*string, error) {
+func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for excluded environments")
 	}
@@ -148,7 +119,7 @@ func (obj *SessionAlert) GetExcludedEnvironments() ([]*string, error) {
 	return sanitizedExcludedEnvironments, nil
 }
 
-func (obj *SessionAlert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
+func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
 	if obj == nil {
 		return nil, e.New("empty session alert object for channels to notify")
 	}
