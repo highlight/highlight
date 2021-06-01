@@ -3,7 +3,6 @@ import './index.scss';
 import '@highlight-run/rrweb/dist/index.css';
 
 import { ApolloProvider } from '@apollo/client';
-import loadable from '@loadable/component';
 import { H, HighlightOptions } from 'highlight.run';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -12,6 +11,9 @@ import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
 
 import { DemoContext } from './DemoContext';
+import DemoRouter from './DemoRouter';
+import About from './pages/About/About';
+import LoginForm from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 import { client } from './util/graph';
 
@@ -35,10 +37,6 @@ window.Intercom('boot', {
     alignment: 'right',
     hide_default_launcher: true,
 });
-
-const About = loadable(() => import('./pages/About/About'));
-const DemoRouter = loadable(() => import('./DemoRouter'));
-const LoginForm = loadable(() => import('./pages/Login/Login'));
 
 const App = () => {
     return (

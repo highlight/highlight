@@ -1,6 +1,5 @@
 import '../../App.scss';
 
-import loadable from '@loadable/component';
 import React from 'react';
 import {
     BrowserRouter as Router,
@@ -12,16 +11,11 @@ import {
 import { LoadingPage } from '../../components/Loading/Loading';
 import { useGetOrganizationsQuery } from '../../graph/generated/hooks';
 import { Landing } from '../../pages/Landing/Landing';
+import NewMemberPage from '../../pages/NewMember/NewMemberPage';
+import NewWorkspacePage from '../../pages/NewWorkspace/NewWorkspacePage';
 import InternalRouter from '../InternalRouter/InternalRouter';
 import { OrgRouter } from '../OrgRouter/OrgRouter';
 import styles from './AppRouter.module.scss';
-
-const NewMemberPage = loadable(
-    () => import('../../pages/NewMember/NewMemberPage')
-);
-const NewWorkspacePage = loadable(
-    () => import('../../pages/NewWorkspace/NewWorkspacePage')
-);
 
 export const AppRouter = () => {
     const {
