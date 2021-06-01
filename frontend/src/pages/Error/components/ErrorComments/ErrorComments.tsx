@@ -168,6 +168,7 @@ const ErrorComments = () => {
                         {() => (
                             <div className={styles.actionButtons}>
                                 <Button
+                                    trackingId="CreateErrorComment"
                                     type="primary"
                                     htmlType="submit"
                                     disabled={commentText.length === 0}

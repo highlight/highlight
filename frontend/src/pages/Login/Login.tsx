@@ -201,6 +201,7 @@ const LoginForm = () => {
                             {errors.password && errors.password.message}
                         </div>
                         <Button
+                            trackingId="LoginSignInUp"
                             className={commonStyles.submitButton}
                             type="primary"
                             htmlType="submit"
@@ -212,6 +213,7 @@ const LoginForm = () => {
                         or sign {signIn ? 'in' : 'up'} with
                     </p>
                     <Button
+                        trackingId="LoginWithGoogle"
                         className={classNames(
                             commonStyles.secondaryButton,
                             styles.googleButton

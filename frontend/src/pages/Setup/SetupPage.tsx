@@ -148,7 +148,10 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             application.
                         </p>
                         <div className={styles.integrationContainer}>
-                            <ButtonLink to={`/${organization_id}/alerts`}>
+                            <ButtonLink
+                                to={`/${organization_id}/alerts`}
+                                trackingId="ConfigureAlertsFromSetupPage"
+                            >
                                 Configure Your Alerts
                             </ButtonLink>
                         </div>

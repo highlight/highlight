@@ -101,6 +101,7 @@ const ErrorSessionsTable = ({ errorGroup }: Props) => {
                                 errorActivityCount <
                                     errorGroup?.metadata_log.length && (
                                     <Button
+                                        trackingId="ShowMoreErrorsOnSessionTable"
                                         onClick={() =>
                                             setErrorActivityCount(
                                                 errorActivityCount + 20
