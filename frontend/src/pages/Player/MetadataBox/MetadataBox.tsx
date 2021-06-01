@@ -4,6 +4,7 @@ import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 
 import { Avatar } from '../../../components/Avatar/Avatar';
+import UserIdentifier from '../../../components/UserIdentifier/UserIdentifier';
 import { DemoContext } from '../../../DemoContext';
 import {
     useGetSessionQuery,
@@ -89,8 +90,7 @@ export const MetadataBox = () => {
                     ) : (
                         <>
                             <h4 className={styles.userIdHeader}>
-                                {data?.session?.identifier ||
-                                    `User#${data?.session?.user_id}`}
+                                <UserIdentifier session={data?.session} />
                             </h4>
                             <p className={styles.userIdSubHeader}>
                                 {created.toLocaleString('en-us', {
