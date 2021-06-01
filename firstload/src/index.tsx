@@ -109,6 +109,12 @@ export const H: HighlightPublicInterface = {
     },
     start: () => {
         try {
+            if (highlight_obj?.state === 'Recording') {
+                console.warn(
+                    'You cannot called `start()` again. The session is already being recorded.'
+                );
+                return;
+            }
             if (H.options?.manualStart) {
                 var interval = setInterval(function () {
                     if (highlight_obj) {

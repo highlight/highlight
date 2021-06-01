@@ -103,7 +103,9 @@ export class Highlight {
     messages: ConsoleMessage[];
     networkContents: NetworkResourceContent[];
     sessionData: SessionData;
+    /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
     ready: boolean;
+    state: 'NotRecording' | 'Recording';
     logger: Logger;
     disableNetworkRecording: boolean | undefined;
     disableConsoleRecording: boolean | undefined;
@@ -126,6 +128,7 @@ export class Highlight {
             this.debugOptions = options?.debug ?? {};
         }
         this.ready = false;
+        this.state = 'NotRecording';
         this.disableNetworkRecording = options.disableNetworkRecording;
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
@@ -461,6 +464,7 @@ export class Highlight {
                 navigator.sendBeacon(`${this._backendUrl}`, blob);
             });
             this.ready = true;
+            this.state = 'Recording';
         } catch (e) {
             HighlightWarning('initializeSession', e);
         }
@@ -484,6 +488,7 @@ export class Highlight {
                 'H.stop() was called which stops Highlight from recording.'
             );
         }
+        this.state = 'NotRecording';
         this.listeners.forEach((stop: listenerHandler) => stop());
         this.listeners = [];
     }
