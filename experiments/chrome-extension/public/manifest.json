@@ -11,15 +11,12 @@
         "default_popup": "index.html",
         "default_title": "Highlight Extension"
     },
-    "icons": {
-        "16": "logo192.png",
-        "48": "logo192.png",
-        "128": "logo192.png"
-    },
     "permissions": [
         "storage",
         "activeTab",
+        "background",
         "tabs",
+        "webNavigation",
         "http://*/*",
         "https://*/*"
     ],
