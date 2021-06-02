@@ -187,8 +187,6 @@ const OnboardingBubble = () => {
                                         title={step.tooltip}
                                         placement="right"
                                     >
-                                        {/* TODO: Add box shadow on button */}
-                                        {/* Make it span the full width of the popover */}
                                         <Button
                                             trackingId="OpenOnboardingBubble"
                                             onClick={step.action}
