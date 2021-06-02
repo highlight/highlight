@@ -123,12 +123,13 @@ type ComplexityRoot struct {
 	}
 
 	ErrorMetadata struct {
-		Browser    func(childComplexity int) int
-		ErrorID    func(childComplexity int) int
-		Os         func(childComplexity int) int
-		SessionID  func(childComplexity int) int
-		Timestamp  func(childComplexity int) int
-		VisitedURL func(childComplexity int) int
+		Browser     func(childComplexity int) int
+		Environment func(childComplexity int) int
+		ErrorID     func(childComplexity int) int
+		Os          func(childComplexity int) int
+		SessionID   func(childComplexity int) int
+		Timestamp   func(childComplexity int) int
+		VisitedURL  func(childComplexity int) int
 	}
 
 	ErrorObject struct {
@@ -783,6 +784,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorMetadata.Browser(childComplexity), true
+
+	case "ErrorMetadata.environment":
+		if e.complexity.ErrorMetadata.Environment == nil {
+			break
+		}
+
+		return e.complexity.ErrorMetadata.Environment(childComplexity), true
 
 	case "ErrorMetadata.error_id":
 		if e.complexity.ErrorMetadata.ErrorID == nil {
@@ -2592,6 +2600,7 @@ type ErrorGroup {
 type ErrorMetadata {
     error_id: Int!
     session_id: Int!
+    environment: String
     timestamp: Time!
     os: String
     browser: String
@@ -5917,6 +5926,38 @@ func (ec *executionContext) _ErrorMetadata_session_id(ctx context.Context, field
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ErrorMetadata_environment(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorMetadata",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Environment, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorMetadata_timestamp(ctx context.Context, field graphql.CollectedField, obj *model.ErrorMetadata) (ret graphql.Marshaler) {
@@ -14553,6 +14594,8 @@ func (ec *executionContext) _ErrorMetadata(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "environment":
+			out.Values[i] = ec._ErrorMetadata_environment(ctx, field, obj)
 		case "timestamp":
 			out.Values[i] = ec._ErrorMetadata_timestamp(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

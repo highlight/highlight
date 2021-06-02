@@ -722,6 +722,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             Types.ErrorMetadata,
                             | 'error_id'
                             | 'session_id'
+                            | 'environment'
                             | 'timestamp'
                             | 'os'
                             | 'browser'

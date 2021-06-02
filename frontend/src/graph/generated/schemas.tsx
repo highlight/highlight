@@ -150,6 +150,7 @@ export type ErrorMetadata = {
     __typename?: 'ErrorMetadata';
     error_id: Scalars['Int'];
     session_id: Scalars['Int'];
+    environment?: Maybe<Scalars['String']>;
     timestamp: Scalars['Time'];
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
