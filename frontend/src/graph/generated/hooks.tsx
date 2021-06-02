@@ -1364,6 +1364,7 @@ export const GetSessionDocument = gql`
                 name
                 value
                 type
+                id
             }
             object_storage_enabled
             payload_size
@@ -1909,6 +1910,7 @@ export const GetSessionsDocument = gql`
                     name
                     value
                     type
+                    id
                 }
                 first_time
             }
@@ -2669,6 +2671,7 @@ export const GetTrackSuggestionDocument = gql`
             query: $query
             type: "track"
         ) {
+            id
             name
             value
         }
@@ -2731,6 +2734,7 @@ export const GetUserSuggestionDocument = gql`
             query: $query
             type: "user"
         ) {
+            id
             name
             value
         }

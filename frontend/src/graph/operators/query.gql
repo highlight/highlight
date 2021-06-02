@@ -27,6 +27,7 @@ query GetSession($id: ID!) {
             name
             value
             type
+            id
         }
         object_storage_enabled
         payload_size
@@ -183,6 +184,7 @@ query GetSessions(
                 name
                 value
                 type
+                id
             }
             first_time
         }
@@ -355,6 +357,7 @@ query GetTrackSuggestion($organization_id: ID!, $query: String!) {
         query: $query
         type: "track"
     ) {
+        id
         name
         value
     }
@@ -366,6 +369,7 @@ query GetUserSuggestion($organization_id: ID!, $query: String!) {
         query: $query
         type: "user"
     ) {
+        id
         name
         value
     }

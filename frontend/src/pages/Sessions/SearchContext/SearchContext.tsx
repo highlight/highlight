@@ -3,6 +3,7 @@ import React from 'react';
 import { createContext } from '../../../util/context/context';
 
 export type UserProperty = {
+    id: string;
     name: string;
     value: string;
 };
