@@ -3,7 +3,7 @@
 <rect x="0.5" y="1" width="15" height="15" rx="1.5" fill="white" stroke="#5629C6"/>
 </mask>
 <g mask="url(#mask0)">
-<rect x="1" y="1.5" width="14" height="14" rx="1" fill="white" stroke="#111111" stroke-width="2"/>
-<rect x="9.77783" y="0.5" width="6.22222" height="16" fill="#111111"/>
+<rect x="1" y="1.5" width="14" height="14" rx="1" fill="white" stroke="currentColor" stroke-width="2"/>
+<rect x="9.77783" y="0.5" width="6.22222" height="16" fill="currentColor"/>
 </g>
 </svg>

@@ -6,7 +6,7 @@ function SvgChevronDownIcon(props: React.SVGProps<SVGSVGElement>) {
             width="1em"
             height="1em"
             viewBox="0 0 18 18"
-            fill="current"
+            fill="currentColor"
             xmlns="http://www.w3.org/2000/svg"
             {...props}
         >

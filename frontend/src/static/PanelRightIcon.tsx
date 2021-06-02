@@ -36,10 +36,10 @@ function SvgPanelRightIcon(props: React.SVGProps<SVGSVGElement>) {
                     height={14}
                     rx={1}
                     fill="#fff"
-                    stroke="#111"
+                    stroke="currentColor"
                     strokeWidth={2}
                 />
-                <path fill="#111" d="M9.778.5H16v16H9.778z" />
+                <path fill="currentColor" d="M9.778.5H16v16H9.778z" />
             </g>
         </svg>
     );
