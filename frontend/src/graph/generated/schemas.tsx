@@ -175,6 +175,7 @@ export type ReferrerTablePayload = {
 
 export type TopUsersPayload = {
     __typename?: 'TopUsersPayload';
+    id: Scalars['ID'];
     identifier: Scalars['String'];
     total_active_time: Scalars['Int'];
     active_time_percentage: Scalars['Float'];

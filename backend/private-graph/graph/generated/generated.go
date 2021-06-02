@@ -378,6 +378,7 @@ type ComplexityRoot struct {
 
 	TopUsersPayload struct {
 		ActiveTimePercentage func(childComplexity int) int
+		ID                   func(childComplexity int) int
 		Identifier           func(childComplexity int) int
 		TotalActiveTime      func(childComplexity int) int
 	}
@@ -2377,6 +2378,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TopUsersPayload.ActiveTimePercentage(childComplexity), true
 
+	case "TopUsersPayload.id":
+		if e.complexity.TopUsersPayload.ID == nil {
+			break
+		}
+
+		return e.complexity.TopUsersPayload.ID(childComplexity), true
+
 	case "TopUsersPayload.identifier":
 		if e.complexity.TopUsersPayload.Identifier == nil {
 			break
@@ -2638,6 +2646,7 @@ type ReferrerTablePayload {
 }
 
 type TopUsersPayload {
+    id: ID!
     identifier: String!
     total_active_time: Int!
     active_time_percentage: Float!
@@ -12503,6 +12512,41 @@ func (ec *executionContext) _SessionResults_totalCount(ctx context.Context, fiel
 	return ec.marshalNInt642int64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _TopUsersPayload_id(ctx context.Context, field graphql.CollectedField, obj *model.TopUsersPayload) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TopUsersPayload",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TopUsersPayload_identifier(ctx context.Context, field graphql.CollectedField, obj *model.TopUsersPayload) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16214,6 +16258,11 @@ func (ec *executionContext) _TopUsersPayload(ctx context.Context, sel ast.Select
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("TopUsersPayload")
+		case "id":
+			out.Values[i] = ec._TopUsersPayload_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "identifier":
 			out.Values[i] = ec._TopUsersPayload_identifier(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

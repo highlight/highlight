@@ -1115,7 +1115,10 @@ export type GetTopUsersQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'TopUsersPayload' } & Pick<
                 Types.TopUsersPayload,
-                'identifier' | 'total_active_time' | 'active_time_percentage'
+                | 'identifier'
+                | 'total_active_time'
+                | 'active_time_percentage'
+                | 'id'
             >
         >
     >;

@@ -111,6 +111,7 @@ type SearchParamsInput struct {
 }
 
 type TopUsersPayload struct {
+	ID                   int     `json:"id"`
 	Identifier           string  `json:"identifier"`
 	TotalActiveTime      int     `json:"total_active_time"`
 	ActiveTimePercentage float64 `json:"active_time_percentage"`

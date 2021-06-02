@@ -146,6 +146,7 @@ type ReferrerTablePayload {
 }
 
 type TopUsersPayload {
+    id: ID!
     identifier: String!
     total_active_time: Int!
     active_time_percentage: Float!

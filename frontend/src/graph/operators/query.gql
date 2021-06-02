@@ -498,6 +498,7 @@ query GetTopUsers($organization_id: ID!, $lookBackPeriod: Int!) {
         identifier
         total_active_time
         active_time_percentage
+        id
     }
 }
 

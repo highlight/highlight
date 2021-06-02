@@ -31,6 +31,7 @@ const ActiveUsersTable = () => {
                     identifier: topUser?.identifier,
                     total_active_time: topUser?.total_active_time,
                     active_time_percentage: topUser?.active_time_percentage,
+                    id: topUser?.id,
                 }));
 
                 setTableData(transformedData);
@@ -58,7 +59,7 @@ const ActiveUsersTable = () => {
                 data={tableData}
                 onClickHandler={(record) => {
                     history.push(
-                        `/${organization_id}/sessions?${SessionPageSearchParams.identifier}=${record.identifier}`
+                        `/${organization_id}/sessions?${SessionPageSearchParams.identifier}=${record.identifier}&${SessionPageSearchParams.id}=${record.id}`
                     );
                 }}
                 noDataMessage={
