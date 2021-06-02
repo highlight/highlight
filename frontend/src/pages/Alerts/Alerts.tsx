@@ -7,6 +7,7 @@ import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { useGetAlertsPagePayloadQuery } from '../../graph/generated/hooks';
 import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
+import { useSlack } from './SlackIntegration/SlackIntegration';
 
 export enum ALERT_TYPE {
     Error,
@@ -20,7 +21,7 @@ const ALERT_CONFIGURATIONS = [
         type: ALERT_TYPE.Error,
     },
     {
-        name: 'First Time User',
+        name: 'New Users',
         canControlThreshold: false,
         type: ALERT_TYPE.FirstTimeUser,
         description:
@@ -33,6 +34,7 @@ const AlertsPage = () => {
     const { data, loading } = useGetAlertsPagePayloadQuery({
         variables: { organization_id: organization_id },
     });
+    const { slackUrl } = useSlack('alerts', ['GetAlertsPagePayload']);
 
     return (
         <LeadAlignLayout>
@@ -43,13 +45,13 @@ const AlertsPage = () => {
 
             <div className={styles.configurationContainer}>
                 {loading ? (
-                    Array(3)
+                    Array(2)
                         .fill(0)
                         .map((_, index) => (
                             <Skeleton
                                 key={index}
                                 style={{
-                                    width: '100%',
+                                    width: '648px',
                                     height: 79,
                                     borderRadius: 8,
                                 }}
@@ -80,6 +82,7 @@ const AlertsPage = () => {
                             channelSuggestions={
                                 data?.slack_channel_suggestion || []
                             }
+                            slackUrl={slackUrl}
                         />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[1]}
@@ -94,6 +97,7 @@ const AlertsPage = () => {
                             channelSuggestions={
                                 data?.slack_channel_suggestion || []
                             }
+                            slackUrl={slackUrl}
                         />
                     </>
                 )}

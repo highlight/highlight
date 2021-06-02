@@ -23,6 +23,7 @@ export const EmptySessionsSearchParams: Complete<SearchParams> = {
     os: undefined,
     referrer: undefined,
     track_properties: [],
+    excluded_track_properties: [],
     visited_url: undefined,
     first_time: false,
     device_id: undefined,

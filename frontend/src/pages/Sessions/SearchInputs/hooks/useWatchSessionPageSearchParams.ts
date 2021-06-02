@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import { SessionPageSearchParams } from '../../../Player/utils/utils';
@@ -21,21 +21,26 @@ const useWatchSessionPageSearchParams = (
 ) => {
     const history = useHistory();
     const { setSearchParams } = useSearchContext();
+    const [handled, setHandled] = useState(false);
+    message.config({
+        maxCount: 1,
+    });
 
     useEffect(() => {
         const valueFromSearchParams = new URLSearchParams(location.search).get(
             searchParam
         );
 
-        if (valueFromSearchParams) {
+        if (valueFromSearchParams && !handled) {
             message.success(getDisplayText(valueFromSearchParams));
             setSearchParams(() =>
                 setSearchParamsCallback(valueFromSearchParams)
             );
-            history.replace({ search: '' });
+            setHandled(true);
         }
     }, [
         getDisplayText,
+        handled,
         history,
         searchParam,
         setSearchParams,

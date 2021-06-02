@@ -11,6 +11,7 @@ query GetSession($id: ID!) {
         os_version
         browser_name
         browser_version
+        environment
         city
         state
         postal
@@ -245,6 +246,7 @@ query GetErrorGroup($id: ID!) {
         metadata_log {
             error_id
             session_id
+            environment
             timestamp
             os
             browser
@@ -571,6 +573,7 @@ query GetAlertsPagePayload($organization_id: ID!) {
         }
         ExcludedEnvironments
         CountThreshold
+        ThresholdWindow
         id
     }
     session_alerts(organization_id: $organization_id) {

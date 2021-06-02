@@ -47,6 +47,7 @@ const ErrorSessionsTable = ({ errorGroup }: Props) => {
                                 <span>Browser</span>
                                 <span>OS</span>
                                 <span>Timestamp</span>
+                                <span>Environment</span>
                             </div>
                         </div>
                         <div className={styles.errorLogWrapper}>
@@ -94,6 +95,9 @@ const ErrorSessionsTable = ({ errorGroup }: Props) => {
                                                     'D MMMM YYYY, HH:mm:ss'
                                                 )}
                                             </span>
+                                            <span>
+                                                {e?.environment || 'Production'}
+                                            </span>
                                         </div>
                                     </Link>
                                 ))}
@@ -101,6 +105,7 @@ const ErrorSessionsTable = ({ errorGroup }: Props) => {
                                 errorActivityCount <
                                     errorGroup?.metadata_log.length && (
                                     <Button
+                                        trackingId="ShowMoreErrorsOnSessionTable"
                                         onClick={() =>
                                             setErrorActivityCount(
                                                 errorActivityCount + 20

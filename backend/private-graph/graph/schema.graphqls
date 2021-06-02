@@ -21,6 +21,7 @@ type Session {
     city: String!
     state: String!
     postal: String!
+    environment: String
     language: String!
     identifier: String!
     created_at: Time
@@ -123,6 +124,7 @@ type ErrorGroup {
 type ErrorMetadata {
     error_id: Int!
     session_id: Int!
+    environment: String
     timestamp: Time!
     os: String
     browser: String
@@ -166,6 +168,7 @@ input SearchParamsInput {
     user_properties: [UserPropertyInput]
     excluded_properties: [UserPropertyInput]
     track_properties: [UserPropertyInput]
+    excluded_track_properties: [UserPropertyInput]
     date_range: DateRangeInput
     length_range: LengthRangeInput
     os: String
@@ -329,6 +332,7 @@ type ErrorAlert {
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
+    ThresholdWindow: Int
 }
 type SessionAlert {
     id: ID!
@@ -499,6 +503,7 @@ type Mutation {
         organization_id: ID!
         error_alert_id: ID!
         count_threshold: Int!
+        threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): ErrorAlert

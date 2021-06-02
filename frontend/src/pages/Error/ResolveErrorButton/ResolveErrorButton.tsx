@@ -15,6 +15,7 @@ export const ResolveErrorButton: React.FC<{
     const [markErrorGroupAsResolved] = useMarkErrorGroupAsResolvedMutation();
     return (
         <Button
+            trackingId="ResolveError"
             type="primary"
             onClick={() => {
                 markErrorGroupAsResolved({

@@ -15,7 +15,12 @@ const ShareButton = (props: ButtonProps) => {
     };
 
     return (
-        <Button type="primary" onClick={onClickHandler} {...props}>
+        <Button
+            type="primary"
+            onClick={onClickHandler}
+            {...props}
+            trackingId="ShareSession"
+        >
             Share
         </Button>
     );

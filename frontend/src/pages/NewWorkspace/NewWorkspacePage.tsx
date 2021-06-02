@@ -57,6 +57,7 @@ const NewWorkspacePage = () => {
                         'Error with workspace name ' + errors.name.message}
                 </div>
                 <Button
+                    trackingId="CreateWorkspace"
                     type="primary"
                     className={commonStyles.submitButton}
                     htmlType="submit"

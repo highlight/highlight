@@ -108,7 +108,11 @@ const TimelineAnnotationsSettings = () => {
                 </div>
             }
         >
-            <Button type="text" className={styles.button}>
+            <Button
+                type="text"
+                className={styles.button}
+                trackingId="TimelineAnnotationSettings"
+            >
                 <div className={styles.eventTypesContainer}>
                     {selectedEventTypes.map((eventType) => (
                         <div

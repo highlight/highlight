@@ -314,6 +314,7 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     error_alert_id: Types.Scalars['ID'];
     count_threshold: Types.Scalars['Int'];
+    threshold_window: Types.Scalars['Int'];
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
@@ -326,7 +327,7 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
     updateErrorAlert?: Types.Maybe<
         { __typename?: 'ErrorAlert' } & Pick<
             Types.ErrorAlert,
-            'ExcludedEnvironments' | 'CountThreshold'
+            'ExcludedEnvironments' | 'CountThreshold' | 'ThresholdWindow'
         > & {
                 ChannelsToNotify: Array<
                     Types.Maybe<
@@ -399,6 +400,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'os_version'
             | 'browser_name'
             | 'browser_version'
+            | 'environment'
             | 'city'
             | 'state'
             | 'postal'
@@ -720,6 +722,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             Types.ErrorMetadata,
                             | 'error_id'
                             | 'session_id'
+                            | 'environment'
                             | 'timestamp'
                             | 'os'
                             | 'browser'
@@ -1255,7 +1258,10 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
             Types.Maybe<
                 { __typename?: 'ErrorAlert' } & Pick<
                     Types.ErrorAlert,
-                    'ExcludedEnvironments' | 'CountThreshold' | 'id'
+                    | 'ExcludedEnvironments'
+                    | 'CountThreshold'
+                    | 'ThresholdWindow'
+                    | 'id'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<

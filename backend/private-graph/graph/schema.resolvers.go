@@ -28,8 +28,6 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-const SUGGESTION_LIMIT_CONSTANT = 8
-
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
 	return obj.GetChannelsToNotify()
 }
@@ -183,10 +181,10 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}).Error; err != nil {
+	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
 	return org, nil
@@ -725,7 +723,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -757,8 +755,11 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID 
 	alert.ChannelsToNotify = &channelsString
 	alert.ExcludedEnvironments = &envString
 	alert.CountThreshold = countThreshold
+	alert.ThresholdWindow = &thresholdWindow
 	if err := r.DB.Model(&model.ErrorAlert{
-		OrganizationID: organizationID,
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
 		Model: model.Model{
 			ID: errorAlertID,
 		},
@@ -801,7 +802,9 @@ func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, organizationI
 	alert.ExcludedEnvironments = &envString
 	alert.CountThreshold = countThreshold
 	if err := r.DB.Model(&model.SessionAlert{
-		OrganizationID: organizationID,
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
 		Model: model.Model{
 			ID: sessionAlertID,
 		},
@@ -1340,6 +1343,25 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		}
 	}
 
+	//excluded track fields
+	notTrackFieldIds := []int{}
+	notTrackFieldQuery := r.DB.Model(&model.Field{})
+
+	for _, prop := range params.ExcludedTrackProperties {
+		if prop.Name == "contains" {
+			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
+		} else {
+			notTrackFieldQuery = notTrackFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
+		}
+	}
+
+	//pluck not field ids
+	if len(params.ExcludedTrackProperties) > 0 {
+		if err := notTrackFieldQuery.Pluck("id", &notTrackFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
+		}
+	}
+
 	fieldsSpan.Finish()
 
 	sessionsQueryPreamble := "SELECT id, user_id, organization_id, processed, starred, first_time, os_name, os_version, browser_name, browser_version, city, state, postal, identifier, fingerprint, created_at, deleted_at, length, active_length, user_object, viewed"
@@ -1412,6 +1434,12 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	if len(notFieldIds) > 0 {
 		for _, id := range notFieldIds {
+			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
+		}
+	}
+
+	if len(notTrackFieldIds) > 0 {
+		for _, id := range notTrackFieldIds {
 			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
 		}
 	}
@@ -1609,7 +1637,7 @@ func (r *queryResolver) ErrorAlerts(ctx context.Context, organizationID int) ([]
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	alerts := []*model.ErrorAlert{}
-	if err := r.DB.Where(&model.ErrorAlert{OrganizationID: organizationID}).Find(&alerts).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alerts")
 	}
 	return alerts, nil
@@ -1621,7 +1649,7 @@ func (r *queryResolver) SessionAlerts(ctx context.Context, organizationID int) (
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	var alerts []*model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{OrganizationID: organizationID}).Find(&alerts).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session alerts")
 	}
 	return alerts, nil
@@ -1857,3 +1885,11 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+const SUGGESTION_LIMIT_CONSTANT = 8

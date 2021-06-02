@@ -37,6 +37,7 @@ export type Session = {
     city: Scalars['String'];
     state: Scalars['String'];
     postal: Scalars['String'];
+    environment?: Maybe<Scalars['String']>;
     language: Scalars['String'];
     identifier: Scalars['String'];
     created_at?: Maybe<Scalars['Time']>;
@@ -149,6 +150,7 @@ export type ErrorMetadata = {
     __typename?: 'ErrorMetadata';
     error_id: Scalars['Int'];
     session_id: Scalars['Int'];
+    environment?: Maybe<Scalars['String']>;
     timestamp: Scalars['Time'];
     os?: Maybe<Scalars['String']>;
     browser?: Maybe<Scalars['String']>;
@@ -196,6 +198,7 @@ export type SearchParamsInput = {
     user_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     excluded_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
+    excluded_track_properties?: Maybe<Array<Maybe<UserPropertyInput>>>;
     date_range?: Maybe<DateRangeInput>;
     length_range?: Maybe<LengthRangeInput>;
     os?: Maybe<Scalars['String']>;
@@ -375,6 +378,7 @@ export type ErrorAlert = {
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int'];
+    ThresholdWindow?: Maybe<Scalars['Int']>;
 };
 
 export type SessionAlert = {
@@ -747,6 +751,7 @@ export type MutationUpdateErrorAlertArgs = {
     organization_id: Scalars['ID'];
     error_alert_id: Scalars['ID'];
     count_threshold: Scalars['Int'];
+    threshold_window: Scalars['Int'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
 };

@@ -99,6 +99,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                                     errors.name.message}
                         </div>
                         <Button
+                            trackingId="SaveNewErrorSegmentFromExistingSegment"
                             className={commonStyles.submitButton}
                             type="primary"
                             htmlType="submit"
@@ -121,6 +122,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
             {paramsIsDifferent && segmentName ? (
                 <>
                     <Button
+                        trackingId="UpdateErrorSegment"
                         type="primary"
                         onClick={() => {
                             editSegment({
@@ -157,6 +159,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
             )}
             {/* In every case, let someone create a new segment w/ the current search params. */}
             <Button
+                trackingId="CreateNewErrorSegment"
                 type={paramsIsDifferent && segmentName ? 'default' : 'primary'}
                 onClick={() => setCreateClicked(true)}
                 className={

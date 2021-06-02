@@ -109,7 +109,11 @@ const Notifications = () => {
                 </div>
             }
         >
-            <Button type="text" className={classNames(styles.button)}>
+            <Button
+                type="text"
+                className={classNames(styles.button)}
+                trackingId="OpenMentions"
+            >
                 <div className={styles.iconContainer}>
                     {unreadNotificationsCount !== 0 && (
                         <div className={styles.dotContainer}>
