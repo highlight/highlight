@@ -9,6 +9,7 @@ import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import InputNumber from '../../../components/InputNumber/InputNumber';
 import Select from '../../../components/Select/Select';
 import {
+    useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
     useUpdateSessionAlertMutation,
 } from '../../../graph/generated/hooks';
@@ -103,6 +104,15 @@ export const AlertConfigurationCard = ({
         setLoading(false);
     };
 
+    const { data, loading: userSuggestionsLoading } = useGetUserSuggestionQuery(
+        {
+            variables: {
+                organization_id,
+                query: '',
+            },
+        }
+    );
+
     const channels = channelSuggestions.map(
         ({ webhook_channel, webhook_channel_id }) => ({
             displayValue: webhook_channel,
@@ -120,6 +130,20 @@ export const AlertConfigurationCard = ({
             })
         ),
     ];
+
+    const userPropertiesSuggestions = userSuggestionsLoading
+        ? []
+        : (data?.property_suggestion || []).map((suggestion) => ({
+              displayValue:
+                  (
+                      <>
+                          <b>{suggestion?.name}</b>
+                          {suggestion?.value}
+                      </>
+                  ) || '',
+              value: suggestion?.value || '',
+              id: suggestion?.value || '',
+          }));
 
     const onChannelsChange = (channels: string[]) => {
         form.setFieldsValue({ channels });
@@ -170,6 +194,27 @@ export const AlertConfigurationCard = ({
                     lookbackPeriod: [lookbackPeriod],
                 }}
             >
+                {type === ALERT_TYPE.UserProperties && (
+                    <section>
+                        <h3>User Properties</h3>
+                        <p>
+                            Pick the user properties that you would like to get
+                            alerted for.
+                        </p>
+                        <Form.Item>
+                            <Select
+                                className={styles.channelSelect}
+                                options={userPropertiesSuggestions}
+                                mode="multiple"
+                                placeholder={`Pick the user properties that you would like to get alerted for.`}
+                                onChange={onChannelsChange}
+                                defaultValue={alert.ChannelsToNotify.map(
+                                    (channel: any) => channel.webhook_channel_id
+                                )}
+                            />
+                        </Form.Item>
+                    </section>
+                )}
                 <section>
                     <h3>Channels to Notify</h3>
                     <p>

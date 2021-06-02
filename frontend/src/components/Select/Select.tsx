@@ -25,7 +25,7 @@ type Props = Pick<
 > & {
     options: {
         value: string;
-        displayValue: string;
+        displayValue: string | React.ReactNode;
         disabled?: boolean;
         id: string;
     }[];
