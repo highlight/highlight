@@ -199,7 +199,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	organizationID := s.OrganizationID
 	if s.FirstTime != nil && *s.FirstTime {
 		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&sessionAlert).Error; err != nil {
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.NEW_USER_ALERT_TYPE).First(&sessionAlert).Error; err != nil {
 			log.Error(e.Wrapf(err, "[org_id: %d] error fetching SessionAlert object", organizationID))
 		} else {
 			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()

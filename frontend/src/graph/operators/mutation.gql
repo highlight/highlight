@@ -269,14 +269,14 @@ mutation UpdateErrorAlert(
     }
 }
 
-mutation UpdateSessionAlert(
+mutation UpdateNewUserAlert(
     $organization_id: ID!
     $session_alert_id: ID!
     $count_threshold: Int!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
 ) {
-    updateSessionAlert(
+    updateNewUserAlert(
         organization_id: $organization_id
         session_alert_id: $session_alert_id
         count_threshold: $count_threshold

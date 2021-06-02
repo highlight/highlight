@@ -184,7 +184,7 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}, Type: &model.NEW_USER_ALERT_TYPE}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
 	return org, nil
@@ -769,14 +769,14 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID 
 	return alert, nil
 }
 
-func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
 	alert := &model.SessionAlert{}
-	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Find(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type IS NULL OR type=?", model.NEW_USER_ALERT_TYPE).Find(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session alert")
 	}
 
@@ -1578,7 +1578,7 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Name: name}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
-		Limit(SUGGESTION_LIMIT_CONSTANT).
+		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
@@ -1594,7 +1594,7 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
-		Limit(SUGGESTION_LIMIT_CONSTANT).
+		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
@@ -1611,7 +1611,7 @@ func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, organizationID
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
 		Where("organization_id = ?", organizationID).
-		Limit(SUGGESTION_LIMIT_CONSTANT).
+		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying error field suggestion")
@@ -1631,28 +1631,28 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 	return orgs, nil
 }
 
-func (r *queryResolver) ErrorAlerts(ctx context.Context, organizationID int) ([]*model.ErrorAlert, error) {
+func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*model.ErrorAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
-	alerts := []*model.ErrorAlert{}
-	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&alerts).Error; err != nil {
+	alert := model.ErrorAlert{}
+	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alerts")
 	}
-	return alerts, nil
+	return &alert, nil
 }
 
-func (r *queryResolver) SessionAlerts(ctx context.Context, organizationID int) ([]*model.SessionAlert, error) {
+func (r *queryResolver) NewUserAlert(ctx context.Context, organizationID int) (*model.SessionAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
-	var alerts []*model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&alerts).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session alerts")
+	var alert model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.NEW_USER_ALERT_TYPE).First(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session alert")
 	}
-	return alerts, nil
+	return &alert, nil
 }
 
 func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
@@ -1673,7 +1673,7 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string,
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "session", Name: "environment"}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
-		Limit(SUGGESTION_LIMIT_CONSTANT).
+		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
@@ -1885,11 +1885,3 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-const SUGGESTION_LIMIT_CONSTANT = 8

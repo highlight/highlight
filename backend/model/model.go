@@ -24,10 +24,15 @@ import (
 )
 
 var (
-	DB     *gorm.DB
-	HashID *hashids.HashID
-	F      bool = false
-	T      bool = true
+	DB                  *gorm.DB
+	HashID              *hashids.HashID
+	F                   bool = false
+	T                   bool = true
+	NEW_USER_ALERT_TYPE      = "NEW_USER_ALERT"
+)
+
+const (
+	SUGGESTION_LIMIT_CONSTANT = 8
 )
 
 func init() {
@@ -102,6 +107,7 @@ type ErrorAlert struct {
 type SessionAlert struct {
 	Model
 	Alert
+	Type *string
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
