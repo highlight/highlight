@@ -402,6 +402,7 @@ type ErrorObject struct {
 	Trace          *string   `json:"trace"`
 	Timestamp      time.Time `json:"timestamp"`
 	Payload        *string   `json:"payload"`
+	Environment    string
 }
 
 type ErrorGroup struct {
