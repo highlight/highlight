@@ -337,6 +337,7 @@ type SessionAlert {
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
+    TrackProperties: [UserProperty]!
 }
 
 type Query {
@@ -518,5 +519,6 @@ type Mutation {
         session_alert_id: ID!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
+        track_properties: [UserPropertyInput]!
     ): SessionAlert
 }

@@ -814,7 +814,7 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, organizationI
 	return alert, nil
 }
 
-func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.UserPropertyInput) (*model.SessionAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -825,17 +825,17 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 		return nil, e.Wrap(err, "error querying session alert")
 	}
 
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-	}
-
 	envBytes, err := json.Marshal(environments)
 	if err != nil {
 		return nil, e.Wrap(err, "error parsing environments")
 	}
 	envString := string(envBytes)
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
 
 	channelsBytes, err := json.Marshal(sanitizedChannels)
 	if err != nil {
@@ -843,8 +843,15 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 	}
 	channelsString := string(channelsBytes)
 
-	alert.ChannelsToNotify = &channelsString
+	trackPropertiesBytes, err := json.Marshal(trackProperties)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing track properties")
+	}
+	trackPropertiesString := string(trackPropertiesBytes)
+
 	alert.ExcludedEnvironments = &envString
+	alert.ChannelsToNotify = &channelsString
+	alert.TrackProperties = &trackPropertiesString
 	if err := r.DB.Model(&model.SessionAlert{
 		Alert: model.Alert{
 			OrganizationID: organizationID,
@@ -1700,7 +1707,15 @@ func (r *queryResolver) NewUserAlert(ctx context.Context, organizationID int) (*
 }
 
 func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, organizationID int) (*model.SessionAlert, error) {
-	panic(fmt.Errorf("not implemented"))
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	var alert model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.TRACK_PROPERTIES_ALERT_TYPE).First(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session alert")
+	}
+	return &alert, nil
 }
 
 func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
@@ -1855,6 +1870,10 @@ func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.
 
 func (r *sessionAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.SessionAlert) ([]*string, error) {
 	return obj.GetExcludedEnvironments()
+}
+
+func (r *sessionAlertResolver) TrackProperties(ctx context.Context, obj *model.SessionAlert) ([]*model.UserProperty, error) {
+	return obj.GetTrackProperties()
 }
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {

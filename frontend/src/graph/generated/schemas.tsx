@@ -385,6 +385,7 @@ export type SessionAlert = {
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int'];
+    TrackProperties: Array<Maybe<UserProperty>>;
 };
 
 export type Query = {
@@ -773,4 +774,5 @@ export type MutationUpdateTrackPropertiesAlertArgs = {
     session_alert_id: Scalars['ID'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
+    track_properties: Array<Maybe<UserPropertyInput>>;
 };

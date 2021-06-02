@@ -530,8 +530,19 @@ query GetErrorAlert($organization_id: ID!) {
     }
 }
 
-query GetNewUserAlerts($organization_id: ID!) {
+query GetNewUserAlert($organization_id: ID!) {
     new_user_alert(organization_id: $organization_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}
+
+query GetTrackPropertiesAlert($organization_id: ID!) {
+    track_properties_alert(organization_id: $organization_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -582,5 +593,18 @@ query GetAlertsPagePayload($organization_id: ID!) {
         }
         ExcludedEnvironments
         CountThreshold
+    }
+    track_properties_alert(organization_id: $organization_id) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        TrackProperties {
+            name
+            value
+        }
     }
 }

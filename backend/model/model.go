@@ -108,7 +108,8 @@ type ErrorAlert struct {
 type SessionAlert struct {
 	Model
 	Alert
-	Type *string
+	TrackProperties *string
+	Type            *string
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
@@ -139,6 +140,21 @@ func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, e
 		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
 	}
 	return sanitizedChannels, nil
+}
+
+func (obj *SessionAlert) GetTrackProperties() ([]*UserProperty, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for channels to notify")
+	}
+	propertyString := "[]"
+	if obj.TrackProperties != nil {
+		propertyString = *obj.TrackProperties
+	}
+	var sanitizedProperties []*UserProperty
+	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
+	}
+	return sanitizedProperties, nil
 }
 
 type SlackChannel struct {
