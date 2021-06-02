@@ -24,11 +24,12 @@ import (
 )
 
 var (
-	DB                  *gorm.DB
-	HashID              *hashids.HashID
-	F                   bool = false
-	T                   bool = true
-	NEW_USER_ALERT_TYPE      = "NEW_USER_ALERT"
+	DB                          *gorm.DB
+	HashID                      *hashids.HashID
+	F                           bool = false
+	T                           bool = true
+	NEW_USER_ALERT_TYPE              = "NEW_USER_ALERT"
+	TRACK_PROPERTIES_ALERT_TYPE      = "TRACK_PROPERTIES_ALERT"
 )
 
 const (

@@ -409,6 +409,7 @@ type Query {
     organizations: [Organization]
     error_alert(organization_id: ID!): ErrorAlert
     new_user_alert(organization_id: ID!): SessionAlert
+    track_properties_alert(organization_id: ID!): SessionAlert
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
@@ -509,6 +510,12 @@ type Mutation {
         organization_id: ID!
         session_alert_id: ID!
         count_threshold: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
+    updateTrackPropertiesAlert(
+        organization_id: ID!
+        session_alert_id: ID!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): SessionAlert
