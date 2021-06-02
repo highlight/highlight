@@ -211,7 +211,7 @@ type ComplexityRoot struct {
 		SendAdminInvite                func(childComplexity int, organizationID int, email string, baseURL string) int
 		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateNewUserAlert             func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
-		UpdateTrackPropertiesAlert     func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.UserPropertyInput) int
+		UpdateTrackPropertiesAlert     func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) int
 	}
 
 	NewUsersCount struct {
@@ -382,6 +382,12 @@ type ComplexityRoot struct {
 		TotalActiveTime      func(childComplexity int) int
 	}
 
+	TrackProperty struct {
+		ID    func(childComplexity int) int
+		Name  func(childComplexity int) int
+		Value func(childComplexity int) int
+	}
+
 	User struct {
 		ID func(childComplexity int) int
 	}
@@ -442,7 +448,7 @@ type MutationResolver interface {
 	DeleteErrorComment(ctx context.Context, id int) (*bool, error)
 	UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.ErrorAlert, error)
 	UpdateNewUserAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) (*model1.SessionAlert, error)
-	UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.UserPropertyInput) (*model1.SessionAlert, error)
+	UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) (*model1.SessionAlert, error)
 }
 type QueryResolver interface {
 	Session(ctx context.Context, id int) (*model1.Session, error)
@@ -496,7 +502,7 @@ type SessionAlertResolver interface {
 	ChannelsToNotify(ctx context.Context, obj *model1.SessionAlert) ([]*model.SanitizedSlackChannel, error)
 	ExcludedEnvironments(ctx context.Context, obj *model1.SessionAlert) ([]*string, error)
 
-	TrackProperties(ctx context.Context, obj *model1.SessionAlert) ([]*model1.UserProperty, error)
+	TrackProperties(ctx context.Context, obj *model1.SessionAlert) ([]*model1.TrackProperty, error)
 }
 type SessionCommentResolver interface {
 	Author(ctx context.Context, obj *model1.SessionComment) (*model.SanitizedAdmin, error)
@@ -1361,7 +1367,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateTrackPropertiesAlert(childComplexity, args["organization_id"].(int), args["session_alert_id"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["track_properties"].([]*model.UserPropertyInput)), true
+		return e.complexity.Mutation.UpdateTrackPropertiesAlert(childComplexity, args["organization_id"].(int), args["session_alert_id"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["track_properties"].([]*model.TrackPropertyInput)), true
 
 	case "NewUsersCount.count":
 		if e.complexity.NewUsersCount.Count == nil {
@@ -2404,6 +2410,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TopUsersPayload.TotalActiveTime(childComplexity), true
 
+	case "TrackProperty.id":
+		if e.complexity.TrackProperty.ID == nil {
+			break
+		}
+
+		return e.complexity.TrackProperty.ID(childComplexity), true
+
+	case "TrackProperty.name":
+		if e.complexity.TrackProperty.Name == nil {
+			break
+		}
+
+		return e.complexity.TrackProperty.Name(childComplexity), true
+
+	case "TrackProperty.value":
+		if e.complexity.TrackProperty.Value == nil {
+			break
+		}
+
+		return e.complexity.TrackProperty.Value(childComplexity), true
+
 	case "User.id":
 		if e.complexity.User.ID == nil {
 			break
@@ -2823,6 +2850,7 @@ input SanitizedSlackChannelInput {
     webhook_channel_name: String
     webhook_channel_id: String
 }
+
 type ErrorAlert {
     id: ID!
     ChannelsToNotify: [SanitizedSlackChannel]!
@@ -2830,12 +2858,25 @@ type ErrorAlert {
     CountThreshold: Int!
     ThresholdWindow: Int
 }
+
+type TrackProperty {
+    id: ID!
+    name: String!
+    value: String!
+}
+
+input TrackPropertyInput {
+    id: ID!
+    name: String!
+    value: String!
+}
+
 type SessionAlert {
     id: ID!
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
-    TrackProperties: [UserProperty]!
+    TrackProperties: [TrackProperty]!
 }
 
 type Query {
@@ -3017,7 +3058,7 @@ type Mutation {
         session_alert_id: ID!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
-        track_properties: [UserPropertyInput]!
+        track_properties: [TrackPropertyInput]!
     ): SessionAlert
 }
 `, BuiltIn: false},
@@ -3859,10 +3900,10 @@ func (ec *executionContext) field_Mutation_updateTrackPropertiesAlert_args(ctx c
 		}
 	}
 	args["environments"] = arg3
-	var arg4 []*model.UserPropertyInput
+	var arg4 []*model.TrackPropertyInput
 	if tmp, ok := rawArgs["track_properties"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("track_properties"))
-		arg4, err = ec.unmarshalNUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, tmp)
+		arg4, err = ec.unmarshalNTrackPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTrackPropertyInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -8251,7 +8292,7 @@ func (ec *executionContext) _Mutation_updateTrackPropertiesAlert(ctx context.Con
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTrackPropertiesAlert(rctx, args["organization_id"].(int), args["session_alert_id"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["track_properties"].([]*model.UserPropertyInput))
+		return ec.resolvers.Mutation().UpdateTrackPropertiesAlert(rctx, args["organization_id"].(int), args["session_alert_id"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string), args["track_properties"].([]*model.TrackPropertyInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12203,9 +12244,9 @@ func (ec *executionContext) _SessionAlert_TrackProperties(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model1.UserProperty)
+	res := resTmp.([]*model1.TrackProperty)
 	fc.Result = res
-	return ec.marshalNUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, field.Selections, res)
+	return ec.marshalNTrackProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTrackProperty(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionComment_id(ctx context.Context, field graphql.CollectedField, obj *model1.SessionComment) (ret graphql.Marshaler) {
@@ -12696,6 +12737,111 @@ func (ec *executionContext) _TopUsersPayload_active_time_percentage(ctx context.
 	res := resTmp.(float64)
 	fc.Result = res
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TrackProperty_id(ctx context.Context, field graphql.CollectedField, obj *model1.TrackProperty) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TrackProperty",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TrackProperty_name(ctx context.Context, field graphql.CollectedField, obj *model1.TrackProperty) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TrackProperty",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TrackProperty_value(ctx context.Context, field graphql.CollectedField, obj *model1.TrackProperty) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "TrackProperty",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Value, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *model1.User) (ret graphql.Marshaler) {
@@ -14220,6 +14366,42 @@ func (ec *executionContext) unmarshalInputSearchParamsInput(ctx context.Context,
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("first_time"))
 			it.FirstTime, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputTrackPropertyInput(ctx context.Context, obj interface{}) (model.TrackPropertyInput, error) {
+	var it model.TrackPropertyInput
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "value":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("value"))
+			it.Value, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16305,6 +16487,43 @@ func (ec *executionContext) _TopUsersPayload(ctx context.Context, sel ast.Select
 	return out
 }
 
+var trackPropertyImplementors = []string{"TrackProperty"}
+
+func (ec *executionContext) _TrackProperty(ctx context.Context, sel ast.SelectionSet, obj *model1.TrackProperty) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, trackPropertyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TrackProperty")
+		case "id":
+			out.Values[i] = ec._TrackProperty_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._TrackProperty_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "value":
+			out.Values[i] = ec._TrackProperty_value(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var userImplementors = []string{"User"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *model1.User) graphql.Marshaler {
@@ -17385,7 +17604,7 @@ func (ec *executionContext) marshalNTopUsersPayload2ᚕᚖgithubᚗcomᚋhighlig
 	return ret
 }
 
-func (ec *executionContext) marshalNUserProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx context.Context, sel ast.SelectionSet, v []*model1.UserProperty) graphql.Marshaler {
+func (ec *executionContext) marshalNTrackProperty2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTrackProperty(ctx context.Context, sel ast.SelectionSet, v []*model1.TrackProperty) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -17409,7 +17628,7 @@ func (ec *executionContext) marshalNUserProperty2ᚕᚖgithubᚗcomᚋhighlight�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOUserProperty2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐUserProperty(ctx, sel, v[i])
+			ret[i] = ec.marshalOTrackProperty2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTrackProperty(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -17422,7 +17641,7 @@ func (ec *executionContext) marshalNUserProperty2ᚕᚖgithubᚗcomᚋhighlight�
 	return ret
 }
 
-func (ec *executionContext) unmarshalNUserPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx context.Context, v interface{}) ([]*model.UserPropertyInput, error) {
+func (ec *executionContext) unmarshalNTrackPropertyInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTrackPropertyInput(ctx context.Context, v interface{}) ([]*model.TrackPropertyInput, error) {
 	var vSlice []interface{}
 	if v != nil {
 		if tmp1, ok := v.([]interface{}); ok {
@@ -17432,10 +17651,10 @@ func (ec *executionContext) unmarshalNUserPropertyInput2ᚕᚖgithubᚗcomᚋhig
 		}
 	}
 	var err error
-	res := make([]*model.UserPropertyInput, len(vSlice))
+	res := make([]*model.TrackPropertyInput, len(vSlice))
 	for i := range vSlice {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalOUserPropertyInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserPropertyInput(ctx, vSlice[i])
+		res[i], err = ec.unmarshalOTrackPropertyInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTrackPropertyInput(ctx, vSlice[i])
 		if err != nil {
 			return nil, err
 		}
@@ -18406,6 +18625,21 @@ func (ec *executionContext) marshalOTopUsersPayload2ᚖgithubᚗcomᚋhighlight�
 		return graphql.Null
 	}
 	return ec._TopUsersPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOTrackProperty2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐTrackProperty(ctx context.Context, sel ast.SelectionSet, v *model1.TrackProperty) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TrackProperty(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOTrackPropertyInput2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐTrackPropertyInput(ctx context.Context, v interface{}) (*model.TrackPropertyInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputTrackPropertyInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOUserFingerprintCount2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐUserFingerprintCount(ctx context.Context, sel ast.SelectionSet, v *model.UserFingerprintCount) graphql.Marshaler {

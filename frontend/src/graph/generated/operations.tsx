@@ -381,8 +381,8 @@ export type UpdateTrackPropertiesAlertMutationVariables = Types.Exact<{
         | Array<Types.Maybe<Types.Scalars['String']>>
         | Types.Maybe<Types.Scalars['String']>;
     track_properties:
-        | Array<Types.Maybe<Types.UserPropertyInput>>
-        | Types.Maybe<Types.UserPropertyInput>;
+        | Array<Types.Maybe<Types.TrackPropertyInput>>
+        | Types.Maybe<Types.TrackPropertyInput>;
 }>;
 
 export type UpdateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
@@ -1342,9 +1342,9 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
                 >;
                 TrackProperties: Array<
                     Types.Maybe<
-                        { __typename?: 'UserProperty' } & Pick<
-                            Types.UserProperty,
-                            'name' | 'value'
+                        { __typename?: 'TrackProperty' } & Pick<
+                            Types.TrackProperty,
+                            'id' | 'name' | 'value'
                         >
                     >
                 >;

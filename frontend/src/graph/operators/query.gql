@@ -603,6 +603,7 @@ query GetAlertsPagePayload($organization_id: ID!) {
         ExcludedEnvironments
         CountThreshold
         TrackProperties {
+            id
             name
             value
         }

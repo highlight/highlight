@@ -1289,7 +1289,7 @@ export const UpdateTrackPropertiesAlertDocument = gql`
         $session_alert_id: ID!
         $slack_channels: [SanitizedSlackChannelInput]!
         $environments: [String]!
-        $track_properties: [UserPropertyInput]!
+        $track_properties: [TrackPropertyInput]!
     ) {
         updateTrackPropertiesAlert(
             organization_id: $organization_id
@@ -3901,6 +3901,7 @@ export const GetAlertsPagePayloadDocument = gql`
             ExcludedEnvironments
             CountThreshold
             TrackProperties {
+                id
                 name
                 value
             }

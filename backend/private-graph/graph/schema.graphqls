@@ -325,6 +325,7 @@ input SanitizedSlackChannelInput {
     webhook_channel_name: String
     webhook_channel_id: String
 }
+
 type ErrorAlert {
     id: ID!
     ChannelsToNotify: [SanitizedSlackChannel]!
@@ -332,12 +333,25 @@ type ErrorAlert {
     CountThreshold: Int!
     ThresholdWindow: Int
 }
+
+type TrackProperty {
+    id: ID!
+    name: String!
+    value: String!
+}
+
+input TrackPropertyInput {
+    id: ID!
+    name: String!
+    value: String!
+}
+
 type SessionAlert {
     id: ID!
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
-    TrackProperties: [UserProperty]!
+    TrackProperties: [TrackProperty]!
 }
 
 type Query {
@@ -519,6 +533,6 @@ type Mutation {
         session_alert_id: ID!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
-        track_properties: [UserPropertyInput]!
+        track_properties: [TrackPropertyInput]!
     ): SessionAlert
 }

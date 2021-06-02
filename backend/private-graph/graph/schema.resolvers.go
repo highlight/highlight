@@ -814,7 +814,7 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, organizationI
 	return alert, nil
 }
 
-func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.UserPropertyInput) (*model.SessionAlert, error) {
+func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.TrackPropertyInput) (*model.SessionAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -1872,7 +1872,7 @@ func (r *sessionAlertResolver) ExcludedEnvironments(ctx context.Context, obj *mo
 	return obj.GetExcludedEnvironments()
 }
 
-func (r *sessionAlertResolver) TrackProperties(ctx context.Context, obj *model.SessionAlert) ([]*model.UserProperty, error) {
+func (r *sessionAlertResolver) TrackProperties(ctx context.Context, obj *model.SessionAlert) ([]*model.TrackProperty, error) {
 	return obj.GetTrackProperties()
 }
 

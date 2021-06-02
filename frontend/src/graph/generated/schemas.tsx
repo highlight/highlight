@@ -379,13 +379,26 @@ export type ErrorAlert = {
     ThresholdWindow?: Maybe<Scalars['Int']>;
 };
 
+export type TrackProperty = {
+    __typename?: 'TrackProperty';
+    id: Scalars['ID'];
+    name: Scalars['String'];
+    value: Scalars['String'];
+};
+
+export type TrackPropertyInput = {
+    id: Scalars['ID'];
+    name: Scalars['String'];
+    value: Scalars['String'];
+};
+
 export type SessionAlert = {
     __typename?: 'SessionAlert';
     id: Scalars['ID'];
     ChannelsToNotify: Array<Maybe<SanitizedSlackChannel>>;
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int'];
-    TrackProperties: Array<Maybe<UserProperty>>;
+    TrackProperties: Array<Maybe<TrackProperty>>;
 };
 
 export type Query = {
@@ -774,5 +787,5 @@ export type MutationUpdateTrackPropertiesAlertArgs = {
     session_alert_id: Scalars['ID'];
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
-    track_properties: Array<Maybe<UserPropertyInput>>;
+    track_properties: Array<Maybe<TrackPropertyInput>>;
 };
