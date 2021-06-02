@@ -1364,7 +1364,6 @@ export const GetSessionDocument = gql`
                 name
                 value
                 type
-                id
             }
             object_storage_enabled
             payload_size

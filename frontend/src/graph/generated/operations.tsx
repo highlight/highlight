@@ -420,7 +420,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
                         Types.Maybe<
                             { __typename?: 'Field' } & Pick<
                                 Types.Field,
-                                'name' | 'value' | 'type' | 'id'
+                                'name' | 'value' | 'type'
                             >
                         >
                     >

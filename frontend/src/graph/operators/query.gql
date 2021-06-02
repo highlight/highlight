@@ -27,7 +27,6 @@ query GetSession($id: ID!) {
             name
             value
             type
-            id
         }
         object_storage_enabled
         payload_size
