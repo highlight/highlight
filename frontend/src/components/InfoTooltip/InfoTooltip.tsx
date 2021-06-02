@@ -5,7 +5,10 @@ import React from 'react';
 import SvgInformationIcon from '../../static/InformationIcon';
 import styles from './InfoTooltip.module.scss';
 
-type Props = Pick<TooltipPropsWithTitle, 'title' | 'placement' | 'className'>;
+type Props = Pick<
+    TooltipPropsWithTitle,
+    'title' | 'placement' | 'className' | 'align'
+>;
 
 const InfoTooltip = ({ ...props }: Props) => {
     return (
