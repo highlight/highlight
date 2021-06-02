@@ -80,7 +80,8 @@
         "lint": "prettier --check --write 'src/**/*.{ts,tsx,scss}' && yarn lint:es && stylelint \"**/*.scss\"",
         "lint:es": "eslint --fix \"src/**/*.{ts,tsx}\"",
         "lint:css": "stylelint \"**/*.scss\" --fix",
-        "analyze": "source-map-explorer 'build/static/js/*.js'"
+        "analyze": "source-map-explorer 'build/static/js/*.js'",
+        "svg": "svgr --typescript ./src/static --out-dir ./src/static --icon && yarn lint:es"
     },
     "eslintConfig": {
         "extends": "react-app"
@@ -103,6 +104,7 @@
         "@graphql-codegen/typescript": "^1.20.2",
         "@graphql-codegen/typescript-operations": "^1.17.14",
         "@graphql-codegen/typescript-react-apollo": "^2.2.1",
+        "@svgr/cli": "^5.5.0",
         "@types/randomcolor": "^0.5.5",
         "@types/react-highlight-words": "^0.16.1",
         "@types/validator": "^13.1.3",
