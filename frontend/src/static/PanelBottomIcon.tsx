@@ -28,7 +28,7 @@ function SvgPanelBottomIcon(props: React.SVGProps<SVGSVGElement>) {
                     stroke="gray"
                 />
             </mask>
-            <g mask="url(#panel-bottom-icon_svg__a)" stroke="currentColor">
+            <g mask="url(#panel-bottom-icon_svg__a)" stroke="#111">
                 <rect
                     x={1}
                     y={1.5}
@@ -38,7 +38,7 @@ function SvgPanelBottomIcon(props: React.SVGProps<SVGSVGElement>) {
                     fill="#fff"
                     strokeWidth={2}
                 />
-                <path fill="currentColor" d="M.5 10.778h15V16H.5z" />
+                <path fill="#111" d="M.5 10.778h15V16H.5z" />
             </g>
         </svg>
     );

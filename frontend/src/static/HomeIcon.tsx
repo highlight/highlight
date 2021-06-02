@@ -6,7 +6,7 @@ function SvgHomeIcon(props: React.SVGProps<SVGSVGElement>) {
             width="1em"
             height="1em"
             fill="none"
-            viewBox="4 4 16 16"
+            viewBox="0 0 24 24"
             {...props}
         >
             <path

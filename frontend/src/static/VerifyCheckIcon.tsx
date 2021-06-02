@@ -6,7 +6,7 @@ function SvgVerifyCheckIcon(props: React.SVGProps<SVGSVGElement>) {
             width="1em"
             height="1em"
             viewBox="0 0 12 9"
-            fill="currentColor"
+            fill="current"
             xmlns="http://www.w3.org/2000/svg"
             {...props}
         >
