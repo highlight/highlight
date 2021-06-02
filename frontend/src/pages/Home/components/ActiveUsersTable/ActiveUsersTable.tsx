@@ -59,7 +59,7 @@ const ActiveUsersTable = () => {
                 data={tableData}
                 onClickHandler={(record) => {
                     history.push(
-                        `/${organization_id}/sessions?${SessionPageSearchParams.identifier}=${record.identifier}&${SessionPageSearchParams.id}=${record.id}`
+                        `/${organization_id}/sessions?${SessionPageSearchParams.identifierAndId}=${record.identifier}:${record.id}`
                     );
                 }}
                 noDataMessage={

@@ -25,15 +25,15 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { searchParams, setSearchParams } = useSearchContext();
 
     useWatchSessionPageSearchParams(
-        SessionPageSearchParams.id,
-        (id) => ({
+        SessionPageSearchParams.identifierAndId,
+        (identifierAndId) => ({
             // We are explicitly clearing any existing search params so the only applied search param is the identifier.
             ...EmptySessionsSearchParams,
             user_properties: [
                 {
                     name: 'identifier',
-                    value: '',
-                    id,
+                    value: identifierAndId.split(':')[0],
+                    id: identifierAndId.split(':')[1],
                 },
             ],
         }),
