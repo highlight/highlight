@@ -15,7 +15,7 @@ function SvgChevronDownIcon(props: React.SVGProps<SVGSVGElement>) {
             </g>
             <defs>
                 <clipPath id="chevron-down-icon_svg__clip0">
-                    <path fill="currentColor" d="M0 0h18v18H0z" />
+                    <path fill="curent" d="M0 0h18v18H0z" />
                 </clipPath>
             </defs>
         </svg>

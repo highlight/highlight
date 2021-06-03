@@ -224,6 +224,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		errorToInsert := &model.ErrorObject{
 			OrganizationID: organizationID,
 			SessionID:      sessionID,
+			Environment:    sessionObj.Environment,
 			Event:          v.Event,
 			Type:           v.Type,
 			URL:            v.URL,

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
+import InfoTooltip from '../../../../../components/InfoTooltip/InfoTooltip';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import styles from './KeyPerformanceIndicator.module.scss';
 
@@ -20,19 +21,16 @@ const KeyPerformanceIndicator = ({
     const body = (
         <>
             <h2 className={styles.value}>{value}</h2>
-            <p className={styles.label}>{title}</p>
+            <span className={styles.labelContainer}>
+                <p className={styles.label}>{title}</p>
+                <InfoTooltip title={tooltipText} className={styles.tooltip} />
+            </span>
         </>
     );
     return (
-        <Tooltip
-            title={tooltipText}
-            placement="topLeft"
-            align={{ offset: [-8, 0] }}
-        >
-            <div className={styles.keyPerformanceIndicator}>
-                {route ? <Link to={route}>{body}</Link> : body}
-            </div>
-        </Tooltip>
+        <div className={styles.keyPerformanceIndicator}>
+            {route ? <Link to={route}>{body}</Link> : body}
+        </div>
     );
 };
 

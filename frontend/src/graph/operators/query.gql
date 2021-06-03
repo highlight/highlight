@@ -11,6 +11,7 @@ query GetSession($id: ID!) {
         os_version
         browser_name
         browser_version
+        environment
         city
         state
         postal
@@ -182,6 +183,7 @@ query GetSessions(
                 name
                 value
                 type
+                id
             }
             first_time
         }
@@ -245,6 +247,7 @@ query GetErrorGroup($id: ID!) {
         metadata_log {
             error_id
             session_id
+            environment
             timestamp
             os
             browser
@@ -353,6 +356,7 @@ query GetTrackSuggestion($organization_id: ID!, $query: String!) {
         query: $query
         type: "track"
     ) {
+        id
         name
         value
     }
@@ -364,6 +368,7 @@ query GetUserSuggestion($organization_id: ID!, $query: String!) {
         query: $query
         type: "user"
     ) {
+        id
         name
         value
     }
@@ -493,6 +498,7 @@ query GetTopUsers($organization_id: ID!, $lookBackPeriod: Int!) {
         identifier
         total_active_time
         active_time_percentage
+        id
     }
 }
 

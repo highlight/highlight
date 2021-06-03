@@ -141,7 +141,7 @@ export class Highlight {
             headers: {},
         });
         this.graphqlSDK = getSdk(client);
-        this.environment = 'production';
+        this.environment = options.environment || 'production';
 
         if (options.environment) {
             if (SUPPORTED_ENVIRONMENT_NAMES.includes(options.environment)) {

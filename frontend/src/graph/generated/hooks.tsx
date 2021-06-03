@@ -1417,6 +1417,7 @@ export const GetSessionDocument = gql`
             os_version
             browser_name
             browser_version
+            environment
             city
             state
             postal
@@ -1977,6 +1978,7 @@ export const GetSessionsDocument = gql`
                     name
                     value
                     type
+                    id
                 }
                 first_time
             }
@@ -2288,6 +2290,7 @@ export const GetErrorGroupDocument = gql`
             metadata_log {
                 error_id
                 session_id
+                environment
                 timestamp
                 os
                 browser
@@ -2736,6 +2739,7 @@ export const GetTrackSuggestionDocument = gql`
             query: $query
             type: "track"
         ) {
+            id
             name
             value
         }
@@ -2798,6 +2802,7 @@ export const GetUserSuggestionDocument = gql`
             query: $query
             type: "user"
         ) {
+            id
             name
             value
         }
@@ -3383,6 +3388,7 @@ export const GetTopUsersDocument = gql`
             identifier
             total_active_time
             active_time_percentage
+            id
         }
     }
 `;

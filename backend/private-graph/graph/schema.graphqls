@@ -5,6 +5,7 @@ scalar Time
 scalar Int64
 
 type Field {
+    id: ID!
     name: String!
     value: String!
     type: String
@@ -21,6 +22,7 @@ type Session {
     city: String!
     state: String!
     postal: String!
+    environment: String
     language: String!
     identifier: String!
     created_at: Time
@@ -123,6 +125,7 @@ type ErrorGroup {
 type ErrorMetadata {
     error_id: Int!
     session_id: Int!
+    environment: String
     timestamp: Time!
     os: String
     browser: String
@@ -143,6 +146,7 @@ type ReferrerTablePayload {
 }
 
 type TopUsersPayload {
+    id: ID!
     identifier: String!
     total_active_time: Int!
     active_time_percentage: Float!
@@ -233,11 +237,13 @@ input LengthRangeInput {
 }
 
 type UserProperty {
+    id: ID!
     name: String!
     value: String!
 }
 
 input UserPropertyInput {
+    id: ID!
     name: String!
     value: String!
 }
