@@ -337,7 +337,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 						if len(matchedFields) < 1 {
 							return fmt.Errorf("matched fields is empty in user properties alert")
 						}
-						err = w.SendSlackTrackPropertiesMessage(organizationID, s.ID, s.Identifier, channelsToNotify, matchedFields)
+						err = w.SendSlackTrackPropertiesMessage(org, s.ID, channelsToNotify, matchedFields)
 						if err != nil {
 							return e.Wrapf(err, "[org_id: %d] error sending user properties alert slack message", organizationID)
 						}
