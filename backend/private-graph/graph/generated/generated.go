@@ -13349,9 +13349,9 @@ func (ec *executionContext) _UserProperty_id(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNID2int(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserProperty_name(ctx context.Context, field graphql.CollectedField, obj *model1.UserProperty) (ret graphql.Marshaler) {

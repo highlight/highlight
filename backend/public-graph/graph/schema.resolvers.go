@@ -278,13 +278,9 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 						}
 					}
 					if errorAlert.CountThreshold <= 1 || numErrors >= int64(errorAlert.CountThreshold) {
-						if channelsToNotify, err := errorAlert.GetChannelsToNotify(); err != nil {
-							log.Error(e.Wrap(err, "error getting channels to notify from ErrorAlert"))
-						} else {
-							err = r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL, channelsToNotify)
-							if err != nil {
-								log.Error(e.Wrap(err, "error sending slack error message"))
-							}
+						err = errorAlert.SendSlackAlert(r.DB, sessionID, sessionObj.Identifier, group, &errorToInsert.URL, nil, nil)
+						if err != nil {
+							log.Error(e.Wrap(err, "error sending slack error message"))
 						}
 					}
 				}
