@@ -482,9 +482,14 @@ func (w *Worker) SendSlackTrackPropertiesMessage(orgID int, sessionID int, userI
 	}
 	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", orgID, sessionID)
 
+	var formattedFields []string
+	for _, addr := range matchedFields {
+		formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
+	}
+
 	var messageBlock []*slack.TextBlockObject
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
-	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", matchedFields), false, false))
+	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", formattedFields), false, false))
 
 	for _, channel := range channels {
 		if channel.WebhookChannel != nil {
