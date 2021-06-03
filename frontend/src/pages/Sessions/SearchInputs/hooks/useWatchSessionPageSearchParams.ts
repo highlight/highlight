@@ -17,7 +17,8 @@ import {
 const useWatchSessionPageSearchParams = (
     searchParam: SessionPageSearchParams,
     setSearchParamsCallback: (value: any) => SearchParams,
-    getDisplayText: (value: any) => string
+    getDisplayText: (value: any) => string,
+    setSearchParamsCallbackAsync?: (value: any) => Promise<SearchParams>
 ) => {
     const history = useHistory();
     const { setSearchParams } = useSearchContext();
@@ -27,17 +28,29 @@ const useWatchSessionPageSearchParams = (
     });
 
     useEffect(() => {
-        const valueFromSearchParams = new URLSearchParams(location.search).get(
-            searchParam
-        );
+        const worker = async () => {
+            const valueFromSearchParams = new URLSearchParams(
+                location.search
+            ).get(searchParam);
 
-        if (valueFromSearchParams && !handled) {
-            message.success(getDisplayText(valueFromSearchParams));
-            setSearchParams(() =>
-                setSearchParamsCallback(valueFromSearchParams)
-            );
-            setHandled(true);
-        }
+            if (valueFromSearchParams && !handled) {
+                message.success(getDisplayText(valueFromSearchParams));
+
+                if (setSearchParamsCallbackAsync) {
+                    const searchParams = await setSearchParamsCallbackAsync(
+                        valueFromSearchParams
+                    );
+                    setSearchParams(searchParams);
+                } else {
+                    setSearchParams(() =>
+                        setSearchParamsCallback(valueFromSearchParams)
+                    );
+                }
+                setHandled(true);
+            }
+        };
+
+        worker();
     }, [
         getDisplayText,
         handled,
@@ -45,6 +58,7 @@ const useWatchSessionPageSearchParams = (
         searchParam,
         setSearchParams,
         setSearchParamsCallback,
+        setSearchParamsCallbackAsync,
     ]);
 };
 
