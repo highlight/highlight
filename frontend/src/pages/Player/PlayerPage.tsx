@@ -45,8 +45,9 @@ import { NewCommentEntry } from './Toolbar/NewCommentEntry/NewCommentEntry';
 import { Toolbar } from './Toolbar/Toolbar';
 
 const Player = () => {
-    const { session_id } = useParams<{
+    const { session_id, organization_id } = useParams<{
         session_id: string;
+        organization_id: string;
     }>();
     const [resizeListener, sizes] = useResizeAware();
     const player = usePlayer();
@@ -162,7 +163,7 @@ const Player = () => {
                             session quota. To view it, upgrade your plan.
                         </p>
                         <ButtonLink
-                            to="billing"
+                            to={`/${organization_id}/billing`}
                             trackingId="PlayerPageUpgradePlan"
                             className={styles.center}
                         >

@@ -37,7 +37,7 @@ const LimitedSessionCard = () => {
             </p>
             <ButtonLink
                 className={styles.center}
-                to="billing"
+                to={`/${organization_id}/billing`}
                 trackingId="LimitedSessionsCardUpgradePlan"
             >
                 Upgrade Plan
