@@ -822,12 +822,12 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 
 	alert := &model.SessionAlert{}
 	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type=?", model.TRACK_PROPERTIES_ALERT_TYPE).Find(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session alert")
+		return nil, e.Wrap(err, "error querying track properties alert")
 	}
 
 	envBytes, err := json.Marshal(environments)
 	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments")
+		return nil, e.Wrap(err, "error parsing environments for track properties alert")
 	}
 	envString := string(envBytes)
 
@@ -839,13 +839,13 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 
 	channelsBytes, err := json.Marshal(sanitizedChannels)
 	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels")
+		return nil, e.Wrap(err, "error parsing channels for track properties alert")
 	}
 	channelsString := string(channelsBytes)
 
 	trackPropertiesBytes, err := json.Marshal(trackProperties)
 	if err != nil {
-		return nil, e.Wrap(err, "error parsing track properties")
+		return nil, e.Wrap(err, "error parsing track properties for track properties alert")
 	}
 	trackPropertiesString := string(trackPropertiesBytes)
 
@@ -860,7 +860,7 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 			ID: sessionAlertID,
 		},
 	}).Updates(alert).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org fields")
+		return nil, e.Wrap(err, "error updating org fields for track properties alert")
 	}
 	return alert, nil
 }
@@ -1697,11 +1697,11 @@ func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*mo
 func (r *queryResolver) NewUserAlert(ctx context.Context, organizationID int) (*model.SessionAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
-		return nil, e.Wrap(err, "error querying organization")
+		return nil, e.Wrap(err, "error querying organization on new user alert")
 	}
 	var alert model.SessionAlert
 	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.NEW_USER_ALERT_TYPE).First(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session alert")
+		return nil, e.Wrap(err, "error querying  new user alert")
 	}
 	return &alert, nil
 }
@@ -1713,7 +1713,7 @@ func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, organizationID
 	}
 	var alert model.SessionAlert
 	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.TRACK_PROPERTIES_ALERT_TYPE).First(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying session alert")
+		return nil, e.Wrap(err, "error querying track properties alert")
 	}
 	return &alert, nil
 }

@@ -144,7 +144,7 @@ func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, e
 
 func (obj *SessionAlert) GetTrackProperties() ([]*TrackProperty, error) {
 	if obj == nil {
-		return nil, e.New("empty session alert object for channels to notify")
+		return nil, e.New("empty session alert object for track properties")
 	}
 	propertyString := "[]"
 	if obj.TrackProperties != nil {
@@ -152,7 +152,7 @@ func (obj *SessionAlert) GetTrackProperties() ([]*TrackProperty, error) {
 	}
 	var sanitizedProperties []*TrackProperty
 	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
-		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
+		return nil, e.Wrap(err, "error unmarshalling sanitized track properties")
 	}
 	return sanitizedProperties, nil
 }

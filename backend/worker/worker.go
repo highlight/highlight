@@ -205,11 +205,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if s.FirstTime != nil && *s.FirstTime {
 			var sessionAlert model.SessionAlert
 			if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.NEW_USER_ALERT_TYPE).First(&sessionAlert).Error; err != nil {
-				return e.Wrapf(err, "[org_id: %d] error fetching SessionAlert object", organizationID)
+				return e.Wrapf(err, "[org_id: %d] error fetching new user alert", organizationID)
 			} else {
 				excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 				if err != nil {
-					return e.Wrapf(err, "[org_id: %d] error getting excluded environments from SessionAlert", organizationID)
+					return e.Wrapf(err, "[org_id: %d] error getting excluded environments from new user alert", organizationID)
 				} else {
 					isExcludedEnvironment := false
 					for _, env := range excludedEnvironments {
@@ -220,15 +220,15 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 					}
 					if !isExcludedEnvironment {
 						if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
-							return e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID)
+							return e.Wrapf(err, "[org_id: %d] error getting channels to notify from new user alert", organizationID)
 						} else {
 							userProperties, err := s.GetUserProperties()
 							if err != nil {
-								return e.Wrapf(err, "[org_id: %d] error getting user properties from session object", s.OrganizationID)
+								return e.Wrapf(err, "[org_id: %d] error getting user properties from new user alert", s.OrganizationID)
 							}
 							err = w.SendSlackNewUserMessage(organizationID, s.ID, s.Identifier, channelsToNotify, userProperties)
 							if err != nil {
-								return e.Wrapf(err, "[org_id: %d] error sending slack session message", organizationID)
+								return e.Wrapf(err, "[org_id: %d] error sending slack message for new user alert", organizationID)
 							}
 						}
 					}
@@ -242,11 +242,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		// Sending Track Properties Alert
 		var sessionAlert model.SessionAlert
 		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.TRACK_PROPERTIES_ALERT_TYPE).First(&sessionAlert).Error; err != nil {
-			return e.Wrapf(err, "[org_id: %d] error fetching SessionAlert object", organizationID)
+			return e.Wrapf(err, "[org_id: %d] error fetching track properties alert", organizationID)
 		} else {
 			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 			if err != nil {
-				return e.Wrapf(err, "[org_id: %d] error getting excluded environments from SessionAlert", organizationID)
+				return e.Wrapf(err, "[org_id: %d] error getting excluded environments from track properties alert", organizationID)
 			} else {
 				isExcludedEnvironment := false
 				for _, env := range excludedEnvironments {
@@ -257,7 +257,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				}
 				if !isExcludedEnvironment {
 					if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
-						return e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID)
+						return e.Wrapf(err, "[org_id: %d] error getting channels to notify from track properties alert", organizationID)
 					} else {
 						trackProperties, err := sessionAlert.GetTrackProperties()
 						if err != nil {
@@ -280,11 +280,11 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 							return e.Wrap(err, "error querying matched fields by session_id")
 						}
 						if len(matchedFields) < 1 {
-							return fmt.Errorf("matched fields is empty in track properties slack alert")
+							return fmt.Errorf("matched fields is empty in track properties alert")
 						}
 						err = w.SendSlackTrackPropertiesMessage(organizationID, s.ID, s.Identifier, channelsToNotify, matchedFields)
 						if err != nil {
-							return e.Wrapf(err, "[org_id: %d] error sending slack session message", organizationID)
+							return e.Wrapf(err, "[org_id: %d] error sending track properties alert slack message", organizationID)
 						}
 					}
 				}
@@ -471,11 +471,11 @@ func (w *Worker) SendSlackTrackPropertiesMessage(orgID int, sessionID int, userI
 	organization := &model.Organization{}
 	res := w.Resolver.DB.Where("id = ?", orgID).First(&organization)
 	if err := res.Error; err != nil {
-		return e.Wrap(err, "error messaging organization")
+		return e.Wrap(err, "error querying organization for track properties alert")
 	}
 	integratedSlackChannels, err := organization.IntegratedSlackChannels()
 	if err != nil {
-		return e.Wrap(err, "error getting slack webhook url for alert")
+		return e.Wrap(err, "error getting slack webhook url for track properties alert")
 	}
 	if len(integratedSlackChannels) <= 0 {
 		return nil
@@ -501,7 +501,7 @@ func (w *Worker) SendSlackTrackPropertiesMessage(orgID int, sessionID int, userI
 				}
 			}
 			if slackWebhookURL == "" {
-				log.Errorf("[org_id: %d] requested channel has no matching slackWebhookURL: channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
+				log.Errorf("[org_id: %d] requested channel for track properties alert has no matching slackWebhookURL: channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
 				continue
 			}
 
