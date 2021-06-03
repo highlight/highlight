@@ -19,6 +19,8 @@ import (
 
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 var (
@@ -84,12 +86,52 @@ type Organization struct {
 	ErrorAlert *string
 }
 
-type ErrorAlert struct {
-	Model
+type Alert struct {
 	OrganizationID       int
 	ExcludedEnvironments *string
 	CountThreshold       int
+	ThresholdWindow      *int
 	ChannelsToNotify     *string
+}
+
+type ErrorAlert struct {
+	Model
+	Alert
+}
+
+type SessionAlert struct {
+	Model
+	Alert
+}
+
+func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for excluded environments")
+	}
+	excludedString := "[]"
+	if obj.ExcludedEnvironments != nil {
+		excludedString = *obj.ExcludedEnvironments
+	}
+	var sanitizedExcludedEnvironments []*string
+	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized excluded environments")
+	}
+	return sanitizedExcludedEnvironments, nil
+}
+
+func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for channels to notify")
+	}
+	channelString := "[]"
+	if obj.ChannelsToNotify != nil {
+		channelString = *obj.ChannelsToNotify
+	}
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
+	}
+	return sanitizedChannels, nil
 }
 
 type SlackChannel struct {
@@ -201,11 +243,12 @@ type Session struct {
 	// Tells us if the session has been parsed by a worker.
 	Processed *bool `json:"processed"`
 	// The length of a session.
-	Length       int64    `json:"length"`
-	ActiveLength int64    `json:"active_length"`
-	Fields       []*Field `json:"fields" gorm:"many2many:session_fields;"`
-	Environment  string   `json:"environment"`
-	UserObject   JSONB    `json:"user_object" sql:"type:jsonb"`
+	Length         int64    `json:"length"`
+	ActiveLength   int64    `json:"active_length"`
+	Fields         []*Field `json:"fields" gorm:"many2many:session_fields;"`
+	Environment    string   `json:"environment"`
+	UserObject     JSONB    `json:"user_object" sql:"type:jsonb"`
+	UserProperties string   `json:"user_properties"`
 	// Whether this is the first session created by this user.
 	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
@@ -307,6 +350,7 @@ type LengthRange struct {
 }
 
 type UserProperty struct {
+	ID    int
 	Name  string
 	Value string
 }
@@ -359,6 +403,7 @@ type ErrorObject struct {
 	Trace          *string   `json:"trace"`
 	Timestamp      time.Time `json:"timestamp"`
 	Payload        *string   `json:"payload"`
+	Environment    string
 }
 
 type ErrorGroup struct {
@@ -439,6 +484,7 @@ func SetupDB() *gorm.DB {
 		&SessionComment{},
 		&ErrorComment{},
 		&ErrorAlert{},
+		&SessionAlert{},
 	); err != nil {
 		log.Fatalf("Error migrating db: %v", err)
 	}
@@ -496,4 +542,21 @@ func DecodeAndValidateParams(params []interface{}) ([]*Param, error) {
 		ps = append(ps, output)
 	}
 	return ps, nil
+}
+
+func (s *Session) SetUserProperties(userProperties map[string]string) error {
+	user, err := json.Marshal(userProperties)
+	if err != nil {
+		return e.Wrapf(err, "[org_id: %d] error marshalling user properties map into bytes", s.OrganizationID)
+	}
+	s.UserProperties = string(user)
+	return nil
+}
+
+func (s *Session) GetUserProperties() (map[string]string, error) {
+	var userProperties map[string]string
+	if err := json.Unmarshal([]byte(s.UserProperties), &userProperties); err != nil {
+		return nil, e.Wrapf(err, "[org_id: %d] error unmarshalling user properties map into bytes", s.OrganizationID)
+	}
+	return userProperties, nil
 }

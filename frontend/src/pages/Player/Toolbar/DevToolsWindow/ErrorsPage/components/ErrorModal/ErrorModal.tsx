@@ -52,6 +52,7 @@ const ErrorModal = ({ error }: Props) => {
                     )}
                     <div className={styles.actionsContainer}>
                         <Button
+                            trackingId="GoToErrorPageFromSessionErrorModal"
                             type="primary"
                             onClick={() => {
                                 history.push(

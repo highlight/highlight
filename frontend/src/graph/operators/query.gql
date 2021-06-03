@@ -11,6 +11,7 @@ query GetSession($id: ID!) {
         os_version
         browser_name
         browser_version
+        environment
         city
         state
         postal
@@ -122,7 +123,7 @@ query GetErrorComments($error_group_id: ID!) {
 
 query GetOnboardingSteps($organization_id: ID!, $admin_id: ID!) {
     organization(id: $organization_id) {
-        slack_webhook_channel
+        slack_channels
     }
     admins(organization_id: $organization_id) {
         id
@@ -183,6 +184,7 @@ query GetSessions(
                 name
                 value
                 type
+                id
             }
             first_time
         }
@@ -247,6 +249,7 @@ query GetErrorGroup($id: ID!) {
         metadata_log {
             error_id
             session_id
+            environment
             timestamp
             os
             browser
@@ -355,6 +358,7 @@ query GetTrackSuggestion($organization_id: ID!, $query: String!) {
         query: $query
         type: "track"
     ) {
+        id
         name
         value
     }
@@ -366,6 +370,7 @@ query GetUserSuggestion($organization_id: ID!, $query: String!) {
         query: $query
         type: "user"
     ) {
+        id
         name
         value
     }
@@ -495,6 +500,7 @@ query GetTopUsers($organization_id: ID!, $lookBackPeriod: Int!) {
         identifier
         total_active_time
         active_time_percentage
+        id
     }
 }
 
@@ -523,6 +529,17 @@ query GetDailyErrorsCount($organization_id: ID!, $date_range: DateRangeInput!) {
 
 query GetErrorAlerts($organization_id: ID!) {
     error_alerts(organization_id: $organization_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}
+
+query GetSessionAlerts($organization_id: ID!) {
+    session_alerts(organization_id: $organization_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -562,6 +579,16 @@ query GetAlertsPagePayload($organization_id: ID!) {
         }
         ExcludedEnvironments
         CountThreshold
+        ThresholdWindow
         id
+    }
+    session_alerts(organization_id: $organization_id) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
     }
 }

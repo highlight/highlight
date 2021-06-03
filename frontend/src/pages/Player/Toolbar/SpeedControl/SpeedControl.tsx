@@ -47,6 +47,7 @@ const SpeedControl = ({ disabled }: Props) => {
     return (
         <div className={styles.speedControlContainer}>
             <Button
+                trackingId="DecreasePlayerSpeed"
                 className={styles.speedButton}
                 onClick={() => {
                     onHandleSpeedChange('DECREMENT');
@@ -62,6 +63,7 @@ const SpeedControl = ({ disabled }: Props) => {
                 <span className={styles.speedText}>{speed.toFixed(1)}x</span>
             </Tooltip>
             <Button
+                trackingId="IncreasePlayerSpeed"
                 className={styles.speedButton}
                 onClick={() => {
                     onHandleSpeedChange('INCREMENT');

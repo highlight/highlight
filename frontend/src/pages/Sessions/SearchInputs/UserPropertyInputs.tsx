@@ -25,14 +25,15 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
     const { searchParams, setSearchParams } = useSearchContext();
 
     useWatchSessionPageSearchParams(
-        SessionPageSearchParams.identifier,
-        (value) => ({
+        SessionPageSearchParams.identifierAndId,
+        (identifierAndId) => ({
             // We are explicitly clearing any existing search params so the only applied search param is the identifier.
             ...EmptySessionsSearchParams,
             user_properties: [
                 {
                     name: 'identifier',
-                    value,
+                    value: identifierAndId.split(':')[0],
+                    id: identifierAndId.split(':')[1],
                 },
             ],
         }),
@@ -54,6 +55,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                     label: f?.name + ': ' + f?.value,
                     value: f?.value,
                     name: f?.name,
+                    id: f?.id,
                 };
             }
         );
@@ -86,7 +88,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                     const newOptions: Array<UserProperty> =
                         options?.map((o) => {
                             if (!o.name) o.name = 'contains';
-                            return { name: o.name, value: o.value };
+                            return { id: o.id, name: o.name, value: o.value };
                         }) ?? [];
                     if (include) {
                         setSearchParams((params: SearchParams) => {
@@ -108,6 +110,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                                   label: p.name + ': ' + p.value,
                                   value: p.value,
                                   name: p.name,
+                                  id: p.id,
                               };
                           })
                         : searchParams?.excluded_properties?.map((p) => {
@@ -115,6 +118,7 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
                                   label: p.name + ': ' + p.value,
                                   value: p.value,
                                   name: p.name,
+                                  id: p.id,
                               };
                           })
                 }
@@ -168,7 +172,7 @@ export const FirstTimeUsersSwitch = () => {
     useWatchSessionPageSearchParams(
         SessionPageSearchParams.firstTimeUsers,
         () => ({ ...EmptySessionsSearchParams, first_time: true }),
-        () => `Showing sessions for first time users`
+        () => `Showing sessions for new users`
     );
 
     return (
@@ -193,7 +197,7 @@ export const FirstTimeUsersSwitch = () => {
                                 : inputStyles.checkboxUnselected
                         }
                     >
-                        Only show first time users
+                        Only show new users
                     </span>
                 </Checkbox>
             </Tooltip>

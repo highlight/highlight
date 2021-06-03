@@ -14,9 +14,9 @@ import {
 import { ReactComponent as CheckIcon } from '../../static/verify-check-icon.svg';
 import Button from '../Button/Button/Button';
 import PillButton from '../Button/PillButton/PillButton';
+import InfoTooltip from '../InfoTooltip/InfoTooltip';
 import Popover from '../Popover/Popover';
 import Progress from '../Progress/Progress';
-import Tooltip from '../Tooltip/Tooltip';
 import styles from './OnboardingBubble.module.scss';
 
 interface OnboardingStep {
@@ -69,11 +69,11 @@ const OnboardingBubble = () => {
                 completed: data.isIntegrated || false,
             });
             STEPS.push({
-                displayName: 'Integrate with Slack',
+                displayName: 'Configure Alerts',
                 action: () => {
-                    history.push(`/${organization_id}/setup`);
+                    history.push(`/${organization_id}/alerts`);
                 },
-                completed: !!data.organization?.slack_webhook_channel,
+                completed: !!data.organization?.slack_channels,
             });
             STEPS.push({
                 displayName: 'Invite your team',
@@ -125,7 +125,7 @@ const OnboardingBubble = () => {
                     setHasFinishedOnboarding(true);
                 }
                 stopPolling();
-            } else {
+            } else if (stepsNotFinishedCount !== -1) {
                 startPolling(3000);
             }
         }
@@ -147,7 +147,7 @@ const OnboardingBubble = () => {
         return <Confetti recycle={false} />;
     }
 
-    if (loading) {
+    if (loading || stepsNotFinishedCount === -1) {
         return null;
     }
 
@@ -183,39 +183,41 @@ const OnboardingBubble = () => {
                         <ul className={styles.stepsContainer}>
                             {steps.map((step) => (
                                 <li key={step.displayName}>
-                                    <Tooltip
-                                        title={step.tooltip}
-                                        placement="right"
+                                    <Button
+                                        trackingId="OpenOnboardingBubble"
+                                        onClick={step.action}
+                                        type="text"
+                                        className={classNames(
+                                            step.completed
+                                                ? styles.stepCompleted
+                                                : styles.stepIncomplete
+                                        )}
                                     >
-                                        {/* TODO: Add box shadow on button */}
-                                        {/* Make it span the full width of the popover */}
-                                        <Button
-                                            onClick={step.action}
-                                            type="text"
+                                        <div
                                             className={classNames(
-                                                step.completed
-                                                    ? styles.stepCompleted
-                                                    : styles.stepIncomplete
+                                                styles.checkWrapper,
+                                                {
+                                                    [styles.checkWrapperCompleted]:
+                                                        step.completed,
+                                                }
                                             )}
                                         >
-                                            <div
+                                            <CheckIcon
                                                 className={classNames(
-                                                    styles.checkWrapper,
-                                                    {
-                                                        [styles.checkWrapperCompleted]:
-                                                            step.completed,
-                                                    }
+                                                    styles.checkIcon
                                                 )}
-                                            >
-                                                <CheckIcon
-                                                    className={classNames(
-                                                        styles.checkIcon
-                                                    )}
-                                                />
-                                            </div>
-                                            {step.displayName}
-                                        </Button>
-                                    </Tooltip>
+                                            />
+                                        </div>
+                                        {step.displayName}
+                                        {step.tooltip && (
+                                            <InfoTooltip
+                                                placement="topRight"
+                                                align={{ offset: [12, 0] }}
+                                                title={step.tooltip}
+                                                className={styles.tooltip}
+                                            />
+                                        )}
+                                    </Button>
                                 </li>
                             ))}
                         </ul>

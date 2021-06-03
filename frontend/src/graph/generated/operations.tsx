@@ -314,6 +314,7 @@ export type UpdateErrorAlertMutationVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     error_alert_id: Types.Scalars['ID'];
     count_threshold: Types.Scalars['Int'];
+    threshold_window: Types.Scalars['Int'];
     slack_channels:
         | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
         | Types.Maybe<Types.SanitizedSlackChannelInput>;
@@ -326,6 +327,36 @@ export type UpdateErrorAlertMutation = { __typename?: 'Mutation' } & {
     updateErrorAlert?: Types.Maybe<
         { __typename?: 'ErrorAlert' } & Pick<
             Types.ErrorAlert,
+            'ExcludedEnvironments' | 'CountThreshold' | 'ThresholdWindow'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+            }
+    >;
+};
+
+export type UpdateSessionAlertMutationVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    session_alert_id: Types.Scalars['ID'];
+    count_threshold: Types.Scalars['Int'];
+    slack_channels:
+        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
+        | Types.Maybe<Types.SanitizedSlackChannelInput>;
+    environments:
+        | Array<Types.Maybe<Types.Scalars['String']>>
+        | Types.Maybe<Types.Scalars['String']>;
+}>;
+
+export type UpdateSessionAlertMutation = { __typename?: 'Mutation' } & {
+    updateSessionAlert?: Types.Maybe<
+        { __typename?: 'SessionAlert' } & Pick<
+            Types.SessionAlert,
             'ExcludedEnvironments' | 'CountThreshold'
         > & {
                 ChannelsToNotify: Array<
@@ -369,6 +400,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'os_version'
             | 'browser_name'
             | 'browser_version'
+            | 'environment'
             | 'city'
             | 'state'
             | 'postal'
@@ -527,7 +559,7 @@ export type GetOnboardingStepsQuery = { __typename?: 'Query' } & Pick<
         organization?: Types.Maybe<
             { __typename?: 'Organization' } & Pick<
                 Types.Organization,
-                'slack_webhook_channel'
+                'slack_channels'
             >
         >;
         admins?: Types.Maybe<
@@ -592,7 +624,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                                 Types.Maybe<
                                     { __typename?: 'Field' } & Pick<
                                         Types.Field,
-                                        'name' | 'value' | 'type'
+                                        'name' | 'value' | 'type' | 'id'
                                     >
                                 >
                             >
@@ -691,6 +723,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                             Types.ErrorMetadata,
                             | 'error_id'
                             | 'session_id'
+                            | 'environment'
                             | 'timestamp'
                             | 'os'
                             | 'browser'
@@ -848,7 +881,10 @@ export type GetTrackSuggestionQuery = { __typename?: 'Query' } & {
     property_suggestion?: Types.Maybe<
         Array<
             Types.Maybe<
-                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
+                >
             >
         >
     >;
@@ -863,7 +899,10 @@ export type GetUserSuggestionQuery = { __typename?: 'Query' } & {
     property_suggestion?: Types.Maybe<
         Array<
             Types.Maybe<
-                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
+                >
             >
         >
     >;
@@ -1077,7 +1116,10 @@ export type GetTopUsersQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'TopUsersPayload' } & Pick<
                 Types.TopUsersPayload,
-                'identifier' | 'total_active_time' | 'active_time_percentage'
+                | 'identifier'
+                | 'total_active_time'
+                | 'active_time_percentage'
+                | 'id'
             >
         >
     >;
@@ -1125,6 +1167,32 @@ export type GetErrorAlertsQuery = { __typename?: 'Query' } & {
             Types.Maybe<
                 { __typename?: 'ErrorAlert' } & Pick<
                     Types.ErrorAlert,
+                    'ExcludedEnvironments' | 'CountThreshold'
+                > & {
+                        ChannelsToNotify: Array<
+                            Types.Maybe<
+                                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                    Types.SanitizedSlackChannel,
+                                    'webhook_channel' | 'webhook_channel_id'
+                                >
+                            >
+                        >;
+                    }
+            >
+        >
+    >;
+};
+
+export type GetSessionAlertsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+}>;
+
+export type GetSessionAlertsQuery = { __typename?: 'Query' } & {
+    session_alerts?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'SessionAlert' } & Pick<
+                    Types.SessionAlert,
                     'ExcludedEnvironments' | 'CountThreshold'
                 > & {
                         ChannelsToNotify: Array<
@@ -1200,7 +1268,29 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
             Types.Maybe<
                 { __typename?: 'ErrorAlert' } & Pick<
                     Types.ErrorAlert,
-                    'ExcludedEnvironments' | 'CountThreshold' | 'id'
+                    | 'ExcludedEnvironments'
+                    | 'CountThreshold'
+                    | 'ThresholdWindow'
+                    | 'id'
+                > & {
+                        ChannelsToNotify: Array<
+                            Types.Maybe<
+                                { __typename?: 'SanitizedSlackChannel' } & Pick<
+                                    Types.SanitizedSlackChannel,
+                                    'webhook_channel' | 'webhook_channel_id'
+                                >
+                            >
+                        >;
+                    }
+            >
+        >
+    >;
+    session_alerts?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'SessionAlert' } & Pick<
+                    Types.SessionAlert,
+                    'id' | 'ExcludedEnvironments' | 'CountThreshold'
                 > & {
                         ChannelsToNotify: Array<
                             Types.Maybe<

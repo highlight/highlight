@@ -1,18 +1,26 @@
 import { Divider, Form, message } from 'antd';
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import TextTransition from 'react-text-transition';
 
 import Button from '../../../components/Button/Button/Button';
 import Collapsible from '../../../components/Collapsible/Collapsible';
+import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import InputNumber from '../../../components/InputNumber/InputNumber';
 import Select from '../../../components/Select/Select';
-import { useUpdateErrorAlertMutation } from '../../../graph/generated/hooks';
-import { useSlack } from '../SlackIntegration/SlackIntegration';
+import {
+    useUpdateErrorAlertMutation,
+    useUpdateSessionAlertMutation,
+} from '../../../graph/generated/hooks';
+import { ALERT_TYPE } from '../Alerts';
+import { dedupeEnvironments } from '../utils/AlertsUtils';
 import styles from './AlertConfigurationCard.module.scss';
 
 interface AlertConfiguration {
     name: string;
     canControlThreshold: boolean;
+    type: ALERT_TYPE;
+    description?: string;
 }
 
 interface Props {
@@ -20,44 +28,71 @@ interface Props {
     configuration: AlertConfiguration;
     environmentOptions: any[];
     channelSuggestions: any[];
+    slackUrl: string;
 }
 
 export const AlertConfigurationCard = ({
     alert,
-    configuration: { name, canControlThreshold },
+    configuration: { name, canControlThreshold, type, description },
     environmentOptions,
     channelSuggestions,
+    slackUrl,
 }: Props) => {
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
-    const [threshold, setThreshold] = useState(alert.CountThreshold);
+    const [threshold, setThreshold] = useState(alert?.CountThreshold || 1);
+    /** lookbackPeriod units is minutes. */
+    const [lookbackPeriod, setLookbackPeriod] = useState(
+        getLookbackPeriodOption(alert?.ThresholdWindow).value
+    );
     const { organization_id } = useParams<{ organization_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
-    const { slackUrl } = useSlack('alerts', ['GetAlertsPagePayload']);
+    const [updateSessionAlert] = useUpdateSessionAlertMutation();
 
     const onSubmit = async () => {
         setLoading(true);
         try {
-            await updateErrorAlert({
-                variables: {
-                    organization_id,
-                    environments: form.getFieldValue('excludedEnvironments'),
-                    count_threshold: form.getFieldValue('threshold'),
-                    slack_channels: form
-                        .getFieldValue('channels')
-                        .map((webhook_channel_id: string) => ({
-                            webhook_channel_name: channelSuggestions.find(
-                                (suggestion) =>
-                                    suggestion.webhook_channel_id ===
-                                    webhook_channel_id
-                            ).webhook_channel,
-                            webhook_channel_id,
-                        })),
-                    error_alert_id: alert.id,
-                },
+            const requestVariables = {
+                organization_id,
+                environments: form.getFieldValue('excludedEnvironments'),
+                count_threshold: form.getFieldValue('threshold'),
+                slack_channels: form
+                    .getFieldValue('channels')
+                    .map((webhook_channel_id: string) => ({
+                        webhook_channel_name: channelSuggestions.find(
+                            (suggestion) =>
+                                suggestion.webhook_channel_id ===
+                                webhook_channel_id
+                        ).webhook_channel,
+                        webhook_channel_id,
+                    })),
+            };
+            const requestBody = {
                 refetchQueries: ['GetAlertsPagePayload'],
-            });
+            };
+
+            switch (type) {
+                case ALERT_TYPE.Error:
+                    await updateErrorAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            error_alert_id: alert.id,
+                            threshold_window: lookbackPeriod,
+                        },
+                    });
+                    break;
+                case ALERT_TYPE.FirstTimeUser:
+                    await updateSessionAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            session_alert_id: alert.id,
+                        },
+                    });
+                    break;
+            }
             message.success(`Updated ${name}!`);
             setFormTouched(false);
         } catch (e) {
@@ -77,26 +112,13 @@ export const AlertConfigurationCard = ({
     );
 
     const environments = [
-        {
-            displayValue: 'production',
-            value: 'production',
-            id: 'production',
-        },
-        {
-            displayValue: 'staging',
-            value: 'staging',
-            id: 'staging',
-        },
-        {
-            displayValue: 'development',
-            value: 'development',
-            id: 'development',
-        },
-        ...environmentOptions.map(({ name, value }) => ({
-            displayValue: name,
-            value: name,
-            id: value,
-        })),
+        ...dedupeEnvironments(environmentOptions).map(
+            (environmentSuggestion) => ({
+                displayValue: environmentSuggestion,
+                value: environmentSuggestion,
+                id: environmentSuggestion,
+            })
+        ),
     ];
 
     const onChannelsChange = (channels: string[]) => {
@@ -114,12 +136,28 @@ export const AlertConfigurationCard = ({
         setFormTouched(true);
     };
 
+    const onLookbackPeriodChange = (
+        _lookbackPeriod: any,
+        lookbackPeriodOption: any
+    ) => {
+        setLookbackPeriod(lookbackPeriodOption.value);
+        setFormTouched(true);
+    };
+
     if (!alert) {
         return null;
     }
 
     return (
-        <Collapsible title={name} className={styles.alertConfigurationCard}>
+        <Collapsible
+            title={
+                <span className={styles.title}>
+                    {name} {description && <InfoTooltip title={description} />}
+                </span>
+            }
+            id={name}
+            contentClassName={styles.alertConfigurationCard}
+        >
             <Form
                 onFinish={onSubmit}
                 form={form}
@@ -129,10 +167,11 @@ export const AlertConfigurationCard = ({
                         (channel: any) => channel.webhook_channel_id
                     ),
                     excludedEnvironments: alert.ExcludedEnvironments,
+                    lookbackPeriod: [lookbackPeriod],
                 }}
             >
                 <section>
-                    <h3>Channels to notify</h3>
+                    <h3>Channels to Notify</h3>
                     <p>
                         Pick Slack channels or people to message when an alert
                         is created.
@@ -148,6 +187,9 @@ export const AlertConfigurationCard = ({
                                 notFoundContent={
                                     <div>Slack is not configured yet.</div>
                                 }
+                                defaultValue={alert.ChannelsToNotify.map(
+                                    (channel: any) => channel.webhook_channel_id
+                                )}
                                 dropdownRender={(menu) => (
                                     <div>
                                         {menu}
@@ -156,7 +198,7 @@ export const AlertConfigurationCard = ({
                                             Can't find the channel or person
                                             here?{' '}
                                             <a href={slackUrl}>
-                                                Configure Highlight with Slack
+                                                Add a Slack Channel
                                             </a>
                                             .
                                         </div>
@@ -168,11 +210,20 @@ export const AlertConfigurationCard = ({
                 </section>
 
                 <section>
-                    <h3>Excluded environments</h3>
+                    <h3>Excluded Environments</h3>
                     <p>
                         Pick environments that should not create alerts. Some
                         teams don't want to be woken up at 2AM if an alert is
-                        created from localhost.
+                        created from localhost. Environments can be set by
+                        passing the environment name when you{' '}
+                        <a
+                            href="https://docs.highlight.run/reference#options"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            start Highlight in your app
+                        </a>
+                        .
                     </p>
                     <Form.Item name="excludedEnvironments">
                         <Select
@@ -186,23 +237,64 @@ export const AlertConfigurationCard = ({
                 </section>
 
                 {canControlThreshold && (
-                    <section>
-                        <h3>Threshold</h3>
-                        <p>
-                            Pick how often an alert should be created.{' '}
-                            {threshold === 0
-                                ? `Setting the threshold to 0 means no alerts will be created.`
-                                : `This means an alert will be created for every ${threshold} errors.`}
-                        </p>
-                        <Form.Item name="threshold">
-                            <InputNumber onChange={onThresholdChange} min={0} />
-                        </Form.Item>
-                    </section>
+                    <>
+                        <section>
+                            <h3>Threshold</h3>
+                            <p>
+                                {threshold <= 0 ? (
+                                    `Setting the threshold to ${threshold} means no alerts will be created.`
+                                ) : (
+                                    <span>
+                                        An alert will be created if{' '}
+                                        <b>
+                                            <TextTransition
+                                                text={`${threshold}`}
+                                                inline
+                                            />{' '}
+                                            {name.toLocaleLowerCase()}
+                                        </b>{' '}
+                                        happens in a{' '}
+                                        <b>
+                                            <TextTransition
+                                                inline
+                                                text={`${
+                                                    getLookbackPeriodOption(
+                                                        lookbackPeriod
+                                                    ).displayValue.slice(
+                                                        0,
+                                                        -1
+                                                    ) ||
+                                                    `${DEFAULT_LOOKBACK_PERIOD} minute`
+                                                }`}
+                                            />
+                                        </b>{' '}
+                                        window.
+                                    </span>
+                                )}
+                            </p>
+                            <div className={styles.frequencyContainer}>
+                                <Form.Item name="threshold">
+                                    <InputNumber
+                                        onChange={onThresholdChange}
+                                        min={0}
+                                    />
+                                </Form.Item>
+                                <Form.Item name="lookbackPeriod">
+                                    <Select
+                                        className={styles.lookbackPeriodSelect}
+                                        onChange={onLookbackPeriodChange}
+                                        options={LOOKBACK_PERIODS}
+                                    />
+                                </Form.Item>
+                            </div>
+                        </section>
+                    </>
                 )}
 
                 <Form.Item shouldUpdate>
                     {() => (
                         <Button
+                            trackingId="SaveAlertConfiguration"
                             type="primary"
                             className={styles.saveButton}
                             htmlType="submit"
@@ -216,4 +308,60 @@ export const AlertConfigurationCard = ({
             </Form>
         </Collapsible>
     );
+};
+
+const LOOKBACK_PERIODS = [
+    {
+        displayValue: '5 minutes',
+        value: '5',
+        id: '5m',
+    },
+    {
+        displayValue: '10 minutes',
+        value: '10',
+        id: '10m',
+    },
+    {
+        displayValue: '30 minutes',
+        value: '30',
+        id: '30m',
+    },
+    {
+        displayValue: '60 minutes',
+        value: '60',
+        id: '60m',
+    },
+    {
+        displayValue: '3 hours',
+        value: `${60 * 3}`,
+        id: '3h',
+    },
+    {
+        displayValue: '12 hours',
+        value: `${60 * 12}`,
+        id: '12h',
+    },
+    {
+        displayValue: '24 hours',
+        value: `${60 * 24}`,
+        id: '24h',
+    },
+];
+
+const DEFAULT_LOOKBACK_PERIOD = '30';
+
+const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
+    const option = LOOKBACK_PERIODS.find(
+        (option) => option.value === minutes?.toString()
+    );
+
+    if (!option) {
+        return {
+            displayValue: '30 minutes',
+            value: '30',
+            id: '30m',
+        };
+    }
+
+    return option;
 };

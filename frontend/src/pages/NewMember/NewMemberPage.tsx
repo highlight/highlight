@@ -38,6 +38,7 @@ const NewMemberPage = () => {
                 {adminData?.admin?.email}' ?
             </div>
             <Button
+                trackingId="NewMemberEnterWorkspace"
                 type="primary"
                 className={commonStyles.submitButton}
                 onClick={() => {
@@ -63,6 +64,7 @@ const NewMemberPage = () => {
                 )}
             </Button>
             <Button
+                trackingId="NewMemberLoginWithDifferentUser"
                 className={commonStyles.secondaryButton}
                 style={{ marginTop: 16 }}
                 onClick={() => {

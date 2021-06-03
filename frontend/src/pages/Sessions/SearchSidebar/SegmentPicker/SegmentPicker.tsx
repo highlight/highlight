@@ -127,6 +127,7 @@ export const SegmentPicker = () => {
                         }?`}
                     </p>
                     <Button
+                        trackingId="DeleteSessionSegment"
                         type="primary"
                         className={commonStyles.submitButton}
                         onClick={() => {
@@ -163,6 +164,7 @@ export const SegmentPicker = () => {
                         )}
                     </Button>
                     <Button
+                        trackingId="CancelDeleteSessionSegment"
                         className={commonStyles.secondaryButton}
                         onClick={() => setDeleteClicked(false)}
                     >
@@ -327,6 +329,7 @@ export const SegmentPicker = () => {
                                     </div>
                                 </Link>
                                 <Button
+                                    trackingId="DeleteSessionSegmentIcon"
                                     type="text"
                                     className={styles.segmentAction}
                                     onClick={() => {

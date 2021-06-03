@@ -86,7 +86,12 @@ const PanelButton = (
         placement="bottomRight"
         arrowPointAtCenter
     >
-        <Button type="text" className={styles.button} onClick={props.onClick}>
+        <Button
+            type="text"
+            className={styles.button}
+            onClick={props.onClick}
+            trackingId="PanelDisplay"
+        >
             {props.children}
         </Button>
     </Tooltip>

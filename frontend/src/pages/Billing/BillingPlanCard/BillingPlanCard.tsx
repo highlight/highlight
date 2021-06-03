@@ -11,13 +11,19 @@ export const BillingPlanCard = ({
     billingPlan,
     onSelect,
     current,
+    loading,
 }: {
     current: boolean;
     billingPlan: BillingPlan;
     onSelect: () => void;
+    loading: boolean;
 }) => {
     return (
-        <div className={styles.billingPlanCard}>
+        <div
+            className={classNames(styles.billingPlanCard, {
+                [styles.currentPlan]: current,
+            })}
+        >
             <h3 className={styles.billingPlanTitle}>{billingPlan.name}</h3>
             <h4
                 className={classNames(
@@ -39,9 +45,11 @@ export const BillingPlanCard = ({
             </ul>
 
             <Button
+                trackingId="ChangeBillingPlan"
                 disabled={current}
                 onClick={onSelect}
                 className={styles.button}
+                loading={loading}
             >
                 {current ? 'Current plan' : `Select ${billingPlan.name} Plan`}
             </Button>

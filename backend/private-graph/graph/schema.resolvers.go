@@ -28,36 +28,12 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-const SUGGESTION_LIMIT_CONSTANT = 8
-
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
-	if obj == nil {
-		return nil, e.New("empty alert object for channels to notify")
-	}
-	channelString := "[]"
-	if obj.ChannelsToNotify != nil {
-		channelString = *obj.ChannelsToNotify
-	}
-	sanitizedChannels := []*modelInputs.SanitizedSlackChannel{}
-	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling sanitized slack channels")
-	}
-	return sanitizedChannels, nil
+	return obj.GetChannelsToNotify()
 }
 
 func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
-	if obj == nil {
-		return nil, e.New("empty alert object for channels to notify")
-	}
-	excludedString := "[]"
-	if obj.ExcludedEnvironments != nil {
-		excludedString = *obj.ExcludedEnvironments
-	}
-	sanitizedExcludedEnvironments := []*string{}
-	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling sanitized excluded channels")
-	}
-	return sanitizedExcludedEnvironments, nil
+	return obj.GetExcludedEnvironments()
 }
 
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
@@ -205,8 +181,11 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}).Error; err != nil {
+	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
+	}
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
 	return org, nil
 }
@@ -558,6 +537,15 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
+
+		// mark sessions as within billing quota on plan upgrade
+		// this is done when the user is already signed up for some sort of billing plan
+		if c.Subscriptions.Data[0].Items.Data[0].Plan != nil {
+			go r.UpdateSessionsVisibility(organizationID, planType, pricing.FromPriceID(c.Subscriptions.Data[0].Items.Data[0].Plan.ID))
+		} else {
+			log.Error("error getting original plan data from stripe client")
+		}
+
 		ret := ""
 		return &ret, nil
 	}
@@ -585,6 +573,11 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	if err != nil {
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
+
+	// mark sessions as within billing quota on plan upgrade
+	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
+	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
+	go r.UpdateSessionsVisibility(organizationID, planType, modelInputs.PlanTypeFree)
 
 	return &stripeSession.ID, nil
 }
@@ -730,7 +723,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -762,10 +755,58 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID 
 	alert.ChannelsToNotify = &channelsString
 	alert.ExcludedEnvironments = &envString
 	alert.CountThreshold = countThreshold
+	alert.ThresholdWindow = &thresholdWindow
 	if err := r.DB.Model(&model.ErrorAlert{
-		OrganizationID: organizationID,
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
 		Model: model.Model{
 			ID: errorAlertID,
+		},
+	}).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields")
+	}
+	return alert, nil
+}
+
+func (r *mutationResolver) UpdateSessionAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	alert := &model.SessionAlert{}
+	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Find(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session alert")
+	}
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments")
+	}
+	envString := string(envBytes)
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels")
+	}
+	channelsString := string(channelsBytes)
+
+	alert.ChannelsToNotify = &channelsString
+	alert.ExcludedEnvironments = &envString
+	alert.CountThreshold = countThreshold
+	if err := r.DB.Model(&model.SessionAlert{
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
+		Model: model.Model{
+			ID: sessionAlertID,
 		},
 	}).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
@@ -1179,11 +1220,11 @@ func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBa
 
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.topUsers"))
-	if err := r.DB.Raw(fmt.Sprintf(`SELECT identifier, SUM(active_length) as total_active_time, SUM(active_length) / (SELECT SUM(active_length) from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) as active_time_percentage
+	if err := r.DB.Raw(fmt.Sprintf(`SELECT identifier, (SELECT id FROM fields WHERE organization_id=%d AND type='user' AND name='identifier' AND value=identifier) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (SELECT SUM(active_length) from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) as active_time_percentage
 	FROM (SELECT identifier, active_length from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) q1
 	GROUP BY identifier
 	ORDER BY total_active_time DESC
-	LIMIT 50`, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
+	LIMIT 50`, organizationID, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -1227,25 +1268,16 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	fieldIds := []int{}
 	visitedIds := []int{}
 	referrerIds := []int{}
-	fieldQuery := r.DB.Model(&model.Field{})
 	visitedQuery := r.DB.Model(&model.Field{})
 	referrerQuery := r.DB.Model(&model.Field{})
 
 	fieldsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.fieldsQuery"))
 	for _, prop := range params.UserProperties {
-		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
-		}
+		fieldIds = append(fieldIds, prop.ID)
 	}
 
 	for _, prop := range params.TrackProperties {
-		if prop.Name == "contains" {
-			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
-		} else {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
-		}
+		fieldIds = append(fieldIds, prop.ID)
 	}
 
 	if params.VisitedURL != nil {
@@ -1257,9 +1289,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if len(params.UserProperties)+len(params.TrackProperties) > 0 {
-		if err := fieldQuery.Pluck("id", &fieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying initial set of session fields")
-		}
 		if len(fieldIds) == 0 {
 			fieldCheck = false
 		}
@@ -1285,21 +1314,16 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	//excluded fields
 	notFieldIds := []int{}
-	notFieldQuery := r.DB.Model(&model.Field{})
 
 	for _, prop := range params.ExcludedProperties {
-		if prop.Name == "contains" {
-			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else {
-			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
-		}
+		notFieldIds = append(notFieldIds, prop.ID)
 	}
 
-	//pluck not field ids
-	if len(params.ExcludedProperties) > 0 {
-		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying initial set of excluded sessions fields")
-		}
+	//excluded track fields
+	notTrackFieldIds := []int{}
+
+	for _, prop := range params.ExcludedTrackProperties {
+		notTrackFieldIds = append(notTrackFieldIds, prop.ID)
 	}
 
 	fieldsSpan.Finish()
@@ -1374,6 +1398,12 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	if len(notFieldIds) > 0 {
 		for _, id := range notFieldIds {
+			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
+		}
+	}
+
+	if len(notTrackFieldIds) > 0 {
+		for _, id := range notTrackFieldIds {
 			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
 		}
 	}
@@ -1571,8 +1601,20 @@ func (r *queryResolver) ErrorAlerts(ctx context.Context, organizationID int) ([]
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	alerts := []*model.ErrorAlert{}
-	if err := r.DB.Where(&model.ErrorAlert{OrganizationID: organizationID}).Find(&alerts).Error; err != nil {
+	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&alerts).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alerts")
+	}
+	return alerts, nil
+}
+
+func (r *queryResolver) SessionAlerts(ctx context.Context, organizationID int) ([]*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	var alerts []*model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Find(&alerts).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session alerts")
 	}
 	return alerts, nil
 }
@@ -1723,6 +1765,14 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
+	return obj.GetChannelsToNotify()
+}
+
+func (r *sessionAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.SessionAlert) ([]*string, error) {
+	return obj.GetExcludedEnvironments()
+}
+
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
 	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
@@ -1780,6 +1830,9 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
+// SessionAlert returns generated.SessionAlertResolver implementation.
+func (r *Resolver) SessionAlert() generated.SessionAlertResolver { return &sessionAlertResolver{r} }
+
 // SessionComment returns generated.SessionCommentResolver implementation.
 func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
@@ -1794,4 +1847,13 @@ type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+const SUGGESTION_LIMIT_CONSTANT = 8

@@ -1,10 +1,9 @@
 import classNames from 'classnames/bind';
-import React, { useContext, useRef } from 'react';
+import React, { useContext } from 'react';
+import { HiOutlineSpeakerphone } from 'react-icons/hi';
 import { Link, useLocation, useParams } from 'react-router-dom';
 
 import { DemoContext } from '../../DemoContext';
-import useHighlightAdminFlag from '../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
-import SvgBellIcon from '../../static/BellIcon';
 import SvgCreditCardsIcon from '../../static/CreditCardsIcon';
 import SvgErrorsIcon from '../../static/ErrorsIcon';
 import SvgHomeIcon from '../../static/HomeIcon';
@@ -73,11 +72,15 @@ const END_NAVIGATION_ITEMS: NavigationItem[] = [
               },
           ]
         : []),
+    {
+        Icon: HiOutlineSpeakerphone,
+        displayName: 'Alerts',
+        route: 'alerts',
+    },
 ];
 
 export const Sidebar = () => {
-    const { state, setState } = useSidebarContext();
-    const { isHighlightAdmin } = useHighlightAdminFlag();
+    const { state } = useSidebarContext();
 
     return (
         <>
@@ -85,16 +88,8 @@ export const Sidebar = () => {
             <div
                 className={classNames([
                     styles.sideBar,
-                    state === SidebarState.Expanded ||
-                    state === SidebarState.TemporarilyExpanded
-                        ? styles.open
-                        : undefined,
+                    state === SidebarState.Expanded ? styles.open : undefined,
                 ])}
-                onMouseLeave={() => {
-                    if (state === SidebarState.TemporarilyExpanded) {
-                        setState(SidebarState.Collapsed);
-                    }
-                }}
             >
                 <div style={{ width: '100%' }}>
                     <WorkspaceDropdown />
@@ -125,13 +120,6 @@ export const Sidebar = () => {
                         </SidebarItem>
                     )
                 )}
-                {isHighlightAdmin && (
-                    <SidebarItem text="Alerts" route="alerts">
-                        <div className={styles.iconWrapper}>
-                            <SvgBellIcon className={styles.icon} />
-                        </div>
-                    </SidebarItem>
-                )}
 
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
@@ -161,10 +149,6 @@ export const Sidebar = () => {
 };
 
 const StaticSidebar = () => {
-    const { setState } = useSidebarContext();
-    const timerId = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const { isHighlightAdmin } = useHighlightAdminFlag();
-
     return (
         <>
             <div
@@ -172,18 +156,6 @@ const StaticSidebar = () => {
                     styles.staticSidebarWrapper,
                     styles.sideBar
                 )}
-                onMouseEnter={() => {
-                    const id = setTimeout(() => {
-                        setState(SidebarState.TemporarilyExpanded);
-                    }, 1000);
-                    timerId.current = id;
-                }}
-                onMouseLeave={() => {
-                    if (timerId.current) {
-                        clearTimeout(timerId.current);
-                        timerId.current = null;
-                    }
-                }}
             >
                 <MiniWorkspaceIcon />
                 {LEAD_NAVIGATION_ITEMS.map(
@@ -217,26 +189,7 @@ const StaticSidebar = () => {
                         </MiniSidebarItem>
                     )
                 )}
-                {isHighlightAdmin && (
-                    <MiniSidebarItem text="Alerts" route="alerts">
-                        <div className={styles.iconWrapper}>
-                            <SvgBellIcon
-                                className={styles.icon}
-                                height="32px"
-                                width="32px"
-                            />
-                        </div>
-                    </MiniSidebarItem>
-                )}
-                <div
-                    className={styles.changelogContainer}
-                    onMouseEnter={() => {
-                        if (timerId.current) {
-                            clearTimeout(timerId.current);
-                            timerId.current = null;
-                        }
-                    }}
-                >
+                <div className={styles.changelogContainer}>
                     <Changelog />
                 </div>
             </div>

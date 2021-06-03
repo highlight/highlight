@@ -14,7 +14,11 @@ import {
 import inputStyles from './InputStyles.module.scss';
 import { ContainsLabel } from './SearchInputUtil';
 
-export const TrackPropertyInput = () => {
+export const TrackPropertyInput = ({
+    include = true,
+}: {
+    include?: boolean;
+}) => {
     const { organization_id } = useParams<{ organization_id: string }>();
     const { searchParams, setSearchParams } = useSearchContext();
 
@@ -33,6 +37,7 @@ export const TrackPropertyInput = () => {
                     label: f?.name + ': ' + f?.value,
                     value: f?.value,
                     name: f?.name,
+                    id: f?.id,
                 };
             }
         );
@@ -40,7 +45,7 @@ export const TrackPropertyInput = () => {
     };
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <AsyncCreatableSelect
                 isMulti
                 styles={{
@@ -63,19 +68,41 @@ export const TrackPropertyInput = () => {
                     const newOptions: Array<UserProperty> =
                         options?.map((o) => {
                             if (!o.name) o.name = 'contains';
-                            return { name: o.name, value: o.value };
+                            return { id: o.id, name: o.name, value: o.value };
                         }) ?? [];
-                    setSearchParams((params: SearchParams) => {
-                        return { ...params, track_properties: newOptions };
-                    });
+
+                    if (include) {
+                        setSearchParams((params: SearchParams) => {
+                            return { ...params, track_properties: newOptions };
+                        });
+                    } else {
+                        setSearchParams((params: SearchParams) => {
+                            return {
+                                ...params,
+                                excluded_track_properties: newOptions,
+                            };
+                        });
+                    }
                 }}
-                value={searchParams?.track_properties?.map((p) => {
-                    return {
-                        label: p.name + ': ' + p.value,
-                        value: p.value,
-                        name: p.name,
-                    };
-                })}
+                value={
+                    include
+                        ? searchParams?.track_properties?.map((p) => {
+                              return {
+                                  label: p.name + ': ' + p.value,
+                                  value: p.value,
+                                  name: p.name,
+                                  id: p.id,
+                              };
+                          })
+                        : searchParams?.excluded_track_properties?.map((p) => {
+                              return {
+                                  label: p.name + ': ' + p.value,
+                                  value: p.value,
+                                  name: p.name,
+                                  id: p.id,
+                              };
+                          })
+                }
                 loadOptions={generateOptions}
                 components={{
                     DropdownIndicator: () => (

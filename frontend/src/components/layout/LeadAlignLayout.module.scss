@@ -4,6 +4,10 @@
     max-width: 650px;
     padding-bottom: var(--size-xxLarge);
 
+    &.fullWidth {
+        max-width: 100%;
+    }
+
     .subTitle {
         color: var(--color-gray-500);
         font-size: 18px;

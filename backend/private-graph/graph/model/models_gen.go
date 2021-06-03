@@ -25,12 +25,13 @@ type DateRangeInput struct {
 }
 
 type ErrorMetadata struct {
-	ErrorID    int       `json:"error_id"`
-	SessionID  int       `json:"session_id"`
-	Timestamp  time.Time `json:"timestamp"`
-	Os         *string   `json:"os"`
-	Browser    *string   `json:"browser"`
-	VisitedURL *string   `json:"visited_url"`
+	ErrorID     int       `json:"error_id"`
+	SessionID   int       `json:"session_id"`
+	Environment *string   `json:"environment"`
+	Timestamp   time.Time `json:"timestamp"`
+	Os          *string   `json:"os"`
+	Browser     *string   `json:"browser"`
+	VisitedURL  *string   `json:"visited_url"`
 }
 
 type ErrorSearchParamsInput struct {
@@ -93,22 +94,24 @@ type SanitizedSlackChannelInput struct {
 }
 
 type SearchParamsInput struct {
-	UserProperties     []*UserPropertyInput `json:"user_properties"`
-	ExcludedProperties []*UserPropertyInput `json:"excluded_properties"`
-	TrackProperties    []*UserPropertyInput `json:"track_properties"`
-	DateRange          *DateRangeInput      `json:"date_range"`
-	LengthRange        *LengthRangeInput    `json:"length_range"`
-	Os                 *string              `json:"os"`
-	Browser            *string              `json:"browser"`
-	DeviceID           *string              `json:"device_id"`
-	VisitedURL         *string              `json:"visited_url"`
-	Referrer           *string              `json:"referrer"`
-	Identified         *bool                `json:"identified"`
-	HideViewed         *bool                `json:"hide_viewed"`
-	FirstTime          *bool                `json:"first_time"`
+	UserProperties          []*UserPropertyInput `json:"user_properties"`
+	ExcludedProperties      []*UserPropertyInput `json:"excluded_properties"`
+	TrackProperties         []*UserPropertyInput `json:"track_properties"`
+	ExcludedTrackProperties []*UserPropertyInput `json:"excluded_track_properties"`
+	DateRange               *DateRangeInput      `json:"date_range"`
+	LengthRange             *LengthRangeInput    `json:"length_range"`
+	Os                      *string              `json:"os"`
+	Browser                 *string              `json:"browser"`
+	DeviceID                *string              `json:"device_id"`
+	VisitedURL              *string              `json:"visited_url"`
+	Referrer                *string              `json:"referrer"`
+	Identified              *bool                `json:"identified"`
+	HideViewed              *bool                `json:"hide_viewed"`
+	FirstTime               *bool                `json:"first_time"`
 }
 
 type TopUsersPayload struct {
+	ID                   int     `json:"id"`
 	Identifier           string  `json:"identifier"`
 	TotalActiveTime      int     `json:"total_active_time"`
 	ActiveTimePercentage float64 `json:"active_time_percentage"`
@@ -119,6 +122,7 @@ type UserFingerprintCount struct {
 }
 
 type UserPropertyInput struct {
+	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }

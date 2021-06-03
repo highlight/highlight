@@ -112,7 +112,12 @@ const TimelineAnnotationsSettings = ({ disabled }: Props) => {
                 </div>
             }
         >
-            <Button type="text" className={styles.button} disabled={disabled}>
+            <Button
+                type="text"
+                className={styles.button}
+                trackingId="TimelineAnnotationSettings"
+                disabled={disabled}
+            >
                 <div className={styles.eventTypesContainer}>
                     {selectedEventTypes.map((eventType) => (
                         <div

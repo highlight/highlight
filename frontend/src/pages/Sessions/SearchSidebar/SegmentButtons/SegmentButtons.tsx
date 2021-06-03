@@ -100,6 +100,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
                                     errors.name.message}
                         </div>
                         <Button
+                            trackingId="SaveSessionSegmentFromExistingSegment"
                             style={{
                                 width: '100%',
                                 marginTop: 10,
@@ -126,6 +127,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
             {paramsIsDifferent && segmentName ? (
                 <>
                     <Button
+                        trackingId="UpdateSessionSegment"
                         type="primary"
                         onClick={() => {
                             editSegment({
@@ -162,6 +164,7 @@ const Buttons: React.FunctionComponent<RouteComponentProps> = ({ history }) => {
             )}
             {/* In every case, let someone create a new segment w/ the current search params. */}
             <Button
+                trackingId="CreateSessionSegment"
                 onClick={() => setCreateClicked(true)}
                 type={paramsIsDifferent && segmentName ? 'default' : 'primary'}
                 className={

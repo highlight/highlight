@@ -119,6 +119,7 @@ export const ErrorSegmentPicker = () => {
                         }?`}
                     </div>
                     <Button
+                        trackingId="DeleteErrorSegment"
                         type="primary"
                         className={commonStyles.submitButton}
                         onClick={() => {
@@ -154,6 +155,7 @@ export const ErrorSegmentPicker = () => {
                         )}
                     </Button>
                     <Button
+                        trackingId="CancelDeleteErrorSegment"
                         className={commonStyles.secondaryButton}
                         onClick={() => setDeleteClicked(false)}
                     >

@@ -437,6 +437,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         arrowPointAtCenter
                     >
                         <Button
+                            trackingId="PlayerAutoPlaySetting"
                             type="text"
                             className={classNames(styles.autoPlayButton)}
                             onClick={() => {
@@ -452,6 +453,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         arrowPointAtCenter
                     >
                         <Button
+                            trackingId="PlayerSkipInactive"
                             type="text"
                             className={classNames(styles.skipInactiveButton, {
                                 [styles.skipInactiveButtonActive]: skipInactive,
@@ -473,6 +475,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         arrowPointAtCenter
                     >
                         <Button
+                            trackingId="PlayerDevTools"
                             type="text"
                             className={styles.devToolsButton}
                             onClick={() => {

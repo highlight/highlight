@@ -41,3 +41,18 @@
 .addContainer {
     padding: var(--size-small);
 }
+
+.title {
+    align-items: center;
+    column-gap: var(--size-xSmall);
+    display: flex;
+}
+
+.frequencyContainer {
+    column-gap: var(--size-large);
+    display: flex;
+}
+
+.lookbackPeriodSelect {
+    width: 150px !important;
+}

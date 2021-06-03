@@ -5,6 +5,7 @@ scalar Time
 scalar Int64
 
 type Field {
+    id: ID!
     name: String!
     value: String!
     type: String
@@ -21,6 +22,7 @@ type Session {
     city: String!
     state: String!
     postal: String!
+    environment: String
     language: String!
     identifier: String!
     created_at: Time
@@ -70,6 +72,7 @@ type Organization {
     billing_email: String
     trial_end_date: Time
     slack_webhook_channel: String
+    slack_channels: String
 }
 
 type Segment {
@@ -122,6 +125,7 @@ type ErrorGroup {
 type ErrorMetadata {
     error_id: Int!
     session_id: Int!
+    environment: String
     timestamp: Time!
     os: String
     browser: String
@@ -142,6 +146,7 @@ type ReferrerTablePayload {
 }
 
 type TopUsersPayload {
+    id: ID!
     identifier: String!
     total_active_time: Int!
     active_time_percentage: Float!
@@ -165,6 +170,7 @@ input SearchParamsInput {
     user_properties: [UserPropertyInput]
     excluded_properties: [UserPropertyInput]
     track_properties: [UserPropertyInput]
+    excluded_track_properties: [UserPropertyInput]
     date_range: DateRangeInput
     length_range: LengthRangeInput
     os: String
@@ -231,11 +237,13 @@ input LengthRangeInput {
 }
 
 type UserProperty {
+    id: ID!
     name: String!
     value: String!
 }
 
 input UserPropertyInput {
+    id: ID!
     name: String!
     value: String!
 }
@@ -328,6 +336,13 @@ type ErrorAlert {
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
+    ThresholdWindow: Int
+}
+type SessionAlert {
+    id: ID!
+    ChannelsToNotify: [SanitizedSlackChannel]!
+    ExcludedEnvironments: [String]!
+    CountThreshold: Int!
 }
 
 type Query {
@@ -399,6 +414,7 @@ type Query {
     ): [ErrorField]
     organizations: [Organization]
     error_alerts(organization_id: ID!): [ErrorAlert]
+    session_alerts(organization_id: ID!): [SessionAlert]
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
@@ -491,7 +507,15 @@ type Mutation {
         organization_id: ID!
         error_alert_id: ID!
         count_threshold: Int!
+        threshold_window: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): ErrorAlert
+    updateSessionAlert(
+        organization_id: ID!
+        session_alert_id: ID!
+        count_threshold: Int!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+    ): SessionAlert
 }
