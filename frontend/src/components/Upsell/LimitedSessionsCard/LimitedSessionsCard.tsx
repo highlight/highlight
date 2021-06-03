@@ -36,6 +36,7 @@ const LimitedSessionCard = () => {
                 can be viewed after you upgrade.
             </p>
             <ButtonLink
+                className={styles.center}
                 to="billing"
                 trackingId="LimitedSessionsCardUpgradePlan"
             >

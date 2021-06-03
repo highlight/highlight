@@ -165,6 +165,7 @@ const Player = () => {
                         <ButtonLink
                             to="billing"
                             trackingId="PlayerPageUpgradePlan"
+                            className={styles.center}
                         >
                             Upgrade Plan
                         </ButtonLink>

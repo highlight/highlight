@@ -33,3 +33,9 @@
     display: flex;
     justify-content: flex-end;
 }
+
+.center {
+    display: block;
+    margin: 0 auto;
+    margin-top: var(--size-large);
+}
