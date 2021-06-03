@@ -226,7 +226,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 							if err != nil {
 								return e.Wrapf(err, "[org_id: %d] error getting user properties from new user alert", s.OrganizationID)
 							}
-							err = w.SendSlackNewUserMessage(organizationID, s.ID, s.Identifier, channelsToNotify, userProperties)
+							err = w.SendSlackNewUserMessage(org, s.ID, s.Identifier, channelsToNotify, userProperties)
 							if err != nil {
 								return e.Wrapf(err, "[org_id: %d] error sending slack message for new user alert", organizationID)
 							}
@@ -280,9 +280,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 							return e.Wrap(err, "error querying matched fields by session_id")
 						}
 						if len(matchedFields) < 1 {
-							return fmt.Errorf("matched fields is empty in track properties alert")
+							return nil
 						}
-						err = w.SendSlackTrackPropertiesMessage(organizationID, s.ID, s.Identifier, channelsToNotify, matchedFields)
+						err = w.SendSlackTrackPropertiesMessage(org, s.ID, channelsToNotify, matchedFields)
 						if err != nil {
 							return e.Wrapf(err, "[org_id: %d] error sending track properties alert slack message", organizationID)
 						}
@@ -452,12 +452,7 @@ func getActiveDuration(events []model.EventsObject) (*time.Duration, error) {
 	return &d, nil
 }
 
-func (w *Worker) SendSlackNewUserMessage(orgID int, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel, userProperties map[string]string) error {
-	organization := &model.Organization{}
-	res := w.Resolver.DB.Where("id = ?", orgID).First(&organization)
-	if err := res.Error; err != nil {
-		return e.Wrap(err, "error messaging organization")
-	}
+func (w *Worker) SendSlackNewUserMessage(organization *model.Organization, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel, userProperties map[string]string) error {
 	integratedSlackChannels, err := organization.IntegratedSlackChannels()
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for alert")
@@ -465,7 +460,7 @@ func (w *Worker) SendSlackNewUserMessage(orgID int, sessionID int, userIdentifie
 	if len(integratedSlackChannels) <= 0 {
 		return nil
 	}
-	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", orgID, sessionID)
+	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", organization.ID, sessionID)
 
 	var messageBlock []*slack.TextBlockObject
 	if userIdentifier != "" {
@@ -492,7 +487,7 @@ func (w *Worker) SendSlackNewUserMessage(orgID int, sessionID int, userIdentifie
 				}
 			}
 			if slackWebhookURL == "" {
-				log.Errorf("[org_id: %d] requested channel has no matching slackWebhookURL: channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
+				log.Errorf("[org_id: %d] requested channel has no matching slackWebhookURL: channel %s at url %s", organization.ID, *channel.WebhookChannel, slackWebhookURL)
 				continue
 			}
 
@@ -522,13 +517,8 @@ func (w *Worker) SendSlackNewUserMessage(orgID int, sessionID int, userIdentifie
 	return nil
 }
 
-func (w *Worker) SendSlackTrackPropertiesMessage(orgID int, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel, matchedFields []*model.Field) error {
+func (w *Worker) SendSlackTrackPropertiesMessage(organization *model.Organization, sessionID int, channels []*modelInputs.SanitizedSlackChannel, matchedFields []*model.Field) error {
 	//TODO: make this more generic to reduce *code smell*
-	organization := &model.Organization{}
-	res := w.Resolver.DB.Where("id = ?", orgID).First(&organization)
-	if err := res.Error; err != nil {
-		return e.Wrap(err, "error querying organization for track properties alert")
-	}
 	integratedSlackChannels, err := organization.IntegratedSlackChannels()
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for track properties alert")
@@ -536,7 +526,7 @@ func (w *Worker) SendSlackTrackPropertiesMessage(orgID int, sessionID int, userI
 	if len(integratedSlackChannels) <= 0 {
 		return nil
 	}
-	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", orgID, sessionID)
+	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", organization.ID, sessionID)
 
 	var formattedFields []string
 	for _, addr := range matchedFields {
@@ -557,7 +547,7 @@ func (w *Worker) SendSlackTrackPropertiesMessage(orgID int, sessionID int, userI
 				}
 			}
 			if slackWebhookURL == "" {
-				log.Errorf("[org_id: %d] requested channel for track properties alert has no matching slackWebhookURL: channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
+				log.Errorf("[org_id: %d] requested channel for track properties alert has no matching slackWebhookURL: channel %s at url %s", organization.ID, *channel.WebhookChannel, slackWebhookURL)
 				continue
 			}
 

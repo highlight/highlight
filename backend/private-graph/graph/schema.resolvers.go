@@ -184,7 +184,10 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}, Type: &model.AlertType.NEW_USER}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session alert for new org")
+	}
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}, Type: &model.AlertType.USER_PROPERTIES}).Error; err != nil {
@@ -1730,7 +1733,7 @@ func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, organizationID
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).First(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, Type: &model.AlertType.TRACK_PROPERTIES}}).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying track properties alert")
 	}
 	return &alert, nil

@@ -10,14 +10,15 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
-	e "github.com/pkg/errors"
 	"github.com/rs/xid"
-	log "github.com/sirupsen/logrus"
 	"github.com/speps/go-hashids"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
+
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
@@ -105,6 +106,7 @@ type Alert struct {
 	CountThreshold       int
 	ThresholdWindow      *int
 	ChannelsToNotify     *string
+	Type                 *string `gorm:"index"`
 }
 
 type ErrorAlert struct {
@@ -117,7 +119,6 @@ type SessionAlert struct {
 	Alert
 	TrackProperties *string
 	UserProperties  *string
-	Type            *string
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
