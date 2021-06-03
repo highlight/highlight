@@ -216,9 +216,11 @@ chrome?.runtime?.onMessage.addListener((message, sender, sendResponse) => {
     console.log(`[highlight] received '${action}' event from extension.`);
     switch (action) {
         case 'init': {
+            const scriptUrl = 'http://localhost:8080/dist/index.js';
+            console.log('url', scriptUrl);
             H.init(1, {
                 debug: true,
-                scriptUrl: 'http://localhost:8080/dist/index.js',
+                scriptUrl,
             });
             H.getSessionURL().then((url) => {
                 sendResponse({ url });
