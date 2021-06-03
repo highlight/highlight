@@ -1,19 +1,29 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import { useGetBillingDetailsQuery } from '../../../graph/generated/hooks';
 import Progress from '../../Progress/Progress';
 import styles from './CurrentUsageCard.module.scss';
 
-export interface CurrentUsageCardProps {
-    limit: number;
-    currentUsage: number;
-}
-
-export const CurrentUsageCard: React.FC<CurrentUsageCardProps> = ({
-    currentUsage,
-    limit,
-}) => {
+export const CurrentUsageCard = () => {
     const { organization_id } = useParams<{ organization_id: string }>();
+    const { data, loading } = useGetBillingDetailsQuery({
+        variables: { organization_id },
+    });
+
+    if (
+        loading ||
+        (data?.billingDetails.meter === undefined &&
+            data?.billingDetails.plan.quota === undefined)
+    ) {
+        return null;
+    }
+
+    const {
+        meter: currentUsage,
+        plan: { quota: limit },
+    } = data.billingDetails;
+
     return (
         <section className={styles.container}>
             <h3 className={styles.header}>

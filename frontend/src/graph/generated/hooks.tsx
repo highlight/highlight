@@ -1367,6 +1367,7 @@ export const GetSessionDocument = gql`
             }
             object_storage_enabled
             payload_size
+            within_billing_quota
         }
     }
 `;
@@ -2148,6 +2149,7 @@ export const GetBillingDetailsDocument = gql`
                 quota
             }
             meter
+            sessionsOutOfQuota
         }
         organization(id: $organization_id) {
             id

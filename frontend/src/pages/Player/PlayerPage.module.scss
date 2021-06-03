@@ -226,3 +226,9 @@
     position: absolute;
     z-index: 2;
 }
+
+.center {
+    display: block;
+    margin: 0 auto;
+    margin-top: var(--size-large);
+}
