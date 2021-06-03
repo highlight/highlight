@@ -24,13 +24,19 @@ import (
 )
 
 var (
-	DB                          *gorm.DB
-	HashID                      *hashids.HashID
-	F                           bool = false
-	T                           bool = true
-	NEW_USER_ALERT_TYPE              = "NEW_USER_ALERT"
-	TRACK_PROPERTIES_ALERT_TYPE      = "TRACK_PROPERTIES_ALERT"
+	DB     *gorm.DB
+	HashID *hashids.HashID
+	F      bool = false
+	T      bool = true
 )
+
+var AlertType = struct {
+	NEW_USER         string
+	TRACK_PROPERTIES string
+}{
+	NEW_USER:         "NEW_USER_ALERT",
+	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
+}
 
 const (
 	SUGGESTION_LIMIT_CONSTANT = 8
@@ -98,6 +104,7 @@ type Alert struct {
 	CountThreshold       int
 	ThresholdWindow      *int
 	ChannelsToNotify     *string
+	Type                 *string `gorm:"index"`
 }
 
 type ErrorAlert struct {
@@ -109,7 +116,6 @@ type SessionAlert struct {
 	Model
 	Alert
 	TrackProperties *string
-	Type            *string
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {

@@ -184,10 +184,10 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}, Type: &model.NEW_USER_ALERT_TYPE}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
-	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}, Type: &model.TRACK_PROPERTIES_ALERT_TYPE}).Error; err != nil {
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
 	return org, nil
@@ -779,7 +779,7 @@ func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, organizationI
 	}
 
 	alert := &model.SessionAlert{}
-	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type IS NULL OR type=?", model.NEW_USER_ALERT_TYPE).Find(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session alert")
 	}
 
@@ -824,7 +824,7 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 	}
 
 	alert := &model.SessionAlert{}
-	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type=?", model.TRACK_PROPERTIES_ALERT_TYPE).Find(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying track properties alert")
 	}
 
@@ -1667,7 +1667,7 @@ func (r *queryResolver) NewUserAlert(ctx context.Context, organizationID int) (*
 		return nil, e.Wrap(err, "error querying organization on new user alert")
 	}
 	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.NEW_USER_ALERT_TYPE).First(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying  new user alert")
 	}
 	return &alert, nil
@@ -1679,7 +1679,7 @@ func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, organizationID
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.TRACK_PROPERTIES_ALERT_TYPE).First(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, Type: &model.AlertType.TRACK_PROPERTIES}}).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying track properties alert")
 	}
 	return &alert, nil
