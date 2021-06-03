@@ -26,9 +26,7 @@ const LimitedSessionCard = () => {
     return (
         <section className={styles.container}>
             <div className={styles.actionsContainer}></div>
-            <h3>
-                Looks like you’ve reached your session quota for this month 😔
-            </h3>
+            <h3>You’ve reached your session quota for this month 😔</h3>
             <p className={styles.description}>
                 You can still view sessions recorded before you reached your
                 quota. There are{' '}
