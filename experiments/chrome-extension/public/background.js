@@ -11,7 +11,6 @@ chrome.webNavigation.onCommitted.addListener(details => {
             active: true,
         }, (currentWindowActiveTabs = []) => {
             injectScript(currentWindowActiveTabs[0].id, details.transitionType === "link");
-            // TODO: call init here, after the script loads.
         });
     }
 });

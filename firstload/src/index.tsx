@@ -212,7 +212,6 @@ if (typeof window !== 'undefined') {
 }
 
 chrome?.runtime?.onMessage.addListener((message, sender, sendResponse) => {
-    console.log(message.action);
     const action = message.action;
     console.log(`[highlight] received '${action}' event from extension.`);
     switch (action) {
