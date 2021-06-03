@@ -124,7 +124,6 @@ export class Highlight {
     }
 
     constructor(options: HighlightClassOptions) {
-        console.log('options', options);
         if (typeof options?.debug === 'boolean') {
             this.debugOptions = options.debug
                 ? { clientInteractions: true }
@@ -144,7 +143,6 @@ export class Highlight {
             : process.env.PUBLIC_GRAPH_URI
             ? process.env.PUBLIC_GRAPH_URI
             : 'https://public.highlight.run';
-        console.log('backend url', this._backendUrl);
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
