@@ -358,6 +358,7 @@ type SessionAlert {
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
     TrackProperties: [TrackProperty]!
+    UserProperties: [UserProperty]!
 }
 
 type Query {
@@ -431,6 +432,7 @@ type Query {
     error_alert(organization_id: ID!): ErrorAlert
     new_user_alert(organization_id: ID!): SessionAlert
     track_properties_alert(organization_id: ID!): SessionAlert
+    user_properties_alert(organization_id: ID!): SessionAlert
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
@@ -540,5 +542,12 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
         track_properties: [TrackPropertyInput]!
+    ): SessionAlert
+    updateUserPropertiesAlert(
+        organization_id: ID!
+        session_alert_id: ID!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+        user_properties: [UserPropertyInput]!
     ): SessionAlert
 }

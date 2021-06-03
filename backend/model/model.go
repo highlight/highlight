@@ -30,6 +30,7 @@ var (
 	T                           bool = true
 	NEW_USER_ALERT_TYPE              = "NEW_USER_ALERT"
 	TRACK_PROPERTIES_ALERT_TYPE      = "TRACK_PROPERTIES_ALERT"
+	USER_PROPERTIES_ALERT_TYPE       = "USER_PROPERTIES_ALERT"
 )
 
 const (
@@ -109,6 +110,7 @@ type SessionAlert struct {
 	Model
 	Alert
 	TrackProperties *string
+	UserProperties  *string
 	Type            *string
 }
 
@@ -153,6 +155,21 @@ func (obj *SessionAlert) GetTrackProperties() ([]*TrackProperty, error) {
 	var sanitizedProperties []*TrackProperty
 	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
 		return nil, e.Wrap(err, "error unmarshalling sanitized track properties")
+	}
+	return sanitizedProperties, nil
+}
+
+func (obj *SessionAlert) GetUserProperties() ([]*UserProperty, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for user properties")
+	}
+	propertyString := "[]"
+	if obj.UserProperties != nil {
+		propertyString = *obj.UserProperties
+	}
+	var sanitizedProperties []*UserProperty
+	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized user properties")
 	}
 	return sanitizedProperties, nil
 }
@@ -373,7 +390,7 @@ type LengthRange struct {
 }
 
 type UserProperty struct {
-	ID    int
+	ID    string
 	Name  string
 	Value string
 }

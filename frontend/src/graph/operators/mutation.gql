@@ -314,3 +314,26 @@ mutation UpdateTrackPropertiesAlert(
         CountThreshold
     }
 }
+
+mutation UpdateUserPropertiesAlert(
+    $organization_id: ID!
+    $session_alert_id: ID!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+    $user_properties: [UserPropertyInput]!
+) {
+    updateUserPropertiesAlert(
+        organization_id: $organization_id
+        session_alert_id: $session_alert_id
+        slack_channels: $slack_channels
+        environments: $environments
+        user_properties: $user_properties
+    ) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}

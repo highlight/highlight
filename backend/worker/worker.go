@@ -292,7 +292,63 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		return nil
 	})
-	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
+
+	g.Go(func() error {
+		// Sending User Properties Alert
+		var sessionAlert model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.USER_PROPERTIES_ALERT_TYPE).First(&sessionAlert).Error; err != nil {
+			return e.Wrapf(err, "[org_id: %d] error fetching user properties alert", organizationID)
+		} else {
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				return e.Wrapf(err, "[org_id: %d] error getting excluded environments from user properties alert", organizationID)
+			} else {
+				isExcludedEnvironment := false
+				for _, env := range excludedEnvironments {
+					if env != nil && *env == s.Environment {
+						isExcludedEnvironment = true
+						break
+					}
+				}
+				if !isExcludedEnvironment {
+					if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
+						return e.Wrapf(err, "[org_id: %d] error getting channels to notify from user properties alert", organizationID)
+					} else {
+						userProperties, err := sessionAlert.GetUserProperties()
+						if err != nil {
+							return e.Wrap(err, "error getting user properties from session")
+						}
+						var userPropertyIds []int
+						for _, userProperty := range userProperties {
+							properId, err := strconv.Atoi(userProperty.ID)
+							if err != nil {
+								continue
+							}
+							userPropertyIds = append(userPropertyIds, properId)
+						}
+						stmt := w.Resolver.DB.Model(&model.Field{}).
+							Where(&model.Field{OrganizationID: organizationID, Type: "user"}).
+							Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
+							Where("id IN ?", userPropertyIds)
+						var matchedFields []*model.Field
+						if err := stmt.Find(&matchedFields).Error; err != nil {
+							return e.Wrap(err, "error querying matched fields by session_id")
+						}
+						if len(matchedFields) < 1 {
+							return fmt.Errorf("matched fields is empty in user properties alert")
+						}
+						err = w.SendSlackTrackPropertiesMessage(organizationID, s.ID, s.Identifier, channelsToNotify, matchedFields)
+						if err != nil {
+							return e.Wrapf(err, "[org_id: %d] error sending user properties alert slack message", organizationID)
+						}
+					}
+				}
+			}
+		}
+		return nil
+	})
+
+	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
 	if err := g.Wait(); err != nil {
 		log.Error(err)
 	}
@@ -511,6 +567,71 @@ func (w *Worker) SendSlackTrackPropertiesMessage(orgID int, sessionID int, userI
 					BlockSet: []slack.Block{
 						slack.NewSectionBlock(
 							slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Track Properties:*\n\n", false, false),
+							messageBlock,
+							nil,
+						),
+						slack.NewDividerBlock(),
+					},
+				},
+			}
+			err := slack.PostWebhook(
+				slackWebhookURL,
+				&msg,
+			)
+			if err != nil {
+				return e.Wrap(err, "error sending slack msg")
+			}
+		}
+	}
+
+	return nil
+}
+
+func (w *Worker) SendSlackUserPropertiesMessage(orgID int, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel, matchedFields []*model.Field) error {
+	//TODO: make this more generic to reduce *code smell*
+	organization := &model.Organization{}
+	res := w.Resolver.DB.Where("id = ?", orgID).First(&organization)
+	if err := res.Error; err != nil {
+		return e.Wrap(err, "error querying organization for user properties alert")
+	}
+	integratedSlackChannels, err := organization.IntegratedSlackChannels()
+	if err != nil {
+		return e.Wrap(err, "error getting slack webhook url for user properties alert")
+	}
+	if len(integratedSlackChannels) <= 0 {
+		return nil
+	}
+	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", orgID, sessionID)
+
+	var formattedFields []string
+	for _, addr := range matchedFields {
+		formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
+	}
+
+	var messageBlock []*slack.TextBlockObject
+	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
+	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
+
+	for _, channel := range channels {
+		if channel.WebhookChannel != nil {
+			var slackWebhookURL string
+			for _, ch := range integratedSlackChannels {
+				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
+					slackWebhookURL = ch.WebhookURL
+					break
+				}
+			}
+			if slackWebhookURL == "" {
+				log.Errorf("[org_id: %d] requested channel for user properties alert has no matching slackWebhookURL: channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
+				continue
+			}
+
+			msg := slack.WebhookMessage{
+				Channel: *channel.WebhookChannel,
+				Blocks: &slack.Blocks{
+					BlockSet: []slack.Block{
+						slack.NewSectionBlock(
+							slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties:*\n\n", false, false),
 							messageBlock,
 							nil,
 						),

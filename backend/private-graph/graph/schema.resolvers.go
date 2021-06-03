@@ -187,6 +187,9 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}, Type: &model.NEW_USER_ALERT_TYPE}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}, Type: &model.USER_PROPERTIES_ALERT_TYPE}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session alert for new org")
+	}
 	return org, nil
 }
 
@@ -861,6 +864,57 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 		},
 	}).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields for track properties alert")
+	}
+	return alert, nil
+}
+
+func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	alert := &model.SessionAlert{}
+	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type=?", model.USER_PROPERTIES_ALERT_TYPE).Find(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying user properties alert")
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments for user properties alert")
+	}
+	envString := string(envBytes)
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels for user properties alert")
+	}
+	channelsString := string(channelsBytes)
+
+	userPropertiesBytes, err := json.Marshal(userProperties)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing user properties for user properties alert")
+	}
+	userPropertiesString := string(userPropertiesBytes)
+
+	alert.ExcludedEnvironments = &envString
+	alert.ChannelsToNotify = &channelsString
+	alert.UserProperties = &userPropertiesString
+	if err := r.DB.Model(&model.SessionAlert{
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
+		Model: model.Model{
+			ID: sessionAlertID,
+		},
+	}).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields for user properties alert")
 	}
 	return alert, nil
 }
@@ -1682,6 +1736,18 @@ func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, organizationID
 	return &alert, nil
 }
 
+func (r *queryResolver) UserPropertiesAlert(ctx context.Context, organizationID int) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	var alert model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.USER_PROPERTIES_ALERT_TYPE).First(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying user properties alert")
+	}
+	return &alert, nil
+}
+
 func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
 	orgs := []*model.Organization{}
 	if r.isWhitelistedAccount(ctx) {
@@ -1838,6 +1904,10 @@ func (r *sessionAlertResolver) ExcludedEnvironments(ctx context.Context, obj *mo
 
 func (r *sessionAlertResolver) TrackProperties(ctx context.Context, obj *model.SessionAlert) ([]*model.TrackProperty, error) {
 	return obj.GetTrackProperties()
+}
+
+func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.SessionAlert) ([]*model.UserProperty, error) {
+	return obj.GetUserProperties()
 }
 
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
