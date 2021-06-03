@@ -138,11 +138,10 @@ export class Highlight {
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
-        this._backendUrl = options?.backendUrl
-            ? options.backendUrl
-            : process.env.PUBLIC_GRAPH_URI
-            ? process.env.PUBLIC_GRAPH_URI
-            : 'https://public.highlight.run';
+        this._backendUrl =
+            options?.backendUrl ||
+            process.env.PUBLIC_GRAPH_URI ||
+            'https://public.highlight.run';
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
