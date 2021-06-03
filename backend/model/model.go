@@ -618,14 +618,9 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 	return userProperties, nil
 }
 
-func (obj *Alert) SendSlackAlert(DB *gorm.DB, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string) error {
+func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string) error {
 	if obj == nil {
 		return fmt.Errorf("alert is nil")
-	}
-	organization := &Organization{}
-	res := DB.Where(&Organization{Model: Model{ID: obj.OrganizationID}}).First(&organization)
-	if err := res.Error; err != nil {
-		return e.Wrap(err, "error messaging organization")
 	}
 	// get alerts channels
 	channels, err := obj.GetChannelsToNotify()

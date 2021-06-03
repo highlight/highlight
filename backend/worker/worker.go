@@ -230,7 +230,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 
 		// send slack message
-		err = sessionAlert.SendSlackAlert(w.Resolver.DB, s.ID, s.Identifier, nil, nil, nil, userProperties)
+		err = sessionAlert.SendSlackAlert(org, s.ID, s.Identifier, nil, nil, nil, userProperties)
 		if err != nil {
 			return e.Wrapf(err, "[org_id: %d] error sending slack message for new user alert", organizationID)
 		}
@@ -286,7 +286,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 
 		// send slack message
-		err = sessionAlert.SendSlackAlert(w.Resolver.DB, s.ID, s.Identifier, nil, nil, matchedFields, nil)
+		err = sessionAlert.SendSlackAlert(org, s.ID, s.Identifier, nil, nil, matchedFields, nil)
 		if err != nil {
 			return e.Wrap(err, "error sending track properties alert slack message")
 		}
@@ -342,7 +342,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 
 		// send slack message
-		err = sessionAlert.SendSlackAlert(w.Resolver.DB, s.ID, s.Identifier, nil, nil, matchedFields, nil)
+		err = sessionAlert.SendSlackAlert(org, s.ID, s.Identifier, nil, nil, matchedFields, nil)
 		if err != nil {
 			return e.Wrapf(err, "error sending user properties alert slack message")
 		}
