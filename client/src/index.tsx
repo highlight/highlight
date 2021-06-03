@@ -576,10 +576,6 @@ export class Highlight {
 
 (window as any).Highlight = Highlight;
 
-// export let HighlightFactory = (): Highlight => {
-//     return class Highlight {};
-// };
-
 declare global {
     interface Console {
         defaultLog: any;

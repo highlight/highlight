@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 chrome.tabs.onActivated.addListener(function(activeInfo) {
-    injectScript(activeInfo.tabId);
+    injectScript(activeInfo.tabId, false);
 });
 
 chrome.webNavigation.onCommitted.addListener(details => {
