@@ -46,7 +46,9 @@ export declare class Highlight {
     messages: ConsoleMessage[];
     networkContents: NetworkResourceContent[];
     sessionData: SessionData;
+    /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
     ready: boolean;
+    state: 'NotRecording' | 'Recording';
     logger: Logger;
     disableNetworkRecording: boolean | undefined;
     disableConsoleRecording: boolean | undefined;

@@ -220,7 +220,6 @@ chrome?.runtime?.onMessage.addListener((message, sender, sendResponse) => {
             H.init(1, {
                 debug: true,
                 scriptUrl: 'http://localhost:8080/dist/index.js',
-                backendUrl: 'https://localhost:8082/private',
             });
             H.getSessionURL().then((url) => {
                 sendResponse({ url });

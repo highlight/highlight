@@ -10,13 +10,13 @@ chrome.webNavigation.onCommitted.addListener(details => {
             currentWindow: true,
             active: true,
         }, (currentWindowActiveTabs = []) => {
-            injectScript(currentWindowActiveTabs[0].id);
+            injectScript(currentWindowActiveTabs[0].id, details.transitionType === "link");
             // TODO: call init here, after the script loads.
         });
     }
 });
 
-function injectScript(tabId) {
+function injectScript(tabId, isLinkTransition) {
     console.log('[highlight] Injecting Highlight snippet on', tabId);
     chrome.tabs.executeScript(
         tabId,
@@ -25,6 +25,20 @@ function injectScript(tabId) {
         },
         () => {
             console.log("[highlight] Loaded highlight snippet on", tabId);
+            if (isLinkTransition) {
+                console.log("[highlight] Detected link transition, calling init()");
+                chrome.tabs.query(
+                    { active: true, currentWindow: true },
+                    function (tabs) {
+                        const tab = tabs[0];
+                        // query the active tab, which will be only one tab
+                        //and inject the script in it
+                        chrome.tabs.sendMessage(tab?.id ?? 0, {action: "init"}, (resp) => {
+                            return;
+                        });
+                    }
+                );
+            }
         }
     );
 }
