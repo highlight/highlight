@@ -159,8 +159,7 @@ const Player = () => {
                     >
                         <p>
                             This session was recorded after you reached your
-                            session quota. To view it you need to upgrade your
-                            plan.
+                            session quota. To view it, upgrade your plan.
                         </p>
                         <ButtonLink
                             to="billing"
