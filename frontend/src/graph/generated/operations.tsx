@@ -414,6 +414,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'enable_strict_privacy'
             | 'object_storage_enabled'
             | 'payload_size'
+            | 'within_billing_quota'
         > & {
                 fields?: Types.Maybe<
                     Array<
@@ -685,7 +686,7 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
     billingDetails: { __typename?: 'BillingDetails' } & Pick<
         Types.BillingDetails,
-        'meter'
+        'meter' | 'sessionsOutOfQuota'
     > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
     organization?: Types.Maybe<
         { __typename?: 'Organization' } & Pick<
