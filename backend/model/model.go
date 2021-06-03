@@ -378,7 +378,7 @@ type UserProperty struct {
 }
 
 type TrackProperty struct {
-	ID    int    `json:"id"`
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }

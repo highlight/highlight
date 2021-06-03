@@ -240,49 +240,51 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	g.Go(func() error {
 		// Sending Track Properties Alert
-		if s.FirstTime != nil && *s.FirstTime {
-			var sessionAlert model.SessionAlert
-			if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.TRACK_PROPERTIES_ALERT_TYPE).First(&sessionAlert).Error; err != nil {
-				return e.Wrapf(err, "[org_id: %d] error fetching SessionAlert object", organizationID)
+		var sessionAlert model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.TRACK_PROPERTIES_ALERT_TYPE).First(&sessionAlert).Error; err != nil {
+			return e.Wrapf(err, "[org_id: %d] error fetching SessionAlert object", organizationID)
+		} else {
+			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+			if err != nil {
+				return e.Wrapf(err, "[org_id: %d] error getting excluded environments from SessionAlert", organizationID)
 			} else {
-				excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
-				if err != nil {
-					return e.Wrapf(err, "[org_id: %d] error getting excluded environments from SessionAlert", organizationID)
-				} else {
-					isExcludedEnvironment := false
-					for _, env := range excludedEnvironments {
-						if env != nil && *env == s.Environment {
-							isExcludedEnvironment = true
-							break
-						}
+				isExcludedEnvironment := false
+				for _, env := range excludedEnvironments {
+					if env != nil && *env == s.Environment {
+						isExcludedEnvironment = true
+						break
 					}
-					if !isExcludedEnvironment {
-						if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
-							return e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID)
-						} else {
-							trackProperties, err := sessionAlert.GetTrackProperties()
+				}
+				if !isExcludedEnvironment {
+					if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
+						return e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID)
+					} else {
+						trackProperties, err := sessionAlert.GetTrackProperties()
+						if err != nil {
+							return e.Wrap(err, "error getting track properties from session")
+						}
+						var trackPropertyIds []int
+						for _, trackProperty := range trackProperties {
+							properId, err := strconv.Atoi(trackProperty.ID)
 							if err != nil {
-								return e.Wrap(err, "error getting track properties from session")
+								continue
 							}
-							var trackPropertyIds []int
-							for _, trackProperty := range trackProperties {
-								trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
-							}
-							stmt := w.Resolver.DB.Model(&model.Field{}).
-								Where(&model.Field{OrganizationID: organizationID, Type: "track"}).
-								Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
-								Where("id IN ?", trackPropertyIds)
-							var matchedFields []*model.Field
-							if err := stmt.Find(&matchedFields).Error; err != nil {
-								return e.Wrap(err, "error querying matched fields by session_id")
-							}
-							if len(matchedFields) < 1 {
-								return fmt.Errorf("matched fields is empty in track properties slack alert")
-							}
-							err = w.SendSlackTrackPropertiesMessage(organizationID, s.ID, s.Identifier, channelsToNotify, matchedFields)
-							if err != nil {
-								return e.Wrapf(err, "[org_id: %d] error sending slack session message", organizationID)
-							}
+							trackPropertyIds = append(trackPropertyIds, properId)
+						}
+						stmt := w.Resolver.DB.Model(&model.Field{}).
+							Where(&model.Field{OrganizationID: organizationID, Type: "track"}).
+							Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
+							Where("id IN ?", trackPropertyIds)
+						var matchedFields []*model.Field
+						if err := stmt.Find(&matchedFields).Error; err != nil {
+							return e.Wrap(err, "error querying matched fields by session_id")
+						}
+						if len(matchedFields) < 1 {
+							return fmt.Errorf("matched fields is empty in track properties slack alert")
+						}
+						err = w.SendSlackTrackPropertiesMessage(organizationID, s.ID, s.Identifier, channelsToNotify, matchedFields)
+						if err != nil {
+							return e.Wrapf(err, "[org_id: %d] error sending slack session message", organizationID)
 						}
 					}
 				}
