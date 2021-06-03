@@ -204,7 +204,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		// Get SessionAlert object and send alert if is new user
 		if s.FirstTime != nil && *s.FirstTime {
 			var sessionAlert model.SessionAlert
-			if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.NEW_USER_ALERT_TYPE).First(&sessionAlert).Error; err != nil {
+			if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&sessionAlert).Error; err != nil {
 				return e.Wrapf(err, "[org_id: %d] error fetching new user alert", organizationID)
 			} else {
 				excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
@@ -241,7 +241,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	g.Go(func() error {
 		// Sending Track Properties Alert
 		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.TRACK_PROPERTIES_ALERT_TYPE).First(&sessionAlert).Error; err != nil {
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).First(&sessionAlert).Error; err != nil {
 			return e.Wrapf(err, "[org_id: %d] error fetching track properties alert", organizationID)
 		} else {
 			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
@@ -296,7 +296,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	g.Go(func() error {
 		// Sending User Properties Alert
 		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.USER_PROPERTIES_ALERT_TYPE).First(&sessionAlert).Error; err != nil {
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.USER_PROPERTIES).First(&sessionAlert).Error; err != nil {
 			return e.Wrapf(err, "[org_id: %d] error fetching user properties alert", organizationID)
 		} else {
 			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()

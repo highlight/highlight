@@ -10,32 +10,38 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
+	e "github.com/pkg/errors"
 	"github.com/rs/xid"
+	log "github.com/sirupsen/logrus"
 	"github.com/speps/go-hashids"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 var (
-	DB                          *gorm.DB
-	HashID                      *hashids.HashID
-	F                           bool = false
-	T                           bool = true
-	NEW_USER_ALERT_TYPE              = "NEW_USER_ALERT"
-	TRACK_PROPERTIES_ALERT_TYPE      = "TRACK_PROPERTIES_ALERT"
-	USER_PROPERTIES_ALERT_TYPE       = "USER_PROPERTIES_ALERT"
+	DB     *gorm.DB
+	HashID *hashids.HashID
+	F      bool = false
+	T      bool = true
 )
 
 const (
 	SUGGESTION_LIMIT_CONSTANT = 8
 )
+
+var AlertType = struct {
+	NEW_USER         string
+	TRACK_PROPERTIES string
+	USER_PROPERTIES  string
+}{
+	NEW_USER:         "NEW_USER_ALERT",
+	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
+	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
+}
 
 func init() {
 	hd := hashids.NewData()
