@@ -162,7 +162,12 @@ const Player = () => {
                             session quota. To view it you need to upgrade your
                             plan.
                         </p>
-                        <ButtonLink to="billing">Upgrade Plan</ButtonLink>
+                        <ButtonLink
+                            to="billing"
+                            trackingId="PlayerPageUpgradePlan"
+                        >
+                            Upgrade Plan
+                        </ButtonLink>
                     </FullBleedCard>
                 )}
                 <div className={styles.playerCenterPanel}>

@@ -35,7 +35,12 @@ const LimitedSessionCard = () => {
                 <b>{data?.billingDetails.sessionsOutOfQuota} sessions</b> that
                 can be viewed after you upgrade.
             </p>
-            <ButtonLink to="billing">Upgrade Plan</ButtonLink>
+            <ButtonLink
+                to="billing"
+                trackingId="LimitedSessionsCardUpgradePlan"
+            >
+                Upgrade Plan
+            </ButtonLink>
         </section>
     );
 };
