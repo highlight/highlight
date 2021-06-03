@@ -24,7 +24,7 @@ require (
 	github.com/lib/pq v1.6.0 // indirect
 	github.com/mattn/go-colorable v0.1.7 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
-	github.com/mssola/user_agent v0.5.2
+	github.com/mssola/user_agent v0.5.3
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.7.0
