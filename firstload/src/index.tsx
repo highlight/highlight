@@ -82,7 +82,6 @@ export const H: HighlightPublicInterface = {
                     environment: options?.environment || 'production',
                 });
                 if (!options?.manualStart) {
-                    console.log('calling initialize');
                     highlight_obj.initialize(orgID);
                 }
             });
