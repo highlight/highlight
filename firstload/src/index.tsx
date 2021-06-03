@@ -4,6 +4,7 @@ import {
     HighlightClassOptions,
 } from '../../client/src/index';
 import packageJson from '../package.json';
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
 import { SessionDetails } from './types/types';
 
 export type HighlightOptions = {
@@ -210,30 +211,4 @@ if (typeof window !== 'undefined') {
     window.H = H;
 }
 
-chrome?.runtime?.onMessage.addListener((message, sender, sendResponse) => {
-    const action = message.action;
-    console.log(`[highlight] received '${action}' event from extension.`);
-    switch (action) {
-        case 'init': {
-            const scriptUrl = 'http://localhost:8080/dist/index.js';
-            console.log('url', scriptUrl);
-            H.init(1, {
-                debug: true,
-                scriptUrl,
-            });
-            H.getSessionURL().then((url) => {
-                sendResponse({ url });
-            });
-            break;
-        }
-        case 'stop': {
-            H.stop();
-            sendResponse({ success: true });
-            break;
-        }
-        default: {
-            break;
-        }
-    }
-    return true;
-});
+listenToChromeExtensionMessage();
