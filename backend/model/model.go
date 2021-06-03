@@ -10,10 +10,9 @@ import (
 	"strings"
 	"time"
 
-
-	"github.com/slack-go/slack"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
+	"github.com/slack-go/slack"
 	"github.com/speps/go-hashids"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
