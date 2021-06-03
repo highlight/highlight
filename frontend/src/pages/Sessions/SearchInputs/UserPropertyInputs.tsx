@@ -26,18 +26,48 @@ export const UserPropertyInput = ({ include }: { include: boolean }) => {
 
     useWatchSessionPageSearchParams(
         SessionPageSearchParams.identifierAndId,
-        (identifierAndId) => ({
-            // We are explicitly clearing any existing search params so the only applied search param is the identifier.
-            ...EmptySessionsSearchParams,
-            user_properties: [
-                {
-                    name: 'identifier',
-                    value: identifierAndId.split(':')[0],
-                    id: identifierAndId.split(':')[1],
-                },
-            ],
-        }),
+        (identifierAndId) => {
+            return {
+                // We are explicitly clearing any existing search params so the only applied search param is the identifier.
+                ...EmptySessionsSearchParams,
+                user_properties: [
+                    {
+                        name: 'identifier',
+                        value: identifierAndId.split(':')[0],
+                        id: identifierAndId.split(':')[1],
+                    },
+                ],
+            };
+        },
         (value) => `Showing sessions for ${value}`
+    );
+
+    useWatchSessionPageSearchParams(
+        SessionPageSearchParams.identifier,
+        () => {
+            return { ...EmptySessionsSearchParams };
+        },
+        (value) => `Showing sessions for ${value}`,
+        async (identifier) => {
+            const searchResults = await generateOptions(identifier);
+
+            if (searchResults.length > 0) {
+                return {
+                    ...EmptySessionsSearchParams,
+                    user_properties: [
+                        {
+                            name: 'identifer',
+                            value: identifier,
+                            // @ts-expect-error
+                            id: searchResults[0].id,
+                        },
+                    ],
+                };
+            }
+            return {
+                ...EmptySessionsSearchParams,
+            };
+        }
     );
 
     const { refetch } = useGetUserSuggestionQuery({ skip: true });
