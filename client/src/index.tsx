@@ -28,7 +28,6 @@ import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
-import { SUPPORTED_ENVIRONMENT_NAMES } from './utils/environment/environment';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -143,16 +142,6 @@ export class Highlight {
         this.graphqlSDK = getSdk(client);
         this.environment = options.environment || 'production';
 
-        if (options.environment) {
-            if (SUPPORTED_ENVIRONMENT_NAMES.includes(options.environment)) {
-                this.environment = options.environment;
-            } else {
-                HighlightWarning(
-                    'init',
-                    'custom environment names are not currently supported, "production" was used instead. Acceptable values are: "production", "staging", and "development".'
-                );
-            }
-        }
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
         } else if (typeof options.organizationID === 'number') {
