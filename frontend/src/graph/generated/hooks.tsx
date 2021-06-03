@@ -1909,6 +1909,7 @@ export const GetSessionsDocument = gql`
                     name
                     value
                     type
+                    id
                 }
                 first_time
             }
@@ -2669,6 +2670,7 @@ export const GetTrackSuggestionDocument = gql`
             query: $query
             type: "track"
         ) {
+            id
             name
             value
         }
@@ -2731,6 +2733,7 @@ export const GetUserSuggestionDocument = gql`
             query: $query
             type: "user"
         ) {
+            id
             name
             value
         }
@@ -3316,6 +3319,7 @@ export const GetTopUsersDocument = gql`
             identifier
             total_active_time
             active_time_percentage
+            id
         }
     }
 `;

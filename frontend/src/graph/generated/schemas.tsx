@@ -20,6 +20,7 @@ export type Scalars = {
 
 export type Field = {
     __typename?: 'Field';
+    id: Scalars['ID'];
     name: Scalars['String'];
     value: Scalars['String'];
     type?: Maybe<Scalars['String']>;
@@ -174,6 +175,7 @@ export type ReferrerTablePayload = {
 
 export type TopUsersPayload = {
     __typename?: 'TopUsersPayload';
+    id: Scalars['ID'];
     identifier: Scalars['String'];
     total_active_time: Scalars['Int'];
     active_time_percentage: Scalars['Float'];
@@ -270,11 +272,13 @@ export type LengthRangeInput = {
 
 export type UserProperty = {
     __typename?: 'UserProperty';
+    id: Scalars['ID'];
     name: Scalars['String'];
     value: Scalars['String'];
 };
 
 export type UserPropertyInput = {
+    id: Scalars['ID'];
     name: Scalars['String'];
     value: Scalars['String'];
 };

@@ -5,6 +5,7 @@ scalar Time
 scalar Int64
 
 type Field {
+    id: ID!
     name: String!
     value: String!
     type: String
@@ -145,6 +146,7 @@ type ReferrerTablePayload {
 }
 
 type TopUsersPayload {
+    id: ID!
     identifier: String!
     total_active_time: Int!
     active_time_percentage: Float!
@@ -235,11 +237,13 @@ input LengthRangeInput {
 }
 
 type UserProperty {
+    id: ID!
     name: String!
     value: String!
 }
 
 input UserPropertyInput {
+    id: ID!
     name: String!
     value: String!
 }

@@ -623,7 +623,7 @@ export type GetSessionsQuery = { __typename?: 'Query' } & {
                                 Types.Maybe<
                                     { __typename?: 'Field' } & Pick<
                                         Types.Field,
-                                        'name' | 'value' | 'type'
+                                        'name' | 'value' | 'type' | 'id'
                                     >
                                 >
                             >
@@ -880,7 +880,10 @@ export type GetTrackSuggestionQuery = { __typename?: 'Query' } & {
     property_suggestion?: Types.Maybe<
         Array<
             Types.Maybe<
-                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
+                >
             >
         >
     >;
@@ -895,7 +898,10 @@ export type GetUserSuggestionQuery = { __typename?: 'Query' } & {
     property_suggestion?: Types.Maybe<
         Array<
             Types.Maybe<
-                { __typename?: 'Field' } & Pick<Types.Field, 'name' | 'value'>
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
+                >
             >
         >
     >;
@@ -1109,7 +1115,10 @@ export type GetTopUsersQuery = { __typename?: 'Query' } & {
         Types.Maybe<
             { __typename?: 'TopUsersPayload' } & Pick<
                 Types.TopUsersPayload,
-                'identifier' | 'total_active_time' | 'active_time_percentage'
+                | 'identifier'
+                | 'total_active_time'
+                | 'active_time_percentage'
+                | 'id'
             >
         >
     >;

@@ -350,6 +350,7 @@ type LengthRange struct {
 }
 
 type UserProperty struct {
+	ID    int
 	Name  string
 	Value string
 }
