@@ -1,5 +1,5 @@
 {
-    "name": "Highlight Extension",
+    "name": "Highlight Lite",
     "description": "Highlight's Chrome Extension",
     "version": "1.0",
     "manifest_version": 2,
@@ -9,7 +9,8 @@
     },
     "browser_action": {
         "default_popup": "index.html",
-        "default_title": "Highlight Extension"
+        "default_title": "Highlight Lite",
+        "default_icon": "tab-icon.png"
     },
     "permissions": [
         "storage",
