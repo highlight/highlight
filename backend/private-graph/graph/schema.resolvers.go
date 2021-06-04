@@ -1266,6 +1266,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	visitedCheck := true
 	referrerCheck := true
 	fieldIds := []int{}
+	fieldQuery := r.DB.Model(&model.Field{})
 	visitedIds := []int{}
 	referrerIds := []int{}
 	visitedQuery := r.DB.Model(&model.Field{})
@@ -1273,11 +1274,19 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	fieldsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.fieldsQuery"))
 	for _, prop := range params.UserProperties {
-		fieldIds = append(fieldIds, prop.ID)
+		if prop.Name == "contains" {
+			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+		} else {
+			fieldIds = append(fieldIds, prop.ID)
+		}
 	}
 
 	for _, prop := range params.TrackProperties {
-		fieldIds = append(fieldIds, prop.ID)
+		if prop.Name == "contains" {
+			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
+		} else {
+			fieldIds = append(fieldIds, prop.ID)
+		}
 	}
 
 	if params.VisitedURL != nil {
@@ -1289,6 +1298,13 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if len(params.UserProperties)+len(params.TrackProperties) > 0 {
+		if len(params.UserProperties)+len(params.TrackProperties) != len(fieldIds) {
+			var tempFieldIds []int
+			if err := fieldQuery.Pluck("id", &tempFieldIds).Error; err != nil {
+				return nil, e.Wrap(err, "error querying initial set of session fields")
+			}
+			fieldIds = append(fieldIds, tempFieldIds...)
+		}
 		if len(fieldIds) == 0 {
 			fieldCheck = false
 		}
@@ -1314,16 +1330,43 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	//excluded fields
 	notFieldIds := []int{}
+	notFieldQuery := r.DB.Model(&model.Field{})
 
 	for _, prop := range params.ExcludedProperties {
-		notFieldIds = append(notFieldIds, prop.ID)
+		if prop.Name == "contains" {
+			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+		} else {
+			notFieldIds = append(notFieldIds, prop.ID)
+		}
+	}
+
+	if len(params.ExcludedProperties) != len(notFieldIds) {
+		var tempNotFieldIds []int
+		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of excluded sessions fields")
+		}
+		notFieldIds = append(notFieldIds, tempNotFieldIds...)
 	}
 
 	//excluded track fields
 	notTrackFieldIds := []int{}
+	notTrackFieldQuery := r.DB.Model(&model.Field{})
 
 	for _, prop := range params.ExcludedTrackProperties {
-		notTrackFieldIds = append(notTrackFieldIds, prop.ID)
+		if prop.Name == "contains" {
+			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
+		} else {
+			notTrackFieldIds = append(notTrackFieldIds, prop.ID)
+		}
+	}
+
+	//pluck not field ids
+	if len(params.ExcludedTrackProperties) > 0 {
+		var tempNotTrackFieldIds []int
+		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
+		}
+		notTrackFieldIds = append(notTrackFieldIds, tempNotTrackFieldIds...)
 	}
 
 	fieldsSpan.Finish()
