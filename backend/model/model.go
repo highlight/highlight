@@ -641,7 +641,8 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	var msg slack.WebhookMessage
 	var messageBlock []*slack.TextBlockObject
 
-	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", obj.OrganizationID, sessionId)
+	frontendURL := os.Getenv("FRONTEND_URI")
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, sessionId)
 	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
 
 	if obj.Type == nil {
@@ -661,7 +662,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 		if len(group.Event) > 50 {
 			shortEvent = group.Event[:50] + "..."
 		}
-		errorLink := fmt.Sprintf("<https://app.highlight.run/%d/errors/%d/>", obj.OrganizationID, group.ID)
+		errorLink := fmt.Sprintf("<%s/%d/errors/%d/>", frontendURL, obj.OrganizationID, group.ID)
 		// construct slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error Alert:*\n\n"+shortEvent+"\n"+errorLink, false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
