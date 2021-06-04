@@ -118,6 +118,10 @@ export class Highlight {
     _backendUrl: string;
     _recordingStartTime: number = 0;
 
+    static create(options: HighlightClassOptions): Highlight {
+        return new Highlight(options);
+    }
+
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
             this.debugOptions = options.debug
@@ -133,9 +137,10 @@ export class Highlight {
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
-        this._backendUrl = options?.backendUrl
-            ? options.backendUrl
-            : (process.env.PUBLIC_GRAPH_URI as string);
+        this._backendUrl =
+            options?.backendUrl ||
+            process.env.PUBLIC_GRAPH_URI ||
+            'https://public.highlight.run';
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });

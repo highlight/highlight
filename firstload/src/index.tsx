@@ -4,6 +4,7 @@ import {
     HighlightClassOptions,
 } from '../../client/src/index';
 import packageJson from '../package.json';
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
 import { SessionDetails } from './types/types';
 
 export type HighlightOptions = {
@@ -44,7 +45,7 @@ type HighlightPublicInterface = {
 };
 
 interface HighlightWindow extends Window {
-    Highlight: new (options?: HighlightClassOptions) => Highlight;
+    Highlight: Highlight;
     H: HighlightPublicInterface;
 }
 
@@ -70,7 +71,7 @@ export const H: HighlightPublicInterface = {
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
             script.addEventListener('load', () => {
-                highlight_obj = new window.Highlight({
+                highlight_obj = Highlight.create({
                     organizationID: orgID,
                     debug: options?.debug,
                     backendUrl: options?.backendUrl,
@@ -209,3 +210,5 @@ export const H: HighlightPublicInterface = {
 if (typeof window !== 'undefined') {
     window.H = H;
 }
+
+listenToChromeExtensionMessage();
