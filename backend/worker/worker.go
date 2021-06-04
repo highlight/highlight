@@ -259,17 +259,29 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 					if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
 						return e.Wrapf(err, "[org_id: %d] error getting channels to notify from track properties alert", organizationID)
 					} else {
+						trackPropertiesQuery := w.Resolver.DB.Model(&model.Field{})
 						trackProperties, err := sessionAlert.GetTrackProperties()
 						if err != nil {
 							return e.Wrap(err, "error getting track properties from session")
 						}
 						var trackPropertyIds []int
 						for _, trackProperty := range trackProperties {
-							properId, err := strconv.Atoi(trackProperty.ID)
-							if err != nil {
-								continue
+							if trackProperty.Name == "contains" {
+								trackPropertiesQuery = trackPropertiesQuery.Or("value ILIKE ? and type = ?", "%"+trackProperty.Value+"%", "track")
+							} else {
+								properId, err := strconv.Atoi(trackProperty.ID)
+								if err != nil {
+									continue
+								}
+								trackPropertyIds = append(trackPropertyIds, properId)
 							}
-							trackPropertyIds = append(trackPropertyIds, properId)
+						}
+						if len(trackPropertyIds) != len(trackProperties) {
+							var tempTrackPropertyIds []int
+							if err := trackPropertiesQuery.Pluck("id", &tempTrackPropertyIds).Error; err != nil {
+								log.Error("error getting track property ids")
+							}
+							trackPropertyIds = append(trackPropertyIds, tempTrackPropertyIds...)
 						}
 						stmt := w.Resolver.DB.Model(&model.Field{}).
 							Where(&model.Field{OrganizationID: organizationID, Type: "track"}).
