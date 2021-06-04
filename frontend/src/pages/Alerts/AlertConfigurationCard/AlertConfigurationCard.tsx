@@ -9,6 +9,7 @@ import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import InputNumber from '../../../components/InputNumber/InputNumber';
 import Select from '../../../components/Select/Select';
 import {
+    useGetTrackSuggestionQuery,
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
     useUpdateSessionAlertMutation,
@@ -114,10 +115,21 @@ export const AlertConfigurationCard = ({
     };
 
     const {
-        data,
+        data: userSuggestionsApiResponse,
         loading: userSuggestionsLoading,
-        refetch,
+        refetch: refetchUserSuggestions,
     } = useGetUserSuggestionQuery({
+        variables: {
+            organization_id,
+            query: '',
+        },
+    });
+
+    const {
+        refetch: refetchTrackSuggestions,
+        loading: trackSuggestionsLoading,
+        data: trackSuggestionsApiResponse,
+    } = useGetTrackSuggestionQuery({
         variables: {
             organization_id,
             query: '',
@@ -144,22 +156,45 @@ export const AlertConfigurationCard = ({
 
     const userPropertiesSuggestions = userSuggestionsLoading
         ? []
-        : (data?.property_suggestion || []).map((suggestion) => ({
-              displayValue:
-                  (
-                      <>
-                          <b>{suggestion?.name}: </b>
-                          {suggestion?.value}
-                      </>
-                  ) || '',
-              value: suggestion?.value || '',
-              id: suggestion?.id || '',
-              name: suggestion?.name || '',
-          }));
+        : (userSuggestionsApiResponse?.property_suggestion || []).map(
+              (suggestion) => ({
+                  displayValue:
+                      (
+                          <>
+                              <b>{suggestion?.name}: </b>
+                              {suggestion?.value}
+                          </>
+                      ) || '',
+                  value: suggestion?.value || '',
+                  id: suggestion?.id || '',
+                  name: suggestion?.name || '',
+              })
+          );
+
+    const trackPropertiesSuggestions = trackSuggestionsLoading
+        ? []
+        : (trackSuggestionsApiResponse?.property_suggestion || []).map(
+              (suggestion) => ({
+                  displayValue:
+                      (
+                          <>
+                              <b>{suggestion?.name}: </b>
+                              {suggestion?.value}
+                          </>
+                      ) || '',
+                  value: suggestion?.value || '',
+                  id: suggestion?.id || '',
+                  name: suggestion?.name || '',
+              })
+          );
 
     /** Searches for a user property  */
     const handleUserPropertiesSearch = (query = '') => {
-        refetch({ query, organization_id });
+        refetchUserSuggestions({ query, organization_id });
+    };
+
+    const handleTrackPropertiesSearch = (query = '') => {
+        refetchTrackSuggestions({ query, organization_id });
     };
 
     const onChannelsChange = (channels: string[]) => {
@@ -168,12 +203,28 @@ export const AlertConfigurationCard = ({
     };
 
     const onUserPropertiesChange = (_value: any, options: any) => {
-        setUserProperties(
-            options.map(({ key, value }: { key: string; value: string }) => ({
+        const userProperties = options.map(
+            ({ key, value }: { key: string; value: string }) => ({
                 id: key,
                 value,
-            }))
+            })
         );
+        form.setFieldsValue(userProperties);
+        setFormTouched(true);
+
+        setUserProperties(userProperties);
+    };
+
+    const onTrackPropertiesChange = (_value: any, options: any) => {
+        const trackProperties = options.map(
+            ({ key, value }: { key: string; value: string }) => ({
+                id: key,
+                value,
+            })
+        );
+        form.setFieldsValue(trackProperties);
+        setFormTouched(true);
+        setUserProperties(trackProperties);
     };
 
     const onExcludedEnvironmentsChange = (excludedEnvironments: string[]) => {
@@ -235,6 +286,25 @@ export const AlertConfigurationCard = ({
                                 mode="multiple"
                                 placeholder={`Pick the user properties that you would like to get alerted for.`}
                                 onChange={onUserPropertiesChange}
+                            />
+                        </Form.Item>
+                    </section>
+                )}
+                {type === ALERT_TYPE.TrackProperties && (
+                    <section>
+                        <h3>Track Properties</h3>
+                        <p>
+                            Pick the track properties that you would like to get
+                            alerted for.
+                        </p>
+                        <Form.Item name="trackProperties">
+                            <Select
+                                onSearch={handleTrackPropertiesSearch}
+                                className={styles.channelSelect}
+                                options={trackPropertiesSuggestions}
+                                mode="multiple"
+                                placeholder={`Pick the track properties that you would like to get alerted for.`}
+                                onChange={onTrackPropertiesChange}
                             />
                         </Form.Item>
                     </section>

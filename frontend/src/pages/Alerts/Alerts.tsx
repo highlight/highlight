@@ -13,6 +13,7 @@ export enum ALERT_TYPE {
     Error,
     FirstTimeUser,
     UserProperties,
+    TrackProperties,
 }
 
 const ALERT_CONFIGURATIONS = [
@@ -29,11 +30,17 @@ const ALERT_CONFIGURATIONS = [
             'Get alerted when a new user starts their first journey in your application.',
     },
     {
-        name: 'User Properties',
+        name: 'Identified Users',
         canControlThreshold: false,
         type: ALERT_TYPE.UserProperties,
         description:
             'Get alerted when users you want to track record a session.',
+    },
+    {
+        name: 'Track Events',
+        canControlThreshold: false,
+        type: ALERT_TYPE.TrackProperties,
+        description: 'Get alerted when an action is done in your application.',
     },
 ];
 
@@ -109,6 +116,21 @@ const AlertsPage = () => {
                         />
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[2]}
+                            alert={
+                                data?.session_alerts
+                                    ? data?.session_alerts[0]
+                                    : {}
+                            }
+                            environmentOptions={
+                                data?.environment_suggestion || []
+                            }
+                            channelSuggestions={
+                                data?.slack_channel_suggestion || []
+                            }
+                            slackUrl={slackUrl}
+                        />
+                        <AlertConfigurationCard
+                            configuration={ALERT_CONFIGURATIONS[3]}
                             alert={
                                 data?.session_alerts
                                     ? data?.session_alerts[0]
