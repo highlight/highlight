@@ -13,6 +13,7 @@ import (
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -195,16 +196,57 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 
-	// Get SessionAlert object and send alert if is new user
+	var g errgroup.Group
 	organizationID := s.OrganizationID
-	if s.FirstTime != nil && *s.FirstTime {
+
+	g.Go(func() error {
+		// Sending New User Alert
+		// Get SessionAlert object and send alert if is new user
+		if s.FirstTime != nil && *s.FirstTime {
+			var sessionAlert model.SessionAlert
+			if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&sessionAlert).Error; err != nil {
+				return e.Wrapf(err, "[org_id: %d] error fetching new user alert", organizationID)
+			} else {
+				excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+				if err != nil {
+					return e.Wrapf(err, "[org_id: %d] error getting excluded environments from new user alert", organizationID)
+				} else {
+					isExcludedEnvironment := false
+					for _, env := range excludedEnvironments {
+						if env != nil && *env == s.Environment {
+							isExcludedEnvironment = true
+							break
+						}
+					}
+					if !isExcludedEnvironment {
+						if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
+							return e.Wrapf(err, "[org_id: %d] error getting channels to notify from new user alert", organizationID)
+						} else {
+							userProperties, err := s.GetUserProperties()
+							if err != nil {
+								return e.Wrapf(err, "[org_id: %d] error getting user properties from new user alert", s.OrganizationID)
+							}
+							err = w.SendSlackNewUserMessage(org, s.ID, s.Identifier, channelsToNotify, userProperties)
+							if err != nil {
+								return e.Wrapf(err, "[org_id: %d] error sending slack message for new user alert", organizationID)
+							}
+						}
+					}
+				}
+			}
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		// Sending Track Properties Alert
 		var sessionAlert model.SessionAlert
-		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&sessionAlert).Error; err != nil {
-			log.Error(e.Wrapf(err, "[org_id: %d] error fetching SessionAlert object", organizationID))
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).First(&sessionAlert).Error; err != nil {
+			return e.Wrapf(err, "[org_id: %d] error fetching track properties alert", organizationID)
 		} else {
 			excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
 			if err != nil {
-				log.Error(e.Wrapf(err, "[org_id: %d] error getting excluded environments from SessionAlert", organizationID))
+				return e.Wrapf(err, "[org_id: %d] error getting excluded environments from track properties alert", organizationID)
 			} else {
 				isExcludedEnvironment := false
 				for _, env := range excludedEnvironments {
@@ -215,20 +257,44 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 				}
 				if !isExcludedEnvironment {
 					if channelsToNotify, err := sessionAlert.GetChannelsToNotify(); err != nil {
-						log.Error(e.Wrapf(err, "[org_id: %d] error getting channels to notify from SessionAlert", organizationID))
+						return e.Wrapf(err, "[org_id: %d] error getting channels to notify from track properties alert", organizationID)
 					} else {
-						userProperties, err := s.GetUserProperties()
+						trackProperties, err := sessionAlert.GetTrackProperties()
 						if err != nil {
-							log.Error(e.Wrapf(err, "[org_id: %d] error getting user properties from session object", s.OrganizationID))
+							return e.Wrap(err, "error getting track properties from session")
 						}
-						err = w.SendSlackSessionMessage(organizationID, s.ID, s.Identifier, channelsToNotify, userProperties)
+						var trackPropertyIds []int
+						for _, trackProperty := range trackProperties {
+							properId, err := strconv.Atoi(trackProperty.ID)
+							if err != nil {
+								continue
+							}
+							trackPropertyIds = append(trackPropertyIds, properId)
+						}
+						stmt := w.Resolver.DB.Model(&model.Field{}).
+							Where(&model.Field{OrganizationID: organizationID, Type: "track"}).
+							Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
+							Where("id IN ?", trackPropertyIds)
+						var matchedFields []*model.Field
+						if err := stmt.Find(&matchedFields).Error; err != nil {
+							return e.Wrap(err, "error querying matched fields by session_id")
+						}
+						if len(matchedFields) < 1 {
+							return nil
+						}
+						err = w.SendSlackTrackPropertiesMessage(org, s.ID, channelsToNotify, matchedFields)
 						if err != nil {
-							log.Error(e.Wrapf(err, "[org_id: %d] error sending slack session message", organizationID))
+							return e.Wrapf(err, "[org_id: %d] error sending track properties alert slack message", organizationID)
 						}
 					}
 				}
 			}
 		}
+		return nil
+	})
+	// Waits for both goroutines to finish, then returns the first non-nil error (if any).
+	if err := g.Wait(); err != nil {
+		log.Error(err)
 	}
 
 	// Upload to s3 and wipe from the db.
@@ -330,12 +396,7 @@ func getActiveDuration(events []model.EventsObject) (*time.Duration, error) {
 	return &d, nil
 }
 
-func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel, userProperties map[string]string) error {
-	organization := &model.Organization{}
-	res := w.Resolver.DB.Where("id = ?", orgID).First(&organization)
-	if err := res.Error; err != nil {
-		return e.Wrap(err, "error messaging organization")
-	}
+func (w *Worker) SendSlackNewUserMessage(organization *model.Organization, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel, userProperties map[string]string) error {
 	integratedSlackChannels, err := organization.IntegratedSlackChannels()
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for alert")
@@ -343,7 +404,7 @@ func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifie
 	if len(integratedSlackChannels) <= 0 {
 		return nil
 	}
-	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", orgID, sessionID)
+	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", organization.ID, sessionID)
 
 	var messageBlock []*slack.TextBlockObject
 	if userIdentifier != "" {
@@ -370,7 +431,7 @@ func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifie
 				}
 			}
 			if slackWebhookURL == "" {
-				log.Errorf("[org_id: %d] requested channel has no matching slackWebhookURL: channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
+				log.Errorf("[org_id: %d] requested channel has no matching slackWebhookURL: channel %s at url %s", organization.ID, *channel.WebhookChannel, slackWebhookURL)
 				continue
 			}
 
@@ -380,6 +441,66 @@ func (w *Worker) SendSlackSessionMessage(orgID int, sessionID int, userIdentifie
 					BlockSet: []slack.Block{
 						slack.NewSectionBlock(
 							slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User:*\n\n", false, false),
+							messageBlock,
+							nil,
+						),
+						slack.NewDividerBlock(),
+					},
+				},
+			}
+			err := slack.PostWebhook(
+				slackWebhookURL,
+				&msg,
+			)
+			if err != nil {
+				return e.Wrap(err, "error sending slack msg")
+			}
+		}
+	}
+
+	return nil
+}
+
+func (w *Worker) SendSlackTrackPropertiesMessage(organization *model.Organization, sessionID int, channels []*modelInputs.SanitizedSlackChannel, matchedFields []*model.Field) error {
+	//TODO: make this more generic to reduce *code smell*
+	integratedSlackChannels, err := organization.IntegratedSlackChannels()
+	if err != nil {
+		return e.Wrap(err, "error getting slack webhook url for track properties alert")
+	}
+	if len(integratedSlackChannels) <= 0 {
+		return nil
+	}
+	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", organization.ID, sessionID)
+
+	var formattedFields []string
+	for _, addr := range matchedFields {
+		formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
+	}
+
+	var messageBlock []*slack.TextBlockObject
+	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
+	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", formattedFields), false, false))
+
+	for _, channel := range channels {
+		if channel.WebhookChannel != nil {
+			var slackWebhookURL string
+			for _, ch := range integratedSlackChannels {
+				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
+					slackWebhookURL = ch.WebhookURL
+					break
+				}
+			}
+			if slackWebhookURL == "" {
+				log.Errorf("[org_id: %d] requested channel for track properties alert has no matching slackWebhookURL: channel %s at url %s", organization.ID, *channel.WebhookChannel, slackWebhookURL)
+				continue
+			}
+
+			msg := slack.WebhookMessage{
+				Channel: *channel.WebhookChannel,
+				Blocks: &slack.Blocks{
+					BlockSet: []slack.Block{
+						slack.NewSectionBlock(
+							slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Track Properties:*\n\n", false, false),
 							messageBlock,
 							nil,
 						),

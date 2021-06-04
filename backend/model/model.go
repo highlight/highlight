@@ -30,6 +30,18 @@ var (
 	T      bool = true
 )
 
+var AlertType = struct {
+	NEW_USER         string
+	TRACK_PROPERTIES string
+}{
+	NEW_USER:         "NEW_USER_ALERT",
+	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
+}
+
+const (
+	SUGGESTION_LIMIT_CONSTANT = 8
+)
+
 func init() {
 	hd := hashids.NewData()
 	hd.MinLength = 8
@@ -92,6 +104,7 @@ type Alert struct {
 	CountThreshold       int
 	ThresholdWindow      *int
 	ChannelsToNotify     *string
+	Type                 *string `gorm:"index"`
 }
 
 type ErrorAlert struct {
@@ -102,6 +115,7 @@ type ErrorAlert struct {
 type SessionAlert struct {
 	Model
 	Alert
+	TrackProperties *string
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
@@ -132,6 +146,21 @@ func (obj *Alert) GetChannelsToNotify() ([]*modelInputs.SanitizedSlackChannel, e
 		return nil, e.Wrap(err, "error unmarshalling sanitized slack channels")
 	}
 	return sanitizedChannels, nil
+}
+
+func (obj *SessionAlert) GetTrackProperties() ([]*TrackProperty, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for track properties")
+	}
+	propertyString := "[]"
+	if obj.TrackProperties != nil {
+		propertyString = *obj.TrackProperties
+	}
+	var sanitizedProperties []*TrackProperty
+	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized track properties")
+	}
+	return sanitizedProperties, nil
 }
 
 type SlackChannel struct {
@@ -353,6 +382,12 @@ type UserProperty struct {
 	ID    int
 	Name  string
 	Value string
+}
+
+type TrackProperty struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 type MessagesObject struct {

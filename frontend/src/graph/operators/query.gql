@@ -527,8 +527,8 @@ query GetDailyErrorsCount($organization_id: ID!, $date_range: DateRangeInput!) {
     }
 }
 
-query GetErrorAlerts($organization_id: ID!) {
-    error_alerts(organization_id: $organization_id) {
+query GetErrorAlert($organization_id: ID!) {
+    error_alert(organization_id: $organization_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -538,8 +538,19 @@ query GetErrorAlerts($organization_id: ID!) {
     }
 }
 
-query GetSessionAlerts($organization_id: ID!) {
-    session_alerts(organization_id: $organization_id) {
+query GetNewUserAlert($organization_id: ID!) {
+    new_user_alert(organization_id: $organization_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}
+
+query GetTrackPropertiesAlert($organization_id: ID!) {
+    track_properties_alert(organization_id: $organization_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -572,7 +583,7 @@ query GetAlertsPagePayload($organization_id: ID!) {
         name
         value
     }
-    error_alerts(organization_id: $organization_id) {
+    error_alert(organization_id: $organization_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -582,7 +593,7 @@ query GetAlertsPagePayload($organization_id: ID!) {
         ThresholdWindow
         id
     }
-    session_alerts(organization_id: $organization_id) {
+    new_user_alert(organization_id: $organization_id) {
         id
         ChannelsToNotify {
             webhook_channel
