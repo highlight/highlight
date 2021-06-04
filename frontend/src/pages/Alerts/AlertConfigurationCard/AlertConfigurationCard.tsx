@@ -42,6 +42,9 @@ export const AlertConfigurationCard = ({
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
     const [threshold, setThreshold] = useState(alert?.CountThreshold || 1);
+    const [userProperties, setUserProperties] = useState<
+        { id: string; value: string }[]
+    >([]);
     /** lookbackPeriod units is minutes. */
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
@@ -93,6 +96,12 @@ export const AlertConfigurationCard = ({
                         },
                     });
                     break;
+                case ALERT_TYPE.UserProperties:
+                    // TODO: Make the request.
+                    console.log(userProperties);
+                    break;
+                default:
+                    throw new Error(`Unsupported alert type: ${type}`);
             }
             message.success(`Updated ${name}!`);
             setFormTouched(false);
@@ -144,17 +153,27 @@ export const AlertConfigurationCard = ({
                       </>
                   ) || '',
               value: suggestion?.value || '',
-              id: suggestion?.value || '',
+              id: suggestion?.id || '',
+              name: suggestion?.name || '',
           }));
 
     /** Searches for a user property  */
-    const handleUserPropertiesSearch = (query: string) => {
+    const handleUserPropertiesSearch = (query = '') => {
         refetch({ query, organization_id });
     };
 
     const onChannelsChange = (channels: string[]) => {
         form.setFieldsValue({ channels });
         setFormTouched(true);
+    };
+
+    const onUserPropertiesChange = (_value: any, options: any) => {
+        setUserProperties(
+            options.map(({ key, value }: { key: string; value: string }) => ({
+                id: key,
+                value,
+            }))
+        );
     };
 
     const onExcludedEnvironmentsChange = (excludedEnvironments: string[]) => {
@@ -208,17 +227,14 @@ export const AlertConfigurationCard = ({
                             Pick the user properties that you would like to get
                             alerted for.
                         </p>
-                        <Form.Item>
+                        <Form.Item name="userProperties">
                             <Select
                                 onSearch={handleUserPropertiesSearch}
                                 className={styles.channelSelect}
                                 options={userPropertiesSuggestions}
                                 mode="multiple"
                                 placeholder={`Pick the user properties that you would like to get alerted for.`}
-                                onChange={onChannelsChange}
-                                defaultValue={alert.ChannelsToNotify.map(
-                                    (channel: any) => channel.webhook_channel_id
-                                )}
+                                onChange={onUserPropertiesChange}
                             />
                         </Form.Item>
                     </section>
