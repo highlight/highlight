@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 
 import { useGetBillingDetailsQuery } from '../../../graph/generated/hooks';
 import ButtonLink from '../../Button/ButtonLink/ButtonLink';
+import Card from '../../Card/Card';
 import styles from './LimitedSessionsCard.module.scss';
 
 const LimitedSessionCard = () => {
@@ -24,9 +25,8 @@ const LimitedSessionCard = () => {
     }
 
     return (
-        <section className={styles.container}>
-            <div className={styles.actionsContainer}></div>
-            <h3>You’ve reached your session quota for this month 😔</h3>
+        <Card className={styles.container}>
+            <h2>You’ve reached your session quota for this month 😔</h2>
             <p className={styles.description}>
                 You can still view sessions recorded before you reached your
                 quota. There are{' '}
@@ -40,7 +40,7 @@ const LimitedSessionCard = () => {
             >
                 Upgrade Plan
             </ButtonLink>
-        </section>
+        </Card>
     );
 };
 

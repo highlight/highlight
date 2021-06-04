@@ -9,7 +9,7 @@
     border: 1px solid var(--color-gray-300);
     border-radius: 8px;
     margin-bottom: 14px;
-    padding: var(--size-medium);
+    padding: var(--size-large);
     padding-bottom: var(--size-large);
     text-align: center;
 }
@@ -27,11 +27,6 @@
     color: var(--text-primary);
     height: var(--size-small);
     width: var(--size-small);
-}
-
-.actionsContainer {
-    display: flex;
-    justify-content: flex-end;
 }
 
 .center {
