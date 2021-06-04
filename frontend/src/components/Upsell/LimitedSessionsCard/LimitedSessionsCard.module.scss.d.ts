@@ -1,4 +1,3 @@
-export const actionsContainer: string;
 export const center: string;
 export const closeButton: string;
 export const closeIcon: string;
