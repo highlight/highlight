@@ -139,7 +139,7 @@ export const AlertConfigurationCard = ({
               displayValue:
                   (
                       <>
-                          <b>{suggestion?.name}</b>
+                          <b>{suggestion?.name}: </b>
                           {suggestion?.value}
                       </>
                   ) || '',
