@@ -28,10 +28,10 @@ const LimitedSessionCard = () => {
         <Card className={styles.container}>
             <h2>You’ve reached your session quota for this month 😔</h2>
             <p className={styles.description}>
-                You can still view sessions recorded before you reached your
-                quota. There are{' '}
+                There are{' '}
                 <b>{data?.billingDetails.sessionsOutOfQuota} sessions</b> that
-                can be viewed after you upgrade.
+                can be viewed after you upgrade. Sessions recorded before you
+                reached your quota are still viewable.
             </p>
             <ButtonLink
                 className={styles.center}
