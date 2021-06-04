@@ -39,7 +39,7 @@ if (dev) {
             Math.floor(Math.random() * sampleEnvironmentNames.length)
         ]
     }-localhost`;
-    window.document.title = `⚙️ DEV ${window.document.title}`;
+    window.document.title = `⚙️ ${window.document.title}`;
     if (favicon) {
         favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`;
     }
@@ -47,7 +47,7 @@ if (dev) {
     if (favicon) {
         favicon.href = `${process.env.PUBLIC_URL}/favicon-pr.ico`;
     }
-    window.document.title = `📸 PR ${window.document.title}`;
+    window.document.title = `📸 ${window.document.title}`;
     options.environment = 'Pull Request Preview';
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
