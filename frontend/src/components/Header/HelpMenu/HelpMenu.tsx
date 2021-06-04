@@ -1,6 +1,7 @@
 import React from 'react';
 import { FiTwitter } from 'react-icons/fi';
 
+import { useGetAdminQuery } from '../../../graph/generated/hooks';
 import SvgBookIcon from '../../../static/BookIcon';
 import SvgEditIcon from '../../../static/EditIcon';
 import SvgHelpCircleIcon from '../../../static/HelpCircleIcon';
@@ -11,12 +12,20 @@ import PopoverListContent from '../../Popover/PopoverListContent';
 import styles from './HelpMenu.module.scss';
 
 const HelpMenu = () => {
+    const { data } = useGetAdminQuery();
+
     const leadMenuItems: HelpMenuItem[] = [
         {
             icon: <SvgMessageIcon />,
             displayName: 'Send us a message',
             action: () => {
-                console.log('send us a message');
+                window.Intercom('boot', {
+                    app_id: 'gm6369ty',
+                    alignment: 'right',
+                    hide_default_launcher: true,
+                    email: data?.admin?.email,
+                });
+                window.Intercom('showNewMessage');
             },
         },
     ];
