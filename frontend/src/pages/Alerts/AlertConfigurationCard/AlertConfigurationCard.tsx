@@ -44,7 +44,10 @@ export const AlertConfigurationCard = ({
     const [formTouched, setFormTouched] = useState(false);
     const [threshold, setThreshold] = useState(alert?.CountThreshold || 1);
     const [userProperties, setUserProperties] = useState<
-        { id: string; value: string }[]
+        { id: string; value: string; name: string }[]
+    >([]);
+    const [trackProperties, setTrackProperties] = useState<
+        { id: string; value: string; name: string }[]
     >([]);
     /** lookbackPeriod units is minutes. */
     const [lookbackPeriod, setLookbackPeriod] = useState(
@@ -100,6 +103,10 @@ export const AlertConfigurationCard = ({
                 case ALERT_TYPE.UserProperties:
                     // TODO: Make the request.
                     console.log(userProperties);
+                    break;
+                case ALERT_TYPE.TrackProperties:
+                    // TODO: Make the request.
+                    console.log(trackProperties);
                     break;
                 default:
                     throw new Error(`Unsupported alert type: ${type}`);
@@ -165,7 +172,7 @@ export const AlertConfigurationCard = ({
                               {suggestion?.value}
                           </>
                       ) || '',
-                  value: suggestion?.value || '',
+                  value: `${suggestion?.value}:${suggestion?.name}` || '',
                   id: suggestion?.id || '',
                   name: suggestion?.name || '',
               })
@@ -182,7 +189,7 @@ export const AlertConfigurationCard = ({
                               {suggestion?.value}
                           </>
                       ) || '',
-                  value: suggestion?.value || '',
+                  value: `${suggestion?.value}:${suggestion?.name}` || '',
                   id: suggestion?.id || '',
                   name: suggestion?.name || '',
               })
@@ -204,10 +211,14 @@ export const AlertConfigurationCard = ({
 
     const onUserPropertiesChange = (_value: any, options: any) => {
         const userProperties = options.map(
-            ({ key, value }: { key: string; value: string }) => ({
-                id: key,
-                value,
-            })
+            ({ key, value: valueAndName }: { key: string; value: string }) => {
+                const [value, name] = valueAndName.split(':');
+                return {
+                    id: key,
+                    value,
+                    name,
+                };
+            }
         );
         form.setFieldsValue(userProperties);
         setFormTouched(true);
@@ -217,14 +228,18 @@ export const AlertConfigurationCard = ({
 
     const onTrackPropertiesChange = (_value: any, options: any) => {
         const trackProperties = options.map(
-            ({ key, value }: { key: string; value: string }) => ({
-                id: key,
-                value,
-            })
+            ({ key, value: valueAndName }: { key: string; value: string }) => {
+                const [value, name] = valueAndName.split(':');
+                return {
+                    id: key,
+                    value,
+                    name,
+                };
+            }
         );
         form.setFieldsValue(trackProperties);
         setFormTouched(true);
-        setUserProperties(trackProperties);
+        setTrackProperties(trackProperties);
     };
 
     const onExcludedEnvironmentsChange = (excludedEnvironments: string[]) => {
