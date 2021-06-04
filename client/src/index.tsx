@@ -28,7 +28,6 @@ import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
-import { SUPPORTED_ENVIRONMENT_NAMES } from './utils/environment/environment';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -119,6 +118,10 @@ export class Highlight {
     _backendUrl: string;
     _recordingStartTime: number = 0;
 
+    static create(options: HighlightClassOptions): Highlight {
+        return new Highlight(options);
+    }
+
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
             this.debugOptions = options.debug
@@ -134,25 +137,16 @@ export class Highlight {
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
-        this._backendUrl = options?.backendUrl
-            ? options.backendUrl
-            : (process.env.PUBLIC_GRAPH_URI as string);
+        this._backendUrl =
+            options?.backendUrl ||
+            process.env.PUBLIC_GRAPH_URI ||
+            'https://public.highlight.run';
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
         this.graphqlSDK = getSdk(client);
-        this.environment = 'production';
+        this.environment = options.environment || 'production';
 
-        if (options.environment) {
-            if (SUPPORTED_ENVIRONMENT_NAMES.includes(options.environment)) {
-                this.environment = options.environment;
-            } else {
-                HighlightWarning(
-                    'init',
-                    'custom environment names are not currently supported, "production" was used instead. Acceptable values are: "production", "staging", and "development".'
-                );
-            }
-        }
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
         } else if (typeof options.organizationID === 'number') {

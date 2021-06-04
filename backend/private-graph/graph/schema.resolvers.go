@@ -1220,11 +1220,11 @@ func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBa
 
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.topUsers"))
-	if err := r.DB.Raw(fmt.Sprintf(`SELECT identifier, SUM(active_length) as total_active_time, SUM(active_length) / (SELECT SUM(active_length) from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) as active_time_percentage
+	if err := r.DB.Raw(fmt.Sprintf(`SELECT identifier, (SELECT id FROM fields WHERE organization_id=%d AND type='user' AND name='identifier' AND value=identifier) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (SELECT SUM(active_length) from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) as active_time_percentage
 	FROM (SELECT identifier, active_length from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) q1
 	GROUP BY identifier
 	ORDER BY total_active_time DESC
-	LIMIT 50`, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
+	LIMIT 50`, organizationID, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -1266,9 +1266,9 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	visitedCheck := true
 	referrerCheck := true
 	fieldIds := []int{}
+	fieldQuery := r.DB.Model(&model.Field{})
 	visitedIds := []int{}
 	referrerIds := []int{}
-	fieldQuery := r.DB.Model(&model.Field{})
 	visitedQuery := r.DB.Model(&model.Field{})
 	referrerQuery := r.DB.Model(&model.Field{})
 
@@ -1277,7 +1277,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		if prop.Name == "contains" {
 			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
 		} else {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+			fieldIds = append(fieldIds, prop.ID)
 		}
 	}
 
@@ -1285,7 +1285,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		if prop.Name == "contains" {
 			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
 		} else {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
+			fieldIds = append(fieldIds, prop.ID)
 		}
 	}
 
@@ -1298,8 +1298,12 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if len(params.UserProperties)+len(params.TrackProperties) > 0 {
-		if err := fieldQuery.Pluck("id", &fieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying initial set of session fields")
+		if len(params.UserProperties)+len(params.TrackProperties) != len(fieldIds) {
+			var tempFieldIds []int
+			if err := fieldQuery.Pluck("id", &tempFieldIds).Error; err != nil {
+				return nil, e.Wrap(err, "error querying initial set of session fields")
+			}
+			fieldIds = append(fieldIds, tempFieldIds...)
 		}
 		if len(fieldIds) == 0 {
 			fieldCheck = false
@@ -1332,15 +1336,16 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		if prop.Name == "contains" {
 			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
 		} else {
-			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+			notFieldIds = append(notFieldIds, prop.ID)
 		}
 	}
 
-	//pluck not field ids
-	if len(params.ExcludedProperties) > 0 {
+	if len(params.ExcludedProperties) != len(notFieldIds) {
+		var tempNotFieldIds []int
 		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
 			return nil, e.Wrap(err, "error querying initial set of excluded sessions fields")
 		}
+		notFieldIds = append(notFieldIds, tempNotFieldIds...)
 	}
 
 	//excluded track fields
@@ -1351,15 +1356,17 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		if prop.Name == "contains" {
 			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
 		} else {
-			notTrackFieldQuery = notTrackFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
+			notTrackFieldIds = append(notTrackFieldIds, prop.ID)
 		}
 	}
 
 	//pluck not field ids
 	if len(params.ExcludedTrackProperties) > 0 {
-		if err := notTrackFieldQuery.Pluck("id", &notTrackFieldIds).Error; err != nil {
+		var tempNotTrackFieldIds []int
+		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
 			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
 		}
+		notTrackFieldIds = append(notTrackFieldIds, tempNotTrackFieldIds...)
 	}
 
 	fieldsSpan.Finish()
@@ -1473,10 +1480,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += "AND (id != id) "
 	}
 
-	// Anthony's org shouldn't get sessions over the quota
-	if organizationID == 110 {
-		whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
-	}
+	// user shouldn't see sessions that are not within billing quota
+	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
 
 	var g errgroup.Group
 	queriedSessions := []model.Session{}

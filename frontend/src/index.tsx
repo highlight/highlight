@@ -25,9 +25,23 @@ const options: HighlightOptions = {
 };
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
+
+    const sampleEnvironmentNames = [
+        'john',
+        'jay',
+        'anthony',
+        'cameron',
+        'boba',
+    ];
+    options.environment = `${
+        sampleEnvironmentNames[
+            Math.floor(Math.random() * sampleEnvironmentNames.length)
+        ]
+    }-localhost`;
     window.document.title = `⚙️ DEV ${window.document.title}`;
 } else if (window.location.href.includes('onrender')) {
     window.document.title = `📸 PR ${window.document.title}`;
+    options.environment = 'Pull Request Preview';
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();

@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	e "github.com/pkg/errors"
@@ -25,7 +26,7 @@ import (
 func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, fingerprint string) (*model.Session, error) {
 	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, firstloadVersion, clientVersion, clientConfig, environment, fingerprint)
 
-	if err != nil {
+	if os.Getenv("ENVIRONMENT") != "dev" && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
 			Sprintf("Error in InitializeSession: %q\nOccurred for organization: %q", err, organizationVerboseID)}
 		slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
@@ -224,6 +225,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		errorToInsert := &model.ErrorObject{
 			OrganizationID: organizationID,
 			SessionID:      sessionID,
+			Environment:    sessionObj.Environment,
 			Event:          v.Event,
 			Type:           v.Type,
 			URL:            v.URL,

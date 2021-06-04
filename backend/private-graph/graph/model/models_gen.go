@@ -25,12 +25,13 @@ type DateRangeInput struct {
 }
 
 type ErrorMetadata struct {
-	ErrorID    int       `json:"error_id"`
-	SessionID  int       `json:"session_id"`
-	Timestamp  time.Time `json:"timestamp"`
-	Os         *string   `json:"os"`
-	Browser    *string   `json:"browser"`
-	VisitedURL *string   `json:"visited_url"`
+	ErrorID     int       `json:"error_id"`
+	SessionID   int       `json:"session_id"`
+	Environment *string   `json:"environment"`
+	Timestamp   time.Time `json:"timestamp"`
+	Os          *string   `json:"os"`
+	Browser     *string   `json:"browser"`
+	VisitedURL  *string   `json:"visited_url"`
 }
 
 type ErrorSearchParamsInput struct {
@@ -110,6 +111,7 @@ type SearchParamsInput struct {
 }
 
 type TopUsersPayload struct {
+	ID                   int     `json:"id"`
 	Identifier           string  `json:"identifier"`
 	TotalActiveTime      int     `json:"total_active_time"`
 	ActiveTimePercentage float64 `json:"active_time_percentage"`
@@ -120,6 +122,7 @@ type UserFingerprintCount struct {
 }
 
 type UserPropertyInput struct {
+	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }

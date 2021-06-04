@@ -27,6 +27,7 @@ import { ReactComponent as ResolvedIcon } from '../../../static/checkmark.svg';
 import { ReactComponent as FlagIcon } from '../../../static/flag.svg';
 import { frequencyTimeData } from '../../../util/errorCalculations';
 import { gqlSanitize } from '../../../util/gqlSanitize';
+import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
 import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import { EventInput } from '../ErrorSearchInputs/EventInput';
@@ -116,7 +117,7 @@ export const ErrorFeed = () => {
                 </div>
                 <div
                     className={styles.resultCount}
-                >{`${data.totalCount} errors`}</div>
+                >{`${formatNumberWithDelimiters(data.totalCount)} errors`}</div>
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>

@@ -37,6 +37,7 @@ export const TrackPropertyInput = ({
                     label: f?.name + ': ' + f?.value,
                     value: f?.value,
                     name: f?.name,
+                    id: f?.id,
                 };
             }
         );
@@ -66,8 +67,11 @@ export const TrackPropertyInput = ({
                 onChange={(options) => {
                     const newOptions: Array<UserProperty> =
                         options?.map((o) => {
-                            if (!o.name) o.name = 'contains';
-                            return { name: o.name, value: o.value };
+                            if (!o.name) {
+                                o.name = 'contains';
+                                o.id = '-1';
+                            }
+                            return { id: o.id, name: o.name, value: o.value };
                         }) ?? [];
 
                     if (include) {
@@ -90,6 +94,7 @@ export const TrackPropertyInput = ({
                                   label: p.name + ': ' + p.value,
                                   value: p.value,
                                   name: p.name,
+                                  id: p.id,
                               };
                           })
                         : searchParams?.excluded_track_properties?.map((p) => {
@@ -97,6 +102,7 @@ export const TrackPropertyInput = ({
                                   label: p.name + ': ' + p.value,
                                   value: p.value,
                                   name: p.name,
+                                  id: p.id,
                               };
                           })
                 }

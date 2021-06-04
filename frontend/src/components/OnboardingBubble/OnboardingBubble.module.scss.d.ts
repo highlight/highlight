@@ -10,3 +10,4 @@ export const stepCompleted: string;
 export const stepIncomplete: string;
 export const stepsContainer: string;
 export const stepsCount: string;
+export const tooltip: string;
