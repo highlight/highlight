@@ -104,14 +104,16 @@ export const AlertConfigurationCard = ({
         setLoading(false);
     };
 
-    const { data, loading: userSuggestionsLoading } = useGetUserSuggestionQuery(
-        {
-            variables: {
-                organization_id,
-                query: '',
-            },
-        }
-    );
+    const {
+        data,
+        loading: userSuggestionsLoading,
+        refetch,
+    } = useGetUserSuggestionQuery({
+        variables: {
+            organization_id,
+            query: '',
+        },
+    });
 
     const channels = channelSuggestions.map(
         ({ webhook_channel, webhook_channel_id }) => ({
@@ -144,6 +146,11 @@ export const AlertConfigurationCard = ({
               value: suggestion?.value || '',
               id: suggestion?.value || '',
           }));
+
+    /** Searches for a user property  */
+    const handleUserPropertiesSearch = (query: string) => {
+        refetch({ query, organization_id });
+    };
 
     const onChannelsChange = (channels: string[]) => {
         form.setFieldsValue({ channels });
@@ -203,6 +210,7 @@ export const AlertConfigurationCard = ({
                         </p>
                         <Form.Item>
                             <Select
+                                onSearch={handleUserPropertiesSearch}
                                 className={styles.channelSelect}
                                 options={userPropertiesSuggestions}
                                 mode="multiple"
