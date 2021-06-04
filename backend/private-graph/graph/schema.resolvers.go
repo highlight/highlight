@@ -823,11 +823,6 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
-	alert := &model.SessionAlert{}
-	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying track properties alert")
-	}
-
 	envBytes, err := json.Marshal(environments)
 	if err != nil {
 		return nil, e.Wrap(err, "error parsing environments for track properties alert")
@@ -852,6 +847,7 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 	}
 	trackPropertiesString := string(trackPropertiesBytes)
 
+	alert := &model.SessionAlert{}
 	alert.ExcludedEnvironments = &envString
 	alert.ChannelsToNotify = &channelsString
 	alert.TrackProperties = &trackPropertiesString
