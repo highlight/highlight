@@ -188,7 +188,7 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
-		return nil, e.Wrap(err, "error creating session alert for new org")
+		return nil, e.Wrap(err, "error creating track properties alert for new org")
 	}
 	return org, nil
 }
