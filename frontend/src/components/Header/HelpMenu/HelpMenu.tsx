@@ -52,7 +52,6 @@ const HelpMenu = () => {
         <Popover
             isList
             hasBorder
-            visible
             placement="bottomRight"
             content={
                 <>
