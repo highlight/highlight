@@ -877,11 +877,6 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
-	alert := &model.SessionAlert{}
-	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying user properties alert")
-	}
-
 	envBytes, err := json.Marshal(environments)
 	if err != nil {
 		return nil, e.Wrap(err, "error parsing environments for user properties alert")
@@ -906,6 +901,7 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 	}
 	userPropertiesString := string(userPropertiesBytes)
 
+	alert := &model.SessionAlert{}
 	alert.ExcludedEnvironments = &envString
 	alert.ChannelsToNotify = &channelsString
 	alert.UserProperties = &userPropertiesString
