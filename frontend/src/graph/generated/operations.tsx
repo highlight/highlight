@@ -403,38 +403,6 @@ export type UpdateTrackPropertiesAlertMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
-export type UpdateUserPropertiesAlertMutationVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
-    session_alert_id: Types.Scalars['ID'];
-    slack_channels:
-        | Array<Types.Maybe<Types.SanitizedSlackChannelInput>>
-        | Types.Maybe<Types.SanitizedSlackChannelInput>;
-    environments:
-        | Array<Types.Maybe<Types.Scalars['String']>>
-        | Types.Maybe<Types.Scalars['String']>;
-    user_properties:
-        | Array<Types.Maybe<Types.UserPropertyInput>>
-        | Types.Maybe<Types.UserPropertyInput>;
-}>;
-
-export type UpdateUserPropertiesAlertMutation = { __typename?: 'Mutation' } & {
-    updateUserPropertiesAlert?: Types.Maybe<
-        { __typename?: 'SessionAlert' } & Pick<
-            Types.SessionAlert,
-            'ExcludedEnvironments' | 'CountThreshold'
-        > & {
-                ChannelsToNotify: Array<
-                    Types.Maybe<
-                        { __typename?: 'SanitizedSlackChannel' } & Pick<
-                            Types.SanitizedSlackChannel,
-                            'webhook_channel' | 'webhook_channel_id'
-                        >
-                    >
-                >;
-            }
-    >;
-};
-
 export type GetSessionPayloadQueryVariables = Types.Exact<{
     session_id: Types.Scalars['ID'];
 }>;
@@ -478,6 +446,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'enable_strict_privacy'
             | 'object_storage_enabled'
             | 'payload_size'
+            | 'within_billing_quota'
         > & {
                 fields?: Types.Maybe<
                     Array<
@@ -749,7 +718,7 @@ export type GetBillingDetailsQueryVariables = Types.Exact<{
 export type GetBillingDetailsQuery = { __typename?: 'Query' } & {
     billingDetails: { __typename?: 'BillingDetails' } & Pick<
         Types.BillingDetails,
-        'meter'
+        'meter' | 'sessionsOutOfQuota'
     > & { plan: { __typename?: 'Plan' } & Pick<Types.Plan, 'type' | 'quota'> };
     organization?: Types.Maybe<
         { __typename?: 'Organization' } & Pick<
@@ -1270,28 +1239,6 @@ export type GetTrackPropertiesAlertQueryVariables = Types.Exact<{
 
 export type GetTrackPropertiesAlertQuery = { __typename?: 'Query' } & {
     track_properties_alert?: Types.Maybe<
-        { __typename?: 'SessionAlert' } & Pick<
-            Types.SessionAlert,
-            'ExcludedEnvironments' | 'CountThreshold'
-        > & {
-                ChannelsToNotify: Array<
-                    Types.Maybe<
-                        { __typename?: 'SanitizedSlackChannel' } & Pick<
-                            Types.SanitizedSlackChannel,
-                            'webhook_channel' | 'webhook_channel_id'
-                        >
-                    >
-                >;
-            }
-    >;
-};
-
-export type GetUserPropertiesAlertQueryVariables = Types.Exact<{
-    organization_id: Types.Scalars['ID'];
-}>;
-
-export type GetUserPropertiesAlertQuery = { __typename?: 'Query' } & {
-    user_properties_alert?: Types.Maybe<
         { __typename?: 'SessionAlert' } & Pick<
             Types.SessionAlert,
             'ExcludedEnvironments' | 'CountThreshold'

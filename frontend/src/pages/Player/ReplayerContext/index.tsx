@@ -54,6 +54,8 @@ export interface ReplayerContextInterface {
     errors: ErrorObject[];
     sessionIntervals: Array<ParsedSessionInterval>;
     sessionCommentIntervals: SessionComment[][];
+    /** Whether this session can be viewed. A session is not viewable if it is locked behind billing. */
+    canViewSession: boolean;
 }
 
 /* eslint-disable */
@@ -70,6 +72,7 @@ export const defaultValue: ReplayerContextInterface = {
     errors: [],
     sessionIntervals: [],
     sessionCommentIntervals: [[]],
+    canViewSession: true,
 };
 /* eslint-enable */
 

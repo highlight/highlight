@@ -67,7 +67,10 @@ export const TrackPropertyInput = ({
                 onChange={(options) => {
                     const newOptions: Array<UserProperty> =
                         options?.map((o) => {
-                            if (!o.name) o.name = 'contains';
+                            if (!o.name) {
+                                o.name = 'contains';
+                                o.id = '-1';
+                            }
                             return { id: o.id, name: o.name, value: o.value };
                         }) ?? [];
 

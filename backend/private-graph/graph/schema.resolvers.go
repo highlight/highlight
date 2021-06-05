@@ -826,11 +826,6 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
-	alert := &model.SessionAlert{}
-	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying track properties alert")
-	}
-
 	envBytes, err := json.Marshal(environments)
 	if err != nil {
 		return nil, e.Wrap(err, "error parsing environments for track properties alert")
@@ -855,6 +850,7 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 	}
 	trackPropertiesString := string(trackPropertiesBytes)
 
+	alert := &model.SessionAlert{}
 	alert.ExcludedEnvironments = &envString
 	alert.ChannelsToNotify = &channelsString
 	alert.TrackProperties = &trackPropertiesString
@@ -867,53 +863,6 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 		},
 	}).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields for track properties alert")
-	}
-	return alert, nil
-}
-
-func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput) (*model.SessionAlert, error) {
-	_, err := r.isAdminInOrganization(ctx, organizationID)
-	if err != nil {
-		return nil, e.Wrap(err, "admin is not in organization")
-	}
-
-	envBytes, err := json.Marshal(environments)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing environments for user properties alert")
-	}
-	envString := string(envBytes)
-
-	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
-	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
-	for _, ch := range slackChannels {
-		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
-	}
-
-	channelsBytes, err := json.Marshal(sanitizedChannels)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing channels for user properties alert")
-	}
-	channelsString := string(channelsBytes)
-
-	userPropertiesBytes, err := json.Marshal(userProperties)
-	if err != nil {
-		return nil, e.Wrap(err, "error parsing user properties for user properties alert")
-	}
-	userPropertiesString := string(userPropertiesBytes)
-
-	alert := &model.SessionAlert{}
-	alert.ExcludedEnvironments = &envString
-	alert.ChannelsToNotify = &channelsString
-	alert.UserProperties = &userPropertiesString
-	if err := r.DB.Model(&model.SessionAlert{
-		Alert: model.Alert{
-			OrganizationID: organizationID,
-		},
-		Model: model.Model{
-			ID: sessionAlertID,
-		},
-	}).Updates(alert).Error; err != nil {
-		return nil, e.Wrap(err, "error updating org fields for user properties alert")
 	}
 	return alert, nil
 }
@@ -1370,6 +1319,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	visitedCheck := true
 	referrerCheck := true
 	fieldIds := []int{}
+	fieldQuery := r.DB.Model(&model.Field{})
 	visitedIds := []int{}
 	referrerIds := []int{}
 	visitedQuery := r.DB.Model(&model.Field{})
@@ -1377,11 +1327,19 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	fieldsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.fieldsQuery"))
 	for _, prop := range params.UserProperties {
-		fieldIds = append(fieldIds, prop.ID)
+		if prop.Name == "contains" {
+			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+		} else {
+			fieldIds = append(fieldIds, prop.ID)
+		}
 	}
 
 	for _, prop := range params.TrackProperties {
-		fieldIds = append(fieldIds, prop.ID)
+		if prop.Name == "contains" {
+			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
+		} else {
+			fieldIds = append(fieldIds, prop.ID)
+		}
 	}
 
 	if params.VisitedURL != nil {
@@ -1393,6 +1351,13 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if len(params.UserProperties)+len(params.TrackProperties) > 0 {
+		if len(params.UserProperties)+len(params.TrackProperties) != len(fieldIds) {
+			var tempFieldIds []int
+			if err := fieldQuery.Pluck("id", &tempFieldIds).Error; err != nil {
+				return nil, e.Wrap(err, "error querying initial set of session fields")
+			}
+			fieldIds = append(fieldIds, tempFieldIds...)
+		}
 		if len(fieldIds) == 0 {
 			fieldCheck = false
 		}
@@ -1418,16 +1383,43 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	//excluded fields
 	notFieldIds := []int{}
+	notFieldQuery := r.DB.Model(&model.Field{})
 
 	for _, prop := range params.ExcludedProperties {
-		notFieldIds = append(notFieldIds, prop.ID)
+		if prop.Name == "contains" {
+			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+		} else {
+			notFieldIds = append(notFieldIds, prop.ID)
+		}
+	}
+
+	if len(params.ExcludedProperties) != len(notFieldIds) {
+		var tempNotFieldIds []int
+		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of excluded sessions fields")
+		}
+		notFieldIds = append(notFieldIds, tempNotFieldIds...)
 	}
 
 	//excluded track fields
 	notTrackFieldIds := []int{}
+	notTrackFieldQuery := r.DB.Model(&model.Field{})
 
 	for _, prop := range params.ExcludedTrackProperties {
-		notTrackFieldIds = append(notTrackFieldIds, prop.ID)
+		if prop.Name == "contains" {
+			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
+		} else {
+			notTrackFieldIds = append(notTrackFieldIds, prop.ID)
+		}
+	}
+
+	//pluck not field ids
+	if len(params.ExcludedTrackProperties) > 0 {
+		var tempNotTrackFieldIds []int
+		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
+		}
+		notTrackFieldIds = append(notTrackFieldIds, tempNotTrackFieldIds...)
 	}
 
 	fieldsSpan.Finish()
@@ -1541,10 +1533,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += "AND (id != id) "
 	}
 
-	// Anthony's org shouldn't get sessions over the quota
-	if organizationID == 110 {
-		whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
-	}
+	// user shouldn't see sessions that are not within billing quota
+	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
 
 	var g errgroup.Group
 	queriedSessions := []model.Session{}

@@ -8,7 +8,8 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 import { DemoContext } from '../../../DemoContext';
 import {
     useGetSessionCommentsQuery,
-    useGetSessionPayloadQuery,
+    useGetSessionPayloadLazyQuery,
+    useGetSessionQuery,
 } from '../../../graph/generated/hooks';
 import { ErrorObject, SessionComment } from '../../../graph/generated/schemas';
 import { HighlightEvent } from '../HighlightEvent';
@@ -48,6 +49,7 @@ export const usePlayer = (): ReplayerContextInterface => {
     const [, setSelectedErrorId] = useState<string | undefined>(undefined);
     const [replayer, setReplayer] = useState<Replayer | undefined>(undefined);
     const [state, setState] = useState<ReplayerState>(ReplayerState.Loading);
+    const [canViewSession, setCanViewSession] = useState(true);
     const [time, setTime] = useState<number>(0);
     /** localStorageTime acts like a message broker to share the current player time for components that are outside of the context tree. */
     const [, setLocalStorageTime] = useLocalStorage('playerTime', time);
@@ -64,13 +66,30 @@ export const usePlayer = (): ReplayerContextInterface => {
     const sessionId = demo
         ? process.env.REACT_APP_DEMO_SESSION ?? ''
         : session_id ?? '';
-
-    const { data: eventsData, loading } = useGetSessionPayloadQuery({
+    const [
+        getSessionPayload,
+        { loading, data: eventsData },
+    ] = useGetSessionPayloadLazyQuery({
         variables: {
             session_id: sessionId,
         },
         context: { headers: { 'Highlight-Demo': demo } },
         fetchPolicy: 'no-cache',
+    });
+
+    useGetSessionQuery({
+        variables: {
+            id: sessionId,
+        },
+        context: { headers: { 'Highlight-Demo': false } },
+        onCompleted: (data) => {
+            if (data.session?.within_billing_quota) {
+                getSessionPayload();
+                setCanViewSession(true);
+            } else {
+                setCanViewSession(false);
+            }
+        },
     });
     const {
         data: sessionCommentsData,
@@ -96,6 +115,7 @@ export const usePlayer = (): ReplayerContextInterface => {
             setLocalStorageTime(0);
             setSessionEndTime(0);
             setSessionIntervals([]);
+            setCanViewSession(true);
         }
     }, [loading, setLocalStorageTime]);
 
@@ -320,6 +340,7 @@ export const usePlayer = (): ReplayerContextInterface => {
         pause,
         errors,
         sessionCommentIntervals,
+        canViewSession,
     };
 };
 
