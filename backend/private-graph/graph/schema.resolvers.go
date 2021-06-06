@@ -543,6 +543,10 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
+		err = pricing.SetOrgPlanID(r.DB, organizationID, plan)
+		if err != nil {
+			log.Error(err)
+		}
 
 		// mark sessions as within billing quota on plan upgrade
 		// this is done when the user is already signed up for some sort of billing plan
@@ -1638,7 +1642,20 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	} else {
 		stripeCustomerID = ""
 	}
-	planType := pricing.GetOrgPlanString(r.StripeClient, stripeCustomerID)
+	var stripePlanID *string
+	if org.StripePlanID != nil {
+		stripePlanID = org.StripePlanID
+	} else {
+		stripePlanID, err = pricing.GetOrgPlanID(r.StripeClient, stripeCustomerID)
+		if err != nil {
+			log.Error(err)
+		}
+		err = pricing.SetOrgPlanID(r.DB, organizationID, *stripePlanID)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+	planType := pricing.FromPriceID(*stripePlanID)
 
 	var g errgroup.Group
 	var meter int64

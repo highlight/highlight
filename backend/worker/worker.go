@@ -173,7 +173,20 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	} else {
 		stripeCustomerID = ""
 	}
-	planType := pricing.GetOrgPlanString(w.Resolver.StripeClient, stripeCustomerID)
+	var stripePlanID *string
+	if org.StripePlanID != nil {
+		stripePlanID = org.StripePlanID
+	} else {
+		stripePlanID, err = pricing.GetOrgPlanID(w.Resolver.StripeClient, stripeCustomerID)
+		if err != nil {
+			log.Error(err)
+		}
+		err = pricing.SetOrgPlanID(w.Resolver.DB, s.OrganizationID, *stripePlanID)
+		if err != nil {
+			log.Error(err)
+		}
+	}
+	planType := pricing.FromPriceID(*stripePlanID)
 	quota := pricing.TypeToQuota(planType)
 
 	year, month, _ := time.Now().Date()

@@ -49,6 +49,29 @@ func GetOrgPlanString(stripeClient *client.API, customerID string) backend.PlanT
 	return planType
 }
 
+func GetOrgPlanID(stripeClient *client.API, customerID string) (*string, error) {
+	// gets plan id from stripe, sets plan id column on organization
+	priceID := ""
+	if customerID == "" {
+		return &priceID, e.New("organization has no stripe subscription")
+	}
+	params := &stripe.CustomerParams{}
+	params.AddExpand("subscriptions")
+	c, err := stripeClient.Customers.Get(customerID, params)
+	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
+		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
+	}
+	return &priceID, nil
+}
+
+func SetOrgPlanID(DB *gorm.DB, org_id int, planID string) error {
+	organization := model.Organization{Model: model.Model{ID: org_id}}
+	if err := DB.Model(&organization).Updates(model.Organization{StripePlanID: &planID}).Error; err != nil {
+		return e.Wrap(err, "error setting stripe_plan_id on organization")
+	}
+	return nil
+}
+
 func TypeToQuota(planType backend.PlanType) int {
 	switch planType {
 	case backend.PlanTypeFree:
