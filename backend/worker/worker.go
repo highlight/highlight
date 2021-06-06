@@ -337,7 +337,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 						if len(matchedFields) < 1 {
 							return fmt.Errorf("matched fields is empty in user properties alert")
 						}
-						err = w.SendSlackTrackPropertiesMessage(org, s.ID, channelsToNotify, matchedFields)
+						err = w.SendSlackUserPropertiesMessage(org, s.ID, channelsToNotify, matchedFields)
 						if err != nil {
 							return e.Wrapf(err, "[org_id: %d] error sending user properties alert slack message", organizationID)
 						}
@@ -577,13 +577,7 @@ func (w *Worker) SendSlackTrackPropertiesMessage(organization *model.Organizatio
 	return nil
 }
 
-func (w *Worker) SendSlackUserPropertiesMessage(orgID int, sessionID int, userIdentifier string, channels []*modelInputs.SanitizedSlackChannel, matchedFields []*model.Field) error {
-	//TODO: make this more generic to reduce *code smell*
-	organization := &model.Organization{}
-	res := w.Resolver.DB.Where("id = ?", orgID).First(&organization)
-	if err := res.Error; err != nil {
-		return e.Wrap(err, "error querying organization for user properties alert")
-	}
+func (w *Worker) SendSlackUserPropertiesMessage(organization *model.Organization, sessionID int, channels []*modelInputs.SanitizedSlackChannel, matchedFields []*model.Field) error {
 	integratedSlackChannels, err := organization.IntegratedSlackChannels()
 	if err != nil {
 		return e.Wrap(err, "error getting slack webhook url for user properties alert")
@@ -591,7 +585,7 @@ func (w *Worker) SendSlackUserPropertiesMessage(orgID int, sessionID int, userId
 	if len(integratedSlackChannels) <= 0 {
 		return nil
 	}
-	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", orgID, sessionID)
+	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", organization.ID, sessionID)
 
 	var formattedFields []string
 	for _, addr := range matchedFields {
@@ -612,7 +606,7 @@ func (w *Worker) SendSlackUserPropertiesMessage(orgID int, sessionID int, userId
 				}
 			}
 			if slackWebhookURL == "" {
-				log.Errorf("[org_id: %d] requested channel for user properties alert has no matching slackWebhookURL: channel %s at url %s", orgID, *channel.WebhookChannel, slackWebhookURL)
+				log.Errorf("requested channel for user properties alert has no matching slackWebhookURL: channel %s at url %s", *channel.WebhookChannel, slackWebhookURL)
 				continue
 			}
 
