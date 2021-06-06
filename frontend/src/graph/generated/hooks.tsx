@@ -1352,6 +1352,75 @@ export type UpdateTrackPropertiesAlertMutationOptions = Apollo.BaseMutationOptio
     Types.UpdateTrackPropertiesAlertMutation,
     Types.UpdateTrackPropertiesAlertMutationVariables
 >;
+export const UpdateUserPropertiesAlertDocument = gql`
+    mutation UpdateUserPropertiesAlert(
+        $organization_id: ID!
+        $session_alert_id: ID!
+        $slack_channels: [SanitizedSlackChannelInput]!
+        $environments: [String]!
+        $user_properties: [UserPropertyInput]!
+    ) {
+        updateUserPropertiesAlert(
+            organization_id: $organization_id
+            session_alert_id: $session_alert_id
+            slack_channels: $slack_channels
+            environments: $environments
+            user_properties: $user_properties
+        ) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
+    }
+`;
+export type UpdateUserPropertiesAlertMutationFn = Apollo.MutationFunction<
+    Types.UpdateUserPropertiesAlertMutation,
+    Types.UpdateUserPropertiesAlertMutationVariables
+>;
+
+/**
+ * __useUpdateUserPropertiesAlertMutation__
+ *
+ * To run a mutation, you first call `useUpdateUserPropertiesAlertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUserPropertiesAlertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUserPropertiesAlertMutation, { data, loading, error }] = useUpdateUserPropertiesAlertMutation({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      session_alert_id: // value for 'session_alert_id'
+ *      slack_channels: // value for 'slack_channels'
+ *      environments: // value for 'environments'
+ *      user_properties: // value for 'user_properties'
+ *   },
+ * });
+ */
+export function useUpdateUserPropertiesAlertMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateUserPropertiesAlertMutation,
+        Types.UpdateUserPropertiesAlertMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateUserPropertiesAlertMutation,
+        Types.UpdateUserPropertiesAlertMutationVariables
+    >(UpdateUserPropertiesAlertDocument, baseOptions);
+}
+export type UpdateUserPropertiesAlertMutationHookResult = ReturnType<
+    typeof useUpdateUserPropertiesAlertMutation
+>;
+export type UpdateUserPropertiesAlertMutationResult = Apollo.MutationResult<Types.UpdateUserPropertiesAlertMutation>;
+export type UpdateUserPropertiesAlertMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateUserPropertiesAlertMutation,
+    Types.UpdateUserPropertiesAlertMutationVariables
+>;
 export const GetSessionPayloadDocument = gql`
     query GetSessionPayload($session_id: ID!) {
         events(session_id: $session_id)
@@ -3752,6 +3821,67 @@ export type GetTrackPropertiesAlertLazyQueryHookResult = ReturnType<
 export type GetTrackPropertiesAlertQueryResult = Apollo.QueryResult<
     Types.GetTrackPropertiesAlertQuery,
     Types.GetTrackPropertiesAlertQueryVariables
+>;
+export const GetUserPropertiesAlertDocument = gql`
+    query GetUserPropertiesAlert($organization_id: ID!) {
+        user_properties_alert(organization_id: $organization_id) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
+    }
+`;
+
+/**
+ * __useGetUserPropertiesAlertQuery__
+ *
+ * To run a query within a React component, call `useGetUserPropertiesAlertQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserPropertiesAlertQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserPropertiesAlertQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *   },
+ * });
+ */
+export function useGetUserPropertiesAlertQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetUserPropertiesAlertQuery,
+        Types.GetUserPropertiesAlertQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetUserPropertiesAlertQuery,
+        Types.GetUserPropertiesAlertQueryVariables
+    >(GetUserPropertiesAlertDocument, baseOptions);
+}
+export function useGetUserPropertiesAlertLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetUserPropertiesAlertQuery,
+        Types.GetUserPropertiesAlertQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetUserPropertiesAlertQuery,
+        Types.GetUserPropertiesAlertQueryVariables
+    >(GetUserPropertiesAlertDocument, baseOptions);
+}
+export type GetUserPropertiesAlertQueryHookResult = ReturnType<
+    typeof useGetUserPropertiesAlertQuery
+>;
+export type GetUserPropertiesAlertLazyQueryHookResult = ReturnType<
+    typeof useGetUserPropertiesAlertLazyQuery
+>;
+export type GetUserPropertiesAlertQueryResult = Apollo.QueryResult<
+    Types.GetUserPropertiesAlertQuery,
+    Types.GetUserPropertiesAlertQueryVariables
 >;
 export const GetEnvironmentSuggestionDocument = gql`
     query GetEnvironmentSuggestion($query: String!, $organization_id: ID!) {

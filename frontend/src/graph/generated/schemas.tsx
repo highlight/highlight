@@ -405,6 +405,7 @@ export type SessionAlert = {
     ExcludedEnvironments: Array<Maybe<Scalars['String']>>;
     CountThreshold: Scalars['Int'];
     TrackProperties: Array<Maybe<TrackProperty>>;
+    UserProperties: Array<Maybe<UserProperty>>;
 };
 
 export type Query = {
@@ -441,6 +442,7 @@ export type Query = {
     error_alert?: Maybe<ErrorAlert>;
     new_user_alert?: Maybe<SessionAlert>;
     track_properties_alert?: Maybe<SessionAlert>;
+    user_properties_alert?: Maybe<SessionAlert>;
     organizationSuggestion?: Maybe<Array<Maybe<Organization>>>;
     environment_suggestion?: Maybe<Array<Maybe<Field>>>;
     slack_channel_suggestion?: Maybe<Array<Maybe<SanitizedSlackChannel>>>;
@@ -586,6 +588,10 @@ export type QueryTrack_Properties_AlertArgs = {
     organization_id: Scalars['ID'];
 };
 
+export type QueryUser_Properties_AlertArgs = {
+    organization_id: Scalars['ID'];
+};
+
 export type QueryOrganizationSuggestionArgs = {
     query: Scalars['String'];
 };
@@ -642,6 +648,7 @@ export type Mutation = {
     updateErrorAlert?: Maybe<ErrorAlert>;
     updateNewUserAlert?: Maybe<SessionAlert>;
     updateTrackPropertiesAlert?: Maybe<SessionAlert>;
+    updateUserPropertiesAlert?: Maybe<SessionAlert>;
 };
 
 export type MutationCreateOrganizationArgs = {
@@ -794,4 +801,12 @@ export type MutationUpdateTrackPropertiesAlertArgs = {
     slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
     environments: Array<Maybe<Scalars['String']>>;
     track_properties: Array<Maybe<TrackPropertyInput>>;
+};
+
+export type MutationUpdateUserPropertiesAlertArgs = {
+    organization_id: Scalars['ID'];
+    session_alert_id: Scalars['ID'];
+    slack_channels: Array<Maybe<SanitizedSlackChannelInput>>;
+    environments: Array<Maybe<Scalars['String']>>;
+    user_properties: Array<Maybe<UserPropertyInput>>;
 };

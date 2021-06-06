@@ -30,17 +30,19 @@ var (
 	T      bool = true
 )
 
-var AlertType = struct {
-	NEW_USER         string
-	TRACK_PROPERTIES string
-}{
-	NEW_USER:         "NEW_USER_ALERT",
-	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
-}
-
 const (
 	SUGGESTION_LIMIT_CONSTANT = 8
 )
+
+var AlertType = struct {
+	NEW_USER         string
+	TRACK_PROPERTIES string
+	USER_PROPERTIES  string
+}{
+	NEW_USER:         "NEW_USER_ALERT",
+	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
+	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
+}
 
 func init() {
 	hd := hashids.NewData()
@@ -116,6 +118,7 @@ type SessionAlert struct {
 	Model
 	Alert
 	TrackProperties *string
+	UserProperties  *string
 }
 
 func (obj *Alert) GetExcludedEnvironments() ([]*string, error) {
@@ -159,6 +162,21 @@ func (obj *SessionAlert) GetTrackProperties() ([]*TrackProperty, error) {
 	var sanitizedProperties []*TrackProperty
 	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
 		return nil, e.Wrap(err, "error unmarshalling sanitized track properties")
+	}
+	return sanitizedProperties, nil
+}
+
+func (obj *SessionAlert) GetUserProperties() ([]*UserProperty, error) {
+	if obj == nil {
+		return nil, e.New("empty session alert object for user properties")
+	}
+	propertyString := "[]"
+	if obj.UserProperties != nil {
+		propertyString = *obj.UserProperties
+	}
+	var sanitizedProperties []*UserProperty
+	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
+		return nil, e.Wrap(err, "error unmarshalling sanitized user properties")
 	}
 	return sanitizedProperties, nil
 }
@@ -379,7 +397,7 @@ type LengthRange struct {
 }
 
 type UserProperty struct {
-	ID    int
+	ID    string
 	Name  string
 	Value string
 }
