@@ -543,9 +543,9 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
-		err = r.UpdateOrgPlanID(organizationID, plan)
-		if err != nil {
-			log.Error(err)
+		organization := model.Organization{Model: model.Model{ID: organizationID}}
+		if err := r.DB.Model(&organization).Updates(model.Organization{StripePlanID: &plan}).Error; err != nil {
+			return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
 		}
 
 		// mark sessions as within billing quota on plan upgrade

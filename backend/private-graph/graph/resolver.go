@@ -220,11 +220,3 @@ func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInp
 		}
 	}
 }
-
-func (r *Resolver) UpdateOrgPlanID(org_id int, planID string) error {
-	organization := model.Organization{Model: model.Model{ID: org_id}}
-	if err := r.DB.Model(&organization).Updates(model.Organization{StripePlanID: &planID}).Error; err != nil {
-		return e.Wrap(err, "error setting stripe_plan_id on organization")
-	}
-	return nil
-}
