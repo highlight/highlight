@@ -22,10 +22,11 @@ type Props = Pick<
     | 'mode'
     | 'dropdownRender'
     | 'defaultValue'
+    | 'onSearch'
 > & {
     options: {
         value: string;
-        displayValue: string;
+        displayValue: string | React.ReactNode;
         disabled?: boolean;
         id: string;
     }[];

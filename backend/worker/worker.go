@@ -265,11 +265,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 						}
 						var trackPropertyIds []int
 						for _, trackProperty := range trackProperties {
-							properId, err := strconv.Atoi(trackProperty.ID)
-							if err != nil {
-								continue
-							}
-							trackPropertyIds = append(trackPropertyIds, properId)
+							trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
 						}
 						stmt := w.Resolver.DB.Model(&model.Field{}).
 							Where(&model.Field{OrganizationID: organizationID, Type: "track"}).
@@ -320,11 +316,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 						}
 						var userPropertyIds []int
 						for _, userProperty := range userProperties {
-							properId, err := strconv.Atoi(userProperty.ID)
-							if err != nil {
-								continue
-							}
-							userPropertyIds = append(userPropertyIds, properId)
+							userPropertyIds = append(userPropertyIds, userProperty.ID)
 						}
 						stmt := w.Resolver.DB.Model(&model.Field{}).
 							Where(&model.Field{OrganizationID: organizationID, Type: "user"}).

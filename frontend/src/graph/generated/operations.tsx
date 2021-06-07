@@ -1393,4 +1393,50 @@ export type GetAlertsPagePayloadQuery = { __typename?: 'Query' } & {
                 >;
             }
     >;
+    track_properties_alert?: Types.Maybe<
+        { __typename?: 'SessionAlert' } & Pick<
+            Types.SessionAlert,
+            'id' | 'ExcludedEnvironments' | 'CountThreshold'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+                TrackProperties: Array<
+                    Types.Maybe<
+                        { __typename?: 'TrackProperty' } & Pick<
+                            Types.TrackProperty,
+                            'id' | 'name' | 'value'
+                        >
+                    >
+                >;
+            }
+    >;
+    user_properties_alert?: Types.Maybe<
+        { __typename?: 'SessionAlert' } & Pick<
+            Types.SessionAlert,
+            'id' | 'ExcludedEnvironments' | 'CountThreshold'
+        > & {
+                ChannelsToNotify: Array<
+                    Types.Maybe<
+                        { __typename?: 'SanitizedSlackChannel' } & Pick<
+                            Types.SanitizedSlackChannel,
+                            'webhook_channel' | 'webhook_channel_id'
+                        >
+                    >
+                >;
+                UserProperties: Array<
+                    Types.Maybe<
+                        { __typename?: 'UserProperty' } & Pick<
+                            Types.UserProperty,
+                            'id' | 'name' | 'value'
+                        >
+                    >
+                >;
+            }
+    >;
 };
