@@ -4030,6 +4030,22 @@ export const GetAlertsPagePayloadDocument = gql`
             ExcludedEnvironments
             CountThreshold
         }
+        track_properties_alert(organization_id: $organization_id) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
+        user_properties_alert(organization_id: $organization_id) {
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
     }
 `;
 
