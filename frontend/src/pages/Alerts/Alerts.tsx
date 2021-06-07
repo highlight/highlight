@@ -113,8 +113,8 @@ const AlertsPage = () => {
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[2]}
                             alert={
-                                data?.session_alerts
-                                    ? data?.session_alerts[0]
+                                data?.user_properties_alert
+                                    ? data?.user_properties_alert
                                     : {}
                             }
                             environmentOptions={
@@ -128,8 +128,8 @@ const AlertsPage = () => {
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[3]}
                             alert={
-                                data?.session_alerts
-                                    ? data?.session_alerts[0]
+                                data?.track_properties_alert
+                                    ? data?.track_properties_alert
                                     : {}
                             }
                             environmentOptions={

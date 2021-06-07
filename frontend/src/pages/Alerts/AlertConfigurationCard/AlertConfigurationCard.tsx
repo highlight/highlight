@@ -13,6 +13,8 @@ import {
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
     useUpdateNewUserAlertMutation,
+    useUpdateTrackPropertiesAlertMutation,
+    useUpdateUserPropertiesAlertMutation,
 } from '../../../graph/generated/hooks';
 import { ALERT_TYPE } from '../Alerts';
 import { dedupeEnvironments } from '../utils/AlertsUtils';
@@ -43,12 +45,6 @@ export const AlertConfigurationCard = ({
     const [loading, setLoading] = useState(false);
     const [formTouched, setFormTouched] = useState(false);
     const [threshold, setThreshold] = useState(alert?.CountThreshold || 1);
-    const [userProperties, setUserProperties] = useState<
-        { id: string; value: string; name: string }[]
-    >([]);
-    const [trackProperties, setTrackProperties] = useState<
-        { id: string; value: string; name: string }[]
-    >([]);
     /** lookbackPeriod units is minutes. */
     const [lookbackPeriod, setLookbackPeriod] = useState(
         getLookbackPeriodOption(alert?.ThresholdWindow).value
@@ -57,6 +53,10 @@ export const AlertConfigurationCard = ({
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
     const [updateNewUserAlert] = useUpdateNewUserAlertMutation();
+    const [updateUserPropertiesAlert] = useUpdateUserPropertiesAlertMutation();
+    const [
+        updateTrackPropertiesAlert,
+    ] = useUpdateTrackPropertiesAlertMutation();
 
     const onSubmit = async () => {
         setLoading(true);
@@ -101,12 +101,50 @@ export const AlertConfigurationCard = ({
                     });
                     break;
                 case ALERT_TYPE.UserProperties:
-                    // TODO: Make the request.
-                    console.log(userProperties);
+                    await updateUserPropertiesAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            user_properties: form
+                                .getFieldValue('userProperties')
+                                .map((userProperty: any) => {
+                                    const [
+                                        value,
+                                        name,
+                                        id,
+                                    ] = userProperty.split(':');
+                                    return {
+                                        id,
+                                        value,
+                                        name,
+                                    };
+                                }),
+                            session_alert_id: alert.id,
+                        },
+                    });
                     break;
                 case ALERT_TYPE.TrackProperties:
-                    // TODO: Make the request.
-                    console.log(trackProperties);
+                    await updateTrackPropertiesAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            track_properties: form
+                                .getFieldValue('trackProperties')
+                                .map((trackProperty: any) => {
+                                    const [
+                                        value,
+                                        name,
+                                        id,
+                                    ] = trackProperty.split(':');
+                                    return {
+                                        id,
+                                        value,
+                                        name,
+                                    };
+                                }),
+                            session_alert_id: alert.id,
+                        },
+                    });
                     break;
                 default:
                     throw new Error(`Unsupported alert type: ${type}`);
@@ -163,37 +201,15 @@ export const AlertConfigurationCard = ({
 
     const userPropertiesSuggestions = userSuggestionsLoading
         ? []
-        : (userSuggestionsApiResponse?.property_suggestion || []).map(
-              (suggestion) => ({
-                  displayValue:
-                      (
-                          <>
-                              <b>{suggestion?.name}: </b>
-                              {suggestion?.value}
-                          </>
-                      ) || '',
-                  value: `${suggestion?.value}:${suggestion?.name}` || '',
-                  id: suggestion?.id || '',
-                  name: suggestion?.name || '',
-              })
-          );
+        : (
+              userSuggestionsApiResponse?.property_suggestion || []
+          ).map((suggestion) => getPropertiesOption(suggestion));
 
     const trackPropertiesSuggestions = trackSuggestionsLoading
         ? []
-        : (trackSuggestionsApiResponse?.property_suggestion || []).map(
-              (suggestion) => ({
-                  displayValue:
-                      (
-                          <>
-                              <b>{suggestion?.name}: </b>
-                              {suggestion?.value}
-                          </>
-                      ) || '',
-                  value: `${suggestion?.value}:${suggestion?.name}` || '',
-                  id: suggestion?.id || '',
-                  name: suggestion?.name || '',
-              })
-          );
+        : (
+              trackSuggestionsApiResponse?.property_suggestion || []
+          ).map((suggestion) => getPropertiesOption(suggestion));
 
     /** Searches for a user property  */
     const handleUserPropertiesSearch = (query = '') => {
@@ -211,10 +227,10 @@ export const AlertConfigurationCard = ({
 
     const onUserPropertiesChange = (_value: any, options: any) => {
         const userProperties = options.map(
-            ({ key, value: valueAndName }: { key: string; value: string }) => {
-                const [value, name] = valueAndName.split(':');
+            ({ value: valueAndName }: { key: string; value: string }) => {
+                const [value, name, id] = valueAndName.split(':');
                 return {
-                    id: key,
+                    id,
                     value,
                     name,
                 };
@@ -222,16 +238,14 @@ export const AlertConfigurationCard = ({
         );
         form.setFieldsValue(userProperties);
         setFormTouched(true);
-
-        setUserProperties(userProperties);
     };
 
     const onTrackPropertiesChange = (_value: any, options: any) => {
         const trackProperties = options.map(
-            ({ key, value: valueAndName }: { key: string; value: string }) => {
-                const [value, name] = valueAndName.split(':');
+            ({ value: valueAndName }: { key: string; value: string }) => {
+                const [value, name, id] = valueAndName.split(':');
                 return {
-                    id: key,
+                    id,
                     value,
                     name,
                 };
@@ -239,7 +253,6 @@ export const AlertConfigurationCard = ({
         );
         form.setFieldsValue(trackProperties);
         setFormTouched(true);
-        setTrackProperties(trackProperties);
     };
 
     const onExcludedEnvironmentsChange = (excludedEnvironments: string[]) => {
@@ -284,6 +297,14 @@ export const AlertConfigurationCard = ({
                     ),
                     excludedEnvironments: alert.ExcludedEnvironments,
                     lookbackPeriod: [lookbackPeriod],
+                    userProperties: alert.UserProperties?.map(
+                        (userProperty: any) =>
+                            getPropertiesOption(userProperty).value
+                    ),
+                    trackProperties: alert.TrackProperties?.map(
+                        (trackProperty: any) =>
+                            getPropertiesOption(trackProperty).value
+                    ),
                 }}
             >
                 {type === ALERT_TYPE.UserProperties && (
@@ -519,3 +540,16 @@ const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
 
     return option;
 };
+
+const getPropertiesOption = (option: any) => ({
+    displayValue:
+        (
+            <>
+                <b>{option?.name}: </b>
+                {option?.value}
+            </>
+        ) || '',
+    value: `${option?.value}:${option?.name}:${option?.id}` || '',
+    id: `${option?.value}:${option?.name}` || '',
+    name: option?.id || '',
+});
