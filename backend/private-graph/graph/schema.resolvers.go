@@ -1638,7 +1638,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	}
 
 	stripePlanID := org.StripePlanID
-	var planType modelInputs.PlanType
+	planType := modelInputs.PlanTypeFree
 	if stripePlanID != nil {
 		planType = pricing.FromPriceID(*stripePlanID)
 	}

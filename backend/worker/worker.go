@@ -169,7 +169,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	}
 
 	stripePlanID := org.StripePlanID
-	var planType modelInputs.PlanType
+	planType := modelInputs.PlanTypeFree
 	if stripePlanID != nil {
 		planType = pricing.FromPriceID(*stripePlanID)
 	}
