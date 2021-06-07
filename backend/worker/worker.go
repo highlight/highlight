@@ -181,7 +181,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		if err != nil {
 			log.Error(err)
 		}
-		err = pricing.SetOrgPlanID(w.Resolver.DB, s.OrganizationID, *stripePlanID)
+		err = w.Resolver.UpdateOrgPlanID(s.OrganizationID, *stripePlanID)
 		if err != nil {
 			log.Error(err)
 		}

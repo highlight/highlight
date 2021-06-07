@@ -64,14 +64,6 @@ func GetOrgPlanID(stripeClient *client.API, customerID string) (*string, error) 
 	return &priceID, nil
 }
 
-func SetOrgPlanID(DB *gorm.DB, org_id int, planID string) error {
-	organization := model.Organization{Model: model.Model{ID: org_id}}
-	if err := DB.Model(&organization).Updates(model.Organization{StripePlanID: &planID}).Error; err != nil {
-		return e.Wrap(err, "error setting stripe_plan_id on organization")
-	}
-	return nil
-}
-
 func TypeToQuota(planType backend.PlanType) int {
 	switch planType {
 	case backend.PlanTypeFree:

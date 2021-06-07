@@ -543,7 +543,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
-		err = pricing.SetOrgPlanID(r.DB, organizationID, plan)
+		err = r.UpdateOrgPlanID(organizationID, plan)
 		if err != nil {
 			log.Error(err)
 		}
@@ -1650,7 +1650,7 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 		if err != nil {
 			log.Error(err)
 		}
-		err = pricing.SetOrgPlanID(r.DB, organizationID, *stripePlanID)
+		err = r.UpdateOrgPlanID(organizationID, *stripePlanID)
 		if err != nil {
 			log.Error(err)
 		}
