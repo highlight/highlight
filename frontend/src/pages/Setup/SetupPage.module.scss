@@ -26,10 +26,16 @@
 }
 
 .callout {
+    align-items: center;
     background-color: var(--color-gray-200);
     border-radius: 4px;
     display: flex;
     line-height: 2;
+    margin-bottom: var(--size-medium);
+
+    p {
+        margin-bottom: 0 !important;
+    }
 }
 
 .sectionTitleWithIcon {
