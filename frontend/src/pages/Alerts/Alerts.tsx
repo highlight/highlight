@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { useGetAlertsPagePayloadQuery } from '../../graph/generated/hooks';
+import useHighlightAdminFlag from '../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 import { AlertConfigurationCard } from './AlertConfigurationCard/AlertConfigurationCard';
 import styles from './Alerts.module.scss';
 import { useSlack } from './SlackIntegration/SlackIntegration';
@@ -50,6 +51,7 @@ const AlertsPage = () => {
         variables: { organization_id: organization_id },
     });
     const { slackUrl } = useSlack('alerts', ['GetAlertsPagePayload']);
+    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     return (
         <LeadAlignLayout>
@@ -110,36 +112,40 @@ const AlertsPage = () => {
                             }
                             slackUrl={slackUrl}
                         />
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[2]}
-                            alert={
-                                data?.user_properties_alert
-                                    ? data?.user_properties_alert
-                                    : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
-                        <AlertConfigurationCard
-                            configuration={ALERT_CONFIGURATIONS[3]}
-                            alert={
-                                data?.track_properties_alert
-                                    ? data?.track_properties_alert
-                                    : {}
-                            }
-                            environmentOptions={
-                                data?.environment_suggestion || []
-                            }
-                            channelSuggestions={
-                                data?.slack_channel_suggestion || []
-                            }
-                            slackUrl={slackUrl}
-                        />
+                        {isHighlightAdmin && (
+                            <>
+                                <AlertConfigurationCard
+                                    configuration={ALERT_CONFIGURATIONS[2]}
+                                    alert={
+                                        data?.user_properties_alert
+                                            ? data?.user_properties_alert
+                                            : {}
+                                    }
+                                    environmentOptions={
+                                        data?.environment_suggestion || []
+                                    }
+                                    channelSuggestions={
+                                        data?.slack_channel_suggestion || []
+                                    }
+                                    slackUrl={slackUrl}
+                                />
+                                <AlertConfigurationCard
+                                    configuration={ALERT_CONFIGURATIONS[3]}
+                                    alert={
+                                        data?.track_properties_alert
+                                            ? data?.track_properties_alert
+                                            : {}
+                                    }
+                                    environmentOptions={
+                                        data?.environment_suggestion || []
+                                    }
+                                    channelSuggestions={
+                                        data?.slack_channel_suggestion || []
+                                    }
+                                    slackUrl={slackUrl}
+                                />
+                            </>
+                        )}
                     </>
                 )}
             </div>
