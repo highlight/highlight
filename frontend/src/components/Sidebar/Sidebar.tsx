@@ -17,7 +17,6 @@ import {
     WorkspaceDropdown,
 } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
 import Tooltip from '../Tooltip/Tooltip';
-import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
 import styles from './Sidebar.module.scss';
 import { SidebarState, useSidebarContext } from './SidebarContext';
 
@@ -123,7 +122,6 @@ export const Sidebar = () => {
 
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
-                        <CurrentUsageCard />
                         <div className={styles.bottomContainer}>
                             <div className={styles.bottomLinkContainer}>
                                 <Link
