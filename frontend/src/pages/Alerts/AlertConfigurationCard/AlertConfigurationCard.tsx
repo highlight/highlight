@@ -12,7 +12,7 @@ import {
     useGetTrackSuggestionQuery,
     useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
-    useUpdateSessionAlertMutation,
+    useUpdateNewUserAlertMutation,
 } from '../../../graph/generated/hooks';
 import { ALERT_TYPE } from '../Alerts';
 import { dedupeEnvironments } from '../utils/AlertsUtils';
@@ -56,7 +56,7 @@ export const AlertConfigurationCard = ({
     const { organization_id } = useParams<{ organization_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
-    const [updateSessionAlert] = useUpdateSessionAlertMutation();
+    const [updateNewUserAlert] = useUpdateNewUserAlertMutation();
 
     const onSubmit = async () => {
         setLoading(true);
@@ -92,7 +92,7 @@ export const AlertConfigurationCard = ({
                     });
                     break;
                 case ALERT_TYPE.FirstTimeUser:
-                    await updateSessionAlert({
+                    await updateNewUserAlert({
                         ...requestBody,
                         variables: {
                             ...requestVariables,

@@ -5,17 +5,34 @@ function SvgHighlightLogoSmall(props: React.SVGProps<SVGSVGElement>) {
         <svg
             width="1em"
             height="1em"
-            viewBox="0 0 30 30"
+            viewBox="0 0 183 183"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             {...props}
         >
-            <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M7.152.457L4 .467a3 3 0 00-2.99 3.01l.07 22.467a3 3 0 003.01 2.99l12.542-.039L7.152.457zm16.454 28.416L13.653.436l12.815-.04a3 3 0 013.01 2.99l.07 22.469a3 3 0 01-2.991 3.01l-2.951.008z"
-                fill="#643DDC"
+            <circle
+                cx={91.5}
+                cy={91.5}
+                r={91.5}
+                fill="url(#highlight-logo-small_svg__paint0_linear)"
             />
+            <path
+                d="M68.345 51.286l-10.023.032a7.231 7.231 0 00-7.208 7.254l.205 65.373a7.232 7.232 0 007.253 7.209l36.357-.114-26.584-79.754zM114.487 130.978L86.575 51.229l37.12-.116a7.23 7.23 0 017.254 7.208l.205 65.374a7.231 7.231 0 01-7.208 7.254l-9.459.029z"
+                fill="#fff"
+            />
+            <defs>
+                <linearGradient
+                    id="highlight-logo-small_svg__paint0_linear"
+                    x1={91.5}
+                    y1={0}
+                    x2={91.5}
+                    y2={183}
+                    gradientUnits="userSpaceOnUse"
+                >
+                    <stop stopColor="#5629C6" />
+                    <stop offset={1} stopColor="#321873" />
+                </linearGradient>
+            </defs>
         </svg>
     );
 }

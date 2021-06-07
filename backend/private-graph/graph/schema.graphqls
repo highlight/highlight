@@ -331,6 +331,7 @@ input SanitizedSlackChannelInput {
     webhook_channel_name: String
     webhook_channel_id: String
 }
+
 type ErrorAlert {
     id: ID!
     ChannelsToNotify: [SanitizedSlackChannel]!
@@ -338,11 +339,26 @@ type ErrorAlert {
     CountThreshold: Int!
     ThresholdWindow: Int
 }
+
+type TrackProperty {
+    id: ID!
+    name: String!
+    value: String!
+}
+
+input TrackPropertyInput {
+    id: ID!
+    name: String!
+    value: String!
+}
+
 type SessionAlert {
     id: ID!
     ChannelsToNotify: [SanitizedSlackChannel]!
     ExcludedEnvironments: [String]!
     CountThreshold: Int!
+    TrackProperties: [TrackProperty]!
+    UserProperties: [UserProperty]!
 }
 
 type Query {
@@ -413,8 +429,10 @@ type Query {
         query: String!
     ): [ErrorField]
     organizations: [Organization]
-    error_alerts(organization_id: ID!): [ErrorAlert]
-    session_alerts(organization_id: ID!): [SessionAlert]
+    error_alert(organization_id: ID!): ErrorAlert
+    new_user_alert(organization_id: ID!): SessionAlert
+    track_properties_alert(organization_id: ID!): SessionAlert
+    user_properties_alert(organization_id: ID!): SessionAlert
     organizationSuggestion(query: String!): [Organization]
     environment_suggestion(query: String!, organization_id: ID!): [Field]
     slack_channel_suggestion(organization_id: ID!): [SanitizedSlackChannel]
@@ -511,11 +529,25 @@ type Mutation {
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
     ): ErrorAlert
-    updateSessionAlert(
+    updateNewUserAlert(
         organization_id: ID!
         session_alert_id: ID!
         count_threshold: Int!
         slack_channels: [SanitizedSlackChannelInput]!
         environments: [String]!
+    ): SessionAlert
+    updateTrackPropertiesAlert(
+        organization_id: ID!
+        session_alert_id: ID!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+        track_properties: [TrackPropertyInput]!
+    ): SessionAlert
+    updateUserPropertiesAlert(
+        organization_id: ID!
+        session_alert_id: ID!
+        slack_channels: [SanitizedSlackChannelInput]!
+        environments: [String]!
+        user_properties: [UserPropertyInput]!
     ): SessionAlert
 }

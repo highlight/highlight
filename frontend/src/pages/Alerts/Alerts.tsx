@@ -88,9 +88,7 @@ const AlertsPage = () => {
                         ))} */}
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[0]}
-                            alert={
-                                data?.error_alerts ? data?.error_alerts[0] : {}
-                            }
+                            alert={data?.error_alert ? data?.error_alert : {}}
                             environmentOptions={
                                 data?.environment_suggestion || []
                             }
@@ -102,9 +100,7 @@ const AlertsPage = () => {
                         <AlertConfigurationCard
                             configuration={ALERT_CONFIGURATIONS[1]}
                             alert={
-                                data?.session_alerts
-                                    ? data?.session_alerts[0]
-                                    : {}
+                                data?.new_user_alert ? data?.new_user_alert : {}
                             }
                             environmentOptions={
                                 data?.environment_suggestion || []
