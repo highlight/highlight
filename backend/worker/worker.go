@@ -167,26 +167,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
 		return e.Wrap(err, "error querying org")
 	}
-	var stripeCustomerID string
-	if org.StripeCustomerID != nil {
-		stripeCustomerID = *org.StripeCustomerID
-	} else {
-		stripeCustomerID = ""
+
+	stripePlanID := org.StripePlanID
+	var planType modelInputs.PlanType
+	if stripePlanID != nil {
+		planType = pricing.FromPriceID(*stripePlanID)
 	}
-	var stripePlanID *string
-	if org.StripePlanID != nil {
-		stripePlanID = org.StripePlanID
-	} else {
-		stripePlanID, err = pricing.GetOrgPlanID(w.Resolver.StripeClient, stripeCustomerID)
-		if err != nil {
-			log.Error(err)
-		}
-		err = w.Resolver.UpdateOrgPlanID(s.OrganizationID, *stripePlanID)
-		if err != nil {
-			log.Error(err)
-		}
-	}
-	planType := pricing.FromPriceID(*stripePlanID)
 	quota := pricing.TypeToQuota(planType)
 
 	year, month, _ := time.Now().Date()
