@@ -71,14 +71,9 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                         <p>
                             To tag sessions with user specific identifiers
                             (name, email, etc.), you can call the
-                            <span
-                                className={classNames(
-                                    styles.codeBlockBasic,
-                                    styles.codeBlockInlined
-                                )}
-                            >
+                            <code>
                                 {'H.identify(id: string, object: Object)'}
-                            </span>{' '}
+                            </code>{' '}
                             method in your javascript app. Here's an example:
                         </p>
                         <CodeBlock
@@ -94,10 +89,10 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
                             text={
                                 platform === PlatformType.NextJs
                                     ? `if (typeof window !== 'undefined') {
-    H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}
+    H.identify(\n\t'jay@gmail.com', \n\t{id: 'ajdf837dj', phone: '867-5309'}
     )
 }`
-                                    : `H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)`
+                                    : `H.identify(\n\t'jay@gmail.com', \n\t{id: 'ajdf837dj', phone: '867-5309'}\n)`
                             }
                         />
                     </Section>
@@ -192,7 +187,7 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
                         }}
                         text={`<script>
 ${codeStr}
-window.H.init("${orgVerboseId}")
+window.H.init('${orgVerboseId}')
 </script>`}
                     />
                 )}
@@ -212,11 +207,8 @@ const JsAppInstructions = ({
         <>
             <Section title="Installing the SDK">
                 <p>
-                    Install the{' '}
-                    <span className={styles.codeBlockBasic}>
-                        {'highlight.run'}
-                    </span>{' '}
-                    package via your javascript package manager.
+                    Install the <code>{'highlight.run'}</code> package via your
+                    javascript package manager.
                 </p>
                 <CodeBlock text={`npm install highlight.run`} />
                 <p>or with Yarn:</p>
@@ -232,9 +224,7 @@ const JsAppInstructions = ({
                         </div>
                         <p>
                             In Next.js, wrap all client side function calls in{' '}
-                            <span className={styles.codeBlockBasic}>
-                                if (typeof window...
-                            </span>
+                            <code>if (typeof window...</code>
                             to force the logic to be executed client side.
                         </p>
                     </div>
@@ -244,21 +234,27 @@ const JsAppInstructions = ({
                 <p>Initialize the SDK by importing Highlight like so: </p>
                 <CodeBlock text={`import { H } from 'highlight.run'`} />
                 <p>
-                    and then calling{' '}
-                    <span
-                        className={styles.codeBlockBasic}
-                    >{`H.init("${orgVerboseId}")`}</span>{' '}
-                    as soon as you can in your site's startup process.
+                    and then calling <code>{getInitSnippet(orgVerboseId)}</code>{' '}
+                    as soon as you can in your site's startup process. You can
+                    configure how Highlight records with the{' '}
+                    <a
+                        href="https://docs.highlight.run/reference#options"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        options
+                    </a>
+                    .
                 </p>
                 <p>
                     {platform !== PlatformType.NextJs ? (
                         <CodeBlock
-                            text={`H.init("${orgVerboseId}") // "${orgVerboseId}" is your ORG_ID`}
+                            text={`${getInitSnippet(orgVerboseId, true)}`}
                         />
                     ) : (
                         <CodeBlock
                             text={`if (typeof window !== 'undefined') {
-    H.init("${orgVerboseId}") // "${orgVerboseId}" is your ORG_ID
+    ${getInitSnippet(orgVerboseId)}' is your ORG_ID
 }`}
                         />
                     )}
@@ -281,7 +277,7 @@ import './index.scss';
 import App from './App';
 import { H } from 'highlight.run'
 
-H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
+${getInitSnippet(orgVerboseId)}
 
 ReactDOM.render(<App />, document.getElementById('root'));`}
                     />
@@ -291,7 +287,7 @@ ReactDOM.render(<App />, document.getElementById('root'));`}
 import App from './App.vue';
 import { H } from 'highlight.run';
 
-H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
+${getInitSnippet(orgVerboseId, true)}
 Vue.prototype.$H = H;
 
 new Vue({
@@ -304,7 +300,7 @@ new Vue({
 import { H } from 'highlight.run';
 
 if (typeof window !== 'undefined') {
-  H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
+  ${getInitSnippet(orgVerboseId)}
 }
 
 function MyApp({ Component, pageProps }) {
@@ -337,3 +333,11 @@ export const Section: FunctionComponent<SectionProps> = ({
 };
 
 export default SetupPage;
+
+const getInitSnippet = (orgId: string, withOptions = false) =>
+    withOptions
+        ? `H.init('${orgId}', {
+  environment: 'production',
+  enableStrictPrivacy: false,
+});`
+        : `H.init('${orgId}');`;
