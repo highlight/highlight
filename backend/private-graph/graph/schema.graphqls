@@ -74,6 +74,7 @@ type Organization {
     trial_end_date: Time
     slack_webhook_channel: String
     slack_channels: String
+    secret: String
 }
 
 type Segment {
