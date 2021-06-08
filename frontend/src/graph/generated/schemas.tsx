@@ -278,7 +278,7 @@ export type UserProperty = {
 };
 
 export type UserPropertyInput = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
     name: Scalars['String'];
     value: Scalars['String'];
 };
@@ -393,7 +393,7 @@ export type TrackProperty = {
 };
 
 export type TrackPropertyInput = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
     name: Scalars['String'];
     value: Scalars['String'];
 };

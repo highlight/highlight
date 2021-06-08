@@ -543,6 +543,10 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
+		organization := model.Organization{Model: model.Model{ID: organizationID}}
+		if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
+			return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
+		}
 
 		// mark sessions as within billing quota on plan upgrade
 		// this is done when the user is already signed up for some sort of billing plan
@@ -557,6 +561,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	}
 
 	// If there's no existing subscription, we create a checkout.
+	plan := pricing.ToPriceID(planType)
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
 		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/success"),
 		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/checkoutCanceled"),
@@ -567,7 +572,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
-					Plan: stripe.String(pricing.ToPriceID(planType)),
+					Plan: stripe.String(plan),
 				},
 			},
 		},
@@ -580,6 +585,10 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
 
+	organization := model.Organization{Model: model.Model{ID: organizationID}}
+	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
+		return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
+	}
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
@@ -1376,16 +1385,20 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	for _, prop := range params.UserProperties {
 		if prop.Name == "contains" {
 			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+		} else if prop.ID == nil || *prop.ID == 0 {
+			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
 		} else {
-			fieldIds = append(fieldIds, prop.ID)
+			fieldIds = append(fieldIds, *prop.ID)
 		}
 	}
 
 	for _, prop := range params.TrackProperties {
 		if prop.Name == "contains" {
 			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
+		} else if prop.ID == nil || *prop.ID == 0 {
+			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
 		} else {
-			fieldIds = append(fieldIds, prop.ID)
+			fieldIds = append(fieldIds, *prop.ID)
 		}
 	}
 
@@ -1435,8 +1448,10 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	for _, prop := range params.ExcludedProperties {
 		if prop.Name == "contains" {
 			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+		} else if prop.ID == nil || *prop.ID == 0 {
+			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
 		} else {
-			notFieldIds = append(notFieldIds, prop.ID)
+			notFieldIds = append(notFieldIds, *prop.ID)
 		}
 	}
 
@@ -1455,8 +1470,10 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	for _, prop := range params.ExcludedTrackProperties {
 		if prop.Name == "contains" {
 			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
+		} else if prop.ID == nil || *prop.ID == 0 {
+			notTrackFieldQuery = notTrackFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
 		} else {
-			notTrackFieldIds = append(notTrackFieldIds, prop.ID)
+			notTrackFieldIds = append(notTrackFieldIds, *prop.ID)
 		}
 	}
 
@@ -1632,13 +1649,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	var stripeCustomerID string
-	if org.StripeCustomerID != nil {
-		stripeCustomerID = *org.StripeCustomerID
-	} else {
-		stripeCustomerID = ""
+
+	stripePriceID := org.StripePriceID
+	planType := modelInputs.PlanTypeFree
+	if stripePriceID != nil {
+		planType = pricing.FromPriceID(*stripePriceID)
 	}
-	planType := pricing.GetOrgPlanString(r.StripeClient, stripeCustomerID)
 
 	var g errgroup.Group
 	var meter int64
