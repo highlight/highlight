@@ -12,6 +12,7 @@ query GetSession($id: ID!) {
         browser_name
         browser_version
         environment
+        app_version
         city
         state
         postal

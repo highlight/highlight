@@ -87,6 +87,34 @@ const MetadataPanel = () => {
                                 />
                             </span>
                         </p>
+                        <p>
+                            App Version:{' '}
+                            <span className={styles.centerAlign}>
+                                <span className={styles.sentenceCase}>
+                                    {data?.session?.app_version ||
+                                        'App Version Not Set'}
+                                </span>
+                                <InfoTooltip
+                                    className={styles.infoTooltip}
+                                    title={
+                                        <>
+                                            This is the app version for your
+                                            application. You can set the version
+                                            to help categorize what version of
+                                            the app a user was using.{' '}
+                                            <a
+                                                href="https://docs.highlight.run/reference#options"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                Learn more about setting the
+                                                version.
+                                            </a>
+                                        </>
+                                    }
+                                />
+                            </span>
+                        </p>
                         {data?.session?.city && (
                             <p>
                                 Location: {data?.session?.city},{' '}
