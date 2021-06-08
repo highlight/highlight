@@ -167,6 +167,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
 		return e.Wrap(err, "error querying org")
 	}
+
 	var stripeCustomerID string
 	if org.StripeCustomerID != nil {
 		stripeCustomerID = *org.StripeCustomerID
