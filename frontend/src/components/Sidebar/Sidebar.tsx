@@ -4,7 +4,6 @@ import { HiOutlineSpeakerphone } from 'react-icons/hi';
 import { Link, useLocation, useParams } from 'react-router-dom';
 
 import { DemoContext } from '../../DemoContext';
-import { useGetBillingDetailsQuery } from '../../graph/generated/hooks';
 import SvgCreditCardsIcon from '../../static/CreditCardsIcon';
 import SvgErrorsIcon from '../../static/ErrorsIcon';
 import SvgHomeIcon from '../../static/HomeIcon';
@@ -18,7 +17,6 @@ import {
     WorkspaceDropdown,
 } from '../Header/WorkspaceDropdown/WorkspaceDropdown';
 import Tooltip from '../Tooltip/Tooltip';
-import { CurrentUsageCard } from '../Upsell/CurrentUsageCard/CurrentUsageCard';
 import styles from './Sidebar.module.scss';
 import { SidebarState, useSidebarContext } from './SidebarContext';
 
@@ -81,11 +79,7 @@ const END_NAVIGATION_ITEMS: NavigationItem[] = [
 ];
 
 export const Sidebar = () => {
-    const { organization_id } = useParams<{ organization_id: string }>();
     const { state } = useSidebarContext();
-    const { data, loading: loadingBillingDetails } = useGetBillingDetailsQuery({
-        variables: { organization_id },
-    });
 
     return (
         <>
@@ -128,16 +122,6 @@ export const Sidebar = () => {
 
                 <div className={styles.bottomWrapper}>
                     <div className={styles.bottomSection}>
-                        {!loadingBillingDetails &&
-                        data?.billingDetails.meter !== undefined &&
-                        data?.billingDetails.plan.quota !== undefined ? (
-                            <CurrentUsageCard
-                                currentUsage={data?.billingDetails.meter}
-                                limit={data?.billingDetails.plan.quota}
-                            />
-                        ) : (
-                            <></>
-                        )}
                         <div className={styles.bottomContainer}>
                             <div className={styles.bottomLinkContainer}>
                                 <Link

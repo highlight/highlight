@@ -164,18 +164,17 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
 		return e.Wrap(err, "error querying org")
 	}
-	var stripeCustomerID string
-	if org.StripeCustomerID != nil {
-		stripeCustomerID = *org.StripeCustomerID
-	} else {
-		stripeCustomerID = ""
+
+	stripePriceID := org.StripePriceID
+	planType := modelInputs.PlanTypeFree
+	if stripePriceID != nil {
+		planType = pricing.FromPriceID(*stripePriceID)
 	}
-	planType := pricing.GetOrgPlanString(w.Resolver.StripeClient, stripeCustomerID)
 	quota := pricing.TypeToQuota(planType)
 
 	year, month, _ := time.Now().Date()
 	var sessionCount int64
-	if err := w.Resolver.DB.Model(&model.Session{}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Where("within_billing_quota = true OR within_billing_quota IS NULL").Count(&sessionCount).Error; err != nil {
+	if err := w.Resolver.DB.Model(&model.Session{}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Where(&model.Session{WithinBillingQuota: &model.T, Processed: &model.T}).Count(&sessionCount).Error; err != nil {
 		return errors.Wrap(err, "error getting past month's session count")
 	}
 	withinQuota = sessionCount <= int64(quota)

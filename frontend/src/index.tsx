@@ -23,6 +23,7 @@ const options: HighlightOptions = {
     manualStart: true,
     enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
 };
+const favicon = document.querySelector("link[rel~='icon']") as any;
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
 
@@ -38,9 +39,15 @@ if (dev) {
             Math.floor(Math.random() * sampleEnvironmentNames.length)
         ]
     }-localhost`;
-    window.document.title = `⚙️ DEV ${window.document.title}`;
+    window.document.title = `⚙️ ${window.document.title}`;
+    if (favicon) {
+        favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`;
+    }
 } else if (window.location.href.includes('onrender')) {
-    window.document.title = `📸 PR ${window.document.title}`;
+    if (favicon) {
+        favicon.href = `${process.env.PUBLIC_URL}/favicon-pr.ico`;
+    }
+    window.document.title = `📸 ${window.document.title}`;
     options.environment = 'Pull Request Preview';
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);

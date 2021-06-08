@@ -543,6 +543,10 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
+		organization := model.Organization{Model: model.Model{ID: organizationID}}
+		if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
+			return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
+		}
 
 		// mark sessions as within billing quota on plan upgrade
 		// this is done when the user is already signed up for some sort of billing plan
@@ -557,6 +561,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	}
 
 	// If there's no existing subscription, we create a checkout.
+	plan := pricing.ToPriceID(planType)
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
 		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/success"),
 		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/checkoutCanceled"),
@@ -567,7 +572,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
-					Plan: stripe.String(pricing.ToPriceID(planType)),
+					Plan: stripe.String(plan),
 				},
 			},
 		},
@@ -580,6 +585,10 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
 
+	organization := model.Organization{Model: model.Model{ID: organizationID}}
+	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
+		return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
+	}
 	// mark sessions as within billing quota on plan upgrade
 	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
 	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
@@ -826,11 +835,6 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 		return nil, e.Wrap(err, "admin is not in organization")
 	}
 
-	alert := &model.SessionAlert{}
-	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).Find(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying track properties alert")
-	}
-
 	envBytes, err := json.Marshal(environments)
 	if err != nil {
 		return nil, e.Wrap(err, "error parsing environments for track properties alert")
@@ -855,6 +859,7 @@ func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organ
 	}
 	trackPropertiesString := string(trackPropertiesBytes)
 
+	alert := &model.SessionAlert{}
 	alert.ExcludedEnvironments = &envString
 	alert.ChannelsToNotify = &channelsString
 	alert.TrackProperties = &trackPropertiesString
@@ -875,11 +880,6 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
-	}
-
-	alert := &model.SessionAlert{}
-	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type=?", model.AlertType.USER_PROPERTIES).Find(&alert).Error; err != nil {
-		return nil, e.Wrap(err, "error querying user properties alert")
 	}
 
 	envBytes, err := json.Marshal(environments)
@@ -906,6 +906,7 @@ func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organi
 	}
 	userPropertiesString := string(userPropertiesBytes)
 
+	alert := &model.SessionAlert{}
 	alert.ExcludedEnvironments = &envString
 	alert.ChannelsToNotify = &channelsString
 	alert.UserProperties = &userPropertiesString
@@ -1374,6 +1375,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	visitedCheck := true
 	referrerCheck := true
 	fieldIds := []int{}
+	fieldQuery := r.DB.Model(&model.Field{})
 	visitedIds := []int{}
 	referrerIds := []int{}
 	visitedQuery := r.DB.Model(&model.Field{})
@@ -1381,11 +1383,23 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	fieldsSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.fieldsQuery"))
 	for _, prop := range params.UserProperties {
-		fieldIds = append(fieldIds, prop.ID)
+		if prop.Name == "contains" {
+			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+		} else if prop.ID == nil || *prop.ID == 0 {
+			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+		} else {
+			fieldIds = append(fieldIds, *prop.ID)
+		}
 	}
 
 	for _, prop := range params.TrackProperties {
-		fieldIds = append(fieldIds, prop.ID)
+		if prop.Name == "contains" {
+			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
+		} else if prop.ID == nil || *prop.ID == 0 {
+			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
+		} else {
+			fieldIds = append(fieldIds, *prop.ID)
+		}
 	}
 
 	if params.VisitedURL != nil {
@@ -1397,6 +1411,13 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if len(params.UserProperties)+len(params.TrackProperties) > 0 {
+		if len(params.UserProperties)+len(params.TrackProperties) != len(fieldIds) {
+			var tempFieldIds []int
+			if err := fieldQuery.Pluck("id", &tempFieldIds).Error; err != nil {
+				return nil, e.Wrap(err, "error querying initial set of session fields")
+			}
+			fieldIds = append(fieldIds, tempFieldIds...)
+		}
 		if len(fieldIds) == 0 {
 			fieldCheck = false
 		}
@@ -1422,16 +1443,47 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	//excluded fields
 	notFieldIds := []int{}
+	notFieldQuery := r.DB.Model(&model.Field{})
 
 	for _, prop := range params.ExcludedProperties {
-		notFieldIds = append(notFieldIds, prop.ID)
+		if prop.Name == "contains" {
+			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
+		} else if prop.ID == nil || *prop.ID == 0 {
+			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+		} else {
+			notFieldIds = append(notFieldIds, *prop.ID)
+		}
+	}
+
+	if len(params.ExcludedProperties) != len(notFieldIds) {
+		var tempNotFieldIds []int
+		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of excluded sessions fields")
+		}
+		notFieldIds = append(notFieldIds, tempNotFieldIds...)
 	}
 
 	//excluded track fields
 	notTrackFieldIds := []int{}
+	notTrackFieldQuery := r.DB.Model(&model.Field{})
 
 	for _, prop := range params.ExcludedTrackProperties {
-		notTrackFieldIds = append(notTrackFieldIds, prop.ID)
+		if prop.Name == "contains" {
+			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
+		} else if prop.ID == nil || *prop.ID == 0 {
+			notTrackFieldQuery = notTrackFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
+		} else {
+			notTrackFieldIds = append(notTrackFieldIds, *prop.ID)
+		}
+	}
+
+	//pluck not field ids
+	if len(params.ExcludedTrackProperties) > 0 {
+		var tempNotTrackFieldIds []int
+		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
+		}
+		notTrackFieldIds = append(notTrackFieldIds, tempNotTrackFieldIds...)
 	}
 
 	fieldsSpan.Finish()
@@ -1545,10 +1597,8 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += "AND (id != id) "
 	}
 
-	// Anthony's org shouldn't get sessions over the quota
-	if organizationID == 110 {
-		whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
-	}
+	// user shouldn't see sessions that are not within billing quota
+	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
 
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
@@ -1599,13 +1649,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	var stripeCustomerID string
-	if org.StripeCustomerID != nil {
-		stripeCustomerID = *org.StripeCustomerID
-	} else {
-		stripeCustomerID = ""
+
+	stripePriceID := org.StripePriceID
+	planType := modelInputs.PlanTypeFree
+	if stripePriceID != nil {
+		planType = pricing.FromPriceID(*stripePriceID)
 	}
-	planType := pricing.GetOrgPlanString(r.StripeClient, stripeCustomerID)
 
 	var g errgroup.Group
 	var meter int64
@@ -1745,7 +1794,7 @@ func (r *queryResolver) UserPropertiesAlert(ctx context.Context, organizationID 
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	var alert model.SessionAlert
-	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, Type: &model.AlertType.USER_PROPERTIES}}).First(&alert).Error; err != nil {
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.USER_PROPERTIES).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying user properties alert")
 	}
 	return &alert, nil

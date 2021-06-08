@@ -8,24 +8,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"time"
-
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gorm.io/gorm"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"github.com/slack-go/slack"
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"gorm.io/gorm"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, fingerprint string) (*model.Session, error) {
-	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, firstloadVersion, clientVersion, clientConfig, environment, fingerprint)
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
+	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, firstloadVersion, clientVersion, clientConfig, environment, appVersion, fingerprint)
 
-	if err != nil {
+	if os.Getenv("ENVIRONMENT") != "dev" && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
 			Sprintf("Error in InitializeSession: %q\nOccurred for organization: %q", err, organizationVerboseID)}
 		slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
@@ -63,7 +63,7 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 
 	// Check if there is a session created by this user.
 	firstTime := &model.F
-	if err := r.DB.Where(&model.Session{Identifier: userIdentifier, OrganizationID: session.OrganizationID, FirstTime: firstTime}).Take(&model.Session{}).Error; err != nil {
+	if err := r.DB.Where(&model.Session{Identifier: userIdentifier, OrganizationID: session.OrganizationID}).Take(&model.Session{}).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			firstTime = &model.T
 		} else {

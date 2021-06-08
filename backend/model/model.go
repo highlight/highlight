@@ -88,6 +88,7 @@ type Organization struct {
 	Model
 	Name             *string
 	StripeCustomerID *string
+	StripePriceID    *string
 	BillingEmail     *string
 	Secret           *string `json:"-"`
 	Admins           []Admin `gorm:"many2many:organization_admins;"`
@@ -298,6 +299,7 @@ type Session struct {
 	ActiveLength   int64    `json:"active_length"`
 	Fields         []*Field `json:"fields" gorm:"many2many:session_fields;"`
 	Environment    string   `json:"environment"`
+	AppVersion     *string  `json:"app_version" gorm:"index"`
 	UserObject     JSONB    `json:"user_object" sql:"type:jsonb"`
 	UserProperties string   `json:"user_properties"`
 	// Whether this is the first session created by this user.
@@ -401,13 +403,13 @@ type LengthRange struct {
 }
 
 type UserProperty struct {
-	ID    string
+	ID    int
 	Name  string
 	Value string
 }
 
 type TrackProperty struct {
-	ID    string `json:"id"`
+	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }

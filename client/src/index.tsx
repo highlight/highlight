@@ -28,7 +28,6 @@ import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
-import { SUPPORTED_ENVIRONMENT_NAMES } from './utils/environment/environment';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -60,6 +59,7 @@ export type HighlightClassOptions = {
     enableStrictPrivacy?: boolean;
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
+    appVersion?: string;
 };
 
 /**
@@ -115,9 +115,15 @@ export class Highlight {
     listeners: listenerHandler[];
     firstloadVersion: string;
     environment: string;
+    /** The end-user's app version. This isn't Highlight's version. */
+    appVersion: string | undefined;
     _optionsInternal: HighlightClassOptionsInternal;
     _backendUrl: string;
     _recordingStartTime: number = 0;
+
+    static create(options: HighlightClassOptions): Highlight {
+        return new Highlight(options);
+    }
 
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
@@ -134,25 +140,17 @@ export class Highlight {
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
-        this._backendUrl = options?.backendUrl
-            ? options.backendUrl
-            : (process.env.PUBLIC_GRAPH_URI as string);
+        this._backendUrl =
+            options?.backendUrl ||
+            process.env.PUBLIC_GRAPH_URI ||
+            'https://public.highlight.run';
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
         this.graphqlSDK = getSdk(client);
         this.environment = options.environment || 'production';
+        this.appVersion = options.appVersion;
 
-        if (options.environment) {
-            if (SUPPORTED_ENVIRONMENT_NAMES.includes(options.environment)) {
-                this.environment = options.environment;
-            } else {
-                HighlightWarning(
-                    'init',
-                    'custom environment names are not currently supported, "production" was used instead. Acceptable values are: "production", "staging", and "development".'
-                );
-            }
-        }
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
         } else if (typeof options.organizationID === 'number') {
@@ -310,6 +308,7 @@ export class Highlight {
                     clientConfig: JSON.stringify(this._optionsInternal),
                     environment: this.environment,
                     id: fingerprint.toString(),
+                    appVersion: this.appVersion,
                 });
                 this.sessionData.sessionID = parseInt(
                     gr?.initializeSession?.id || '0'

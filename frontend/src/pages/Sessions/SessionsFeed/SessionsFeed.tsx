@@ -12,7 +12,6 @@ import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmp
 import Tooltip from '../../../components/Tooltip/Tooltip';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
 import {
-    useGetBillingDetailsQuery,
     useGetSessionsQuery,
     useMarkSessionAsStarredMutation,
     useMarkSessionAsViewedMutation,
@@ -27,6 +26,7 @@ import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
 import { ReactComponent as UnviewedIcon } from '../../../static/unviewed.svg';
 import { ReactComponent as ViewedIcon } from '../../../static/viewed.svg';
+import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
 import { useSearchContext } from '../SearchContext/SearchContext';
 import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
@@ -51,15 +51,7 @@ export const SessionFeed = ({ minimal = false }: Props) => {
         session_id: string;
     }>();
     const [count, setCount] = useState(10);
-    const { data: billingData } = useGetBillingDetailsQuery({
-        variables: { organization_id },
-    });
 
-    /** Show upsell when the current usage is 80% of the organization's plan. */
-    const upsell =
-        (billingData?.billingDetails.meter ?? 0) /
-            (billingData?.billingDetails.plan.quota ?? 1) >=
-        0.8;
     // Used to determine if we need to show the loading skeleton. The loading skeleton should only be shown on the first load and when searchParams changes. It should not show when loading more sessions via infinite scroll.
     const [showLoadingSkeleton, setShowLoadingSkeleton] = useState(true);
     const [data, setData] = useState<SessionResults>({
@@ -149,7 +141,9 @@ export const SessionFeed = ({ minimal = false }: Props) => {
                     </div>
                     <div
                         className={styles.resultCount}
-                    >{`${data.totalCount} sessions`}</div>
+                    >{`${formatNumberWithDelimiters(
+                        data.totalCount
+                    )} sessions`}</div>
                 </div>
             )}
             <div className={styles.feedContent}>
@@ -170,7 +164,7 @@ export const SessionFeed = ({ minimal = false }: Props) => {
                                 <SearchEmptyState item={'sessions'} />
                             ) : (
                                 <>
-                                    {upsell && <LimitedSessionCard />}
+                                    <LimitedSessionCard />
                                     {filteredSessions.map((u) =>
                                         minimal ? (
                                             <MinimalSessionCard

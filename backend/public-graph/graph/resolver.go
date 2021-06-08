@@ -318,7 +318,7 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, fingerprint string) (*model.Session, error) {
+func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
 	organizationID := model.FromVerboseID(organizationVerboseID)
 	organization := &model.Organization{}
 	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization).Error; err != nil {
@@ -379,6 +379,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		ClientVersion:       clientVersion,
 		ClientConfig:        &clientConfig,
 		Environment:         environment,
+		AppVersion:          appVersion,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {

@@ -1505,6 +1505,7 @@ export const GetSessionDocument = gql`
             }
             object_storage_enabled
             payload_size
+            within_billing_quota
         }
     }
 `;
@@ -2286,6 +2287,7 @@ export const GetBillingDetailsDocument = gql`
                 quota
             }
             meter
+            sessionsOutOfQuota
         }
         organization(id: $organization_id) {
             id
@@ -4024,6 +4026,34 @@ export const GetAlertsPagePayloadDocument = gql`
             ChannelsToNotify {
                 webhook_channel
                 webhook_channel_id
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
+        track_properties_alert(organization_id: $organization_id) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            TrackProperties {
+                id
+                name
+                value
+            }
+            ExcludedEnvironments
+            CountThreshold
+        }
+        user_properties_alert(organization_id: $organization_id) {
+            id
+            ChannelsToNotify {
+                webhook_channel
+                webhook_channel_id
+            }
+            UserProperties {
+                id
+                name
+                value
             }
             ExcludedEnvironments
             CountThreshold
