@@ -10,6 +10,7 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
 
+import packageJson from '../package.json';
 import { DemoContext } from './DemoContext';
 import DemoRouter from './DemoRouter';
 import About from './pages/About/About';
@@ -22,6 +23,7 @@ const options: HighlightOptions = {
     debug: { clientInteractions: true, domRecording: true },
     manualStart: true,
     enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
+    version: packageJson['version'],
 };
 const favicon = document.querySelector("link[rel~='icon']") as any;
 if (dev) {
