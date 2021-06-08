@@ -2845,7 +2845,7 @@ type UserProperty {
 }
 
 input UserPropertyInput {
-    id: ID!
+    id: ID
     name: String!
     value: String!
 }
@@ -2949,7 +2949,7 @@ type TrackProperty {
 }
 
 input TrackPropertyInput {
-    id: ID!
+    id: ID
     name: String!
     value: String!
 }
@@ -14825,7 +14825,7 @@ func (ec *executionContext) unmarshalInputTrackPropertyInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -14861,7 +14861,7 @@ func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
