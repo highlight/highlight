@@ -740,6 +740,7 @@ export type GetOrganizationQuery = { __typename?: 'Query' } & {
             | 'verbose_id'
             | 'billing_email'
             | 'slack_webhook_channel'
+            | 'secret'
         >
     >;
 };

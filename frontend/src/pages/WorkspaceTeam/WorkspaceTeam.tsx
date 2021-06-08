@@ -17,6 +17,7 @@ import {
     useGetOrganizationQuery,
     useSendAdminInviteMutation,
 } from '../../graph/generated/hooks';
+import { getOrganizationInvitationLink } from './utils';
 import styles from './WorkspaceTeam.module.scss';
 
 type Inputs = {
@@ -118,7 +119,12 @@ const WorkspaceTeam = () => {
                     </div>
                 </form>
                 <p>Or invite your team by sharing this link.</p>
-                <CopyText text="ffoobarfoobarfoobarfoobarfoobarfoobarfoobarfoobarfoobarfoobarfoobaroobar" />
+                <CopyText
+                    text={getOrganizationInvitationLink(
+                        orgData?.organization?.secret || '',
+                        organization_id
+                    )}
+                />
             </div>
             <div className={styles.box}>
                 <h3>Members</h3>

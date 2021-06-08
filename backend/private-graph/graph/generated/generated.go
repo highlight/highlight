@@ -225,6 +225,7 @@ type ComplexityRoot struct {
 		BillingEmail        func(childComplexity int) int
 		ID                  func(childComplexity int) int
 		Name                func(childComplexity int) int
+		Secret              func(childComplexity int) int
 		SlackChannels       func(childComplexity int) int
 		SlackWebhookChannel func(childComplexity int) int
 		TrialEndDate        func(childComplexity int) int
@@ -1434,6 +1435,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Organization.Name(childComplexity), true
+
+	case "Organization.secret":
+		if e.complexity.Organization.Secret == nil {
+			break
+		}
+
+		return e.complexity.Organization.Secret(childComplexity), true
 
 	case "Organization.slack_channels":
 		if e.complexity.Organization.SlackChannels == nil {
@@ -2684,6 +2692,7 @@ type Organization {
     trial_end_date: Time
     slack_webhook_channel: String
     slack_channels: String
+    secret: String
 }
 
 type Segment {
@@ -8834,6 +8843,38 @@ func (ec *executionContext) _Organization_slack_channels(ctx context.Context, fi
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SlackChannels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Organization_secret(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Secret, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15874,6 +15915,8 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._Organization_slack_webhook_channel(ctx, field, obj)
 		case "slack_channels":
 			out.Values[i] = ec._Organization_slack_channels(ctx, field, obj)
+		case "secret":
+			out.Values[i] = ec._Organization_secret(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

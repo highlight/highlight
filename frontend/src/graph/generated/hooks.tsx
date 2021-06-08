@@ -2228,6 +2228,7 @@ export const GetOrganizationDocument = gql`
             verbose_id
             billing_email
             slack_webhook_channel
+            secret
         }
     }
 `;

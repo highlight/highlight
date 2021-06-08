@@ -94,6 +94,7 @@ export type Organization = {
     trial_end_date?: Maybe<Scalars['Time']>;
     slack_webhook_channel?: Maybe<Scalars['String']>;
     slack_channels?: Maybe<Scalars['String']>;
+    secret?: Maybe<Scalars['String']>;
 };
 
 export type Segment = {
