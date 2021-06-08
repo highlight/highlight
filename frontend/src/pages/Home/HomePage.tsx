@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import Lottie from 'lottie-react';
 import moment from 'moment';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useHistory, useParams } from 'react-router-dom';
 import {
@@ -161,7 +161,7 @@ const SessionCountGraph = () => {
     );
     const history = useHistory();
 
-    const { loading } = useGetDailySessionsCountQuery({
+    const { loading, refetch } = useGetDailySessionsCountQuery({
         variables: {
             organization_id,
             date_range: {
@@ -174,9 +174,7 @@ const SessionCountGraph = () => {
         },
         onCompleted: (response) => {
             if (response.dailySessionsCount) {
-                if (response.dailySessionsCount.length === 0) {
-                    setHasData(false);
-                }
+                setHasData(response.dailySessionsCount.length > 0);
                 const dateRangeData = dailyCountData(
                     response.dailySessionsCount,
                     dateRangeLength
@@ -194,6 +192,12 @@ const SessionCountGraph = () => {
             }
         },
     });
+
+    // Refetch when the organization changes to handle the scenario where a user is a part of multiple organizations.
+    // Without this, the data shown would be for the previous organization.
+    useEffect(() => {
+        refetch();
+    }, [refetch, organization_id]);
 
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
