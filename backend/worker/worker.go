@@ -168,10 +168,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return e.Wrap(err, "error querying org")
 	}
 
-	stripePlanID := org.StripePlanID
+	StripePriceID := org.StripePriceID
 	planType := modelInputs.PlanTypeFree
-	if stripePlanID != nil {
-		planType = pricing.FromPriceID(*stripePlanID)
+	if StripePriceID != nil {
+		planType = pricing.FromPriceID(*StripePriceID)
 	}
 	quota := pricing.TypeToQuota(planType)
 

@@ -544,7 +544,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
 		organization := model.Organization{Model: model.Model{ID: organizationID}}
-		if err := r.DB.Model(&organization).Updates(model.Organization{StripePlanID: &plan}).Error; err != nil {
+		if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
 			return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
 		}
 
@@ -586,7 +586,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	}
 
 	organization := model.Organization{Model: model.Model{ID: organizationID}}
-	if err := r.DB.Model(&organization).Updates(model.Organization{StripePlanID: &plan}).Error; err != nil {
+	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
 		return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
 	}
 	// mark sessions as within billing quota on plan upgrade
@@ -1642,10 +1642,10 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
-	stripePlanID := org.StripePlanID
+	StripePriceID := org.StripePriceID
 	planType := modelInputs.PlanTypeFree
-	if stripePlanID != nil {
-		planType = pricing.FromPriceID(*stripePlanID)
+	if StripePriceID != nil {
+		planType = pricing.FromPriceID(*StripePriceID)
 	}
 
 	var g errgroup.Group

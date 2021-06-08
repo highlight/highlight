@@ -84,7 +84,7 @@ type Organization struct {
 	Model
 	Name             *string
 	StripeCustomerID *string
-	StripePlanID     *string
+	StripePriceID    *string
 	BillingEmail     *string
 	Secret           *string `json:"-"`
 	Admins           []Admin `gorm:"many2many:organization_admins;"`
