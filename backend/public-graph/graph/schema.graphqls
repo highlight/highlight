@@ -34,6 +34,7 @@ type Mutation {
         firstloadVersion: String!
         clientConfig: String!
         environment: String!
+        appVersion: String
         fingerprint: String!
     ): Session
     identifySession(

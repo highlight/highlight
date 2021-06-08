@@ -11,20 +11,19 @@ import (
 	"os"
 	"time"
 
+	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
+	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"github.com/slack-go/slack"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"gorm.io/gorm"
-
-	parse "github.com/highlight-run/highlight/backend/event-parse"
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
-	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, fingerprint string) (*model.Session, error) {
-	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, firstloadVersion, clientVersion, clientConfig, environment, fingerprint)
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
+	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, firstloadVersion, clientVersion, clientConfig, environment, appVersion, fingerprint)
 
 	if os.Getenv("ENVIRONMENT") != "dev" && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
