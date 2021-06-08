@@ -59,7 +59,6 @@ export type HighlightClassOptions = {
     enableStrictPrivacy?: boolean;
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
-    appVersion?: string;
 };
 
 /**
@@ -115,8 +114,6 @@ export class Highlight {
     listeners: listenerHandler[];
     firstloadVersion: string;
     environment: string;
-    /** The end-user's app version. This isn't Highlight's version. */
-    appVersion: string | undefined;
     _optionsInternal: HighlightClassOptionsInternal;
     _backendUrl: string;
     _recordingStartTime: number = 0;
@@ -140,13 +137,15 @@ export class Highlight {
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
-        this._backendUrl = 'http://localhost:8082/public';
+        this._backendUrl =
+            options?.backendUrl ||
+            process.env.PUBLIC_GRAPH_URI ||
+            'https://public.highlight.run';
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
         this.graphqlSDK = getSdk(client);
         this.environment = options.environment || 'production';
-        this.appVersion = options.appVersion;
 
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
@@ -305,7 +304,6 @@ export class Highlight {
                     clientConfig: JSON.stringify(this._optionsInternal),
                     environment: this.environment,
                     id: fingerprint.toString(),
-                    appVersion: this.appVersion,
                 });
                 this.sessionData.sessionID = parseInt(
                     gr?.initializeSession?.id || '0'
