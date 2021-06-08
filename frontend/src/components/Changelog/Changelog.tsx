@@ -4,7 +4,6 @@ import classNames from 'classnames';
 import { H } from 'highlight.run';
 import moment from 'moment';
 import React, { HTMLProps, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import { useIntegrated } from '../../util/integrated';
 import Popover from '../Popover/Popover';
@@ -52,14 +51,13 @@ interface LaunchNotesResponse {
 }
 
 const Changelog = (props: HTMLProps<HTMLDivElement>) => {
-    const { organization_id } = useParams<{ organization_id: string }>();
     const [data, setData] = useState<AnnouncementNode[] | null>(null);
     const [lastReadId, setLastReadId] = useLocalStorage(
         'highlightChangelogLastReadId',
         '0'
     );
     const [hasNewUpdates, setHasNewUpdates] = useState(false);
-    const { integrated } = useIntegrated(parseInt(organization_id, 10));
+    const { integrated } = useIntegrated();
 
     const { loading } = useQuery<LaunchNotesResponse>(Announcements_Query, {
         context: {
