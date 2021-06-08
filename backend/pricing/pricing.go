@@ -49,21 +49,6 @@ func GetOrgPlanString(stripeClient *client.API, customerID string) backend.PlanT
 	return planType
 }
 
-func GetOrgPlanID(stripeClient *client.API, customerID string) (*string, error) {
-	// gets plan id from stripe, sets plan id column on organization
-	priceID := ""
-	if customerID == "" {
-		return &priceID, e.New("organization has no stripe subscription")
-	}
-	params := &stripe.CustomerParams{}
-	params.AddExpand("subscriptions")
-	c, err := stripeClient.Customers.Get(customerID, params)
-	if !(err != nil || len(c.Subscriptions.Data) == 0 || len(c.Subscriptions.Data[0].Items.Data) == 0) {
-		priceID = c.Subscriptions.Data[0].Items.Data[0].Plan.ID
-	}
-	return &priceID, nil
-}
-
 func TypeToQuota(planType backend.PlanType) int {
 	switch planType {
 	case backend.PlanTypeFree:
