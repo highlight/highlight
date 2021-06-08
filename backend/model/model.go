@@ -28,7 +28,6 @@ var (
 	HashID *hashids.HashID
 	F      bool = false
 	T      bool = true
-	Zero   int  = 0
 )
 
 const (
