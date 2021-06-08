@@ -360,7 +360,6 @@ type Segment struct {
 	Model
 	Name           *string
 	Params         *string `json:"params"`
-	UserObject     JSONB   `json:"user_object" sql:"type:jsonb"`
 	OrganizationID int
 }
 
@@ -403,13 +402,13 @@ type LengthRange struct {
 }
 
 type UserProperty struct {
-	ID    int
+	ID    string
 	Name  string
 	Value string
 }
 
 type TrackProperty struct {
-	ID    int    `json:"id"`
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
@@ -621,6 +620,7 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 }
 
 func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string) error {
+	log.Info("sending slack alert: ", obj.Type)
 	if obj == nil {
 		return fmt.Errorf("alert is nil")
 	}
