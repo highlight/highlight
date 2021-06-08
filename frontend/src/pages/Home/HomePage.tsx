@@ -52,9 +52,7 @@ const HomePage = () => {
         timeFilter[1].value
     );
     const [hasData, setHasData] = useState<boolean>(true);
-    const { integrated, loading: integratedLoading } = useIntegrated(
-        parseInt(organization_id, 10)
-    );
+    const { integrated, loading: integratedLoading } = useIntegrated();
 
     if (integratedLoading || adminLoading) {
         return null;
