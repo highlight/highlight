@@ -449,6 +449,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	var monthToDateSessionCountSlice []int64
 	year, month, _ := time.Now().Date()
 	if err := r.DB.
+		Model(&model.DailySessionCount{}).
 		Where(&model.DailySessionCount{OrganizationID: organizationID}).
 		Where("date > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).
 		Pluck("count", &monthToDateSessionCountSlice).Error; err != nil {
