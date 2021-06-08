@@ -465,6 +465,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'browser_name'
             | 'browser_version'
             | 'environment'
+            | 'app_version'
             | 'city'
             | 'state'
             | 'postal'

@@ -39,6 +39,7 @@ export type Session = {
     state: Scalars['String'];
     postal: Scalars['String'];
     environment?: Maybe<Scalars['String']>;
+    app_version?: Maybe<Scalars['String']>;
     language: Scalars['String'];
     identifier: Scalars['String'];
     created_at?: Maybe<Scalars['Time']>;
