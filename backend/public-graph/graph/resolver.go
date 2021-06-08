@@ -18,6 +18,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
@@ -438,6 +439,27 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		fingerprintInt = val
 	}
 
+	// determine if session is within billing quota
+	stripePriceID := ""
+	if organization.StripePriceID != nil {
+		stripePriceID = *organization.StripePriceID
+	}
+	stripePlan := pricing.FromPriceID(stripePriceID)
+	quota := pricing.TypeToQuota(stripePlan)
+	var monthToDateSessionCountSlice []int64
+	year, month, _ := time.Now().Date()
+	if err := r.DB.
+		Where(&model.DailySessionCount{OrganizationID: organizationID}).
+		Where("date > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).
+		Pluck("count", &monthToDateSessionCountSlice).Error; err != nil {
+		return nil, e.Wrap(err, "error getting month-to-date session count")
+	}
+	var monthToDateSessionCount int64
+	for _, count := range monthToDateSessionCountSlice {
+		monthToDateSessionCount += count
+	}
+	withinBillingQuota := int64(quota) > monthToDateSessionCount
+
 	session := &model.Session{
 		UserID:              userId,
 		Fingerprint:         fingerprintInt,
@@ -452,6 +474,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		BrowserName:         deviceDetails.BrowserName,
 		BrowserVersion:      deviceDetails.BrowserVersion,
 		Language:            acceptLanguageString,
+		WithinBillingQuota:  &withinBillingQuota,
 		Processed:           &model.F,
 		PayloadUpdatedAt:    &n,
 		EnableStrictPrivacy: &enableStrictPrivacy,
@@ -493,6 +516,6 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	if err := r.DB.Exec("UPDATE daily_session_counts SET count = count + 1 WHERE date = ? AND organization_id = ?", currentDate, organizationID).Error; err != nil {
 		return nil, e.Wrap(err, "Error incrementing session count in db")
 	}
-	return session, nil
 
+	return session, nil
 }
