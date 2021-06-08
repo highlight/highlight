@@ -19,6 +19,7 @@ import (
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 )
 
@@ -266,11 +267,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		var trackPropertyIds []int
 		for _, trackProperty := range trackProperties {
-			properId, err := strconv.Atoi(trackProperty.ID)
-			if err != nil {
-				continue
+			if trackProperty.ID != 0 {
+				trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
 			}
-			trackPropertyIds = append(trackPropertyIds, properId)
 		}
 		stmt := w.Resolver.DB.Model(&model.Field{}).
 			Where(&model.Field{OrganizationID: organizationID, Type: "track"}).
@@ -322,11 +321,9 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		var userPropertyIds []int
 		for _, userProperty := range userProperties {
-			properId, err := strconv.Atoi(userProperty.ID)
-			if err != nil {
-				continue
+			if userProperty.ID != 0 {
+				userPropertyIds = append(userPropertyIds, userProperty.ID)
 			}
-			userPropertyIds = append(userPropertyIds, properId)
 		}
 		stmt := w.Resolver.DB.Model(&model.Field{}).
 			Where(&model.Field{OrganizationID: organizationID, Type: "user"}).
