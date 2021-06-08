@@ -1,4 +1,3 @@
-import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { FunctionComponent, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
