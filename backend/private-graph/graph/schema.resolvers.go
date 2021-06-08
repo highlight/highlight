@@ -1650,13 +1650,11 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 		return nil, e.Wrap(err, "admin not found in org")
 	}
 
-	var stripeCustomerID string
-	if org.StripeCustomerID != nil {
-		stripeCustomerID = *org.StripeCustomerID
-	} else {
-		stripeCustomerID = ""
+	stripePriceID := org.StripePriceID
+	planType := modelInputs.PlanTypeFree
+	if stripePriceID != nil {
+		planType = pricing.FromPriceID(*stripePriceID)
 	}
-	planType := pricing.GetOrgPlanString(r.StripeClient, stripeCustomerID)
 
 	var g errgroup.Group
 	var meter int64
