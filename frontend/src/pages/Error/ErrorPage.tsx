@@ -81,7 +81,7 @@ const ErrorPage = () => {
                                                 return `${trace?.file_name} in ${trace?.function_name} at line ${trace?.line_number}:${trace?.column_number}`;
                                             }
                                         );
-                                        console.log(traceLines);
+
                                         const a = document.createElement('a');
                                         const file = new Blob(
                                             [
@@ -92,7 +92,7 @@ const ErrorPage = () => {
                                                 ),
                                             ],
                                             {
-                                                type: 'text/plain',
+                                                type: 'application/json',
                                             }
                                         );
 
