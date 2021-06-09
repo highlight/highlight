@@ -39,9 +39,7 @@ export const OrgRouter = () => {
         { loading: o_loading, data: o_data },
     ] = useGetOrganizationsLazyQuery();
 
-    const { integrated, loading: integratedLoading } = useIntegrated(
-        parseInt(organization_id || '-1')
-    );
+    const { integrated, loading: integratedLoading } = useIntegrated();
     const [sidebarState, setSidebarState] = useState<SidebarState>(
         SidebarState.Collapsed
     );

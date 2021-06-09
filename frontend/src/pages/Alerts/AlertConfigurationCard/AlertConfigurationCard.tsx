@@ -9,8 +9,12 @@ import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import InputNumber from '../../../components/InputNumber/InputNumber';
 import Select from '../../../components/Select/Select';
 import {
+    useGetTrackSuggestionQuery,
+    useGetUserSuggestionQuery,
     useUpdateErrorAlertMutation,
-    useUpdateSessionAlertMutation,
+    useUpdateNewUserAlertMutation,
+    useUpdateTrackPropertiesAlertMutation,
+    useUpdateUserPropertiesAlertMutation,
 } from '../../../graph/generated/hooks';
 import { ALERT_TYPE } from '../Alerts';
 import { dedupeEnvironments } from '../utils/AlertsUtils';
@@ -48,7 +52,11 @@ export const AlertConfigurationCard = ({
     const { organization_id } = useParams<{ organization_id: string }>();
     const [form] = Form.useForm();
     const [updateErrorAlert] = useUpdateErrorAlertMutation();
-    const [updateSessionAlert] = useUpdateSessionAlertMutation();
+    const [updateNewUserAlert] = useUpdateNewUserAlertMutation();
+    const [updateUserPropertiesAlert] = useUpdateUserPropertiesAlertMutation();
+    const [
+        updateTrackPropertiesAlert,
+    ] = useUpdateTrackPropertiesAlertMutation();
 
     const onSubmit = async () => {
         setLoading(true);
@@ -84,7 +92,7 @@ export const AlertConfigurationCard = ({
                     });
                     break;
                 case ALERT_TYPE.FirstTimeUser:
-                    await updateSessionAlert({
+                    await updateNewUserAlert({
                         ...requestBody,
                         variables: {
                             ...requestVariables,
@@ -92,6 +100,54 @@ export const AlertConfigurationCard = ({
                         },
                     });
                     break;
+                case ALERT_TYPE.UserProperties:
+                    await updateUserPropertiesAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            user_properties: form
+                                .getFieldValue('userProperties')
+                                .map((userProperty: any) => {
+                                    const [
+                                        value,
+                                        name,
+                                        id,
+                                    ] = userProperty.split(':');
+                                    return {
+                                        id,
+                                        value,
+                                        name,
+                                    };
+                                }),
+                            session_alert_id: alert.id,
+                        },
+                    });
+                    break;
+                case ALERT_TYPE.TrackProperties:
+                    await updateTrackPropertiesAlert({
+                        ...requestBody,
+                        variables: {
+                            ...requestVariables,
+                            track_properties: form
+                                .getFieldValue('trackProperties')
+                                .map((trackProperty: any) => {
+                                    const [
+                                        value,
+                                        name,
+                                        id,
+                                    ] = trackProperty.split(':');
+                                    return {
+                                        id,
+                                        value,
+                                        name,
+                                    };
+                                }),
+                            session_alert_id: alert.id,
+                        },
+                    });
+                    break;
+                default:
+                    throw new Error(`Unsupported alert type: ${type}`);
             }
             message.success(`Updated ${name}!`);
             setFormTouched(false);
@@ -102,6 +158,28 @@ export const AlertConfigurationCard = ({
         }
         setLoading(false);
     };
+
+    const {
+        data: userSuggestionsApiResponse,
+        loading: userSuggestionsLoading,
+        refetch: refetchUserSuggestions,
+    } = useGetUserSuggestionQuery({
+        variables: {
+            organization_id,
+            query: '',
+        },
+    });
+
+    const {
+        refetch: refetchTrackSuggestions,
+        loading: trackSuggestionsLoading,
+        data: trackSuggestionsApiResponse,
+    } = useGetTrackSuggestionQuery({
+        variables: {
+            organization_id,
+            query: '',
+        },
+    });
 
     const channels = channelSuggestions.map(
         ({ webhook_channel, webhook_channel_id }) => ({
@@ -121,8 +199,59 @@ export const AlertConfigurationCard = ({
         ),
     ];
 
+    const userPropertiesSuggestions = userSuggestionsLoading
+        ? []
+        : (
+              userSuggestionsApiResponse?.property_suggestion || []
+          ).map((suggestion) => getPropertiesOption(suggestion));
+
+    const trackPropertiesSuggestions = trackSuggestionsLoading
+        ? []
+        : (
+              trackSuggestionsApiResponse?.property_suggestion || []
+          ).map((suggestion) => getPropertiesOption(suggestion));
+
+    /** Searches for a user property  */
+    const handleUserPropertiesSearch = (query = '') => {
+        refetchUserSuggestions({ query, organization_id });
+    };
+
+    const handleTrackPropertiesSearch = (query = '') => {
+        refetchTrackSuggestions({ query, organization_id });
+    };
+
     const onChannelsChange = (channels: string[]) => {
         form.setFieldsValue({ channels });
+        setFormTouched(true);
+    };
+
+    const onUserPropertiesChange = (_value: any, options: any) => {
+        const userProperties = options.map(
+            ({ value: valueAndName }: { key: string; value: string }) => {
+                const [value, name, id] = valueAndName.split(':');
+                return {
+                    id,
+                    value,
+                    name,
+                };
+            }
+        );
+        form.setFieldsValue(userProperties);
+        setFormTouched(true);
+    };
+
+    const onTrackPropertiesChange = (_value: any, options: any) => {
+        const trackProperties = options.map(
+            ({ value: valueAndName }: { key: string; value: string }) => {
+                const [value, name, id] = valueAndName.split(':');
+                return {
+                    id,
+                    value,
+                    name,
+                };
+            }
+        );
+        form.setFieldsValue(trackProperties);
         setFormTouched(true);
     };
 
@@ -168,8 +297,54 @@ export const AlertConfigurationCard = ({
                     ),
                     excludedEnvironments: alert.ExcludedEnvironments,
                     lookbackPeriod: [lookbackPeriod],
+                    userProperties: alert.UserProperties?.map(
+                        (userProperty: any) =>
+                            getPropertiesOption(userProperty).value
+                    ),
+                    trackProperties: alert.TrackProperties?.map(
+                        (trackProperty: any) =>
+                            getPropertiesOption(trackProperty).value
+                    ),
                 }}
             >
+                {type === ALERT_TYPE.UserProperties && (
+                    <section>
+                        <h3>User Properties</h3>
+                        <p>
+                            Pick the user properties that you would like to get
+                            alerted for.
+                        </p>
+                        <Form.Item name="userProperties">
+                            <Select
+                                onSearch={handleUserPropertiesSearch}
+                                className={styles.channelSelect}
+                                options={userPropertiesSuggestions}
+                                mode="multiple"
+                                placeholder={`Pick the user properties that you would like to get alerted for.`}
+                                onChange={onUserPropertiesChange}
+                            />
+                        </Form.Item>
+                    </section>
+                )}
+                {type === ALERT_TYPE.TrackProperties && (
+                    <section>
+                        <h3>Track Properties</h3>
+                        <p>
+                            Pick the track properties that you would like to get
+                            alerted for.
+                        </p>
+                        <Form.Item name="trackProperties">
+                            <Select
+                                onSearch={handleTrackPropertiesSearch}
+                                className={styles.channelSelect}
+                                options={trackPropertiesSuggestions}
+                                mode="multiple"
+                                placeholder={`Pick the track properties that you would like to get alerted for.`}
+                                onChange={onTrackPropertiesChange}
+                            />
+                        </Form.Item>
+                    </section>
+                )}
                 <section>
                     <h3>Channels to Notify</h3>
                     <p>
@@ -365,3 +540,16 @@ const getLookbackPeriodOption = (minutes = DEFAULT_LOOKBACK_PERIOD): any => {
 
     return option;
 };
+
+const getPropertiesOption = (option: any) => ({
+    displayValue:
+        (
+            <>
+                <b>{option?.name}: </b>
+                {option?.value}
+            </>
+        ) || '',
+    value: `${option?.value}:${option?.name}:${option?.id}` || '',
+    id: `${option?.value}:${option?.name}` || '',
+    name: option?.id || '',
+});

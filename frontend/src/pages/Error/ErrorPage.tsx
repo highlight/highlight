@@ -15,10 +15,13 @@ import {
     YAxis,
 } from 'recharts';
 
+import Button from '../../components/Button/Button/Button';
 import { Field } from '../../components/Field/Field';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
+import Tooltip from '../../components/Tooltip/Tooltip';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
+import SvgDownloadIcon from '../../static/DownloadIcon';
 import { frequencyTimeData } from '../../util/errorCalculations';
 import ErrorComments from './components/ErrorComments/ErrorComments';
 import ErrorDescription from './components/ErrorDescription/ErrorDescription';
@@ -56,7 +59,7 @@ const ErrorPage = () => {
                             <ErrorDescription errorGroup={data?.error_group} />
                         )}
                     </div>
-                    <h3>
+                    <h3 className={styles.titleWithAction}>
                         {loading ? (
                             <Skeleton
                                 duration={1}
@@ -66,6 +69,44 @@ const ErrorPage = () => {
                         ) : (
                             'Stack Trace'
                         )}
+                        <Tooltip title="Download the stack trace">
+                            <Button
+                                trackingId="DownloadErrorStackTrace"
+                                iconButton
+                                type="text"
+                                onClick={() => {
+                                    if (data?.error_group) {
+                                        const traceLines = data.error_group.trace.map(
+                                            (trace) => {
+                                                return `${trace?.file_name} in ${trace?.function_name} at line ${trace?.line_number}:${trace?.column_number}`;
+                                            }
+                                        );
+
+                                        const a = document.createElement('a');
+                                        const file = new Blob(
+                                            [
+                                                JSON.stringify(
+                                                    traceLines,
+                                                    undefined,
+                                                    2
+                                                ),
+                                            ],
+                                            {
+                                                type: 'application/json',
+                                            }
+                                        );
+
+                                        a.href = URL.createObjectURL(file);
+                                        a.download = `stack-trace-for-error-${error_id}.json`;
+                                        a.click();
+
+                                        URL.revokeObjectURL(a.href);
+                                    }
+                                }}
+                            >
+                                <SvgDownloadIcon />
+                            </Button>
+                        </Tooltip>
                     </h3>
                     <div className={styles.fieldWrapper}>
                         <StackTraceSection errorGroup={data?.error_group} />

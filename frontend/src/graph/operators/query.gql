@@ -12,6 +12,7 @@ query GetSession($id: ID!) {
         browser_name
         browser_version
         environment
+        app_version
         city
         state
         postal
@@ -215,6 +216,7 @@ query GetOrganization($id: ID!) {
         verbose_id
         billing_email
         slack_webhook_channel
+        secret
     }
 }
 
@@ -347,6 +349,45 @@ query GetErrorFieldSuggestion(
         name: $name
         query: $query
     ) {
+        name
+        value
+    }
+}
+
+query GetSessionSearchResults($organization_id: ID!, $query: String!) {
+    trackProperties: property_suggestion(
+        organization_id: $organization_id
+        query: $query
+        type: "track"
+    ) {
+        id
+        name
+        value
+    }
+    userProperties: property_suggestion(
+        organization_id: $organization_id
+        query: $query
+        type: "user"
+    ) {
+        id
+        name
+        value
+    }
+    visitedUrls: field_suggestion(
+        organization_id: $organization_id
+        name: "visited-url"
+        query: $query
+    ) {
+        id
+        name
+        value
+    }
+    referrers: field_suggestion(
+        organization_id: $organization_id
+        name: "referrer"
+        query: $query
+    ) {
+        id
         name
         value
     }
@@ -527,8 +568,8 @@ query GetDailyErrorsCount($organization_id: ID!, $date_range: DateRangeInput!) {
     }
 }
 
-query GetErrorAlerts($organization_id: ID!) {
-    error_alerts(organization_id: $organization_id) {
+query GetErrorAlert($organization_id: ID!) {
+    error_alert(organization_id: $organization_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -538,8 +579,30 @@ query GetErrorAlerts($organization_id: ID!) {
     }
 }
 
-query GetSessionAlerts($organization_id: ID!) {
-    session_alerts(organization_id: $organization_id) {
+query GetNewUserAlert($organization_id: ID!) {
+    new_user_alert(organization_id: $organization_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}
+
+query GetTrackPropertiesAlert($organization_id: ID!) {
+    track_properties_alert(organization_id: $organization_id) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}
+
+query GetUserPropertiesAlert($organization_id: ID!) {
+    user_properties_alert(organization_id: $organization_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -572,7 +635,7 @@ query GetAlertsPagePayload($organization_id: ID!) {
         name
         value
     }
-    error_alerts(organization_id: $organization_id) {
+    error_alert(organization_id: $organization_id) {
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
@@ -582,11 +645,39 @@ query GetAlertsPagePayload($organization_id: ID!) {
         ThresholdWindow
         id
     }
-    session_alerts(organization_id: $organization_id) {
+    new_user_alert(organization_id: $organization_id) {
         id
         ChannelsToNotify {
             webhook_channel
             webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+    track_properties_alert(organization_id: $organization_id) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        TrackProperties {
+            id
+            name
+            value
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+    user_properties_alert(organization_id: $organization_id) {
+        id
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        UserProperties {
+            id
+            name
+            value
         }
         ExcludedEnvironments
         CountThreshold

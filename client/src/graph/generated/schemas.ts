@@ -57,6 +57,7 @@ export type MutationInitializeSessionArgs = {
   firstloadVersion: Scalars['String'];
   clientConfig: Scalars['String'];
   environment: Scalars['String'];
+  appVersion?: Maybe<Scalars['String']>;
   fingerprint: Scalars['String'];
 };
 
