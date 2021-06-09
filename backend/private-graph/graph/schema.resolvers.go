@@ -1020,7 +1020,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	if len(errorFieldIds) > 0 {
 		fieldIdConstructionSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("fieldIdConstruction"))
 		t := strings.Replace(fmt.Sprint(errorFieldIds), " ", ",", -1)
-		queryString += fmt.Sprintf("AND (fieldIds && ARRAY%s::bigint[])", t)
+		queryString += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 		fieldIdConstructionSpan.Finish()
 	}
 
