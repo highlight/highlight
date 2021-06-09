@@ -18,7 +18,6 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 // This file will not be regenerated automatically.
