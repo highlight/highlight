@@ -402,13 +402,13 @@ type LengthRange struct {
 }
 
 type UserProperty struct {
-	ID    string
-	Name  string
-	Value string
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 type TrackProperty struct {
-	ID    string `json:"id"`
+	ID    int    `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }

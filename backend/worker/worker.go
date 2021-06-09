@@ -18,7 +18,6 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
 )
 
@@ -247,12 +246,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		var trackPropertyIds []int
 		for _, trackProperty := range trackProperties {
-			properId, err := strconv.Atoi(trackProperty.ID)
-			if err != nil {
-				log.Error("error converting track property id from string to int")
-				continue
-			}
-			trackPropertyIds = append(trackPropertyIds, properId)
+			trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
 		}
 		stmt := w.Resolver.DB.Model(&model.Field{}).
 			Where(&model.Field{OrganizationID: organizationID, Type: "track"}).
@@ -263,7 +257,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return e.Wrap(err, "error querying matched fields by session_id")
 		}
 		if len(matchedFields) < 1 {
-			return fmt.Errorf("matched fields is empty in track properties alert")
+			return nil
 		}
 
 		// send slack message
@@ -304,12 +298,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		}
 		var userPropertyIds []int
 		for _, userProperty := range userProperties {
-			properId, err := strconv.Atoi(userProperty.ID)
-			if err != nil {
-				log.Error("error converting user property id from string to int")
-				continue
-			}
-			userPropertyIds = append(userPropertyIds, properId)
+			userPropertyIds = append(userPropertyIds, userProperty.ID)
 		}
 		stmt := w.Resolver.DB.Model(&model.Field{}).
 			Where(&model.Field{OrganizationID: organizationID, Type: "user"}).
@@ -320,7 +309,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 			return e.Wrap(err, "error querying matched fields by session_id")
 		}
 		if len(matchedFields) < 1 {
-			return fmt.Errorf("matched fields is empty in user properties alert")
+			return nil
 		}
 
 		// send slack message
