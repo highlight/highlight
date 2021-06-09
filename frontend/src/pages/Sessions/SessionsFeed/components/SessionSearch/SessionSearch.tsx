@@ -6,6 +6,10 @@ import AsyncSelect from 'react-select/async';
 
 import { useGetSessionSearchResultsQuery } from '../../../../../graph/generated/hooks';
 import SvgSearchIcon from '../../../../../static/SearchIcon';
+import {
+    UserProperty,
+    useSearchContext,
+} from '../../../SearchContext/SearchContext';
 import styles from './SessionSearch.module.scss';
 
 const SessionSearch = () => {
@@ -13,9 +17,60 @@ const SessionSearch = () => {
         organization_id: string;
     }>();
     const [query, setQuery] = useState('');
+    const { setSearchParams } = useSearchContext();
 
-    const handleChange = (value: any) => {
-        console.log(`selected ${value}`);
+    const handleChange = (_selectedProperties: any) => {
+        const selectedProperties = _selectedProperties as SessionSearchOption[];
+
+        const newSearchParams: {
+            userProperties: UserProperty[];
+            trackProperties: UserProperty[];
+            visitedUrls: string[];
+            referrers: string[];
+        } = {
+            userProperties: [],
+            trackProperties: [],
+            visitedUrls: [],
+            referrers: [],
+        };
+        selectedProperties?.forEach(({ apiType, id, name, value }) => {
+            switch (apiType) {
+                case 'userProperties':
+                    newSearchParams.userProperties.push({
+                        id,
+                        name,
+                        value,
+                    });
+                    break;
+                case 'trackProperties':
+                    newSearchParams.trackProperties.push({
+                        id,
+                        name,
+                        value,
+                    });
+                    break;
+                case 'visitedUrls':
+                    newSearchParams.visitedUrls.push(name);
+                    break;
+                case 'referrers':
+                    newSearchParams.referrers.push(name);
+                    break;
+            }
+        });
+
+        setSearchParams((params) => ({
+            ...params,
+            track_properties: newSearchParams.trackProperties,
+            user_properties: newSearchParams.userProperties,
+            referrer:
+                newSearchParams.referrers.length > 0
+                    ? newSearchParams.referrers[0]
+                    : undefined,
+            visited_url:
+                newSearchParams.visitedUrls.length > 0
+                    ? newSearchParams.visitedUrls[0]
+                    : undefined,
+        }));
     };
 
     const { loading, data, refetch } = useGetSessionSearchResultsQuery({
@@ -33,7 +88,7 @@ const SessionSearch = () => {
             query: input,
         });
 
-        return getSuggestions(fetched.data);
+        return getSuggestions(fetched.data, 3);
     };
 
     return (
@@ -58,7 +113,15 @@ const SessionSearch = () => {
                     <SvgSearchIcon className={styles.searchIcon} />
                 ),
                 IndicatorSeparator: null,
-                MultiValueLabel: ({ ...props }) => {
+                MultiValueLabel: ({
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    innerProps,
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    selectedProps,
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    selectProps,
+                    ...props
+                }) => {
                     return (
                         <span {...props} className={styles.valueLabel}>
                             {props.data.valueType}: {props.data.name}
@@ -146,18 +209,27 @@ const SessionSearch = () => {
             }}
             isSearchable
             defaultOptions={getSuggestions(data, 3)}
-            menuIsOpen
         />
     );
 };
 
 export default SessionSearch;
 
+/**
+ * The session properties that support search.
+ */
+type API_TYPES =
+    | 'trackProperties'
+    | 'userProperties'
+    | 'visitedUrls'
+    | 'referrers';
+
 interface SessionSearchOption {
     valueType: string;
     name: string;
     id: string;
     value: string;
+    apiType: API_TYPES;
 }
 
 interface Suggestion {
@@ -166,36 +238,36 @@ interface Suggestion {
     value: string;
 }
 
-const transformToOption = ({
-    id,
-    name,
-    value,
-}: Suggestion): SessionSearchOption => ({
+const transformToOption = (
+    { id, name, value }: Suggestion,
+    apiType: API_TYPES
+): SessionSearchOption => ({
     id,
     valueType: name,
     name: value,
     value: `${name}:${value}`,
+    apiType,
 });
 
 const getSuggestions = (data: any, limitResultsCount?: number) => {
     const trackProperties = data
         ?.trackProperties!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion)
+            transformToOption(suggestion, 'trackProperties')
         )
         .slice(0, limitResultsCount);
     const userProperties = data
         ?.userProperties!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion)
+            transformToOption(suggestion, 'userProperties')
         )
         .slice(0, limitResultsCount);
     const visitedUrls = data
         ?.visitedUrls!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion)
+            transformToOption(suggestion, 'visitedUrls')
         )
         .slice(0, limitResultsCount);
     const referrers = data
         ?.referrers!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion)
+            transformToOption(suggestion, 'referrers')
         )
         .slice(0, limitResultsCount);
 
