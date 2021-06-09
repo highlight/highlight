@@ -2805,6 +2805,96 @@ export type GetErrorFieldSuggestionQueryResult = Apollo.QueryResult<
     Types.GetErrorFieldSuggestionQuery,
     Types.GetErrorFieldSuggestionQueryVariables
 >;
+export const GetSessionSearchResultsDocument = gql`
+    query GetSessionSearchResults($organization_id: ID!, $query: String!) {
+        trackProperties: property_suggestion(
+            organization_id: $organization_id
+            query: $query
+            type: "track"
+        ) {
+            id
+            name
+            value
+        }
+        userProperties: property_suggestion(
+            organization_id: $organization_id
+            query: $query
+            type: "user"
+        ) {
+            id
+            name
+            value
+        }
+        visitedUrls: field_suggestion(
+            organization_id: $organization_id
+            name: "visited-url"
+            query: $query
+        ) {
+            id
+            name
+            value
+        }
+        referrers: field_suggestion(
+            organization_id: $organization_id
+            name: "referrer"
+            query: $query
+        ) {
+            id
+            name
+            value
+        }
+    }
+`;
+
+/**
+ * __useGetSessionSearchResultsQuery__
+ *
+ * To run a query within a React component, call `useGetSessionSearchResultsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetSessionSearchResultsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetSessionSearchResultsQuery({
+ *   variables: {
+ *      organization_id: // value for 'organization_id'
+ *      query: // value for 'query'
+ *   },
+ * });
+ */
+export function useGetSessionSearchResultsQuery(
+    baseOptions: Apollo.QueryHookOptions<
+        Types.GetSessionSearchResultsQuery,
+        Types.GetSessionSearchResultsQueryVariables
+    >
+) {
+    return Apollo.useQuery<
+        Types.GetSessionSearchResultsQuery,
+        Types.GetSessionSearchResultsQueryVariables
+    >(GetSessionSearchResultsDocument, baseOptions);
+}
+export function useGetSessionSearchResultsLazyQuery(
+    baseOptions?: Apollo.LazyQueryHookOptions<
+        Types.GetSessionSearchResultsQuery,
+        Types.GetSessionSearchResultsQueryVariables
+    >
+) {
+    return Apollo.useLazyQuery<
+        Types.GetSessionSearchResultsQuery,
+        Types.GetSessionSearchResultsQueryVariables
+    >(GetSessionSearchResultsDocument, baseOptions);
+}
+export type GetSessionSearchResultsQueryHookResult = ReturnType<
+    typeof useGetSessionSearchResultsQuery
+>;
+export type GetSessionSearchResultsLazyQueryHookResult = ReturnType<
+    typeof useGetSessionSearchResultsLazyQuery
+>;
+export type GetSessionSearchResultsQueryResult = Apollo.QueryResult<
+    Types.GetSessionSearchResultsQuery,
+    Types.GetSessionSearchResultsQueryVariables
+>;
 export const GetTrackSuggestionDocument = gql`
     query GetTrackSuggestion($organization_id: ID!, $query: String!) {
         property_suggestion(

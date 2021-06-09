@@ -22,6 +22,7 @@ import {
     SessionLifecycle,
     SessionResults,
 } from '../../../graph/generated/schemas';
+import useHighlightAdminFlag from '../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
 import { ReactComponent as UnviewedIcon } from '../../../static/unviewed.svg';
@@ -36,6 +37,7 @@ import {
 } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import FirstTimeDecorations from './components/FirstTimeDecorations/FirstTimeDecorations';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
+import SessionSearch from './components/SessionSearch/SessionSearch';
 import styles from './SessionsFeed.module.scss';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
@@ -59,6 +61,7 @@ export const SessionFeed = ({ minimal = false }: Props) => {
         totalCount: -1,
     });
     const { searchParams, hideLiveSessions } = useSearchContext();
+    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     const {
         loading,
@@ -138,6 +141,7 @@ export const SessionFeed = ({ minimal = false }: Props) => {
                         <div className={styles.userInputWrapper}>
                             <UserPropertyInput include />
                         </div>
+                        {isHighlightAdmin && <SessionSearch />}
                     </div>
                     <div
                         className={styles.resultCount}
