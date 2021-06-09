@@ -1,0 +1,26 @@
+.select {
+    width: 100%;
+}
+
+.searchIcon {
+    color: var(--color-gray-400);
+    height: var(--size-medium);
+    margin-right: var(--size-small);
+    width: var(--size-medium);
+}
+
+.valueLabel {
+    font-size: 12px;
+    padding: var(--size-xxSmall) var(--size-xxSmall);
+    padding-left: var(--size-xSmall);
+}
+
+.keyLabel {
+    color: var(--color-gray-500);
+    font-size: 12px;
+    margin-left: auto;
+}
+
+.optionLabelContainer {
+    display: flex;
+}

@@ -36,6 +36,7 @@ import {
 } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import FirstTimeDecorations from './components/FirstTimeDecorations/FirstTimeDecorations';
 import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
+import SessionSearch from './components/SessionSearch/SessionSearch';
 import styles from './SessionsFeed.module.scss';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
@@ -138,6 +139,7 @@ export const SessionFeed = ({ minimal = false }: Props) => {
                         <div className={styles.userInputWrapper}>
                             <UserPropertyInput include />
                         </div>
+                        <SessionSearch />
                     </div>
                     <div
                         className={styles.resultCount}
