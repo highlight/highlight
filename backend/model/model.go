@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
@@ -9,9 +10,13 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
 	"github.com/speps/go-hashids"
+
+	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
+	gormtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorm.io/gorm.v1"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -510,11 +515,20 @@ func SetupDB() *gorm.DB {
 		os.Getenv("PSQL_DB"),
 		os.Getenv("PSQL_PASSWORD"))
 
+	sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("highlight"))
+
 	var err error
-	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
+	var sqlDb *sql.DB
+	sqlDb, err = sqltrace.Open("pgx", psqlConf)
+	if err != nil {
+		log.Fatalf("Failed to connect to database with sqltrace: %v", err)
+	}
+
+	DB, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 		Logger:                                   logger.Default.LogMode(logger.Silent),
 	})
+
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
