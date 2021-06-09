@@ -13,6 +13,7 @@ export { default as CreditCardsIcon } from './CreditCardsIcon';
 export { default as CrossCircle } from './CrossCircle';
 export { default as DevtoolsIcon } from './DevtoolsIcon';
 export { default as Down } from './Down';
+export { default as DownloadIcon } from './DownloadIcon';
 export { default as EmptyState } from './EmptyState';
 export { default as ErrorsIcon } from './ErrorsIcon';
 export { default as Expand } from './Expand';
