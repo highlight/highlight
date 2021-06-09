@@ -1,3 +1,4 @@
+export const highlightedFuzzyMatch: string;
 export const keyLabel: string;
 export const optionLabelContainer: string;
 export const searchIcon: string;

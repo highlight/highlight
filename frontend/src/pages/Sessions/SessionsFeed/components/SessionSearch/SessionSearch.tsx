@@ -82,7 +82,9 @@ const SessionSearch = () => {
                                         >
                                             <span>
                                                 <Highlighter
-                                                    highlightClassName="YourHighlightClass"
+                                                    highlightClassName={
+                                                        styles.highlightedFuzzyMatch
+                                                    }
                                                     searchWords={query.split(
                                                         ' '
                                                     )}
@@ -116,24 +118,27 @@ const SessionSearch = () => {
                 group: (provided) => ({
                     ...provided,
                     paddingTop: 0,
+                    paddingBottom: 0,
                     '&:first-of-type > :first-of-type': {
                         borderTop: 'none',
                     },
                 }),
                 groupHeading: (provided) => ({
                     ...provided,
-                    color: 'var(--color-purple)',
+                    color: 'var(--color-gray-500)',
                     fontSize: 12,
                     fontWeight: 400,
                     textTransform: 'none',
+                    marginBottom: 0,
                     borderBottom: '1px solid var(--color-gray-300)',
                     borderTop: '1px solid var(--color-gray-300)',
-                    paddingBottom: 'var(--size-xxSmall)',
+                    paddingBottom: 'var(--size-xSmall)',
                     paddingTop: 'var(--size-xSmall)',
                 }),
                 menuList: (provided) => ({
                     ...provided,
                     paddingTop: 0,
+                    paddingBottom: 0,
                 }),
                 menu: (provided) => ({
                     ...provided,
@@ -145,7 +150,7 @@ const SessionSearch = () => {
             }}
             isSearchable
             defaultOptions={getSuggestions(data, 3)}
-            // menuIsOpen
+            menuIsOpen
         />
     );
 };
