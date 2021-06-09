@@ -22,6 +22,7 @@ import {
     SessionLifecycle,
     SessionResults,
 } from '../../../graph/generated/schemas';
+import useHighlightAdminFlag from '../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
 import { ReactComponent as UnviewedIcon } from '../../../static/unviewed.svg';
@@ -60,6 +61,7 @@ export const SessionFeed = ({ minimal = false }: Props) => {
         totalCount: -1,
     });
     const { searchParams, hideLiveSessions } = useSearchContext();
+    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     const {
         loading,
@@ -139,7 +141,7 @@ export const SessionFeed = ({ minimal = false }: Props) => {
                         <div className={styles.userInputWrapper}>
                             <UserPropertyInput include />
                         </div>
-                        <SessionSearch />
+                        {isHighlightAdmin && <SessionSearch />}
                     </div>
                     <div
                         className={styles.resultCount}
