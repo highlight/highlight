@@ -23,6 +23,12 @@
             padding: var(--size-medium);
         }
 
+        &.small {
+            > * {
+                padding: var(--size-xSmall) var(--size-medium);
+            }
+        }
+
         &:hover {
             --color-primary-background: var(--color-gray-200);
             background: var(--color-gray-200);
