@@ -39,11 +39,7 @@ const SearchMatch = ({
         <Highlighter
             className={className}
             searchWords={[selectProps.length < 2 ? '' : selectProps]}
-            highlightStyle={{
-                fontWeight: 400,
-                padding: '0px',
-                backgroundColor: 'transparent',
-            }}
+            highlightClassName={styles.highlighter}
             textToHighlight={parsedLabel}
         />
     );

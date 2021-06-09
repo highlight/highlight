@@ -17,7 +17,6 @@ import (
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
-	"github.com/highlight-run/highlight/backend/pricing"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -158,36 +157,13 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return nil
 	}
 
-	// Check if session is within billing quota
-	// get quota:
-	var withinQuota bool
-	org := &model.Organization{}
-	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
-		return e.Wrap(err, "error querying org")
-	}
-
-	stripePriceID := org.StripePriceID
-	planType := modelInputs.PlanTypeFree
-	if stripePriceID != nil {
-		planType = pricing.FromPriceID(*stripePriceID)
-	}
-	quota := pricing.TypeToQuota(planType)
-
-	year, month, _ := time.Now().Date()
-	var sessionCount int64
-	if err := w.Resolver.DB.Model(&model.Session{}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Where(&model.Session{WithinBillingQuota: &model.T, Processed: &model.T}).Count(&sessionCount).Error; err != nil {
-		return errors.Wrap(err, "error getting past month's session count")
-	}
-	withinQuota = sessionCount <= int64(quota)
-
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
-			Processed:          &model.T,
-			Length:             length,
-			ActiveLength:       activeLengthSec,
-			WithinBillingQuota: &withinQuota,
+			Processed:    &model.T,
+			Length:       length,
+			ActiveLength: activeLengthSec,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
@@ -195,6 +171,10 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 
 	var g errgroup.Group
 	organizationID := s.OrganizationID
+	org := &model.Organization{}
+	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
+		return e.Wrap(err, "error querying org")
+	}
 
 	g.Go(func() error {
 		// Sending New User Alert

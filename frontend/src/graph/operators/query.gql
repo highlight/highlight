@@ -12,6 +12,7 @@ query GetSession($id: ID!) {
         browser_name
         browser_version
         environment
+        app_version
         city
         state
         postal
@@ -215,6 +216,7 @@ query GetOrganization($id: ID!) {
         verbose_id
         billing_email
         slack_webhook_channel
+        secret
     }
 }
 

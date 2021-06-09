@@ -1487,6 +1487,7 @@ export const GetSessionDocument = gql`
             browser_name
             browser_version
             environment
+            app_version
             city
             state
             postal
@@ -2227,6 +2228,7 @@ export const GetOrganizationDocument = gql`
             verbose_id
             billing_email
             slack_webhook_channel
+            secret
         }
     }
 `;

@@ -465,6 +465,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'browser_name'
             | 'browser_version'
             | 'environment'
+            | 'app_version'
             | 'city'
             | 'state'
             | 'postal'
@@ -739,6 +740,7 @@ export type GetOrganizationQuery = { __typename?: 'Query' } & {
             | 'verbose_id'
             | 'billing_email'
             | 'slack_webhook_channel'
+            | 'secret'
         >
     >;
 };
