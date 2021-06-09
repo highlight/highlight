@@ -91,7 +91,6 @@ const SessionSearch = () => {
                                                     autoEscape={true}
                                                     textToHighlight={name}
                                                 />
-                                                {/* {name} */}
                                             </span>
                                             <span className={styles.keyLabel}>
                                                 {valueType}
