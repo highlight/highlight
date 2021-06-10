@@ -282,6 +282,7 @@ const SessionSearch = () => {
             }}
             isSearchable
             defaultOptions={getSuggestions(data, selectedSearchFilters, 3)}
+            maxMenuHeight={600}
         />
     );
 };
