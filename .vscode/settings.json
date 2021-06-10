@@ -51,4 +51,6 @@
   "openInGitHub.defaultRemote": "origin",
   "openInGithub.maxBuffer": 512000,
   "openInGitHub.excludeCurrentRevision": false,
+  "liveshare.allowGuestDebugControl": true,
+  "liveshare.allowGuestTaskControl": true,
 }

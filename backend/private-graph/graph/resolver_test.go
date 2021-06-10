@@ -1,17 +1,20 @@
 package graph
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"testing"
 
+	"github.com/go-test/deep"
 	"github.com/pkg/errors"
 	"gorm.io/driver/postgres"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 var DB *gorm.DB
@@ -52,33 +55,34 @@ func TestMain(m *testing.M) {
 
 func TestHideViewedSessions(t *testing.T) {
 	// insert data
-	// sessionsToInsert := []model.Session{
-	// 	{Viewed: &model.T},
-	// 	{Viewed: &model.F},
-	// }
-	// err := DB.Create(&sessionsToInsert)
-	// if err != nil {
-	// 	t.Fatalf("error inserting sessions: %v", err)
-	// }
-	// // test
-	// r := &queryResolver{Resolver: &Resolver{DB: DB}}
-	// params := &modelInputs.SearchParamsInput{HideViewed: &model.T}
-	// sessions, err := r.Sessions(context.Background(), 1, 5, modelInputs.SessionLifecycleAll, false, params)
-	// if err != nil {
-	// 	t.Fatalf("error querying sessions: %v", err)
-	// }
+	sessionsToInsert := []model.Session{
+		{Viewed: &model.T, WithinBillingQuota: &model.T},
+		{Viewed: &model.F, WithinBillingQuota: &model.T},
+	}
+	if err := DB.Create(&sessionsToInsert).Error; err != nil {
+		t.Fatalf("error inserting sessions: %v", err)
+	}
+	defer DB.Exec("DELETE FROM sessions")
 
-	// expected := &model.SessionResults{
-	// 	Sessions: []model.Session{
-	// 		model.Session{Viewed: &model.F},
-	// 	},
-	// 	TotalCount: 2,
-	// }
-	// if diff := deep.Equal(sessions, expected); diff != nil {
-	// 	t.Fatalf("received sessions and expected sessions not equal: %v", diff)
-	// }
+	// test
+	r := &queryResolver{Resolver: &Resolver{DB: DB}}
+	params := &modelInputs.SearchParamsInput{HideViewed: &model.T}
+	sessions, err := r.Sessions(context.Background(), 1, 5, modelInputs.SessionLifecycleAll, false, params)
+	if err != nil {
+		t.Fatalf("error querying sessions: %v", err)
+	}
+	// LOG_LEVEL=debug PSQL_HOST=
+	expected := &model.SessionResults{
+		Sessions: []model.Session{
+			{Viewed: &model.F, WithinBillingQuota: &model.T},
+		},
+		TotalCount: 2,
+	}
+	if diff := deep.Equal(sessions, expected); diff != nil {
+		t.Fatalf("received sessions and expected sessions not equal: %v", diff)
+	}
 
-	// log.Println("hello")
+	log.Println("hello")
 }
 
 func TestSessionsOther(t *testing.T) {

@@ -29,13 +29,17 @@ jobs:
             image: postgres
             env:
               POSTGRES_PASSWORD: postgres
+              POSTGRES_USER: postgres
+              POSTGRES_DB: postgres
             options: >-
               --health-cmd pg_isready
               --health-interval 10s
               --health-timeout 5s
               --health-retries 5
+            ports:           
+              - 5432:5432
         env:
-          PSQL_HOST: "postgres"
+          PSQL_HOST: "localhost"
           PSQL_PORT: "5432"
           PSQL_USER: "postgres"
           PSQL_DB: "postgres"
