@@ -152,9 +152,15 @@ const SessionSearch = () => {
                                                 autoEscape={true}
                                                 textToHighlight={name}
                                             />
-                                            <span className={styles.keyLabel}>
-                                                {valueType}
-                                            </span>
+                                            <Highlighter
+                                                className={styles.keyLabel}
+                                                highlightClassName={
+                                                    styles.highlightedFuzzyMatch
+                                                }
+                                                searchWords={query.split(' ')}
+                                                autoEscape={true}
+                                                textToHighlight={valueType}
+                                            />
                                         </span>
                                     )}
                                 </div>
