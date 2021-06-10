@@ -1711,9 +1711,9 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
-	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).
-		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).Where(r.DB.
+		Where(r.DB.Where("length(value) > ?", 0).Where("value ILIKE ?", "%"+query+"%")).
+		Or(r.DB.Where("length(name) > ?", 0).Where("name ILIKE ?", "%"+query+"%"))).
 		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
