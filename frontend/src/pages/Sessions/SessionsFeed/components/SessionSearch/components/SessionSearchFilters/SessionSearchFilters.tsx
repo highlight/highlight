@@ -4,6 +4,7 @@ import React from 'react';
 import Button from '../../../../../../../components/Button/Button/Button';
 import Popover from '../../../../../../../components/Popover/Popover';
 import useSelectedSessionSearchFilters from '../../../../../../../persistedStorage/useSelectedSessionSearchFilters';
+import SvgChevronDownIcon from '../../../../../../../static/ChevronDownIcon';
 import styles from './SessionSearchFilters.module.scss';
 
 const SessionSearchFilters = () => {
@@ -43,7 +44,8 @@ const SessionSearchFilters = () => {
         >
             <Button trackingId="SessionSearchFilters" type="text" small>
                 Showing results for {activeSettingsCount}{' '}
-                {activeSettingsCount === 1 ? 'property' : 'properties'}.
+                {activeSettingsCount === 1 ? 'property' : 'properties'}
+                <SvgChevronDownIcon className={styles.icon} />
             </Button>
         </Popover>
     );

@@ -8,3 +8,9 @@
     flex-direction: column;
     row-gap: var(--size-xSmall);
 }
+
+.icon {
+    color: var(--color-gray-500);
+    margin-left: var(--size-xxSmall);
+    width: var(--size-xSmall);
+}
