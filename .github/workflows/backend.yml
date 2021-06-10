@@ -35,7 +35,7 @@ jobs:
               --health-timeout 5s
               --health-retries 5
         env:
-          PSQL_HOST: "localhost"
+          PSQL_HOST: "postgres"
           PSQL_PORT: "5432"
           PSQL_USER: "postgres"
           PSQL_DB: "postgres"
