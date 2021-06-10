@@ -208,7 +208,7 @@ const SessionSearch = () => {
                 menu: (provided) => ({
                     ...provided,
                     borderRadius: 'var(--border-radius)',
-                    borderColor: 'var(--color-gray-300)',
+                    border: '1px solid var(--color-gray-300)',
                     boxShadow: 'var(--box-shadow-2)',
                     fontFamily: 'var(--header-font-family)',
                 }),
