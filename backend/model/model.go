@@ -307,7 +307,7 @@ type Session struct {
 	FirstTime        *bool      `json:"first_time" gorm:"default:false"`
 	PayloadUpdatedAt *time.Time `json:"payload_updated_at"`
 	// Custom properties
-	Viewed              *bool   `json:"viewed"`
+	Viewed              *bool   `json:"viewed" gorm:"default:false"`
 	Starred             *bool   `json:"starred"`
 	FieldGroup          *string `json:"field_group"`
 	EnableStrictPrivacy *bool   `json:"enable_strict_privacy"`
