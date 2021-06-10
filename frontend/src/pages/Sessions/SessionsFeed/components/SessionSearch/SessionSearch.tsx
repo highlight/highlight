@@ -5,11 +5,13 @@ import { components, OptionsType, OptionTypeBase } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import { useGetSessionSearchResultsQuery } from '../../../../../graph/generated/hooks';
+import useSelectedSessionSearchFilters from '../../../../../persistedStorage/useSelectedSessionSearchFilters';
 import SvgSearchIcon from '../../../../../static/SearchIcon';
 import {
     UserProperty,
     useSearchContext,
 } from '../../../SearchContext/SearchContext';
+import SessionSearchFilters from './components/SessionSearchFilters/SessionSearchFilters';
 import styles from './SessionSearch.module.scss';
 
 const SessionSearch = () => {
@@ -18,6 +20,7 @@ const SessionSearch = () => {
     }>();
     const [query, setQuery] = useState('');
     const { setSearchParams } = useSearchContext();
+    const { selectedSearchFilters } = useSelectedSessionSearchFilters();
 
     const handleChange = (_selectedProperties: any) => {
         const selectedProperties = _selectedProperties as SessionSearchOption[];
@@ -88,13 +91,12 @@ const SessionSearch = () => {
             query: input,
         });
 
-        return getSuggestions(fetched.data, 3);
+        return getSuggestions(fetched.data, selectedSearchFilters, 3);
     };
 
     return (
         <AsyncSelect
             isMulti
-            cacheOptions
             loadOptions={generateOptions}
             isLoading={loading}
             isClearable={false}
@@ -172,6 +174,19 @@ const SessionSearch = () => {
                         </div>
                     );
                 },
+                Menu: (props) => {
+                    return (
+                        <components.Menu {...props}>
+                            <>
+                                <div className={styles.filterContainer}>
+                                    <h4>Filter:</h4>
+                                    <SessionSearchFilters />
+                                </div>
+                                {props.children}
+                            </>
+                        </components.Menu>
+                    );
+                },
             }}
             styles={{
                 control: (provided) => ({
@@ -188,9 +203,6 @@ const SessionSearch = () => {
                     ...provided,
                     paddingTop: 0,
                     paddingBottom: 0,
-                    '&:first-of-type > :first-of-type': {
-                        borderTop: 'none',
-                    },
                 }),
                 groupHeading: (provided) => ({
                     ...provided,
@@ -218,7 +230,7 @@ const SessionSearch = () => {
                 }),
             }}
             isSearchable
-            defaultOptions={getSuggestions(data, 3)}
+            defaultOptions={getSuggestions(data, selectedSearchFilters, 3)}
         />
     );
 };
@@ -259,44 +271,53 @@ const transformToOption = (
     apiType,
 });
 
-const getSuggestions = (data: any, limitResultsCount?: number) => {
-    const trackProperties = data
-        ?.trackProperties!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'trackProperties')
-        )
-        .slice(0, limitResultsCount);
-    const userProperties = data
-        ?.userProperties!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'userProperties')
-        )
-        .slice(0, limitResultsCount);
-    const visitedUrls = data
-        ?.visitedUrls!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'visitedUrls')
-        )
-        .slice(0, limitResultsCount);
-    const referrers = data
-        ?.referrers!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'referrers')
-        )
-        .slice(0, limitResultsCount);
+const getSuggestions = (
+    data: any,
+    selectedTypes: string[],
+    limitResultsCount?: number
+) => {
+    const suggestions = [];
 
-    return [
-        {
+    if (selectedTypes.includes('Track Properties')) {
+        suggestions.push({
             label: 'Track Properties',
-            options: trackProperties,
-        },
-        {
+            options: data
+                ?.trackProperties!.map((suggestion: Suggestion) =>
+                    transformToOption(suggestion, 'trackProperties')
+                )
+                .slice(0, limitResultsCount),
+        });
+    }
+    if (selectedTypes.includes('User Properties')) {
+        suggestions.push({
             label: 'User Properties',
-            options: userProperties,
-        },
-        {
+            options: data
+                ?.userProperties!.map((suggestion: Suggestion) =>
+                    transformToOption(suggestion, 'userProperties')
+                )
+                .slice(0, limitResultsCount),
+        });
+    }
+    if (selectedTypes.includes('Visited URLs')) {
+        suggestions.push({
             label: 'Visited URLs',
-            options: visitedUrls,
-        },
-        {
+            options: data
+                ?.visitedUrls!.map((suggestion: Suggestion) =>
+                    transformToOption(suggestion, 'visitedUrls')
+                )
+                .slice(0, limitResultsCount),
+        });
+    }
+    if (selectedTypes.includes('Referrers')) {
+        suggestions.push({
             label: 'Referrers',
-            options: referrers,
-        },
-    ];
+            options: data
+                ?.referrers!.map((suggestion: Suggestion) =>
+                    transformToOption(suggestion, 'referrers')
+                )
+                .slice(0, limitResultsCount),
+        });
+    }
+
+    return suggestions;
 };

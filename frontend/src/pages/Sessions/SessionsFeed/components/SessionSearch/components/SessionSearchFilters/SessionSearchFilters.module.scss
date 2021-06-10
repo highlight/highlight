@@ -1,0 +1,10 @@
+.filterOptionsContainer {
+    max-width: 400px;
+    padding-bottom: var(--size-small);
+}
+
+.checkboxContainer {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-xSmall);
+}
