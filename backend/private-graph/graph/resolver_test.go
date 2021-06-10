@@ -71,7 +71,6 @@ func TestHideViewedSessions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("error querying sessions: %v", err)
 	}
-	// LOG_LEVEL=debug PSQL_HOST=
 	expected := &model.SessionResults{
 		Sessions: []model.Session{
 			{Viewed: &model.F, WithinBillingQuota: &model.T},
