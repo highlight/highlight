@@ -100,6 +100,7 @@ const SessionSearch = () => {
             isClearable={false}
             onChange={handleChange}
             className={styles.select}
+            placeholder="Search for a property..."
             noOptionsMessage={({ inputValue }) =>
                 `No results for ${inputValue}`
             }
