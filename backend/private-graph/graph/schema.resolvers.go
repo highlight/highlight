@@ -1580,7 +1580,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if viewed := params.HideViewed; viewed != nil && *viewed {
-		whereClause += "AND (viewed = false) "
+		whereClause += "AND (viewed = false OR viewed IS NULL) "
 	}
 
 	if browser := params.Browser; browser != nil {
