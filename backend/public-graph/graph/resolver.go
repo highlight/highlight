@@ -188,7 +188,6 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 			return nil, e.Wrap(err, "error decoding time log data")
 		}
 	}
-
 	newMetadataLog = append(newMetadataLog, ErrorMetaData{
 		Timestamp:  errorObj.CreatedAt,
 		ErrorID:    errorObj.ID,
@@ -204,8 +203,23 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	logString := string(logBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
-		return nil, e.Wrap(err, "Error updating error group metadata log")
+	var environmentsSlice []string
+	if errorGroup.Environments != "" {
+		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsSlice)
+		if err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling environments from error group into slice"))
+		}
+		log.Infof("existing environments %+v", environmentsSlice)
+	}
+	environmentsSlice = append(environmentsSlice, errorObj.Environment)
+	environmentsBytes, err := json.Marshal(environmentsSlice)
+	if err != nil {
+		log.Error(e.Wrap(err, "error marshalling environment into json array"))
+	}
+	environmentsString := string(environmentsBytes)
+
+	if res := r.DB.Debug().Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Environments: environmentsString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
+		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
 	err = r.AppendErrorFields(fields, errorGroup)

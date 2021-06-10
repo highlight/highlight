@@ -2441,6 +2441,7 @@ export const GetErrorGroupsDocument = gql`
                 type
                 event
                 resolved
+                environments
                 trace {
                     file_name
                     line_number

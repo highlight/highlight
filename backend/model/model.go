@@ -476,6 +476,7 @@ type ErrorGroup struct {
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup     *string
+	Environments   string
 }
 
 type ErrorField struct {
