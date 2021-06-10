@@ -12,7 +12,7 @@
 			"command": [
 				"doppler", 
 			],
-			"options": {"cwd": "${file}"},
+			"options": {"cwd": "${fileWorkspaceFolder}"},
 			"group": {
 				"kind": "test",
 				"isDefault": true

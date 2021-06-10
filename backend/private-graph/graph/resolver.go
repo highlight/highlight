@@ -7,16 +7,16 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/k0kubun/pp"
+	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
 	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/client"
 	"gorm.io/gorm"
 
-	e "github.com/pkg/errors"
+	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 // This file will not be regenerated automatically.
