@@ -100,6 +100,9 @@ const SessionSearch = () => {
             isClearable={false}
             onChange={handleChange}
             className={styles.select}
+            noOptionsMessage={({ inputValue }) =>
+                `No results for ${inputValue}`
+            }
             onInputChange={(newValue, actionMeta) => {
                 // We need access to the search value outside of the AsyncSelect component so we reflect the value to state.
                 if (actionMeta?.action === 'input-change') {
