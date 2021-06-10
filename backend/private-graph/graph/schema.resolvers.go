@@ -10,10 +10,16 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -22,12 +28,6 @@ import (
 	stripe "github.com/stripe/stripe-go"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/pricing"
-	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
 )
 
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -252,6 +252,35 @@ func (r *mutationResolver) MarkErrorGroupAsResolved(ctx context.Context, id int,
 		Resolved: resolved,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup resolved status")
+	}
+
+	return errorGroup, nil
+}
+
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id int, state string) (*model.ErrorGroup, error) {
+	_, err := r.isAdminErrorGroupOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not errorGroup owner")
+	}
+
+	// validate state type
+	errorGroupStatesReflection := reflect.ValueOf(model.ErrorGroupStates).MapRange()
+	var isStateOk bool
+	for errorGroupStatesReflection.Next() {
+		if state == errorGroupStatesReflection.Value().String() {
+			isStateOk = true
+			break
+		}
+	}
+	if !isStateOk {
+		return nil, e.New("invalid error group state to update to")
+	}
+
+	errorGroup := &model.ErrorGroup{}
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: id}}).First(&errorGroup).Updates(&model.ErrorGroup{
+		State: state,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
 	return errorGroup, nil

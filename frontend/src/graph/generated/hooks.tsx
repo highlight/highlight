@@ -220,6 +220,56 @@ export type MarkErrorGroupAsResolvedMutationOptions = Apollo.BaseMutationOptions
     Types.MarkErrorGroupAsResolvedMutation,
     Types.MarkErrorGroupAsResolvedMutationVariables
 >;
+export const UpdateErrorGroupStateDocument = gql`
+    mutation updateErrorGroupState($id: ID!, $state: String!) {
+        updateErrorGroupState(id: $id, state: $state) {
+            id
+            state
+        }
+    }
+`;
+export type UpdateErrorGroupStateMutationFn = Apollo.MutationFunction<
+    Types.UpdateErrorGroupStateMutation,
+    Types.UpdateErrorGroupStateMutationVariables
+>;
+
+/**
+ * __useUpdateErrorGroupStateMutation__
+ *
+ * To run a mutation, you first call `useUpdateErrorGroupStateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateErrorGroupStateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateErrorGroupStateMutation, { data, loading, error }] = useUpdateErrorGroupStateMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      state: // value for 'state'
+ *   },
+ * });
+ */
+export function useUpdateErrorGroupStateMutation(
+    baseOptions?: Apollo.MutationHookOptions<
+        Types.UpdateErrorGroupStateMutation,
+        Types.UpdateErrorGroupStateMutationVariables
+    >
+) {
+    return Apollo.useMutation<
+        Types.UpdateErrorGroupStateMutation,
+        Types.UpdateErrorGroupStateMutationVariables
+    >(UpdateErrorGroupStateDocument, baseOptions);
+}
+export type UpdateErrorGroupStateMutationHookResult = ReturnType<
+    typeof useUpdateErrorGroupStateMutation
+>;
+export type UpdateErrorGroupStateMutationResult = Apollo.MutationResult<Types.UpdateErrorGroupStateMutation>;
+export type UpdateErrorGroupStateMutationOptions = Apollo.BaseMutationOptions<
+    Types.UpdateErrorGroupStateMutation,
+    Types.UpdateErrorGroupStateMutationVariables
+>;
 export const SendEmailSignupDocument = gql`
     mutation SendEmailSignup($email: String!) {
         emailSignup(email: $email)
@@ -2354,6 +2404,7 @@ export const GetErrorGroupDocument = gql`
             organization_id
             event
             resolved
+            state
             trace {
                 file_name
                 line_number
@@ -2441,6 +2492,7 @@ export const GetErrorGroupsDocument = gql`
                 type
                 event
                 resolved
+                state
                 trace {
                     file_name
                     line_number

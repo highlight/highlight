@@ -29,6 +29,13 @@ mutation markErrorGroupAsResolved($id: ID!, $resolved: Boolean!) {
     }
 }
 
+mutation updateErrorGroupState($id: ID!, $state: String!) {
+    updateErrorGroupState(id: $id, state: $state) {
+        id
+        state
+    }
+}
+
 mutation SendEmailSignup($email: String!) {
     emailSignup(email: $email)
 }

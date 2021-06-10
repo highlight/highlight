@@ -49,6 +49,16 @@ var AlertType = struct {
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
 }
 
+var ErrorGroupStates = struct {
+	OPEN     string
+	RESOLVED string
+	IGNORED  string
+}{
+	OPEN:     "OPEN",
+	RESOLVED: "RESOLVED",
+	IGNORED:  "IGNORED",
+}
+
 func init() {
 	hd := hashids.NewData()
 	hd.MinLength = 8
@@ -472,7 +482,8 @@ type ErrorGroup struct {
 	Event          string
 	Type           string
 	Trace          string
-	Resolved       *bool `json:"resolved"`
+	State          string `json:"state"`
+	Resolved       *bool  `json:"resolved"`
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup     *string

@@ -45,6 +45,17 @@ export type MarkErrorGroupAsResolvedMutation = { __typename?: 'Mutation' } & {
     >;
 };
 
+export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
+    id: Types.Scalars['ID'];
+    state: Types.Scalars['String'];
+}>;
+
+export type UpdateErrorGroupStateMutation = { __typename?: 'Mutation' } & {
+    updateErrorGroupState?: Types.Maybe<
+        { __typename?: 'ErrorGroup' } & Pick<Types.ErrorGroup, 'id' | 'state'>
+    >;
+};
+
 export type SendEmailSignupMutationVariables = Types.Exact<{
     email: Types.Scalars['String'];
 }>;
@@ -770,7 +781,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
-            'id' | 'type' | 'organization_id' | 'event' | 'resolved'
+            'id' | 'type' | 'organization_id' | 'event' | 'resolved' | 'state'
         > & {
                 trace: Array<
                     Types.Maybe<
@@ -826,7 +837,7 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                 error_groups: Array<
                     { __typename?: 'ErrorGroup' } & Pick<
                         Types.ErrorGroup,
-                        'id' | 'type' | 'event' | 'resolved'
+                        'id' | 'type' | 'event' | 'resolved' | 'state'
                     > & {
                             trace: Array<
                                 Types.Maybe<
