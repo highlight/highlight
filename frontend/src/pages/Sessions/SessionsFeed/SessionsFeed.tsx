@@ -138,10 +138,7 @@ export const SessionFeed = ({ minimal = false }: Props) => {
             {!minimal && (
                 <div className={styles.fixedContent}>
                     <div className={styles.mainUserInput}>
-                        <div className={styles.userInputWrapper}>
-                            <UserPropertyInput include />
-                        </div>
-                        {isHighlightAdmin && <SessionSearch />}
+                        <SessionSearch />
                     </div>
                     <div
                         className={styles.resultCount}
