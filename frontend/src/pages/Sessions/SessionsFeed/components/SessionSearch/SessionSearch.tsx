@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Highlighter from 'react-highlight-words';
 import { useParams } from 'react-router-dom';
 import { components, OptionsType, OptionTypeBase } from 'react-select';
@@ -19,10 +19,14 @@ const SessionSearch = () => {
         organization_id: string;
     }>();
     const [query, setQuery] = useState('');
-    const { setSearchParams } = useSearchContext();
+    const [selectedProperties, setSelectedProperties] = useState<
+        SessionSearchOption[]
+    >([]);
+    const { searchParams, setSearchParams } = useSearchContext();
     const { selectedSearchFilters } = useSelectedSessionSearchFilters();
 
     const handleChange = (_selectedProperties: any) => {
+        setSelectedProperties(_selectedProperties);
         const selectedProperties = _selectedProperties as SessionSearchOption[];
 
         const newSearchParams: {
@@ -94,6 +98,51 @@ const SessionSearch = () => {
         return getSuggestions(fetched.data, selectedSearchFilters, 3);
     };
 
+    useEffect(() => {
+        if (searchParams) {
+            const userProperties = (
+                searchParams.user_properties || []
+            ).map((property) => transformToOption(property, 'userProperties'));
+            const trackProperties = (
+                searchParams.track_properties || []
+            ).map((property) => transformToOption(property, 'trackProperties'));
+            const visitedUrl =
+                (searchParams.visited_url?.length || 0) > 0
+                    ? searchParams.visited_url
+                    : undefined;
+            const referrer =
+                (searchParams.referrer?.length || 0) > 0
+                    ? searchParams.referrer
+                    : undefined;
+
+            const selectedValues: SessionSearchOption[] = [
+                ...userProperties,
+                ...trackProperties,
+            ];
+
+            if (visitedUrl) {
+                selectedValues.push({
+                    apiType: 'visitedUrls',
+                    id: visitedUrl,
+                    name: visitedUrl,
+                    value: `visitedUrl:${visitedUrl}`,
+                    valueType: 'visitedUrl',
+                });
+            }
+            if (referrer) {
+                selectedValues.push({
+                    apiType: 'referrers',
+                    id: referrer,
+                    name: referrer,
+                    value: `referrer:${referrer}`,
+                    valueType: 'referrer',
+                });
+            }
+
+            setSelectedProperties(selectedValues);
+        }
+    }, [searchParams]);
+
     return (
         <AsyncSelect
             isMulti
@@ -102,6 +151,7 @@ const SessionSearch = () => {
             isClearable={false}
             onChange={handleChange}
             className={styles.select}
+            value={selectedProperties}
             placeholder="Search for a property..."
             noOptionsMessage={({ inputValue }) =>
                 `No results for ${inputValue}`
@@ -115,6 +165,7 @@ const SessionSearch = () => {
                 }
             }}
             components={{
+                LoadingIndicator: null,
                 DropdownIndicator: () => (
                     <SvgSearchIcon className={styles.searchIcon} />
                 ),
@@ -263,13 +314,28 @@ interface Suggestion {
 const transformToOption = (
     { id, name, value }: Suggestion,
     apiType: API_TYPES
-): SessionSearchOption => ({
-    id,
-    valueType: name,
-    name: value,
-    value: `${name}:${value}`,
-    apiType,
-});
+): SessionSearchOption => {
+    const valueToUse = value;
+
+    if (valueToUse.split(':').length === 2) {
+        const [value, name] = valueToUse.split(':');
+        return {
+            id,
+            valueType: value,
+            name,
+            value: valueToUse,
+            apiType,
+        };
+    }
+
+    return {
+        id,
+        valueType: name,
+        name: value,
+        value: `${name}:${value}`,
+        apiType,
+    };
+};
 
 const getSuggestions = (
     data: any,
