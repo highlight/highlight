@@ -230,7 +230,7 @@ const SessionSearch = () => {
                         <components.Menu {...props}>
                             <>
                                 <div className={styles.filterContainer}>
-                                    <h4>Filter:</h4>
+                                    <h4>Includes:</h4>
                                     <SessionSearchFilters />
                                 </div>
                                 {props.children}
@@ -257,7 +257,7 @@ const SessionSearch = () => {
                 }),
                 groupHeading: (provided) => ({
                     ...provided,
-                    color: 'var(--color-gray-500)',
+                    color: 'var(--text-primary)',
                     fontSize: 12,
                     fontWeight: 400,
                     textTransform: 'none',
@@ -266,6 +266,7 @@ const SessionSearch = () => {
                     borderTop: '1px solid var(--color-gray-300)',
                     paddingBottom: 'var(--size-xSmall)',
                     paddingTop: 'var(--size-xSmall)',
+                    background: 'var(--color-gray-200)',
                 }),
                 menuList: (provided) => ({
                     ...provided,

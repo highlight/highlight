@@ -43,8 +43,11 @@ const SessionSearchFilters = () => {
             }
         >
             <Button trackingId="SessionSearchFilters" type="text" small>
-                Showing results for {activeSettingsCount}{' '}
-                {activeSettingsCount === 1 ? 'property' : 'properties'}
+                {activeSettingsCount === SessionSearchFilterOptions.length
+                    ? 'All properties'
+                    : `${activeSettingsCount} ${
+                          activeSettingsCount === 1 ? 'property' : 'properties'
+                      }`}
                 <SvgChevronDownIcon className={styles.icon} />
             </Button>
         </Popover>
