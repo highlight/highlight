@@ -65,9 +65,14 @@
     display: inline-flex;
     gap: var(--size-xSmall);
     justify-content: space-between;
-    width: 90px;
+    width: 95px;
 }
 
 .contentWrapper {
-    max-width: 300px;
+    max-width: 325px;
+    padding-bottom: var(--size-small);
+
+    p {
+        margin-top: 0 !important;
+    }
 }
