@@ -1,7 +1,8 @@
 import { H } from '..';
 
 export const listenToChromeExtensionMessage = () => {
-    if (chrome?.runtime?.onMessage) {
+    // typeof checks to see if chrome is defined. chrome is not defined outside of the context of an extension or Chromium browser.
+    if (typeof chrome !== 'undefined' && chrome?.runtime?.onMessage) {
         chrome?.runtime?.onMessage.addListener(
             (message, _sender, sendResponse) => {
                 const action = message.action;

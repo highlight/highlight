@@ -239,3 +239,9 @@
     flex-direction: column;
     flex-grow: 1;
 }
+
+.titleWithAction {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+}

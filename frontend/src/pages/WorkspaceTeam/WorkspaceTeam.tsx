@@ -8,6 +8,7 @@ import { useParams } from 'react-router-dom';
 import commonStyles from '../../Common.module.scss';
 import { AdminAvatar } from '../../components/Avatar/Avatar';
 import Button from '../../components/Button/Button/Button';
+import CopyText from '../../components/CopyText/CopyText';
 import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
 import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
@@ -16,6 +17,7 @@ import {
     useGetOrganizationQuery,
     useSendAdminInviteMutation,
 } from '../../graph/generated/hooks';
+import { getOrganizationInvitationLink } from './utils';
 import styles from './WorkspaceTeam.module.scss';
 
 type Inputs = {
@@ -116,6 +118,13 @@ const WorkspaceTeam = () => {
                             'Error validating email ' + errors.email.message}
                     </div>
                 </form>
+                <p>Or invite your team by sharing this link.</p>
+                <CopyText
+                    text={getOrganizationInvitationLink(
+                        orgData?.organization?.secret || '',
+                        organization_id
+                    )}
+                />
             </div>
             <div className={styles.box}>
                 <h3>Members</h3>

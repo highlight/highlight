@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	e "github.com/pkg/errors"
@@ -1000,9 +1001,11 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "visited_url", params.VisitedURL)
 	}
 
+	errorFieldQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorFieldIds"))
 	if err := errorFieldQuery.Pluck("id", &errorFieldIds).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error fields")
 	}
+	errorFieldQuerySpan.Finish()
 
 	errorGroups := []model.ErrorGroup{}
 	selectPreamble := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved`
@@ -1015,15 +1018,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(errorFieldIds) > 0 {
-		queryString += "AND ("
-		for idx, id := range errorFieldIds {
-			if idx == 0 {
-				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		queryString += ") "
+		fieldIdConstructionSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("fieldIdConstruction"))
+		t := strings.Replace(fmt.Sprint(errorFieldIds), " ", ",", -1)
+		queryString += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
+		fieldIdConstructionSpan.Finish()
 	}
 
 	if d := params.DateRange; d != nil {
@@ -1582,7 +1580,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if viewed := params.HideViewed; viewed != nil && *viewed {
-		whereClause += "AND (viewed = false) "
+		whereClause += "AND (viewed = false OR viewed IS NULL) "
 	}
 
 	if browser := params.Browser; browser != nil {
@@ -1713,9 +1711,9 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
-	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).
-		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).Where(r.DB.
+		Where(r.DB.Where("length(value) > ?", 0).Where("value ILIKE ?", "%"+query+"%")).
+		Or(r.DB.Where("length(name) > ?", 0).Where("name ILIKE ?", "%"+query+"%"))).
 		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {

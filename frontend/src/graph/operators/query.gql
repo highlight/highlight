@@ -12,6 +12,7 @@ query GetSession($id: ID!) {
         browser_name
         browser_version
         environment
+        app_version
         city
         state
         postal
@@ -215,6 +216,7 @@ query GetOrganization($id: ID!) {
         verbose_id
         billing_email
         slack_webhook_channel
+        secret
     }
 }
 
@@ -347,6 +349,45 @@ query GetErrorFieldSuggestion(
         name: $name
         query: $query
     ) {
+        name
+        value
+    }
+}
+
+query GetSessionSearchResults($organization_id: ID!, $query: String!) {
+    trackProperties: property_suggestion(
+        organization_id: $organization_id
+        query: $query
+        type: "track"
+    ) {
+        id
+        name
+        value
+    }
+    userProperties: property_suggestion(
+        organization_id: $organization_id
+        query: $query
+        type: "user"
+    ) {
+        id
+        name
+        value
+    }
+    visitedUrls: field_suggestion(
+        organization_id: $organization_id
+        name: "visited-url"
+        query: $query
+    ) {
+        id
+        name
+        value
+    }
+    referrers: field_suggestion(
+        organization_id: $organization_id
+        name: "referrer"
+        query: $query
+    ) {
+        id
         name
         value
     }

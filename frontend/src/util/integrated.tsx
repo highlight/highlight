@@ -1,11 +1,11 @@
 import useLocalStorage from '@rehooks/local-storage';
 import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
 import { useIsIntegratedLazyQuery } from '../graph/generated/hooks';
 
-export const useIntegrated = (
-    organization_id: number
-): { integrated: boolean; loading: boolean } => {
+export const useIntegrated = (): { integrated: boolean; loading: boolean } => {
+    const { organization_id } = useParams<{ organization_id: string }>();
     const [query, { data, loading }] = useIsIntegratedLazyQuery({
         variables: { organization_id: organization_id.toString() },
         fetchPolicy: 'cache-and-network',

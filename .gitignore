@@ -13,3 +13,4 @@ yalc.lock
 **/.idea
 **/*.pem
 **/*.test
+**/.swp
