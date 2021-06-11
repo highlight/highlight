@@ -140,7 +140,10 @@ export class Highlight {
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
-        this._backendUrl = 'http://localhost:8082/public';
+        this._backendUrl =
+            options?.backendUrl ||
+            process.env.PUBLIC_GRAPH_URI ||
+            'https://public.highlight.run';
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
@@ -182,11 +185,11 @@ export class Highlight {
                 stringify({ user_identifier, ...user_object })
             );
         }
-        this.sessionData.userIdentifier = user_identifier;
+        this.sessionData.userIdentifier = user_identifier.toString();
         this.sessionData.userObject = user_object;
         await this.graphqlSDK.identifySession({
             session_id: this.sessionData.sessionID.toString(),
-            user_identifier: user_identifier,
+            user_identifier: this.sessionData.userIdentifier,
             user_object: user_object,
         });
         const sourceString = source === 'segment' ? source : 'default';

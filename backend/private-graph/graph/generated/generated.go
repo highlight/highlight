@@ -225,6 +225,7 @@ type ComplexityRoot struct {
 		BillingEmail        func(childComplexity int) int
 		ID                  func(childComplexity int) int
 		Name                func(childComplexity int) int
+		Secret              func(childComplexity int) int
 		SlackChannels       func(childComplexity int) int
 		SlackWebhookChannel func(childComplexity int) int
 		TrialEndDate        func(childComplexity int) int
@@ -328,6 +329,7 @@ type ComplexityRoot struct {
 
 	Session struct {
 		ActiveLength         func(childComplexity int) int
+		AppVersion           func(childComplexity int) int
 		BrowserName          func(childComplexity int) int
 		BrowserVersion       func(childComplexity int) int
 		City                 func(childComplexity int) int
@@ -1434,6 +1436,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Organization.Name(childComplexity), true
 
+	case "Organization.secret":
+		if e.complexity.Organization.Secret == nil {
+			break
+		}
+
+		return e.complexity.Organization.Secret(childComplexity), true
+
 	case "Organization.slack_channels":
 		if e.complexity.Organization.SlackChannels == nil {
 			break
@@ -2151,6 +2160,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Session.ActiveLength(childComplexity), true
 
+	case "Session.app_version":
+		if e.complexity.Session.AppVersion == nil {
+			break
+		}
+
+		return e.complexity.Session.AppVersion(childComplexity), true
+
 	case "Session.browser_name":
 		if e.complexity.Session.BrowserName == nil {
 			break
@@ -2625,6 +2641,7 @@ type Session {
     state: String!
     postal: String!
     environment: String
+    app_version: String
     language: String!
     identifier: String!
     created_at: Time
@@ -2675,6 +2692,7 @@ type Organization {
     trial_end_date: Time
     slack_webhook_channel: String
     slack_channels: String
+    secret: String
 }
 
 type Segment {
@@ -2845,7 +2863,7 @@ type UserProperty {
 }
 
 input UserPropertyInput {
-    id: ID!
+    id: ID
     name: String!
     value: String!
 }
@@ -2949,7 +2967,7 @@ type TrackProperty {
 }
 
 input TrackPropertyInput {
-    id: ID!
+    id: ID
     name: String!
     value: String!
 }
@@ -8838,6 +8856,38 @@ func (ec *executionContext) _Organization_slack_channels(ctx context.Context, fi
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Organization_secret(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Organization",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Secret, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Plan_type(ctx context.Context, field graphql.CollectedField, obj *model.Plan) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11891,6 +11941,38 @@ func (ec *executionContext) _Session_environment(ctx context.Context, field grap
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Session_app_version(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AppVersion, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Session_language(ctx context.Context, field graphql.CollectedField, obj *model1.Session) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -14825,7 +14907,7 @@ func (ec *executionContext) unmarshalInputTrackPropertyInput(ctx context.Context
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -14861,7 +14943,7 @@ func (ec *executionContext) unmarshalInputUserPropertyInput(ctx context.Context,
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2int(ctx, v)
+			it.ID, err = ec.unmarshalOID2ᚖint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15833,6 +15915,8 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._Organization_slack_webhook_channel(ctx, field, obj)
 		case "slack_channels":
 			out.Values[i] = ec._Organization_slack_channels(ctx, field, obj)
+		case "secret":
+			out.Values[i] = ec._Organization_secret(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16680,6 +16764,8 @@ func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "environment":
 			out.Values[i] = ec._Session_environment(ctx, field, obj)
+		case "app_version":
+			out.Values[i] = ec._Session_app_version(ctx, field, obj)
 		case "language":
 			out.Values[i] = ec._Session_language(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

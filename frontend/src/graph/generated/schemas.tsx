@@ -39,6 +39,7 @@ export type Session = {
     state: Scalars['String'];
     postal: Scalars['String'];
     environment?: Maybe<Scalars['String']>;
+    app_version?: Maybe<Scalars['String']>;
     language: Scalars['String'];
     identifier: Scalars['String'];
     created_at?: Maybe<Scalars['Time']>;
@@ -93,6 +94,7 @@ export type Organization = {
     trial_end_date?: Maybe<Scalars['Time']>;
     slack_webhook_channel?: Maybe<Scalars['String']>;
     slack_channels?: Maybe<Scalars['String']>;
+    secret?: Maybe<Scalars['String']>;
 };
 
 export type Segment = {
@@ -278,7 +280,7 @@ export type UserProperty = {
 };
 
 export type UserPropertyInput = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
     name: Scalars['String'];
     value: Scalars['String'];
 };
@@ -393,7 +395,7 @@ export type TrackProperty = {
 };
 
 export type TrackPropertyInput = {
-    id: Scalars['ID'];
+    id?: Maybe<Scalars['ID']>;
     name: Scalars['String'];
     value: Scalars['String'];
 };

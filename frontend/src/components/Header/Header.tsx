@@ -12,6 +12,7 @@ import { HighlightLogo } from '../HighlightLogo/HighlightLogo';
 import { SidebarState, useSidebarContext } from '../Sidebar/SidebarContext';
 import { CommandBar } from './CommandBar/CommandBar';
 import styles from './Header.module.scss';
+import HelpMenu from './HelpMenu/HelpMenu';
 import Notifications from './Notifications/Notifications';
 import ThemeToggle from './ThemeToggle/ThemeToggle';
 import { UserDropdown } from './UserDropdown/UserDropdown';
@@ -52,6 +53,7 @@ export const Header = () => {
                     <div className={styles.rightHeader}>
                         <ThemeToggle />
                         <Notifications />
+                        <HelpMenu />
                         <UserDropdown />
                     </div>
                 </div>
