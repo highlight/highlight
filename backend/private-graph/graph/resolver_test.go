@@ -97,7 +97,6 @@ func TestHideViewedSessions(t *testing.T) {
 		},
 		TotalCount: 1,
 	}
-	log.Infof("received sessions: %+v", sessions)
 	if sessions.TotalCount != expected.TotalCount {
 		t.Fatalf("received session count and expected session count not equal")
 	}
