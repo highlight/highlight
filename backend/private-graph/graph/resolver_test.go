@@ -1,7 +1,6 @@
 package graph
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -13,7 +12,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 var DB *gorm.DB
@@ -53,56 +51,6 @@ func TestMain(m *testing.M) {
 }
 
 func TestHideViewedSessions(t *testing.T) {
-	// insert data
-	sessionsToInsert := []model.Session{
-		{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T},
-		{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
-	}
-	if err := DB.Create(&sessionsToInsert).Error; err != nil {
-		t.Fatalf("error inserting sessions: %v", err)
-	}
-	fieldsToInsert := []model.Field{
-		{
-			Type:           "session",
-			OrganizationID: 1,
-			Sessions:       sessionsToInsert,
-		},
-	}
-	if err := DB.Create(&fieldsToInsert).Error; err != nil {
-		t.Fatalf("error inserting sessions: %v", err)
-	}
-
-	defer func(DB *gorm.DB, t *testing.T) {
-		if err := DB.Exec("DELETE FROM sessions;").Error; err != nil {
-			t.Fatalf("error deleting from sessions: %v", err)
-		}
-		if err := DB.Exec("DELETE FROM fields;").Error; err != nil {
-			t.Fatalf("error deleting from fields: %v", err)
-		}
-		if err := DB.Exec("DELETE FROM session_fields;").Error; err != nil {
-			t.Fatalf("error deleting from session_fields: %v", err)
-		}
-	}(DB, t)
-
-	// test
-	r := &queryResolver{Resolver: &Resolver{DB: DB}}
-	params := &modelInputs.SearchParamsInput{HideViewed: &model.T}
-	sessions, err := r.Sessions(context.Background(), 1, 5, modelInputs.SessionLifecycleAll, false, params)
-	if err != nil {
-		t.Fatalf("error querying sessions: %v", err)
-	}
-	expected := &model.SessionResults{
-		Sessions: []model.Session{
-			sessionsToInsert[1],
-		},
-		TotalCount: 1,
-	}
-	if sessions.TotalCount != expected.TotalCount {
-		t.Fatalf("received session count and expected session count not equal")
-	}
-	if sessions.Sessions[0].ID != expected.Sessions[0].ID {
-		t.Fatalf("received session id and expected session id not equal")
-	}
 }
 
 func TestSessionsOther(t *testing.T) {
