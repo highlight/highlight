@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Highlighter from 'react-highlight-words';
 import { useParams } from 'react-router-dom';
 import { components, OptionsType, OptionTypeBase } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import { useGetSessionSearchResultsQuery } from '../../../../../graph/generated/hooks';
+import useSelectedSessionSearchFilters from '../../../../../persistedStorage/useSelectedSessionSearchFilters';
 import SvgSearchIcon from '../../../../../static/SearchIcon';
 import {
     UserProperty,
     useSearchContext,
 } from '../../../SearchContext/SearchContext';
+import SessionSearchFilters from './components/SessionSearchFilters/SessionSearchFilters';
 import styles from './SessionSearch.module.scss';
 
 const SessionSearch = () => {
@@ -17,9 +19,14 @@ const SessionSearch = () => {
         organization_id: string;
     }>();
     const [query, setQuery] = useState('');
-    const { setSearchParams } = useSearchContext();
+    const [selectedProperties, setSelectedProperties] = useState<
+        SessionSearchOption[]
+    >([]);
+    const { searchParams, setSearchParams } = useSearchContext();
+    const { selectedSearchFilters } = useSelectedSessionSearchFilters();
 
     const handleChange = (_selectedProperties: any) => {
+        setSelectedProperties(_selectedProperties);
         const selectedProperties = _selectedProperties as SessionSearchOption[];
 
         const newSearchParams: {
@@ -88,18 +95,67 @@ const SessionSearch = () => {
             query: input,
         });
 
-        return getSuggestions(fetched.data, 3);
+        return getSuggestions(fetched.data, selectedSearchFilters, 3);
     };
+
+    useEffect(() => {
+        if (searchParams) {
+            const userProperties = (
+                searchParams.user_properties || []
+            ).map((property) => transformToOption(property, 'userProperties'));
+            const trackProperties = (
+                searchParams.track_properties || []
+            ).map((property) => transformToOption(property, 'trackProperties'));
+            const visitedUrl =
+                (searchParams.visited_url?.length || 0) > 0
+                    ? searchParams.visited_url
+                    : undefined;
+            const referrer =
+                (searchParams.referrer?.length || 0) > 0
+                    ? searchParams.referrer
+                    : undefined;
+
+            const selectedValues: SessionSearchOption[] = [
+                ...userProperties,
+                ...trackProperties,
+            ];
+
+            if (visitedUrl) {
+                selectedValues.push({
+                    apiType: 'visitedUrls',
+                    id: visitedUrl,
+                    name: visitedUrl,
+                    value: `visitedUrl:${visitedUrl}`,
+                    valueType: 'visitedUrl',
+                });
+            }
+            if (referrer) {
+                selectedValues.push({
+                    apiType: 'referrers',
+                    id: referrer,
+                    name: referrer,
+                    value: `referrer:${referrer}`,
+                    valueType: 'referrer',
+                });
+            }
+
+            setSelectedProperties(selectedValues);
+        }
+    }, [searchParams]);
 
     return (
         <AsyncSelect
             isMulti
-            cacheOptions
             loadOptions={generateOptions}
             isLoading={loading}
             isClearable={false}
             onChange={handleChange}
             className={styles.select}
+            value={selectedProperties}
+            placeholder="Search for a property..."
+            noOptionsMessage={({ inputValue }) =>
+                `No results for ${inputValue}`
+            }
             onInputChange={(newValue, actionMeta) => {
                 // We need access to the search value outside of the AsyncSelect component so we reflect the value to state.
                 if (actionMeta?.action === 'input-change') {
@@ -109,6 +165,7 @@ const SessionSearch = () => {
                 }
             }}
             components={{
+                LoadingIndicator: null,
                 DropdownIndicator: () => (
                     <SvgSearchIcon className={styles.searchIcon} />
                 ),
@@ -152,14 +209,33 @@ const SessionSearch = () => {
                                                 autoEscape={true}
                                                 textToHighlight={name}
                                             />
-                                            <span className={styles.keyLabel}>
-                                                {valueType}
-                                            </span>
+                                            <Highlighter
+                                                className={styles.keyLabel}
+                                                highlightClassName={
+                                                    styles.highlightedFuzzyMatch
+                                                }
+                                                searchWords={query.split(' ')}
+                                                autoEscape={true}
+                                                textToHighlight={valueType}
+                                            />
                                         </span>
                                     )}
                                 </div>
                             </components.Option>
                         </div>
+                    );
+                },
+                Menu: (props) => {
+                    return (
+                        <components.Menu {...props}>
+                            <>
+                                <div className={styles.filterContainer}>
+                                    <h4>Includes:</h4>
+                                    <SessionSearchFilters />
+                                </div>
+                                {props.children}
+                            </>
+                        </components.Menu>
                     );
                 },
             }}
@@ -178,13 +254,10 @@ const SessionSearch = () => {
                     ...provided,
                     paddingTop: 0,
                     paddingBottom: 0,
-                    '&:first-of-type > :first-of-type': {
-                        borderTop: 'none',
-                    },
                 }),
                 groupHeading: (provided) => ({
                     ...provided,
-                    color: 'var(--color-gray-500)',
+                    color: 'var(--text-primary)',
                     fontSize: 12,
                     fontWeight: 400,
                     textTransform: 'none',
@@ -193,6 +266,7 @@ const SessionSearch = () => {
                     borderTop: '1px solid var(--color-gray-300)',
                     paddingBottom: 'var(--size-xSmall)',
                     paddingTop: 'var(--size-xSmall)',
+                    background: 'var(--color-gray-200)',
                 }),
                 menuList: (provided) => ({
                     ...provided,
@@ -202,13 +276,14 @@ const SessionSearch = () => {
                 menu: (provided) => ({
                     ...provided,
                     borderRadius: 'var(--border-radius)',
-                    borderColor: 'var(--color-gray-300)',
+                    border: '1px solid var(--color-gray-300)',
                     boxShadow: 'var(--box-shadow-2)',
                     fontFamily: 'var(--header-font-family)',
                 }),
             }}
             isSearchable
-            defaultOptions={getSuggestions(data, 3)}
+            defaultOptions={getSuggestions(data, selectedSearchFilters, 3)}
+            maxMenuHeight={600}
         />
     );
 };
@@ -241,52 +316,79 @@ interface Suggestion {
 const transformToOption = (
     { id, name, value }: Suggestion,
     apiType: API_TYPES
-): SessionSearchOption => ({
-    id,
-    valueType: name,
-    name: value,
-    value: `${name}:${value}`,
-    apiType,
-});
+): SessionSearchOption => {
+    const valueToUse = value;
 
-const getSuggestions = (data: any, limitResultsCount?: number) => {
-    const trackProperties = data
-        ?.trackProperties!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'trackProperties')
-        )
-        .slice(0, limitResultsCount);
-    const userProperties = data
-        ?.userProperties!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'userProperties')
-        )
-        .slice(0, limitResultsCount);
-    const visitedUrls = data
-        ?.visitedUrls!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'visitedUrls')
-        )
-        .slice(0, limitResultsCount);
-    const referrers = data
-        ?.referrers!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'referrers')
-        )
-        .slice(0, limitResultsCount);
+    if (
+        valueToUse.split(':').length === 2 &&
+        !valueToUse.includes('https://')
+    ) {
+        const [value, name] = valueToUse.split(':');
+        return {
+            id,
+            valueType: value,
+            name,
+            value: valueToUse,
+            apiType,
+        };
+    }
 
-    return [
-        {
+    return {
+        id,
+        valueType: name,
+        name: value,
+        value: `${name}:${value}`,
+        apiType,
+    };
+};
+
+const getSuggestions = (
+    data: any,
+    selectedTypes: string[],
+    limitResultsCount?: number
+) => {
+    const suggestions = [];
+
+    if (selectedTypes.includes('Track Properties')) {
+        suggestions.push({
             label: 'Track Properties',
-            options: trackProperties,
-        },
-        {
+            options: data
+                ?.trackProperties!.map((suggestion: Suggestion) =>
+                    transformToOption(suggestion, 'trackProperties')
+                )
+                .slice(0, limitResultsCount),
+        });
+    }
+    if (selectedTypes.includes('User Properties')) {
+        suggestions.push({
             label: 'User Properties',
-            options: userProperties,
-        },
-        {
+            options: data
+                ?.userProperties!.map((suggestion: Suggestion) =>
+                    transformToOption(suggestion, 'userProperties')
+                )
+                .slice(0, limitResultsCount),
+        });
+    }
+    if (selectedTypes.includes('Visited URLs')) {
+        suggestions.push({
             label: 'Visited URLs',
-            options: visitedUrls,
-        },
-        {
+            options: data
+                ?.visitedUrls!.map((suggestion: Suggestion) =>
+                    transformToOption(suggestion, 'visitedUrls')
+                )
+                .slice(0, limitResultsCount),
+        });
+    }
+    if (selectedTypes.includes('Referrers')) {
+        suggestions.push({
             label: 'Referrers',
-            options: referrers,
-        },
-    ];
+            options: data
+                ?.referrers!.map((suggestion: Suggestion) =>
+                    transformToOption(suggestion, 'referrers')
+                )
+                .slice(0, limitResultsCount),
+        });
+    }
+
+    return suggestions;
 };
