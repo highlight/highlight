@@ -313,7 +313,6 @@ const SessionSearch = () => {
                 3
             )}
             maxMenuHeight={400}
-            menuIsOpen
         />
     );
 };
