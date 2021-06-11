@@ -3,12 +3,12 @@ package graph
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"testing"
 
 	"github.com/go-test/deep"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -38,7 +38,10 @@ func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	}
 	defer sqlDB.Close()
 	// Attempt to create the database.
-	db = db.Exec(fmt.Sprintf("CREATE DATABASE %v;", dbName))
+	err = db.Exec(fmt.Sprintf("CREATE DATABASE %v;", dbName)).Error
+	if err != nil {
+		log.Error("rip creating db")
+	}
 	return model.SetupDB(dbName)
 }
 
@@ -47,7 +50,7 @@ func TestMain(m *testing.M) {
 	var err error
 	DB, err = createAndMigrateTestDB("highlight_testing_db")
 	if err != nil {
-		log.Fatalf("error creating testdb: %v", err)
+		log.Errorf("error creating testdb: %v", err)
 	}
 	code := m.Run()
 	os.Exit(code)
@@ -56,13 +59,34 @@ func TestMain(m *testing.M) {
 func TestHideViewedSessions(t *testing.T) {
 	// insert data
 	sessionsToInsert := []model.Session{
-		{Viewed: &model.T, WithinBillingQuota: &model.T},
-		{Viewed: &model.F, WithinBillingQuota: &model.T},
+		{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T},
+		{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
 	}
 	if err := DB.Create(&sessionsToInsert).Error; err != nil {
 		t.Fatalf("error inserting sessions: %v", err)
 	}
-	defer DB.Exec("DELETE FROM sessions")
+	fieldsToInsert := []model.Field{
+		{
+			Type:           "session",
+			OrganizationID: 1,
+			Sessions:       sessionsToInsert,
+		},
+	}
+	if err := DB.Create(&fieldsToInsert).Error; err != nil {
+		t.Fatalf("error inserting sessions: %v", err)
+	}
+
+	defer func(DB *gorm.DB, t *testing.T) {
+		if err := DB.Exec("DELETE FROM sessions;").Error; err != nil {
+			t.Fatalf("error deleting from sessions: %v", err)
+		}
+		if err := DB.Exec("DELETE FROM fields;").Error; err != nil {
+			t.Fatalf("error deleting from fields: %v", err)
+		}
+		if err := DB.Exec("DELETE FROM session_fields;").Error; err != nil {
+			t.Fatalf("error deleting from session_fields: %v", err)
+		}
+	}(DB, t)
 
 	// test
 	r := &queryResolver{Resolver: &Resolver{DB: DB}}
@@ -77,11 +101,10 @@ func TestHideViewedSessions(t *testing.T) {
 		},
 		TotalCount: 2,
 	}
+	log.Infof("received sessions: %+v", sessions)
 	if diff := deep.Equal(sessions, expected); diff != nil {
 		t.Fatalf("received sessions and expected sessions not equal: %v", diff)
 	}
-
-	log.Println("hello")
 }
 
 func TestSessionsOther(t *testing.T) {
