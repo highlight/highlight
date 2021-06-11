@@ -1477,7 +1477,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	//pluck not field ids
-	if len(params.ExcludedTrackProperties) > 0 {
+	if len(params.ExcludedTrackProperties) != len(notTrackFieldIds) {
 		var tempNotTrackFieldIds []int
 		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
 			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
