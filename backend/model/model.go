@@ -1,12 +1,16 @@
 package model
 
 import (
+	"bufio"
 	"context"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"path"
 	"strconv"
 	"time"
 
@@ -26,6 +30,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
 var (
@@ -449,21 +454,69 @@ type ErrorSegment struct {
 
 type ErrorObject struct {
 	Model
-	OrganizationID int
-	SessionID      int
-	ErrorGroupID   int
-	Event          string
-	Type           string
-	URL            string
-	Source         string
-	LineNumber     int
-	ColumnNumber   int
-	OS             string
-	Browser        string
-	Trace          *string   `json:"trace"`
-	Timestamp      time.Time `json:"timestamp"`
-	Payload        *string   `json:"payload"`
-	Environment    string
+	OrganizationID     int
+	SessionID          int
+	ErrorGroupID       int
+	Event              string
+	Type               string
+	URL                string
+	Source             string
+	LineNumber         int
+	ColumnNumber       int
+	MappedSource       string
+	MappedFunction     string
+	MappedLineNumber   int
+	MappedColumnNumber int
+	OS                 string
+	Browser            string
+	Trace              *string   `json:"trace"`
+	Timestamp          time.Time `json:"timestamp"`
+	Payload            *string   `json:"payload"`
+	Environment        string
+}
+
+func (e *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) error {
+	// get mapped stuff from source map
+	response, err := http.Get(input.Source) //use package "net/http"
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+
+	// Create the file
+	filename := response.Request.URL.String()
+	out, err := os.Create(path.Base(filename))
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	defer os.Remove(filename)
+
+	// Copy data from the response to standard output
+	_, err = io.Copy(out, response.Body) //use package "io" and "os"
+	if err != nil {
+		return err
+	}
+
+	rr := &ReverseReader{file: out}
+	// Seek to the end of file
+	if err = rr.SeekEnd(); err != nil {
+		return err
+	}
+
+	scanner := bufio.NewScanner(rr)
+	var sourceMap string
+	for scanner.Scan() {
+		if scanner.Text() == "\n" {
+			break
+		}
+		sourceMap += scanner.Text()
+	}
+	if err = scanner.Err(); err != nil {
+		return err
+	}
+	log.Infof("source map: %+v", sourceMap)
+	return nil
 }
 
 type ErrorGroup struct {
@@ -628,4 +681,47 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 		return nil, e.Wrapf(err, "[org_id: %d] error unmarshalling user properties map into bytes", s.OrganizationID)
 	}
 	return userProperties, nil
+}
+
+type ReverseReader struct {
+	file *os.File
+}
+
+// SeekEnd to the final byte of the file
+func (r *ReverseReader) SeekEnd() error {
+	_, err := r.file.Seek(0, io.SeekEnd)
+	return err
+}
+
+// Read the file backwards
+func (r *ReverseReader) Read(b []byte) (int, error) {
+	if len(b) == 0 {
+		return 0, nil
+	}
+
+	// This no-op gives us the current offset value
+	offset, err := r.file.Seek(0, io.SeekCurrent)
+	if err != nil {
+		return 0, err
+	}
+
+	var m int
+	for i := 0; i < len(b); i++ {
+		if offset == 0 {
+			return m, io.EOF
+		}
+		// Seek in case someone else is relying on seek too
+		offset, err = r.file.Seek(-1, io.SeekCurrent)
+		if err != nil {
+			return m, err // Should never happen
+		}
+
+		// Just read one byte at a time
+		n, err := r.file.ReadAt(b[i:i+1], offset)
+		if err != nil {
+			return m + n, err // Should never happen
+		}
+		m += n
+	}
+	return m, nil
 }

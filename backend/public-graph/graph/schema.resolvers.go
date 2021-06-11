@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/event-parse"
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -236,6 +236,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			Trace:          &traceString,
 			Timestamp:      v.Timestamp,
 			Payload:        v.Payload,
+		}
+		err = errorToInsert.SetSourceMapElements(v)
+		if err != nil {
+			log.Error(err)
 		}
 
 		//create error fields array
