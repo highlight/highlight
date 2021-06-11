@@ -4,6 +4,7 @@ import { useParams } from 'react-router-dom';
 import { components, OptionsType, OptionTypeBase } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
+import InfoTooltip from '../../../../../components/InfoTooltip/InfoTooltip';
 import { useGetSessionSearchResultsQuery } from '../../../../../graph/generated/hooks';
 import useSelectedSessionSearchFilters from '../../../../../persistedStorage/useSelectedSessionSearchFilters';
 import SvgSearchIcon from '../../../../../static/SearchIcon';
@@ -238,6 +239,16 @@ const SessionSearch = () => {
                         </components.Menu>
                     );
                 },
+                GroupHeading: (props) => {
+                    return (
+                        <components.GroupHeading {...props}>
+                            <span className={styles.groupHeading}>
+                                {props.children}{' '}
+                                <InfoTooltip title={props?.data?.tooltip} />
+                            </span>
+                        </components.GroupHeading>
+                    );
+                },
             }}
             styles={{
                 control: (provided) => ({
@@ -352,6 +363,21 @@ const getSuggestions = (
     if (selectedTypes.includes('Track Properties')) {
         suggestions.push({
             label: 'Track Properties',
+            tooltip: (
+                <>
+                    Track Properties are properties related to events that have
+                    happened in your application. These are set by you in your
+                    application. You can{' '}
+                    <a
+                        href="https://docs.highlight.run/docs/tracking-events"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        learn more here
+                    </a>
+                    .
+                </>
+            ),
             options: data
                 ?.trackProperties!.map((suggestion: Suggestion) =>
                     transformToOption(suggestion, 'trackProperties')
@@ -362,6 +388,20 @@ const getSuggestions = (
     if (selectedTypes.includes('User Properties')) {
         suggestions.push({
             label: 'User Properties',
+            tooltip: (
+                <>
+                    User Properties are properties related to the user. These
+                    are set by you in your application. You can{' '}
+                    <a
+                        href="https://docs.highlight.run/docs/identifying-users"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        learn more here
+                    </a>
+                    .
+                </>
+            ),
             options: data
                 ?.userProperties!.map((suggestion: Suggestion) =>
                     transformToOption(suggestion, 'userProperties')
@@ -372,6 +412,8 @@ const getSuggestions = (
     if (selectedTypes.includes('Visited URLs')) {
         suggestions.push({
             label: 'Visited URLs',
+            tooltip:
+                'Visited URLs are the URLs a user has visited. Filtering with a Visited URL will show you all sessions where a user visited that URL.',
             options: data
                 ?.visitedUrls!.map((suggestion: Suggestion) =>
                     transformToOption(suggestion, 'visitedUrls')
@@ -382,6 +424,8 @@ const getSuggestions = (
     if (selectedTypes.includes('Referrers')) {
         suggestions.push({
             label: 'Referrers',
+            tooltip:
+                'Referrers are the websites your users came from. For example, if a user on Twitter clicked a link to your application, the referrer would be Twitter.',
             options: data
                 ?.referrers!.map((suggestion: Suggestion) =>
                     transformToOption(suggestion, 'referrers')
