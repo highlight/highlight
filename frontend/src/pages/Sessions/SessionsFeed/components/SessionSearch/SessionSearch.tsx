@@ -27,8 +27,10 @@ const SessionSearch = () => {
     const { selectedSearchFilters } = useSelectedSessionSearchFilters();
 
     const handleChange = (_selectedProperties: any) => {
-        setSelectedProperties(_selectedProperties);
-        const selectedProperties = _selectedProperties as SessionSearchOption[];
+        const selectedProperties = transformSelectedProperties(
+            _selectedProperties
+        ) as SessionSearchOption[];
+        setSelectedProperties(selectedProperties);
 
         const newSearchParams: {
             userProperties: UserProperty[];
@@ -96,7 +98,7 @@ const SessionSearch = () => {
             query: input,
         });
 
-        return getSuggestions(fetched.data, selectedSearchFilters, 3);
+        return getSuggestions(fetched.data, selectedSearchFilters, query, 3);
     };
 
     useEffect(() => {
@@ -209,6 +211,17 @@ const SessionSearch = () => {
                                                 searchWords={query.split(' ')}
                                                 autoEscape={true}
                                                 textToHighlight={name}
+                                                sanitize={(text) => {
+                                                    // Don't bold the contains options
+                                                    if (
+                                                        text.includes(
+                                                            'Contains: '
+                                                        )
+                                                    ) {
+                                                        return '';
+                                                    }
+                                                    return text;
+                                                }}
                                             />
                                             <Highlighter
                                                 className={styles.keyLabel}
@@ -293,8 +306,14 @@ const SessionSearch = () => {
                 }),
             }}
             isSearchable
-            defaultOptions={getSuggestions(data, selectedSearchFilters, 3)}
+            defaultOptions={getSuggestions(
+                data,
+                selectedSearchFilters,
+                query,
+                3
+            )}
             maxMenuHeight={400}
+            menuIsOpen
         />
     );
 };
@@ -356,9 +375,14 @@ const transformToOption = (
 const getSuggestions = (
     data: any,
     selectedTypes: string[],
+    query: string,
     limitResultsCount?: number
 ) => {
-    const suggestions = [];
+    const suggestions: {
+        label: string;
+        tooltip: string | React.ReactNode;
+        options: SessionSearchOption[];
+    }[] = [];
 
     if (selectedTypes.includes('Track Properties')) {
         suggestions.push({
@@ -378,11 +402,14 @@ const getSuggestions = (
                     .
                 </>
             ),
-            options: data
-                ?.trackProperties!.map((suggestion: Suggestion) =>
-                    transformToOption(suggestion, 'trackProperties')
-                )
-                .slice(0, limitResultsCount),
+            options: [
+                ...getIncludesOption(query, 'trackProperties', 'track'),
+                ...(data?.trackProperties
+                    ?.map((suggestion: Suggestion) =>
+                        transformToOption(suggestion, 'trackProperties')
+                    )
+                    .slice(0, limitResultsCount) || []),
+            ],
         });
     }
     if (selectedTypes.includes('User Properties')) {
@@ -402,11 +429,14 @@ const getSuggestions = (
                     .
                 </>
             ),
-            options: data
-                ?.userProperties!.map((suggestion: Suggestion) =>
-                    transformToOption(suggestion, 'userProperties')
-                )
-                .slice(0, limitResultsCount),
+            options: [
+                ...getIncludesOption(query, 'userProperties', 'user'),
+                ...(data?.userProperties
+                    ?.map((suggestion: Suggestion) =>
+                        transformToOption(suggestion, 'userProperties')
+                    )
+                    .slice(0, limitResultsCount) || []),
+            ],
         });
     }
     if (selectedTypes.includes('Visited URLs')) {
@@ -414,11 +444,14 @@ const getSuggestions = (
             label: 'Visited URLs',
             tooltip:
                 'Visited URLs are the URLs a user has visited. Filtering with a Visited URL will show you all sessions where a user visited that URL.',
-            options: data
-                ?.visitedUrls!.map((suggestion: Suggestion) =>
-                    transformToOption(suggestion, 'visitedUrls')
-                )
-                .slice(0, limitResultsCount),
+            options: [
+                ...getIncludesOption(query, 'visitedUrls', 'visitedUrl'),
+                ...(data?.visitedUrls
+                    ?.map((suggestion: Suggestion) =>
+                        transformToOption(suggestion, 'visitedUrls')
+                    )
+                    .slice(0, limitResultsCount) || []),
+            ],
         });
     }
     if (selectedTypes.includes('Referrers')) {
@@ -426,13 +459,55 @@ const getSuggestions = (
             label: 'Referrers',
             tooltip:
                 'Referrers are the websites your users came from. For example, if a user on Twitter clicked a link to your application, the referrer would be Twitter.',
-            options: data
-                ?.referrers!.map((suggestion: Suggestion) =>
-                    transformToOption(suggestion, 'referrers')
-                )
-                .slice(0, limitResultsCount),
+            options: [
+                ...getIncludesOption(query, 'referrers', 'referrers'),
+                ...(data?.referrers
+                    ?.map((suggestion: Suggestion) =>
+                        transformToOption(suggestion, 'referrers')
+                    )
+                    .slice(0, limitResultsCount) || []),
+            ],
         });
     }
 
     return suggestions;
+};
+
+const getIncludesOption = (
+    query: string,
+    apiType: string,
+    valueType: string
+) => {
+    return query.length === 0
+        ? []
+        : [
+              {
+                  apiType,
+                  id: '-1',
+                  name: `Contains: ${query}`,
+                  value: `${query}`,
+                  valueType,
+              },
+          ];
+};
+
+const transformSelectedProperties = (selectedProperties: any[]) => {
+    return selectedProperties?.map((property) => {
+        if (property.name.includes('Contains:')) {
+            if (
+                property.apiType === 'visitedUrls' ||
+                property.apiType === 'referrers'
+            ) {
+                return {
+                    ...property,
+                    name: property.value,
+                };
+            }
+            return {
+                ...property,
+                name: 'contains',
+            };
+        }
+        return property;
+    });
 };
