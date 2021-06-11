@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/go-test/deep"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
@@ -38,10 +37,7 @@ func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	}
 	defer sqlDB.Close()
 	// Attempt to create the database.
-	err = db.Exec(fmt.Sprintf("CREATE DATABASE %v;", dbName)).Error
-	if err != nil {
-		log.Error("rip creating db")
-	}
+	db.Exec(fmt.Sprintf("CREATE DATABASE %v;", dbName))
 	return model.SetupDB(dbName)
 }
 
@@ -97,13 +93,16 @@ func TestHideViewedSessions(t *testing.T) {
 	}
 	expected := &model.SessionResults{
 		Sessions: []model.Session{
-			{Viewed: &model.F, WithinBillingQuota: &model.T},
+			sessionsToInsert[1],
 		},
-		TotalCount: 2,
+		TotalCount: 1,
 	}
 	log.Infof("received sessions: %+v", sessions)
-	if diff := deep.Equal(sessions, expected); diff != nil {
-		t.Fatalf("received sessions and expected sessions not equal: %v", diff)
+	if sessions.TotalCount != expected.TotalCount {
+		t.Fatalf("received session count and expected session count not equal")
+	}
+	if sessions.Sessions[0].ID != expected.Sessions[0].ID {
+		t.Fatalf("received session id and expected session id not equal")
 	}
 }
 
