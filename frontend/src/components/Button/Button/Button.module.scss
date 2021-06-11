@@ -5,3 +5,27 @@
     padding-bottom: 8px;
     padding-top: 8px;
 }
+
+.iconButton {
+    align-items: center;
+    border-radius: 50%;
+    color: var(--text-primary);
+    display: flex;
+    height: var(--size-xLarge);
+    justify-content: center;
+    padding: 0;
+    width: var(--size-xLarge);
+
+    &:hover {
+        background-color: var(--color-gray-200);
+    }
+
+    svg {
+        height: calc(var(--size-icon));
+        width: calc(var(--size-icon));
+    }
+}
+
+.small {
+    padding: var(--size-xxSmall);
+}

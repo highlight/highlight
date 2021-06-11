@@ -465,6 +465,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'browser_name'
             | 'browser_version'
             | 'environment'
+            | 'app_version'
             | 'city'
             | 'state'
             | 'postal'
@@ -739,6 +740,7 @@ export type GetOrganizationQuery = { __typename?: 'Query' } & {
             | 'verbose_id'
             | 'billing_email'
             | 'slack_webhook_channel'
+            | 'secret'
         >
     >;
 };
@@ -930,6 +932,54 @@ export type GetErrorFieldSuggestionQuery = { __typename?: 'Query' } & {
                 { __typename?: 'ErrorField' } & Pick<
                     Types.ErrorField,
                     'name' | 'value'
+                >
+            >
+        >
+    >;
+};
+
+export type GetSessionSearchResultsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetSessionSearchResultsQuery = { __typename?: 'Query' } & {
+    trackProperties?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
+                >
+            >
+        >
+    >;
+    userProperties?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
+                >
+            >
+        >
+    >;
+    visitedUrls?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
+                >
+            >
+        >
+    >;
+    referrers?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
                 >
             >
         >

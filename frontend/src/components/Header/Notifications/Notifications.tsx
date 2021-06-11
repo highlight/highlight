@@ -113,6 +113,7 @@ const Notifications = () => {
                 type="text"
                 className={classNames(styles.button)}
                 trackingId="OpenMentions"
+                iconButton
             >
                 <div className={styles.iconContainer}>
                     {unreadNotificationsCount !== 0 && (
