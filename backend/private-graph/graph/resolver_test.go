@@ -6,8 +6,6 @@ import (
 	"os"
 	"testing"
 
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
@@ -15,6 +13,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 var DB *gorm.DB
