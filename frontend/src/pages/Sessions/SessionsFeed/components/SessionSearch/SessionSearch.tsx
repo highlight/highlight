@@ -319,7 +319,10 @@ const transformToOption = (
 ): SessionSearchOption => {
     const valueToUse = value;
 
-    if (valueToUse.split(':').length === 2) {
+    if (
+        valueToUse.split(':').length === 2 &&
+        !valueToUse.includes('https://')
+    ) {
         const [value, name] = valueToUse.split(':');
         return {
             id,
