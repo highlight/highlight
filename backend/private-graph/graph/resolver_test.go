@@ -58,51 +58,76 @@ func TestHideViewedSessions(t *testing.T) {
 		hideViewed       *bool // hide viewed?
 		expectedCount    int64
 		expectedSessions []model.Session
+		sessionsToInsert []model.Session
 	}{
-		"show viewed": {hideViewed: &model.F, expectedCount: 3, expectedSessions: []model.Session{
-			{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T, FirstTime: &model.F},
-			{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
-			{ActiveLength: 1000, OrganizationID: 1, Viewed: nil, FirstTime: &model.F},
-		}},
-		"don't show viewed": {hideViewed: &model.T, expectedCount: 2, expectedSessions: []model.Session{
-			{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
-			{ActiveLength: 1000, OrganizationID: 1, Viewed: nil, FirstTime: &model.F},
-		}},
-	}
-	// insert data
-	sessionsToInsert := []model.Session{
-		{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T},
-		{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
-		{ActiveLength: 1000, OrganizationID: 1, Viewed: nil},
-	}
-	if err := DB.Create(&sessionsToInsert).Error; err != nil {
-		t.Fatalf("error inserting sessions: %v", err)
-	}
-	fieldsToInsert := []model.Field{
-		{
-			Type:           "session",
-			OrganizationID: 1,
-			Sessions:       sessionsToInsert,
+		"Don't hide viewed sessions": {hideViewed: &model.F, expectedCount: 3,
+			sessionsToInsert: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T},
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil},
+			},
+			expectedSessions: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T, FirstTime: &model.F},
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil, FirstTime: &model.F},
+			},
+		},
+		"Hide viewed sessions": {hideViewed: &model.T, expectedCount: 2,
+			sessionsToInsert: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T},
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil},
+			},
+			expectedSessions: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil, FirstTime: &model.F},
+			},
+		},
+		"Don't hide single viewed sessions": {hideViewed: &model.F, expectedCount: 1,
+			sessionsToInsert: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T},
+			},
+			expectedSessions: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T, FirstTime: &model.F},
+			},
+		},
+		"Hide single viewed sessions": {hideViewed: &model.T, expectedCount: 0,
+			sessionsToInsert: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T},
+			},
+			expectedSessions: []model.Session{},
 		},
 	}
-	if err := DB.Create(&fieldsToInsert).Error; err != nil {
-		t.Fatalf("error inserting sessions: %v", err)
-	}
-	defer func(DB *gorm.DB, t *testing.T) {
-		if err := DB.Exec("DELETE FROM sessions;").Error; err != nil {
-			t.Fatalf("error deleting from sessions: %v", err)
-		}
-		if err := DB.Exec("DELETE FROM fields;").Error; err != nil {
-			t.Fatalf("error deleting from fields: %v", err)
-		}
-		if err := DB.Exec("DELETE FROM session_fields;").Error; err != nil {
-			t.Fatalf("error deleting from session_fields: %v", err)
-		}
-	}(DB, t)
-
 	// run tests
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
+			// inserting the data
+			if err := DB.Create(&tc.sessionsToInsert).Error; err != nil {
+				t.Fatalf("error inserting sessions: %v", err)
+			}
+			fieldsToInsert := []model.Field{
+				{
+					Type:           "session",
+					OrganizationID: 1,
+					Sessions:       tc.sessionsToInsert,
+				},
+			}
+			if err := DB.Create(&fieldsToInsert).Error; err != nil {
+				t.Fatalf("error inserting sessions: %v", err)
+			}
+			defer func(DB *gorm.DB, t *testing.T) {
+				if err := DB.Exec("DELETE FROM sessions;").Error; err != nil {
+					t.Fatalf("error deleting from sessions: %v", err)
+				}
+				if err := DB.Exec("DELETE FROM fields;").Error; err != nil {
+					t.Fatalf("error deleting from fields: %v", err)
+				}
+				if err := DB.Exec("DELETE FROM session_fields;").Error; err != nil {
+					t.Fatalf("error deleting from session_fields: %v", err)
+				}
+			}(DB, t)
+
+			// test logic
 			r := &queryResolver{Resolver: &Resolver{DB: DB}}
 			params := &modelInputs.SearchParamsInput{HideViewed: tc.hideViewed}
 			sessions, err := r.Sessions(context.Background(), 1, 3, modelInputs.SessionLifecycleAll, false, params)
