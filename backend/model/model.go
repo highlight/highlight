@@ -482,8 +482,8 @@ type ErrorGroup struct {
 	Event          string
 	Type           string
 	Trace          string
-	State          string `json:"state"`
-	Resolved       *bool  `json:"resolved"`
+	State          string `json:"state" gorm:"default:OPEN"`
+	Resolved       *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup     *string

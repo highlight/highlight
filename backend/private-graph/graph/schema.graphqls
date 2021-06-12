@@ -60,6 +60,12 @@ enum PlanType {
     Enterprise
 }
 
+enum ErrorState {
+    OPEN
+    RESOLVED
+    IGNORED
+}
+
 type RecordingSettings {
     id: ID!
     organization_id: ID!
@@ -121,7 +127,7 @@ type ErrorGroup {
     trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
-    state: String!
+    state: ErrorState!
     resolved: Boolean
 }
 

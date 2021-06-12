@@ -78,6 +78,12 @@ export enum PlanType {
     Enterprise = 'Enterprise',
 }
 
+export enum ErrorState {
+    Open = 'OPEN',
+    Resolved = 'RESOLVED',
+    Ignored = 'IGNORED',
+}
+
 export type RecordingSettings = {
     __typename?: 'RecordingSettings';
     id: Scalars['ID'];
@@ -146,7 +152,7 @@ export type ErrorGroup = {
     trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
-    state: Scalars['String'];
+    state: ErrorState;
     resolved?: Maybe<Scalars['Boolean']>;
 };
 

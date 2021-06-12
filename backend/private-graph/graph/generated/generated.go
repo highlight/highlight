@@ -426,6 +426,7 @@ type ErrorGroupResolver interface {
 	Trace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
 	FieldGroup(ctx context.Context, obj *model1.ErrorGroup) ([]*model1.ErrorField, error)
+	State(ctx context.Context, obj *model1.ErrorGroup) (model.ErrorState, error)
 }
 type ErrorObjectResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorObject) ([]*string, error)
@@ -791,7 +792,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorGroup.Resolved(childComplexity), true
 
-	case "ErrorGroup.State":
+	case "ErrorGroup.state":
 		if e.complexity.ErrorGroup.State == nil {
 			break
 		}
@@ -2700,6 +2701,12 @@ enum PlanType {
     Enterprise
 }
 
+enum ErrorState {
+    OPEN
+    RESOLVED
+    IGNORED
+}
+
 type RecordingSettings {
     id: ID!
     organization_id: ID!
@@ -2761,7 +2768,7 @@ type ErrorGroup {
     trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
-    State: String!
+    state: ErrorState!
     resolved: Boolean
 }
 
@@ -6186,7 +6193,7 @@ func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field g
 	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorGroup_State(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorGroup_state(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6197,14 +6204,14 @@ func (ec *executionContext) _ErrorGroup_State(ctx context.Context, field graphql
 		Object:     "ErrorGroup",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.State, nil
+		return ec.resolvers.ErrorGroup().State(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6216,9 +6223,9 @@ func (ec *executionContext) _ErrorGroup_State(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(model.ErrorState)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNErrorState2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ErrorGroup_resolved(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
@@ -15538,11 +15545,20 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				res = ec._ErrorGroup_field_group(ctx, field, obj)
 				return res
 			})
-		case "State":
-			out.Values[i] = ec._ErrorGroup_State(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+		case "state":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorGroup_state(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "resolved":
 			out.Values[i] = ec._ErrorGroup_resolved(ctx, field, obj)
 		default:
@@ -17804,6 +17820,16 @@ func (ec *executionContext) marshalNErrorSearchParams2ᚖgithubᚗcomᚋhighligh
 func (ec *executionContext) unmarshalNErrorSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx context.Context, v interface{}) (model.ErrorSearchParamsInput, error) {
 	res, err := ec.unmarshalInputErrorSearchParamsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNErrorState2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx context.Context, v interface{}) (model.ErrorState, error) {
+	var res model.ErrorState
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNErrorState2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx context.Context, sel ast.SelectionSet, v model.ErrorState) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorTrace) graphql.Marshaler {

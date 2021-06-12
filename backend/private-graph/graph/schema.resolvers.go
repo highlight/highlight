@@ -132,6 +132,19 @@ func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGro
 	return parsedFields, nil
 }
 
+func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (modelInputs.ErrorState, error) {
+	switch obj.State {
+	case model.ErrorGroupStates.OPEN:
+		return modelInputs.ErrorStateOpen, nil
+	case model.ErrorGroupStates.RESOLVED:
+		return modelInputs.ErrorStateResolved, nil
+	case model.ErrorGroupStates.IGNORED:
+		return modelInputs.ErrorStateIgnored, nil
+	default:
+		return modelInputs.ErrorStateOpen, nil
+	}
+}
+
 func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject) ([]*string, error) {
 	return util.JsonStringToStringArray(obj.Event), nil
 }
