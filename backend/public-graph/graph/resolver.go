@@ -203,16 +203,19 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	logString := string(logBytes)
 
-	var environmentsSlice []string
+	environmentsMap := make(map[string]int)
 	if errorGroup.Environments != "" {
-		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsSlice)
+		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsMap)
 		if err != nil {
-			log.Error(e.Wrap(err, "error unmarshalling environments from error group into slice"))
+			log.Error(e.Wrap(err, "error unmarshalling environments from error group into map"))
 		}
-		log.Infof("existing environments %+v", environmentsSlice)
 	}
-	environmentsSlice = append(environmentsSlice, errorObj.Environment)
-	environmentsBytes, err := json.Marshal(environmentsSlice)
+	if _, ok := environmentsMap[errorObj.Environment]; ok {
+		environmentsMap[errorObj.Environment]++
+	} else {
+		environmentsMap[errorObj.Environment] = 1
+	}
+	environmentsBytes, err := json.Marshal(environmentsMap)
 	if err != nil {
 		log.Error(e.Wrap(err, "error marshalling environment into json array"))
 	}
