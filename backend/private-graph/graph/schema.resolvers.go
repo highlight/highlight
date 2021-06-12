@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -274,19 +273,6 @@ func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id int, st
 	_, err := r.isAdminErrorGroupOwner(ctx, id)
 	if err != nil {
 		return nil, e.Wrap(err, "admin not errorGroup owner")
-	}
-
-	// validate state type
-	errorGroupStatesReflection := reflect.ValueOf(model.ErrorGroupStates).MapRange()
-	var isStateOk bool
-	for errorGroupStatesReflection.Next() {
-		if state == errorGroupStatesReflection.Value().String() {
-			isStateOk = true
-			break
-		}
-	}
-	if !isStateOk {
-		return nil, e.New("invalid error group state to update to")
 	}
 
 	errorGroup := &model.ErrorGroup{}
