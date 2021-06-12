@@ -97,6 +97,38 @@ func TestHideViewedSessions(t *testing.T) {
 			},
 			expectedSessions: []model.Session{},
 		},
+		"Don't hide single un-viewed sessions": {hideViewed: &model.F, expectedCount: 1,
+			sessionsToInsert: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
+			},
+			expectedSessions: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
+			},
+		},
+		"Hide single un-viewed sessions": {hideViewed: &model.T, expectedCount: 1,
+			sessionsToInsert: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
+			},
+			expectedSessions: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
+			},
+		},
+		"Don't hide single viewed=nil sessions": {hideViewed: &model.F, expectedCount: 1,
+			sessionsToInsert: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F},
+			},
+			expectedSessions: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
+			},
+		},
+		"Hide single viewed=nil sessions": {hideViewed: &model.T, expectedCount: 1,
+			sessionsToInsert: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil},
+			},
+			expectedSessions: []model.Session{
+				{ActiveLength: 1000, OrganizationID: 1, Viewed: nil, FirstTime: &model.F},
+			},
+		},
 	}
 	// run tests
 	for name, tc := range tests {
