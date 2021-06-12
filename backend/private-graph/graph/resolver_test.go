@@ -55,11 +55,19 @@ func TestMain(m *testing.M) {
 func TestHideViewedSessions(t *testing.T) {
 	// construct table of sub-tests to run
 	tests := map[string]struct {
-		hideViewed    *bool // hide viewed?
-		expectedCount int64
+		hideViewed       *bool // hide viewed?
+		expectedCount    int64
+		expectedSessions []model.Session
 	}{
-		"show viewed":       {hideViewed: &model.T, expectedCount: 2},
-		"don't show viewed": {hideViewed: &model.F, expectedCount: 3},
+		"show viewed": {hideViewed: &model.F, expectedCount: 3, expectedSessions: []model.Session{
+			{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.T, FirstTime: &model.F},
+			{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
+			{ActiveLength: 1000, OrganizationID: 1, Viewed: nil, FirstTime: &model.F},
+		}},
+		"don't show viewed": {hideViewed: &model.T, expectedCount: 2, expectedSessions: []model.Session{
+			{ActiveLength: 1000, OrganizationID: 1, Viewed: &model.F, FirstTime: &model.F},
+			{ActiveLength: 1000, OrganizationID: 1, Viewed: nil, FirstTime: &model.F},
+		}},
 	}
 	// insert data
 	sessionsToInsert := []model.Session{
@@ -103,6 +111,12 @@ func TestHideViewedSessions(t *testing.T) {
 			}
 			if sessions.TotalCount != tc.expectedCount {
 				t.Fatalf("received session count and expected session count not equal")
+			}
+			for i, s := range sessions.Sessions {
+				isEqual, diff := s.Compare(tc.expectedSessions[i])
+				if !isEqual {
+					t.Fatalf("received session not equal to expected session. diff: %+v", diff)
+				}
 			}
 		})
 	}

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-test/deep"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
@@ -323,6 +324,14 @@ type Session struct {
 	ObjectStorageEnabled *bool   `json:"object_storage_enabled"`
 	PayloadSize          *int64  `json:"payload_size"`
 	MigrationState       *string `json:"migration_state"`
+}
+
+// Compare two sessions, ignoring model (hence why we override Model on the copy)
+func (s Session) Compare(c Session) (bool, []string) {
+	c.Model = s.Model
+	sessionDiff := deep.Equal(s, c)
+	isEqual := len(sessionDiff) == 0
+	return isEqual, sessionDiff
 }
 
 type Field struct {
