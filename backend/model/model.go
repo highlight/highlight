@@ -7,9 +7,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strconv"
 	"time"
 
+	"github.com/go-test/deep"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
@@ -47,6 +49,30 @@ var AlertType = struct {
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
+}
+
+var Models = []interface{}{
+	&RecordingSettings{},
+	&MessagesObject{},
+	&EventsObject{},
+	&ErrorObject{},
+	&ErrorGroup{},
+	&ErrorField{},
+	&ErrorSegment{},
+	&Organization{},
+	&Segment{},
+	&Admin{},
+	&User{},
+	&Session{},
+	&DailySessionCount{},
+	&DailyErrorCount{},
+	&Field{},
+	&EmailSignup{},
+	&ResourcesObject{},
+	&SessionComment{},
+	&ErrorComment{},
+	&ErrorAlert{},
+	&SessionAlert{},
 }
 
 func init() {
@@ -325,6 +351,45 @@ type Session struct {
 	MigrationState       *string `json:"migration_state"`
 }
 
+// AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model field
+func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
+	if reflect.TypeOf(a) != reflect.TypeOf(b) {
+		return false, nil, e.New("interfaces to compare aren't the same time")
+	}
+
+	aReflection := reflect.ValueOf(a)
+	// Check if the passed interface is a pointer
+	if aReflection.Type().Kind() != reflect.Ptr {
+		// Create a new type of a's Type, so we have a pointer to work with
+		aReflection = reflect.New(reflect.TypeOf(a))
+	}
+	// 'dereference' with Elem() and get the field by name
+	aField := aReflection.Elem().FieldByName("Model")
+
+	bReflection := reflect.ValueOf(b)
+	// Check if the passed interface is a pointer
+	if bReflection.Type().Kind() != reflect.Ptr {
+		// Create a new type of b's Type, so we have a pointer to work with
+		bReflection = reflect.New(reflect.TypeOf(b))
+	}
+	// 'dereference' with Elem() and get the field by name
+	bField := bReflection.Elem().FieldByName("Model")
+
+	if aField.IsValid() && bField.IsValid() {
+		// override Model on b with a's model
+		bField.Set(aField)
+	} else if aField.IsValid() || bField.IsValid() {
+		// return error if one has a model and the other doesn't
+		return false, nil, e.New("one interface has a model and the other doesn't")
+	}
+
+	// get diff
+	diff := deep.Equal(aReflection, bReflection)
+	isEqual := len(diff) == 0
+
+	return isEqual, diff, nil
+}
+
 type Field struct {
 	Model
 	// 'user_property', 'session_property'.
@@ -532,27 +597,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Failed to connect to database")
 	}
 	if err := DB.AutoMigrate(
-		&RecordingSettings{},
-		&MessagesObject{},
-		&EventsObject{},
-		&ErrorObject{},
-		&ErrorGroup{},
-		&ErrorField{},
-		&ErrorSegment{},
-		&Organization{},
-		&Segment{},
-		&Admin{},
-		&User{},
-		&Session{},
-		&DailySessionCount{},
-		&DailyErrorCount{},
-		&Field{},
-		&EmailSignup{},
-		&ResourcesObject{},
-		&SessionComment{},
-		&ErrorComment{},
-		&ErrorAlert{},
-		&SessionAlert{},
+		Models...,
 	); err != nil {
 		return nil, e.Wrap(err, "Error migrating db")
 	}
