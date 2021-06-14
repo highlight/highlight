@@ -591,7 +591,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 	DB, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 		Logger:                                   logger.Default.LogMode(logger.Silent),
-	})
+	}, gormtrace.WithAnalytics(true))
 
 	if err != nil {
 		return nil, e.Wrap(err, "Failed to connect to database")
