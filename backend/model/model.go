@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -350,12 +351,43 @@ type Session struct {
 	MigrationState       *string `json:"migration_state"`
 }
 
-// Compare two sessions, ignoring model (hence why we override Model on the copy)
-func (s Session) Compare(c Session) (bool, []string) {
-	c.Model = s.Model
-	sessionDiff := deep.Equal(s, c)
-	isEqual := len(sessionDiff) == 0
-	return isEqual, sessionDiff
+// CompareIgnoreModel compares two structs of the same time while ignoring the Model field
+func CompareIgnoreModel(a, b interface{}) (bool, []string) {
+	if reflect.TypeOf(a) != reflect.TypeOf(b) {
+		return false, nil
+	}
+
+	aReflection := reflect.ValueOf(a)
+	// Check if the passed interface is a pointer
+	if aReflection.Type().Kind() != reflect.Ptr {
+		// Create a new type of a's Type, so we have a pointer to work with
+		aReflection = reflect.New(reflect.TypeOf(a))
+	}
+	// 'dereference' with Elem() and get the field by name
+	aField := aReflection.Elem().FieldByName("Model")
+	if !aField.IsValid() {
+		return false, nil
+	}
+	bReflection := reflect.ValueOf(a)
+	// Check if the passed interface is a pointer
+	if bReflection.Type().Kind() != reflect.Ptr {
+		// Create a new type of b's Type, so we have a pointer to work with
+		bReflection = reflect.New(reflect.TypeOf(a))
+	}
+	// 'dereference' with Elem() and get the field by name
+	bField := bReflection.Elem().FieldByName("Model")
+	if !bField.IsValid() {
+		return false, nil
+	}
+
+	// override Model on b with a's model
+	bField.Set(aField)
+
+	// get diff
+	diff := deep.Equal(aReflection, bReflection)
+	isEqual := len(diff) == 0
+
+	return isEqual, diff
 }
 
 type Field struct {

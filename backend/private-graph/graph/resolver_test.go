@@ -168,7 +168,7 @@ func TestHideViewedSessions(t *testing.T) {
 				t.Fatalf("received session count and expected session count not equal")
 			}
 			for i, s := range sessions.Sessions {
-				isEqual, diff := s.Compare(tc.expectedSessions[i])
+				isEqual, diff := model.CompareIgnoreModel(s, tc.expectedSessions[i])
 				if !isEqual {
 					t.Fatalf("received session not equal to expected session. diff: %+v", diff)
 				}
