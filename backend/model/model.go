@@ -50,6 +50,30 @@ var AlertType = struct {
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
 }
 
+var Models = []interface{}{
+	&RecordingSettings{},
+	&MessagesObject{},
+	&EventsObject{},
+	&ErrorObject{},
+	&ErrorGroup{},
+	&ErrorField{},
+	&ErrorSegment{},
+	&Organization{},
+	&Segment{},
+	&Admin{},
+	&User{},
+	&Session{},
+	&DailySessionCount{},
+	&DailyErrorCount{},
+	&Field{},
+	&EmailSignup{},
+	&ResourcesObject{},
+	&SessionComment{},
+	&ErrorComment{},
+	&ErrorAlert{},
+	&SessionAlert{},
+}
+
 func init() {
 	hd := hashids.NewData()
 	hd.MinLength = 8
@@ -541,27 +565,7 @@ func SetupDB(dbName string) (*gorm.DB, error) {
 		return nil, e.Wrap(err, "Failed to connect to database")
 	}
 	if err := DB.AutoMigrate(
-		&RecordingSettings{},
-		&MessagesObject{},
-		&EventsObject{},
-		&ErrorObject{},
-		&ErrorGroup{},
-		&ErrorField{},
-		&ErrorSegment{},
-		&Organization{},
-		&Segment{},
-		&Admin{},
-		&User{},
-		&Session{},
-		&DailySessionCount{},
-		&DailyErrorCount{},
-		&Field{},
-		&EmailSignup{},
-		&ResourcesObject{},
-		&SessionComment{},
-		&ErrorComment{},
-		&ErrorAlert{},
-		&SessionAlert{},
+		Models...,
 	); err != nil {
 		return nil, e.Wrap(err, "Error migrating db")
 	}

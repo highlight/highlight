@@ -41,6 +41,14 @@ func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	return model.SetupDB(dbName)
 }
 
+func tearDownDB(db *gorm.DB, t *testing.T) {
+	for _, m := range model.Models {
+		if err := db.Delete(m).Error; err != nil {
+			t.Error(errors.Wrap(err, "error deleting table in db"))
+		}
+	}
+}
+
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
 	var err error
@@ -147,17 +155,7 @@ func TestHideViewedSessions(t *testing.T) {
 			if err := DB.Create(&fieldsToInsert).Error; err != nil {
 				t.Fatalf("error inserting sessions: %v", err)
 			}
-			defer func(DB *gorm.DB, t *testing.T) {
-				if err := DB.Exec("DELETE FROM sessions;").Error; err != nil {
-					t.Fatalf("error deleting from sessions: %v", err)
-				}
-				if err := DB.Exec("DELETE FROM fields;").Error; err != nil {
-					t.Fatalf("error deleting from fields: %v", err)
-				}
-				if err := DB.Exec("DELETE FROM session_fields;").Error; err != nil {
-					t.Fatalf("error deleting from session_fields: %v", err)
-				}
-			}(DB, t)
+			defer tearDownDB(DB, t)
 
 			// test logic
 			r := &queryResolver{Resolver: &Resolver{DB: DB}}
