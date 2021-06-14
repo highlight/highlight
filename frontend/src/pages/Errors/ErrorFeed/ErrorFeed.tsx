@@ -243,9 +243,20 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                 )}
                             </div>
                             <div className={styles.readMarkerContainer}>
-                                {errorGroup?.state === ErrorState.Open && (
-                                    <div className={styles.readMarker}></div>
-                                )}
+                                <Tooltip
+                                    title={`This error is ${errorGroup?.state?.toLowerCase()}.`}
+                                >
+                                    <div
+                                        className={classNames(
+                                            styles.readMarker,
+                                            // @ts-ignore
+                                            styles[
+                                                errorGroup?.state.toLowerCase() ||
+                                                    ErrorState.Open.toLowerCase()
+                                            ]
+                                        )}
+                                    />
+                                </Tooltip>
                             </div>
                         </div>
                     </div>
