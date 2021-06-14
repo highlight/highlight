@@ -181,7 +181,3 @@ func TestHideViewedSessions(t *testing.T) {
 		})
 	}
 }
-
-func TestSessionsOther(t *testing.T) {
-	log.Println("hillo")
-}
