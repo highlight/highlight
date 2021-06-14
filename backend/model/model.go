@@ -505,14 +505,13 @@ type ErrorComment struct {
 	Text    string
 }
 
-func SetupDB() *gorm.DB {
-	log.Println("setting up database")
+func SetupDB(dbName string) (*gorm.DB, error) {
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
 		os.Getenv("PSQL_HOST"),
 		os.Getenv("PSQL_PORT"),
 		os.Getenv("PSQL_USER"),
-		os.Getenv("PSQL_DB"),
+		dbName,
 		os.Getenv("PSQL_PASSWORD"))
 
 	sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("highlight"))
@@ -530,7 +529,7 @@ func SetupDB() *gorm.DB {
 	})
 
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		return nil, e.Wrap(err, "Failed to connect to database")
 	}
 	if err := DB.AutoMigrate(
 		&RecordingSettings{},
@@ -555,9 +554,9 @@ func SetupDB() *gorm.DB {
 		&ErrorAlert{},
 		&SessionAlert{},
 	); err != nil {
-		log.Fatalf("Error migrating db: %v", err)
+		return nil, e.Wrap(err, "Error migrating db")
 	}
-	return DB
+	return DB, nil
 }
 
 // Implement JSONB interface
@@ -569,8 +568,15 @@ func (j JSONB) Value() (driver.Value, error) {
 }
 
 func (j *JSONB) Scan(value interface{}) error {
-	if err := json.Unmarshal(value.([]byte), &j); err != nil {
-		return err
+	switch v := value.(type) {
+	case string:
+		if err := json.Unmarshal([]byte(v), &j); err != nil {
+			return err
+		}
+	case []byte:
+		if err := json.Unmarshal(v, &j); err != nil {
+			return err
+		}
 	}
 	return nil
 }

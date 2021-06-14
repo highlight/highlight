@@ -13,6 +13,13 @@
   "[go]": {
     "editor.defaultFormatter": "golang.go"
   },
+  "go.testEnvVars": {
+    "LOG_LEVEL": "debug",
+    "PSQL_HOST": "localhost",
+		"PSQL_PORT": "5432",
+		"PSQL_USER": "postgres",
+		"PSQL_PASSWORD": "postgres"
+  },
   "css.validate": false,
   "less.validate": false,
   // "scss.validate": false,
@@ -44,4 +51,6 @@
   "openInGitHub.defaultRemote": "origin",
   "openInGithub.maxBuffer": 512000,
   "openInGitHub.excludeCurrentRevision": false,
+  "liveshare.allowGuestDebugControl": true,
+  "liveshare.allowGuestTaskControl": true,
 }
