@@ -170,56 +170,6 @@ export type CreateOrUpdateSubscriptionMutationOptions = Apollo.BaseMutationOptio
     Types.CreateOrUpdateSubscriptionMutation,
     Types.CreateOrUpdateSubscriptionMutationVariables
 >;
-export const MarkErrorGroupAsResolvedDocument = gql`
-    mutation markErrorGroupAsResolved($id: ID!, $resolved: Boolean!) {
-        markErrorGroupAsResolved(id: $id, resolved: $resolved) {
-            id
-            resolved
-        }
-    }
-`;
-export type MarkErrorGroupAsResolvedMutationFn = Apollo.MutationFunction<
-    Types.MarkErrorGroupAsResolvedMutation,
-    Types.MarkErrorGroupAsResolvedMutationVariables
->;
-
-/**
- * __useMarkErrorGroupAsResolvedMutation__
- *
- * To run a mutation, you first call `useMarkErrorGroupAsResolvedMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useMarkErrorGroupAsResolvedMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [markErrorGroupAsResolvedMutation, { data, loading, error }] = useMarkErrorGroupAsResolvedMutation({
- *   variables: {
- *      id: // value for 'id'
- *      resolved: // value for 'resolved'
- *   },
- * });
- */
-export function useMarkErrorGroupAsResolvedMutation(
-    baseOptions?: Apollo.MutationHookOptions<
-        Types.MarkErrorGroupAsResolvedMutation,
-        Types.MarkErrorGroupAsResolvedMutationVariables
-    >
-) {
-    return Apollo.useMutation<
-        Types.MarkErrorGroupAsResolvedMutation,
-        Types.MarkErrorGroupAsResolvedMutationVariables
-    >(MarkErrorGroupAsResolvedDocument, baseOptions);
-}
-export type MarkErrorGroupAsResolvedMutationHookResult = ReturnType<
-    typeof useMarkErrorGroupAsResolvedMutation
->;
-export type MarkErrorGroupAsResolvedMutationResult = Apollo.MutationResult<Types.MarkErrorGroupAsResolvedMutation>;
-export type MarkErrorGroupAsResolvedMutationOptions = Apollo.BaseMutationOptions<
-    Types.MarkErrorGroupAsResolvedMutation,
-    Types.MarkErrorGroupAsResolvedMutationVariables
->;
 export const UpdateErrorGroupStateDocument = gql`
     mutation updateErrorGroupState($id: ID!, $state: String!) {
         updateErrorGroupState(id: $id, state: $state) {

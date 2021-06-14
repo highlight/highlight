@@ -1,11 +1,5 @@
 import classNames from 'classnames/bind';
-import React, {
-    RefObject,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-} from 'react';
+import React, { RefObject, useContext, useEffect, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useParams } from 'react-router-dom';
@@ -90,18 +84,6 @@ export const ErrorFeed = () => {
         },
     });
 
-    const filteredErrorGroups = useMemo(() => {
-        if (loading) {
-            return data.error_groups;
-        }
-        if (searchParams.hide_resolved) {
-            return data.error_groups.filter(
-                (errorGroup) => !errorGroup?.resolved
-            );
-        }
-        return data.error_groups;
-    }, [data.error_groups, loading, searchParams.hide_resolved]);
-
     return (
         <>
             <div className={styles.fixedContent}>
@@ -131,7 +113,7 @@ export const ErrorFeed = () => {
                             {!data.error_groups.length ? (
                                 <SearchEmptyState item={'errors'} />
                             ) : (
-                                filteredErrorGroups?.map(
+                                data.error_groups?.map(
                                     (u: Maybe<ErrorGroup>, ind: number) => (
                                         <ErrorCard errorGroup={u} key={ind} />
                                     )

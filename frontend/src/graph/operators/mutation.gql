@@ -22,13 +22,6 @@ mutation CreateOrUpdateSubscription(
     )
 }
 
-mutation markErrorGroupAsResolved($id: ID!, $resolved: Boolean!) {
-    markErrorGroupAsResolved(id: $id, resolved: $resolved) {
-        id
-        resolved
-    }
-}
-
 mutation updateErrorGroupState($id: ID!, $state: String!) {
     updateErrorGroupState(id: $id, state: $state) {
         id
