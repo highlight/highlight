@@ -41,7 +41,7 @@ func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	return model.SetupDB(dbName)
 }
 
-func tearDownDB(db *gorm.DB, t *testing.T) {
+func clearTablesInDB(db *gorm.DB, t *testing.T) {
 	for _, m := range model.Models {
 		if err := db.Where("1=1").Delete(m).Error; err != nil {
 			t.Error(errors.Wrap(err, "error deleting table in db"))
@@ -155,7 +155,7 @@ func TestHideViewedSessions(t *testing.T) {
 			if err := DB.Create(&fieldsToInsert).Error; err != nil {
 				t.Fatalf("error inserting sessions: %v", err)
 			}
-			defer tearDownDB(DB, t)
+			defer clearTablesInDB(DB, t)
 
 			// test logic
 			r := &queryResolver{Resolver: &Resolver{DB: DB}}
