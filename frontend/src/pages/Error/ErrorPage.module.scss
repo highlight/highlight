@@ -245,3 +245,18 @@
     display: flex;
     justify-content: space-between;
 }
+
+.tooltipList {
+    margin: 0;
+    padding-left: var(--size-large);
+
+    li {
+        color: var(--text-primary-inverted) !important;
+    }
+}
+
+.tooltipTitle {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+}

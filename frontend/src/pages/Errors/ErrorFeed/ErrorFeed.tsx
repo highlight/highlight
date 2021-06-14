@@ -1,4 +1,3 @@
-import { message } from 'antd';
 import classNames from 'classnames/bind';
 import React, {
     RefObject,
@@ -14,17 +13,13 @@ import { Link, useParams } from 'react-router-dom';
 import { Field } from '../../../components/Field/Field';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '../../../components/Tooltip/Tooltip';
-import {
-    useGetErrorGroupsQuery,
-    useMarkErrorGroupAsResolvedMutation,
-} from '../../../graph/generated/hooks';
+import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
 import {
     ErrorGroup,
     ErrorResults,
+    ErrorState,
     Maybe,
 } from '../../../graph/generated/schemas';
-import { ReactComponent as ResolvedIcon } from '../../../static/checkmark.svg';
-import { ReactComponent as FlagIcon } from '../../../static/flag.svg';
 import { frequencyTimeData } from '../../../util/errorCalculations';
 import { gqlSanitize } from '../../../util/gqlSanitize';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
@@ -167,7 +162,6 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     const [errorDates, setErrorDates] = useState<Array<number>>(
         Array(6).fill(0)
     );
-    const [markErrorGroupAsResolved] = useMarkErrorGroupAsResolvedMutation();
 
     useEffect(() => {
         setErrorDates(frequencyTimeData(errorGroup, 6));
@@ -267,9 +261,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                 )}
                             </div>
                             <div className={styles.readMarkerContainer}>
-                                {errorGroup?.resolved ? (
-                                    <></>
-                                ) : (
+                                {errorGroup?.state === ErrorState.Open && (
                                     <div className={styles.readMarker}></div>
                                 )}
                             </div>
@@ -283,40 +275,6 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                     />
                 </div>
             </Link>
-            <Tooltip
-                title={
-                    errorGroup?.resolved
-                        ? 'Mark as Unresolved'
-                        : 'Mark as Resolved'
-                }
-            >
-                <button
-                    className={styles.errorCardAction}
-                    onClick={() => {
-                        markErrorGroupAsResolved({
-                            variables: {
-                                id: errorGroup?.id || '',
-                                resolved: !errorGroup?.resolved,
-                            },
-                        })
-                            .then(() => {
-                                message.success('Updated error status!', 3);
-                            })
-                            .catch(() => {
-                                message.error(
-                                    'Error updating error status!',
-                                    3
-                                );
-                            });
-                    }}
-                >
-                    {errorGroup?.resolved ? (
-                        <FlagIcon className={styles.actionIcon} />
-                    ) : (
-                        <ResolvedIcon className={styles.actionIcon} />
-                    )}
-                </button>
-            </Tooltip>
         </div>
     );
 };
