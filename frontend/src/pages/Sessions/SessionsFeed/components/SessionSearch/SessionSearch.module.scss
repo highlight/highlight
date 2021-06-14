@@ -55,3 +55,9 @@
         font-size: 12px;
     }
 }
+
+.groupHeading {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+}
