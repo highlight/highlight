@@ -37,7 +37,7 @@ func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	}
 	defer sqlDB.Close()
 	// Attempt to create the database.
-	db.Exec(fmt.Sprintf("CREATE DATABASE %v;", dbName))
+	db.Exec("CREATE DATABASE ?;", dbName)
 	return model.SetupDB(dbName)
 }
 
