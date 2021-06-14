@@ -43,7 +43,7 @@ func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 
 func tearDownDB(db *gorm.DB, t *testing.T) {
 	for _, m := range model.Models {
-		if err := db.Delete(m).Error; err != nil {
+		if err := db.Where("1=1").Delete(m).Error; err != nil {
 			t.Error(errors.Wrap(err, "error deleting table in db"))
 		}
 	}
