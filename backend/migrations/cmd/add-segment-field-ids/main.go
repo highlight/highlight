@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"os"
 
 	log "github.com/sirupsen/logrus"
 
@@ -9,7 +10,10 @@ import (
 )
 
 func main() {
-	db := model.SetupDB()
+	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	if err != nil {
+		log.Fatalf("error setting up db: %+v", err)
+	}
 	var segments []model.Segment
 	if err := db.Debug().Where(&model.Segment{}).Scan(&segments).Error; err != nil {
 		log.Error("sad")

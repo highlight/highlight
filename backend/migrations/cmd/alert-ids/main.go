@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"os"
 	"strconv"
 
 	e "github.com/pkg/errors"
@@ -32,7 +33,10 @@ func GetPropertiesOld(obj *model.SessionAlert) ([]*UserPropertyOld, error) {
 }
 
 func main() {
-	db := model.SetupDB()
+	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	if err != nil {
+		log.Fatalf("error setting up db: %+v", err)
+	}
 	var sessionAlerts []model.SessionAlert
 	db.Model(model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.USER_PROPERTIES}}).Or(&model.SessionAlert{Alert: model.Alert{Type: &model.AlertType.TRACK_PROPERTIES}}).Scan(&sessionAlerts)
 	log.Infof("%+v", sessionAlerts)
