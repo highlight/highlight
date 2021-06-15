@@ -383,7 +383,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 	}
 
 	// get diff
-	diff := deep.Equal(aReflection, bReflection)
+	diff := deep.Equal(aReflection.Interface(), bReflection.Interface())
 	isEqual := len(diff) == 0
 
 	return isEqual, diff, nil
