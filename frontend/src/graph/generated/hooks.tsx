@@ -170,55 +170,55 @@ export type CreateOrUpdateSubscriptionMutationOptions = Apollo.BaseMutationOptio
     Types.CreateOrUpdateSubscriptionMutation,
     Types.CreateOrUpdateSubscriptionMutationVariables
 >;
-export const UpdateErrorGroupStateDocument = gql`
-    mutation updateErrorGroupState($id: ID!, $state: String!) {
-        updateErrorGroupState(id: $id, state: $state) {
+export const MarkErrorGroupAsResolvedDocument = gql`
+    mutation markErrorGroupAsResolved($id: ID!, $resolved: Boolean!) {
+        markErrorGroupAsResolved(id: $id, resolved: $resolved) {
             id
-            state
+            resolved
         }
     }
 `;
-export type UpdateErrorGroupStateMutationFn = Apollo.MutationFunction<
-    Types.UpdateErrorGroupStateMutation,
-    Types.UpdateErrorGroupStateMutationVariables
+export type MarkErrorGroupAsResolvedMutationFn = Apollo.MutationFunction<
+    Types.MarkErrorGroupAsResolvedMutation,
+    Types.MarkErrorGroupAsResolvedMutationVariables
 >;
 
 /**
- * __useUpdateErrorGroupStateMutation__
+ * __useMarkErrorGroupAsResolvedMutation__
  *
- * To run a mutation, you first call `useUpdateErrorGroupStateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateErrorGroupStateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useMarkErrorGroupAsResolvedMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useMarkErrorGroupAsResolvedMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [updateErrorGroupStateMutation, { data, loading, error }] = useUpdateErrorGroupStateMutation({
+ * const [markErrorGroupAsResolvedMutation, { data, loading, error }] = useMarkErrorGroupAsResolvedMutation({
  *   variables: {
  *      id: // value for 'id'
- *      state: // value for 'state'
+ *      resolved: // value for 'resolved'
  *   },
  * });
  */
-export function useUpdateErrorGroupStateMutation(
+export function useMarkErrorGroupAsResolvedMutation(
     baseOptions?: Apollo.MutationHookOptions<
-        Types.UpdateErrorGroupStateMutation,
-        Types.UpdateErrorGroupStateMutationVariables
+        Types.MarkErrorGroupAsResolvedMutation,
+        Types.MarkErrorGroupAsResolvedMutationVariables
     >
 ) {
     return Apollo.useMutation<
-        Types.UpdateErrorGroupStateMutation,
-        Types.UpdateErrorGroupStateMutationVariables
-    >(UpdateErrorGroupStateDocument, baseOptions);
+        Types.MarkErrorGroupAsResolvedMutation,
+        Types.MarkErrorGroupAsResolvedMutationVariables
+    >(MarkErrorGroupAsResolvedDocument, baseOptions);
 }
-export type UpdateErrorGroupStateMutationHookResult = ReturnType<
-    typeof useUpdateErrorGroupStateMutation
+export type MarkErrorGroupAsResolvedMutationHookResult = ReturnType<
+    typeof useMarkErrorGroupAsResolvedMutation
 >;
-export type UpdateErrorGroupStateMutationResult = Apollo.MutationResult<Types.UpdateErrorGroupStateMutation>;
-export type UpdateErrorGroupStateMutationOptions = Apollo.BaseMutationOptions<
-    Types.UpdateErrorGroupStateMutation,
-    Types.UpdateErrorGroupStateMutationVariables
+export type MarkErrorGroupAsResolvedMutationResult = Apollo.MutationResult<Types.MarkErrorGroupAsResolvedMutation>;
+export type MarkErrorGroupAsResolvedMutationOptions = Apollo.BaseMutationOptions<
+    Types.MarkErrorGroupAsResolvedMutation,
+    Types.MarkErrorGroupAsResolvedMutationVariables
 >;
 export const SendEmailSignupDocument = gql`
     mutation SendEmailSignup($email: String!) {
@@ -2354,7 +2354,6 @@ export const GetErrorGroupDocument = gql`
             organization_id
             event
             resolved
-            state
             trace {
                 file_name
                 line_number
@@ -2442,7 +2441,7 @@ export const GetErrorGroupsDocument = gql`
                 type
                 event
                 resolved
-                state
+                environments
                 trace {
                     file_name
                     line_number

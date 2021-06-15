@@ -362,6 +362,7 @@ type Session struct {
 }
 
 // AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model field
+// a and b MUST be pointers, otherwise this won't work
 func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 	if reflect.TypeOf(a) != reflect.TypeOf(b) {
 		return false, nil, e.New("interfaces to compare aren't the same time")
@@ -370,8 +371,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 	aReflection := reflect.ValueOf(a)
 	// Check if the passed interface is a pointer
 	if aReflection.Type().Kind() != reflect.Ptr {
-		// Create a new type of a's Type, so we have a pointer to work with
-		aReflection = reflect.New(reflect.TypeOf(a))
+		return false, nil, e.New("`a` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
 	aField := aReflection.Elem().FieldByName("Model")
@@ -379,8 +379,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 	bReflection := reflect.ValueOf(b)
 	// Check if the passed interface is a pointer
 	if bReflection.Type().Kind() != reflect.Ptr {
-		// Create a new type of b's Type, so we have a pointer to work with
-		bReflection = reflect.New(reflect.TypeOf(b))
+		return false, nil, e.New("`b` is not a pointer")
 	}
 	// 'dereference' with Elem() and get the field by name
 	bField := bReflection.Elem().FieldByName("Model")
@@ -394,7 +393,7 @@ func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
 	}
 
 	// get diff
-	diff := deep.Equal(aReflection, bReflection)
+	diff := deep.Equal(aReflection.Interface(), bReflection.Interface())
 	isEqual := len(diff) == 0
 
 	return isEqual, diff, nil
@@ -552,6 +551,7 @@ type ErrorGroup struct {
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup     *string
+	Environments   string
 }
 
 type ErrorField struct {

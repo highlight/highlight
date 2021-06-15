@@ -129,6 +129,7 @@ type ErrorGroup {
     field_group: [ErrorField]
     state: ErrorState!
     resolved: Boolean
+    environments: String
 }
 
 type ErrorMetadata {

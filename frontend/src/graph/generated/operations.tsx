@@ -31,14 +31,17 @@ export type CreateOrUpdateSubscriptionMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
 
-export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
+export type MarkErrorGroupAsResolvedMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
-    state: Types.Scalars['String'];
+    resolved: Types.Scalars['Boolean'];
 }>;
 
-export type UpdateErrorGroupStateMutation = { __typename?: 'Mutation' } & {
-    updateErrorGroupState?: Types.Maybe<
-        { __typename?: 'ErrorGroup' } & Pick<Types.ErrorGroup, 'id' | 'state'>
+export type MarkErrorGroupAsResolvedMutation = { __typename?: 'Mutation' } & {
+    markErrorGroupAsResolved?: Types.Maybe<
+        { __typename?: 'ErrorGroup' } & Pick<
+            Types.ErrorGroup,
+            'id' | 'resolved'
+        >
     >;
 };
 
@@ -767,7 +770,7 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
     error_group?: Types.Maybe<
         { __typename?: 'ErrorGroup' } & Pick<
             Types.ErrorGroup,
-            'id' | 'type' | 'organization_id' | 'event' | 'resolved' | 'state'
+            'id' | 'type' | 'organization_id' | 'event' | 'resolved'
         > & {
                 trace: Array<
                     Types.Maybe<
@@ -823,7 +826,7 @@ export type GetErrorGroupsQuery = { __typename?: 'Query' } & {
                 error_groups: Array<
                     { __typename?: 'ErrorGroup' } & Pick<
                         Types.ErrorGroup,
-                        'id' | 'type' | 'event' | 'resolved' | 'state'
+                        'id' | 'type' | 'event' | 'resolved' | 'environments'
                     > & {
                             trace: Array<
                                 Types.Maybe<

@@ -170,7 +170,7 @@ func TestHideViewedSessions(t *testing.T) {
 				t.Fatalf("received session count and expected session count not equal")
 			}
 			for i, s := range sessions.Sessions {
-				isEqual, diff, err := model.AreModelsWeaklyEqual(s, tc.expectedSessions[i])
+				isEqual, diff, err := model.AreModelsWeaklyEqual(&s, &tc.expectedSessions[i])
 				if err != nil {
 					t.Fatalf("error comparing two sessions: %+v", err)
 				}
