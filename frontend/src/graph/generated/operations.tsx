@@ -938,6 +938,54 @@ export type GetErrorFieldSuggestionQuery = { __typename?: 'Query' } & {
     >;
 };
 
+export type GetSessionSearchResultsQueryVariables = Types.Exact<{
+    organization_id: Types.Scalars['ID'];
+    query: Types.Scalars['String'];
+}>;
+
+export type GetSessionSearchResultsQuery = { __typename?: 'Query' } & {
+    trackProperties?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
+                >
+            >
+        >
+    >;
+    userProperties?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
+                >
+            >
+        >
+    >;
+    visitedUrls?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
+                >
+            >
+        >
+    >;
+    referrers?: Types.Maybe<
+        Array<
+            Types.Maybe<
+                { __typename?: 'Field' } & Pick<
+                    Types.Field,
+                    'id' | 'name' | 'value'
+                >
+            >
+        >
+    >;
+};
+
 export type GetTrackSuggestionQueryVariables = Types.Exact<{
     organization_id: Types.Scalars['ID'];
     query: Types.Scalars['String'];

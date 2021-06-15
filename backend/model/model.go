@@ -2,18 +2,25 @@ package model
 
 import (
 	"context"
+	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-test/deep"
+	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
 	"github.com/slack-go/slack"
 	"github.com/speps/go-hashids"
+
+	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
+	gormtrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/gorm.io/gorm.v1"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -46,6 +53,30 @@ var AlertType = struct {
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
+}
+
+var Models = []interface{}{
+	&RecordingSettings{},
+	&MessagesObject{},
+	&EventsObject{},
+	&ErrorObject{},
+	&ErrorGroup{},
+	&ErrorField{},
+	&ErrorSegment{},
+	&Organization{},
+	&Segment{},
+	&Admin{},
+	&User{},
+	&Session{},
+	&DailySessionCount{},
+	&DailyErrorCount{},
+	&Field{},
+	&EmailSignup{},
+	&ResourcesObject{},
+	&SessionComment{},
+	&ErrorComment{},
+	&ErrorAlert{},
+	&SessionAlert{},
 }
 
 func init() {
@@ -324,6 +355,45 @@ type Session struct {
 	MigrationState       *string `json:"migration_state"`
 }
 
+// AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model field
+func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
+	if reflect.TypeOf(a) != reflect.TypeOf(b) {
+		return false, nil, e.New("interfaces to compare aren't the same time")
+	}
+
+	aReflection := reflect.ValueOf(a)
+	// Check if the passed interface is a pointer
+	if aReflection.Type().Kind() != reflect.Ptr {
+		// Create a new type of a's Type, so we have a pointer to work with
+		aReflection = reflect.New(reflect.TypeOf(a))
+	}
+	// 'dereference' with Elem() and get the field by name
+	aField := aReflection.Elem().FieldByName("Model")
+
+	bReflection := reflect.ValueOf(b)
+	// Check if the passed interface is a pointer
+	if bReflection.Type().Kind() != reflect.Ptr {
+		// Create a new type of b's Type, so we have a pointer to work with
+		bReflection = reflect.New(reflect.TypeOf(b))
+	}
+	// 'dereference' with Elem() and get the field by name
+	bField := bReflection.Elem().FieldByName("Model")
+
+	if aField.IsValid() && bField.IsValid() {
+		// override Model on b with a's model
+		bField.Set(aField)
+	} else if aField.IsValid() || bField.IsValid() {
+		// return error if one has a model and the other doesn't
+		return false, nil, e.New("one interface has a model and the other doesn't")
+	}
+
+	// get diff
+	diff := deep.Equal(aReflection, bReflection)
+	isEqual := len(diff) == 0
+
+	return isEqual, diff, nil
+}
+
 type Field struct {
 	Model
 	// 'user_property', 'session_property'.
@@ -503,50 +573,38 @@ type ErrorComment struct {
 	Text    string
 }
 
-func SetupDB() *gorm.DB {
-	log.Println("setting up database")
+func SetupDB(dbName string) (*gorm.DB, error) {
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
 		os.Getenv("PSQL_HOST"),
 		os.Getenv("PSQL_PORT"),
 		os.Getenv("PSQL_USER"),
-		os.Getenv("PSQL_DB"),
+		dbName,
 		os.Getenv("PSQL_PASSWORD"))
 
+	sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("highlight"))
+
 	var err error
-	DB, err = gorm.Open(postgres.Open(psqlConf), &gorm.Config{
+	var sqlDb *sql.DB
+	sqlDb, err = sqltrace.Open("pgx", psqlConf)
+	if err != nil {
+		log.Fatalf("Failed to connect to database with sqltrace: %v", err)
+	}
+
+	DB, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 		Logger:                                   logger.Default.LogMode(logger.Silent),
-	})
+	}, gormtrace.WithAnalytics(true))
+
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		return nil, e.Wrap(err, "Failed to connect to database")
 	}
 	if err := DB.AutoMigrate(
-		&RecordingSettings{},
-		&MessagesObject{},
-		&EventsObject{},
-		&ErrorObject{},
-		&ErrorGroup{},
-		&ErrorField{},
-		&ErrorSegment{},
-		&Organization{},
-		&Segment{},
-		&Admin{},
-		&User{},
-		&Session{},
-		&DailySessionCount{},
-		&DailyErrorCount{},
-		&Field{},
-		&EmailSignup{},
-		&ResourcesObject{},
-		&SessionComment{},
-		&ErrorComment{},
-		&ErrorAlert{},
-		&SessionAlert{},
+		Models...,
 	); err != nil {
-		log.Fatalf("Error migrating db: %v", err)
+		return nil, e.Wrap(err, "Error migrating db")
 	}
-	return DB
+	return DB, nil
 }
 
 // Implement JSONB interface
@@ -558,8 +616,15 @@ func (j JSONB) Value() (driver.Value, error) {
 }
 
 func (j *JSONB) Scan(value interface{}) error {
-	if err := json.Unmarshal(value.([]byte), &j); err != nil {
-		return err
+	switch v := value.(type) {
+	case string:
+		if err := json.Unmarshal([]byte(v), &j); err != nil {
+			return err
+		}
+	case []byte:
+		if err := json.Unmarshal(v, &j); err != nil {
+			return err
+		}
 	}
 	return nil
 }

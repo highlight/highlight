@@ -17,11 +17,15 @@
     width: var(--size-xLarge);
 
     &:hover {
-        background: var(--color-purple-200);
+        background-color: var(--color-gray-200);
     }
 
     svg {
         height: calc(var(--size-icon));
         width: calc(var(--size-icon));
     }
+}
+
+.small {
+    padding: var(--size-xxSmall);
 }

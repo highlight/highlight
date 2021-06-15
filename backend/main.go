@@ -26,6 +26,7 @@ import (
 	public "github.com/highlight-run/highlight/backend/public-graph/graph"
 	publicgen "github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	log "github.com/sirupsen/logrus"
+	chitrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/go-chi/chi"
 
 	_ "gorm.io/gorm"
 )
@@ -116,7 +117,10 @@ func main() {
 		defer tracer.Stop()
 	}
 
-	db := model.SetupDB()
+	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	if err != nil {
+		log.Fatalf("error setting up db: %v", err)
+	}
 
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)
@@ -139,6 +143,7 @@ func main() {
 	r.Use(func(h http.Handler) http.Handler {
 		return handlers.LoggingHandler(os.Stdout, h)
 	})
+	r.Use(chitrace.Middleware())
 	r.Use(cors.New(cors.Options{
 		AllowOriginRequestFunc: validateOrigin,
 		AllowCredentials:       true,

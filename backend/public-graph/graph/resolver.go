@@ -397,6 +397,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		Language:            acceptLanguageString,
 		WithinBillingQuota:  &withinBillingQuota,
 		Processed:           &model.F,
+		Viewed:              &model.F,
 		PayloadUpdatedAt:    &n,
 		EnableStrictPrivacy: &enableStrictPrivacy,
 		FirstloadVersion:    firstloadVersion,

@@ -185,11 +185,11 @@ export class Highlight {
                 stringify({ user_identifier, ...user_object })
             );
         }
-        this.sessionData.userIdentifier = user_identifier;
+        this.sessionData.userIdentifier = user_identifier.toString();
         this.sessionData.userObject = user_object;
         await this.graphqlSDK.identifySession({
             session_id: this.sessionData.sessionID.toString(),
-            user_identifier: user_identifier,
+            user_identifier: this.sessionData.userIdentifier,
             user_object: user_object,
         });
         const sourceString = source === 'segment' ? source : 'default';

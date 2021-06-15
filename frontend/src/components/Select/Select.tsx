@@ -23,6 +23,7 @@ type Props = Pick<
     | 'dropdownRender'
     | 'defaultValue'
     | 'onSearch'
+    | 'suffixIcon'
 > & {
     options: {
         value: string;

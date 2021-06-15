@@ -15,10 +15,14 @@ import {
     YAxis,
 } from 'recharts';
 
+import Button from '../../components/Button/Button/Button';
+import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
 import { Field } from '../../components/Field/Field';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
+import Tooltip from '../../components/Tooltip/Tooltip';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
+import SvgDownloadIcon from '../../static/DownloadIcon';
 import { frequencyTimeData } from '../../util/errorCalculations';
 import ErrorComments from './components/ErrorComments/ErrorComments';
 import ErrorDescription from './components/ErrorDescription/ErrorDescription';
@@ -56,7 +60,7 @@ const ErrorPage = () => {
                             <ErrorDescription errorGroup={data?.error_group} />
                         )}
                     </div>
-                    <h3>
+                    <h3 className={styles.titleWithAction}>
                         {loading ? (
                             <Skeleton
                                 duration={1}
@@ -66,21 +70,57 @@ const ErrorPage = () => {
                         ) : (
                             'Stack Trace'
                         )}
+                        <Tooltip title="Download the stack trace">
+                            <Button
+                                trackingId="DownloadErrorStackTrace"
+                                iconButton
+                                type="text"
+                                onClick={() => {
+                                    if (data?.error_group) {
+                                        const traceLines = data.error_group.trace.map(
+                                            (trace) => {
+                                                return `${trace?.file_name} in ${trace?.function_name} at line ${trace?.line_number}:${trace?.column_number}`;
+                                            }
+                                        );
+
+                                        const a = document.createElement('a');
+                                        const file = new Blob(
+                                            [
+                                                JSON.stringify(
+                                                    traceLines,
+                                                    undefined,
+                                                    2
+                                                ),
+                                            ],
+                                            {
+                                                type: 'application/json',
+                                            }
+                                        );
+
+                                        a.href = URL.createObjectURL(file);
+                                        a.download = `stack-trace-for-error-${error_id}.json`;
+                                        a.click();
+
+                                        URL.revokeObjectURL(a.href);
+                                    }
+                                }}
+                            >
+                                <SvgDownloadIcon />
+                            </Button>
+                        </Tooltip>
                     </h3>
                     <div className={styles.fieldWrapper}>
                         <StackTraceSection errorGroup={data?.error_group} />
                     </div>
-                    <h3>
-                        {loading ? (
+                    {loading && (
+                        <h3>
                             <Skeleton
                                 duration={1}
                                 count={1}
                                 style={{ width: 300 }}
                             />
-                        ) : (
-                            'Error Frequency'
-                        )}
-                    </h3>
+                        </h3>
+                    )}
                     <div className={styles.fieldWrapper}>
                         <ErrorFrequencyGraph errorGroup={data?.error_group} />
                     </div>
@@ -165,73 +205,104 @@ type ErrorFrequency = {
     occurrences: number;
 };
 
+const LookbackPeriod = 60;
+
+const timeFilter = [
+    { label: 'Last 24 hours', value: 2 },
+    { label: 'Last 7 days', value: 7 },
+    { label: 'Last 30 days', value: 30 },
+    { label: 'Last 90 days', value: 90 },
+    { label: 'This year', value: 30 * 12 },
+] as const;
+
 export const ErrorFrequencyGraph: React.FC<FrequencyGraphProps> = ({
     errorGroup,
 }) => {
     const [errorDates, setErrorDates] = useState<Array<ErrorFrequency>>(
-        Array(30).fill(0)
+        Array(LookbackPeriod).fill(0)
     );
     const [totalErrors, setTotalErrors] = useState<number>(0);
+    const [dateRangeLength, setDateRangeLength] = useState<number>(
+        timeFilter[1].value
+    );
 
     useEffect(() => {
-        const errorDatesCopy = frequencyTimeData(errorGroup, 30);
+        setErrorDates(Array(dateRangeLength).fill(0));
+    }, [dateRangeLength]);
+
+    useEffect(() => {
+        const errorDatesCopy = frequencyTimeData(errorGroup, dateRangeLength);
         const errorData = errorDatesCopy.map((val, idx) => ({
             date: moment()
                 .startOf('day')
-                .subtract(29 - idx, 'days')
+                .subtract(dateRangeLength - 1 - idx, 'days')
                 .format('D MMM YYYY'),
             occurrences: val,
         }));
         setTotalErrors(errorDatesCopy.reduce((acc, val) => acc + val, 0));
         setErrorDates(errorData);
-    }, [errorGroup]);
+    }, [errorGroup, dateRangeLength]);
     return (
-        <div className={classNames(styles.section, styles.graphSection)}>
-            <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                    width={500}
-                    height={300}
-                    data={errorDates}
-                    margin={{
-                        top: 5,
-                        right: 10,
-                        left: 10,
-                        bottom: 0,
-                    }}
-                >
-                    <CartesianGrid stroke={'#D9D9D9'} vertical={false} />
-                    <XAxis
-                        dataKey="date"
-                        tick={false}
-                        axisLine={{ stroke: '#D9D9D9' }}
-                    />
-                    <YAxis
-                        tickCount={10}
-                        interval="preserveStart"
-                        allowDecimals={false}
-                        hide={true}
-                    />
-                    <RechartsTooltip content={<RechartTooltip />} />
-                    <Bar dataKey="occurrences" radius={[2, 2, 0, 0]}>
-                        {errorDates.map((e, i) => (
-                            <Cell
-                                key={i}
-                                fill={
-                                    e.occurrences >
-                                    Math.max(totalErrors * 0.1, 10)
-                                        ? 'var(--color-red-500)'
-                                        : 'var(--color-brown)'
-                                }
-                            />
-                        ))}
-                    </Bar>
-                </BarChart>
-            </ResponsiveContainer>
-            <div className={styles.graphLabels}>
-                <div>Past 30 days</div>
-                <div>{`Total Occurrences: ${totalErrors}`}</div>
+        <>
+            <div
+                className={classNames(
+                    styles.titleWithAction,
+                    styles.titleWithMargin
+                )}
+            >
+                <h3>Error Frequency</h3>
+                <StandardDropdown
+                    data={timeFilter}
+                    defaultValue={timeFilter[1]}
+                    onSelect={setDateRangeLength}
+                />
             </div>
-        </div>
+            <div className={classNames(styles.section, styles.graphSection)}>
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                        width={500}
+                        height={300}
+                        data={errorDates}
+                        margin={{
+                            top: 5,
+                            right: 10,
+                            left: 10,
+                            bottom: 0,
+                        }}
+                    >
+                        <CartesianGrid stroke={'#D9D9D9'} vertical={false} />
+                        <XAxis
+                            dataKey="date"
+                            tick={false}
+                            axisLine={{ stroke: '#D9D9D9' }}
+                        />
+                        <YAxis
+                            tickCount={10}
+                            interval="preserveStart"
+                            allowDecimals={false}
+                            hide={true}
+                        />
+                        <RechartsTooltip content={<RechartTooltip />} />
+                        <Bar dataKey="occurrences" radius={[2, 2, 0, 0]}>
+                            {errorDates.map((e, i) => (
+                                <Cell
+                                    key={i}
+                                    fill={
+                                        e.occurrences >
+                                        Math.max(totalErrors * 0.1, 10)
+                                            ? 'var(--color-red-500)'
+                                            : 'var(--color-brown)'
+                                    }
+                                />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+                <div className={styles.graphLabels}>
+                    <div>{`Total Occurrences: ${totalErrors}`}</div>
+                </div>
+            </div>
+        </>
     );
 };
 

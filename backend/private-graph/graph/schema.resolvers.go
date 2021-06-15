@@ -11,13 +11,9 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/pricing"
-	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -26,6 +22,12 @@ import (
 	stripe "github.com/stripe/stripe-go"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -999,9 +1001,11 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "visited_url", params.VisitedURL)
 	}
 
+	errorFieldQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorFieldIds"))
 	if err := errorFieldQuery.Pluck("id", &errorFieldIds).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error fields")
 	}
+	errorFieldQuerySpan.Finish()
 
 	errorGroups := []model.ErrorGroup{}
 	selectPreamble := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved`
@@ -1014,15 +1018,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(errorFieldIds) > 0 {
-		queryString += "AND ("
-		for idx, id := range errorFieldIds {
-			if idx == 0 {
-				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		queryString += ") "
+		fieldIdConstructionSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("fieldIdConstruction"))
+		t := strings.Replace(fmt.Sprint(errorFieldIds), " ", ",", -1)
+		queryString += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
+		fieldIdConstructionSpan.Finish()
 	}
 
 	if d := params.DateRange; d != nil {
@@ -1478,7 +1477,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	//pluck not field ids
-	if len(params.ExcludedTrackProperties) > 0 {
+	if len(params.ExcludedTrackProperties) != len(notTrackFieldIds) {
 		var tempNotTrackFieldIds []int
 		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
 			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
@@ -1521,51 +1520,28 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	whereClause += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range fieldIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(fieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(visitedIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range visitedIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(visitedIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(referrerIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range referrerIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(referrerIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(notFieldIds) > 0 {
-		for _, id := range notFieldIds {
-			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
-		}
+		t := strings.Replace(fmt.Sprint(notFieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(notTrackFieldIds) > 0 {
-		for _, id := range notTrackFieldIds {
-			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
-		}
+		t := strings.Replace(fmt.Sprint(notTrackFieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if d := params.DateRange; d != nil {
@@ -1581,7 +1557,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if viewed := params.HideViewed; viewed != nil && *viewed {
-		whereClause += "AND (viewed = false) "
+		whereClause += "AND (viewed = false OR viewed IS NULL) "
 	}
 
 	if browser := params.Browser; browser != nil {
@@ -1712,9 +1688,9 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
-	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).
-		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).Where(r.DB.
+		Where(r.DB.Where("length(value) > ?", 0).Where("value ILIKE ?", "%"+query+"%")).
+		Or(r.DB.Where("length(name) > ?", 0).Where("name ILIKE ?", "%"+query+"%"))).
 		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {

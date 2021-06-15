@@ -354,6 +354,45 @@ query GetErrorFieldSuggestion(
     }
 }
 
+query GetSessionSearchResults($organization_id: ID!, $query: String!) {
+    trackProperties: property_suggestion(
+        organization_id: $organization_id
+        query: $query
+        type: "track"
+    ) {
+        id
+        name
+        value
+    }
+    userProperties: property_suggestion(
+        organization_id: $organization_id
+        query: $query
+        type: "user"
+    ) {
+        id
+        name
+        value
+    }
+    visitedUrls: field_suggestion(
+        organization_id: $organization_id
+        name: "visited-url"
+        query: $query
+    ) {
+        id
+        name
+        value
+    }
+    referrers: field_suggestion(
+        organization_id: $organization_id
+        name: "referrer"
+        query: $query
+    ) {
+        id
+        name
+        value
+    }
+}
+
 query GetTrackSuggestion($organization_id: ID!, $query: String!) {
     property_suggestion(
         organization_id: $organization_id

@@ -34,12 +34,12 @@ module.exports = {
         modules: [path.resolve(__dirname, 'src'), 'node_modules'],
     },
     optimization: {
-        removeEmptyChunks: false,
+        removeEmptyChunks: true,
     },
     devtool: 'inline-source-map',
     performance: {
-        hints: false,
+        hints: 'warning',
         maxEntrypointSize: 512000,
-        maxAssetSize: 512000
+        maxAssetSize: 512000,
     },
 };
