@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mssola/user_agent"
@@ -210,10 +211,10 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 			log.Error(e.Wrap(err, "error unmarshalling environments from error group into map"))
 		}
 	}
-	if _, ok := environmentsMap[errorObj.Environment]; ok {
-		environmentsMap[errorObj.Environment]++
+	if _, ok := environmentsMap[strings.ToLower(errorObj.Environment)]; ok {
+		environmentsMap[strings.ToLower(errorObj.Environment)]++
 	} else {
-		environmentsMap[errorObj.Environment] = 1
+		environmentsMap[strings.ToLower(errorObj.Environment)] = 1
 	}
 	environmentsBytes, err := json.Marshal(environmentsMap)
 	if err != nil {
