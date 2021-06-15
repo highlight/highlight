@@ -140,7 +140,7 @@ func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (
 	case model.ErrorGroupStates.IGNORED:
 		return modelInputs.ErrorStateIgnored, nil
 	default:
-		return modelInputs.ErrorStateOpen, nil
+		return modelInputs.ErrorStateOpen, e.New("invalid error group state")
 	}
 }
 
