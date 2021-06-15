@@ -217,10 +217,12 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 			log.Error(e.Wrap(err, "error unmarshalling environments from error group into map"))
 		}
 	}
-	if _, ok := environmentsMap[strings.ToLower(errorObj.Environment)]; ok {
-		environmentsMap[strings.ToLower(errorObj.Environment)]++
-	} else {
-		environmentsMap[strings.ToLower(errorObj.Environment)] = 1
+	if len(errorObj.Environment) > 0 {
+		if _, ok := environmentsMap[strings.ToLower(errorObj.Environment)]; ok {
+			environmentsMap[strings.ToLower(errorObj.Environment)]++
+		} else {
+			environmentsMap[strings.ToLower(errorObj.Environment)] = 1
+		}
 	}
 	environmentsBytes, err := json.Marshal(environmentsMap)
 	if err != nil {
