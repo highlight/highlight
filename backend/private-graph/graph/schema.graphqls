@@ -60,6 +60,12 @@ enum PlanType {
     Enterprise
 }
 
+enum ErrorState {
+    OPEN
+    RESOLVED
+    IGNORED
+}
+
 type RecordingSettings {
     id: ID!
     organization_id: ID!
@@ -121,6 +127,7 @@ type ErrorGroup {
     trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
+    state: ErrorState!
     resolved: Boolean
     environments: String
 }
@@ -452,6 +459,7 @@ type Mutation {
     markSessionAsViewed(id: ID!, viewed: Boolean): Session
     markSessionAsStarred(id: ID!, starred: Boolean): Session
     markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
+    updateErrorGroupState(id: ID!, state: String!): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(
         organization_id: ID!

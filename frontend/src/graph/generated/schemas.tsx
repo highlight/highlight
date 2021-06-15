@@ -78,6 +78,12 @@ export enum PlanType {
     Enterprise = 'Enterprise',
 }
 
+export enum ErrorState {
+    Open = 'OPEN',
+    Resolved = 'RESOLVED',
+    Ignored = 'IGNORED',
+}
+
 export type RecordingSettings = {
     __typename?: 'RecordingSettings';
     id: Scalars['ID'];
@@ -146,6 +152,7 @@ export type ErrorGroup = {
     trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
+    state: ErrorState;
     resolved?: Maybe<Scalars['Boolean']>;
     environments?: Maybe<Scalars['String']>;
 };
@@ -631,6 +638,7 @@ export type Mutation = {
     markSessionAsViewed?: Maybe<Session>;
     markSessionAsStarred?: Maybe<Session>;
     markErrorGroupAsResolved?: Maybe<ErrorGroup>;
+    updateErrorGroupState?: Maybe<ErrorGroup>;
     deleteOrganization?: Maybe<Scalars['Boolean']>;
     sendAdminInvite?: Maybe<Scalars['String']>;
     addAdminToOrganization?: Maybe<Scalars['ID']>;
@@ -677,6 +685,11 @@ export type MutationMarkSessionAsStarredArgs = {
 export type MutationMarkErrorGroupAsResolvedArgs = {
     id: Scalars['ID'];
     resolved?: Maybe<Scalars['Boolean']>;
+};
+
+export type MutationUpdateErrorGroupStateArgs = {
+    id: Scalars['ID'];
+    state: Scalars['String'];
 };
 
 export type MutationDeleteOrganizationArgs = {

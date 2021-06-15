@@ -14,6 +14,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -22,12 +27,6 @@ import (
 	stripe "github.com/stripe/stripe-go"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/pricing"
-	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
 )
 
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -130,6 +129,19 @@ func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGro
 		parsedFields = append(parsedFields, f)
 	}
 	return parsedFields, nil
+}
+
+func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (modelInputs.ErrorState, error) {
+	switch obj.State {
+	case model.ErrorGroupStates.OPEN:
+		return modelInputs.ErrorStateOpen, nil
+	case model.ErrorGroupStates.RESOLVED:
+		return modelInputs.ErrorStateResolved, nil
+	case model.ErrorGroupStates.IGNORED:
+		return modelInputs.ErrorStateIgnored, nil
+	default:
+		return modelInputs.ErrorStateOpen, e.New("invalid error group state")
+	}
 }
 
 func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject) ([]*string, error) {
@@ -252,6 +264,22 @@ func (r *mutationResolver) MarkErrorGroupAsResolved(ctx context.Context, id int,
 		Resolved: resolved,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup resolved status")
+	}
+
+	return errorGroup, nil
+}
+
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id int, state string) (*model.ErrorGroup, error) {
+	_, err := r.isAdminErrorGroupOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not errorGroup owner")
+	}
+
+	errorGroup := &model.ErrorGroup{}
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: id}}).First(&errorGroup).Updates(&model.ErrorGroup{
+		State: state,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
 	return errorGroup, nil
@@ -1008,10 +1036,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	errorFieldQuerySpan.Finish()
 
 	errorGroups := []model.ErrorGroup{}
-	selectPreamble := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved`
+	selectPreamble := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
-	queryString := `FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved, array_agg(t.error_field_id) fieldIds
+	queryString := `FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
 	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -1029,7 +1057,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	}
 
 	if resolved := params.HideResolved; resolved != nil && *resolved {
-		queryString += "AND (resolved = false) "
+		queryString += fmt.Sprintf("AND (state <> '%s') ", model.ErrorGroupStates.RESOLVED)
 	}
 
 	if params.Event != nil {

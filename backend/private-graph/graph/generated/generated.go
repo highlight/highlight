@@ -119,6 +119,7 @@ type ComplexityRoot struct {
 		MetadataLog    func(childComplexity int) int
 		OrganizationID func(childComplexity int) int
 		Resolved       func(childComplexity int) int
+		State          func(childComplexity int) int
 		Trace          func(childComplexity int) int
 		Type           func(childComplexity int) int
 	}
@@ -213,6 +214,7 @@ type ComplexityRoot struct {
 		MarkSessionAsViewed            func(childComplexity int, id int, viewed *bool) int
 		SendAdminInvite                func(childComplexity int, organizationID int, email string, baseURL string) int
 		UpdateErrorAlert               func(childComplexity int, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
+		UpdateErrorGroupState          func(childComplexity int, id int, state string) int
 		UpdateNewUserAlert             func(childComplexity int, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string) int
 		UpdateTrackPropertiesAlert     func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, trackProperties []*model.TrackPropertyInput) int
 		UpdateUserPropertiesAlert      func(childComplexity int, organizationID int, sessionAlertID int, slackChannels []*model.SanitizedSlackChannelInput, environments []*string, userProperties []*model.UserPropertyInput) int
@@ -425,6 +427,7 @@ type ErrorGroupResolver interface {
 	Trace(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorTrace, error)
 	MetadataLog(ctx context.Context, obj *model1.ErrorGroup) ([]*model.ErrorMetadata, error)
 	FieldGroup(ctx context.Context, obj *model1.ErrorGroup) ([]*model1.ErrorField, error)
+	State(ctx context.Context, obj *model1.ErrorGroup) (model.ErrorState, error)
 }
 type ErrorObjectResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorObject) ([]*string, error)
@@ -440,6 +443,7 @@ type MutationResolver interface {
 	MarkSessionAsViewed(ctx context.Context, id int, viewed *bool) (*model1.Session, error)
 	MarkSessionAsStarred(ctx context.Context, id int, starred *bool) (*model1.Session, error)
 	MarkErrorGroupAsResolved(ctx context.Context, id int, resolved *bool) (*model1.ErrorGroup, error)
+	UpdateErrorGroupState(ctx context.Context, id int, state string) (*model1.ErrorGroup, error)
 	DeleteOrganization(ctx context.Context, id int) (*bool, error)
 	SendAdminInvite(ctx context.Context, organizationID int, email string, baseURL string) (*string, error)
 	AddAdminToOrganization(ctx context.Context, organizationID int, inviteID string) (*int, error)
@@ -795,6 +799,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorGroup.Resolved(childComplexity), true
+
+	case "ErrorGroup.state":
+		if e.complexity.ErrorGroup.State == nil {
+			break
+		}
+
+		return e.complexity.ErrorGroup.State(childComplexity), true
 
 	case "ErrorGroup.trace":
 		if e.complexity.ErrorGroup.Trace == nil {
@@ -1379,6 +1390,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateErrorAlert(childComplexity, args["organization_id"].(int), args["error_alert_id"].(int), args["count_threshold"].(int), args["threshold_window"].(int), args["slack_channels"].([]*model.SanitizedSlackChannelInput), args["environments"].([]*string)), true
+
+	case "Mutation.updateErrorGroupState":
+		if e.complexity.Mutation.UpdateErrorGroupState == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateErrorGroupState_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateErrorGroupState(childComplexity, args["id"].(int), args["state"].(string)), true
 
 	case "Mutation.updateNewUserAlert":
 		if e.complexity.Mutation.UpdateNewUserAlert == nil {
@@ -2686,6 +2709,12 @@ enum PlanType {
     Enterprise
 }
 
+enum ErrorState {
+    OPEN
+    RESOLVED
+    IGNORED
+}
+
 type RecordingSettings {
     id: ID!
     organization_id: ID!
@@ -2747,6 +2776,7 @@ type ErrorGroup {
     trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
+    state: ErrorState!
     resolved: Boolean
     environments: String
 }
@@ -3078,6 +3108,7 @@ type Mutation {
     markSessionAsViewed(id: ID!, viewed: Boolean): Session
     markSessionAsStarred(id: ID!, starred: Boolean): Session
     markErrorGroupAsResolved(id: ID!, resolved: Boolean): ErrorGroup
+    updateErrorGroupState(id: ID!, state: String!): ErrorGroup
     deleteOrganization(id: ID!): Boolean
     sendAdminInvite(
         organization_id: ID!
@@ -3926,6 +3957,30 @@ func (ec *executionContext) field_Mutation_updateErrorAlert_args(ctx context.Con
 		}
 	}
 	args["environments"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateErrorGroupState_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["state"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("state"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["state"] = arg1
 	return args, nil
 }
 
@@ -6147,6 +6202,41 @@ func (ec *executionContext) _ErrorGroup_field_group(ctx context.Context, field g
 	return ec.marshalOErrorField2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorField(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ErrorGroup_state(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ErrorGroup",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ErrorGroup().State(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(model.ErrorState)
+	fc.Result = res
+	return ec.marshalNErrorState2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ErrorGroup_resolved(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorGroup) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7794,6 +7884,45 @@ func (ec *executionContext) _Mutation_markErrorGroupAsResolved(ctx context.Conte
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().MarkErrorGroupAsResolved(rctx, args["id"].(int), args["resolved"].(*bool))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model1.ErrorGroup)
+	fc.Result = res
+	return ec.marshalOErrorGroup2ᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋmodelᚐErrorGroup(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateErrorGroupState(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateErrorGroupState_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateErrorGroupState(rctx, args["id"].(int), args["state"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15457,6 +15586,20 @@ func (ec *executionContext) _ErrorGroup(ctx context.Context, sel ast.SelectionSe
 				res = ec._ErrorGroup_field_group(ctx, field, obj)
 				return res
 			})
+		case "state":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ErrorGroup_state(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "resolved":
 			out.Values[i] = ec._ErrorGroup_resolved(ctx, field, obj)
 		case "environments":
@@ -15841,6 +15984,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_markSessionAsStarred(ctx, field)
 		case "markErrorGroupAsResolved":
 			out.Values[i] = ec._Mutation_markErrorGroupAsResolved(ctx, field)
+		case "updateErrorGroupState":
+			out.Values[i] = ec._Mutation_updateErrorGroupState(ctx, field)
 		case "deleteOrganization":
 			out.Values[i] = ec._Mutation_deleteOrganization(ctx, field)
 		case "sendAdminInvite":
@@ -17718,6 +17863,16 @@ func (ec *executionContext) marshalNErrorSearchParams2ᚖgithubᚗcomᚋhighligh
 func (ec *executionContext) unmarshalNErrorSearchParamsInput2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorSearchParamsInput(ctx context.Context, v interface{}) (model.ErrorSearchParamsInput, error) {
 	res, err := ec.unmarshalInputErrorSearchParamsInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNErrorState2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx context.Context, v interface{}) (model.ErrorState, error) {
+	var res model.ErrorState
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNErrorState2githubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorState(ctx context.Context, sel ast.SelectionSet, v model.ErrorState) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNErrorTrace2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋprivateᚑgraphᚋgraphᚋmodelᚐErrorTrace(ctx context.Context, sel ast.SelectionSet, v []*model.ErrorTrace) graphql.Marshaler {

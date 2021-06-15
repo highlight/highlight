@@ -253,3 +253,18 @@
 .titleWithMargin {
     margin-bottom: var(--size-small);
 }
+
+.tooltipList {
+    margin: 0;
+    padding-left: var(--size-large);
+
+    li {
+        color: var(--text-primary-inverted) !important;
+    }
+}
+
+.tooltipTitle {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+}

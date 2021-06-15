@@ -242,6 +242,7 @@ query GetErrorGroup($id: ID!) {
         organization_id
         event
         resolved
+        state
         trace {
             file_name
             line_number
@@ -279,6 +280,7 @@ query GetErrorGroups(
             type
             event
             resolved
+            state
             environments
             trace {
                 file_name

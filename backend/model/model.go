@@ -51,6 +51,16 @@ var AlertType = struct {
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
 }
 
+var ErrorGroupStates = struct {
+	OPEN     string
+	RESOLVED string
+	IGNORED  string
+}{
+	OPEN:     "OPEN",
+	RESOLVED: "RESOLVED",
+	IGNORED:  "IGNORED",
+}
+
 var Models = []interface{}{
 	&RecordingSettings{},
 	&MessagesObject{},
@@ -536,7 +546,8 @@ type ErrorGroup struct {
 	Event          string
 	Type           string
 	Trace          string
-	Resolved       *bool `json:"resolved"`
+	State          string `json:"state" gorm:"default:OPEN"`
+	Resolved       *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup     *string
