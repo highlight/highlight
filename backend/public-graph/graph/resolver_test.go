@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -44,7 +45,7 @@ func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 
 func clearTablesInDB(db *gorm.DB, t *testing.T) {
 	for _, m := range model.Models {
-		if err := db.Where("1=1").Delete(m).Error; err != nil {
+		if err := db.Unscoped().Where("1=1").Delete(m).Error; err != nil {
 			t.Error(errors.Wrap(err, "error deleting table in db"))
 		}
 	}
@@ -63,6 +64,8 @@ func TestMain(m *testing.M) {
 
 func TestErrorGroups(t *testing.T) {
 	// construct table of sub-tests to run
+	nullStr := "null"
+	metaDataStr := `[{"timestamp":"2000-08-01T00:00:00Z","error_id":1,"session_id":0,"browser":"","os":"","visited_url":""},{"timestamp":"2000-08-01T00:00:00Z","error_id":2,"session_id":0,"browser":"","os":"","visited_url":""}]`
 	tests := map[string]struct {
 		errorsToInsert      []model.ErrorObject
 		expectedErrorGroups []model.ErrorGroup
@@ -72,18 +75,46 @@ func TestErrorGroups(t *testing.T) {
 				{
 					OrganizationID: 1,
 					Environment:    "dev",
+					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
 				},
 				{
 					OrganizationID: 1,
 					Environment:    "dEv",
+					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					OrganizationID: 1,
-					Trace:          "null",
+					Trace:          nullStr,
 					Resolved:       &model.F,
+					MetadataLog:    &metaDataStr,
+					FieldGroup:     &nullStr,
 					Environments:   `{"dev":2}`,
+				},
+			},
+		},
+		"two errors with diff environment": {
+			errorsToInsert: []model.ErrorObject{
+				{
+					OrganizationID: 1,
+					Environment:    "dev",
+					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+				},
+				{
+					OrganizationID: 1,
+					Environment:    "prod",
+					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+				},
+			},
+			expectedErrorGroups: []model.ErrorGroup{
+				{
+					OrganizationID: 1,
+					Trace:          nullStr,
+					Resolved:       &model.F,
+					MetadataLog:    &metaDataStr,
+					FieldGroup:     &nullStr,
+					Environments:   `{"dev":1,"prod":1}`,
 				},
 			},
 		},
@@ -108,8 +139,6 @@ func TestErrorGroups(t *testing.T) {
 			var i int
 			for _, errorGroup := range receivedErrorGroups {
 				isEqual, diff, err := model.AreModelsWeaklyEqual(&errorGroup, &tc.expectedErrorGroups[i])
-				fmt.Printf("=======================\n\n%+v\n%+v\n\n=======================\n", errorGroup, tc.expectedErrorGroups[i])
-				fmt.Printf("=======================\n\n%+v\n\n=======================\n", diff)
 				if err != nil {
 					t.Fatalf("error comparing two error groups: %+v", err)
 				}
