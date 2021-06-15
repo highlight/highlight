@@ -1,62 +1,30 @@
 package graph
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
-	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"gorm.io/driver/postgres"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 var DB *gorm.DB
 
-func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
-	log.Println("host", os.Getenv("PSQL_HOST"))
-	psqlConf := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s sslmode=disable",
-		os.Getenv("PSQL_HOST"),
-		os.Getenv("PSQL_PORT"),
-		os.Getenv("PSQL_USER"),
-		os.Getenv("PSQL_PASSWORD"))
-	// Open the database object without an actual db_name.
-	db, err := gorm.Open(postgres.Open(psqlConf))
-	if err != nil {
-		return nil, errors.Wrap(err, "error opening test db")
-	}
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving test db")
-	}
-	defer sqlDB.Close()
-	// drop db if exists
-	db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %v;", dbName))
-	// Attempt to create the database.
-	db.Exec(fmt.Sprintf("CREATE DATABASE %v;", dbName))
-	return model.SetupDB(dbName)
-}
-
-func clearTablesInDB(db *gorm.DB, t *testing.T) {
-	for _, m := range model.Models {
-		if err := db.Unscoped().Where("1=1").Delete(m).Error; err != nil {
-			t.Error(errors.Wrap(err, "error deleting table in db"))
-		}
-	}
-}
-
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
+	dbName := "highlight_testing_db"
+	testLogger := log.WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
-	DB, err = createAndMigrateTestDB("highlight_testing_db")
+	DB, err = util.CreateAndMigrateTestDB("highlight_testing_db")
 	if err != nil {
-		log.Errorf("error creating testdb: %v", err)
+		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 	code := m.Run()
 	os.Exit(code)
@@ -122,14 +90,19 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	// run tests
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			defer clearTablesInDB(DB, t)
+			defer func(db *gorm.DB) {
+				err := util.ClearTablesInDB(db)
+				if err != nil {
+					t.Fatal(e.Wrap(err, "error clearing database"))
+				}
+			}(DB)
 			// test logic
 			r := &Resolver{DB: DB}
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
 				errorGroup, err := r.HandleErrorAndGroup(&errorObj, nil, nil)
 				if err != nil {
-					t.Fatalf("error handling error and group: %+v", err)
+					t.Fatal(e.Wrap(err, "error handling error and group"))
 				}
 				if errorGroup != nil {
 					id := strconv.Itoa(errorGroup.ID)
@@ -140,7 +113,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			for _, errorGroup := range receivedErrorGroups {
 				isEqual, diff, err := model.AreModelsWeaklyEqual(&errorGroup, &tc.expectedErrorGroups[i])
 				if err != nil {
-					t.Fatalf("error comparing two error groups: %+v", err)
+					t.Fatal(e.Wrap(err, "error comparing two error groups"))
 				}
 				if !isEqual {
 					t.Fatalf("received error group not equal to expected error group. diff: %+v", diff)
