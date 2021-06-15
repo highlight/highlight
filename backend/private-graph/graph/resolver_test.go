@@ -2,61 +2,29 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"testing"
 
-	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"gorm.io/driver/postgres"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 var DB *gorm.DB
 
-func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
-	log.Println("host", os.Getenv("PSQL_HOST"))
-	psqlConf := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s sslmode=disable",
-		os.Getenv("PSQL_HOST"),
-		os.Getenv("PSQL_PORT"),
-		os.Getenv("PSQL_USER"),
-		os.Getenv("PSQL_PASSWORD"))
-	// Open the database object without an actual db_name.
-	db, err := gorm.Open(postgres.Open(psqlConf))
-	if err != nil {
-		return nil, errors.Wrap(err, "error opening test db")
-	}
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, errors.Wrap(err, "error retrieving test db")
-	}
-	defer sqlDB.Close()
-	// drop db if exists
-	db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %v;", dbName))
-	// Attempt to create the database.
-	db.Exec(fmt.Sprintf("CREATE DATABASE %v;", dbName))
-	return model.SetupDB(dbName)
-}
-
-func clearTablesInDB(db *gorm.DB, t *testing.T) {
-	for _, m := range model.Models {
-		if err := db.Where("1=1").Delete(m).Error; err != nil {
-			t.Error(errors.Wrap(err, "error deleting table in db"))
-		}
-	}
-}
-
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
+	dbName := "highlight_testing_db"
+	testLogger := log.WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
-	DB, err = createAndMigrateTestDB("highlight_testing_db")
+	DB, err = util.CreateAndMigrateTestDB(dbName)
 	if err != nil {
-		log.Errorf("error creating testdb: %v", err)
+		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
 	code := m.Run()
 	os.Exit(code)
@@ -145,7 +113,7 @@ func TestHideViewedSessions(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			// inserting the data
 			if err := DB.Create(&tc.sessionsToInsert).Error; err != nil {
-				t.Fatalf("error inserting sessions: %v", err)
+				t.Fatal(e.Wrap(err, "error inserting sessions"))
 			}
 			fieldsToInsert := []model.Field{
 				{
@@ -155,24 +123,29 @@ func TestHideViewedSessions(t *testing.T) {
 				},
 			}
 			if err := DB.Create(&fieldsToInsert).Error; err != nil {
-				t.Fatalf("error inserting sessions: %v", err)
+				t.Fatal(e.Wrap(err, "error inserting sessions"))
 			}
-			defer clearTablesInDB(DB, t)
+			defer func(db *gorm.DB) {
+				err := util.ClearTablesInDB(db)
+				if err != nil {
+					t.Fatal(e.Wrap(err, "error clearing database"))
+				}
+			}(DB)
 
 			// test logic
 			r := &queryResolver{Resolver: &Resolver{DB: DB}}
 			params := &modelInputs.SearchParamsInput{HideViewed: tc.hideViewed}
 			sessions, err := r.Sessions(context.Background(), 1, 3, modelInputs.SessionLifecycleAll, false, params)
 			if err != nil {
-				t.Fatalf("error querying sessions: %v", err)
+				t.Fatal(e.Wrap(err, "error querying sessions"))
 			}
 			if sessions.TotalCount != tc.expectedCount {
-				t.Fatalf("received session count and expected session count not equal")
+				t.Fatal("received session count and expected session count not equal")
 			}
 			for i, s := range sessions.Sessions {
 				isEqual, diff, err := model.AreModelsWeaklyEqual(s, tc.expectedSessions[i])
 				if err != nil {
-					t.Fatalf("error comparing two sessions: %+v", err)
+					t.Fatal(e.Wrap(err, "error comparing two sessions"))
 				}
 				if !isEqual {
 					t.Fatalf("received session not equal to expected session. diff: %+v", diff)
