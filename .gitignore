@@ -14,3 +14,4 @@ yalc.lock
 **/*.pem
 **/*.test
 **/.swp
+**/build

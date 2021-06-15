@@ -7,6 +7,7 @@ on:
         paths:
             - 'backend/**'
             - '.github/workflows/backend.yml'
+            - '!backend/migrations'
 jobs:
     build:
         runs-on: ubuntu-latest
