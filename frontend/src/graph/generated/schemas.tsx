@@ -147,6 +147,7 @@ export type ErrorGroup = {
     metadata_log: Array<Maybe<ErrorMetadata>>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
     resolved?: Maybe<Scalars['Boolean']>;
+    environments?: Maybe<Scalars['String']>;
 };
 
 export type ErrorMetadata = {

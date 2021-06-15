@@ -122,6 +122,7 @@ type ErrorGroup {
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
     resolved: Boolean
+    environments: String
 }
 
 type ErrorMetadata {

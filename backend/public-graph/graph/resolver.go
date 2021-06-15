@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mssola/user_agent"
@@ -159,12 +160,12 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 
 	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
 	// If it doesn't exist, we create a new error group.
-	if res := r.DB.Where(&model.ErrorGroup{
+	if err := r.DB.Where(&model.ErrorGroup{
 		OrganizationID: errorObj.OrganizationID,
 		Event:          errorObj.Event,
 		Trace:          frameString,
 		Type:           errorObj.Type,
-	}).First(&errorGroup); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
+	}).First(&errorGroup).Error; err != nil {
 		newErrorGroup := &model.ErrorGroup{
 			OrganizationID: errorObj.OrganizationID,
 			Event:          errorObj.Event,
@@ -188,7 +189,6 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 			return nil, e.Wrap(err, "error decoding time log data")
 		}
 	}
-
 	newMetadataLog = append(newMetadataLog, ErrorMetaData{
 		Timestamp:  errorObj.CreatedAt,
 		ErrorID:    errorObj.ID,
@@ -204,8 +204,26 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	logString := string(logBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
-		return nil, e.Wrap(err, "Error updating error group metadata log")
+	environmentsMap := make(map[string]int)
+	if errorGroup.Environments != "" {
+		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsMap)
+		if err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling environments from error group into map"))
+		}
+	}
+	if _, ok := environmentsMap[strings.ToLower(errorObj.Environment)]; ok {
+		environmentsMap[strings.ToLower(errorObj.Environment)]++
+	} else {
+		environmentsMap[strings.ToLower(errorObj.Environment)] = 1
+	}
+	environmentsBytes, err := json.Marshal(environmentsMap)
+	if err != nil {
+		log.Error(e.Wrap(err, "error marshalling environment map into json"))
+	}
+	environmentsString := string(environmentsBytes)
+
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Environments: environmentsString}).Error; err != nil {
+		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
 	err = r.AppendErrorFields(fields, errorGroup)
