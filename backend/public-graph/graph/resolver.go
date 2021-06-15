@@ -218,11 +218,11 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	environmentsBytes, err := json.Marshal(environmentsMap)
 	if err != nil {
-		log.Error(e.Wrap(err, "error marshalling environment into json array"))
+		log.Error(e.Wrap(err, "error marshalling environment map into json"))
 	}
 	environmentsString := string(environmentsBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Environments: environmentsString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Environments: environmentsString}).Error; err != nil {
 		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
