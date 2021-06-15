@@ -9,12 +9,14 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-test/deep"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
+	"github.com/slack-go/slack"
 	"github.com/speps/go-hashids"
 
 	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
@@ -42,10 +44,12 @@ const (
 )
 
 var AlertType = struct {
+	ERROR            string
 	NEW_USER         string
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
 }{
+	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
@@ -435,7 +439,6 @@ type Segment struct {
 	Model
 	Name           *string
 	Params         *string `json:"params"`
-	UserObject     JSONB   `json:"user_object" sql:"type:jsonb"`
 	OrganizationID int
 }
 
@@ -478,9 +481,9 @@ type LengthRange struct {
 }
 
 type UserProperty struct {
-	ID    int
-	Name  string
-	Value string
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 type TrackProperty struct {
@@ -690,4 +693,142 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 		return nil, e.Wrapf(err, "[org_id: %d] error unmarshalling user properties map into bytes", s.OrganizationID)
 	}
 	return userProperties, nil
+}
+
+func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string) error {
+	log.Info("sending slack alert: ", obj.Type)
+	if obj == nil {
+		return fmt.Errorf("alert is nil")
+	}
+	// get alerts channels
+	channels, err := obj.GetChannelsToNotify()
+	if err != nil {
+		return e.Wrap(err, "error getting channels to notify from user properties alert")
+	}
+	// get organization's channels
+	integratedSlackChannels, err := organization.IntegratedSlackChannels()
+	if err != nil {
+		return e.Wrap(err, "error getting slack webhook url for alert")
+	}
+	if len(integratedSlackChannels) <= 0 {
+		return nil
+	}
+
+	var blockSet []slack.Block
+	var textBlock *slack.TextBlockObject
+	var msg slack.WebhookMessage
+	var messageBlock []*slack.TextBlockObject
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, sessionId)
+	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
+
+	if obj.Type == nil {
+		if group != nil {
+			obj.Type = &AlertType.ERROR
+		} else {
+			obj.Type = &AlertType.NEW_USER
+		}
+	}
+	switch *obj.Type {
+	case AlertType.ERROR:
+		if group == nil {
+			return nil
+		}
+		msg.Text = group.Event
+		shortEvent := group.Event
+		if len(group.Event) > 50 {
+			shortEvent = group.Event[:50] + "..."
+		}
+		errorLink := fmt.Sprintf("<%s/%d/errors/%d/>", frontendURL, obj.OrganizationID, group.ID)
+		// construct slack message
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error Alert:*\n\n"+shortEvent+"\n"+errorLink, false, false)
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
+		if url != nil {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*url, false, false))
+		}
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		if *obj.Type == AlertType.ERROR {
+			blockSet = append(blockSet, slack.NewActionBlock(
+				"",
+				slack.NewButtonBlockElement(
+					"",
+					"click",
+					slack.NewTextBlockObject(
+						slack.PlainTextType,
+						"Resolve...",
+						false,
+						false,
+					),
+				),
+			))
+		}
+	case AlertType.NEW_USER:
+		// construct slack message
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
+		if userIdentifier != "" {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
+		}
+		for k, v := range userProperties {
+			if k == "" {
+				continue
+			}
+			if v == "" {
+				v = "_empty_"
+			}
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s:*\n%s", strings.Title(strings.ToLower(k)), v), false, false))
+		}
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+	case AlertType.TRACK_PROPERTIES:
+		// format matched properties
+		var formattedFields []string
+		for _, addr := range matchedFields {
+			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
+		}
+		// construct slack message
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Track Properties Alert:*\n\n", false, false)
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", formattedFields), false, false))
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+	case AlertType.USER_PROPERTIES:
+		// format matched properties
+		var formattedFields []string
+		for _, addr := range matchedFields {
+			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
+		}
+		// construct slack message
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties Alert:*\n\n", false, false)
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+	}
+
+	blockSet = append(blockSet, slack.NewDividerBlock())
+	msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+
+	// send message
+	for _, channel := range channels {
+		if channel.WebhookChannel != nil {
+			var slackWebhookURL string
+			for _, ch := range integratedSlackChannels {
+				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
+					slackWebhookURL = ch.WebhookURL
+					break
+				}
+			}
+			if slackWebhookURL == "" {
+				log.Error("requested channel has no matching slackWebhookURL")
+				continue
+			}
+			msg.Channel = *channel.WebhookChannel
+			go func() {
+				err := slack.PostWebhook(
+					slackWebhookURL,
+					&msg,
+				)
+				if err != nil {
+					log.Error(e.Wrap(err, "error sending slack msg"))
+				}
+			}()
+		}
+	}
+	return nil
 }

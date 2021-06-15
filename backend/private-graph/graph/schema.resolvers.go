@@ -195,7 +195,7 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
+	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
