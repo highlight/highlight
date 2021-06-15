@@ -1505,7 +1505,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	//pluck not field ids
-	if len(params.ExcludedTrackProperties) > 0 {
+	if len(params.ExcludedTrackProperties) != len(notTrackFieldIds) {
 		var tempNotTrackFieldIds []int
 		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
 			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
@@ -1548,51 +1548,28 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	whereClause += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range fieldIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(fieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(visitedIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range visitedIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(visitedIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(referrerIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range referrerIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(referrerIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(notFieldIds) > 0 {
-		for _, id := range notFieldIds {
-			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
-		}
+		t := strings.Replace(fmt.Sprint(notFieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(notTrackFieldIds) > 0 {
-		for _, id := range notTrackFieldIds {
-			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
-		}
+		t := strings.Replace(fmt.Sprint(notTrackFieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if d := params.DateRange; d != nil {
@@ -1608,7 +1585,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if viewed := params.HideViewed; viewed != nil && *viewed {
-		whereClause += "AND (viewed = false) "
+		whereClause += "AND (viewed = false OR viewed IS NULL) "
 	}
 
 	if browser := params.Browser; browser != nil {
@@ -1739,9 +1716,9 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
-	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).
-		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).Where(r.DB.
+		Where(r.DB.Where("length(value) > ?", 0).Where("value ILIKE ?", "%"+query+"%")).
+		Or(r.DB.Where("length(name) > ?", 0).Where("name ILIKE ?", "%"+query+"%"))).
 		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {

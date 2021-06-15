@@ -1,3 +1,5 @@
+export const filterContainer: string;
+export const groupHeading: string;
 export const highlightedFuzzyMatch: string;
 export const keyLabel: string;
 export const nameLabel: string;

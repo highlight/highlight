@@ -22,7 +22,6 @@ import {
     SessionLifecycle,
     SessionResults,
 } from '../../../graph/generated/schemas';
-import useHighlightAdminFlag from '../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 import { ReactComponent as StarIcon } from '../../../static/star.svg';
 import { ReactComponent as FilledStarIcon } from '../../../static/star-filled.svg';
 import { ReactComponent as UnviewedIcon } from '../../../static/unviewed.svg';
@@ -30,7 +29,6 @@ import { ReactComponent as ViewedIcon } from '../../../static/viewed.svg';
 import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { MillisToMinutesAndSecondsVerbose } from '../../../util/time';
 import { useSearchContext } from '../SearchContext/SearchContext';
-import { UserPropertyInput } from '../SearchInputs/UserPropertyInputs';
 import {
     LIVE_SEGMENT_ID,
     STARRED_SEGMENT_ID,
@@ -61,7 +59,6 @@ export const SessionFeed = ({ minimal = false }: Props) => {
         totalCount: -1,
     });
     const { searchParams, hideLiveSessions } = useSearchContext();
-    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     const {
         loading,
@@ -138,10 +135,7 @@ export const SessionFeed = ({ minimal = false }: Props) => {
             {!minimal && (
                 <div className={styles.fixedContent}>
                     <div className={styles.mainUserInput}>
-                        <div className={styles.userInputWrapper}>
-                            <UserPropertyInput include />
-                        </div>
-                        {isHighlightAdmin && <SessionSearch />}
+                        <SessionSearch />
                     </div>
                     <div
                         className={styles.resultCount}

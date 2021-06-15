@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Highlighter from 'react-highlight-words';
 import { useParams } from 'react-router-dom';
 import { components, OptionsType, OptionTypeBase } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
+import InfoTooltip from '../../../../../components/InfoTooltip/InfoTooltip';
 import { useGetSessionSearchResultsQuery } from '../../../../../graph/generated/hooks';
+import useSelectedSessionSearchFilters from '../../../../../persistedStorage/useSelectedSessionSearchFilters';
 import SvgSearchIcon from '../../../../../static/SearchIcon';
 import {
     UserProperty,
     useSearchContext,
 } from '../../../SearchContext/SearchContext';
+import SessionSearchFilters from './components/SessionSearchFilters/SessionSearchFilters';
 import styles from './SessionSearch.module.scss';
 
 const SessionSearch = () => {
@@ -17,10 +20,17 @@ const SessionSearch = () => {
         organization_id: string;
     }>();
     const [query, setQuery] = useState('');
-    const { setSearchParams } = useSearchContext();
+    const [selectedProperties, setSelectedProperties] = useState<
+        SessionSearchOption[]
+    >([]);
+    const { searchParams, setSearchParams } = useSearchContext();
+    const { selectedSearchFilters } = useSelectedSessionSearchFilters();
 
     const handleChange = (_selectedProperties: any) => {
-        const selectedProperties = _selectedProperties as SessionSearchOption[];
+        const selectedProperties = transformSelectedProperties(
+            _selectedProperties
+        ) as SessionSearchOption[];
+        setSelectedProperties(selectedProperties);
 
         const newSearchParams: {
             userProperties: UserProperty[];
@@ -88,18 +98,67 @@ const SessionSearch = () => {
             query: input,
         });
 
-        return getSuggestions(fetched.data, 3);
+        return getSuggestions(fetched.data, selectedSearchFilters, query, 3);
     };
+
+    useEffect(() => {
+        if (searchParams) {
+            const userProperties = (
+                searchParams.user_properties || []
+            ).map((property) => transformToOption(property, 'userProperties'));
+            const trackProperties = (
+                searchParams.track_properties || []
+            ).map((property) => transformToOption(property, 'trackProperties'));
+            const visitedUrl =
+                (searchParams.visited_url?.length || 0) > 0
+                    ? searchParams.visited_url
+                    : undefined;
+            const referrer =
+                (searchParams.referrer?.length || 0) > 0
+                    ? searchParams.referrer
+                    : undefined;
+
+            const selectedValues: SessionSearchOption[] = [
+                ...userProperties,
+                ...trackProperties,
+            ];
+
+            if (visitedUrl) {
+                selectedValues.push({
+                    apiType: 'visitedUrls',
+                    id: visitedUrl,
+                    name: visitedUrl,
+                    value: `visitedUrl:${visitedUrl}`,
+                    valueType: 'visitedUrl',
+                });
+            }
+            if (referrer) {
+                selectedValues.push({
+                    apiType: 'referrers',
+                    id: referrer,
+                    name: referrer,
+                    value: `referrer:${referrer}`,
+                    valueType: 'referrer',
+                });
+            }
+
+            setSelectedProperties(selectedValues);
+        }
+    }, [searchParams]);
 
     return (
         <AsyncSelect
             isMulti
-            cacheOptions
             loadOptions={generateOptions}
             isLoading={loading}
             isClearable={false}
             onChange={handleChange}
             className={styles.select}
+            value={selectedProperties}
+            placeholder="Search for a property..."
+            noOptionsMessage={({ inputValue }) =>
+                `No results for ${inputValue}`
+            }
             onInputChange={(newValue, actionMeta) => {
                 // We need access to the search value outside of the AsyncSelect component so we reflect the value to state.
                 if (actionMeta?.action === 'input-change') {
@@ -109,6 +168,7 @@ const SessionSearch = () => {
                 }
             }}
             components={{
+                LoadingIndicator: null,
                 DropdownIndicator: () => (
                     <SvgSearchIcon className={styles.searchIcon} />
                 ),
@@ -151,15 +211,55 @@ const SessionSearch = () => {
                                                 searchWords={query.split(' ')}
                                                 autoEscape={true}
                                                 textToHighlight={name}
+                                                sanitize={(text) => {
+                                                    // Don't bold the contains options
+                                                    if (
+                                                        text.includes(
+                                                            'Contains: '
+                                                        )
+                                                    ) {
+                                                        return '';
+                                                    }
+                                                    return text;
+                                                }}
                                             />
-                                            <span className={styles.keyLabel}>
-                                                {valueType}
-                                            </span>
+                                            <Highlighter
+                                                className={styles.keyLabel}
+                                                highlightClassName={
+                                                    styles.highlightedFuzzyMatch
+                                                }
+                                                searchWords={query.split(' ')}
+                                                autoEscape={true}
+                                                textToHighlight={valueType}
+                                            />
                                         </span>
                                     )}
                                 </div>
                             </components.Option>
                         </div>
+                    );
+                },
+                Menu: (props) => {
+                    return (
+                        <components.Menu {...props}>
+                            <>
+                                <div className={styles.filterContainer}>
+                                    <h4>Includes:</h4>
+                                    <SessionSearchFilters />
+                                </div>
+                                {props.children}
+                            </>
+                        </components.Menu>
+                    );
+                },
+                GroupHeading: (props) => {
+                    return (
+                        <components.GroupHeading {...props}>
+                            <span className={styles.groupHeading}>
+                                {props.children}{' '}
+                                <InfoTooltip title={props?.data?.tooltip} />
+                            </span>
+                        </components.GroupHeading>
                     );
                 },
             }}
@@ -178,13 +278,10 @@ const SessionSearch = () => {
                     ...provided,
                     paddingTop: 0,
                     paddingBottom: 0,
-                    '&:first-of-type > :first-of-type': {
-                        borderTop: 'none',
-                    },
                 }),
                 groupHeading: (provided) => ({
                     ...provided,
-                    color: 'var(--color-gray-500)',
+                    color: 'var(--text-primary)',
                     fontSize: 12,
                     fontWeight: 400,
                     textTransform: 'none',
@@ -193,6 +290,7 @@ const SessionSearch = () => {
                     borderTop: '1px solid var(--color-gray-300)',
                     paddingBottom: 'var(--size-xSmall)',
                     paddingTop: 'var(--size-xSmall)',
+                    background: 'var(--color-gray-200)',
                 }),
                 menuList: (provided) => ({
                     ...provided,
@@ -202,13 +300,19 @@ const SessionSearch = () => {
                 menu: (provided) => ({
                     ...provided,
                     borderRadius: 'var(--border-radius)',
-                    borderColor: 'var(--color-gray-300)',
+                    border: '1px solid var(--color-gray-300)',
                     boxShadow: 'var(--box-shadow-2)',
                     fontFamily: 'var(--header-font-family)',
                 }),
             }}
             isSearchable
-            defaultOptions={getSuggestions(data, 3)}
+            defaultOptions={getSuggestions(
+                data,
+                selectedSearchFilters,
+                query,
+                3
+            )}
+            maxMenuHeight={400}
         />
     );
 };
@@ -241,52 +345,168 @@ interface Suggestion {
 const transformToOption = (
     { id, name, value }: Suggestion,
     apiType: API_TYPES
-): SessionSearchOption => ({
-    id,
-    valueType: name,
-    name: value,
-    value: `${name}:${value}`,
-    apiType,
-});
+): SessionSearchOption => {
+    const valueToUse = value;
 
-const getSuggestions = (data: any, limitResultsCount?: number) => {
-    const trackProperties = data
-        ?.trackProperties!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'trackProperties')
-        )
-        .slice(0, limitResultsCount);
-    const userProperties = data
-        ?.userProperties!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'userProperties')
-        )
-        .slice(0, limitResultsCount);
-    const visitedUrls = data
-        ?.visitedUrls!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'visitedUrls')
-        )
-        .slice(0, limitResultsCount);
-    const referrers = data
-        ?.referrers!.map((suggestion: Suggestion) =>
-            transformToOption(suggestion, 'referrers')
-        )
-        .slice(0, limitResultsCount);
+    if (
+        valueToUse.split(':').length === 2 &&
+        !valueToUse.includes('https://')
+    ) {
+        const [value, name] = valueToUse.split(':');
+        return {
+            id,
+            valueType: value,
+            name,
+            value: valueToUse,
+            apiType,
+        };
+    }
 
-    return [
-        {
+    return {
+        id,
+        valueType: name,
+        name: value,
+        value: `${name}:${value}`,
+        apiType,
+    };
+};
+
+const getSuggestions = (
+    data: any,
+    selectedTypes: string[],
+    query: string,
+    limitResultsCount?: number
+) => {
+    const suggestions: {
+        label: string;
+        tooltip: string | React.ReactNode;
+        options: SessionSearchOption[];
+    }[] = [];
+
+    if (selectedTypes.includes('Track Properties')) {
+        suggestions.push({
             label: 'Track Properties',
-            options: trackProperties,
-        },
-        {
+            tooltip: (
+                <>
+                    Track Properties are properties related to events that have
+                    happened in your application. These are set by you in your
+                    application. You can{' '}
+                    <a
+                        href="https://docs.highlight.run/docs/tracking-events"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        learn more here
+                    </a>
+                    .
+                </>
+            ),
+            options: [
+                ...getIncludesOption(query, 'trackProperties', 'track'),
+                ...(data?.trackProperties
+                    ?.map((suggestion: Suggestion) =>
+                        transformToOption(suggestion, 'trackProperties')
+                    )
+                    .slice(0, limitResultsCount) || []),
+            ],
+        });
+    }
+    if (selectedTypes.includes('User Properties')) {
+        suggestions.push({
             label: 'User Properties',
-            options: userProperties,
-        },
-        {
+            tooltip: (
+                <>
+                    User Properties are properties related to the user. These
+                    are set by you in your application. You can{' '}
+                    <a
+                        href="https://docs.highlight.run/docs/identifying-users"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        learn more here
+                    </a>
+                    .
+                </>
+            ),
+            options: [
+                ...getIncludesOption(query, 'userProperties', 'user'),
+                ...(data?.userProperties
+                    ?.map((suggestion: Suggestion) =>
+                        transformToOption(suggestion, 'userProperties')
+                    )
+                    .slice(0, limitResultsCount) || []),
+            ],
+        });
+    }
+    if (selectedTypes.includes('Visited URLs')) {
+        suggestions.push({
             label: 'Visited URLs',
-            options: visitedUrls,
-        },
-        {
+            tooltip:
+                'Visited URLs are the URLs a user has visited. Filtering with a Visited URL will show you all sessions where a user visited that URL.',
+            options: [
+                ...getIncludesOption(query, 'visitedUrls', 'visitedUrl'),
+                ...(data?.visitedUrls
+                    ?.map((suggestion: Suggestion) =>
+                        transformToOption(suggestion, 'visitedUrls')
+                    )
+                    .slice(0, limitResultsCount) || []),
+            ],
+        });
+    }
+    if (selectedTypes.includes('Referrers')) {
+        suggestions.push({
             label: 'Referrers',
-            options: referrers,
-        },
-    ];
+            tooltip:
+                'Referrers are the websites your users came from. For example, if a user on Twitter clicked a link to your application, the referrer would be Twitter.',
+            options: [
+                ...getIncludesOption(query, 'referrers', 'referrers'),
+                ...(data?.referrers
+                    ?.map((suggestion: Suggestion) =>
+                        transformToOption(suggestion, 'referrers')
+                    )
+                    .slice(0, limitResultsCount) || []),
+            ],
+        });
+    }
+
+    return suggestions;
+};
+
+const getIncludesOption = (
+    query: string,
+    apiType: string,
+    valueType: string
+) => {
+    return query.length === 0
+        ? []
+        : [
+              {
+                  apiType,
+                  id: '-1',
+                  name: `Contains: ${query}`,
+                  value: `${query}`,
+                  valueType,
+              },
+          ];
+};
+
+const transformSelectedProperties = (selectedProperties: any[]) => {
+    return selectedProperties?.map((property) => {
+        if (property.name.includes('Contains:')) {
+            if (
+                property.apiType === 'visitedUrls' ||
+                property.apiType === 'referrers'
+            ) {
+                return {
+                    ...property,
+                    name: property.value,
+                };
+            }
+            return {
+                ...property,
+                name: 'contains',
+            };
+        }
+        return property;
+    });
 };
