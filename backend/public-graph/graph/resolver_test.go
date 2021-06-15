@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"encoding/json"
 	"os"
 	"strconv"
 	"testing"
@@ -34,11 +35,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	// construct table of sub-tests to run
 	nullStr := "null"
 	metaDataStr := `[{"timestamp":"2000-08-01T00:00:00Z","error_id":1,"session_id":0,"browser":"","os":"","visited_url":""},{"timestamp":"2000-08-01T00:00:00Z","error_id":2,"session_id":0,"browser":"","os":"","visited_url":""}]`
+	longTraceStr := `[{"this":"is"},{"a":"longer"},{"stack":"trace"}]`
+	shortTraceStr := `[{"this":"a"},{"short":"stack"}]`
 	tests := map[string]struct {
 		errorsToInsert      []model.ErrorObject
 		expectedErrorGroups []model.ErrorGroup
 	}{
-		"two errors with same environment but different case": {
+		"test two errors with same environment but different case": {
 			errorsToInsert: []model.ErrorObject{
 				{
 					OrganizationID: 1,
@@ -62,7 +65,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				},
 			},
 		},
-		"two errors with diff environment": {
+		"test two errors with different environment": {
 			errorsToInsert: []model.ErrorObject{
 				{
 					OrganizationID: 1,
@@ -86,6 +89,54 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				},
 			},
 		},
+		"test longer error stack first": {
+			errorsToInsert: []model.ErrorObject{
+				{
+					OrganizationID: 1,
+					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					Trace:          &longTraceStr,
+				},
+				{
+					OrganizationID: 1,
+					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					Trace:          &shortTraceStr,
+				},
+			},
+			expectedErrorGroups: []model.ErrorGroup{
+				{
+					OrganizationID: 1,
+					Trace:          longTraceStr,
+					Resolved:       &model.F,
+					MetadataLog:    &metaDataStr,
+					FieldGroup:     &nullStr,
+					Environments:   `{"":2}`,
+				},
+			},
+		},
+		"test shorter error stack first": {
+			errorsToInsert: []model.ErrorObject{
+				{
+					OrganizationID: 1,
+					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+					Trace:          &shortTraceStr,
+				},
+				{
+					OrganizationID: 1,
+					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+					Trace:          &longTraceStr,
+				},
+			},
+			expectedErrorGroups: []model.ErrorGroup{
+				{
+					OrganizationID: 1,
+					Trace:          longTraceStr,
+					Resolved:       &model.F,
+					MetadataLog:    &metaDataStr,
+					FieldGroup:     &nullStr,
+					Environments:   `{"":2}`,
+				},
+			},
+		},
 	}
 	// run tests
 	for name, tc := range tests {
@@ -100,7 +151,13 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			r := &Resolver{DB: DB}
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
-				errorGroup, err := r.HandleErrorAndGroup(&errorObj, nil, nil)
+				var frames []interface{}
+				if errorObj.Trace != nil {
+					if err := json.Unmarshal([]byte(*errorObj.Trace), &frames); err != nil {
+						t.Fatal(e.Wrap(err, "error unmarshalling error stack trace frames"))
+					}
+				}
+				errorGroup, err := r.HandleErrorAndGroup(&errorObj, frames, nil)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error handling error and group"))
 				}
