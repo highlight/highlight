@@ -112,23 +112,50 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 		}
 	}
 	for _, property := range params.UserProperties {
-		newProperty := &model.UserProperty{
-			Name:  property.Name,
-			Value: property.Value,
+		var newProperty *model.UserProperty
+		if property.ID != nil {
+			newProperty = &model.UserProperty{
+				ID:    *property.ID,
+				Name:  property.Name,
+				Value: property.Value,
+			}
+		} else {
+			newProperty = &model.UserProperty{
+				Name:  property.Name,
+				Value: property.Value,
+			}
 		}
 		modelParams.UserProperties = append(modelParams.UserProperties, newProperty)
 	}
 	for _, property := range params.ExcludedProperties {
-		newProperty := &model.UserProperty{
-			Name:  property.Name,
-			Value: property.Value,
+		var newProperty *model.UserProperty
+		if property.ID != nil {
+			newProperty = &model.UserProperty{
+				ID:    *property.ID,
+				Name:  property.Name,
+				Value: property.Value,
+			}
+		} else {
+			newProperty = &model.UserProperty{
+				Name:  property.Name,
+				Value: property.Value,
+			}
 		}
 		modelParams.ExcludedProperties = append(modelParams.ExcludedProperties, newProperty)
 	}
 	for _, property := range params.TrackProperties {
-		newProperty := &model.UserProperty{
-			Name:  property.Name,
-			Value: property.Value,
+		var newProperty *model.UserProperty
+		if property.ID != nil {
+			newProperty = &model.UserProperty{
+				ID:    *property.ID,
+				Name:  property.Name,
+				Value: property.Value,
+			}
+		} else {
+			newProperty = &model.UserProperty{
+				Name:  property.Name,
+				Value: property.Value,
+			}
 		}
 		modelParams.TrackProperties = append(modelParams.TrackProperties, newProperty)
 	}

@@ -1412,8 +1412,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	for _, prop := range params.UserProperties {
 		if prop.Name == "contains" {
 			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
 		} else {
 			fieldIds = append(fieldIds, *prop.ID)
 		}
@@ -1422,8 +1420,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	for _, prop := range params.TrackProperties {
 		if prop.Name == "contains" {
 			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
 		} else {
 			fieldIds = append(fieldIds, *prop.ID)
 		}
@@ -1475,8 +1471,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	for _, prop := range params.ExcludedProperties {
 		if prop.Name == "contains" {
 			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
 		} else {
 			notFieldIds = append(notFieldIds, *prop.ID)
 		}
@@ -1497,8 +1491,6 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	for _, prop := range params.ExcludedTrackProperties {
 		if prop.Name == "contains" {
 			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
-		} else if prop.ID == nil || *prop.ID == 0 {
-			notTrackFieldQuery = notTrackFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
 		} else {
 			notTrackFieldIds = append(notTrackFieldIds, *prop.ID)
 		}
