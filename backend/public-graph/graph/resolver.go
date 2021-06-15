@@ -203,11 +203,9 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	logString := string(logBytes)
 
-	var newFrameString string
+	newFrameString := frameString
 	if len(frameString) < len(errorGroup.Trace) {
 		newFrameString = errorGroup.Trace
-	} else {
-		newFrameString = frameString
 	}
 
 	environmentsMap := make(map[string]int)
