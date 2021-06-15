@@ -736,6 +736,22 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 		if url != nil {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*url, false, false))
 		}
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		if *obj.Type == AlertType.ERROR {
+			blockSet = append(blockSet, slack.NewActionBlock(
+				"",
+				slack.NewButtonBlockElement(
+					"",
+					"click",
+					slack.NewTextBlockObject(
+						slack.PlainTextType,
+						"Resolve...",
+						false,
+						false,
+					),
+				),
+			))
+		}
 	case AlertType.NEW_USER:
 		// construct slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
@@ -751,6 +767,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 			}
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s:*\n%s", strings.Title(strings.ToLower(k)), v), false, false))
 		}
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 	case AlertType.TRACK_PROPERTIES:
 		// format matched properties
 		var formattedFields []string
@@ -760,6 +777,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 		// construct slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Track Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", formattedFields), false, false))
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 	case AlertType.USER_PROPERTIES:
 		// format matched properties
 		var formattedFields []string
@@ -769,24 +787,9 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 		// construct slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties Alert:*\n\n", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 	}
 
-	blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
-	if *obj.Type == AlertType.ERROR {
-		blockSet = append(blockSet, slack.NewActionBlock(
-			"",
-			slack.NewButtonBlockElement(
-				"",
-				"click",
-				slack.NewTextBlockObject(
-					slack.PlainTextType,
-					"Resolve...",
-					false,
-					false,
-				),
-			),
-		))
-	}
 	blockSet = append(blockSet, slack.NewDividerBlock())
 	msg.Blocks = &slack.Blocks{BlockSet: blockSet}
 
