@@ -808,13 +808,15 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 				continue
 			}
 			msg.Channel = *channel.WebhookChannel
-			err := slack.PostWebhook(
-				slackWebhookURL,
-				&msg,
-			)
-			if err != nil {
-				return e.Wrap(err, "error sending slack msg")
-			}
+			go func() {
+				err := slack.PostWebhook(
+					slackWebhookURL,
+					&msg,
+				)
+				if err != nil {
+					log.Error(e.Wrap(err, "error sending slack msg"))
+				}
+			}()
 		}
 	}
 	return nil
