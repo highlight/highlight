@@ -62,7 +62,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestErrorGroups(t *testing.T) {
+func TestHandleErrorAndGroup(t *testing.T) {
 	// construct table of sub-tests to run
 	nullStr := "null"
 	metaDataStr := `[{"timestamp":"2000-08-01T00:00:00Z","error_id":1,"session_id":0,"browser":"","os":"","visited_url":""},{"timestamp":"2000-08-01T00:00:00Z","error_id":2,"session_id":0,"browser":"","os":"","visited_url":""}]`
