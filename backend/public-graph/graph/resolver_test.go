@@ -118,6 +118,29 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				},
 			},
 		},
+		"two errors, one with empty environment": {
+			errorsToInsert: []model.ErrorObject{
+				{
+					OrganizationID: 1,
+					Environment:    "dev",
+					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
+				},
+				{
+					OrganizationID: 1,
+					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
+				},
+			},
+			expectedErrorGroups: []model.ErrorGroup{
+				{
+					OrganizationID: 1,
+					Trace:          nullStr,
+					Resolved:       &model.F,
+					MetadataLog:    &metaDataStr,
+					FieldGroup:     &nullStr,
+					Environments:   `{"dev":1}`,
+				},
+			},
+		},
 	}
 	// run tests
 	for name, tc := range tests {
