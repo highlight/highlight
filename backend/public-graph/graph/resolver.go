@@ -160,12 +160,12 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 
 	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
 	// If it doesn't exist, we create a new error group.
-	if res := r.DB.Where(&model.ErrorGroup{
+	if err := r.DB.Where(&model.ErrorGroup{
 		OrganizationID: errorObj.OrganizationID,
 		Event:          errorObj.Event,
 		Trace:          frameString,
 		Type:           errorObj.Type,
-	}).First(&errorGroup); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
+	}).First(&errorGroup).Error; err != nil {
 		newErrorGroup := &model.ErrorGroup{
 			OrganizationID: errorObj.OrganizationID,
 			Event:          errorObj.Event,
