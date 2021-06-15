@@ -38,3 +38,26 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+.filterContainer {
+    align-items: center;
+    display: flex;
+    font-size: 12px !important;
+    padding: var(--size-xSmall) var(--size-small);
+
+    h4 {
+        color: var(--color-gray-500);
+        margin: 0 !important;
+        margin-right: var(--size-xxSmall) !important;
+    }
+
+    button {
+        font-size: 12px;
+    }
+}
+
+.groupHeading {
+    align-items: center;
+    column-gap: var(--size-xxSmall);
+    display: flex;
+}

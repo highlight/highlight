@@ -117,7 +117,10 @@ func main() {
 		defer tracer.Stop()
 	}
 
-	db := model.SetupDB()
+	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
+	if err != nil {
+		log.Fatalf("error setting up db: %v", err)
+	}
 
 	stripeClient := &client.API{}
 	stripeClient.Init(stripeApiKey, nil)

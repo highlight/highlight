@@ -10,12 +10,15 @@ type Props = ButtonProps & {
     trackingId: string;
     /** Does this button only have an icon? */
     iconButton?: boolean;
+    /** Reduces the padding. */
+    small?: boolean;
 };
 
 const Button = ({
     children,
     trackingId,
     iconButton,
+    small = false,
     ...props
 }: React.PropsWithChildren<Props>) => {
     return (
@@ -29,6 +32,7 @@ const Button = ({
             }}
             className={classNames(props.className, styles.buttonBase, {
                 [styles.iconButton]: iconButton,
+                [styles.small]: small,
             })}
         >
             {children}
