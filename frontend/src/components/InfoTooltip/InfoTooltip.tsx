@@ -7,7 +7,7 @@ import styles from './InfoTooltip.module.scss';
 
 type Props = Pick<
     TooltipPropsWithTitle,
-    'title' | 'placement' | 'className' | 'align'
+    'title' | 'placement' | 'className' | 'align' | 'visible'
 >;
 
 const InfoTooltip = ({ ...props }: Props) => {

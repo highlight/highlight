@@ -31,20 +31,6 @@ export type CreateOrUpdateSubscriptionMutation = {
     __typename?: 'Mutation';
 } & Pick<Types.Mutation, 'createOrUpdateSubscription'>;
 
-export type MarkErrorGroupAsResolvedMutationVariables = Types.Exact<{
-    id: Types.Scalars['ID'];
-    resolved: Types.Scalars['Boolean'];
-}>;
-
-export type MarkErrorGroupAsResolvedMutation = { __typename?: 'Mutation' } & {
-    markErrorGroupAsResolved?: Types.Maybe<
-        { __typename?: 'ErrorGroup' } & Pick<
-            Types.ErrorGroup,
-            'id' | 'resolved'
-        >
-    >;
-};
-
 export type UpdateErrorGroupStateMutationVariables = Types.Exact<{
     id: Types.Scalars['ID'];
     state: Types.Scalars['String'];

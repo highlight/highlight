@@ -6,7 +6,7 @@
         border-radius: var(--border-radius) !important;
         font-family: var(--body-font-family);
         height: fit-content !important;
-        padding: var(--size-xSmall) var(--size-xSmall) !important;
+        padding: var(--size-xSmall) var(--size-medium) !important;
     }
 
     :global(.ant-select-selection-placeholder) {

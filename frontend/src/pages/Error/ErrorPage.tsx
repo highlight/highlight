@@ -18,6 +18,7 @@ import {
 import Button from '../../components/Button/Button/Button';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
 import { Field } from '../../components/Field/Field';
+import InfoTooltip from '../../components/InfoTooltip/InfoTooltip';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import Tooltip from '../../components/Tooltip/Tooltip';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
@@ -31,7 +32,7 @@ import ErrorSessionsTable from './components/ErrorSessionsTable/ErrorSessionsTab
 import ErrorTitle from './components/ErrorTitle/ErrorTitle';
 import StackTraceSection from './components/StackTraceSection/StackTraceSection';
 import styles from './ErrorPage.module.scss';
-import { ResolveErrorButton } from './ResolveErrorButton/ResolveErrorButton';
+import { ErrorStateSelect } from './ErrorStateSelect/ErrorStateSelect';
 
 const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
@@ -130,11 +131,48 @@ const ErrorPage = () => {
                 </div>
                 <div className={styles.errorPageRight}>
                     <div className={styles.errorPageRightContent}>
-                        <div className={styles.fieldWrapper}>
-                            <ResolveErrorButton
-                                resolved={data?.error_group?.resolved || false}
-                                loading={loading}
+                        <h3 className={styles.tooltipTitle}>
+                            {loading ? (
+                                <Skeleton count={1} style={{ width: 280 }} />
+                            ) : (
+                                'State'
+                            )}
+                            <InfoTooltip
+                                title={
+                                    <>
+                                        <ul className={styles.tooltipList}>
+                                            <li>
+                                                <strong>Open</strong>: This
+                                                error has not been fixed. You
+                                                will receive alerts when this
+                                                error is thrown.
+                                            </li>
+                                            <li>
+                                                <strong>Resolved</strong>: This
+                                                error has been fixed and you are
+                                                not expecting this error to be
+                                                thrown again. If this error gets
+                                                thrown, you will receive an
+                                                alert.
+                                            </li>
+                                            <li>
+                                                <strong>Ignored</strong>: This
+                                                is a noisy/false positive error
+                                                that should be ignored. You will
+                                                not receive any alerts for this
+                                                error.
+                                            </li>
+                                        </ul>
+                                    </>
+                                }
                             />
+                        </h3>
+                        <div className={styles.fieldWrapper}>
+                            {data?.error_group?.state && (
+                                <ErrorStateSelect
+                                    state={data.error_group.state}
+                                />
+                            )}
                         </div>
                         <h3>
                             {loading ? (
