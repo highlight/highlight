@@ -32,5 +32,8 @@ export const stackTraceErrorTitle: string;
 export const subSection: string;
 export const title: string;
 export const titleWithAction: string;
+export const titleWithMargin: string;
 export const titleWrapper: string;
+export const tooltipList: string;
+export const tooltipTitle: string;
 export const triggerWrapper: string;

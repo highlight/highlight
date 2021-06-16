@@ -9,17 +9,16 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 // This file will not be regenerated automatically.
@@ -159,12 +158,12 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 
 	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
 	// If it doesn't exist, we create a new error group.
-	if res := r.DB.Where(&model.ErrorGroup{
+	if err := r.DB.Where(&model.ErrorGroup{
 		OrganizationID: errorObj.OrganizationID,
 		Event:          errorObj.Event,
 		Trace:          frameString,
 		Type:           errorObj.Type,
-	}).First(&errorGroup); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
+	}).First(&errorGroup).Error; err != nil {
 		newErrorGroup := &model.ErrorGroup{
 			OrganizationID: errorObj.OrganizationID,
 			Event:          errorObj.Event,
@@ -188,7 +187,6 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 			return nil, e.Wrap(err, "error decoding time log data")
 		}
 	}
-
 	newMetadataLog = append(newMetadataLog, ErrorMetaData{
 		Timestamp:  errorObj.CreatedAt,
 		ErrorID:    errorObj.ID,
@@ -204,8 +202,28 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	logString := string(logBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
-		return nil, e.Wrap(err, "Error updating error group metadata log")
+	environmentsMap := make(map[string]int)
+	if errorGroup.Environments != "" {
+		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsMap)
+		if err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling environments from error group into map"))
+		}
+	}
+	if len(errorObj.Environment) > 0 {
+		if _, ok := environmentsMap[strings.ToLower(errorObj.Environment)]; ok {
+			environmentsMap[strings.ToLower(errorObj.Environment)]++
+		} else {
+			environmentsMap[strings.ToLower(errorObj.Environment)] = 1
+		}
+	}
+	environmentsBytes, err := json.Marshal(environmentsMap)
+	if err != nil {
+		log.Error(e.Wrap(err, "error marshalling environment map into json"))
+	}
+	environmentsString := string(environmentsBytes)
+
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Environments: environmentsString}).Error; err != nil {
+		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
 	err = r.AppendErrorFields(fields, errorGroup)
@@ -267,84 +285,6 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating error fields")
 	}
-	return nil
-}
-
-func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, session_id int, user_identifier string, url string, channels []*modelInputs.SanitizedSlackChannel) error {
-	organization := &model.Organization{}
-	res := r.DB.Where("id = ?", org_id).First(&organization)
-	if err := res.Error; err != nil {
-		return e.Wrap(err, "error messaging organization")
-	}
-	integratedSlackChannels, err := organization.IntegratedSlackChannels()
-	if err != nil {
-		return e.Wrap(err, "error getting slack webhook url for alert")
-	}
-	if len(integratedSlackChannels) <= 0 || group == nil {
-		return nil
-	}
-	shortEvent := group.Event
-	if len(group.Event) > 50 {
-		shortEvent = group.Event[:50] + "..."
-	}
-	errorLink := fmt.Sprintf("<https://app.highlight.run/%d/errors/%d/>", org_id, group.ID)
-	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", org_id, session_id)
-
-	for _, channel := range channels {
-		if channel.WebhookChannel != nil {
-			var slackWebhookURL string
-			for _, ch := range integratedSlackChannels {
-				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
-					slackWebhookURL = ch.WebhookURL
-					break
-				}
-			}
-			if slackWebhookURL == "" {
-				log.Error("requested channel has no matching slackWebhookURL")
-				continue
-			}
-			msg := slack.WebhookMessage{
-				Text:    group.Event,
-				Channel: *channel.WebhookChannel,
-				Blocks: &slack.Blocks{
-					BlockSet: []slack.Block{
-						slack.NewSectionBlock(
-							slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error:*\n\n"+shortEvent+"\n"+errorLink, false, false),
-							[]*slack.TextBlockObject{
-								slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", org_id), false, false),
-								slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+user_identifier, false, false),
-								slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false),
-								slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+url, false, false),
-							},
-							nil,
-						),
-						slack.NewDividerBlock(),
-						slack.NewActionBlock(
-							"",
-							slack.NewButtonBlockElement(
-								"",
-								"click",
-								slack.NewTextBlockObject(
-									slack.PlainTextType,
-									"Resolve...",
-									false,
-									false,
-								),
-							),
-						),
-					},
-				},
-			}
-			err := slack.PostWebhook(
-				slackWebhookURL,
-				&msg,
-			)
-			if err != nil {
-				return e.Wrap(err, "error sending slack msg")
-			}
-		}
-	}
-
 	return nil
 }
 

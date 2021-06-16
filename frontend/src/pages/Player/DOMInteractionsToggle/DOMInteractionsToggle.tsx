@@ -13,7 +13,7 @@ const DOMInteractionsToggle = () => {
 
     return (
         <Tooltip
-            title={`Enabling DOM interactions allows you to inspect the DOM in the player. You can use the browser DevTools like Elements to debug layout and other CSS issues. Get started by right clicking in the player and click "Inspect".`}
+            title={`Enabling Inspect Element allows you to inspect the DOM in the player. You can use the browser DevTools like Elements to debug layout and other CSS issues. Get started by right clicking in the player and click "Inspect".`}
         >
             <div className={styles.container}>
                 <Switch
@@ -22,7 +22,7 @@ const DOMInteractionsToggle = () => {
                         setEnableDOMInteractions(!enableDOMInteractions);
                     }}
                 />{' '}
-                DOM interactions
+                Inspect Element
             </div>
         </Tooltip>
     );

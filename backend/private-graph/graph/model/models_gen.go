@@ -133,6 +133,49 @@ type UserPropertyInput struct {
 	Value string `json:"value"`
 }
 
+type ErrorState string
+
+const (
+	ErrorStateOpen     ErrorState = "OPEN"
+	ErrorStateResolved ErrorState = "RESOLVED"
+	ErrorStateIgnored  ErrorState = "IGNORED"
+)
+
+var AllErrorState = []ErrorState{
+	ErrorStateOpen,
+	ErrorStateResolved,
+	ErrorStateIgnored,
+}
+
+func (e ErrorState) IsValid() bool {
+	switch e {
+	case ErrorStateOpen, ErrorStateResolved, ErrorStateIgnored:
+		return true
+	}
+	return false
+}
+
+func (e ErrorState) String() string {
+	return string(e)
+}
+
+func (e *ErrorState) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ErrorState(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ErrorState", str)
+	}
+	return nil
+}
+
+func (e ErrorState) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 type PlanType string
 
 const (

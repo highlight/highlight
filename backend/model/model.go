@@ -10,13 +10,17 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"reflect"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/go-test/deep"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/xid"
+	"github.com/slack-go/slack"
 	"github.com/speps/go-hashids"
 
 	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
@@ -45,13 +49,49 @@ const (
 )
 
 var AlertType = struct {
+	ERROR            string
 	NEW_USER         string
 	TRACK_PROPERTIES string
 	USER_PROPERTIES  string
 }{
+	ERROR:            "ERROR_ALERT",
 	NEW_USER:         "NEW_USER_ALERT",
 	TRACK_PROPERTIES: "TRACK_PROPERTIES_ALERT",
 	USER_PROPERTIES:  "USER_PROPERTIES_ALERT",
+}
+
+var ErrorGroupStates = struct {
+	OPEN     string
+	RESOLVED string
+	IGNORED  string
+}{
+	OPEN:     "OPEN",
+	RESOLVED: "RESOLVED",
+	IGNORED:  "IGNORED",
+}
+
+var Models = []interface{}{
+	&RecordingSettings{},
+	&MessagesObject{},
+	&EventsObject{},
+	&ErrorObject{},
+	&ErrorGroup{},
+	&ErrorField{},
+	&ErrorSegment{},
+	&Organization{},
+	&Segment{},
+	&Admin{},
+	&User{},
+	&Session{},
+	&DailySessionCount{},
+	&DailyErrorCount{},
+	&Field{},
+	&EmailSignup{},
+	&ResourcesObject{},
+	&SessionComment{},
+	&ErrorComment{},
+	&ErrorAlert{},
+	&SessionAlert{},
 }
 
 func init() {
@@ -330,6 +370,44 @@ type Session struct {
 	MigrationState       *string `json:"migration_state"`
 }
 
+// AreModelsWeaklyEqual compares two structs of the same type while ignoring the Model field
+// a and b MUST be pointers, otherwise this won't work
+func AreModelsWeaklyEqual(a, b interface{}) (bool, []string, error) {
+	if reflect.TypeOf(a) != reflect.TypeOf(b) {
+		return false, nil, e.New("interfaces to compare aren't the same time")
+	}
+
+	aReflection := reflect.ValueOf(a)
+	// Check if the passed interface is a pointer
+	if aReflection.Type().Kind() != reflect.Ptr {
+		return false, nil, e.New("`a` is not a pointer")
+	}
+	// 'dereference' with Elem() and get the field by name
+	aField := aReflection.Elem().FieldByName("Model")
+
+	bReflection := reflect.ValueOf(b)
+	// Check if the passed interface is a pointer
+	if bReflection.Type().Kind() != reflect.Ptr {
+		return false, nil, e.New("`b` is not a pointer")
+	}
+	// 'dereference' with Elem() and get the field by name
+	bField := bReflection.Elem().FieldByName("Model")
+
+	if aField.IsValid() && bField.IsValid() {
+		// override Model on b with a's model
+		bField.Set(aField)
+	} else if aField.IsValid() || bField.IsValid() {
+		// return error if one has a model and the other doesn't
+		return false, nil, e.New("one interface has a model and the other doesn't")
+	}
+
+	// get diff
+	diff := deep.Equal(aReflection.Interface(), bReflection.Interface())
+	isEqual := len(diff) == 0
+
+	return isEqual, diff, nil
+}
+
 type Field struct {
 	Model
 	// 'user_property', 'session_property'.
@@ -366,7 +444,6 @@ type Segment struct {
 	Model
 	Name           *string
 	Params         *string `json:"params"`
-	UserObject     JSONB   `json:"user_object" sql:"type:jsonb"`
 	OrganizationID int
 }
 
@@ -409,9 +486,9 @@ type LengthRange struct {
 }
 
 type UserProperty struct {
-	ID    int
-	Name  string
-	Value string
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Value string `json:"value"`
 }
 
 type TrackProperty struct {
@@ -525,10 +602,12 @@ type ErrorGroup struct {
 	Event          string
 	Type           string
 	Trace          string
-	Resolved       *bool `json:"resolved"`
+	State          string `json:"state" gorm:"default:OPEN"`
+	Resolved       *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
 	MetadataLog    *string
 	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
 	FieldGroup     *string
+	Environments   string
 }
 
 type ErrorField struct {
@@ -558,14 +637,13 @@ type ErrorComment struct {
 	Text    string
 }
 
-func SetupDB() *gorm.DB {
-	log.Println("setting up database")
+func SetupDB(dbName string) (*gorm.DB, error) {
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
 		os.Getenv("PSQL_HOST"),
 		os.Getenv("PSQL_PORT"),
 		os.Getenv("PSQL_USER"),
-		os.Getenv("PSQL_DB"),
+		dbName,
 		os.Getenv("PSQL_PASSWORD"))
 
 	sqltrace.Register("pgx", &stdlib.Driver{}, sqltrace.WithServiceName("highlight"))
@@ -580,37 +658,17 @@ func SetupDB() *gorm.DB {
 	DB, err = gormtrace.Open(postgres.New(postgres.Config{Conn: sqlDb}), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
 		Logger:                                   logger.Default.LogMode(logger.Silent),
-	})
+	}, gormtrace.WithAnalytics(true))
 
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		return nil, e.Wrap(err, "Failed to connect to database")
 	}
 	if err := DB.AutoMigrate(
-		&RecordingSettings{},
-		&MessagesObject{},
-		&EventsObject{},
-		&ErrorObject{},
-		&ErrorGroup{},
-		&ErrorField{},
-		&ErrorSegment{},
-		&Organization{},
-		&Segment{},
-		&Admin{},
-		&User{},
-		&Session{},
-		&DailySessionCount{},
-		&DailyErrorCount{},
-		&Field{},
-		&EmailSignup{},
-		&ResourcesObject{},
-		&SessionComment{},
-		&ErrorComment{},
-		&ErrorAlert{},
-		&SessionAlert{},
+		Models...,
 	); err != nil {
-		log.Fatalf("Error migrating db: %v", err)
+		return nil, e.Wrap(err, "Error migrating db")
 	}
-	return DB
+	return DB, nil
 }
 
 // Implement JSONB interface
@@ -622,8 +680,15 @@ func (j JSONB) Value() (driver.Value, error) {
 }
 
 func (j *JSONB) Scan(value interface{}) error {
-	if err := json.Unmarshal(value.([]byte), &j); err != nil {
-		return err
+	switch v := value.(type) {
+	case string:
+		if err := json.Unmarshal([]byte(v), &j); err != nil {
+			return err
+		}
+	case []byte:
+		if err := json.Unmarshal(v, &j); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -681,6 +746,144 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 		return nil, e.Wrapf(err, "[org_id: %d] error unmarshalling user properties map into bytes", s.OrganizationID)
 	}
 	return userProperties, nil
+}
+
+func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string) error {
+	log.Info("sending slack alert: ", obj.Type)
+	if obj == nil {
+		return fmt.Errorf("alert is nil")
+	}
+	// get alerts channels
+	channels, err := obj.GetChannelsToNotify()
+	if err != nil {
+		return e.Wrap(err, "error getting channels to notify from user properties alert")
+	}
+	// get organization's channels
+	integratedSlackChannels, err := organization.IntegratedSlackChannels()
+	if err != nil {
+		return e.Wrap(err, "error getting slack webhook url for alert")
+	}
+	if len(integratedSlackChannels) <= 0 {
+		return nil
+	}
+
+	var blockSet []slack.Block
+	var textBlock *slack.TextBlockObject
+	var msg slack.WebhookMessage
+	var messageBlock []*slack.TextBlockObject
+
+	frontendURL := os.Getenv("FRONTEND_URI")
+	sessionLink := fmt.Sprintf("<%s/%d/sessions/%d/>", frontendURL, obj.OrganizationID, sessionId)
+	messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false))
+
+	if obj.Type == nil {
+		if group != nil {
+			obj.Type = &AlertType.ERROR
+		} else {
+			obj.Type = &AlertType.NEW_USER
+		}
+	}
+	switch *obj.Type {
+	case AlertType.ERROR:
+		if group == nil {
+			return nil
+		}
+		msg.Text = group.Event
+		shortEvent := group.Event
+		if len(group.Event) > 50 {
+			shortEvent = group.Event[:50] + "..."
+		}
+		errorLink := fmt.Sprintf("<%s/%d/errors/%d/>", frontendURL, obj.OrganizationID, group.ID)
+		// construct slack message
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error Alert:*\n\n"+shortEvent+"\n"+errorLink, false, false)
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
+		if url != nil {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*url, false, false))
+		}
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+		if *obj.Type == AlertType.ERROR {
+			blockSet = append(blockSet, slack.NewActionBlock(
+				"",
+				slack.NewButtonBlockElement(
+					"",
+					"click",
+					slack.NewTextBlockObject(
+						slack.PlainTextType,
+						"Resolve...",
+						false,
+						false,
+					),
+				),
+			))
+		}
+	case AlertType.NEW_USER:
+		// construct slack message
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
+		if userIdentifier != "" {
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
+		}
+		for k, v := range userProperties {
+			if k == "" {
+				continue
+			}
+			if v == "" {
+				v = "_empty_"
+			}
+			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*%s:*\n%s", strings.Title(strings.ToLower(k)), v), false, false))
+		}
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+	case AlertType.TRACK_PROPERTIES:
+		// format matched properties
+		var formattedFields []string
+		for _, addr := range matchedFields {
+			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
+		}
+		// construct slack message
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Track Properties Alert:*\n\n", false, false)
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched Track Properties:*\n%+v", formattedFields), false, false))
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+	case AlertType.USER_PROPERTIES:
+		// format matched properties
+		var formattedFields []string
+		for _, addr := range matchedFields {
+			formattedFields = append(formattedFields, fmt.Sprintf("{name: %s, value: %s}", addr.Name, addr.Value))
+		}
+		// construct slack message
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight User Properties Alert:*\n\n", false, false)
+		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Matched User Properties:*\n%+v", formattedFields), false, false))
+		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
+	}
+
+	blockSet = append(blockSet, slack.NewDividerBlock())
+	msg.Blocks = &slack.Blocks{BlockSet: blockSet}
+
+	// send message
+	for _, channel := range channels {
+		if channel.WebhookChannel != nil {
+			var slackWebhookURL string
+			for _, ch := range integratedSlackChannels {
+				if id := channel.WebhookChannelID; id != nil && ch.WebhookChannelID == *id {
+					slackWebhookURL = ch.WebhookURL
+					break
+				}
+			}
+			if slackWebhookURL == "" {
+				log.Error("requested channel has no matching slackWebhookURL")
+				continue
+			}
+			msg.Channel = *channel.WebhookChannel
+			go func() {
+				err := slack.PostWebhook(
+					slackWebhookURL,
+					&msg,
+				)
+				if err != nil {
+					log.Error(e.Wrap(err, "error sending slack msg"))
+				}
+			}()
+		}
+	}
+	return nil
 }
 
 type ReverseReader struct {

@@ -14,6 +14,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
+	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 	e "github.com/pkg/errors"
 	"github.com/rs/xid"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
@@ -22,12 +27,6 @@ import (
 	stripe "github.com/stripe/stripe-go"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-
-	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/pricing"
-	"github.com/highlight-run/highlight/backend/private-graph/graph/generated"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
 )
 
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
@@ -132,6 +131,19 @@ func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGro
 	return parsedFields, nil
 }
 
+func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (modelInputs.ErrorState, error) {
+	switch obj.State {
+	case model.ErrorGroupStates.OPEN:
+		return modelInputs.ErrorStateOpen, nil
+	case model.ErrorGroupStates.RESOLVED:
+		return modelInputs.ErrorStateResolved, nil
+	case model.ErrorGroupStates.IGNORED:
+		return modelInputs.ErrorStateIgnored, nil
+	default:
+		return modelInputs.ErrorStateOpen, e.New("invalid error group state")
+	}
+}
+
 func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject) ([]*string, error) {
 	return util.JsonStringToStringArray(obj.Event), nil
 }
@@ -183,7 +195,7 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}}).Error; err != nil {
+	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
 	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
@@ -252,6 +264,22 @@ func (r *mutationResolver) MarkErrorGroupAsResolved(ctx context.Context, id int,
 		Resolved: resolved,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup resolved status")
+	}
+
+	return errorGroup, nil
+}
+
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id int, state string) (*model.ErrorGroup, error) {
+	_, err := r.isAdminErrorGroupOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not errorGroup owner")
+	}
+
+	errorGroup := &model.ErrorGroup{}
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: id}}).First(&errorGroup).Updates(&model.ErrorGroup{
+		State: state,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
 	return errorGroup, nil
@@ -1008,10 +1036,10 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	errorFieldQuerySpan.Finish()
 
 	errorGroups := []model.ErrorGroup{}
-	selectPreamble := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved`
+	selectPreamble := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
-	queryString := `FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved, array_agg(t.error_field_id) fieldIds
+	queryString := `FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
 	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
@@ -1029,7 +1057,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	}
 
 	if resolved := params.HideResolved; resolved != nil && *resolved {
-		queryString += "AND (resolved = false) "
+		queryString += fmt.Sprintf("AND (state <> '%s') ", model.ErrorGroupStates.RESOLVED)
 	}
 
 	if params.Event != nil {
@@ -1477,7 +1505,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	//pluck not field ids
-	if len(params.ExcludedTrackProperties) > 0 {
+	if len(params.ExcludedTrackProperties) != len(notTrackFieldIds) {
 		var tempNotTrackFieldIds []int
 		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
 			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
@@ -1520,51 +1548,28 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	whereClause += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range fieldIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(fieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(visitedIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range visitedIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(visitedIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(referrerIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range referrerIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(referrerIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(notFieldIds) > 0 {
-		for _, id := range notFieldIds {
-			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
-		}
+		t := strings.Replace(fmt.Sprint(notFieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(notTrackFieldIds) > 0 {
-		for _, id := range notTrackFieldIds {
-			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
-		}
+		t := strings.Replace(fmt.Sprint(notTrackFieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if d := params.DateRange; d != nil {
