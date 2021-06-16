@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/go-sourcemap/sourcemap"
-
 	"github.com/go-test/deep"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/mitchellh/mapstructure"
