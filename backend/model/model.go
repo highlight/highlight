@@ -732,7 +732,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	}
 	switch *obj.Type {
 	case AlertType.ERROR:
-		if group == nil {
+		if group == nil || group.State == ErrorGroupStates.IGNORED {
 			return nil
 		}
 		msg.Text = group.Event
