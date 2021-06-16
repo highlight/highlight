@@ -192,7 +192,25 @@
             })();
         </script>
         <script>
-            (function (A, s, a, y, e, r) {
+            function uuidv4() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
+                    /[xy]/g,
+                    function (c) {
+                        var r = (Math.random() * 16) | 0,
+                            v = c == 'x' ? r : (r & 0x3) | 0x8;
+                        return v.toString(16);
+                    }
+                );
+            }
+            const key = 'highlightKeplerId';
+            let keplerId = sessionStorage.getItem(key);
+
+            if (!keplerId) {
+                keplerId = uuidv4();
+                sessionStorage.setItem(key, keplerId);
+            }
+
+            (function async(A, s, a, y, e, r) {
                 r = window.OpenReplay = [s, r, e, [y - 1]];
                 s = document.createElement('script');
                 s.src = a;
@@ -224,6 +242,8 @@
                 };
                 r.getSessionToken = function () {};
                 r.i = 'https://kepler.highlight.run/ingest';
+                r.setMetadata('sessionId', keplerId.toString());
+                r.setUserID(keplerId.toString());
             })(
                 0,
                 'upQH206ICwqlY7tvfxIM',
