@@ -748,18 +748,22 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 		}
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		var actionBlock []slack.BlockElement
-		for _, action := range []string{"Resolve", "Open", "Ignore"} {
+		for _, action := range modelInputs.AllErrorState {
+			titleStr := string(action)
+			if action == modelInputs.ErrorStateIgnored || action == modelInputs.ErrorStateResolved {
+				titleStr = titleStr[:len(titleStr)-1]
+			}
 			button := slack.NewButtonBlockElement(
 				"",
 				"click",
 				slack.NewTextBlockObject(
 					slack.PlainTextType,
-					action,
+					strings.Title(strings.ToLower(titleStr)),
 					false,
 					false,
 				),
 			)
-			button.URL = fmt.Sprintf("%s?action=%s", errorLink, strings.ToLower(action))
+			button.URL = fmt.Sprintf("%s?action=%s", errorLink, strings.ToLower(string(action)))
 			actionBlock = append(actionBlock, button)
 		}
 		blockSet = append(blockSet, slack.NewActionBlock(
