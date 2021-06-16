@@ -696,9 +696,8 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 }
 
 func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string) error {
-	log.Info("sending slack alert: ", obj.Type)
 	if obj == nil {
-		return fmt.Errorf("alert is nil")
+		return e.New("alert is nil")
 	}
 	// get alerts channels
 	channels, err := obj.GetChannelsToNotify()
@@ -740,29 +739,33 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 		if len(group.Event) > 50 {
 			shortEvent = group.Event[:50] + "..."
 		}
-		errorLink := fmt.Sprintf("<%s/%d/errors/%d/>", frontendURL, obj.OrganizationID, group.ID)
+		errorLink := fmt.Sprintf("%s/%d/errors/%d", frontendURL, obj.OrganizationID, group.ID)
 		// construct slack message
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error Alert:*\n\n"+shortEvent+"\n"+errorLink, false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error Alert:*\n\n"+shortEvent+"\n<"+errorLink+"/>", false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
 		if url != nil {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*url, false, false))
 		}
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
-		if *obj.Type == AlertType.ERROR {
-			blockSet = append(blockSet, slack.NewActionBlock(
+		var actionBlock []slack.BlockElement
+		for _, action := range []string{"Resolve", "Open", "Ignore"} {
+			button := slack.NewButtonBlockElement(
 				"",
-				slack.NewButtonBlockElement(
-					"",
-					"click",
-					slack.NewTextBlockObject(
-						slack.PlainTextType,
-						"Resolve...",
-						false,
-						false,
-					),
+				"click",
+				slack.NewTextBlockObject(
+					slack.PlainTextType,
+					action,
+					false,
+					false,
 				),
-			))
+			)
+			button.URL = fmt.Sprintf("%s?action=%s", errorLink, strings.ToLower(action))
+			actionBlock = append(actionBlock, button)
 		}
+		blockSet = append(blockSet, slack.NewActionBlock(
+			"",
+			actionBlock...,
+		))
 	case AlertType.NEW_USER:
 		// construct slack message
 		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight New User Alert:*\n\n", false, false)
@@ -815,7 +818,9 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 				}
 			}
 			if slackWebhookURL == "" {
-				log.Error("requested channel has no matching slackWebhookURL")
+				log.Error(
+					log.WithFields(log.Fields{"org_id": organization.ID}),
+					"requested channel has no matching slackWebhookURL")
 				continue
 			}
 			msg.Channel = *channel.WebhookChannel
@@ -825,7 +830,9 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 					&msg,
 				)
 				if err != nil {
-					log.Error(e.Wrap(err, "error sending slack msg"))
+					log.Error(
+						log.WithFields(log.Fields{"org_id": organization.ID, "slack_webhook_url": slackWebhookURL}),
+						e.Wrap(err, "error sending slack msg"))
 				}
 			}()
 		}
