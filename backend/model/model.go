@@ -630,8 +630,6 @@ func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) erro
 		return e.Wrap(err, "error reading source map file")
 	}
 
-	log.Info("source map: ", sourceMapURL)
-	log.Info("file bytes: ", fileBytes)
 	smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
 	if err != nil {
 		return e.Wrap(err, "error parsing source map file")
@@ -643,10 +641,9 @@ func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) erro
 	}
 	obj.MappedFile = file
 	obj.MappedFunction = fn
-	obj.LineNumber = line
-	obj.ColumnNumber = col
+	obj.MappedLineNumber = line
+	obj.MappedColumnNumber = col
 
-	log.Info(log.WithFields(log.Fields{"sourceMapURL": sourceMapURL}), "en fin")
 	return nil
 }
 
