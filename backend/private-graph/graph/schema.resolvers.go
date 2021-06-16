@@ -1423,7 +1423,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		if prop.Name == "contains" {
 			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
 		} else if prop.ID == nil || *prop.ID == 0 {
-			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
 		} else {
 			fieldIds = append(fieldIds, *prop.ID)
 		}
