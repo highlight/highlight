@@ -1,20 +1,22 @@
 package model
 
 import (
-	"bufio"
 	"context"
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
-	"reflect"
 	"path"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-sourcemap/sourcemap"
 
 	"github.com/go-test/deep"
 	"github.com/jackc/pgx/v4/stdlib"
@@ -540,7 +542,8 @@ type ErrorObject struct {
 	Source             string
 	LineNumber         int
 	ColumnNumber       int
-	MappedSource       string
+	SourceMap          string
+	MappedFile         string
 	MappedFunction     string
 	MappedLineNumber   int
 	MappedColumnNumber int
@@ -552,11 +555,14 @@ type ErrorObject struct {
 	Environment        string
 }
 
-func (e *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) error {
-	// get mapped stuff from source map
-	response, err := http.Get(input.Source) //use package "net/http"
+func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) error {
+	if os.Getenv("REACT_APP_ENVIRONMENT") == "dev" {
+		return nil
+	}
+	// get minified file
+	response, err := http.Get(input.Source)
 	if err != nil {
-		return err
+		return e.Wrap(err, "error getting source file")
 	}
 	defer response.Body.Close()
 
@@ -564,35 +570,83 @@ func (e *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) error 
 	filename := response.Request.URL.String()
 	out, err := os.Create(path.Base(filename))
 	if err != nil {
-		return err
+		return e.Wrap(err, "error creating file")
 	}
 	defer out.Close()
 	defer os.Remove(filename)
 
 	// Copy data from the response to standard output
-	_, err = io.Copy(out, response.Body) //use package "io" and "os"
+	_, err = io.Copy(out, response.Body)
 	if err != nil {
-		return err
+		return e.Wrap(err, "error copying response body to file")
 	}
 
-	rr := &ReverseReader{file: out}
-	// Seek to the end of file
-	if err = rr.SeekEnd(); err != nil {
-		return err
+	// get info about file for efficient parsing
+	info, err := out.Stat()
+	if err != nil {
+		return e.Wrap(err, "error getting file statistics")
 	}
 
-	scanner := bufio.NewScanner(rr)
-	var sourceMap string
-	for scanner.Scan() {
-		if scanner.Text() == "\n" {
+	// actually read the file
+	var sourceMapFileName string
+	b := make([]byte, 4)
+	fileSize := info.Size()
+	// loop until newline (\r or \n)
+	for i := int64(1); i < fileSize/4; i++ {
+		n, err := out.ReadAt(b, info.Size()-4*i)
+		if err != nil {
+			return e.Wrap(err, "error reading file")
+		}
+		chunkStr := string(b[:n])
+		if x := strings.IndexAny(chunkStr, "\n\r"); i > 1 && x != -1 {
+			sourceMapFileName = chunkStr[x+1:] + sourceMapFileName
 			break
 		}
-		sourceMap += scanner.Text()
+		sourceMapFileName = chunkStr + sourceMapFileName
 	}
-	if err = scanner.Err(); err != nil {
-		return err
+
+	// construct sourcemap url from searched file
+	sourceMapIndex := strings.Index(sourceMapFileName, "sourceMappingURL=")
+	if sourceMapIndex == -1 {
+		return e.New("file does not contain source map url")
 	}
-	log.Infof("source map: %+v", sourceMap)
+	sourceMapFileName = sourceMapFileName[sourceMapIndex+len("sourceMappingURL="):]
+	sourceFileNameIndex := strings.Index(input.Source, path.Base(filename))
+	if sourceFileNameIndex == -1 {
+		return e.New("source path doesn't contain file name")
+	}
+	sourceMapURL := input.Source[:sourceFileNameIndex] + sourceMapFileName
+	obj.SourceMap = sourceMapURL
+
+	// extract information from sourcemap
+	resp, err := http.Get(sourceMapURL)
+	if err != nil {
+		return e.Wrap(err, "error getting source map file")
+	}
+	defer resp.Body.Close()
+
+	fileBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return e.Wrap(err, "error reading source map file")
+	}
+
+	log.Info("source map: ", sourceMapURL)
+	log.Info("file bytes: ", fileBytes)
+	smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
+	if err != nil {
+		return e.Wrap(err, "error parsing source map file")
+	}
+
+	file, fn, line, col, ok := smap.Source(input.LineNumber, input.ColumnNumber)
+	if !ok {
+		return e.New("error extracting true error info from source map")
+	}
+	obj.MappedFile = file
+	obj.MappedFunction = fn
+	obj.LineNumber = line
+	obj.ColumnNumber = col
+
+	log.Info(log.WithFields(log.Fields{"sourceMapURL": sourceMapURL}), "en fin")
 	return nil
 }
 
