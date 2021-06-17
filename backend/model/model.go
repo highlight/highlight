@@ -695,7 +695,7 @@ func (s *Session) GetUserProperties() (map[string]string, error) {
 	return userProperties, nil
 }
 
-func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string) error {
+func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, userIdentifier string, group *ErrorGroup, url *string, matchedFields []*Field, userProperties map[string]string, numErrors *int64) error {
 	if obj == nil {
 		return e.New("alert is nil")
 	}
@@ -741,7 +741,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 		}
 		errorLink := fmt.Sprintf("%s/%d/errors/%d", frontendURL, obj.OrganizationID, group.ID)
 		// construct slack message
-		textBlock = slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error Alert:*\n\n"+shortEvent+"\n<"+errorLink+"/>", false, false)
+		textBlock = slack.NewTextBlockObject(slack.MarkdownType, fmt.Sprintf("*Highlight Error Alert: %d Recent Occurrences*\n\n%s\n<%s/>", *numErrors, shortEvent, errorLink), false, false)
 		messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+userIdentifier, false, false))
 		if url != nil {
 			messageBlock = append(messageBlock, slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+*url, false, false))
