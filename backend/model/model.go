@@ -749,6 +749,10 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 		blockSet = append(blockSet, slack.NewSectionBlock(textBlock, messageBlock, nil))
 		var actionBlock []slack.BlockElement
 		for _, action := range modelInputs.AllErrorState {
+			if group.State == string(action) {
+				continue
+			}
+
 			titleStr := string(action)
 			if action == modelInputs.ErrorStateIgnored || action == modelInputs.ErrorStateResolved {
 				titleStr = titleStr[:len(titleStr)-1]
