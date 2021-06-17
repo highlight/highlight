@@ -36,7 +36,6 @@ module.exports = {
     optimization: {
         removeEmptyChunks: true,
     },
-    devtool: 'inline-source-map',
     performance: {
         hints: 'warning',
         maxEntrypointSize: 512000,
