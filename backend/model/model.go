@@ -581,7 +581,7 @@ func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) erro
 	defer out.Close()
 	defer os.Remove(filename)
 
-	// Copy data from the response to standard output
+	// Copy data from the response body to file we just created
 	_, err = io.Copy(out, response.Body)
 	if err != nil {
 		return e.Wrap(err, "error copying response body to file")
