@@ -1,4 +1,3 @@
-import { message } from 'antd';
 import classNames from 'classnames';
 import classnames from 'classnames';
 import moment from 'moment';
@@ -15,7 +14,6 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import { StringParam, useQueryParam } from 'use-query-params';
 
 import Button from '../../components/Button/Button/Button';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
@@ -24,8 +22,6 @@ import InfoTooltip from '../../components/InfoTooltip/InfoTooltip';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import Tooltip from '../../components/Tooltip/Tooltip';
 import { useGetErrorGroupQuery } from '../../graph/generated/hooks';
-import { useUpdateErrorGroupStateMutation } from '../../graph/generated/hooks';
-import { ErrorState } from '../../graph/generated/schemas';
 import { ErrorGroup, Maybe } from '../../graph/generated/schemas';
 import SvgDownloadIcon from '../../static/DownloadIcon';
 import { frequencyTimeData } from '../../util/errorCalculations';
@@ -40,27 +36,6 @@ import { ErrorStateSelect } from './ErrorStateSelect/ErrorStateSelect';
 
 const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
-    const [action] = useQueryParam('action', StringParam);
-    const [updateErrorGroupState] = useUpdateErrorGroupStateMutation();
-
-    useEffect(() => {
-        if (action) {
-            if (
-                Object.values(ErrorState).includes(
-                    action.toUpperCase() as ErrorState
-                )
-            ) {
-                updateErrorGroupState({
-                    variables: { id: error_id, state: action.toUpperCase() },
-                });
-                message.success(
-                    `successfully updated error group state to ${action}.`
-                );
-            } else {
-                message.error(`${action} is not a valid state to update to.`);
-            }
-        }
-    }, [action, error_id, updateErrorGroupState]);
 
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
