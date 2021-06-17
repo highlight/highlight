@@ -54,7 +54,7 @@ type HighlightPublicInterface = {
 };
 
 interface HighlightWindow extends Window {
-    Highlight: Highlight;
+    Highlight: new (options?: HighlightClassOptions) => Highlight;
     H: HighlightPublicInterface;
 }
 
@@ -80,7 +80,7 @@ export const H: HighlightPublicInterface = {
             script.setAttribute('type', 'text/javascript');
             document.getElementsByTagName('head')[0].appendChild(script);
             script.addEventListener('load', () => {
-                highlight_obj = Highlight.create({
+                highlight_obj = new window.Highlight({
                     organizationID: orgID,
                     debug: options?.debug,
                     backendUrl: options?.backendUrl,
