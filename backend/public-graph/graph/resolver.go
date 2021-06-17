@@ -161,7 +161,6 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	if err := r.DB.Where(&model.ErrorGroup{
 		OrganizationID: errorObj.OrganizationID,
 		Event:          errorObj.Event,
-		Trace:          frameString,
 		Type:           errorObj.Type,
 	}).First(&errorGroup).Error; err != nil {
 		newErrorGroup := &model.ErrorGroup{
@@ -202,6 +201,11 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	logString := string(logBytes)
 
+	newFrameString := frameString
+	if len(frameString) < len(errorGroup.Trace) {
+		newFrameString = errorGroup.Trace
+	}
+
 	environmentsMap := make(map[string]int)
 	if errorGroup.Environments != "" {
 		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsMap)
@@ -222,7 +226,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	environmentsString := string(environmentsBytes)
 
-	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Environments: environmentsString}).Error; err != nil {
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Trace: newFrameString, Environments: environmentsString}).Error; err != nil {
 		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
@@ -278,7 +282,7 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	}
 	fieldString := string(fieldBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}).Error; err != nil {
 		return e.Wrap(err, "Error updating error group field group")
 	}
 	// We append to this session in the join table regardless.
