@@ -762,7 +762,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 				"click",
 				slack.NewTextBlockObject(
 					slack.PlainTextType,
-					strings.Title(strings.ToLower(titleStr)),
+					strings.Title(strings.ToLower(titleStr))+" Error",
 					false,
 					false,
 				),
