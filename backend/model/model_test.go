@@ -5,15 +5,13 @@ import (
 	"os"
 	"testing"
 
-	"gorm.io/driver/postgres"
-
-	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
-
 	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"gorm.io/driver/postgres"
+	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
-	log "github.com/sirupsen/logrus"
-	_ "gorm.io/driver/postgres"
+	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
 func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
@@ -102,10 +100,17 @@ func TestSetSourceMapElements(t *testing.T) {
 		},
 		"test source mapping invalid source:no source map": {
 			errorObjectInput: model.ErrorObjectInput{
-				Source: "https://cdnjs.cloudflare.com/ajax/libs/lodash.js",
+				Source: "https://cdnjs.cloudflare.com/",
 			},
 			expectedErrorObject: ErrorObject{},
 			err:                 e.New("file does not contain source map url"),
+		},
+		"test source mapping invalid source:file too small": {
+			errorObjectInput: model.ErrorObjectInput{
+				Source: "https://cdnjs.cloudflare.com/ajax/libs/lodash.js",
+			},
+			expectedErrorObject: ErrorObject{},
+			err:                 e.New("file not large enough to contain link to a source map"),
 		},
 		"test source mapping invalid source:source is not a url": {
 			errorObjectInput: model.ErrorObjectInput{
@@ -146,7 +151,7 @@ func TestSetSourceMapElements(t *testing.T) {
 				t.Error(e.Wrap(err, "error checking if models are equal"))
 			}
 			if !eq {
-				t.Error(e.New(fmt.Sprintf("models not equal: %+v", diff)))
+				t.Error(e.Errorf("models not equal: %+v", diff))
 			}
 			defer func(db *gorm.DB) {
 				err := clearTablesInDB(db)
