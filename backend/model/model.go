@@ -556,9 +556,6 @@ type ErrorObject struct {
 }
 
 func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) error {
-	if os.Getenv("REACT_APP_ENVIRONMENT") == "dev" {
-		return nil
-	}
 	// check if source is a URL
 	_, err := url.ParseRequestURI(input.Source)
 	if err != nil {
