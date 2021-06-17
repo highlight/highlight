@@ -592,19 +592,23 @@ func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) erro
 	if err != nil {
 		return e.Wrap(err, "error getting file statistics")
 	}
-
-	// actually read the file
-	var sourceMapFileName string
-	b := make([]byte, 4)
 	fileSize := info.Size()
+	if fileSize < 20 {
+		return e.New("file not large enough to contain link to a source map")
+	}
+
+	// read 16 bytes of the file at a time
+	// upon reaching the first new line, break
+	var sourceMapFileName string
+	b := make([]byte, 16)
 	// loop until newline (\r or \n)
-	for i := int64(1); i < fileSize/4; i++ {
-		n, err := out.ReadAt(b, info.Size()-4*i)
+	for i := int64(1); i < fileSize/16; i++ {
+		n, err := out.ReadAt(b, info.Size()-16*i)
 		if err != nil {
 			return e.Wrap(err, "error reading file")
 		}
 		chunkStr := string(b[:n])
-		if x := strings.IndexAny(chunkStr, "\n\r"); i > 1 && x != -1 {
+		if x := strings.LastIndexAny(chunkStr, "\n\r"); i > 1 && x != -1 {
 			sourceMapFileName = chunkStr[x+1:] + sourceMapFileName
 			break
 		}
