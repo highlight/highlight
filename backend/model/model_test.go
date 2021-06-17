@@ -100,7 +100,7 @@ func TestSetSourceMapElements(t *testing.T) {
 			},
 			err: nil,
 		},
-		"test source mapping invalid source:no source map": {
+		"test source mapping invalid source:no related source map": {
 			errorObjectInput: model.ErrorObjectInput{
 				Source: "https://cdnjs.cloudflare.com/ajax/libs/lodash.js",
 			},
