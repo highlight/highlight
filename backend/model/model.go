@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"reflect"
@@ -557,6 +558,15 @@ type ErrorObject struct {
 func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) error {
 	if os.Getenv("REACT_APP_ENVIRONMENT") == "dev" {
 		return nil
+	}
+	// check if source is a URL
+	_, err := url.ParseRequestURI(input.Source)
+	if err != nil {
+		return err
+	}
+	// check if source is localhost
+	if strings.Contains(strings.ToLower(input.Source), "localhost") {
+		return e.New("cannot parse localhost source")
 	}
 	// get minified file
 	response, err := http.Get(input.Source)

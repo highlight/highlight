@@ -69,20 +69,57 @@ func TestSetSourceMapElements(t *testing.T) {
 	tests := map[string]struct {
 		errorObjectInput    model.ErrorObjectInput
 		expectedErrorObject ErrorObject
+		err                 error
 	}{
-		"test proper source mapping": {
+		"test source mapping within function": {
 			errorObjectInput: model.ErrorObjectInput{
-				Source:       "https://djc7ncwalsvt2.cloudfront.net/static/js/0.21404295.chunk.js",
-				LineNumber:   2,
-				ColumnNumber: 261451,
+				Source:       "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js",
+				LineNumber:   1,
+				ColumnNumber: 813,
 			},
 			expectedErrorObject: ErrorObject{
-				SourceMap:          "https://djc7ncwalsvt2.cloudfront.net/static/js/0.21404295.chunk.js.map",
-				MappedFile:         "https://djc7ncwalsvt2.cloudfront.net/static/node_modules/video.js/dist/video.es.js",
-				MappedFunction:     "window$1",
-				MappedLineNumber:   97,
-				MappedColumnNumber: 47,
+				SourceMap:          "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js.map",
+				MappedFile:         "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js",
+				MappedLineNumber:   634,
+				MappedColumnNumber: 4,
 			},
+			err: nil,
+		},
+		"test source mapping on function name": {
+			errorObjectInput: model.ErrorObjectInput{
+				Source:       "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js",
+				LineNumber:   1,
+				ColumnNumber: 799,
+			},
+			expectedErrorObject: ErrorObject{
+				SourceMap:          "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js.map",
+				MappedFile:         "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js",
+				MappedFunction:     "arrayIncludesWith",
+				MappedLineNumber:   633,
+				MappedColumnNumber: 11,
+			},
+			err: nil,
+		},
+		"test source mapping invalid source: no source map": {
+			errorObjectInput: model.ErrorObjectInput{
+				Source: "https://cdnjs.cloudflare.com/ajax/libs/lodash.js",
+			},
+			expectedErrorObject: ErrorObject{},
+			err:                 e.New("file does not contain source map url"),
+		},
+		"test source mapping invalid source: source is not a url": {
+			errorObjectInput: model.ErrorObjectInput{
+				Source: "/file/local/domain.js",
+			},
+			expectedErrorObject: ErrorObject{},
+			err:                 e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
+		},
+		"test source mapping invalid source: source is localhost": {
+			errorObjectInput: model.ErrorObjectInput{
+				Source: "http://localhost:8080/abc.min.js",
+			},
+			expectedErrorObject: ErrorObject{},
+			err:                 e.New(`cannot parse localhost source`),
 		},
 	}
 	// run tests
@@ -91,6 +128,9 @@ func TestSetSourceMapElements(t *testing.T) {
 			var errorObj ErrorObject
 			err := errorObj.SetSourceMapElements(&tc.errorObjectInput)
 			if err != nil {
+				if err.Error() == tc.err.Error() {
+					return
+				}
 				t.Error(e.Wrap(err, "error setting source map elements"))
 			}
 			eq, diff, err := AreModelsWeaklyEqual(&errorObj, &tc.expectedErrorObject)
