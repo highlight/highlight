@@ -100,28 +100,36 @@ func TestSetSourceMapElements(t *testing.T) {
 			},
 			err: nil,
 		},
-		"test source mapping invalid source: no source map": {
+		"test source mapping invalid source:no source map": {
 			errorObjectInput: model.ErrorObjectInput{
 				Source: "https://cdnjs.cloudflare.com/ajax/libs/lodash.js",
 			},
 			expectedErrorObject: ErrorObject{},
 			err:                 e.New("file does not contain source map url"),
 		},
-		"test source mapping invalid source: source is not a url": {
+		"test source mapping invalid source:source is not a url": {
 			errorObjectInput: model.ErrorObjectInput{
 				Source: "/file/local/domain.js",
 			},
 			expectedErrorObject: ErrorObject{},
 			err:                 e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
 		},
-		"test source mapping invalid source: source is localhost": {
+		"test source mapping invalid source:source is localhost": {
 			errorObjectInput: model.ErrorObjectInput{
 				Source: "http://localhost:8080/abc.min.js",
 			},
 			expectedErrorObject: ErrorObject{},
 			err:                 e.New(`cannot parse localhost source`),
 		},
+		"test source mapping invalid source:source is empty": {
+			errorObjectInput: model.ErrorObjectInput{
+				Source: "",
+			},
+			expectedErrorObject: ErrorObject{},
+			err:                 e.New(`parse "": empty url`),
+		},
 	}
+
 	// run tests
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
