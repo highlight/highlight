@@ -81,7 +81,7 @@ func TestSetSourceMapElements(t *testing.T) {
 				MappedLineNumber:   634,
 				MappedColumnNumber: 4,
 			},
-			err: nil,
+			err: e.New(""),
 		},
 		"test source mapping on function name": {
 			errorObjectInput: model.ErrorObjectInput{
@@ -96,7 +96,7 @@ func TestSetSourceMapElements(t *testing.T) {
 				MappedLineNumber:   633,
 				MappedColumnNumber: 11,
 			},
-			err: nil,
+			err: e.New(""),
 		},
 		"test source mapping invalid source:no related source map": {
 			errorObjectInput: model.ErrorObjectInput{
@@ -105,12 +105,12 @@ func TestSetSourceMapElements(t *testing.T) {
 			expectedErrorObject: ErrorObject{},
 			err:                 e.New("file does not contain source map url"),
 		},
-		"test source mapping invalid source:file too small": {
+		"test source mapping invalid source:file doesn't exist": {
 			errorObjectInput: model.ErrorObjectInput{
 				Source: "https://cdnjs.cloudflare.com/ajax/libs/lodash.js",
 			},
 			expectedErrorObject: ErrorObject{},
-			err:                 e.New("file not large enough to contain link to a source map"),
+			err:                 e.New("status code not OK"),
 		},
 		"test source mapping invalid source:source is not a url": {
 			errorObjectInput: model.ErrorObjectInput{

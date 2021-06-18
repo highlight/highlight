@@ -6,7 +6,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -566,61 +565,40 @@ func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) erro
 		return e.New("cannot parse localhost source")
 	}
 	// get minified file
-	response, err := http.Get(input.Source)
+	res, err := http.Get(input.Source)
 	if err != nil {
 		return e.Wrap(err, "error getting source file")
 	}
-	defer response.Body.Close()
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return e.New("status code not OK")
+	}
 
-	// Create the file
-	filename := response.Request.URL.String()
-	out, err := os.Create(path.Base(filename))
+	// unpack file into slice
+	filename := res.Request.URL.String()
+	bodyBytes, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return e.Wrap(err, "error creating file")
+		return e.Wrap(err, "error reading response body")
 	}
-	defer out.Close()
-	defer os.Remove(filename)
+	if len(bodyBytes) > 1000000 {
+		return e.New("size of source way too big")
+	}
+	bodyString := string(bodyBytes)
+	bodyLines := strings.Split(bodyString, "\n")
+	if len(bodyLines) < 1 {
+		return e.New("body lines empty")
+	}
+	lastLine := bodyLines[len(bodyLines)-1]
 
-	// Copy data from the response body to file we just created
-	_, err = io.Copy(out, response.Body)
-	if err != nil {
-		return e.Wrap(err, "error copying response body to file")
-	}
-
-	// get info about file for efficient parsing
-	info, err := out.Stat()
-	if err != nil {
-		return e.Wrap(err, "error getting file statistics")
-	}
-	fileSize := info.Size()
-	if fileSize < 20 {
-		return e.New("file not large enough to contain link to a source map")
-	}
-
-	// read 16 bytes of the file at a time
-	// upon reaching the first new line, break
+	// extract sourceMappingURL file name from slice
 	var sourceMapFileName string
-	b := make([]byte, 16)
-	// loop until newline (\r or \n)
-	for i := int64(1); i < fileSize/16; i++ {
-		n, err := out.ReadAt(b, info.Size()-16*i)
-		if err != nil {
-			return e.Wrap(err, "error reading file")
-		}
-		chunkStr := string(b[:n])
-		if x := strings.LastIndexAny(chunkStr, "\n\r"); i > 1 && x != -1 {
-			sourceMapFileName = chunkStr[x+1:] + sourceMapFileName
-			break
-		}
-		sourceMapFileName = chunkStr + sourceMapFileName
-	}
-
-	// construct sourcemap url from searched file
-	sourceMapIndex := strings.Index(sourceMapFileName, "sourceMappingURL=")
+	sourceMapIndex := strings.LastIndex(lastLine, "sourceMappingURL=")
 	if sourceMapIndex == -1 {
 		return e.New("file does not contain source map url")
 	}
-	sourceMapFileName = sourceMapFileName[sourceMapIndex+len("sourceMappingURL="):]
+	sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
+
+	// construct sourcemap url from searched file
 	sourceFileNameIndex := strings.Index(input.Source, path.Base(filename))
 	if sourceFileNameIndex == -1 {
 		return e.New("source path doesn't contain file name")
