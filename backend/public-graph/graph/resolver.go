@@ -148,6 +148,11 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 }
 
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []interface{}, fields []*model.ErrorField) (*model.ErrorGroup, error) {
+	/*
+		interface for fetcher
+		only map stack trace for error that is overwriting
+		rename trace to stack frame
+	*/
 	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
 		return nil, e.Wrap(err, "Error marshalling first frame")
