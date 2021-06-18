@@ -99,6 +99,7 @@ export class Highlight {
     organizationID: string;
     graphqlSDK: Sdk;
     events: eventWithTime[];
+    allEvents: eventWithTime[];
     errors: ErrorMessage[];
     messages: ConsoleMessage[];
     networkContents: NetworkResourceContent[];
@@ -168,6 +169,7 @@ export class Highlight {
         this._optionsInternal = optionsInternal;
         this.listeners = [];
         this.events = [];
+        this.allEvents = [];
         this.errors = [];
         this.networkContents = [];
         this.messages = [];
@@ -336,6 +338,7 @@ export class Highlight {
             }, SEND_FREQUENCY);
             const emit = (event: eventWithTime) => {
                 this.events.push(event);
+                this.allEvents.push(event);
             };
             emit.bind(this);
             const recordStop = record({
@@ -508,6 +511,7 @@ export class Highlight {
             this.errors = [];
             this.messages = [];
             this.networkContents = [];
+            console.info(JSON.stringify(this.allEvents));
             // Listeners are cleared when the user calls stop() manually.
             if (this.listeners.length === 0) {
                 return;
@@ -554,6 +558,7 @@ export class Highlight {
         if (!this.disableNetworkRecording) {
             performance.clearResourceTimings();
         }
+        console.log('length', this.events.length);
 
         return {
             session_id: this.sessionData.sessionID.toString(),

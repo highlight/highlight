@@ -191,67 +191,6 @@
                     }
             })();
         </script>
-        <script>
-            function uuidv4() {
-                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(
-                    /[xy]/g,
-                    function (c) {
-                        var r = (Math.random() * 16) | 0,
-                            v = c == 'x' ? r : (r & 0x3) | 0x8;
-                        return v.toString(16);
-                    }
-                );
-            }
-            const key = 'highlightKeplerId';
-            let keplerId = sessionStorage.getItem(key);
-
-            if (!keplerId) {
-                keplerId = uuidv4();
-                sessionStorage.setItem(key, keplerId);
-            }
-
-            (function async(A, s, a, y, e, r) {
-                r = window.OpenReplay = [s, r, e, [y - 1]];
-                s = document.createElement('script');
-                s.src = a;
-                s.async = !A;
-                document.getElementsByTagName('head')[0].appendChild(s);
-                r.start = function (v) {
-                    r.push([0]);
-                };
-                r.stop = function (v) {
-                    r.push([1]);
-                };
-                r.setUserID = function (id) {
-                    r.push([2, id]);
-                };
-                r.setUserAnonymousID = function (id) {
-                    r.push([3, id]);
-                };
-                r.setMetadata = function (k, v) {
-                    r.push([4, k, v]);
-                };
-                r.event = function (k, p, i) {
-                    r.push([5, k, p, i]);
-                };
-                r.issue = function (k, p) {
-                    r.push([6, k, p]);
-                };
-                r.isActive = function () {
-                    return false;
-                };
-                r.getSessionToken = function () {};
-                r.i = 'https://kepler.highlight.run/ingest';
-                r.setMetadata('sessionId', keplerId.toString());
-                r.setUserID(keplerId.toString());
-            })(
-                0,
-                'upQH206ICwqlY7tvfxIM',
-                '//static.openreplay.com/3.0.3/openreplay.js',
-                1,
-                95
-            );
-        </script>
     </head>
     <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>
