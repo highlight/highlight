@@ -154,3 +154,118 @@ func TestHideViewedSessions(t *testing.T) {
 		})
 	}
 }
+
+// uncomment this once I have a common handler for isAdminInOrg()
+//func TestErrorGroups(t *testing.T) {
+//	// construct table of sub-tests to run
+//	startDate := time.Date(2021, 4, 19, 21, 0, 0, 0, time.UTC)
+//	endDate := time.Date(2021, 4, 20, 10, 0, 0, 0, time.UTC)
+//	tests := map[string]struct {
+//		errorObjectsToInsert []model.ErrorObject
+//		errorGroupsToInsert  []model.ErrorGroup
+//		params               *modelInputs.ErrorSearchParamsInput
+//		expectedCount        int64
+//		expectedErrorGroups  []model.ErrorGroup
+//		expectedError        error
+//	}{
+//		"get error groups with date range": {
+//			params: &modelInputs.ErrorSearchParamsInput{
+//				DateRange: &modelInputs.DateRangeInput{
+//					StartDate: &startDate,
+//					EndDate:   &endDate,
+//				},
+//			},
+//			errorGroupsToInsert: []model.ErrorGroup{
+//				{
+//					Model:          model.Model{ID: 1},
+//					OrganizationID: 1,
+//				},
+//				{
+//					Model:          model.Model{ID: 2},
+//					OrganizationID: 1,
+//				},
+//			},
+//			expectedErrorGroups: []model.ErrorGroup{
+//				{
+//					State:          model.ErrorGroupStates.OPEN,
+//					Model:          model.Model{ID: 2},
+//					OrganizationID: 1,
+//				},
+//			},
+//			errorObjectsToInsert: []model.ErrorObject{
+//				{
+//					Model: model.Model{
+//						ID:        1,
+//						CreatedAt: startDate.Add(2 * time.Hour),
+//					},
+//					OrganizationID: 1,
+//					ErrorGroupID:   2,
+//				},
+//				{
+//					Model: model.Model{
+//						ID:        2,
+//						CreatedAt: startDate.Add(-2 * time.Hour),
+//					},
+//					OrganizationID: 1,
+//					ErrorGroupID:   2,
+//				},
+//				{
+//					Model: model.Model{
+//						ID:        3,
+//						CreatedAt: endDate.Add(2 * time.Hour),
+//					},
+//					OrganizationID: 1,
+//					ErrorGroupID:   2,
+//				},
+//				{
+//					Model: model.Model{
+//						ID:        4,
+//						CreatedAt: endDate.Add(-2 * time.Hour),
+//					},
+//					OrganizationID: 1,
+//					ErrorGroupID:   2,
+//				},
+//			},
+//			expectedCount: 1,
+//		},
+//	}
+//	// run tests
+//	for name, tc := range tests {
+//		t.Run(name, func(t *testing.T) {
+//			// inserting the data
+//			if err := DB.Create(&tc.errorObjectsToInsert).Error; err != nil {
+//				t.Fatal(e.Wrap(err, "error inserting error objects"))
+//			}
+//			if err := DB.Create(&tc.errorGroupsToInsert).Error; err != nil {
+//				t.Fatal(e.Wrap(err, "error inserting error groups"))
+//			}
+//			defer func(db *gorm.DB) {
+//				err := util.ClearTablesInDB(db)
+//				if err != nil {
+//					t.Fatal(e.Wrap(err, "error clearing database"))
+//				}
+//			}(DB)
+//
+//			// test logic
+//			r := &queryResolver{Resolver: &Resolver{DB: DB}}
+//			errorGroups, err := r.ErrorGroups(context.Background(), 1, 10, tc.params)
+//			t.Logf("error groups count: %d ||||| error groups: %+v", errorGroups.TotalCount, errorGroups.ErrorGroups)
+//			if err != nil {
+//				t.Fatal(e.Wrap(err, "error querying errorGroups"))
+//			}
+//			if errorGroups.TotalCount != tc.expectedCount {
+//				t.Fatal("received error group count and expected error group count not equal")
+//			}
+//			for i, errorGroup := range errorGroups.ErrorGroups {
+//				isEqual, diff, err := model.AreModelsWeaklyEqual(&errorGroup, &tc.expectedErrorGroups[i])
+//				if err != nil {
+//					t.Fatal(e.Wrap(err, "error comparing two error groups"))
+//				}
+//				if !isEqual {
+//					t.Fatalf("received error group not equal to expected error group. diff: %+v", diff)
+//				}
+//			}
+//		})
+//	}
+//}
+//
