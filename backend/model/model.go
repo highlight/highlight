@@ -584,7 +584,7 @@ func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) erro
 		return e.New("size of source way too big")
 	}
 	bodyString := string(bodyBytes)
-	bodyLines := strings.Split(bodyString, "\n")
+	bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
 	if len(bodyLines) < 1 {
 		return e.New("body lines empty")
 	}
