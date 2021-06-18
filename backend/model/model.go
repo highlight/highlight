@@ -549,12 +549,24 @@ type ErrorObject struct {
 	OS                 string
 	Browser            string
 	Trace              *string   `json:"trace"`
+	MappedStackTrace   *string   `json:"mapped_stack_trace"`
 	Timestamp          time.Time `json:"timestamp"`
 	Payload            *string   `json:"payload"`
 	Environment        string
 }
 
 func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) error {
+	//var newStackTrace *string
+	for _, stackTrace := range input.Trace {
+		/*
+			lineNumber: int
+			columnNumber: int
+			fileName: string
+			functionName: string
+			source: string
+		*/
+		log.Info(stackTrace)
+	}
 	// check if source is a URL
 	_, err := url.ParseRequestURI(input.Source)
 	if err != nil {
