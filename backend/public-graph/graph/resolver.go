@@ -19,6 +19,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/pricing"
+	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
 // This file will not be regenerated automatically.
@@ -147,7 +148,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	return nil
 }
 
-func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []interface{}, fields []*model.ErrorField) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []*model2.StackFrameInput, fields []*model.ErrorField) (*model.ErrorGroup, error) {
 	/*
 		interface for fetcher
 		only map stack trace for error that is overwriting
