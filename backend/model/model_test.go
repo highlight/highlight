@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
@@ -11,6 +12,7 @@ import (
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	modelInput "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
@@ -62,6 +64,20 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+func MakeIntPointer(v int) *int {
+	return &v
+}
+
+func MakeStringPointer(v string) *string {
+	return &v
+}
+
+func MakeStringPointerFromInterface(v interface{}) *string {
+	exampleErrorTraceBytes, _ := json.Marshal(&v)
+	exampleErrorTraceString := string(exampleErrorTraceBytes)
+	return &exampleErrorTraceString
+}
+
 func TestSetSourceMapElements(t *testing.T) {
 	// construct table of sub-tests to run
 	tests := map[string]struct {
@@ -69,75 +85,118 @@ func TestSetSourceMapElements(t *testing.T) {
 		expectedErrorObject ErrorObject
 		err                 error
 	}{
-		"test source mapping within function": {
+		"test source mapping with proper stack trace": {
 			errorObjectInput: model.ErrorObjectInput{
-				Source:       "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js",
-				LineNumber:   1,
-				ColumnNumber: 813,
+				Trace: []*model.StackFrameInput{
+					{
+						FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
+						LineNumber:   MakeIntPointer(1),
+						ColumnNumber: MakeIntPointer(813),
+					},
+					{
+						FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
+						LineNumber:   MakeIntPointer(1),
+						ColumnNumber: MakeIntPointer(799),
+					},
+				},
 			},
 			expectedErrorObject: ErrorObject{
-				SourceMap:          "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js.map",
-				MappedFile:         "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js",
-				MappedLineNumber:   634,
-				MappedColumnNumber: 4,
+				MappedStackTrace: MakeStringPointerFromInterface(
+					[]modelInput.ErrorTrace{
+						{
+							FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
+							LineNumber:   MakeIntPointer(634),
+							ColumnNumber: MakeIntPointer(4),
+							FunctionName: MakeStringPointer(""),
+						},
+						{
+							FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
+							LineNumber:   MakeIntPointer(633),
+							ColumnNumber: MakeIntPointer(11),
+							FunctionName: MakeStringPointer("arrayIncludesWith"),
+						},
+					},
+				),
 			},
 			err: e.New(""),
 		},
-		"test source mapping on function name": {
+		"test source mapping invalid trace:no related source map": {
 			errorObjectInput: model.ErrorObjectInput{
-				Source:       "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js",
-				LineNumber:   1,
-				ColumnNumber: 799,
-			},
-			expectedErrorObject: ErrorObject{
-				SourceMap:          "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js.map",
-				MappedFile:         "https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js",
-				MappedFunction:     "arrayIncludesWith",
-				MappedLineNumber:   633,
-				MappedColumnNumber: 11,
-			},
-			err: e.New(""),
-		},
-		"test source mapping invalid source:no related source map": {
-			errorObjectInput: model.ErrorObjectInput{
-				Source: "https://cdnjs.cloudflare.com/",
+				Trace: []*model.StackFrameInput{
+					{
+						FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/"),
+						LineNumber:   MakeIntPointer(0),
+						ColumnNumber: MakeIntPointer(0),
+					},
+				},
 			},
 			expectedErrorObject: ErrorObject{},
 			err:                 e.New("file does not contain source map url"),
 		},
-		"test source mapping invalid source:file doesn't exist": {
+		"test source mapping invalid trace:file doesn't exist": {
 			errorObjectInput: model.ErrorObjectInput{
-				Source: "https://cdnjs.cloudflare.com/ajax/libs/lodash.js",
+				Trace: []*model.StackFrameInput{
+					{
+						FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
+						LineNumber:   MakeIntPointer(0),
+						ColumnNumber: MakeIntPointer(0),
+					},
+				},
 			},
 			expectedErrorObject: ErrorObject{},
 			err:                 e.New("status code not OK"),
 		},
-		"test source mapping invalid source:source is not a url": {
+		"test source mapping invalid trace:filename is not a url": {
 			errorObjectInput: model.ErrorObjectInput{
-				Source: "/file/local/domain.js",
+				Trace: []*model.StackFrameInput{
+					{
+						FileName:     MakeStringPointer("/file/local/domain.js"),
+						LineNumber:   MakeIntPointer(0),
+						ColumnNumber: MakeIntPointer(0),
+					},
+				},
 			},
 			expectedErrorObject: ErrorObject{},
 			err:                 e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
 		},
-		"test source mapping invalid source:source is localhost": {
+		"test source mapping invalid trace:filename is localhost": {
 			errorObjectInput: model.ErrorObjectInput{
-				Source: "http://localhost:8080/abc.min.js",
+				Trace: []*model.StackFrameInput{
+					{
+						FileName:     MakeStringPointer("http://localhost:8080/abc.min.js"),
+						LineNumber:   MakeIntPointer(0),
+						ColumnNumber: MakeIntPointer(0),
+					},
+				},
 			},
 			expectedErrorObject: ErrorObject{},
 			err:                 e.New(`cannot parse localhost source`),
 		},
-		"test source mapping invalid source:source is empty": {
-			errorObjectInput: model.ErrorObjectInput{
-				Source: "",
-			},
+		"test source mapping invalid trace:trace is nil": {
+			errorObjectInput:    model.ErrorObjectInput{},
 			expectedErrorObject: ErrorObject{},
-			err:                 e.New(`parse "": empty url`),
+			err:                 e.New("stack trace input cannot be nil"),
+		},
+		"test source mapping invalid trace:empty stack frame doesn't update error object": {
+			errorObjectInput: model.ErrorObjectInput{
+				Trace: []*model.StackFrameInput{},
+			},
+			expectedErrorObject: ErrorObject{
+				MappedStackTrace: MakeStringPointer("null"),
+			},
+			err: e.New(""),
 		},
 	}
 
 	// run tests
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
+			defer func(db *gorm.DB) {
+				err := clearTablesInDB(db)
+				if err != nil {
+					t.Fatal(e.Wrap(err, "error clearing tables in test db"))
+				}
+			}(DB)
 			var errorObj ErrorObject
 			err := errorObj.SetSourceMapElements(&tc.errorObjectInput)
 			if err != nil {
@@ -153,12 +212,6 @@ func TestSetSourceMapElements(t *testing.T) {
 			if !eq {
 				t.Error(e.Errorf("models not equal: %+v", diff))
 			}
-			defer func(db *gorm.DB) {
-				err := clearTablesInDB(db)
-				if err != nil {
-					t.Fatal(e.Wrap(err, "error clearing tables in test db"))
-				}
-			}(DB)
 		})
 	}
 }
