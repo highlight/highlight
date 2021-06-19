@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/go-sourcemap/sourcemap"
+
 	"github.com/go-test/deep"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/mitchellh/mapstructure"
@@ -532,117 +533,119 @@ type ErrorSegment struct {
 
 type ErrorObject struct {
 	Model
-	OrganizationID     int
-	SessionID          int
-	ErrorGroupID       int
-	Event              string
-	Type               string
-	URL                string
-	Source             string
-	LineNumber         int
-	ColumnNumber       int
-	SourceMap          string
-	MappedFile         string
-	MappedFunction     string
-	MappedLineNumber   int
-	MappedColumnNumber int
-	OS                 string
-	Browser            string
-	Trace              *string   `json:"trace"`
-	MappedStackTrace   *string   `json:"mapped_stack_trace"`
-	Timestamp          time.Time `json:"timestamp"`
-	Payload            *string   `json:"payload"`
-	Environment        string
+	OrganizationID   int
+	SessionID        int
+	ErrorGroupID     int
+	Event            string
+	Type             string
+	URL              string
+	Source           string
+	LineNumber       int
+	ColumnNumber     int
+	SourceMap        string
+	OS               string
+	Browser          string
+	Trace            *string   `json:"trace"`
+	MappedStackTrace *string   `json:"mapped_stack_trace"`
+	Timestamp        time.Time `json:"timestamp"`
+	Payload          *string   `json:"payload"`
+	Environment      string
 }
 
 func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) error {
-	//var newStackTrace *string
+	var mappedStackTrace []modelInputs.ErrorTrace
+	if input.Trace == nil {
+		return e.New("stack trace input cannot be nil")
+	}
 	for _, stackTrace := range input.Trace {
-		/*
-			lineNumber: int
-			columnNumber: int
-			fileName: string
-			functionName: string
-			source: string
-		*/
-		log.Info(stackTrace)
+		if stackTrace == nil || (stackTrace.FileName == nil || stackTrace.LineNumber == nil || stackTrace.ColumnNumber == nil) {
+			continue
+		}
+		// check if source is a URL
+		_, err := url.ParseRequestURI(*stackTrace.FileName)
+		if err != nil {
+			return err
+		}
+		// check if source is localhost
+		if strings.Contains(strings.ToLower(*stackTrace.FileName), "localhost") {
+			return e.New("cannot parse localhost source")
+		}
+		// get minified file
+		res, err := http.Get(*stackTrace.FileName)
+		if err != nil {
+			return e.Wrap(err, "error getting source file")
+		}
+		defer res.Body.Close()
+		if res.StatusCode != http.StatusOK {
+			return e.New("status code not OK")
+		}
+
+		// unpack file into slice
+		filename := res.Request.URL.String()
+		bodyBytes, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return e.Wrap(err, "error reading response body")
+		}
+		if len(bodyBytes) > 1000000 {
+			return e.New("size of source way too big")
+		}
+		bodyString := string(bodyBytes)
+		bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
+		if len(bodyLines) < 1 {
+			return e.New("body lines empty")
+		}
+		lastLine := bodyLines[len(bodyLines)-1]
+
+		// extract sourceMappingURL file name from slice
+		var sourceMapFileName string
+		sourceMapIndex := strings.LastIndex(lastLine, "sourceMappingURL=")
+		if sourceMapIndex == -1 {
+			return e.New("file does not contain source map url")
+		}
+		sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
+
+		// construct sourcemap url from searched file
+		sourceFileNameIndex := strings.Index(*stackTrace.FileName, path.Base(filename))
+		if sourceFileNameIndex == -1 {
+			return e.New("source path doesn't contain file name")
+		}
+		sourceMapURL := (*stackTrace.FileName)[:sourceFileNameIndex] + sourceMapFileName
+
+		// extract information from sourcemap
+		resp, err := http.Get(sourceMapURL)
+		if err != nil {
+			return e.Wrap(err, "error getting source map file")
+		}
+		defer resp.Body.Close()
+
+		fileBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return e.Wrap(err, "error reading source map file")
+		}
+
+		smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
+		if err != nil {
+			return e.Wrap(err, "error parsing source map file")
+		}
+
+		var mappedStackFrame modelInputs.ErrorTrace
+		file, fn, line, col, ok := smap.Source(*stackTrace.LineNumber, *stackTrace.ColumnNumber)
+		if !ok {
+			return e.New("error extracting true error info from source map")
+		}
+		mappedStackFrame.FileName = &file
+		mappedStackFrame.FunctionName = &fn
+		mappedStackFrame.LineNumber = &line
+		mappedStackFrame.ColumnNumber = &col
+		mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
 	}
-	// check if source is a URL
-	_, err := url.ParseRequestURI(input.Source)
+
+	mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
 	if err != nil {
-		return err
-	}
-	// check if source is localhost
-	if strings.Contains(strings.ToLower(input.Source), "localhost") {
-		return e.New("cannot parse localhost source")
-	}
-	// get minified file
-	res, err := http.Get(input.Source)
-	if err != nil {
-		return e.Wrap(err, "error getting source file")
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return e.New("status code not OK")
-	}
 
-	// unpack file into slice
-	filename := res.Request.URL.String()
-	bodyBytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return e.Wrap(err, "error reading response body")
 	}
-	if len(bodyBytes) > 1000000 {
-		return e.New("size of source way too big")
-	}
-	bodyString := string(bodyBytes)
-	bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
-	if len(bodyLines) < 1 {
-		return e.New("body lines empty")
-	}
-	lastLine := bodyLines[len(bodyLines)-1]
-
-	// extract sourceMappingURL file name from slice
-	var sourceMapFileName string
-	sourceMapIndex := strings.LastIndex(lastLine, "sourceMappingURL=")
-	if sourceMapIndex == -1 {
-		return e.New("file does not contain source map url")
-	}
-	sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
-
-	// construct sourcemap url from searched file
-	sourceFileNameIndex := strings.Index(input.Source, path.Base(filename))
-	if sourceFileNameIndex == -1 {
-		return e.New("source path doesn't contain file name")
-	}
-	sourceMapURL := input.Source[:sourceFileNameIndex] + sourceMapFileName
-	obj.SourceMap = sourceMapURL
-
-	// extract information from sourcemap
-	resp, err := http.Get(sourceMapURL)
-	if err != nil {
-		return e.Wrap(err, "error getting source map file")
-	}
-	defer resp.Body.Close()
-
-	fileBytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return e.Wrap(err, "error reading source map file")
-	}
-
-	smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
-	if err != nil {
-		return e.Wrap(err, "error parsing source map file")
-	}
-
-	file, fn, line, col, ok := smap.Source(input.LineNumber, input.ColumnNumber)
-	if !ok {
-		return e.New("error extracting true error info from source map")
-	}
-	obj.MappedFile = file
-	obj.MappedFunction = fn
-	obj.MappedLineNumber = line
-	obj.MappedColumnNumber = col
+	mappedStackTraceString := string(mappedStackTraceBytes)
+	obj.MappedStackTrace = &mappedStackTraceString
 
 	return nil
 }
