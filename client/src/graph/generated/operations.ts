@@ -30,6 +30,17 @@ export type Session = {
   organization_id: Scalars['ID'];
 };
 
+export type StackFrameInput = {
+  functionName?: Maybe<Scalars['String']>;
+  args?: Maybe<Array<Maybe<Scalars['Any']>>>;
+  fileName?: Maybe<Scalars['String']>;
+  lineNumber?: Maybe<Scalars['Int']>;
+  columnNumber?: Maybe<Scalars['Int']>;
+  isEval?: Maybe<Scalars['Boolean']>;
+  isNative?: Maybe<Scalars['Boolean']>;
+  source?: Maybe<Scalars['String']>;
+};
+
 export type ErrorObjectInput = {
   event: Scalars['String'];
   type: Scalars['String'];
@@ -37,7 +48,7 @@ export type ErrorObjectInput = {
   source: Scalars['String'];
   lineNumber: Scalars['Int'];
   columnNumber: Scalars['Int'];
-  trace: Array<Maybe<Scalars['Any']>>;
+  trace: Array<Maybe<StackFrameInput>>;
   timestamp: Scalars['Time'];
   payload?: Maybe<Scalars['String']>;
 };

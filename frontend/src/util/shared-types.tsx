@@ -11,6 +11,7 @@ export type ErrorMessage = {
     event: string;
     type: 'console.error' | 'window.onerror' | 'custom';
     url: string;
+    // let's deprecate source, lineNumber, and columnNumber bc they're essentially useless since we now parse source map on backend
     source: string;
     lineNumber: number;
     columnNumber: number;
