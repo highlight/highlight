@@ -2,6 +2,8 @@ package graph
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"testing"
@@ -12,6 +14,7 @@ import (
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 )
@@ -29,6 +32,57 @@ func TestMain(m *testing.M) {
 	}
 	code := m.Run()
 	os.Exit(code)
+}
+
+func TestEventsParsingE2E(t *testing.T) {
+	eventBytes, err := ioutil.ReadFile("./sample-events/readable-events.json")
+	if err != nil {
+		t.Fatalf("error reading: %v", err)
+	}
+	parsedEvents, err := parse.EventsFromString(string(eventBytes))
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error parsing events from schema interfaces"))
+	}
+
+	// If we see a snapshot event, attempt to inject CORS stylesheets.
+	log.Printf("size of parsed events: %v \n", len(parsedEvents.Events))
+	for _, e := range parsedEvents.Events {
+		if e.Type == parse.FullSnapshot {
+			d, err := parse.InjectStylesheets(e.Data)
+			if err != nil {
+				continue
+			}
+			e.Data = d
+		}
+	}
+
+	f1 := fmt.Sprintf("./test-events/%v-got.json", 3)
+	_, err = os.OpenFile(f1, os.O_RDONLY|os.O_CREATE, 0666)
+	if err != nil {
+		t.Fatalf("something else: %v", err)
+	}
+	got, err := json.MarshalIndent(json.RawMessage(eventBytes), "", "   ")
+	if err != nil {
+		t.Fatalf("something else: %v", err)
+	}
+	err = ioutil.WriteFile(f1, got, 0644)
+	if err != nil {
+		t.Fatalf("something else: %v", err)
+	}
+
+	f2 := fmt.Sprintf("./test-events/%v-want.json", 4)
+	_, err = os.OpenFile(f2, os.O_RDONLY|os.O_CREATE, 0666)
+	if err != nil {
+		t.Fatalf("something else: %v", err)
+	}
+	want, err := json.MarshalIndent(parsedEvents, "", "  ")
+	if err != nil {
+		t.Fatal(e.Wrap(err, "error marshaling events from schema interfaces"))
+	}
+	err = ioutil.WriteFile(f2, want, 0644)
+	if err != nil {
+		t.Fatalf("something else: %v", err)
+	}
 }
 
 func TestHandleErrorAndGroup(t *testing.T) {
