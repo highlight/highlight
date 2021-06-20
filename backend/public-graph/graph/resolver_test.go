@@ -56,7 +56,7 @@ func TestEventsParsingE2E(t *testing.T) {
 		}
 	}
 
-	f1 := fmt.Sprintf("./test-events/%v-got.json", 3)
+	f1 := fmt.Sprintf("./test-events/%v-want.json", 3)
 	_, err = os.OpenFile(f1, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
 		t.Fatalf("something else: %v", err)
@@ -70,7 +70,7 @@ func TestEventsParsingE2E(t *testing.T) {
 		t.Fatalf("something else: %v", err)
 	}
 
-	f2 := fmt.Sprintf("./test-events/%v-want.json", 4)
+	f2 := fmt.Sprintf("./test-events/%v-got.json", 4)
 	_, err = os.OpenFile(f2, os.O_RDONLY|os.O_CREATE, 0666)
 	if err != nil {
 		t.Fatalf("something else: %v", err)
