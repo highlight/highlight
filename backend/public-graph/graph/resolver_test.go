@@ -61,11 +61,11 @@ func TestEventsParsingE2E(t *testing.T) {
 	if err != nil {
 		t.Fatalf("something else: %v", err)
 	}
-	got, err := json.MarshalIndent(json.RawMessage(eventBytes), "", "   ")
+	want, err := json.MarshalIndent(json.RawMessage(eventBytes), "", "   ")
 	if err != nil {
 		t.Fatalf("something else: %v", err)
 	}
-	err = ioutil.WriteFile(f1, got, 0644)
+	err = ioutil.WriteFile(f1, want, 0644)
 	if err != nil {
 		t.Fatalf("something else: %v", err)
 	}
@@ -75,11 +75,11 @@ func TestEventsParsingE2E(t *testing.T) {
 	if err != nil {
 		t.Fatalf("something else: %v", err)
 	}
-	want, err := json.MarshalIndent(parsedEvents, "", "  ")
+	got, err := json.MarshalIndent(parsedEvents, "", "  ")
 	if err != nil {
 		t.Fatal(e.Wrap(err, "error marshaling events from schema interfaces"))
 	}
-	err = ioutil.WriteFile(f2, want, 0644)
+	err = ioutil.WriteFile(f2, got, 0644)
 	if err != nil {
 		t.Fatalf("something else: %v", err)
 	}
