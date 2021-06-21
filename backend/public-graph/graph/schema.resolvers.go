@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -131,28 +132,28 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	if evs := events.Events; len(evs) > 0 {
 		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
 		// should fix at some point.
-		// eventBytes, err := json.Marshal(events)
-		// if err != nil {
-		// 	return nil, e.Wrap(err, "error marshaling events from schema interfaces")
-		// }
-		// parsedEvents, err := parse.EventsFromString(string(eventBytes))
-		// if err != nil {
-		// 	return nil, e.Wrap(err, "error parsing events from schema interfaces")
-		// }
+		eventBytes, err := json.Marshal(events)
+		if err != nil {
+			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
+		}
+		parsedEvents, err := parse.EventsFromString(string(eventBytes))
+		if err != nil {
+			return nil, e.Wrap(err, "error parsing events from schema interfaces")
+		}
 
 		// If we see a snapshot event, attempt to inject CORS stylesheets.
-		// for _, e := range events.Events {
-		// 	// if e.Type == parse.FullSnapshot {
-		// 	// 	d, err := parse.InjectStylesheets(e.Data)
-		// 	// 	if err != nil {
-		// 	// 		continue
-		// 	// 	}
-		// 	// 	e.Data = d
-		// 	// }
-		// }
+		for _, e := range parsedEvents.Events {
+			if e.Type == parse.FullSnapshot {
+				d, err := parse.InjectStylesheets(e.Data)
+				if err != nil {
+					continue
+				}
+				e.Data = d
+			}
+		}
 
 		// Re-format as a string to write to the db.
-		b, err := json.Marshal(events)
+		b, err := json.Marshal(parsedEvents)
 		if err != nil {
 			return nil, e.Wrap(err, "error marshaling events from schema interfaces")
 		}
