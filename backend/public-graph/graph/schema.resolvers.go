@@ -113,7 +113,6 @@ func (r *mutationResolver) AddSessionProperties(ctx context.Context, sessionID i
 }
 
 func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, events customModels.ReplayEventsInput, messages string, resources string, errors []*customModels.ErrorObjectInput) (*int, error) {
-	shouldWriteToFile := false
 	querySessionSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.querySession"))
 	querySessionSpan.SetTag("sessionID", sessionID)
 	querySessionSpan.SetTag("messagesLength", len(messages))
@@ -128,24 +127,6 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	querySessionSpan.Finish()
 
 	organizationID := sessionObj.OrganizationID
-
-	fBeforeLoop, _ := os.OpenFile("tmp/events-before.json",
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	fInLoop, _ := os.OpenFile("tmp/events-loop.json",
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	defer fBeforeLoop.Close()
-	defer fInLoop.Close()
-
-	// ! The events don't have the missing ID
-	if shouldWriteToFile {
-		eventBytes2, _ := json.Marshal(events.Events)
-		if _, err := fBeforeLoop.WriteString(string(eventBytes2)); err != nil {
-			log.Println(err)
-		}
-		if _, err := fBeforeLoop.WriteString(",\n"); err != nil {
-			log.Println(err)
-		}
-	}
 	parseEventsSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("go.parseEvents"))
 	if evs := events.Events; len(evs) > 0 {
 		// TODO: this isn't very performant, as marshaling the whole event obj to a string is expensive;
@@ -160,25 +141,15 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		// }
 
 		// If we see a snapshot event, attempt to inject CORS stylesheets.
-		for _, e := range events.Events {
-			// ! The events are missing the id.
-			if shouldWriteToFile {
-				eventBytes2, _ := json.Marshal(e)
-				if _, err := fInLoop.WriteString(string(eventBytes2)); err != nil {
-					log.Println(err)
-				}
-				if _, err := fInLoop.WriteString(",\n"); err != nil {
-					log.Println(err)
-				}
-			}
-			// 	// if e.Type == parse.FullSnapshot {
-			// 	// 	d, err := parse.InjectStylesheets(e.Data)
-			// 	// 	if err != nil {
-			// 	// 		continue
-			// 	// 	}
-			// 	// 	e.Data = d
-			// 	// }
-		}
+		// for _, e := range events.Events {
+		// 	// if e.Type == parse.FullSnapshot {
+		// 	// 	d, err := parse.InjectStylesheets(e.Data)
+		// 	// 	if err != nil {
+		// 	// 		continue
+		// 	// 	}
+		// 	// 	e.Data = d
+		// 	// }
+		// }
 
 		// Re-format as a string to write to the db.
 		b, err := json.Marshal(events)
