@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/go-sourcemap/sourcemap"
-
 	"github.com/go-test/deep"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/mitchellh/mapstructure"
@@ -36,7 +35,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	publicModelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
 var (
@@ -552,7 +551,49 @@ type ErrorObject struct {
 	Environment      string
 }
 
-func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) error {
+type fetcher interface {
+	fetchFile(string) ([]byte, *string, error)
+}
+
+type NetworkFetcher struct{}
+
+var fetch fetcher
+
+func init() {
+	fetch = NetworkFetcher{}
+}
+
+func (n NetworkFetcher) fetchFile(href string) ([]byte, *string, error) {
+	// check if source is a URL
+	_, err := url.ParseRequestURI(href)
+	if err != nil {
+		return nil, nil, err
+	}
+	// check if source is localhost
+	if strings.Contains(strings.ToLower(href), "localhost") {
+		return nil, nil, e.New("cannot parse localhost source")
+	}
+	// get minified file
+	res, err := http.Get(href)
+	if err != nil {
+		return nil, nil, e.Wrap(err, "error getting source file")
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, nil, e.New("status code not OK")
+	}
+
+	// unpack file into slice
+	filename := res.Request.URL.String()
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, nil, e.Wrap(err, "error reading response body")
+	}
+
+	return bodyBytes, &filename, nil
+}
+
+func (obj *ErrorObject) SetSourceMapElements(input *publicModelInputs.ErrorObjectInput) error {
 	var mappedStackTrace []modelInputs.ErrorTrace
 	if input.Trace == nil {
 		return e.New("stack trace input cannot be nil")
@@ -561,30 +602,13 @@ func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) erro
 		if stackTrace == nil || (stackTrace.FileName == nil || stackTrace.LineNumber == nil || stackTrace.ColumnNumber == nil) {
 			continue
 		}
-		// check if source is a URL
-		_, err := url.ParseRequestURI(*stackTrace.FileName)
+
+		bodyBytes, filename, err := fetch.fetchFile(*stackTrace.FileName)
 		if err != nil {
 			return err
 		}
-		// check if source is localhost
-		if strings.Contains(strings.ToLower(*stackTrace.FileName), "localhost") {
-			return e.New("cannot parse localhost source")
-		}
-		// get minified file
-		res, err := http.Get(*stackTrace.FileName)
-		if err != nil {
-			return e.Wrap(err, "error getting source file")
-		}
-		defer res.Body.Close()
-		if res.StatusCode != http.StatusOK {
-			return e.New("status code not OK")
-		}
-
-		// unpack file into slice
-		filename := res.Request.URL.String()
-		bodyBytes, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			return e.Wrap(err, "error reading response body")
+		if filename == nil {
+			continue
 		}
 		if len(bodyBytes) > 1000000 {
 			return e.New("size of source way too big")
@@ -605,22 +629,16 @@ func (obj *ErrorObject) SetSourceMapElements(input *model.ErrorObjectInput) erro
 		sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
 
 		// construct sourcemap url from searched file
-		sourceFileNameIndex := strings.Index(*stackTrace.FileName, path.Base(filename))
+		sourceFileNameIndex := strings.Index(*stackTrace.FileName, path.Base(*filename))
 		if sourceFileNameIndex == -1 {
 			return e.New("source path doesn't contain file name")
 		}
 		sourceMapURL := (*stackTrace.FileName)[:sourceFileNameIndex] + sourceMapFileName
 
 		// extract information from sourcemap
-		resp, err := http.Get(sourceMapURL)
+		fileBytes, _, err := fetch.fetchFile(sourceMapURL)
 		if err != nil {
 			return e.Wrap(err, "error getting source map file")
-		}
-		defer resp.Body.Close()
-
-		fileBytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return e.Wrap(err, "error reading source map file")
 		}
 
 		smap, err := sourcemap.Parse(sourceMapURL, fileBytes)

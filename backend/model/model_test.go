@@ -3,7 +3,9 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 
 	e "github.com/pkg/errors"
@@ -15,6 +17,17 @@ import (
 	modelInput "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
+
+type mockFetcher struct{}
+
+func (n mockFetcher) fetchFile(href string) ([]byte, *string, error) {
+	inputBytes, err := ioutil.ReadFile(href)
+	if err != nil {
+		return nil, nil, e.Wrap(err, "error fetching file from disk")
+	}
+	filename := href[strings.LastIndex(href, "/"):]
+	return inputBytes, &filename, nil
+}
 
 func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	psqlConf := fmt.Sprintf(
@@ -55,6 +68,7 @@ func clearTablesInDB(db *gorm.DB) error {
 
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
+	fetch = mockFetcher{}
 	var err error
 	DB, err = createAndMigrateTestDB("highlight_testing_db")
 	if err != nil {
@@ -83,18 +97,19 @@ func TestSetSourceMapElements(t *testing.T) {
 	tests := map[string]struct {
 		errorObjectInput    model.ErrorObjectInput
 		expectedErrorObject ErrorObject
+		fetcher             fetcher
 		err                 error
 	}{
 		"test source mapping with proper stack trace": {
 			errorObjectInput: model.ErrorObjectInput{
 				Trace: []*model.StackFrameInput{
 					{
-						FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
+						FileName:     MakeStringPointer("./test-files/lodash.min.js"),
 						LineNumber:   MakeIntPointer(1),
 						ColumnNumber: MakeIntPointer(813),
 					},
 					{
-						FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.min.js"),
+						FileName:     MakeStringPointer("./test-files/lodash.min.js"),
 						LineNumber:   MakeIntPointer(1),
 						ColumnNumber: MakeIntPointer(799),
 					},
@@ -104,13 +119,13 @@ func TestSetSourceMapElements(t *testing.T) {
 				MappedStackTrace: MakeStringPointerFromInterface(
 					[]modelInput.ErrorTrace{
 						{
-							FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
+							FileName:     MakeStringPointer("lodash.js"),
 							LineNumber:   MakeIntPointer(634),
 							ColumnNumber: MakeIntPointer(4),
 							FunctionName: MakeStringPointer(""),
 						},
 						{
-							FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js"),
+							FileName:     MakeStringPointer("lodash.js"),
 							LineNumber:   MakeIntPointer(633),
 							ColumnNumber: MakeIntPointer(11),
 							FunctionName: MakeStringPointer("arrayIncludesWith"),
@@ -118,19 +133,21 @@ func TestSetSourceMapElements(t *testing.T) {
 					},
 				),
 			},
-			err: e.New(""),
+			fetcher: mockFetcher{},
+			err:     e.New(""),
 		},
 		"test source mapping invalid trace:no related source map": {
 			errorObjectInput: model.ErrorObjectInput{
 				Trace: []*model.StackFrameInput{
 					{
-						FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/"),
+						FileName:     MakeStringPointer("./test-files/lodash.js"),
 						LineNumber:   MakeIntPointer(0),
 						ColumnNumber: MakeIntPointer(0),
 					},
 				},
 			},
 			expectedErrorObject: ErrorObject{},
+			fetcher:             mockFetcher{},
 			err:                 e.New("file does not contain source map url"),
 		},
 		"test source mapping invalid trace:file doesn't exist": {
@@ -144,6 +161,7 @@ func TestSetSourceMapElements(t *testing.T) {
 				},
 			},
 			expectedErrorObject: ErrorObject{},
+			fetcher:             NetworkFetcher{},
 			err:                 e.New("status code not OK"),
 		},
 		"test source mapping invalid trace:filename is not a url": {
@@ -157,6 +175,7 @@ func TestSetSourceMapElements(t *testing.T) {
 				},
 			},
 			expectedErrorObject: ErrorObject{},
+			fetcher:             NetworkFetcher{},
 			err:                 e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
 		},
 		"test source mapping invalid trace:filename is localhost": {
@@ -170,11 +189,13 @@ func TestSetSourceMapElements(t *testing.T) {
 				},
 			},
 			expectedErrorObject: ErrorObject{},
+			fetcher:             NetworkFetcher{},
 			err:                 e.New(`cannot parse localhost source`),
 		},
 		"test source mapping invalid trace:trace is nil": {
 			errorObjectInput:    model.ErrorObjectInput{},
 			expectedErrorObject: ErrorObject{},
+			fetcher:             mockFetcher{},
 			err:                 e.New("stack trace input cannot be nil"),
 		},
 		"test source mapping invalid trace:empty stack frame doesn't update error object": {
@@ -184,7 +205,8 @@ func TestSetSourceMapElements(t *testing.T) {
 			expectedErrorObject: ErrorObject{
 				MappedStackTrace: MakeStringPointer("null"),
 			},
-			err: e.New(""),
+			fetcher: mockFetcher{},
+			err:     e.New(""),
 		},
 	}
 
@@ -197,6 +219,7 @@ func TestSetSourceMapElements(t *testing.T) {
 					t.Fatal(e.Wrap(err, "error clearing tables in test db"))
 				}
 			}(DB)
+			fetch = tc.fetcher
 			var errorObj ErrorObject
 			err := errorObj.SetSourceMapElements(&tc.errorObjectInput)
 			if err != nil {
