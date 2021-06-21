@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import { addCustomEvent, record } from '@highlight-run/rrweb';
 import {
     eventWithTime,
