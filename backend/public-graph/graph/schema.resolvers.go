@@ -255,20 +255,20 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&errorAlert).Error; err != nil {
 			log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
 		} else {
-			excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
-			if err != nil {
-				log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
-			} else {
-				isExcludedEnvironment := false
-				for _, env := range excludedEnvironments {
-					if env != nil && *env == sessionObj.Environment {
-						isExcludedEnvironment = true
-						break
+			if errorAlert.CountThreshold >= 1 {
+				excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
+				if err != nil {
+					log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
+				} else {
+					isExcludedEnvironment := false
+					for _, env := range excludedEnvironments {
+						if env != nil && *env == sessionObj.Environment {
+							isExcludedEnvironment = true
+							break
+						}
 					}
-				}
-				if !isExcludedEnvironment {
-					numErrors := int64(-1)
-					if errorAlert.CountThreshold > 1 {
+					if !isExcludedEnvironment {
+						numErrors := int64(-1)
 						if errorAlert.ThresholdWindow == nil {
 							t := 30
 							errorAlert.ThresholdWindow = &t
@@ -276,15 +276,15 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 						if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{OrganizationID: organizationID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
 							log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
 						}
-					}
-					if errorAlert.CountThreshold <= 1 || numErrors >= int64(errorAlert.CountThreshold) {
-						var org model.Organization
-						if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
-							log.Error(e.Wrap(err, "error querying organization"))
-						}
-						err = errorAlert.SendSlackAlert(&org, sessionID, sessionObj.Identifier, group, &errorToInsert.URL, nil, nil)
-						if err != nil {
-							log.Error(e.Wrap(err, "error sending slack error message"))
+						if errorAlert.CountThreshold == 1 || numErrors >= int64(errorAlert.CountThreshold) {
+							var org model.Organization
+							if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
+								log.Error(e.Wrap(err, "error querying organization"))
+							}
+							err = errorAlert.SendSlackAlert(&org, sessionID, sessionObj.Identifier, group, &errorToInsert.URL, nil, nil, &numErrors)
+							if err != nil {
+								log.Error(e.Wrap(err, "error sending slack error message"))
+							}
 						}
 					}
 				}
