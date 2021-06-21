@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import { addCustomEvent, record } from '@highlight-run/rrweb';
 import {
     eventWithTime,
@@ -504,7 +505,6 @@ export class Highlight {
             }
             const payload = this._getPayload();
             await this.graphqlSDK.PushPayload(payload);
-            this.events = [];
             this.errors = [];
             this.messages = [];
             this.networkContents = [];
