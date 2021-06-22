@@ -526,10 +526,10 @@ func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 }
 
 /*
-EnhanceStackTrace makes no DB changes
-It loops through the trace on the error object input, for each :
-* fetches the sourcemap from s3 if it's there, otherwise it fetches from remote and uploads to s3.
-* maps the error info and updates the destination error object pointer.
+* EnhanceStackTrace makes no DB changes
+* It loops through the stack trace, for each :
+* fetches the sourcemap from remote
+* maps the error info into slice
 */
 func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelInputs.ErrorTrace, error) {
 	if input == nil {
