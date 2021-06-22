@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
 	testLogger := log.WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
-	DB, err = util.CreateAndMigrateTestDB("highlight_testing_db")
+	DB, err = model.CreateAndMigrateTestDB("highlight_testing_db")
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
@@ -184,7 +184,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			defer func(db *gorm.DB) {
-				err := util.ClearTablesInDB(db)
+				err := model.ClearTablesInDB(db)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error clearing database"))
 				}
@@ -332,7 +332,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			defer func(db *gorm.DB) {
-				err := util.ClearTablesInDB(db)
+				err := model.ClearTablesInDB(db)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error clearing database"))
 				}

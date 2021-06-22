@@ -12,7 +12,6 @@ import (
 
 	"github.com/highlight-run/highlight/backend/model"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	"github.com/highlight-run/highlight/backend/util"
 )
 
 var DB *gorm.DB
@@ -22,7 +21,7 @@ func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
 	testLogger := log.WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
-	DB, err = util.CreateAndMigrateTestDB(dbName)
+	DB, err = model.CreateAndMigrateTestDB(dbName)
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
@@ -126,7 +125,7 @@ func TestHideViewedSessions(t *testing.T) {
 				t.Fatal(e.Wrap(err, "error inserting sessions"))
 			}
 			defer func(db *gorm.DB) {
-				err := util.ClearTablesInDB(db)
+				err := model.ClearTablesInDB(db)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error clearing database"))
 				}
