@@ -10,8 +10,12 @@ export const RechartTooltip = ({ active, payload, label }: any) => {
                 <p>
                     {payload[0].value} {payload[0].payload.label}
                 </p>
-                <br />
-                <p>Click to see {payload[0].payload.label}.</p>
+                {payload[0].payload.label && (
+                    <>
+                        <br />
+                        <p>Click to see {payload[0].payload.label}.</p>
+                    </>
+                )}
             </div>
         );
     }
