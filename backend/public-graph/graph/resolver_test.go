@@ -15,9 +15,9 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/highlight-run/highlight/backend/util"
 	modelInput "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModelInput "github.com/highlight-run/highlight/backend/public-graph/graph/model"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 var DB *gorm.DB
@@ -50,8 +50,8 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	// construct table of sub-tests to run
 	nullStr := "null"
 	metaDataStr := `[{"timestamp":"2000-08-01T00:00:00Z","error_id":1,"session_id":0,"browser":"","os":"","visited_url":""},{"timestamp":"2000-08-01T00:00:00Z","error_id":2,"session_id":0,"browser":"","os":"","visited_url":""}]`
-	longTraceStr := `[{"this":"is"},{"a":"longer"},{"stack":"trace"}]`
-	shortTraceStr := `[{"this":"a"},{"short":"stack"}]`
+	longTraceStr := `[{"functionName":"is","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"longer","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"trace","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
+	shortTraceStr := `[{"functionName":"a","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null},{"functionName":"short","args":null,"fileName":null,"lineNumber":null,"columnNumber":null,"isEval":null,"isNative":null,"source":null}]`
 	tests := map[string]struct {
 		errorsToInsert      []model.ErrorObject
 		expectedErrorGroups []model.ErrorGroup
@@ -194,7 +194,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			r := &Resolver{DB: DB}
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
-				var frames []interface{}
+				var frames []*publicModelInput.StackFrameInput
 				if errorObj.Trace != nil {
 					if err := json.Unmarshal([]byte(*errorObj.Trace), &frames); err != nil {
 						t.Fatal(e.Wrap(err, "error unmarshalling error stack trace frames"))
@@ -224,20 +224,6 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	}
 }
 
-func MakeIntPointer(v int) *int {
-	return &v
-}
-
-func MakeStringPointer(v string) *string {
-	return &v
-}
-
-func MakeStringPointerFromInterface(v interface{}) *string {
-	exampleErrorTraceBytes, _ := json.Marshal(&v)
-	exampleErrorTraceString := string(exampleErrorTraceBytes)
-	return &exampleErrorTraceString
-}
-
 func TestSetSourceMapElements(t *testing.T) {
 	// construct table of sub-tests to run
 	tests := map[string]struct {
@@ -250,31 +236,31 @@ func TestSetSourceMapElements(t *testing.T) {
 			errorObjectInput: publicModelInput.ErrorObjectInput{
 				Trace: []*publicModelInput.StackFrameInput{
 					{
-						FileName:     MakeStringPointer("./test-files/lodash.min.js"),
-						LineNumber:   MakeIntPointer(1),
-						ColumnNumber: MakeIntPointer(813),
+						FileName:     util.MakeStringPointer("./test-files/lodash.min.js"),
+						LineNumber:   util.MakeIntPointer(1),
+						ColumnNumber: util.MakeIntPointer(813),
 					},
 					{
-						FileName:     MakeStringPointer("./test-files/lodash.min.js"),
-						LineNumber:   MakeIntPointer(1),
-						ColumnNumber: MakeIntPointer(799),
+						FileName:     util.MakeStringPointer("./test-files/lodash.min.js"),
+						LineNumber:   util.MakeIntPointer(1),
+						ColumnNumber: util.MakeIntPointer(799),
 					},
 				},
 			},
 			expectedErrorObject: model.ErrorObject{
-				MappedStackTrace: MakeStringPointerFromInterface(
+				MappedStackTrace: util.MakeStringPointerFromInterface(
 					[]modelInput.ErrorTrace{
 						{
-							FileName:     MakeStringPointer("lodash.js"),
-							LineNumber:   MakeIntPointer(634),
-							ColumnNumber: MakeIntPointer(4),
-							FunctionName: MakeStringPointer(""),
+							FileName:     util.MakeStringPointer("lodash.js"),
+							LineNumber:   util.MakeIntPointer(634),
+							ColumnNumber: util.MakeIntPointer(4),
+							FunctionName: util.MakeStringPointer(""),
 						},
 						{
-							FileName:     MakeStringPointer("lodash.js"),
-							LineNumber:   MakeIntPointer(633),
-							ColumnNumber: MakeIntPointer(11),
-							FunctionName: MakeStringPointer("arrayIncludesWith"),
+							FileName:     util.MakeStringPointer("lodash.js"),
+							LineNumber:   util.MakeIntPointer(633),
+							ColumnNumber: util.MakeIntPointer(11),
+							FunctionName: util.MakeStringPointer("arrayIncludesWith"),
 						},
 					},
 				),
@@ -286,9 +272,9 @@ func TestSetSourceMapElements(t *testing.T) {
 			errorObjectInput: publicModelInput.ErrorObjectInput{
 				Trace: []*publicModelInput.StackFrameInput{
 					{
-						FileName:     MakeStringPointer("./test-files/lodash.js"),
-						LineNumber:   MakeIntPointer(0),
-						ColumnNumber: MakeIntPointer(0),
+						FileName:     util.MakeStringPointer("./test-files/lodash.js"),
+						LineNumber:   util.MakeIntPointer(0),
+						ColumnNumber: util.MakeIntPointer(0),
 					},
 				},
 			},
@@ -300,9 +286,9 @@ func TestSetSourceMapElements(t *testing.T) {
 			errorObjectInput: publicModelInput.ErrorObjectInput{
 				Trace: []*publicModelInput.StackFrameInput{
 					{
-						FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
-						LineNumber:   MakeIntPointer(0),
-						ColumnNumber: MakeIntPointer(0),
+						FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
+						LineNumber:   util.MakeIntPointer(0),
+						ColumnNumber: util.MakeIntPointer(0),
 					},
 				},
 			},
@@ -314,9 +300,9 @@ func TestSetSourceMapElements(t *testing.T) {
 			errorObjectInput: publicModelInput.ErrorObjectInput{
 				Trace: []*publicModelInput.StackFrameInput{
 					{
-						FileName:     MakeStringPointer("/file/local/domain.js"),
-						LineNumber:   MakeIntPointer(0),
-						ColumnNumber: MakeIntPointer(0),
+						FileName:     util.MakeStringPointer("/file/local/domain.js"),
+						LineNumber:   util.MakeIntPointer(0),
+						ColumnNumber: util.MakeIntPointer(0),
 					},
 				},
 			},
@@ -328,9 +314,9 @@ func TestSetSourceMapElements(t *testing.T) {
 			errorObjectInput: publicModelInput.ErrorObjectInput{
 				Trace: []*publicModelInput.StackFrameInput{
 					{
-						FileName:     MakeStringPointer("http://localhost:8080/abc.min.js"),
-						LineNumber:   MakeIntPointer(0),
-						ColumnNumber: MakeIntPointer(0),
+						FileName:     util.MakeStringPointer("http://localhost:8080/abc.min.js"),
+						LineNumber:   util.MakeIntPointer(0),
+						ColumnNumber: util.MakeIntPointer(0),
 					},
 				},
 			},
@@ -349,7 +335,7 @@ func TestSetSourceMapElements(t *testing.T) {
 				Trace: []*publicModelInput.StackFrameInput{},
 			},
 			expectedErrorObject: model.ErrorObject{
-				MappedStackTrace: MakeStringPointer("null"),
+				MappedStackTrace: util.MakeStringPointer("null"),
 			},
 			fetcher: mockFetcher{},
 			err:     e.New(""),
