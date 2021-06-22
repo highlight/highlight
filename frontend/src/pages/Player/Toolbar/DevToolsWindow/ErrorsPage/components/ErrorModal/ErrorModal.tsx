@@ -24,7 +24,7 @@ const ErrorModal = ({ error }: Props) => {
     const { organization_id } = useParams<{ organization_id: string }>();
 
     return (
-        <div>
+        <div className={styles.container}>
             {loading ? (
                 <LoadingBar />
             ) : (
