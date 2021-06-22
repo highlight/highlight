@@ -23,6 +23,8 @@ linters:
     - unused
     - varcheck
 
+  fast: false
+
 # all available settings of specific linters
 linters-settings:
   gosimple:
