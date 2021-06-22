@@ -357,13 +357,14 @@ func TestSetSourceMapElements(t *testing.T) {
 			}(DB)
 			fetch = tc.fetcher
 			errorObj := model.ErrorObject{}
-			err := r.SetSourceMapElements(&errorObj, &tc.errorObjectInput, 1)
+			mappedStackTrace, err := r.SetSourceMapElements(&tc.errorObjectInput)
 			if err != nil {
 				if err.Error() == tc.err.Error() {
 					return
 				}
 				t.Error(e.Wrap(err, "error setting source map elements"))
 			}
+			errorObj.MappedStackTrace = mappedStackTrace
 			eq, diff, err := model.AreModelsWeaklyEqual(&errorObj, &tc.expectedErrorObject)
 			if err != nil {
 				t.Error(e.Wrap(err, "error checking if publicModelInput. are equal"))

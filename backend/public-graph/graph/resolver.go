@@ -210,10 +210,13 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	newFrameString := errorGroup.Trace
 	if len(frameString) >= len(errorGroup.Trace) {
 		newFrameString = frameString
-		err = r.SetSourceMapElements(errorObj, errorInput, organizationID)
+		mappedStackTrace, err := r.SetSourceMapElements(errorInput)
 		if err != nil {
 			log.Error(err)
+		} else {
+			errorObj.MappedStackTrace = mappedStackTrace
 		}
+
 	}
 
 	environmentsMap := make(map[string]int)
@@ -523,10 +526,10 @@ It loops through the trace on the error object input, for each :
 * fetches the soucemap from s3 if it's there, otherwise it fetches from remote and uploads to s3.
 * maps the error info and updates the destination error object pointer.
 */
-func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.ErrorObjectInput, organizationID int) error {
+func (r *Resolver) SetSourceMapElements(input *model2.ErrorObjectInput) (*string, error) {
 	var mappedStackTrace []modelInputs.ErrorTrace
 	if input.Trace == nil {
-		return e.New("stack trace input cannot be nil")
+		return nil, e.New("stack trace input cannot be nil")
 	}
 	for _, stackTrace := range input.Trace {
 		if stackTrace == nil || (stackTrace.FileName == nil || stackTrace.LineNumber == nil || stackTrace.ColumnNumber == nil) {
@@ -535,18 +538,18 @@ func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.Er
 
 		bodyBytes, filename, err := fetch.fetchFile(*stackTrace.FileName)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if filename == nil {
 			continue
 		}
 		if len(bodyBytes) > 1000000 {
-			return e.New("size of source way too big")
+			return nil, e.New("size of source way too big")
 		}
 		bodyString := string(bodyBytes)
 		bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
 		if len(bodyLines) < 1 {
-			return e.New("body lines empty")
+			return nil, e.New("body lines empty")
 		}
 		lastLine := bodyLines[len(bodyLines)-1]
 
@@ -554,14 +557,14 @@ func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.Er
 		var sourceMapFileName string
 		sourceMapIndex := strings.LastIndex(lastLine, "sourceMappingURL=")
 		if sourceMapIndex == -1 {
-			return e.New("file does not contain source map url")
+			return nil, e.New("file does not contain source map url")
 		}
 		sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
 
 		// construct sourcemap url from searched file
 		sourceFileNameIndex := strings.Index(*stackTrace.FileName, path.Base(*filename))
 		if sourceFileNameIndex == -1 {
-			return e.New("source path doesn't contain file name")
+			return nil, e.New("source path doesn't contain file name")
 		}
 		sourceMapURL := (*stackTrace.FileName)[:sourceFileNameIndex] + sourceMapFileName
 
@@ -575,13 +578,13 @@ func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.Er
 
 		smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
 		if err != nil {
-			return e.Wrap(err, "error parsing source map file")
+			return nil, e.Wrap(err, "error parsing source map file")
 		}
 
 		var mappedStackFrame modelInputs.ErrorTrace
 		sourceFileName, fn, line, col, ok := smap.Source(*stackTrace.LineNumber, *stackTrace.ColumnNumber)
 		if !ok {
-			return e.New("error extracting true error info from source map")
+			return nil, e.New("error extracting true error info from source map")
 		}
 		mappedStackFrame.FileName = &sourceFileName
 		mappedStackFrame.FunctionName = &fn
@@ -593,10 +596,8 @@ func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.Er
 
 	mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
 	if err != nil {
-		return e.Wrap(err, "error marshalling mapped stack trace")
+		return nil, e.Wrap(err, "error marshalling mapped stack trace")
 	}
 	mappedStackTraceString := string(mappedStackTraceBytes)
-	obj.MappedStackTrace = &mappedStackTraceString
-
-	return nil
+	return &mappedStackTraceString, nil
 }
