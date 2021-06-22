@@ -183,8 +183,7 @@ func main() {
 			clientServer := ghandler.NewDefaultServer(publicgen.NewExecutableSchema(
 				publicgen.Config{
 					Resolvers: &public.Resolver{
-						DB:       db,
-						S3Client: storage,
+						DB: db,
 					},
 				}))
 			clientServer.Use(util.NewTracer(util.PublicGraph))

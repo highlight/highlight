@@ -568,33 +568,11 @@ func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.Er
 		sourceMapURL := (*stackTrace.FileName)[:sourceFileNameIndex] + sourceMapFileName
 
 		var fileBytes []byte
-		if organizationID == 113 {
-			// get file from battlecard's s3 bucket
-			fileBytes, err = r.S3Client.ReadSourceMapFileFromS3BattleCard(sourceMapFileName)
-			if err != nil {
-				log.Error(e.Wrap(err, "error getting source map file from s3"))
-				continue
-			}
-		} else {
-			isInS3 := true
-			fileBytes, err = r.S3Client.ReadSourceMapFileFromS3(organizationID, sourceMapFileName)
-			if err != nil {
-				log.Error(e.Wrap(err, "error reading source map file from s3"))
-				isInS3 = false
-			}
-			// fetch source map file
-			fileBytes, _, err = fetch.fetchFile(sourceMapURL)
-			if err != nil {
-				log.Error(e.Wrap(err, "error fetching source map file"))
-				continue
-			}
-			// upload file to s3 if it's not there
-			if !isInS3 {
-				_, err := r.S3Client.PushSourceMapFileToS3(organizationID, sourceMapFileName, fileBytes)
-				if err != nil {
-					log.Error(e.Wrap(err, "error pushing sourcemap file to s3"))
-				}
-			}
+		// fetch source map file
+		fileBytes, _, err = fetch.fetchFile(sourceMapURL)
+		if err != nil {
+			log.Error(e.Wrap(err, "error fetching source map file"))
+			continue
 		}
 
 		smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
@@ -613,35 +591,13 @@ func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.Er
 		mappedStackFrame.ColumnNumber = &col
 
 		var sourceBytes []byte
-		// fetch source source
-		if organizationID == 113 {
-			// get file from battlecard's s3 bucket
-			sourceBytes, err = r.S3Client.ReadSourceMapFileFromS3BattleCard(sourceFileName)
-			if err != nil {
-				log.Error(e.Wrap(err, "error getting source file from s3"))
-				continue
-			}
-		} else {
-			sourceURL := (*stackTrace.FileName)[:sourceFileNameIndex] + sourceFileName
-			isInS3 := true
-			sourceBytes, err = r.S3Client.ReadSourceMapFileFromS3(organizationID, sourceFileName)
-			if err != nil {
-				log.Error(e.Wrap(err, "error reading source file from s3"))
-				isInS3 = false
-			}
-			// fetch source file
-			sourceBytes, _, err = fetch.fetchFile(sourceURL)
-			if err != nil {
-				log.Error(e.Wrap(err, "error fetching source file"))
-				continue
-			}
-			// upload source file to s3 if it's not there
-			if !isInS3 {
-				_, err := r.S3Client.PushSourceMapFileToS3(organizationID, sourceFileName, sourceBytes)
-				if err != nil {
-					log.Error(e.Wrap(err, "error pushing sourcemap file to s3"))
-				}
-			}
+		// fetch source file
+		sourceURL := (*stackTrace.FileName)[:sourceFileNameIndex] + sourceFileName
+		// fetch source file
+		sourceBytes, _, err = fetch.fetchFile(sourceURL)
+		if err != nil {
+			log.Error(e.Wrap(err, "error fetching source file"))
+			continue
 		}
 
 		// put together code block surrounding error line

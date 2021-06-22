@@ -15,7 +15,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
 	modelInput "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	publicModelInput "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	"github.com/highlight-run/highlight/backend/util"
@@ -345,14 +344,8 @@ func TestSetSourceMapElements(t *testing.T) {
 		},
 	}
 
-	storage, err := storage.NewStorageClient()
-	if err != nil {
-		log.Fatalf("error creating storage client: %v", err)
-	}
-
 	r := Resolver{
-		DB:       DB,
-		S3Client: storage,
+		DB: DB,
 	}
 
 	// run tests
