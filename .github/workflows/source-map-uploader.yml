@@ -5,7 +5,7 @@ on:
             - 'experiments/sourcemap-uploader/**'
             - '.github/workflows/source-map-uploader.yml'
 jobs:
-    firstload:
+    publish:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
