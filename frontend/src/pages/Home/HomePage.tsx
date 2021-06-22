@@ -29,6 +29,7 @@ import { useIntegrated } from '../../util/integrated';
 import { formatNumber } from '../../util/numbers';
 import { SessionPageSearchParams } from '../Player/utils/utils';
 import ActiveUsersTable from './components/ActiveUsersTable/ActiveUsersTable';
+import ActivityGraph from './components/ActivityGraph/ActivityGraph';
 import {
     HomePageFiltersContext,
     useHomePageFiltersContext,
@@ -98,6 +99,7 @@ const HomePage = () => {
                     </div>
                     <KeyPerformanceIndicators />
                     <div className={styles.dashboardBody}>
+                        <ActivityGraph />
                         <SessionCountGraph />
                         <ErrorCountGraph />
                         <ReferrersTable />
