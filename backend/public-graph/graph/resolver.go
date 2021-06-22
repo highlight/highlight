@@ -154,15 +154,13 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 	return nil
 }
 
-func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []*model2.StackFrameInput, fields []*model.ErrorField) (*model.ErrorGroup, error) {
+func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []*model2.StackFrameInput, fields []*model.ErrorField) (*model.ErrorGroup, bool, error) {
 	/*
-		interface for fetcher
-		only map stack trace for error that is overwriting
 		rename trace to stack frame
 	*/
 	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
-		return nil, e.Wrap(err, "Error marshalling first frame")
+		return nil, false, e.Wrap(err, "Error marshalling first frame")
 	}
 	frameString := string(firstFrameBytes)
 
@@ -183,19 +181,19 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []*mo
 			Resolved:       &model.F,
 		}
 		if err := r.DB.Create(newErrorGroup).Error; err != nil {
-			return nil, e.Wrap(err, "Error creating new error group")
+			return nil, false, e.Wrap(err, "Error creating new error group")
 		}
 		errorGroup = newErrorGroup
 	}
 	errorObj.ErrorGroupID = errorGroup.ID
 	if err := r.DB.Create(errorObj).Error; err != nil {
-		return nil, e.Wrap(err, "Error performing error insert for error")
+		return nil, false, e.Wrap(err, "Error performing error insert for error")
 	}
 
 	var newMetadataLog []ErrorMetaData
 	if errorGroup.MetadataLog != nil {
 		if err := json.Unmarshal([]byte(*errorGroup.MetadataLog), &newMetadataLog); err != nil {
-			return nil, e.Wrap(err, "error decoding time log data")
+			return nil, false, e.Wrap(err, "error decoding time log data")
 		}
 	}
 	newMetadataLog = append(newMetadataLog, ErrorMetaData{
@@ -209,12 +207,14 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []*mo
 
 	logBytes, err := json.Marshal(newMetadataLog)
 	if err != nil {
-		return nil, e.Wrap(err, "Error marshalling metadata log")
+		return nil, false, e.Wrap(err, "Error marshalling metadata log")
 	}
 	logString := string(logBytes)
 
+	didUpdateGroupStackTrace := true
 	newFrameString := frameString
 	if len(frameString) < len(errorGroup.Trace) {
+		didUpdateGroupStackTrace = false
 		newFrameString = errorGroup.Trace
 	}
 
@@ -239,15 +239,15 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []*mo
 	environmentsString := string(environmentsBytes)
 
 	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Trace: newFrameString, Environments: environmentsString}).Error; err != nil {
-		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
+		return nil, false, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
 	err = r.AppendErrorFields(fields, errorGroup)
 	if err != nil {
-		return nil, e.Wrap(err, "error appending error fields")
+		return nil, false, e.Wrap(err, "error appending error fields")
 	}
 
-	return errorGroup, nil
+	return errorGroup, didUpdateGroupStackTrace, nil
 }
 
 func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *model.ErrorGroup) error {

@@ -200,7 +200,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 						t.Fatal(e.Wrap(err, "error unmarshalling error stack trace frames"))
 					}
 				}
-				errorGroup, err := r.HandleErrorAndGroup(&errorObj, frames, nil)
+				errorGroup, _, err := r.HandleErrorAndGroup(&errorObj, frames, nil)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error handling error and group"))
 				}
