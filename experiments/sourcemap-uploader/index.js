@@ -10,9 +10,10 @@ const AWS = require("aws-sdk");
 const SERVER_URL = "http://localhost:5000";
 const BUCKET_NAME = "source-maps-test";
 
+// These secrets are for the "S3SourceMapUploaderTest" role.
 const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  accessKeyId: "AKIASRAMI2JGSNAT247I",
+  secretAccessKey: "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",
 });
 
 yargs(hideBin(process.argv))
