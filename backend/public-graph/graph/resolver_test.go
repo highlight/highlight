@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
@@ -24,13 +23,12 @@ var DB *gorm.DB
 
 type mockFetcher struct{}
 
-func (n mockFetcher) fetchFile(href string) ([]byte, *string, error) {
+func (n mockFetcher) fetchFile(href string) ([]byte, error) {
 	inputBytes, err := ioutil.ReadFile(href)
 	if err != nil {
-		return nil, nil, e.Wrap(err, "error fetching file from disk")
+		return nil, e.Wrap(err, "error fetching file from disk")
 	}
-	filename := href[strings.LastIndex(href, "/"):]
-	return inputBytes, &filename, nil
+	return inputBytes, nil
 }
 
 // Gets run once; M.run() calls the tests in this file.
@@ -227,24 +225,22 @@ func TestHandleErrorAndGroup(t *testing.T) {
 func TestSetSourceMapElements(t *testing.T) {
 	// construct table of sub-tests to run
 	tests := map[string]struct {
-		errorObjectInput    publicModelInput.ErrorObjectInput
+		stackFrameInput     []*publicModelInput.StackFrameInput
 		expectedErrorObject model.ErrorObject
 		fetcher             fetcher
 		err                 error
 	}{
 		"test source mapping with proper stack trace": {
-			errorObjectInput: publicModelInput.ErrorObjectInput{
-				Trace: []*publicModelInput.StackFrameInput{
-					{
-						FileName:     util.MakeStringPointer("./test-files/lodash.min.js"),
-						LineNumber:   util.MakeIntPointer(1),
-						ColumnNumber: util.MakeIntPointer(813),
-					},
-					{
-						FileName:     util.MakeStringPointer("./test-files/lodash.min.js"),
-						LineNumber:   util.MakeIntPointer(1),
-						ColumnNumber: util.MakeIntPointer(799),
-					},
+			stackFrameInput: []*publicModelInput.StackFrameInput{
+				{
+					FileName:     util.MakeStringPointer("./test-files/lodash.min.js"),
+					LineNumber:   util.MakeIntPointer(1),
+					ColumnNumber: util.MakeIntPointer(813),
+				},
+				{
+					FileName:     util.MakeStringPointer("./test-files/lodash.min.js"),
+					LineNumber:   util.MakeIntPointer(1),
+					ColumnNumber: util.MakeIntPointer(799),
 				},
 			},
 			expectedErrorObject: model.ErrorObject{
@@ -269,13 +265,11 @@ func TestSetSourceMapElements(t *testing.T) {
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:no related source map": {
-			errorObjectInput: publicModelInput.ErrorObjectInput{
-				Trace: []*publicModelInput.StackFrameInput{
-					{
-						FileName:     util.MakeStringPointer("./test-files/lodash.js"),
-						LineNumber:   util.MakeIntPointer(0),
-						ColumnNumber: util.MakeIntPointer(0),
-					},
+			stackFrameInput: []*publicModelInput.StackFrameInput{
+				{
+					FileName:     util.MakeStringPointer("./test-files/lodash.js"),
+					LineNumber:   util.MakeIntPointer(0),
+					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
 			expectedErrorObject: model.ErrorObject{},
@@ -283,13 +277,11 @@ func TestSetSourceMapElements(t *testing.T) {
 			err:                 e.New("file does not contain source map url"),
 		},
 		"test source mapping invalid trace:file doesn't exist": {
-			errorObjectInput: publicModelInput.ErrorObjectInput{
-				Trace: []*publicModelInput.StackFrameInput{
-					{
-						FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
-						LineNumber:   util.MakeIntPointer(0),
-						ColumnNumber: util.MakeIntPointer(0),
-					},
+			stackFrameInput: []*publicModelInput.StackFrameInput{
+				{
+					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
+					LineNumber:   util.MakeIntPointer(0),
+					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
 			expectedErrorObject: model.ErrorObject{},
@@ -297,13 +289,11 @@ func TestSetSourceMapElements(t *testing.T) {
 			err:                 e.New("status code not OK"),
 		},
 		"test source mapping invalid trace:filename is not a url": {
-			errorObjectInput: publicModelInput.ErrorObjectInput{
-				Trace: []*publicModelInput.StackFrameInput{
-					{
-						FileName:     util.MakeStringPointer("/file/local/domain.js"),
-						LineNumber:   util.MakeIntPointer(0),
-						ColumnNumber: util.MakeIntPointer(0),
-					},
+			stackFrameInput: []*publicModelInput.StackFrameInput{
+				{
+					FileName:     util.MakeStringPointer("/file/local/domain.js"),
+					LineNumber:   util.MakeIntPointer(0),
+					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
 			expectedErrorObject: model.ErrorObject{},
@@ -311,13 +301,11 @@ func TestSetSourceMapElements(t *testing.T) {
 			err:                 e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
 		},
 		"test source mapping invalid trace:filename is localhost": {
-			errorObjectInput: publicModelInput.ErrorObjectInput{
-				Trace: []*publicModelInput.StackFrameInput{
-					{
-						FileName:     util.MakeStringPointer("http://localhost:8080/abc.min.js"),
-						LineNumber:   util.MakeIntPointer(0),
-						ColumnNumber: util.MakeIntPointer(0),
-					},
+			stackFrameInput: []*publicModelInput.StackFrameInput{
+				{
+					FileName:     util.MakeStringPointer("http://localhost:8080/abc.min.js"),
+					LineNumber:   util.MakeIntPointer(0),
+					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
 			expectedErrorObject: model.ErrorObject{},
@@ -325,15 +313,13 @@ func TestSetSourceMapElements(t *testing.T) {
 			err:                 e.New(`cannot parse localhost source`),
 		},
 		"test source mapping invalid trace:trace is nil": {
-			errorObjectInput:    publicModelInput.ErrorObjectInput{},
+			stackFrameInput:     nil,
 			expectedErrorObject: model.ErrorObject{},
 			fetcher:             mockFetcher{},
 			err:                 e.New("stack trace input cannot be nil"),
 		},
 		"test source mapping invalid trace:empty stack frame doesn't update error object": {
-			errorObjectInput: publicModelInput.ErrorObjectInput{
-				Trace: []*publicModelInput.StackFrameInput{},
-			},
+			stackFrameInput: []*publicModelInput.StackFrameInput{},
 			expectedErrorObject: model.ErrorObject{
 				MappedStackTrace: util.MakeStringPointer("null"),
 			},
@@ -357,7 +343,7 @@ func TestSetSourceMapElements(t *testing.T) {
 			}(DB)
 			fetch = tc.fetcher
 			errorObj := model.ErrorObject{}
-			mappedStackTrace, err := r.SetSourceMapElements(&tc.errorObjectInput)
+			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput)
 			if err != nil {
 				if err.Error() == tc.err.Error() {
 					return

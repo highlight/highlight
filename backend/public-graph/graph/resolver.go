@@ -210,7 +210,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	newFrameString := errorGroup.Trace
 	if len(frameString) >= len(errorGroup.Trace) {
 		newFrameString = frameString
-		mappedStackTrace, err := r.SetSourceMapElements(errorInput)
+		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.Trace)
 		if err != nil {
 			log.Error(err)
 		} else {
@@ -480,7 +480,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 }
 
 type fetcher interface {
-	fetchFile(string) ([]byte, *string, error)
+	fetchFile(string) ([]byte, error)
 }
 
 type NetworkFetcher struct{}
@@ -491,57 +491,55 @@ func init() {
 	fetch = NetworkFetcher{}
 }
 
-func (n NetworkFetcher) fetchFile(href string) ([]byte, *string, error) {
+func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 	// check if source is a URL
 	_, err := url.ParseRequestURI(href)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	// check if source is localhost
 	if strings.Contains(strings.ToLower(href), "localhost") {
-		return nil, nil, e.New("cannot parse localhost source")
+		return nil, e.New("cannot parse localhost source")
 	}
 	// get minified file
 	res, err := http.Get(href)
 	if err != nil {
-		return nil, nil, e.Wrap(err, "error getting source file")
+		return nil, e.Wrap(err, "error getting source file")
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return nil, nil, e.New("status code not OK")
+		return nil, e.New("status code not OK")
 	}
 
 	// unpack file into slice
-	filename := res.Request.URL.String()
 	bodyBytes, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, nil, e.Wrap(err, "error reading response body")
+		return nil, e.Wrap(err, "error reading response body")
 	}
 
-	return bodyBytes, &filename, nil
+	return bodyBytes, nil
 }
 
-/* SetSourceMapElements makes no DB changes
+/*
+EnhanceStackTrace makes no DB changes
 It loops through the trace on the error object input, for each :
-* fetches the soucemap from s3 if it's there, otherwise it fetches from remote and uploads to s3.
+* fetches the sourcemap from s3 if it's there, otherwise it fetches from remote and uploads to s3.
 * maps the error info and updates the destination error object pointer.
 */
-func (r *Resolver) SetSourceMapElements(input *model2.ErrorObjectInput) (*string, error) {
+func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) (*string, error) {
 	var mappedStackTrace []modelInputs.ErrorTrace
-	if input.Trace == nil {
+	if input == nil {
 		return nil, e.New("stack trace input cannot be nil")
 	}
-	for _, stackTrace := range input.Trace {
+	for _, stackTrace := range input {
 		if stackTrace == nil || (stackTrace.FileName == nil || stackTrace.LineNumber == nil || stackTrace.ColumnNumber == nil) {
 			continue
 		}
 
-		bodyBytes, filename, err := fetch.fetchFile(*stackTrace.FileName)
+		filename := stackTrace.FileName
+		bodyBytes, err := fetch.fetchFile(*filename)
 		if err != nil {
 			return nil, err
-		}
-		if filename == nil {
-			continue
 		}
 		if len(bodyBytes) > 1000000 {
 			return nil, e.New("size of source way too big")
@@ -570,7 +568,7 @@ func (r *Resolver) SetSourceMapElements(input *model2.ErrorObjectInput) (*string
 
 		var fileBytes []byte
 		// fetch source map file
-		fileBytes, _, err = fetch.fetchFile(sourceMapURL)
+		fileBytes, err = fetch.fetchFile(sourceMapURL)
 		if err != nil {
 			log.Error(e.Wrap(err, "error fetching source map file"))
 			continue
