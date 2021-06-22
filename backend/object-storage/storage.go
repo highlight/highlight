@@ -249,3 +249,17 @@ func (s *StorageClient) ReadSourceMapFileFromS3(organizationId int, fileName str
 	}
 	return buf.Bytes(), nil
 }
+
+func (s *StorageClient) ReadSourceMapFileFromS3BattleCard(fileName string) ([]byte, error) {
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String("source-maps-test"),
+		Key: aws.String(fileName)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	return buf.Bytes(), nil
+}

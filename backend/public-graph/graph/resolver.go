@@ -569,16 +569,31 @@ func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.Er
 
 		var fileBytes []byte
 		if organizationID == 113 {
-			// get file from s3 if it's battlecard
-			fileBytes, err = r.S3Client.ReadSourceMapFileFromS3(organizationID, sourceMapFileName)
+			// get file from battlecard's s3 bucket
+			fileBytes, err = r.S3Client.ReadSourceMapFileFromS3BattleCard(sourceMapFileName)
 			if err != nil {
-				return e.Wrap(err, "error getting source map file from s3")
+				log.Error(e.Wrap(err, "error getting source map file from s3"))
+				continue
 			}
 		} else {
-			// extract information from sourcemap
+			isInS3 := true
+			fileBytes, err = r.S3Client.ReadSourceMapFileFromS3(organizationID, sourceMapFileName)
+			if err != nil {
+				log.Error(e.Wrap(err, "error reading source map file from s3"))
+				isInS3 = false
+			}
+			// fetch source map file
 			fileBytes, _, err = fetch.fetchFile(sourceMapURL)
 			if err != nil {
-				return e.Wrap(err, "error fetching source map file")
+				log.Error(e.Wrap(err, "error fetching source map file"))
+				continue
+			}
+			// upload file to s3 if it's not there
+			if !isInS3 {
+				_, err := r.S3Client.PushSourceMapFileToS3(organizationID, sourceMapFileName, fileBytes)
+				if err != nil {
+					log.Error(e.Wrap(err, "error pushing sourcemap file to s3"))
+				}
 			}
 		}
 
@@ -601,7 +616,7 @@ func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.Er
 
 	mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
 	if err != nil {
-
+		return e.Wrap(err, "error marshalling mapped stack trace")
 	}
 	mappedStackTraceString := string(mappedStackTraceBytes)
 	obj.MappedStackTrace = &mappedStackTraceString
