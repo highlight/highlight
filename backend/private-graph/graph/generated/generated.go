@@ -225,15 +225,14 @@ type ComplexityRoot struct {
 	}
 
 	Organization struct {
-		BillingEmail          func(childComplexity int) int
-		ID                    func(childComplexity int) int
-		Name                  func(childComplexity int) int
-		Secret                func(childComplexity int) int
-		SlackChannels         func(childComplexity int) int
-		SlackWebhookChannel   func(childComplexity int) int
-		TrialEndDate          func(childComplexity int) int
-		UnlimitedTrialEndDate func(childComplexity int) int
-		VerboseID             func(childComplexity int) int
+		BillingEmail        func(childComplexity int) int
+		ID                  func(childComplexity int) int
+		Name                func(childComplexity int) int
+		Secret              func(childComplexity int) int
+		SlackChannels       func(childComplexity int) int
+		SlackWebhookChannel func(childComplexity int) int
+		TrialEndDate        func(childComplexity int) int
+		VerboseID           func(childComplexity int) int
 	}
 
 	Plan struct {
@@ -1496,13 +1495,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Organization.TrialEndDate(childComplexity), true
 
-	case "Organization.unlimited_trial_end_date":
-		if e.complexity.Organization.UnlimitedTrialEndDate == nil {
-			break
-		}
-
-		return e.complexity.Organization.UnlimitedTrialEndDate(childComplexity), true
-
 	case "Organization.verbose_id":
 		if e.complexity.Organization.VerboseID == nil {
 			break
@@ -2735,7 +2727,6 @@ type Organization {
     name: String!
     billing_email: String
     trial_end_date: Time
-    unlimited_trial_end_date: Time
     slack_webhook_channel: String
     slack_channels: String
     secret: String
@@ -8958,38 +8949,6 @@ func (ec *executionContext) _Organization_trial_end_date(ctx context.Context, fi
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.TrialEndDate, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*time.Time)
-	fc.Result = res
-	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Organization_unlimited_trial_end_date(ctx context.Context, field graphql.CollectedField, obj *model1.Organization) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "Organization",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UnlimitedTrialEndDate, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16140,8 +16099,6 @@ func (ec *executionContext) _Organization(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._Organization_billing_email(ctx, field, obj)
 		case "trial_end_date":
 			out.Values[i] = ec._Organization_trial_end_date(ctx, field, obj)
-		case "unlimited_trial_end_date":
-			out.Values[i] = ec._Organization_unlimited_trial_end_date(ctx, field, obj)
 		case "slack_webhook_channel":
 			out.Values[i] = ec._Organization_slack_webhook_channel(ctx, field, obj)
 		case "slack_channels":

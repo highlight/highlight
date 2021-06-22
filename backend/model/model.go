@@ -127,16 +127,15 @@ func (r *RecordingSettings) GetDetailsAsSlice() ([]string, error) {
 
 type Organization struct {
 	Model
-	Name                  *string
-	StripeCustomerID      *string
-	StripePriceID         *string
-	BillingEmail          *string
-	Secret                *string `json:"-"`
-	Admins                []Admin `gorm:"many2many:organization_admins;"`
-	Fields                []Field
-	RecordingSetting      RecordingSettings
-	TrialEndDate          *time.Time `json:"trial_end_date"`
-	UnlimitedTrialEndDate *time.Time `json:"unlimited_trial_end_date"` // this is granted on a case by case basis, allows unlimited sessions until this date
+	Name             *string
+	StripeCustomerID *string
+	StripePriceID    *string
+	BillingEmail     *string
+	Secret           *string `json:"-"`
+	Admins           []Admin `gorm:"many2many:organization_admins;"`
+	Fields           []Field
+	RecordingSetting RecordingSettings
+	TrialEndDate     *time.Time `json:"trial_end_date"`
 	// Slack API Interaction.
 	SlackAccessToken      *string
 	SlackWebhookURL       *string

@@ -385,7 +385,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 
 	// determine if session is within billing quota
 	withinBillingQuota := true
-	if organization.UnlimitedTrialEndDate == nil || organization.UnlimitedTrialEndDate.Before(time.Now()) {
+	if organization.TrialEndDate == nil || organization.TrialEndDate.Before(time.Now()) {
 		log.Info("UnlimitedTrialDate not before now: ", time.Now().Add(24*time.Hour))
 		stripePriceID := ""
 		if organization.StripePriceID != nil {

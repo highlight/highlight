@@ -174,7 +174,6 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err != nil {
 		return nil, e.Wrap(err, "error getting admin")
 	}
-	trialEnd := time.Now().AddDate(0, 0, 14)
 
 	c := &stripe.Customer{}
 	if os.Getenv("REACT_APP_ONPREM") != "true" {
@@ -189,7 +188,6 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 		StripeCustomerID: &c.ID,
 		Name:             &name,
 		Admins:           []model.Admin{*admin},
-		TrialEndDate:     &trialEnd,
 		BillingEmail:     admin.Email,
 	}
 	if err := r.DB.Create(org).Error; err != nil {
