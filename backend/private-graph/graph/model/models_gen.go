@@ -48,7 +48,6 @@ type ErrorTrace struct {
 	LineNumber   *int    `json:"line_number"`
 	FunctionName *string `json:"function_name"`
 	ColumnNumber *int    `json:"column_number"`
-	Code         *string `json:"code"`
 }
 
 type LengthRangeInput struct {

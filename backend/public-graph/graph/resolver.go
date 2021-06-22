@@ -588,37 +588,6 @@ func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.Er
 		mappedStackFrame.LineNumber = &line
 		mappedStackFrame.ColumnNumber = &col
 
-		var sourceBytes []byte
-		// fetch source file
-		sourceURL := (*stackTrace.FileName)[:sourceFileNameIndex] + sourceFileName
-		// fetch source file
-		sourceBytes, _, err = fetch.fetchFile(sourceURL)
-		if err != nil {
-			log.Error(e.Wrap(err, "error fetching source file"))
-			continue
-		}
-
-		// put together code block surrounding error line
-		sourceStringSlice := strings.Split(string(sourceBytes), "\n")
-		mappedCode := make(map[int]string)
-		startLine := line - 5
-		endLine := line + 5
-		if endLine >= len(sourceStringSlice) {
-			startLine -= endLine - len(sourceStringSlice)
-			endLine = len(sourceStringSlice) - 1
-		}
-		if startLine < 0 {
-			startLine = 0
-		}
-		for i := startLine; i <= endLine; i++ {
-			mappedCode[i] = sourceStringSlice[i]
-		}
-		mappedCodeBytes, err := json.Marshal(mappedCode)
-		if err != nil {
-		}
-		mappedCodeString := string(mappedCodeBytes)
-		mappedStackFrame.Code = &mappedCodeString
-
 		mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
 	}
 

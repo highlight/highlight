@@ -174,7 +174,6 @@ export type ErrorTrace = {
     line_number?: Maybe<Scalars['Int']>;
     function_name?: Maybe<Scalars['String']>;
     column_number?: Maybe<Scalars['Int']>;
-    code?: Maybe<Scalars['String']>;
 };
 
 export type ReferrerTablePayload = {

@@ -172,7 +172,6 @@ type ComplexityRoot struct {
 	}
 
 	ErrorTrace struct {
-		Code         func(childComplexity int) int
 		ColumnNumber func(childComplexity int) int
 		FileName     func(childComplexity int) int
 		FunctionName func(childComplexity int) int
@@ -1045,13 +1044,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ErrorSegment.Params(childComplexity), true
-
-	case "ErrorTrace.code":
-		if e.complexity.ErrorTrace.Code == nil {
-			break
-		}
-
-		return e.complexity.ErrorTrace.Code(childComplexity), true
 
 	case "ErrorTrace.column_number":
 		if e.complexity.ErrorTrace.ColumnNumber == nil {
@@ -2804,7 +2796,6 @@ type ErrorTrace {
     line_number: Int
     function_name: String
     column_number: Int
-    code: String
 }
 
 type ReferrerTablePayload {
@@ -7508,38 +7499,6 @@ func (ec *executionContext) _ErrorTrace_column_number(ctx context.Context, field
 	res := resTmp.(*int)
 	fc.Result = res
 	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ErrorTrace_code(ctx context.Context, field graphql.CollectedField, obj *model.ErrorTrace) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ErrorTrace",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Code, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Field_id(ctx context.Context, field graphql.CollectedField, obj *model1.Field) (ret graphql.Marshaler) {
@@ -15924,8 +15883,6 @@ func (ec *executionContext) _ErrorTrace(ctx context.Context, sel ast.SelectionSe
 			out.Values[i] = ec._ErrorTrace_function_name(ctx, field, obj)
 		case "column_number":
 			out.Values[i] = ec._ErrorTrace_column_number(ctx, field, obj)
-		case "code":
-			out.Values[i] = ec._ErrorTrace_code(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
