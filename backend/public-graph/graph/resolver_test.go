@@ -223,7 +223,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	}
 }
 
-func TestSetSourceMapElements(t *testing.T) {
+func TestEnhanceStackTrace(t *testing.T) {
 	// construct table of sub-tests to run
 	tests := map[string]struct {
 		stackFrameInput     []*publicModelInput.StackFrameInput
