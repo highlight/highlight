@@ -504,7 +504,6 @@ export class Highlight {
             }
             const payload = this._getPayload();
             await this.graphqlSDK.PushPayload(payload);
-            this.events = [];
             this.errors = [];
             this.messages = [];
             this.networkContents = [];
@@ -555,9 +554,19 @@ export class Highlight {
             performance.clearResourceTimings();
         }
 
+        // We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
+        // Originally, we would clear this.events but this could lead to a race condition.
+        // Example Scenario:
+        // 1. Create the events payload from this.events (with N events)
+        // 2. rrweb pushes to this.events (with M events)
+        // 3. Network request made to push payload (Only includes N events)
+        // 4. this.events is cleared (we lose M events)
+        const events = [...this.events];
+        this.events = this.events.slice(events.length);
+
         return {
             session_id: this.sessionData.sessionID.toString(),
-            events: { events: this.events },
+            events: { events },
             messages: messagesString,
             resources: resourcesString,
             errors: this.errors,

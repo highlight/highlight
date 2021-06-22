@@ -1053,7 +1053,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 	}
 
 	if d := params.DateRange; d != nil {
-		queryString += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
+		queryString += fmt.Sprintf("AND (id IN (SELECT error_group_id FROM error_objects WHERE (organization_id=%d) AND (deleted_at IS NULL) AND (created_at > '%s') AND (created_at < '%s')))", organizationID, d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
 	}
 
 	if resolved := params.HideResolved; resolved != nil && *resolved {
@@ -1607,10 +1607,9 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
+	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
 
 	g.Go(func() error {
-		whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
-		// Filter out sessions that are processed but have a length of 1000 (1 second).
 		if params.LengthRange != nil {
 			if params.LengthRange.Min != nil || params.LengthRange.Max != nil {
 				whereClauseSuffix = "AND processed = true "
@@ -1629,7 +1628,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	g.Go(func() error {
 		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsCountQuery"))
-		if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s", joinClause, whereClause)).Scan(&queriedSessionsCount).Error; err != nil {
+		if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)).Scan(&queriedSessionsCount).Error; err != nil {
 			return e.Wrap(err, "error querying filtered sessions count")
 		}
 		sessionCountSpan.Finish()

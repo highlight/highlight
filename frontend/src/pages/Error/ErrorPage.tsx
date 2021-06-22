@@ -36,10 +36,10 @@ import { ErrorStateSelect } from './ErrorStateSelect/ErrorStateSelect';
 
 const ErrorPage = () => {
     const { error_id } = useParams<{ error_id: string }>();
+
     const { data, loading } = useGetErrorGroupQuery({
         variables: { id: error_id },
     });
-
     return (
         <div className={styles.errorPageWrapper}>
             <div className={styles.errorPage}>
