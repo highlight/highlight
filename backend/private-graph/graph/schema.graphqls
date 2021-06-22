@@ -78,6 +78,7 @@ type Organization {
     name: String!
     billing_email: String
     trial_end_date: Time
+    unlimited_trial_end_date: Time
     slack_webhook_channel: String
     slack_channels: String
     secret: String

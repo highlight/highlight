@@ -384,26 +384,30 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	}
 
 	// determine if session is within billing quota
-	stripePriceID := ""
-	if organization.StripePriceID != nil {
-		stripePriceID = *organization.StripePriceID
+	withinBillingQuota := true
+	if organization.UnlimitedTrialEndDate == nil || organization.UnlimitedTrialEndDate.Before(time.Now()) {
+		log.Info("UnlimitedTrialDate not before now: ", time.Now().Add(24*time.Hour))
+		stripePriceID := ""
+		if organization.StripePriceID != nil {
+			stripePriceID = *organization.StripePriceID
+		}
+		stripePlan := pricing.FromPriceID(stripePriceID)
+		quota := pricing.TypeToQuota(stripePlan)
+		var monthToDateSessionCountSlice []int64
+		year, month, _ := time.Now().Date()
+		if err := r.DB.
+			Model(&model.DailySessionCount{}).
+			Where(&model.DailySessionCount{OrganizationID: organizationID}).
+			Where("date > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).
+			Pluck("count", &monthToDateSessionCountSlice).Error; err != nil {
+			return nil, e.Wrap(err, "error getting month-to-date session count")
+		}
+		var monthToDateSessionCount int64
+		for _, count := range monthToDateSessionCountSlice {
+			monthToDateSessionCount += count
+		}
+		withinBillingQuota = int64(quota) > monthToDateSessionCount
 	}
-	stripePlan := pricing.FromPriceID(stripePriceID)
-	quota := pricing.TypeToQuota(stripePlan)
-	var monthToDateSessionCountSlice []int64
-	year, month, _ := time.Now().Date()
-	if err := r.DB.
-		Model(&model.DailySessionCount{}).
-		Where(&model.DailySessionCount{OrganizationID: organizationID}).
-		Where("date > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).
-		Pluck("count", &monthToDateSessionCountSlice).Error; err != nil {
-		return nil, e.Wrap(err, "error getting month-to-date session count")
-	}
-	var monthToDateSessionCount int64
-	for _, count := range monthToDateSessionCountSlice {
-		monthToDateSessionCount += count
-	}
-	withinBillingQuota := int64(quota) > monthToDateSessionCount
 
 	session := &model.Session{
 		UserID:              userId,
