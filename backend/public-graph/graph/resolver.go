@@ -214,7 +214,12 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 		if err != nil {
 			log.Error(err)
 		} else {
-			errorObj.MappedStackTrace = mappedStackTrace
+			mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
+			if err != nil {
+				return nil, e.Wrap(err, "error marshalling mapped stack trace")
+			}
+			mappedStackTraceString := string(mappedStackTraceBytes)
+			errorObj.MappedStackTrace = &mappedStackTraceString
 		}
 
 	}
@@ -526,11 +531,11 @@ It loops through the trace on the error object input, for each :
 * fetches the sourcemap from s3 if it's there, otherwise it fetches from remote and uploads to s3.
 * maps the error info and updates the destination error object pointer.
 */
-func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) (*string, error) {
-	var mappedStackTrace []modelInputs.ErrorTrace
+func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelInputs.ErrorTrace, error) {
 	if input == nil {
 		return nil, e.New("stack trace input cannot be nil")
 	}
+	var mappedStackTrace []modelInputs.ErrorTrace
 	for _, stackTrace := range input {
 		if stackTrace == nil || (stackTrace.FileName == nil || stackTrace.LineNumber == nil || stackTrace.ColumnNumber == nil) {
 			continue
@@ -591,11 +596,5 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) (*string, 
 
 		mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
 	}
-
-	mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
-	if err != nil {
-		return nil, e.Wrap(err, "error marshalling mapped stack trace")
-	}
-	mappedStackTraceString := string(mappedStackTraceBytes)
-	return &mappedStackTraceString, nil
+	return mappedStackTrace, nil
 }

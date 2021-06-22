@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-test/deep"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	_ "gorm.io/driver/postgres"
@@ -227,6 +228,7 @@ func TestSetSourceMapElements(t *testing.T) {
 	tests := map[string]struct {
 		stackFrameInput     []*publicModelInput.StackFrameInput
 		expectedErrorObject model.ErrorObject
+		expectedStackTrace  []modelInput.ErrorTrace
 		fetcher             fetcher
 		err                 error
 	}{
@@ -243,23 +245,19 @@ func TestSetSourceMapElements(t *testing.T) {
 					ColumnNumber: util.MakeIntPointer(799),
 				},
 			},
-			expectedErrorObject: model.ErrorObject{
-				MappedStackTrace: util.MakeStringPointerFromInterface(
-					[]modelInput.ErrorTrace{
-						{
-							FileName:     util.MakeStringPointer("lodash.js"),
-							LineNumber:   util.MakeIntPointer(634),
-							ColumnNumber: util.MakeIntPointer(4),
-							FunctionName: util.MakeStringPointer(""),
-						},
-						{
-							FileName:     util.MakeStringPointer("lodash.js"),
-							LineNumber:   util.MakeIntPointer(633),
-							ColumnNumber: util.MakeIntPointer(11),
-							FunctionName: util.MakeStringPointer("arrayIncludesWith"),
-						},
-					},
-				),
+			expectedStackTrace: []modelInput.ErrorTrace{
+				{
+					FileName:     util.MakeStringPointer("lodash.js"),
+					LineNumber:   util.MakeIntPointer(634),
+					ColumnNumber: util.MakeIntPointer(4),
+					FunctionName: util.MakeStringPointer(""),
+				},
+				{
+					FileName:     util.MakeStringPointer("lodash.js"),
+					LineNumber:   util.MakeIntPointer(633),
+					ColumnNumber: util.MakeIntPointer(11),
+					FunctionName: util.MakeStringPointer("arrayIncludesWith"),
+				},
 			},
 			fetcher: mockFetcher{},
 			err:     e.New(""),
@@ -272,9 +270,9 @@ func TestSetSourceMapElements(t *testing.T) {
 					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
-			expectedErrorObject: model.ErrorObject{},
-			fetcher:             mockFetcher{},
-			err:                 e.New("file does not contain source map url"),
+			expectedStackTrace: nil,
+			fetcher:            mockFetcher{},
+			err:                e.New("file does not contain source map url"),
 		},
 		"test source mapping invalid trace:file doesn't exist": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
@@ -284,9 +282,9 @@ func TestSetSourceMapElements(t *testing.T) {
 					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
-			expectedErrorObject: model.ErrorObject{},
-			fetcher:             NetworkFetcher{},
-			err:                 e.New("status code not OK"),
+			expectedStackTrace: nil,
+			fetcher:            NetworkFetcher{},
+			err:                e.New("status code not OK"),
 		},
 		"test source mapping invalid trace:filename is not a url": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
@@ -296,9 +294,9 @@ func TestSetSourceMapElements(t *testing.T) {
 					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
-			expectedErrorObject: model.ErrorObject{},
-			fetcher:             NetworkFetcher{},
-			err:                 e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
+			expectedStackTrace: nil,
+			fetcher:            NetworkFetcher{},
+			err:                e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
 		},
 		"test source mapping invalid trace:filename is localhost": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
@@ -308,23 +306,21 @@ func TestSetSourceMapElements(t *testing.T) {
 					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
-			expectedErrorObject: model.ErrorObject{},
-			fetcher:             NetworkFetcher{},
-			err:                 e.New(`cannot parse localhost source`),
+			expectedStackTrace: nil,
+			fetcher:            NetworkFetcher{},
+			err:                e.New(`cannot parse localhost source`),
 		},
 		"test source mapping invalid trace:trace is nil": {
-			stackFrameInput:     nil,
-			expectedErrorObject: model.ErrorObject{},
-			fetcher:             mockFetcher{},
-			err:                 e.New("stack trace input cannot be nil"),
+			stackFrameInput:    nil,
+			expectedStackTrace: nil,
+			fetcher:            mockFetcher{},
+			err:                e.New("stack trace input cannot be nil"),
 		},
 		"test source mapping invalid trace:empty stack frame doesn't update error object": {
-			stackFrameInput: []*publicModelInput.StackFrameInput{},
-			expectedErrorObject: model.ErrorObject{
-				MappedStackTrace: util.MakeStringPointer("null"),
-			},
-			fetcher: mockFetcher{},
-			err:     e.New(""),
+			stackFrameInput:    []*publicModelInput.StackFrameInput{},
+			expectedStackTrace: nil,
+			fetcher:            mockFetcher{},
+			err:                e.New(""),
 		},
 	}
 
@@ -342,7 +338,6 @@ func TestSetSourceMapElements(t *testing.T) {
 				}
 			}(DB)
 			fetch = tc.fetcher
-			errorObj := model.ErrorObject{}
 			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput)
 			if err != nil {
 				if err.Error() == tc.err.Error() {
@@ -350,12 +345,8 @@ func TestSetSourceMapElements(t *testing.T) {
 				}
 				t.Error(e.Wrap(err, "error setting source map elements"))
 			}
-			errorObj.MappedStackTrace = mappedStackTrace
-			eq, diff, err := model.AreModelsWeaklyEqual(&errorObj, &tc.expectedErrorObject)
-			if err != nil {
-				t.Error(e.Wrap(err, "error checking if publicModelInput. are equal"))
-			}
-			if !eq {
+			diff := deep.Equal(&mappedStackTrace, &tc.expectedStackTrace)
+			if len(diff) > 0 {
 				t.Error(e.Errorf("publicModelInput. not equal: %+v", diff))
 			}
 		})
