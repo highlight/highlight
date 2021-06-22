@@ -23,8 +23,6 @@ linters:
     - unused
     - varcheck
 
-  fast: false
-
 # all available settings of specific linters
 linters-settings:
   gosimple:
@@ -34,6 +32,7 @@ linters-settings:
   staticcheck:
     # Select the Go version to target. The default is '1.13'.
     go: "1.14"
+    checks: [ "all" ]
 
   stylecheck:
     # Select the Go version to target. The default is '1.13'.
@@ -42,8 +41,3 @@ linters-settings:
   unused:
     # Select the Go version to target. The default is '1.13'.
     go: "1.14"
-
-issues:
-  # The list of ids of default excludes to include or disable. By default it's empty.
-  include:
-    - SA5011 # nil pointer dereference
