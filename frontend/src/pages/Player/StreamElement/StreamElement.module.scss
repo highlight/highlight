@@ -76,6 +76,8 @@
 }
 
 .tiltedIcon {
+    color: var(--text-primary-inverted);
+    fill: var(--text-primary-inverted);
     height: var(--size-small);
     transform: rotate(-20deg);
     width: var(--size-small);
