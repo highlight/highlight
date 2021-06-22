@@ -530,7 +530,7 @@ func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 * It loops through the stack trace, for each :
 * fetches the sourcemap from remote
 * maps the error info into slice
-*/
+ */
 func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelInputs.ErrorTrace, error) {
 	if input == nil {
 		return nil, e.New("stack trace input cannot be nil")
