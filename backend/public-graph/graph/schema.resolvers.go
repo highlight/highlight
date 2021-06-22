@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
+	"os"
 	"time"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
@@ -22,10 +22,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, fingerprint string) (*model.Session, error) {
-	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, firstloadVersion, clientVersion, clientConfig, environment, fingerprint)
+func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
+	session, err := InitializeSessionImplementation(r, ctx, organizationVerboseID, enableStrictPrivacy, firstloadVersion, clientVersion, clientConfig, environment, appVersion, fingerprint)
 
-	if err != nil {
+	if os.Getenv("ENVIRONMENT") != "dev" && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
 			Sprintf("Error in InitializeSession: %q\nOccurred for organization: %q", err, organizationVerboseID)}
 		err2 := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
@@ -46,8 +46,10 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	userProperties := map[string]string{
 		"identifier": userIdentifier,
 	}
+	userObj := make(map[string]string)
 	for k, v := range obj {
 		userProperties[k] = fmt.Sprintf("%v", v)
+		userObj[k] = fmt.Sprintf("%v", v)
 	}
 	if err := r.AppendProperties(sessionID, userProperties, PropertyType.USER); err != nil {
 		return nil, e.Wrap(err, "error adding set of properites to db")
@@ -56,6 +58,10 @@ func (r *mutationResolver) IdentifySession(ctx context.Context, sessionID int, u
 	session := &model.Session{}
 	if err := r.DB.Where(&model.Session{Model: model.Model{ID: sessionID}}).First(&session).Error; err != nil {
 		return nil, e.Wrap(err, "error querying session by sessionID")
+	}
+	// set user properties to session in db
+	if err := session.SetUserProperties(userObj); err != nil {
+		return nil, e.Wrapf(err, "[org_id: %d] error appending user properties to session object {id: %d}", session.OrganizationID, sessionID)
 	}
 
 	// Check if there is a session created by this user.
@@ -221,6 +227,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		errorToInsert := &model.ErrorObject{
 			OrganizationID: organizationID,
 			SessionID:      sessionID,
+			Environment:    sessionObj.Environment,
 			Event:          v.Event,
 			Type:           v.Type,
 			URL:            v.URL,
@@ -246,11 +253,44 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			continue
 		}
 
-		// Send a slack message if we're not on localhost.
-		if !strings.Contains(errorToInsert.URL, "localhost") {
-			if err := r.SendSlackErrorMessage(group, organizationID, sessionID, sessionObj.Identifier, errorToInsert.URL); err != nil {
-				log.Errorf("Error sending slack error message: %v", err)
-				continue
+		// Get ErrorAlert object and send respective alert
+		var errorAlert model.ErrorAlert
+		if err := r.DB.Model(&model.ErrorAlert{}).Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&errorAlert).Error; err != nil {
+			log.Error(e.Wrap(err, "error fetching ErrorAlert object"))
+		} else {
+			if errorAlert.CountThreshold >= 1 {
+				excludedEnvironments, err := errorAlert.GetExcludedEnvironments()
+				if err != nil {
+					log.Error(e.Wrap(err, "error getting excluded environments from ErrorAlert"))
+				} else {
+					isExcludedEnvironment := false
+					for _, env := range excludedEnvironments {
+						if env != nil && *env == sessionObj.Environment {
+							isExcludedEnvironment = true
+							break
+						}
+					}
+					if !isExcludedEnvironment {
+						numErrors := int64(-1)
+						if errorAlert.ThresholdWindow == nil {
+							t := 30
+							errorAlert.ThresholdWindow = &t
+						}
+						if err := r.DB.Model(&model.ErrorObject{}).Where(&model.ErrorObject{OrganizationID: organizationID, ErrorGroupID: group.ID}).Where("created_at > ?", time.Now().Add(time.Duration(-(*errorAlert.ThresholdWindow))*time.Minute)).Count(&numErrors).Error; err != nil {
+							log.Error(e.Wrapf(err, "error counting errors from past %d minutes", *errorAlert.ThresholdWindow))
+						}
+						if errorAlert.CountThreshold == 1 || numErrors >= int64(errorAlert.CountThreshold) {
+							var org model.Organization
+							if err := r.DB.Model(&model.Organization{}).Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&org).Error; err != nil {
+								log.Error(e.Wrap(err, "error querying organization"))
+							}
+							err = errorAlert.SendSlackAlert(&org, sessionID, sessionObj.Identifier, group, &errorToInsert.URL, nil, nil, &numErrors)
+							if err != nil {
+								log.Error(e.Wrap(err, "error sending slack error message"))
+							}
+						}
+					}
+				}
 			}
 		}
 		// TODO: We need to do a batch insert which is supported by the new gorm lib.

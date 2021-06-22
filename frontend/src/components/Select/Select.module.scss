@@ -1,4 +1,20 @@
 .select {
+    border-radius: var(--border-radius);
+
+    :global(.ant-select-selector) {
+        border: 1px solid var(--color-gray-300) !important;
+        border-radius: var(--border-radius) !important;
+        font-family: var(--body-font-family);
+        height: fit-content !important;
+        padding: var(--size-xSmall) var(--size-medium) !important;
+    }
+
+    :global(.ant-select-selection-placeholder) {
+        left: 14px;
+    }
+}
+
+.dropdown {
     border: 1px solid var(--color-gray-300);
-    border-radius: 5px;
+    border-radius: var(--border-radius);
 }

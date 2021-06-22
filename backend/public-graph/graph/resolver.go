@@ -9,14 +9,16 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/model"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
-	"github.com/slack-go/slack"
 	"gorm.io/gorm"
+
+	"github.com/highlight-run/highlight/backend/model"
+	"github.com/highlight-run/highlight/backend/pricing"
 )
 
 // This file will not be regenerated automatically.
@@ -156,12 +158,11 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 
 	// Query the DB for errors w/ 1) the same events string and 2) the same trace string.
 	// If it doesn't exist, we create a new error group.
-	if res := r.DB.Where(&model.ErrorGroup{
+	if err := r.DB.Where(&model.ErrorGroup{
 		OrganizationID: errorObj.OrganizationID,
 		Event:          errorObj.Event,
-		Trace:          frameString,
 		Type:           errorObj.Type,
-	}).First(&errorGroup); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
+	}).First(&errorGroup).Error; err != nil {
 		newErrorGroup := &model.ErrorGroup{
 			OrganizationID: errorObj.OrganizationID,
 			Event:          errorObj.Event,
@@ -185,7 +186,6 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 			return nil, e.Wrap(err, "error decoding time log data")
 		}
 	}
-
 	newMetadataLog = append(newMetadataLog, ErrorMetaData{
 		Timestamp:  errorObj.CreatedAt,
 		ErrorID:    errorObj.ID,
@@ -201,8 +201,33 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, frames []int
 	}
 	logString := string(logBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
-		return nil, e.Wrap(err, "Error updating error group metadata log")
+	newFrameString := frameString
+	if len(frameString) < len(errorGroup.Trace) {
+		newFrameString = errorGroup.Trace
+	}
+
+	environmentsMap := make(map[string]int)
+	if errorGroup.Environments != "" {
+		err := json.Unmarshal([]byte(errorGroup.Environments), &environmentsMap)
+		if err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling environments from error group into map"))
+		}
+	}
+	if len(errorObj.Environment) > 0 {
+		if _, ok := environmentsMap[strings.ToLower(errorObj.Environment)]; ok {
+			environmentsMap[strings.ToLower(errorObj.Environment)]++
+		} else {
+			environmentsMap[strings.ToLower(errorObj.Environment)] = 1
+		}
+	}
+	environmentsBytes, err := json.Marshal(environmentsMap)
+	if err != nil {
+		log.Error(e.Wrap(err, "error marshalling environment map into json"))
+	}
+	environmentsString := string(environmentsBytes)
+
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Trace: newFrameString, Environments: environmentsString}).Error; err != nil {
+		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
 	err = r.AppendErrorFields(fields, errorGroup)
@@ -257,68 +282,12 @@ func (r *Resolver) AppendErrorFields(fields []*model.ErrorField, errorGroup *mod
 	}
 	fieldString := string(fieldBytes)
 
-	if res := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}); errors.Is(err, gorm.ErrRecordNotFound) || res.Error != nil {
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{FieldGroup: &fieldString}).Error; err != nil {
 		return e.Wrap(err, "Error updating error group field group")
 	}
 	// We append to this session in the join table regardless.
 	if err := r.DB.Model(errorGroup).Association("Fields").Append(fieldsToAppend); err != nil {
 		return e.Wrap(err, "error updating error fields")
-	}
-	return nil
-}
-
-func (r *Resolver) SendSlackErrorMessage(group *model.ErrorGroup, org_id int, session_id int, user_identifier string, url string) error {
-	organization := &model.Organization{}
-	res := r.DB.Where("id = ?", org_id).First(&organization)
-	if err := res.Error; err != nil {
-		return e.Wrap(err, "error messaging organization")
-	}
-	if organization.SlackWebhookURL == nil || group == nil {
-		return nil
-	}
-	shortEvent := group.Event
-	if len(group.Event) > 50 {
-		shortEvent = group.Event[:50] + "..."
-	}
-	errorLink := fmt.Sprintf("<https://app.highlight.run/%d/errors/%d/>", org_id, group.ID)
-	sessionLink := fmt.Sprintf("<https://app.highlight.run/%d/sessions/%d/>", org_id, session_id)
-	msg := slack.WebhookMessage{
-		Text: group.Event,
-		Blocks: &slack.Blocks{
-			BlockSet: []slack.Block{
-				slack.NewSectionBlock(
-					slack.NewTextBlockObject(slack.MarkdownType, "*Highlight Error:*\n\n"+shortEvent+"\n"+errorLink, false, false),
-					[]*slack.TextBlockObject{
-						slack.NewTextBlockObject(slack.MarkdownType, "*Organization:*\n"+fmt.Sprintf("%d", org_id), false, false),
-						slack.NewTextBlockObject(slack.MarkdownType, "*User:*\n"+user_identifier, false, false),
-						slack.NewTextBlockObject(slack.MarkdownType, "*Session:*\n"+sessionLink, false, false),
-						slack.NewTextBlockObject(slack.MarkdownType, "*Visited Url:*\n"+url, false, false),
-					},
-					nil,
-				),
-				slack.NewDividerBlock(),
-				slack.NewActionBlock(
-					"",
-					slack.NewButtonBlockElement(
-						"",
-						"click",
-						slack.NewTextBlockObject(
-							slack.PlainTextType,
-							"Resolve...",
-							false,
-							false,
-						),
-					),
-				),
-			},
-		},
-	}
-	err := slack.PostWebhook(
-		*organization.SlackWebhookURL,
-		&msg,
-	)
-	if err != nil {
-		return e.Wrap(err, "error sending slack msg")
 	}
 	return nil
 }
@@ -374,7 +343,7 @@ func GetDeviceDetails(userAgentString string) (deviceDetails DeviceDetails) {
 	return deviceDetails
 }
 
-func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, fingerprint string) (*model.Session, error) {
+func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, organizationVerboseID string, enableStrictPrivacy bool, clientVersion string, firstloadVersion string, clientConfig string, environment string, appVersion *string, fingerprint string) (*model.Session, error) {
 	organizationID := model.FromVerboseID(organizationVerboseID)
 	organization := &model.Organization{}
 	if err := r.DB.Where(&model.Organization{Model: model.Model{ID: organizationID}}).First(&organization).Error; err != nil {
@@ -414,6 +383,28 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		fingerprintInt = val
 	}
 
+	// determine if session is within billing quota
+	stripePriceID := ""
+	if organization.StripePriceID != nil {
+		stripePriceID = *organization.StripePriceID
+	}
+	stripePlan := pricing.FromPriceID(stripePriceID)
+	quota := pricing.TypeToQuota(stripePlan)
+	var monthToDateSessionCountSlice []int64
+	year, month, _ := time.Now().Date()
+	if err := r.DB.
+		Model(&model.DailySessionCount{}).
+		Where(&model.DailySessionCount{OrganizationID: organizationID}).
+		Where("date > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).
+		Pluck("count", &monthToDateSessionCountSlice).Error; err != nil {
+		return nil, e.Wrap(err, "error getting month-to-date session count")
+	}
+	var monthToDateSessionCount int64
+	for _, count := range monthToDateSessionCountSlice {
+		monthToDateSessionCount += count
+	}
+	withinBillingQuota := int64(quota) > monthToDateSessionCount
+
 	session := &model.Session{
 		UserID:              userId,
 		Fingerprint:         fingerprintInt,
@@ -428,13 +419,16 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		BrowserName:         deviceDetails.BrowserName,
 		BrowserVersion:      deviceDetails.BrowserVersion,
 		Language:            acceptLanguageString,
+		WithinBillingQuota:  &withinBillingQuota,
 		Processed:           &model.F,
+		Viewed:              &model.F,
 		PayloadUpdatedAt:    &n,
 		EnableStrictPrivacy: &enableStrictPrivacy,
 		FirstloadVersion:    firstloadVersion,
 		ClientVersion:       clientVersion,
 		ClientConfig:        &clientConfig,
 		Environment:         environment,
+		AppVersion:          appVersion,
 	}
 
 	if err := r.DB.Create(session).Error; err != nil {
@@ -468,6 +462,6 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	if err := r.DB.Exec("UPDATE daily_session_counts SET count = count + 1 WHERE date = ? AND organization_id = ?", currentDate, organizationID).Error; err != nil {
 		return nil, e.Wrap(err, "Error incrementing session count in db")
 	}
-	return session, nil
 
+	return session, nil
 }

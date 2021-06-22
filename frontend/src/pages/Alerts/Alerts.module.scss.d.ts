@@ -1,1 +1,1 @@
-export const alertsBody: string;
+export const configurationContainer: string;

@@ -1,20 +1,3 @@
-.setupWrapper {
-    display: flex;
-    width: 100%;
-}
-
-.icon {
-    color: var(--color-purple);
-    cursor: pointer;
-    float: right;
-    height: 16px;
-    margin-left: auto;
-    margin-right: -4px;
-    margin-top: 6px;
-    transition: 0.4s;
-    width: 16px;
-}
-
 .radioGroupWrapper {
     display: flex;
     margin: 20px 0;
@@ -36,24 +19,29 @@
     width: 85px;
 }
 
+.stepsContainer {
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--size-large);
+}
+
 .callout {
+    align-items: center;
     background-color: var(--color-gray-200);
     border-radius: 4px;
     display: flex;
     line-height: 2;
+    margin-bottom: var(--size-medium);
+
+    p {
+        margin-bottom: 0 !important;
+    }
 }
 
-.section {
-    border: 1px solid var(--color-gray-300);
-    border-radius: 8px;
-    margin-bottom: 20px;
-    padding: 20px 30px;
-    transition: 0.4s;
-}
-
-.triggerWrapper {
+.sectionTitleWithIcon {
+    align-items: center;
+    column-gap: var(--size-xSmall);
     display: flex;
-    flex-direction: row;
 }
 
 .subTitle {
@@ -69,14 +57,6 @@
     font-size: 20px;
     height: 100%;
     padding: 8px;
-}
-
-.setupPage {
-    border-radius: 8px;
-    height: max-content;
-    margin: 120px 80px 80px;
-    min-width: 650px;
-    width: 40vw;
 }
 
 .snippetHeadingTwo {
@@ -109,4 +89,9 @@
     resize: none;
     white-space: pre;
     width: 100%;
+}
+
+.integrationContainer {
+    padding: var(--size-medium) 0;
+    padding-bottom: 0;
 }

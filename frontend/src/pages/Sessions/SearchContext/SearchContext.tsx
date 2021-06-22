@@ -3,6 +3,7 @@ import React from 'react';
 import { createContext } from '../../../util/context/context';
 
 export type UserProperty = {
+    id: string;
     name: string;
     value: string;
 };
@@ -11,6 +12,7 @@ export type SearchParams = {
     user_properties: Array<UserProperty>;
     excluded_properties?: Array<UserProperty>;
     track_properties?: Array<UserProperty>;
+    excluded_track_properties?: Array<UserProperty>;
     date_range?: { start_date: Date; end_date: Date };
     length_range?: { min: number; max: number };
     os?: string;

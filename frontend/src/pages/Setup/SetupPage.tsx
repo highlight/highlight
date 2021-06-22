@@ -1,17 +1,16 @@
-import useLocalStorage from '@rehooks/local-storage';
-import classNames from 'classnames';
 import { H } from 'highlight.run';
 import React, { FunctionComponent, useState } from 'react';
-import Collapsible from 'react-collapsible';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
 import useFetch from 'use-http';
 
+import ButtonLink from '../../components/Button/ButtonLink/ButtonLink';
+import Collapsible from '../../components/Collapsible/Collapsible';
 import SvgSlackLogo from '../../components/icons/SlackLogo';
+import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { RadioGroup } from '../../components/RadioGroup/RadioGroup';
 import { useGetOrganizationQuery } from '../../graph/generated/hooks';
-import { ReactComponent as DownIcon } from '../../static/chevron-down.svg';
-import SlackIntegration from '../Alerts/SlackIntegration/SlackIntegration';
 import { CodeBlock } from './CodeBlock/CodeBlock';
 import { IntegrationDetector } from './IntegrationDetector/IntegrationDetector';
 import styles from './SetupPage.module.scss';
@@ -31,128 +30,129 @@ const SetupPage = ({ integrated }: { integrated: boolean }) => {
     });
 
     return (
-        <div className={styles.setupWrapper}>
-            <div className={styles.setupPage}>
-                <div className={styles.headingWrapper}>
-                    <h2>Your Highlight Snippet</h2>
-                </div>
-                <p className={styles.subTitle}>
-                    Setup Highlight in your web application!
-                </p>
-                <RadioGroup<PlatformType>
-                    style={{ marginTop: 20, marginBottom: 20 }}
-                    selectedLabel={platform}
-                    labels={[
-                        PlatformType.React,
-                        PlatformType.Vue,
-                        PlatformType.Html,
-                        PlatformType.NextJs,
-                    ]}
-                    onSelect={(p: PlatformType) => setPlatform(p)}
+        <LeadAlignLayout>
+            <div className={styles.headingWrapper}>
+                <h2>Your Highlight Snippet</h2>
+            </div>
+            <p className={layoutStyles.subTitle}>
+                Setup Highlight in your web application!
+            </p>
+            <RadioGroup<PlatformType>
+                style={{ marginTop: 20, marginBottom: 20 }}
+                selectedLabel={platform}
+                labels={[
+                    PlatformType.React,
+                    PlatformType.Vue,
+                    PlatformType.Html,
+                    PlatformType.NextJs,
+                ]}
+                onSelect={(p: PlatformType) => setPlatform(p)}
+            />
+            {!data?.organization || loading ? (
+                <Skeleton
+                    height={75}
+                    count={3}
+                    style={{ borderRadius: 8, marginBottom: 14 }}
                 />
-                {!data?.organization || loading ? (
-                    <Skeleton
-                        height={75}
-                        count={3}
-                        style={{ borderRadius: 8, marginBottom: 14 }}
-                    />
-                ) : (
-                    <>
-                        {platform === PlatformType.Html ? (
-                            <HtmlInstructions
-                                orgVerboseId={data?.organization?.verbose_id}
-                            />
-                        ) : (
-                            <JsAppInstructions
-                                orgVerboseId={data?.organization?.verbose_id}
-                                platform={platform}
-                            />
-                        )}
-                        <Section title="Identifying Users">
-                            <p>
-                                To tag sessions with user specific identifiers
-                                (name, email, etc.), you can call the
-                                <span
-                                    className={classNames(
-                                        styles.codeBlockBasic,
-                                        styles.codeBlockInlined
-                                    )}
-                                >
-                                    {'H.identify(id: string, object: Object)'}
-                                </span>{' '}
-                                method in your javascript app. Here's an
-                                example:
-                            </p>
-                            <CodeBlock
-                                onCopy={() => {
-                                    window.analytics.track(
-                                        'Copied Code Snippet',
-                                        { copied: 'code snippet' }
-                                    );
-                                    H.track(
-                                        'Copied Code Snippet (Highlight Event)',
-                                        { copied: 'code snippet' }
-                                    );
-                                }}
-                                text={
-                                    platform === PlatformType.NextJs
-                                        ? `if (typeof window !== 'undefined') {
-    H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}
+            ) : (
+                <div className={styles.stepsContainer}>
+                    {platform === PlatformType.Html ? (
+                        <HtmlInstructions
+                            orgVerboseId={data?.organization?.verbose_id}
+                        />
+                    ) : (
+                        <JsAppInstructions
+                            orgVerboseId={data?.organization?.verbose_id}
+                            platform={platform}
+                        />
+                    )}
+                    <Section title="Identifying Users">
+                        <p>
+                            To tag sessions with user specific identifiers
+                            (name, email, etc.), you can call the
+                            <code>
+                                {'H.identify(id: string, object: Object)'}
+                            </code>{' '}
+                            method in your javascript app. Here's an example:
+                        </p>
+                        <CodeBlock
+                            onCopy={() => {
+                                window.analytics.track('Copied Code Snippet', {
+                                    copied: 'code snippet',
+                                });
+                                H.track(
+                                    'Copied Code Snippet (Highlight Event)',
+                                    { copied: 'code snippet' }
+                                );
+                            }}
+                            text={
+                                platform === PlatformType.NextJs
+                                    ? `if (typeof window !== 'undefined') {
+    H.identify(\n\t'jay@gmail.com', \n\t{id: 'ajdf837dj', phone: '867-5309'}
     )
 }`
-                                        : `H.identify(\n\t"jay@gmail.com", \n\t{id: "ajdf837dj", phone: "867-5309"}\n)`
-                                }
-                            />
-                        </Section>
-                        <Section
-                            title="Verify Installation"
-                            headingIcon={
-                                integrated && (
+                                    : `H.identify(\n\t'jay@gmail.com', \n\t{id: 'ajdf837dj', phone: '867-5309'}\n)`
+                            }
+                        />
+                    </Section>
+                    <Section
+                        title={
+                            <span className={styles.sectionTitleWithIcon}>
+                                Verify Installation
+                                {integrated && (
                                     <IntegrationDetector
                                         verbose={false}
                                         integrated={integrated}
                                     />
-                                )
-                            }
-                        >
-                            <p>
-                                Please follow the setup instructions above to
-                                install Highlight. It should take less than a
-                                minute for us to detect installation.
-                            </p>
+                                )}
+                            </span>
+                        }
+                        id="highlightIntegration"
+                    >
+                        <p>
+                            Please follow the setup instructions above to
+                            install Highlight. It should take less than a minute
+                            for us to detect installation.
+                        </p>
+                        <div className={styles.integrationContainer}>
                             <IntegrationDetector
                                 integrated={integrated}
                                 verbose={true}
                             />
-                        </Section>
-                        <Section
-                            title="Enable Slack Alerts"
-                            headingIcon={
-                                data.organization.slack_webhook_channel ? (
+                        </div>
+                    </Section>
+                    <Section
+                        title={
+                            <span className={styles.sectionTitleWithIcon}>
+                                Enable Slack Alerts
+                                {data.organization.slack_webhook_channel ? (
                                     <IntegrationDetector
                                         verbose={false}
                                         integrated={integrated}
                                     />
                                 ) : (
                                     <SvgSlackLogo height="15" width="15" />
-                                )
-                            }
-                        >
-                            <p>
-                                Get notified of errors happening in your
-                                application.
-                            </p>
-                            <SlackIntegration
-                                redirectPath="setup"
-                                integratedChannel={
-                                    data.organization.slack_webhook_channel
-                                }
-                            />
-                        </Section>
-                    </>
-                )}
-            </div>
-        </div>
+                                )}
+                            </span>
+                        }
+                        id="slackAlerts"
+                    >
+                        <p>
+                            Get notified of different events happening in your
+                            application.
+                        </p>
+                        <div className={styles.integrationContainer}>
+                            <ButtonLink
+                                to={`/${organization_id}/alerts`}
+                                trackingId="ConfigureAlertsFromSetupPage"
+                            >
+                                Configure Your Alerts
+                            </ButtonLink>
+                        </div>
+                    </Section>
+                </div>
+            )}
+        </LeadAlignLayout>
     );
 };
 
@@ -186,7 +186,7 @@ const HtmlInstructions = ({ orgVerboseId }: { orgVerboseId: string }) => {
                         }}
                         text={`<script>
 ${codeStr}
-window.H.init("${orgVerboseId}")
+window.H.init('${orgVerboseId}')
 </script>`}
                     />
                 )}
@@ -206,11 +206,8 @@ const JsAppInstructions = ({
         <>
             <Section title="Installing the SDK">
                 <p>
-                    Install the{' '}
-                    <span className={styles.codeBlockBasic}>
-                        {'highlight.run'}
-                    </span>{' '}
-                    package via your javascript package manager.
+                    Install the <code>{'highlight.run'}</code> package via your
+                    javascript package manager.
                 </p>
                 <CodeBlock text={`npm install highlight.run`} />
                 <p>or with Yarn:</p>
@@ -226,9 +223,7 @@ const JsAppInstructions = ({
                         </div>
                         <p>
                             In Next.js, wrap all client side function calls in{' '}
-                            <span className={styles.codeBlockBasic}>
-                                if (typeof window...
-                            </span>
+                            <code>if (typeof window...</code>
                             to force the logic to be executed client side.
                         </p>
                     </div>
@@ -238,21 +233,27 @@ const JsAppInstructions = ({
                 <p>Initialize the SDK by importing Highlight like so: </p>
                 <CodeBlock text={`import { H } from 'highlight.run'`} />
                 <p>
-                    and then calling{' '}
-                    <span
-                        className={styles.codeBlockBasic}
-                    >{`H.init("${orgVerboseId}")`}</span>{' '}
-                    as soon as you can in your site's startup process.
+                    and then calling <code>{getInitSnippet(orgVerboseId)}</code>{' '}
+                    as soon as you can in your site's startup process. You can
+                    configure how Highlight records with the{' '}
+                    <a
+                        href="https://docs.highlight.run/reference#options"
+                        target="_blank"
+                        rel="noreferrer"
+                    >
+                        options
+                    </a>
+                    .
                 </p>
                 <p>
                     {platform !== PlatformType.NextJs ? (
                         <CodeBlock
-                            text={`H.init("${orgVerboseId}") // "${orgVerboseId}" is your ORG_ID`}
+                            text={`${getInitSnippet(orgVerboseId, true)}`}
                         />
                     ) : (
                         <CodeBlock
                             text={`if (typeof window !== 'undefined') {
-    H.init("${orgVerboseId}") // "${orgVerboseId}" is your ORG_ID
+    ${getInitSnippet(orgVerboseId)}' is your ORG_ID
 }`}
                         />
                     )}
@@ -275,7 +276,7 @@ import './index.scss';
 import App from './App';
 import { H } from 'highlight.run'
 
-H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
+${getInitSnippet(orgVerboseId)}
 
 ReactDOM.render(<App />, document.getElementById('root'));`}
                     />
@@ -285,7 +286,7 @@ ReactDOM.render(<App />, document.getElementById('root'));`}
 import App from './App.vue';
 import { H } from 'highlight.run';
 
-H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
+${getInitSnippet(orgVerboseId, true)}
 Vue.prototype.$H = H;
 
 new Vue({
@@ -298,7 +299,7 @@ new Vue({
 import { H } from 'highlight.run';
 
 if (typeof window !== 'undefined') {
-  H.init("${orgVerboseId}"); // "${orgVerboseId}" is your ORG_ID
+  ${getInitSnippet(orgVerboseId)}
 }
 
 function MyApp({ Component, pageProps }) {
@@ -314,56 +315,28 @@ export default MyApp`}
 };
 
 type SectionProps = {
-    title: string;
-    headingIcon?: React.ReactNode;
+    title: string | React.ReactNode;
+    id?: string;
 };
 
 export const Section: FunctionComponent<SectionProps> = ({
     children,
+    id,
     title,
-    headingIcon,
 }) => {
-    const [expanded, setExpanded] = useLocalStorage<boolean>(
-        `setup-page-section-state-${title}`,
-        false
-    );
-
-    const trigger = (
-        <div className={styles.triggerWrapper}>
-            <div className={styles.snippetHeadingTwo}>
-                <h3 className={styles.title}>{title}</h3>
-                {!expanded && headingIcon}
-            </div>
-            <DownIcon
-                className={styles.icon}
-                style={{
-                    transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                }}
-                onClick={() => setExpanded(!expanded)}
-            />
-        </div>
-    );
     return (
-        <div className={styles.section}>
-            <Collapsible
-                open={expanded}
-                onOpening={() => setExpanded(true)}
-                onClosing={() => setExpanded(false)}
-                trigger={trigger}
-                transitionTime={150}
-                style={{ margin: 10 }}
-            >
-                {expanded ? (
-                    <>
-                        <div style={{ height: 10 }} />
-                        {children}
-                    </>
-                ) : (
-                    <></>
-                )}
-            </Collapsible>
-        </div>
+        <Collapsible title={title} id={id}>
+            {children}
+        </Collapsible>
     );
 };
 
 export default SetupPage;
+
+const getInitSnippet = (orgId: string, withOptions = false) =>
+    withOptions
+        ? `H.init('${orgId}', {
+  environment: 'production',
+  enableStrictPrivacy: false,
+});`
+        : `H.init('${orgId}');`;

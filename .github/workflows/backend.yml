@@ -7,8 +7,9 @@ on:
         paths:
             - 'backend/**'
             - '.github/workflows/backend.yml'
+            - '!backend/migrations'
 jobs:
-    backend:
+    build:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout
@@ -26,7 +27,35 @@ jobs:
                   args: --config ./.golangci.yml
                   working-directory: backend
                   only-new-issues: true
-            - name: Run tests
-              run: cd backend && go test ./... -v
             - name: Build binary
               run: cd backend && go build .
+    test:
+        runs-on: ubuntu-latest
+        services:
+          postgres:
+            image: postgres
+            env:
+              POSTGRES_PASSWORD: postgres
+              POSTGRES_USER: postgres
+              POSTGRES_DB: postgres
+            options: >-
+              --health-cmd pg_isready
+              --health-interval 10s
+              --health-timeout 5s
+              --health-retries 5
+            ports:
+              - 5432:5432
+        env:
+          PSQL_HOST: "localhost"
+          PSQL_PORT: "5432"
+          PSQL_USER: "postgres"
+          PSQL_DB: "postgres"
+          PSQL_PASSWORD: "postgres"
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v2
+            - name: Setup Go
+              uses: actions/setup-go@v2
+            - name: Run tests
+              run: cd backend && go test ./... -v
+

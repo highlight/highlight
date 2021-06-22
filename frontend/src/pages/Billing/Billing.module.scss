@@ -2,21 +2,31 @@
     font-size: 18px;
 }
 
-.billingPage {
-    margin: 120px 80px 80px;
-    min-width: 650px;
-}
-
-.billingPageWrapper {
-    display: flex;
-    height: 100%;
-    width: 100%;
-}
-
 .billingPlanCardWrapper {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     gap: var(--size-large);
     margin-top: 30px;
+}
+
+.detailsCard {
+    max-width: 450px;
+
+    b {
+        color: var(--color-purple);
+        font-weight: 500;
+    }
+
+    .detailsCardTitle {
+        align-items: center;
+        column-gap: var(--size-xSmall);
+        display: flex;
+
+        svg {
+            color: var(--color-red);
+            height: var(--size-large);
+            width: var(--size-large);
+        }
+    }
 }

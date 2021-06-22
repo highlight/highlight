@@ -69,7 +69,14 @@ export const SearchSidebar = () => {
                         title="Track Properties"
                         searchParamsKey={['track_properties']}
                     >
+                        <div className={classNames(styles.subTitle)}>
+                            Included Properties
+                        </div>
                         <TrackPropertyInput />
+                        <div className={classNames(styles.subTitle)}>
+                            Excluded Properties
+                        </div>
+                        <TrackPropertyInput include={false} />
                     </SearchSection>
                     <SearchSection
                         title="Date Range"

@@ -1,17 +1,4 @@
 .button {
-    align-items: center;
-    border-radius: 50%;
-    color: var(--text-primary);
-    display: flex;
-    height: var(--size-xLarge);
-    justify-content: center;
-    padding: 0;
-    width: var(--size-xLarge);
-
-    &:hover {
-        background: var(--color-purple-200);
-    }
-
     .iconContainer {
         align-items: center;
         display: flex;
@@ -21,13 +8,8 @@
 
     .dotContainer {
         position: absolute;
-        right: 4px;
-        top: 2px;
-    }
-
-    svg {
-        height: calc(var(--size-icon) + var(--size-xSmall));
-        width: calc(var(--size-icon) + var(--size-xSmall));
+        right: 0;
+        top: -2px;
     }
 }
 

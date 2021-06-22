@@ -91,6 +91,13 @@
               "Select"
             ],
             "message": "Please use Select from /src/components/Select instead."
+          },
+          {
+            "name": "antd",
+            "importNames": [
+              "InputNumber"
+            ],
+            "message": "Please use InputNumber from /src/components/InputNumber instead."
           }
         ]
       }

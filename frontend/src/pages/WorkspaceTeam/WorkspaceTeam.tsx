@@ -8,12 +8,16 @@ import { useParams } from 'react-router-dom';
 import commonStyles from '../../Common.module.scss';
 import { AdminAvatar } from '../../components/Avatar/Avatar';
 import Button from '../../components/Button/Button/Button';
+import CopyText from '../../components/CopyText/CopyText';
+import LeadAlignLayout from '../../components/layout/LeadAlignLayout';
+import layoutStyles from '../../components/layout/LeadAlignLayout.module.scss';
 import { CircularSpinner } from '../../components/Loading/Loading';
 import {
     useGetAdminsQuery,
     useGetOrganizationQuery,
     useSendAdminInviteMutation,
 } from '../../graph/generated/hooks';
+import { getOrganizationInvitationLink } from './utils';
 import styles from './WorkspaceTeam.module.scss';
 
 type Inputs = {
@@ -64,92 +68,96 @@ const WorkspaceTeam = () => {
     }
 
     return (
-        <div className={styles.teamPageWrapper}>
-            <div className={styles.teamPage}>
-                <h2>Invite A Member</h2>
-                <p className={styles.subTitle}>
-                    Invite a your team to your Workspace.
-                </p>
-                <div className={styles.box}>
-                    <form onSubmit={handleSubmit(onSubmit)}>
-                        <h3>Invite Your Team</h3>
-                        <p className={styles.boxSubTitle}>
-                            Invite a team member to '
-                            {`${orgData?.organization?.name}`}' by entering an
-                            email below.
-                        </p>
-                        <div className={styles.buttonRow}>
-                            <input
-                                className={commonStyles.input}
-                                placeholder={'Email'}
-                                type="email"
-                                name="email"
-                                ref={(e) => {
-                                    register(e, { required: true });
-                                    emailRef.current = e;
-                                }}
-                            />
-                            <Button
-                                type="primary"
-                                className={classNames(
-                                    commonStyles.submitButton,
-                                    styles.inviteButton
-                                )}
-                                htmlType="submit"
-                            >
-                                {sendLoading ? (
-                                    <CircularSpinner
-                                        style={{
-                                            fontSize: 18,
-                                            color:
-                                                'var(--text-primary-inverted)',
-                                        }}
-                                    />
-                                ) : (
-                                    'Invite'
-                                )}
-                            </Button>
-                        </div>
-                        <div className={commonStyles.errorMessage}>
-                            {errors.email &&
-                                'Error validating email ' +
-                                    errors.email.message}
-                        </div>
-                    </form>
-                </div>
-                <div className={styles.box}>
-                    <h3>Members</h3>
-                    {loading ? (
-                        <Skeleton />
-                    ) : (
-                        data?.admins?.map((a) => {
-                            return (
-                                <div key={a?.id} className={styles.memberCard}>
-                                    <AdminAvatar
-                                        adminInfo={{
-                                            email: a?.email,
-                                            name: a?.name,
-                                            photo_url: a?.photo_url,
-                                        }}
-                                        size={45}
-                                    />
-                                    <div className={styles.userDetails}>
-                                        <h4 className={styles.name}>
-                                            {a?.name
-                                                ? a?.name
-                                                : a?.email.split('@')[0]}
-                                        </h4>
-                                        <div className={styles.email}>
-                                            {a?.email}
-                                        </div>
+        <LeadAlignLayout>
+            <h2>Invite A Member</h2>
+            <p className={layoutStyles.subTitle}>
+                Invite a your team to your Workspace.
+            </p>
+            <div className={styles.box}>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                    <h3>Invite Your Team</h3>
+                    <p className={styles.boxSubTitle}>
+                        Invite a team member to '
+                        {`${orgData?.organization?.name}`}' by entering an email
+                        below.
+                    </p>
+                    <div className={styles.buttonRow}>
+                        <input
+                            className={commonStyles.input}
+                            placeholder={'Email'}
+                            type="email"
+                            name="email"
+                            ref={(e) => {
+                                register(e, { required: true });
+                                emailRef.current = e;
+                            }}
+                        />
+                        <Button
+                            trackingId="WorkspaceInviteMember"
+                            type="primary"
+                            className={classNames(
+                                commonStyles.submitButton,
+                                styles.inviteButton
+                            )}
+                            htmlType="submit"
+                        >
+                            {sendLoading ? (
+                                <CircularSpinner
+                                    style={{
+                                        fontSize: 18,
+                                        color: 'var(--text-primary-inverted)',
+                                    }}
+                                />
+                            ) : (
+                                'Invite'
+                            )}
+                        </Button>
+                    </div>
+                    <div className={commonStyles.errorMessage}>
+                        {errors.email &&
+                            'Error validating email ' + errors.email.message}
+                    </div>
+                </form>
+                <p>Or invite your team by sharing this link.</p>
+                <CopyText
+                    text={getOrganizationInvitationLink(
+                        orgData?.organization?.secret || '',
+                        organization_id
+                    )}
+                />
+            </div>
+            <div className={styles.box}>
+                <h3>Members</h3>
+                {loading ? (
+                    <Skeleton />
+                ) : (
+                    data?.admins?.map((a) => {
+                        return (
+                            <div key={a?.id} className={styles.memberCard}>
+                                <AdminAvatar
+                                    adminInfo={{
+                                        email: a?.email,
+                                        name: a?.name,
+                                        photo_url: a?.photo_url,
+                                    }}
+                                    size={45}
+                                />
+                                <div className={styles.userDetails}>
+                                    <h4 className={styles.name}>
+                                        {a?.name
+                                            ? a?.name
+                                            : a?.email.split('@')[0]}
+                                    </h4>
+                                    <div className={styles.email}>
+                                        {a?.email}
                                     </div>
                                 </div>
-                            );
-                        })
-                    )}
-                </div>
+                            </div>
+                        );
+                    })
+                )}
             </div>
-        </div>
+        </LeadAlignLayout>
     );
 };
 

@@ -3,7 +3,6 @@ import './index.scss';
 import '@highlight-run/rrweb/dist/index.css';
 
 import { ApolloProvider } from '@apollo/client';
-import loadable from '@loadable/component';
 import { H, HighlightOptions } from 'highlight.run';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -11,7 +10,11 @@ import { SkeletonTheme } from 'react-loading-skeleton';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { QueryParamProvider } from 'use-query-params';
 
+import packageJson from '../package.json';
 import { DemoContext } from './DemoContext';
+import DemoRouter from './DemoRouter';
+import About from './pages/About/About';
+import LoginForm from './pages/Login/Login';
 import * as serviceWorker from './serviceWorker';
 import { client } from './util/graph';
 
@@ -20,12 +23,35 @@ const options: HighlightOptions = {
     debug: { clientInteractions: true, domRecording: true },
     manualStart: true,
     enableStrictPrivacy: Math.floor(Math.random() * 2) === 0,
+    version: packageJson['version'],
 };
+const favicon = document.querySelector("link[rel~='icon']") as any;
 if (dev) {
     options.scriptUrl = 'http://localhost:8080/dist/index.js';
-    window.document.title = `⚙️ DEV ${window.document.title}`;
+    options.backendUrl = 'http://localhost:8082/public';
+
+    const sampleEnvironmentNames = [
+        'john',
+        'jay',
+        'anthony',
+        'cameron',
+        'boba',
+    ];
+    options.environment = `${
+        sampleEnvironmentNames[
+            Math.floor(Math.random() * sampleEnvironmentNames.length)
+        ]
+    }-localhost`;
+    window.document.title = `⚙️ ${window.document.title}`;
+    if (favicon) {
+        favicon.href = `${process.env.PUBLIC_URL}/favicon-localhost.ico`;
+    }
 } else if (window.location.href.includes('onrender')) {
-    window.document.title = `📸 PR ${window.document.title}`;
+    if (favicon) {
+        favicon.href = `${process.env.PUBLIC_URL}/favicon-pr.ico`;
+    }
+    window.document.title = `📸 ${window.document.title}`;
+    options.environment = 'Pull Request Preview';
 }
 H.init(process.env.REACT_APP_FRONTEND_ORG ?? 1, options);
 H.start();
@@ -35,10 +61,6 @@ window.Intercom('boot', {
     alignment: 'right',
     hide_default_launcher: true,
 });
-
-const About = loadable(() => import('./pages/About/About'));
-const DemoRouter = loadable(() => import('./DemoRouter'));
-const LoginForm = loadable(() => import('./pages/Login/Login'));
 
 const App = () => {
     return (

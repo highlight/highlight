@@ -22,10 +22,10 @@ mutation CreateOrUpdateSubscription(
     )
 }
 
-mutation markErrorGroupAsResolved($id: ID!, $resolved: Boolean!) {
-    markErrorGroupAsResolved(id: $id, resolved: $resolved) {
+mutation updateErrorGroupState($id: ID!, $state: String!) {
+    updateErrorGroupState(id: $id, state: $state) {
         id
-        resolved
+        state
     }
 }
 
@@ -247,6 +247,7 @@ mutation UpdateErrorAlert(
     $organization_id: ID!
     $error_alert_id: ID!
     $count_threshold: Int!
+    $threshold_window: Int!
     $slack_channels: [SanitizedSlackChannelInput]!
     $environments: [String]!
 ) {
@@ -256,6 +257,77 @@ mutation UpdateErrorAlert(
         count_threshold: $count_threshold
         slack_channels: $slack_channels
         environments: $environments
+        threshold_window: $threshold_window
+    ) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+        ThresholdWindow
+    }
+}
+
+mutation UpdateNewUserAlert(
+    $organization_id: ID!
+    $session_alert_id: ID!
+    $count_threshold: Int!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+) {
+    updateNewUserAlert(
+        organization_id: $organization_id
+        session_alert_id: $session_alert_id
+        count_threshold: $count_threshold
+        slack_channels: $slack_channels
+        environments: $environments
+    ) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}
+
+mutation UpdateTrackPropertiesAlert(
+    $organization_id: ID!
+    $session_alert_id: ID!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+    $track_properties: [TrackPropertyInput]!
+) {
+    updateTrackPropertiesAlert(
+        organization_id: $organization_id
+        session_alert_id: $session_alert_id
+        slack_channels: $slack_channels
+        environments: $environments
+        track_properties: $track_properties
+    ) {
+        ChannelsToNotify {
+            webhook_channel
+            webhook_channel_id
+        }
+        ExcludedEnvironments
+        CountThreshold
+    }
+}
+
+mutation UpdateUserPropertiesAlert(
+    $organization_id: ID!
+    $session_alert_id: ID!
+    $slack_channels: [SanitizedSlackChannelInput]!
+    $environments: [String]!
+    $user_properties: [UserPropertyInput]!
+) {
+    updateUserPropertiesAlert(
+        organization_id: $organization_id
+        session_alert_id: $session_alert_id
+        slack_channels: $slack_channels
+        environments: $environments
+        user_properties: $user_properties
     ) {
         ChannelsToNotify {
             webhook_channel

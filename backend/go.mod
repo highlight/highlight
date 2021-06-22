@@ -17,14 +17,16 @@ require (
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/sessions v1.2.1 // indirect
+	github.com/jackc/pgx/v4 v4.10.1
 	github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 // indirect
 	github.com/k0kubun/pp v3.0.1+incompatible
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kylelemons/godebug v1.1.0
 	github.com/lib/pq v1.6.0 // indirect
 	github.com/mattn/go-colorable v0.1.7 // indirect
+	github.com/mattn/go-sqlite3 v1.14.7 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
-	github.com/mssola/user_agent v0.5.2
+	github.com/mssola/user_agent v0.5.3
 	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/rs/cors v1.7.0
@@ -32,7 +34,7 @@ require (
 	github.com/sendgrid/rest v2.6.2+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.7.0+incompatible
 	github.com/sirupsen/logrus v1.6.0
-	github.com/slack-go/slack v0.6.6
+	github.com/slack-go/slack v0.9.1
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/stripe/stripe-go v70.15.0+incompatible
@@ -43,6 +45,7 @@ require (
 	google.golang.org/api v0.31.0
 	gopkg.in/DataDog/dd-trace-go.v1 v1.29.2
 	gopkg.in/yaml.v2 v2.3.0 // indirect
+	gorm.io/driver/mysql v1.1.0 // indirect
 	gorm.io/driver/postgres v1.0.8
-	gorm.io/gorm v1.21.6
+	gorm.io/gorm v1.21.9
 )

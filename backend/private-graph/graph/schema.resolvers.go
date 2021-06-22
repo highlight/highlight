@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/highlight-run/highlight/backend/model"
@@ -28,36 +29,12 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
-const SUGGESTION_LIMIT_CONSTANT = 8
-
 func (r *errorAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.ErrorAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
-	if obj == nil {
-		return nil, e.New("empty alert object for channels to notify")
-	}
-	channelString := "[]"
-	if obj.ChannelsToNotify != nil {
-		channelString = *obj.ChannelsToNotify
-	}
-	sanitizedChannels := []*modelInputs.SanitizedSlackChannel{}
-	if err := json.Unmarshal([]byte(channelString), &sanitizedChannels); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling sanitized slack channels")
-	}
-	return sanitizedChannels, nil
+	return obj.GetChannelsToNotify()
 }
 
 func (r *errorAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.ErrorAlert) ([]*string, error) {
-	if obj == nil {
-		return nil, e.New("empty alert object for channels to notify")
-	}
-	excludedString := "[]"
-	if obj.ExcludedEnvironments != nil {
-		excludedString = *obj.ExcludedEnvironments
-	}
-	sanitizedExcludedEnvironments := []*string{}
-	if err := json.Unmarshal([]byte(excludedString), &sanitizedExcludedEnvironments); err != nil {
-		return nil, e.Wrap(err, "error unmarshaling sanitized excluded channels")
-	}
-	return sanitizedExcludedEnvironments, nil
+	return obj.GetExcludedEnvironments()
 }
 
 func (r *errorCommentResolver) Author(ctx context.Context, obj *model.ErrorComment) (*modelInputs.SanitizedAdmin, error) {
@@ -154,6 +131,19 @@ func (r *errorGroupResolver) FieldGroup(ctx context.Context, obj *model.ErrorGro
 	return parsedFields, nil
 }
 
+func (r *errorGroupResolver) State(ctx context.Context, obj *model.ErrorGroup) (modelInputs.ErrorState, error) {
+	switch obj.State {
+	case model.ErrorGroupStates.OPEN:
+		return modelInputs.ErrorStateOpen, nil
+	case model.ErrorGroupStates.RESOLVED:
+		return modelInputs.ErrorStateResolved, nil
+	case model.ErrorGroupStates.IGNORED:
+		return modelInputs.ErrorStateIgnored, nil
+	default:
+		return modelInputs.ErrorStateOpen, e.New("invalid error group state")
+	}
+}
+
 func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject) ([]*string, error) {
 	return util.JsonStringToStringArray(obj.Event), nil
 }
@@ -205,8 +195,17 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err := r.DB.Create(org).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
 	}
-	if err := r.DB.Create(&model.ErrorAlert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil}).Error; err != nil {
+	if err := r.DB.Create(&model.ErrorAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.ERROR}}).Error; err != nil {
 		return nil, e.Wrap(err, "error creating org")
+	}
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.NEW_USER}}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session alert for new org")
+	}
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.TRACK_PROPERTIES}}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session alert for new org")
+	}
+	if err := r.DB.Create(&model.SessionAlert{Alert: model.Alert{OrganizationID: org.ID, ExcludedEnvironments: nil, CountThreshold: 1, ChannelsToNotify: nil, Type: &model.AlertType.USER_PROPERTIES}}).Error; err != nil {
+		return nil, e.Wrap(err, "error creating session alert for new org")
 	}
 	return org, nil
 }
@@ -265,6 +264,22 @@ func (r *mutationResolver) MarkErrorGroupAsResolved(ctx context.Context, id int,
 		Resolved: resolved,
 	}).Error; err != nil {
 		return nil, e.Wrap(err, "error writing errorGroup resolved status")
+	}
+
+	return errorGroup, nil
+}
+
+func (r *mutationResolver) UpdateErrorGroupState(ctx context.Context, id int, state string) (*model.ErrorGroup, error) {
+	_, err := r.isAdminErrorGroupOwner(ctx, id)
+	if err != nil {
+		return nil, e.Wrap(err, "admin not errorGroup owner")
+	}
+
+	errorGroup := &model.ErrorGroup{}
+	if err := r.DB.Where(&model.ErrorGroup{Model: model.Model{ID: id}}).First(&errorGroup).Updates(&model.ErrorGroup{
+		State: state,
+	}).Error; err != nil {
+		return nil, e.Wrap(err, "error writing errorGroup state")
 	}
 
 	return errorGroup, nil
@@ -386,7 +401,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 
 	baseMessage := "👋 Hello from Highlight!"
 	if name := org.Name; name != nil {
-		baseMessage += fmt.Sprintf("We'll send messages here based on your alert preferences for %v, which can be configured at https://app.highlight.run/%v/alerts.", *name, org.ID)
+		baseMessage += fmt.Sprintf(" We'll send messages here based on your alert preferences for %v, which can be configured at https://app.highlight.run/%v/alerts.", *name, org.ID)
 	}
 	msg := slack.WebhookMessage{Text: baseMessage}
 	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
@@ -561,11 +576,25 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		if err != nil {
 			return nil, e.Wrap(err, "couldn't update subscription")
 		}
+		organization := model.Organization{Model: model.Model{ID: organizationID}}
+		if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
+			return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
+		}
+
+		// mark sessions as within billing quota on plan upgrade
+		// this is done when the user is already signed up for some sort of billing plan
+		if c.Subscriptions.Data[0].Items.Data[0].Plan != nil {
+			go r.UpdateSessionsVisibility(organizationID, planType, pricing.FromPriceID(c.Subscriptions.Data[0].Items.Data[0].Plan.ID))
+		} else {
+			log.Error("error getting original plan data from stripe client")
+		}
+
 		ret := ""
 		return &ret, nil
 	}
 
 	// If there's no existing subscription, we create a checkout.
+	plan := pricing.ToPriceID(planType)
 	checkoutSessionParams := &stripe.CheckoutSessionParams{
 		SuccessURL: stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/success"),
 		CancelURL:  stripe.String(os.Getenv("FRONTEND_URI") + "/" + strconv.Itoa(organizationID) + "/billing/checkoutCanceled"),
@@ -576,7 +605,7 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 		SubscriptionData: &stripe.CheckoutSessionSubscriptionDataParams{
 			Items: []*stripe.CheckoutSessionSubscriptionDataItemsParams{
 				{
-					Plan: stripe.String(pricing.ToPriceID(planType)),
+					Plan: stripe.String(plan),
 				},
 			},
 		},
@@ -588,6 +617,15 @@ func (r *mutationResolver) CreateOrUpdateSubscription(ctx context.Context, organ
 	if err != nil {
 		return nil, e.Wrap(err, "error creating CheckoutSession in stripe")
 	}
+
+	organization := model.Organization{Model: model.Model{ID: organizationID}}
+	if err := r.DB.Model(&organization).Updates(model.Organization{StripePriceID: &plan}).Error; err != nil {
+		return nil, e.Wrap(err, "error setting stripe_plan_id on organization")
+	}
+	// mark sessions as within billing quota on plan upgrade
+	// this code is repeated as the first time, the user already has a billing plan and the function returns early.
+	// here, the user doesn't already have a billing plan, so it's considered an upgrade unless the plan is free
+	go r.UpdateSessionsVisibility(organizationID, planType, modelInputs.PlanTypeFree)
 
 	return &stripeSession.ID, nil
 }
@@ -733,7 +771,7 @@ func (r *mutationResolver) DeleteErrorComment(ctx context.Context, id int) (*boo
 	return &model.T, nil
 }
 
-func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
+func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID int, errorAlertID int, countThreshold int, thresholdWindow int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.ErrorAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "admin is not in organization")
@@ -765,13 +803,155 @@ func (r *mutationResolver) UpdateErrorAlert(ctx context.Context, organizationID 
 	alert.ChannelsToNotify = &channelsString
 	alert.ExcludedEnvironments = &envString
 	alert.CountThreshold = countThreshold
+	alert.ThresholdWindow = &thresholdWindow
 	if err := r.DB.Model(&model.ErrorAlert{
-		OrganizationID: organizationID,
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
 		Model: model.Model{
 			ID: errorAlertID,
 		},
 	}).Updates(alert).Error; err != nil {
 		return nil, e.Wrap(err, "error updating org fields")
+	}
+	return alert, nil
+}
+
+func (r *mutationResolver) UpdateNewUserAlert(ctx context.Context, organizationID int, sessionAlertID int, countThreshold int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	alert := &model.SessionAlert{}
+	if err := r.DB.Where(&model.SessionAlert{Model: model.Model{ID: sessionAlertID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).Find(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying session alert")
+	}
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments")
+	}
+	envString := string(envBytes)
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels")
+	}
+	channelsString := string(channelsBytes)
+
+	alert.ChannelsToNotify = &channelsString
+	alert.ExcludedEnvironments = &envString
+	alert.CountThreshold = countThreshold
+	if err := r.DB.Model(&model.SessionAlert{
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
+		Model: model.Model{
+			ID: sessionAlertID,
+		},
+	}).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields")
+	}
+	return alert, nil
+}
+
+func (r *mutationResolver) UpdateTrackPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, trackProperties []*modelInputs.TrackPropertyInput) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments for track properties alert")
+	}
+	envString := string(envBytes)
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels for track properties alert")
+	}
+	channelsString := string(channelsBytes)
+
+	trackPropertiesBytes, err := json.Marshal(trackProperties)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing track properties for track properties alert")
+	}
+	trackPropertiesString := string(trackPropertiesBytes)
+
+	alert := &model.SessionAlert{}
+	alert.ExcludedEnvironments = &envString
+	alert.ChannelsToNotify = &channelsString
+	alert.TrackProperties = &trackPropertiesString
+	if err := r.DB.Model(&model.SessionAlert{
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
+		Model: model.Model{
+			ID: sessionAlertID,
+		},
+	}).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields for track properties alert")
+	}
+	return alert, nil
+}
+
+func (r *mutationResolver) UpdateUserPropertiesAlert(ctx context.Context, organizationID int, sessionAlertID int, slackChannels []*modelInputs.SanitizedSlackChannelInput, environments []*string, userProperties []*modelInputs.UserPropertyInput) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "admin is not in organization")
+	}
+
+	envBytes, err := json.Marshal(environments)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing environments for user properties alert")
+	}
+	envString := string(envBytes)
+
+	var sanitizedChannels []*modelInputs.SanitizedSlackChannel
+	// For each of the new slack channels, confirm that they exist in the "IntegratedSlackChannels" string.
+	for _, ch := range slackChannels {
+		sanitizedChannels = append(sanitizedChannels, &modelInputs.SanitizedSlackChannel{WebhookChannel: ch.WebhookChannelName, WebhookChannelID: ch.WebhookChannelID})
+	}
+
+	channelsBytes, err := json.Marshal(sanitizedChannels)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing channels for user properties alert")
+	}
+	channelsString := string(channelsBytes)
+
+	userPropertiesBytes, err := json.Marshal(userProperties)
+	if err != nil {
+		return nil, e.Wrap(err, "error parsing user properties for user properties alert")
+	}
+	userPropertiesString := string(userPropertiesBytes)
+
+	alert := &model.SessionAlert{}
+	alert.ExcludedEnvironments = &envString
+	alert.ChannelsToNotify = &channelsString
+	alert.UserProperties = &userPropertiesString
+	if err := r.DB.Model(&model.SessionAlert{
+		Alert: model.Alert{
+			OrganizationID: organizationID,
+		},
+		Model: model.Model{
+			ID: sessionAlertID,
+		},
+	}).Updates(alert).Error; err != nil {
+		return nil, e.Wrap(err, "error updating org fields for user properties alert")
 	}
 	return alert, nil
 }
@@ -852,38 +1032,35 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 		errorFieldQuery = errorFieldQuery.Where("name = ? AND value = ?", "visited_url", params.VisitedURL)
 	}
 
+	errorFieldQuerySpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.errorFieldIds"))
 	if err := errorFieldQuery.Pluck("id", &errorFieldIds).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error fields")
 	}
+	errorFieldQuerySpan.Finish()
 
 	errorGroups := []model.ErrorGroup{}
-	selectPreamble := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved`
+	selectPreamble := `SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, state`
 	countPreamble := `SELECT COUNT(*)`
 
-	queryString := `FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, resolved, array_agg(t.error_field_id) fieldIds
+	queryString := `FROM (SELECT id, organization_id, event, trace, metadata_log, created_at, deleted_at, updated_at, state, array_agg(t.error_field_id) fieldIds
 	FROM error_groups e INNER JOIN error_group_fields t ON e.id=t.error_group_id GROUP BY e.id) AS rows `
 
 	queryString += fmt.Sprintf("WHERE (organization_id = %d) ", organizationID)
 	queryString += "AND (deleted_at IS NULL) "
 
 	if len(errorFieldIds) > 0 {
-		queryString += "AND ("
-		for idx, id := range errorFieldIds {
-			if idx == 0 {
-				queryString += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				queryString += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		queryString += ") "
+		fieldIdConstructionSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("fieldIdConstruction"))
+		t := strings.Replace(fmt.Sprint(errorFieldIds), " ", ",", -1)
+		queryString += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
+		fieldIdConstructionSpan.Finish()
 	}
 
 	if d := params.DateRange; d != nil {
-		queryString += fmt.Sprintf("AND (created_at > '%s') AND (created_at < '%s') ", d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
+		queryString += fmt.Sprintf("AND (id IN (SELECT error_group_id FROM error_objects WHERE (organization_id=%d) AND (deleted_at IS NULL) AND (created_at > '%s') AND (created_at < '%s')))", organizationID, d.StartDate.Format("2006-01-02 15:04:05"), d.EndDate.Format("2006-01-02 15:04:05"))
 	}
 
 	if resolved := params.HideResolved; resolved != nil && *resolved {
-		queryString += "AND (resolved = false) "
+		queryString += fmt.Sprintf("AND (state <> '%s') ", model.ErrorGroupStates.RESOLVED)
 	}
 
 	if params.Event != nil {
@@ -1182,11 +1359,11 @@ func (r *queryResolver) TopUsers(ctx context.Context, organizationID int, lookBa
 
 	var topUsersPayload = []*modelInputs.TopUsersPayload{}
 	topUsersSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.topUsers"))
-	if err := r.DB.Raw(fmt.Sprintf(`SELECT identifier, SUM(active_length) as total_active_time, SUM(active_length) / (SELECT SUM(active_length) from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) as active_time_percentage
+	if err := r.DB.Raw(fmt.Sprintf(`SELECT identifier, (SELECT id FROM fields WHERE organization_id=%d AND type='user' AND name='identifier' AND value=identifier) AS id, SUM(active_length) as total_active_time, SUM(active_length) / (SELECT SUM(active_length) from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) as active_time_percentage
 	FROM (SELECT identifier, active_length from sessions WHERE active_length IS NOT NULL AND organization_id=%d AND identifier <> '' AND created_at >= NOW() - INTERVAL '%d DAY' AND processed=true) q1
 	GROUP BY identifier
 	ORDER BY total_active_time DESC
-	LIMIT 50`, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
+	LIMIT 50`, organizationID, organizationID, lookBackPeriod, organizationID, lookBackPeriod)).Scan(&topUsersPayload).Error; err != nil {
 		return nil, e.Wrap(err, "error retrieving top users")
 	}
 	topUsersSpan.Finish()
@@ -1228,9 +1405,9 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	visitedCheck := true
 	referrerCheck := true
 	fieldIds := []int{}
+	fieldQuery := r.DB.Model(&model.Field{})
 	visitedIds := []int{}
 	referrerIds := []int{}
-	fieldQuery := r.DB.Model(&model.Field{})
 	visitedQuery := r.DB.Model(&model.Field{})
 	referrerQuery := r.DB.Model(&model.Field{})
 
@@ -1238,16 +1415,20 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	for _, prop := range params.UserProperties {
 		if prop.Name == "contains" {
 			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else {
+		} else if prop.ID == nil || *prop.ID == 0 {
 			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+		} else {
+			fieldIds = append(fieldIds, *prop.ID)
 		}
 	}
 
 	for _, prop := range params.TrackProperties {
 		if prop.Name == "contains" {
 			fieldQuery = fieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
-		} else {
+		} else if prop.ID == nil || *prop.ID == 0 {
 			fieldQuery = fieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
+		} else {
+			fieldIds = append(fieldIds, *prop.ID)
 		}
 	}
 
@@ -1260,8 +1441,12 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if len(params.UserProperties)+len(params.TrackProperties) > 0 {
-		if err := fieldQuery.Pluck("id", &fieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying initial set of session fields")
+		if len(params.UserProperties)+len(params.TrackProperties) != len(fieldIds) {
+			var tempFieldIds []int
+			if err := fieldQuery.Pluck("id", &tempFieldIds).Error; err != nil {
+				return nil, e.Wrap(err, "error querying initial set of session fields")
+			}
+			fieldIds = append(fieldIds, tempFieldIds...)
 		}
 		if len(fieldIds) == 0 {
 			fieldCheck = false
@@ -1293,16 +1478,42 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	for _, prop := range params.ExcludedProperties {
 		if prop.Name == "contains" {
 			notFieldQuery = notFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "user")
-		} else {
+		} else if prop.ID == nil || *prop.ID == 0 {
 			notFieldQuery = notFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "user")
+		} else {
+			notFieldIds = append(notFieldIds, *prop.ID)
+		}
+	}
+
+	if len(params.ExcludedProperties) != len(notFieldIds) {
+		var tempNotFieldIds []int
+		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of excluded sessions fields")
+		}
+		notFieldIds = append(notFieldIds, tempNotFieldIds...)
+	}
+
+	//excluded track fields
+	notTrackFieldIds := []int{}
+	notTrackFieldQuery := r.DB.Model(&model.Field{})
+
+	for _, prop := range params.ExcludedTrackProperties {
+		if prop.Name == "contains" {
+			notTrackFieldQuery = notTrackFieldQuery.Or("value ILIKE ? and type = ?", "%"+prop.Value+"%", "track")
+		} else if prop.ID == nil || *prop.ID == 0 {
+			notTrackFieldQuery = notTrackFieldQuery.Or("name = ? AND value = ? AND type = ?", prop.Name, prop.Value, "track")
+		} else {
+			notTrackFieldIds = append(notTrackFieldIds, *prop.ID)
 		}
 	}
 
 	//pluck not field ids
-	if len(params.ExcludedProperties) > 0 {
-		if err := notFieldQuery.Pluck("id", &notFieldIds).Error; err != nil {
-			return nil, e.Wrap(err, "error querying initial set of excluded sessions fields")
+	if len(params.ExcludedTrackProperties) != len(notTrackFieldIds) {
+		var tempNotTrackFieldIds []int
+		if err := notTrackFieldQuery.Pluck("id", &tempNotTrackFieldIds).Error; err != nil {
+			return nil, e.Wrap(err, "error querying initial set of excluded track sessions fields")
 		}
+		notTrackFieldIds = append(notTrackFieldIds, tempNotTrackFieldIds...)
 	}
 
 	fieldsSpan.Finish()
@@ -1340,45 +1551,28 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	whereClause += "AND (deleted_at IS NULL) "
 
 	if len(fieldIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range fieldIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(fieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(visitedIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range visitedIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(visitedIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(referrerIds) > 0 {
-		whereClause += "AND ("
-		for idx, id := range referrerIds {
-			if idx == 0 {
-				whereClause += fmt.Sprintf("(fieldIds @> ARRAY[%d]::int[]) ", id)
-			} else {
-				whereClause += fmt.Sprintf("OR (fieldIds @> ARRAY[%d]::int[]) ", id)
-			}
-		}
-		whereClause += ") "
+		t := strings.Replace(fmt.Sprint(referrerIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if len(notFieldIds) > 0 {
-		for _, id := range notFieldIds {
-			whereClause += fmt.Sprintf("AND NOT (fieldIds @> ARRAY[%d]::int[]) ", id)
-		}
+		t := strings.Replace(fmt.Sprint(notFieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
+	}
+
+	if len(notTrackFieldIds) > 0 {
+		t := strings.Replace(fmt.Sprint(notTrackFieldIds), " ", ",", -1)
+		whereClause += fmt.Sprintf("AND NOT (fieldIds && ARRAY%s::integer[])", t)
 	}
 
 	if d := params.DateRange; d != nil {
@@ -1394,7 +1588,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 	}
 
 	if viewed := params.HideViewed; viewed != nil && *viewed {
-		whereClause += "AND (viewed = false) "
+		whereClause += "AND (viewed = false OR viewed IS NULL) "
 	}
 
 	if browser := params.Browser; browser != nil {
@@ -1410,18 +1604,15 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 		whereClause += "AND (id != id) "
 	}
 
-	// Anthony's org shouldn't get sessions over the quota
-	if organizationID == 110 {
-		whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
-	}
+	// user shouldn't see sessions that are not within billing quota
+	whereClause += "AND (within_billing_quota IS NULL OR within_billing_quota=true) "
 
 	var g errgroup.Group
 	queriedSessions := []model.Session{}
 	var queriedSessionsCount int64
+	whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
 
 	g.Go(func() error {
-		whereClauseSuffix := "AND NOT ((processed = true AND ((active_length IS NOT NULL AND active_length < 1000) OR (active_length IS NULL AND length < 1000)))) "
-		// Filter out sessions that are processed but have a length of 1000 (1 second).
 		if params.LengthRange != nil {
 			if params.LengthRange.Min != nil || params.LengthRange.Max != nil {
 				whereClauseSuffix = "AND processed = true "
@@ -1440,7 +1631,7 @@ func (r *queryResolver) Sessions(ctx context.Context, organizationID int, count 
 
 	g.Go(func() error {
 		sessionCountSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.sessionsCountQuery"))
-		if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s", joinClause, whereClause)).Scan(&queriedSessionsCount).Error; err != nil {
+		if err := r.DB.Raw(fmt.Sprintf("SELECT count(*) %s %s %s", joinClause, whereClause, whereClauseSuffix)).Scan(&queriedSessionsCount).Error; err != nil {
 			return e.Wrap(err, "error querying filtered sessions count")
 		}
 		sessionCountSpan.Finish()
@@ -1464,13 +1655,12 @@ func (r *queryResolver) BillingDetails(ctx context.Context, organizationID int) 
 	if err != nil {
 		return nil, e.Wrap(err, "admin not found in org")
 	}
-	var stripeCustomerID string
-	if org.StripeCustomerID != nil {
-		stripeCustomerID = *org.StripeCustomerID
-	} else {
-		stripeCustomerID = ""
+
+	stripePriceID := org.StripePriceID
+	planType := modelInputs.PlanTypeFree
+	if stripePriceID != nil {
+		planType = pricing.FromPriceID(*stripePriceID)
 	}
-	planType := pricing.GetOrgPlanString(r.StripeClient, stripeCustomerID)
 
 	var g errgroup.Group
 	var meter int64
@@ -1515,7 +1705,7 @@ func (r *queryResolver) FieldSuggestion(ctx context.Context, organizationID int,
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Name: name}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
-		Limit(SUGGESTION_LIMIT_CONSTANT).
+		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
@@ -1528,10 +1718,10 @@ func (r *queryResolver) PropertySuggestion(ctx context.Context, organizationID i
 		return nil, e.Wrap(err, "error querying organization")
 	}
 	fields := []*model.Field{}
-	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).
-		Where("length(value) > ?", 0).
-		Where("value ILIKE ?", "%"+query+"%").
-		Limit(SUGGESTION_LIMIT_CONSTANT).
+	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: typeArg}).Where(r.DB.
+		Where(r.DB.Where("length(value) > ?", 0).Where("value ILIKE ?", "%"+query+"%")).
+		Or(r.DB.Where("length(name) > ?", 0).Where("name ILIKE ?", "%"+query+"%"))).
+		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
@@ -1548,7 +1738,7 @@ func (r *queryResolver) ErrorFieldSuggestion(ctx context.Context, organizationID
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
 		Where("organization_id = ?", organizationID).
-		Limit(SUGGESTION_LIMIT_CONSTANT).
+		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying error field suggestion")
@@ -1568,16 +1758,52 @@ func (r *queryResolver) Organizations(ctx context.Context) ([]*model.Organizatio
 	return orgs, nil
 }
 
-func (r *queryResolver) ErrorAlerts(ctx context.Context, organizationID int) ([]*model.ErrorAlert, error) {
+func (r *queryResolver) ErrorAlert(ctx context.Context, organizationID int) (*model.ErrorAlert, error) {
 	_, err := r.isAdminInOrganization(ctx, organizationID)
 	if err != nil {
 		return nil, e.Wrap(err, "error querying organization")
 	}
-	alerts := []*model.ErrorAlert{}
-	if err := r.DB.Where(&model.ErrorAlert{OrganizationID: organizationID}).Find(&alerts).Error; err != nil {
+	alert := model.ErrorAlert{}
+	if err := r.DB.Where(&model.ErrorAlert{Alert: model.Alert{OrganizationID: organizationID}}).First(&alert).Error; err != nil {
 		return nil, e.Wrap(err, "error querying error alerts")
 	}
-	return alerts, nil
+	return &alert, nil
+}
+
+func (r *queryResolver) NewUserAlert(ctx context.Context, organizationID int) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization on new user alert")
+	}
+	var alert model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying  new user alert")
+	}
+	return &alert, nil
+}
+
+func (r *queryResolver) TrackPropertiesAlert(ctx context.Context, organizationID int) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	var alert model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID, Type: &model.AlertType.TRACK_PROPERTIES}}).First(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying track properties alert")
+	}
+	return &alert, nil
+}
+
+func (r *queryResolver) UserPropertiesAlert(ctx context.Context, organizationID int) (*model.SessionAlert, error) {
+	_, err := r.isAdminInOrganization(ctx, organizationID)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying organization")
+	}
+	var alert model.SessionAlert
+	if err := r.DB.Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.USER_PROPERTIES).First(&alert).Error; err != nil {
+		return nil, e.Wrap(err, "error querying user properties alert")
+	}
+	return &alert, nil
 }
 
 func (r *queryResolver) OrganizationSuggestion(ctx context.Context, query string) ([]*model.Organization, error) {
@@ -1598,7 +1824,7 @@ func (r *queryResolver) EnvironmentSuggestion(ctx context.Context, query string,
 	res := r.DB.Where(&model.Field{OrganizationID: organizationID, Type: "session", Name: "environment"}).
 		Where("length(value) > ?", 0).
 		Where("value ILIKE ?", "%"+query+"%").
-		Limit(SUGGESTION_LIMIT_CONSTANT).
+		Limit(model.SUGGESTION_LIMIT_CONSTANT).
 		Find(&fields)
 	if err := res.Error; err != nil {
 		return nil, e.Wrap(err, "error querying field suggestion")
@@ -1726,6 +1952,22 @@ func (r *sessionResolver) UserObject(ctx context.Context, obj *model.Session) (i
 	return obj.UserObject, nil
 }
 
+func (r *sessionAlertResolver) ChannelsToNotify(ctx context.Context, obj *model.SessionAlert) ([]*modelInputs.SanitizedSlackChannel, error) {
+	return obj.GetChannelsToNotify()
+}
+
+func (r *sessionAlertResolver) ExcludedEnvironments(ctx context.Context, obj *model.SessionAlert) ([]*string, error) {
+	return obj.GetExcludedEnvironments()
+}
+
+func (r *sessionAlertResolver) TrackProperties(ctx context.Context, obj *model.SessionAlert) ([]*model.TrackProperty, error) {
+	return obj.GetTrackProperties()
+}
+
+func (r *sessionAlertResolver) UserProperties(ctx context.Context, obj *model.SessionAlert) ([]*model.UserProperty, error) {
+	return obj.GetUserProperties()
+}
+
 func (r *sessionCommentResolver) Author(ctx context.Context, obj *model.SessionComment) (*modelInputs.SanitizedAdmin, error) {
 	admin := &model.Admin{}
 	if err := r.DB.Where(&model.Admin{Model: model.Model{ID: obj.AdminId}}).First(&admin).Error; err != nil {
@@ -1783,6 +2025,9 @@ func (r *Resolver) Segment() generated.SegmentResolver { return &segmentResolver
 // Session returns generated.SessionResolver implementation.
 func (r *Resolver) Session() generated.SessionResolver { return &sessionResolver{r} }
 
+// SessionAlert returns generated.SessionAlertResolver implementation.
+func (r *Resolver) SessionAlert() generated.SessionAlertResolver { return &sessionAlertResolver{r} }
+
 // SessionComment returns generated.SessionCommentResolver implementation.
 func (r *Resolver) SessionComment() generated.SessionCommentResolver {
 	return &sessionCommentResolver{r}
@@ -1797,4 +2042,5 @@ type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
+type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }

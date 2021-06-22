@@ -8,17 +8,17 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
-	"github.com/highlight-run/highlight/backend/pricing"
-	"github.com/highlight-run/highlight/backend/util"
 	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	mgraph "github.com/highlight-run/highlight/backend/private-graph/graph"
-	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"github.com/highlight-run/highlight/backend/util"
 )
 
 // Worker is a job runner that parses sessions
@@ -156,40 +156,173 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 		return nil
 	}
 
-	// Check if session is within billing quota
-	// get quota:
-	var withinQuota bool
-	org := &model.Organization{}
-	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
-		return e.Wrap(err, "error querying org")
-	}
-	var stripeCustomerID string
-	if org.StripeCustomerID != nil {
-		stripeCustomerID = *org.StripeCustomerID
-	} else {
-		stripeCustomerID = ""
-	}
-	planType := pricing.GetOrgPlanString(w.Resolver.StripeClient, stripeCustomerID)
-	quota := pricing.TypeToQuota(planType)
-
-	year, month, _ := time.Now().Date()
-	var sessionCount int64
-	if err := w.Resolver.DB.Model(&model.Session{}).Where("created_at > ?", time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)).Where("within_billing_quota = true OR within_billing_quota IS NULL").Count(&sessionCount).Error; err != nil {
-		return errors.Wrap(err, "error getting past month's session count")
-	}
-	withinQuota = sessionCount <= int64(quota)
-
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
 		model.Session{
-			Processed:          &model.T,
-			Length:             length,
-			ActiveLength:       activeLengthSec,
-			WithinBillingQuota: &withinQuota,
+			Processed:    &model.T,
+			Length:       length,
+			ActiveLength: activeLengthSec,
 		},
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to processed status")
+	}
+
+	var g errgroup.Group
+	organizationID := s.OrganizationID
+	org := &model.Organization{}
+	if err := w.Resolver.DB.Where(&model.Organization{Model: model.Model{ID: s.OrganizationID}}).First(&org).Error; err != nil {
+		return e.Wrap(err, "error querying org")
+	}
+
+	g.Go(func() error {
+		// Sending New User Alert
+		// if is not new user, return
+		if s.FirstTime == nil || !*s.FirstTime {
+			return nil
+		}
+		var sessionAlert model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type IS NULL OR type=?", model.AlertType.NEW_USER).First(&sessionAlert).Error; err != nil {
+			return e.Wrapf(err, "[org_id: %d] error fetching new user alert", organizationID)
+		}
+
+		// check if session was produced from an excluded environment
+		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+		if err != nil {
+			return e.Wrapf(err, "[org_id: %d] error getting excluded environments from new user alert", organizationID)
+		}
+		isExcludedEnvironment := false
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == s.Environment {
+				isExcludedEnvironment = true
+				break
+			}
+		}
+		if isExcludedEnvironment {
+			return nil
+		}
+
+		// get produced user properties from session
+		userProperties, err := s.GetUserProperties()
+		if err != nil {
+			return e.Wrapf(err, "[org_id: %d] error getting user properties from new user alert", s.OrganizationID)
+		}
+
+		// send slack message
+		err = sessionAlert.SendSlackAlert(org, s.ID, s.Identifier, nil, nil, nil, userProperties, nil)
+		if err != nil {
+			return e.Wrapf(err, "[org_id: %d] error sending slack message for new user alert", organizationID)
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		// Sending Track Properties Alert
+		var sessionAlert model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.TRACK_PROPERTIES).First(&sessionAlert).Error; err != nil {
+			return e.Wrapf(err, "[org_id: %d] error fetching track properties alert", organizationID)
+		}
+
+		// check if session was produced from an excluded environment
+		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+		if err != nil {
+			return e.Wrapf(err, "[org_id: %d] error getting excluded environments from track properties alert", organizationID)
+		}
+		isExcludedEnvironment := false
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == s.Environment {
+				isExcludedEnvironment = true
+				break
+			}
+		}
+		if isExcludedEnvironment {
+			return nil
+		}
+
+		// get matched track properties between the alert and session
+		trackProperties, err := sessionAlert.GetTrackProperties()
+		if err != nil {
+			return e.Wrap(err, "error getting track properties from session")
+		}
+		var trackPropertyIds []int
+		for _, trackProperty := range trackProperties {
+			trackPropertyIds = append(trackPropertyIds, trackProperty.ID)
+		}
+		stmt := w.Resolver.DB.Model(&model.Field{}).
+			Where(&model.Field{OrganizationID: organizationID, Type: "track"}).
+			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
+			Where("id IN ?", trackPropertyIds)
+		var matchedFields []*model.Field
+		if err := stmt.Find(&matchedFields).Error; err != nil {
+			return e.Wrap(err, "error querying matched fields by session_id")
+		}
+		if len(matchedFields) < 1 {
+			return nil
+		}
+
+		// send slack message
+		err = sessionAlert.SendSlackAlert(org, s.ID, s.Identifier, nil, nil, matchedFields, nil, nil)
+		if err != nil {
+			return e.Wrap(err, "error sending track properties alert slack message")
+		}
+		return nil
+	})
+
+	g.Go(func() error {
+		// Sending User Properties Alert
+		var sessionAlert model.SessionAlert
+		if err := w.Resolver.DB.Model(&model.SessionAlert{}).Where(&model.SessionAlert{Alert: model.Alert{OrganizationID: organizationID}}).Where("type=?", model.AlertType.USER_PROPERTIES).First(&sessionAlert).Error; err != nil {
+			return e.Wrapf(err, "[org_id: %d] error fetching user properties alert", organizationID)
+		}
+
+		// check if session was produced from an excluded environment
+		excludedEnvironments, err := sessionAlert.GetExcludedEnvironments()
+		if err != nil {
+			return e.Wrapf(err, "[org_id: %d] error getting excluded environments from user properties alert", organizationID)
+		}
+		isExcludedEnvironment := false
+		for _, env := range excludedEnvironments {
+			if env != nil && *env == s.Environment {
+				isExcludedEnvironment = true
+				break
+			}
+		}
+		if isExcludedEnvironment {
+			return nil
+		}
+
+		// get matched user properties between the alert and session
+		userProperties, err := sessionAlert.GetUserProperties()
+		if err != nil {
+			return e.Wrap(err, "error getting user properties from session")
+		}
+		var userPropertyIds []int
+		for _, userProperty := range userProperties {
+			userPropertyIds = append(userPropertyIds, userProperty.ID)
+		}
+		stmt := w.Resolver.DB.Model(&model.Field{}).
+			Where(&model.Field{OrganizationID: organizationID, Type: "user"}).
+			Where("id IN (SELECT field_id FROM session_fields WHERE session_id=?)", s.ID).
+			Where("id IN ?", userPropertyIds)
+		var matchedFields []*model.Field
+		if err := stmt.Find(&matchedFields).Error; err != nil {
+			return e.Wrap(err, "error querying matched fields by session_id")
+		}
+		if len(matchedFields) < 1 {
+			return nil
+		}
+
+		// send slack message
+		err = sessionAlert.SendSlackAlert(org, s.ID, s.Identifier, nil, nil, matchedFields, nil, nil)
+		if err != nil {
+			return e.Wrapf(err, "error sending user properties alert slack message")
+		}
+		return nil
+	})
+
+	// Waits for all goroutines to finish, then returns the first non-nil error (if any).
+	if err := g.Wait(); err != nil {
+		log.Error(err)
 	}
 
 	// Upload to s3 and wipe from the db.

@@ -4,6 +4,7 @@ import {
     HighlightClassOptions,
 } from '../../client/src/index';
 import packageJson from '../package.json';
+import { listenToChromeExtensionMessage } from './browserExtension/extensionListener';
 import { SessionDetails } from './types/types';
 
 export type HighlightOptions = {
@@ -15,7 +16,16 @@ export type HighlightOptions = {
     disableNetworkRecording?: boolean;
     disableConsoleRecording?: boolean;
     enableSegmentIntegration?: boolean;
+    /**
+     * The environment your application is running in.
+     * This is useful to distinguish whether your session was recorded on localhost or in production.
+     */
     environment?: 'development' | 'staging' | 'production' | string;
+    /**
+     * The version of your application.
+     * This is commonly a Git hash or a semantic version.
+     */
+    version?: string;
     /**
      * Enabling this will disable recording of text data on the page. This is useful if you do not want to record personally identifiable information and don't want to manually annotate your code with the class name "highlight-block".
      * @example
@@ -80,6 +90,7 @@ export const H: HighlightPublicInterface = {
                     enableStrictPrivacy: options?.enableStrictPrivacy || false,
                     firstloadVersion: packageJson['version'],
                     environment: options?.environment || 'production',
+                    appVersion: options?.version,
                 });
                 if (!options?.manualStart) {
                     highlight_obj.initialize(orgID);
@@ -109,6 +120,12 @@ export const H: HighlightPublicInterface = {
     },
     start: () => {
         try {
+            if (highlight_obj?.state === 'Recording') {
+                console.warn(
+                    'You cannot called `start()` again. The session is already being recorded.'
+                );
+                return;
+            }
             if (H.options?.manualStart) {
                 var interval = setInterval(function () {
                     if (highlight_obj) {
@@ -203,3 +220,5 @@ export const H: HighlightPublicInterface = {
 if (typeof window !== 'undefined') {
     window.H = H;
 }
+
+listenToChromeExtensionMessage();

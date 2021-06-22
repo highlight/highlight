@@ -1,12 +1,5 @@
-import { message } from 'antd';
 import classNames from 'classnames/bind';
-import React, {
-    RefObject,
-    useContext,
-    useEffect,
-    useMemo,
-    useState,
-} from 'react';
+import React, { RefObject, useContext, useEffect, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useParams } from 'react-router-dom';
@@ -14,19 +7,16 @@ import { Link, useParams } from 'react-router-dom';
 import { Field } from '../../../components/Field/Field';
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import Tooltip from '../../../components/Tooltip/Tooltip';
-import {
-    useGetErrorGroupsQuery,
-    useMarkErrorGroupAsResolvedMutation,
-} from '../../../graph/generated/hooks';
+import { useGetErrorGroupsQuery } from '../../../graph/generated/hooks';
 import {
     ErrorGroup,
     ErrorResults,
+    ErrorState,
     Maybe,
 } from '../../../graph/generated/schemas';
-import { ReactComponent as ResolvedIcon } from '../../../static/checkmark.svg';
-import { ReactComponent as FlagIcon } from '../../../static/flag.svg';
 import { frequencyTimeData } from '../../../util/errorCalculations';
 import { gqlSanitize } from '../../../util/gqlSanitize';
+import { formatNumberWithDelimiters } from '../../../util/numbers';
 import { parseErrorDescription } from '../../Error/components/ErrorDescription/utils/utils';
 import { ErrorSearchContext } from '../ErrorSearchContext/ErrorSearchContext';
 import { EventInput } from '../ErrorSearchInputs/EventInput';
@@ -94,18 +84,6 @@ export const ErrorFeed = () => {
         },
     });
 
-    const filteredErrorGroups = useMemo(() => {
-        if (loading) {
-            return data.error_groups;
-        }
-        if (searchParams.hide_resolved) {
-            return data.error_groups.filter(
-                (errorGroup) => !errorGroup?.resolved
-            );
-        }
-        return data.error_groups;
-    }, [data.error_groups, loading, searchParams.hide_resolved]);
-
     return (
         <>
             <div className={styles.fixedContent}>
@@ -116,7 +94,7 @@ export const ErrorFeed = () => {
                 </div>
                 <div
                     className={styles.resultCount}
-                >{`${data.totalCount} errors`}</div>
+                >{`${formatNumberWithDelimiters(data.totalCount)} errors`}</div>
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
@@ -135,7 +113,7 @@ export const ErrorFeed = () => {
                             {!data.error_groups.length ? (
                                 <SearchEmptyState item={'errors'} />
                             ) : (
-                                filteredErrorGroups?.map(
+                                data.error_groups?.map(
                                     (u: Maybe<ErrorGroup>, ind: number) => (
                                         <ErrorCard errorGroup={u} key={ind} />
                                     )
@@ -166,7 +144,6 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
     const [errorDates, setErrorDates] = useState<Array<number>>(
         Array(6).fill(0)
     );
-    const [markErrorGroupAsResolved] = useMarkErrorGroupAsResolvedMutation();
 
     useEffect(() => {
         setErrorDates(frequencyTimeData(errorGroup, 6));
@@ -266,11 +243,20 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                 )}
                             </div>
                             <div className={styles.readMarkerContainer}>
-                                {errorGroup?.resolved ? (
-                                    <></>
-                                ) : (
-                                    <div className={styles.readMarker}></div>
-                                )}
+                                <Tooltip
+                                    title={`This error is ${errorGroup?.state?.toLowerCase()}.`}
+                                >
+                                    <div
+                                        className={classNames(
+                                            styles.readMarker,
+                                            // @ts-ignore
+                                            styles[
+                                                errorGroup?.state.toLowerCase() ||
+                                                    ErrorState.Open.toLowerCase()
+                                            ]
+                                        )}
+                                    />
+                                </Tooltip>
                             </div>
                         </div>
                     </div>
@@ -282,40 +268,6 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                     />
                 </div>
             </Link>
-            <Tooltip
-                title={
-                    errorGroup?.resolved
-                        ? 'Mark as Unresolved'
-                        : 'Mark as Resolved'
-                }
-            >
-                <button
-                    className={styles.errorCardAction}
-                    onClick={() => {
-                        markErrorGroupAsResolved({
-                            variables: {
-                                id: errorGroup?.id || '',
-                                resolved: !errorGroup?.resolved,
-                            },
-                        })
-                            .then(() => {
-                                message.success('Updated error status!', 3);
-                            })
-                            .catch(() => {
-                                message.error(
-                                    'Error updating error status!',
-                                    3
-                                );
-                            });
-                    }}
-                >
-                    {errorGroup?.resolved ? (
-                        <FlagIcon className={styles.actionIcon} />
-                    ) : (
-                        <ResolvedIcon className={styles.actionIcon} />
-                    )}
-                </button>
-            </Tooltip>
         </div>
     );
 };

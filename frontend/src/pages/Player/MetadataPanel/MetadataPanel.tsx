@@ -3,6 +3,7 @@ import Skeleton from 'react-loading-skeleton';
 import { Link, useParams } from 'react-router-dom';
 
 import { Field } from '../../../components/Field/Field';
+import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import {
     useGetAdminQuery,
     useGetSessionQuery,
@@ -62,6 +63,58 @@ const MetadataPanel = () => {
                 <>
                     <section>
                         <h2>Session</h2>
+                        <p>
+                            Environment:{' '}
+                            <span className={styles.centerAlign}>
+                                <span className={styles.sentenceCase}>
+                                    {data?.session?.environment || 'Production'}
+                                </span>
+                                <InfoTooltip
+                                    className={styles.infoTooltip}
+                                    title={
+                                        <>
+                                            You can set the environment based on
+                                            where the session is recorded.{' '}
+                                            <a
+                                                href="https://docs.highlight.run/reference#options"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                Learn more about environments.
+                                            </a>
+                                        </>
+                                    }
+                                />
+                            </span>
+                        </p>
+                        <p>
+                            App Version:{' '}
+                            <span className={styles.centerAlign}>
+                                <span className={styles.sentenceCase}>
+                                    {data?.session?.app_version ||
+                                        'App Version Not Set'}
+                                </span>
+                                <InfoTooltip
+                                    className={styles.infoTooltip}
+                                    title={
+                                        <>
+                                            This is the app version for your
+                                            application. You can set the version
+                                            to help categorize what version of
+                                            the app a user was using.{' '}
+                                            <a
+                                                href="https://docs.highlight.run/reference#options"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                Learn more about setting the
+                                                version.
+                                            </a>
+                                        </>
+                                    }
+                                />
+                            </span>
+                        </p>
                         {data?.session?.city && (
                             <p>
                                 Location: {data?.session?.city},{' '}
@@ -80,7 +133,7 @@ const MetadataPanel = () => {
                         )}
                     </section>
                     <section>
-                        <h2>User Details</h2>
+                        <h2>User</h2>
                         <p>Locale: {data?.session?.language}</p>
                         {!(!parsedFields?.length || loading) ? (
                             <div className={styles.tagDiv}>
@@ -115,7 +168,7 @@ const MetadataPanel = () => {
                     </section>
 
                     <section>
-                        <h2>Device Details</h2>
+                        <h2>Device</h2>
                         {data?.session?.fingerprint && (
                             <Link
                                 to={`/${organization_id}/sessions?${new URLSearchParams(

@@ -50,6 +50,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         pause,
         sessionIntervals,
         sessionCommentIntervals,
+        canViewSession,
     } = useContext(ReplayerContext);
     usePlayerHotKeys();
     const { data: admin_data } = useGetAdminQuery({ skip: false });
@@ -215,7 +216,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
         return newTime;
     };
 
-    const disableControls = state === ReplayerState.Loading;
+    const disableControls = state === ReplayerState.Loading || !canViewSession;
     // The play button should be disabled if the player has reached the end.
     const disablePlayButton = time >= (replayer?.getMetaData().totalTime ?? 0);
 
@@ -430,17 +431,19 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                     </div>
                 </div>
                 <div className={styles.toolbarRightSection}>
-                    <TimelineAnnotationsSettings />
+                    <TimelineAnnotationsSettings disabled={disableControls} />
                     <Tooltip
                         title="Automatically starts the video when you open a session."
                         arrowPointAtCenter
                     >
                         <Button
+                            trackingId="PlayerAutoPlaySetting"
                             type="text"
                             className={classNames(styles.autoPlayButton)}
                             onClick={() => {
                                 setAutoPlayVideo(!autoPlayVideo);
                             }}
+                            disabled={disableControls}
                         >
                             {autoPlayVideo ? 'Autoplay on' : 'Autoplay off'}
                         </Button>
@@ -450,6 +453,7 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                         arrowPointAtCenter
                     >
                         <Button
+                            trackingId="PlayerSkipInactive"
                             type="text"
                             className={classNames(styles.skipInactiveButton, {
                                 [styles.skipInactiveButtonActive]: skipInactive,
@@ -457,24 +461,27 @@ export const Toolbar = ({ onResize }: { onResize: () => void }) => {
                             onClick={() => {
                                 setSkipInactive(!skipInactive);
                             }}
+                            disabled={disableControls}
                         >
                             {skipInactive
                                 ? 'Skipping inactive'
                                 : 'Skip inactive'}
                         </Button>
                     </Tooltip>
-                    <SpeedControl />
+                    <SpeedControl disabled={disableControls} />
                     <Tooltip
                         title="View the DevTools to see console logs, errors, and network requests."
                         placement="topLeft"
                         arrowPointAtCenter
                     >
                         <Button
+                            trackingId="PlayerDevTools"
                             type="text"
                             className={styles.devToolsButton}
                             onClick={() => {
                                 setOpenDevTools(!openDevTools);
                             }}
+                            disabled={disableControls}
                         >
                             <SvgDevtoolsIcon
                                 className={classNames(styles.devToolsIcon, {

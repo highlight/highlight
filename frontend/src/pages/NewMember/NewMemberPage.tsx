@@ -32,12 +32,13 @@ const NewMemberPage = () => {
 
     return (
         <div className={styles.box}>
-            <div className={styles.title}>Accept workspace invite?</div>
-            <div className={styles.subTitle}>
+            <h2>Accept workspace invite?</h2>
+            <p className={styles.subTitle}>
                 Would you like to enter this workspace as '
                 {adminData?.admin?.email}' ?
-            </div>
+            </p>
             <Button
+                trackingId="NewMemberEnterWorkspace"
                 type="primary"
                 className={commonStyles.submitButton}
                 onClick={() => {
@@ -63,6 +64,7 @@ const NewMemberPage = () => {
                 )}
             </Button>
             <Button
+                trackingId="NewMemberLoginWithDifferentUser"
                 className={commonStyles.secondaryButton}
                 style={{ marginTop: 16 }}
                 onClick={() => {

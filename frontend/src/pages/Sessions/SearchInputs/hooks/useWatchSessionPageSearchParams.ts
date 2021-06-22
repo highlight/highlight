@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import { SessionPageSearchParams } from '../../../Player/utils/utils';
@@ -17,29 +17,48 @@ import {
 const useWatchSessionPageSearchParams = (
     searchParam: SessionPageSearchParams,
     setSearchParamsCallback: (value: any) => SearchParams,
-    getDisplayText: (value: any) => string
+    getDisplayText: (value: any) => string,
+    setSearchParamsCallbackAsync?: (value: any) => Promise<SearchParams>
 ) => {
     const history = useHistory();
     const { setSearchParams } = useSearchContext();
+    const [handled, setHandled] = useState(false);
+    message.config({
+        maxCount: 1,
+    });
 
     useEffect(() => {
-        const valueFromSearchParams = new URLSearchParams(location.search).get(
-            searchParam
-        );
+        const worker = async () => {
+            const valueFromSearchParams = new URLSearchParams(
+                location.search
+            ).get(searchParam);
 
-        if (valueFromSearchParams) {
-            message.success(getDisplayText(valueFromSearchParams));
-            setSearchParams(() =>
-                setSearchParamsCallback(valueFromSearchParams)
-            );
-            history.replace({ search: '' });
-        }
+            if (valueFromSearchParams && !handled) {
+                message.success(getDisplayText(valueFromSearchParams));
+
+                if (setSearchParamsCallbackAsync) {
+                    const searchParams = await setSearchParamsCallbackAsync(
+                        valueFromSearchParams
+                    );
+                    setSearchParams(searchParams);
+                } else {
+                    setSearchParams(() =>
+                        setSearchParamsCallback(valueFromSearchParams)
+                    );
+                }
+                setHandled(true);
+            }
+        };
+
+        worker();
     }, [
         getDisplayText,
+        handled,
         history,
         searchParam,
         setSearchParams,
         setSearchParamsCallback,
+        setSearchParamsCallbackAsync,
     ]);
 };
 

@@ -28,7 +28,6 @@ import { ClickListener } from './listeners/click-listener/click-listener';
 import { FocusListener } from './listeners/focus-listener/focus-listener';
 import packageJson from '../package.json';
 import 'clientjs';
-import { SUPPORTED_ENVIRONMENT_NAMES } from './utils/environment/environment';
 
 export const HighlightWarning = (context: string, msg: any) => {
     console.warn(`Highlight Warning: (${context}): `, { output: msg });
@@ -60,6 +59,7 @@ export type HighlightClassOptions = {
     enableStrictPrivacy?: boolean;
     firstloadVersion?: string;
     environment?: 'development' | 'production' | 'staging' | string;
+    appVersion?: string;
 };
 
 /**
@@ -103,7 +103,9 @@ export class Highlight {
     messages: ConsoleMessage[];
     networkContents: NetworkResourceContent[];
     sessionData: SessionData;
+    /** @deprecated Use state instead. Ready should be removed when Highlight releases 2.0. */
     ready: boolean;
+    state: 'NotRecording' | 'Recording';
     logger: Logger;
     disableNetworkRecording: boolean | undefined;
     disableConsoleRecording: boolean | undefined;
@@ -113,9 +115,15 @@ export class Highlight {
     listeners: listenerHandler[];
     firstloadVersion: string;
     environment: string;
+    /** The end-user's app version. This isn't Highlight's version. */
+    appVersion: string | undefined;
     _optionsInternal: HighlightClassOptionsInternal;
     _backendUrl: string;
     _recordingStartTime: number = 0;
+
+    static create(options: HighlightClassOptions): Highlight {
+        return new Highlight(options);
+    }
 
     constructor(options: HighlightClassOptions) {
         if (typeof options?.debug === 'boolean') {
@@ -126,30 +134,23 @@ export class Highlight {
             this.debugOptions = options?.debug ?? {};
         }
         this.ready = false;
+        this.state = 'NotRecording';
         this.disableNetworkRecording = options.disableNetworkRecording;
         this.disableConsoleRecording = options.disableConsoleRecording;
         this.enableSegmentIntegration = options.enableSegmentIntegration;
         this.enableStrictPrivacy = options.enableStrictPrivacy || false;
         this.logger = new Logger(this.debugOptions.clientInteractions);
-        this._backendUrl = options?.backendUrl
-            ? options.backendUrl
-            : (process.env.PUBLIC_GRAPH_URI as string);
+        this._backendUrl =
+            options?.backendUrl ||
+            process.env.PUBLIC_GRAPH_URI ||
+            'https://public.highlight.run';
         const client = new GraphQLClient(`${this._backendUrl}`, {
             headers: {},
         });
         this.graphqlSDK = getSdk(client);
-        this.environment = 'production';
+        this.environment = options.environment || 'production';
+        this.appVersion = options.appVersion;
 
-        if (options.environment) {
-            if (SUPPORTED_ENVIRONMENT_NAMES.includes(options.environment)) {
-                this.environment = options.environment;
-            } else {
-                HighlightWarning(
-                    'init',
-                    'custom environment names are not currently supported, "production" was used instead. Acceptable values are: "production", "staging", and "development".'
-                );
-            }
-        }
         if (typeof options.organizationID === 'string') {
             this.organizationID = options.organizationID;
         } else if (typeof options.organizationID === 'number') {
@@ -184,11 +185,11 @@ export class Highlight {
                 stringify({ user_identifier, ...user_object })
             );
         }
-        this.sessionData.userIdentifier = user_identifier;
+        this.sessionData.userIdentifier = user_identifier.toString();
         this.sessionData.userObject = user_object;
         await this.graphqlSDK.identifySession({
             session_id: this.sessionData.sessionID.toString(),
-            user_identifier: user_identifier,
+            user_identifier: this.sessionData.userIdentifier,
             user_object: user_object,
         });
         const sourceString = source === 'segment' ? source : 'default';
@@ -307,6 +308,7 @@ export class Highlight {
                     clientConfig: JSON.stringify(this._optionsInternal),
                     environment: this.environment,
                     id: fingerprint.toString(),
+                    appVersion: this.appVersion,
                 });
                 this.sessionData.sessionID = parseInt(
                     gr?.initializeSession?.id || '0'
@@ -461,6 +463,7 @@ export class Highlight {
                 navigator.sendBeacon(`${this._backendUrl}`, blob);
             });
             this.ready = true;
+            this.state = 'Recording';
         } catch (e) {
             HighlightWarning('initializeSession', e);
         }
@@ -484,6 +487,7 @@ export class Highlight {
                 'H.stop() was called which stops Highlight from recording.'
             );
         }
+        this.state = 'NotRecording';
         this.listeners.forEach((stop: listenerHandler) => stop());
         this.listeners = [];
     }
@@ -500,7 +504,6 @@ export class Highlight {
             }
             const payload = this._getPayload();
             await this.graphqlSDK.PushPayload(payload);
-            this.events = [];
             this.errors = [];
             this.messages = [];
             this.networkContents = [];
@@ -551,9 +554,19 @@ export class Highlight {
             performance.clearResourceTimings();
         }
 
+        // We are creating a weak copy of the events. rrweb could have pushed more events to this.events while we send the request with the events as a payload.
+        // Originally, we would clear this.events but this could lead to a race condition.
+        // Example Scenario:
+        // 1. Create the events payload from this.events (with N events)
+        // 2. rrweb pushes to this.events (with M events)
+        // 3. Network request made to push payload (Only includes N events)
+        // 4. this.events is cleared (we lose M events)
+        const events = [...this.events];
+        this.events = this.events.slice(events.length);
+
         return {
             session_id: this.sessionData.sessionID.toString(),
-            events: { events: this.events },
+            events: { events },
             messages: messagesString,
             resources: resourcesString,
             errors: this.errors,

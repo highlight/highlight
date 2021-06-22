@@ -6,14 +6,15 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/highlight-run/highlight/backend/model"
-	storage "github.com/highlight-run/highlight/backend/object-storage"
-	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	e "github.com/pkg/errors"
 	"github.com/sendgrid/sendgrid-go"
+	log "github.com/sirupsen/logrus"
 	"github.com/stripe/stripe-go/client"
 	"gorm.io/gorm"
 
-	e "github.com/pkg/errors"
+	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 )
 
 // This file will not be regenerated automatically.
@@ -99,21 +100,36 @@ func InputToParams(params *modelInputs.SearchParamsInput) *model.SearchParams {
 		}
 	}
 	for _, property := range params.UserProperties {
+		var id int
+		if property.ID != nil {
+			id = *property.ID
+		}
 		newProperty := &model.UserProperty{
+			ID:    id,
 			Name:  property.Name,
 			Value: property.Value,
 		}
 		modelParams.UserProperties = append(modelParams.UserProperties, newProperty)
 	}
 	for _, property := range params.ExcludedProperties {
+		var id int
+		if property.ID != nil {
+			id = *property.ID
+		}
 		newProperty := &model.UserProperty{
+			ID:    id,
 			Name:  property.Name,
 			Value: property.Value,
 		}
 		modelParams.ExcludedProperties = append(modelParams.ExcludedProperties, newProperty)
 	}
 	for _, property := range params.TrackProperties {
+		var id int
+		if property.ID != nil {
+			id = *property.ID
+		}
 		newProperty := &model.UserProperty{
+			ID:    id,
 			Name:  property.Name,
 			Value: property.Value,
 		}
@@ -171,4 +187,31 @@ func (r *Resolver) isAdminSessionOwner(ctx context.Context, session_id int) (*mo
 		return nil, e.Wrap(err, "error validating admin in organization")
 	}
 	return session, nil
+}
+
+func (r *Resolver) UpdateSessionsVisibility(organizationID int, newPlan modelInputs.PlanType, originalPlan modelInputs.PlanType) {
+	isPlanUpgrade := true
+	switch originalPlan {
+	case modelInputs.PlanTypeFree:
+		if newPlan == modelInputs.PlanTypeFree {
+			isPlanUpgrade = false
+		}
+	case modelInputs.PlanTypeBasic:
+		if newPlan == modelInputs.PlanTypeFree {
+			isPlanUpgrade = false
+		}
+	case modelInputs.PlanTypeStartup:
+		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic {
+			isPlanUpgrade = false
+		}
+	case modelInputs.PlanTypeEnterprise:
+		if newPlan == modelInputs.PlanTypeFree || newPlan == modelInputs.PlanTypeBasic || newPlan == modelInputs.PlanTypeStartup {
+			isPlanUpgrade = false
+		}
+	}
+	if isPlanUpgrade {
+		if err := r.DB.Model(&model.Session{}).Where(&model.Session{OrganizationID: organizationID, WithinBillingQuota: &model.F}).Updates(model.Session{WithinBillingQuota: &model.T}).Error; err != nil {
+			log.Error(e.Wrap(err, "error updating within_billing_quota on sessions upon plan upgrade"))
+		}
+	}
 }

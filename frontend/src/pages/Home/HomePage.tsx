@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import Lottie from 'lottie-react';
 import moment from 'moment';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useHistory, useParams } from 'react-router-dom';
 import {
@@ -15,8 +15,8 @@ import {
     YAxis,
 } from 'recharts';
 
-import Card from '../../components/Card/Card';
 import { StandardDropdown } from '../../components/Dropdown/StandardDropdown/StandardDropdown';
+import ElevatedCard from '../../components/ElevatedCard/ElevatedCard';
 import { RechartTooltip } from '../../components/recharts/RechartTooltip/RechartTooltip';
 import {
     useGetAdminQuery,
@@ -52,9 +52,7 @@ const HomePage = () => {
         timeFilter[1].value
     );
     const [hasData, setHasData] = useState<boolean>(true);
-    const { integrated, loading: integratedLoading } = useIntegrated(
-        parseInt(organization_id, 10)
-    );
+    const { integrated, loading: integratedLoading } = useIntegrated();
 
     if (integratedLoading || adminLoading) {
         return null;
@@ -107,7 +105,7 @@ const HomePage = () => {
                     </div>
                     {!hasData && (
                         <div className={styles.noDataContainer}>
-                            <Card
+                            <ElevatedCard
                                 title={
                                     integrated
                                         ? "You're too fast!"
@@ -134,7 +132,7 @@ const HomePage = () => {
                                         </>
                                     )}
                                 </p>
-                            </Card>
+                            </ElevatedCard>
                         </div>
                     )}
                 </div>
@@ -161,7 +159,7 @@ const SessionCountGraph = () => {
     );
     const history = useHistory();
 
-    const { loading } = useGetDailySessionsCountQuery({
+    const { loading, refetch } = useGetDailySessionsCountQuery({
         variables: {
             organization_id,
             date_range: {
@@ -174,9 +172,7 @@ const SessionCountGraph = () => {
         },
         onCompleted: (response) => {
             if (response.dailySessionsCount) {
-                if (response.dailySessionsCount.length === 0) {
-                    setHasData(false);
-                }
+                setHasData(response.dailySessionsCount.length > 0);
                 const dateRangeData = dailyCountData(
                     response.dailySessionsCount,
                     dateRangeLength
@@ -194,6 +190,12 @@ const SessionCountGraph = () => {
             }
         },
     });
+
+    // Refetch when the organization changes to handle the scenario where a user is a part of multiple organizations.
+    // Without this, the data shown would be for the previous organization.
+    useEffect(() => {
+        refetch();
+    }, [refetch, organization_id]);
 
     return loading ? (
         <Skeleton count={1} style={{ width: '100%', height: 334 }} />
