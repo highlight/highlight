@@ -182,14 +182,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	}
 	// run tests
 	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			defer func(db *gorm.DB) {
-				err := model.ClearTablesInDB(db)
-				if err != nil {
-					t.Fatal(e.Wrap(err, "error clearing database"))
-				}
-			}(DB)
-			// test logic
+		util.RunTest(t, name, DB, func(t *testing.T) {
 			r := &Resolver{DB: DB}
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
@@ -330,13 +323,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 
 	// run tests
 	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			defer func(db *gorm.DB) {
-				err := model.ClearTablesInDB(db)
-				if err != nil {
-					t.Fatal(e.Wrap(err, "error clearing database"))
-				}
-			}(DB)
+		util.RunTest(t, name, DB, func(t *testing.T) {
 			fetch = tc.fetcher
 			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput)
 			if err != nil {
