@@ -603,14 +603,68 @@ func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.Er
 		}
 
 		var mappedStackFrame modelInputs.ErrorTrace
-		file, fn, line, col, ok := smap.Source(*stackTrace.LineNumber, *stackTrace.ColumnNumber)
+		sourceFileName, fn, line, col, ok := smap.Source(*stackTrace.LineNumber, *stackTrace.ColumnNumber)
 		if !ok {
 			return e.New("error extracting true error info from source map")
 		}
-		mappedStackFrame.FileName = &file
+		mappedStackFrame.FileName = &sourceFileName
 		mappedStackFrame.FunctionName = &fn
 		mappedStackFrame.LineNumber = &line
 		mappedStackFrame.ColumnNumber = &col
+
+		var sourceBytes []byte
+		// fetch source source
+		if organizationID == 113 {
+			// get file from battlecard's s3 bucket
+			sourceBytes, err = r.S3Client.ReadSourceMapFileFromS3BattleCard(sourceFileName)
+			if err != nil {
+				log.Error(e.Wrap(err, "error getting source file from s3"))
+				continue
+			}
+		} else {
+			sourceURL := (*stackTrace.FileName)[:sourceFileNameIndex] + sourceFileName
+			isInS3 := true
+			sourceBytes, err = r.S3Client.ReadSourceMapFileFromS3(organizationID, sourceFileName)
+			if err != nil {
+				log.Error(e.Wrap(err, "error reading source file from s3"))
+				isInS3 = false
+			}
+			// fetch source file
+			sourceBytes, _, err = fetch.fetchFile(sourceURL)
+			if err != nil {
+				log.Error(e.Wrap(err, "error fetching source file"))
+				continue
+			}
+			// upload source file to s3 if it's not there
+			if !isInS3 {
+				_, err := r.S3Client.PushSourceMapFileToS3(organizationID, sourceFileName, sourceBytes)
+				if err != nil {
+					log.Error(e.Wrap(err, "error pushing sourcemap file to s3"))
+				}
+			}
+		}
+
+		// put together code block surrounding error line
+		sourceStringSlice := strings.Split(string(sourceBytes), "\n")
+		mappedCode := make(map[int]string)
+		startLine := line - 5
+		endLine := line + 5
+		if endLine >= len(sourceStringSlice) {
+			startLine -= endLine - len(sourceStringSlice)
+			endLine = len(sourceStringSlice) - 1
+		}
+		if startLine < 0 {
+			startLine = 0
+		}
+		for i := startLine; i <= endLine; i++ {
+			mappedCode[i] = sourceStringSlice[i]
+		}
+		mappedCodeBytes, err := json.Marshal(mappedCode)
+		if err != nil {
+		}
+		mappedCodeString := string(mappedCodeBytes)
+		mappedStackFrame.Code = &mappedCodeString
+
 		mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
 	}
 
