@@ -25,6 +25,7 @@ const (
 	SessionContents  PayloadType = "session-contents"
 	NetworkResources PayloadType = "network-resources"
 	ConsoleMessages  PayloadType = "console-messages"
+	SourceMapFile    PayloadType = "sourcemap-file"
 )
 
 type StorageClient struct {
@@ -209,4 +210,42 @@ func (s *StorageClient) ReadMessagesFromS3(sessionId int, organizationId int) ([
 
 func (s *StorageClient) bucketKey(sessionId int, organizationId int, key PayloadType) *string {
 	return aws.String(fmt.Sprintf("%v/%v/%v", organizationId, sessionId, string(key)))
+}
+
+func (s *StorageClient) bucketFileKey(organizationId int, fileName string, key PayloadType) *string {
+	return aws.String(fmt.Sprintf("%d/%s/%s", organizationId, fileName, string(key)))
+}
+
+func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName string, fileBytes []byte) (*int64, error) {
+	key := s.bucketFileKey(organizationId, fileName, SourceMapFile)
+	body := bytes.NewReader(fileBytes)
+	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: aws.String(S3BucketName), Key: key, Body: body,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "error 'put'ing sourcemap file in s3 bucket")
+	}
+	headObj := s3.HeadObjectInput{
+		Bucket: aws.String(S3BucketName),
+		Key:    key,
+	}
+	result, err := s.S3Client.HeadObject(context.TODO(), &headObj)
+	if err != nil {
+		return nil, errors.New("error retrieving head object")
+	}
+	return &result.ContentLength, nil
+}
+
+func (s *StorageClient) ReadSourceMapFileFromS3(organizationId int, fileName string) ([]byte, error) {
+	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3BucketName),
+		Key: s.bucketFileKey(organizationId, fileName, SourceMapFile)})
+	if err != nil {
+		return nil, errors.Wrap(err, "error getting object from s3")
+	}
+	buf := new(bytes.Buffer)
+	_, err = buf.ReadFrom(output.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "error reading from s3 buffer")
+	}
+	return buf.Bytes(), nil
 }
