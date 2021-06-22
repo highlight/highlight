@@ -1,22 +1,39 @@
 package graph
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/pkg/errors"
+	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	modelInput "github.com/highlight-run/highlight/backend/private-graph/graph/model"
+	publicModelInput "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
 var DB *gorm.DB
+
+type mockFetcher struct{}
+
+func (n mockFetcher) fetchFile(href string) ([]byte, *string, error) {
+	inputBytes, err := ioutil.ReadFile(href)
+	if err != nil {
+		return nil, nil, e.Wrap(err, "error fetching file from disk")
+	}
+	filename := href[strings.LastIndex(href, "/"):]
+	return inputBytes, &filename, nil
+}
 
 func createAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	log.Println("host", os.Getenv("PSQL_HOST"))
@@ -172,6 +189,166 @@ func TestHandleErrorAndGroup(t *testing.T) {
 					t.Fatalf("received error group not equal to expected error group. diff: %+v", diff)
 				}
 				i++
+			}
+		})
+	}
+}
+
+func MakeIntPointer(v int) *int {
+	return &v
+}
+
+func MakeStringPointer(v string) *string {
+	return &v
+}
+
+func MakeStringPointerFromInterface(v interface{}) *string {
+	exampleErrorTraceBytes, _ := json.Marshal(&v)
+	exampleErrorTraceString := string(exampleErrorTraceBytes)
+	return &exampleErrorTraceString
+}
+
+func TestSetSourceMapElements(t *testing.T) {
+	// construct table of sub-tests to run
+	tests := map[string]struct {
+		errorObjectInput    publicModelInput.ErrorObjectInput
+		expectedErrorObject model.ErrorObject
+		fetcher             fetcher
+		err                 error
+	}{
+		"test source mapping with proper stack trace": {
+			errorObjectInput: publicModelInput.ErrorObjectInput{
+				Trace: []*publicModelInput.StackFrameInput{
+					{
+						FileName:     MakeStringPointer("./test-files/lodash.min.js"),
+						LineNumber:   MakeIntPointer(1),
+						ColumnNumber: MakeIntPointer(813),
+					},
+					{
+						FileName:     MakeStringPointer("./test-files/lodash.min.js"),
+						LineNumber:   MakeIntPointer(1),
+						ColumnNumber: MakeIntPointer(799),
+					},
+				},
+			},
+			expectedErrorObject: model.ErrorObject{
+				MappedStackTrace: MakeStringPointerFromInterface(
+					[]modelInput.ErrorTrace{
+						{
+							FileName:     MakeStringPointer("lodash.js"),
+							LineNumber:   MakeIntPointer(634),
+							ColumnNumber: MakeIntPointer(4),
+							FunctionName: MakeStringPointer(""),
+						},
+						{
+							FileName:     MakeStringPointer("lodash.js"),
+							LineNumber:   MakeIntPointer(633),
+							ColumnNumber: MakeIntPointer(11),
+							FunctionName: MakeStringPointer("arrayIncludesWith"),
+						},
+					},
+				),
+			},
+			fetcher: mockFetcher{},
+			err:     e.New(""),
+		},
+		"test source mapping invalid trace:no related source map": {
+			errorObjectInput: publicModelInput.ErrorObjectInput{
+				Trace: []*publicModelInput.StackFrameInput{
+					{
+						FileName:     MakeStringPointer("./test-files/lodash.js"),
+						LineNumber:   MakeIntPointer(0),
+						ColumnNumber: MakeIntPointer(0),
+					},
+				},
+			},
+			expectedErrorObject: model.ErrorObject{},
+			fetcher:             mockFetcher{},
+			err:                 e.New("file does not contain source map url"),
+		},
+		"test source mapping invalid trace:file doesn't exist": {
+			errorObjectInput: publicModelInput.ErrorObjectInput{
+				Trace: []*publicModelInput.StackFrameInput{
+					{
+						FileName:     MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
+						LineNumber:   MakeIntPointer(0),
+						ColumnNumber: MakeIntPointer(0),
+					},
+				},
+			},
+			expectedErrorObject: model.ErrorObject{},
+			fetcher:             NetworkFetcher{},
+			err:                 e.New("status code not OK"),
+		},
+		"test source mapping invalid trace:filename is not a url": {
+			errorObjectInput: publicModelInput.ErrorObjectInput{
+				Trace: []*publicModelInput.StackFrameInput{
+					{
+						FileName:     MakeStringPointer("/file/local/domain.js"),
+						LineNumber:   MakeIntPointer(0),
+						ColumnNumber: MakeIntPointer(0),
+					},
+				},
+			},
+			expectedErrorObject: model.ErrorObject{},
+			fetcher:             NetworkFetcher{},
+			err:                 e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
+		},
+		"test source mapping invalid trace:filename is localhost": {
+			errorObjectInput: publicModelInput.ErrorObjectInput{
+				Trace: []*publicModelInput.StackFrameInput{
+					{
+						FileName:     MakeStringPointer("http://localhost:8080/abc.min.js"),
+						LineNumber:   MakeIntPointer(0),
+						ColumnNumber: MakeIntPointer(0),
+					},
+				},
+			},
+			expectedErrorObject: model.ErrorObject{},
+			fetcher:             NetworkFetcher{},
+			err:                 e.New(`cannot parse localhost source`),
+		},
+		"test source mapping invalid trace:trace is nil": {
+			errorObjectInput:    publicModelInput.ErrorObjectInput{},
+			expectedErrorObject: model.ErrorObject{},
+			fetcher:             mockFetcher{},
+			err:                 e.New("stack trace input cannot be nil"),
+		},
+		"test source mapping invalid trace:empty stack frame doesn't update error object": {
+			errorObjectInput: publicModelInput.ErrorObjectInput{
+				Trace: []*publicModelInput.StackFrameInput{},
+			},
+			expectedErrorObject: model.ErrorObject{
+				MappedStackTrace: MakeStringPointer("null"),
+			},
+			fetcher: mockFetcher{},
+			err:     e.New(""),
+		},
+	}
+
+	r := Resolver{}
+
+	// run tests
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			defer func(db *gorm.DB, t *testing.T) {
+				clearTablesInDB(db, t)
+			}(DB, t)
+			fetch = tc.fetcher
+			var errorObj model.ErrorObject
+			err := r.SetSourceMapElements(&errorObj, &tc.errorObjectInput, 1)
+			if err != nil {
+				if err.Error() == tc.err.Error() {
+					return
+				}
+				t.Error(e.Wrap(err, "error setting source map elements"))
+			}
+			eq, diff, err := model.AreModelsWeaklyEqual(&errorObj, &tc.expectedErrorObject)
+			if err != nil {
+				t.Error(e.Wrap(err, "error checking if publicModelInput. are equal"))
+			}
+			if !eq {
+				t.Error(e.Errorf("publicModelInput. not equal: %+v", diff))
 			}
 		})
 	}

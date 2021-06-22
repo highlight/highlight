@@ -237,7 +237,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			Timestamp:      v.Timestamp,
 			Payload:        v.Payload,
 		}
-		err = errorToInsert.SetSourceMapElements(v)
+		err = r.SetSourceMapElements(errorToInsert, v, organizationID)
 		if err != nil {
 			log.Error(err)
 		}

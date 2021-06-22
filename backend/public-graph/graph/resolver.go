@@ -8,17 +8,22 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
+	"path"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/go-sourcemap/sourcemap"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
+	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
@@ -28,7 +33,8 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB *gorm.DB
+	DB       *gorm.DB
+	S3Client *storage.StorageClient
 }
 
 type Location struct {
@@ -466,4 +472,135 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 	}
 
 	return session, nil
+}
+
+type fetcher interface {
+	fetchFile(string) ([]byte, *string, error)
+}
+
+type NetworkFetcher struct{}
+
+var fetch fetcher
+
+func init() {
+	fetch = NetworkFetcher{}
+}
+
+func (n NetworkFetcher) fetchFile(href string) ([]byte, *string, error) {
+	// check if source is a URL
+	_, err := url.ParseRequestURI(href)
+	if err != nil {
+		return nil, nil, err
+	}
+	// check if source is localhost
+	if strings.Contains(strings.ToLower(href), "localhost") {
+		return nil, nil, e.New("cannot parse localhost source")
+	}
+	// get minified file
+	res, err := http.Get(href)
+	if err != nil {
+		return nil, nil, e.Wrap(err, "error getting source file")
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return nil, nil, e.New("status code not OK")
+	}
+
+	// unpack file into slice
+	filename := res.Request.URL.String()
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, nil, e.Wrap(err, "error reading response body")
+	}
+
+	return bodyBytes, &filename, nil
+}
+
+/* SetSourceMapElements makes no DB changes
+It loops through the trace on the error object input, for each :
+* fetches the soucemap from s3 if it's there, otherwise it fetches from remote and uploads to s3.
+* maps the error info and updates the destination error object pointer.
+*/
+func (r *Resolver) SetSourceMapElements(obj *model.ErrorObject, input *model2.ErrorObjectInput, organizationID int) error {
+	var mappedStackTrace []modelInputs.ErrorTrace
+	if input.Trace == nil {
+		return e.New("stack trace input cannot be nil")
+	}
+	for _, stackTrace := range input.Trace {
+		if stackTrace == nil || (stackTrace.FileName == nil || stackTrace.LineNumber == nil || stackTrace.ColumnNumber == nil) {
+			continue
+		}
+
+		bodyBytes, filename, err := fetch.fetchFile(*stackTrace.FileName)
+		if err != nil {
+			return err
+		}
+		if filename == nil {
+			continue
+		}
+		if len(bodyBytes) > 1000000 {
+			return e.New("size of source way too big")
+		}
+		bodyString := string(bodyBytes)
+		bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
+		if len(bodyLines) < 1 {
+			return e.New("body lines empty")
+		}
+		lastLine := bodyLines[len(bodyLines)-1]
+
+		// extract sourceMappingURL file name from slice
+		var sourceMapFileName string
+		sourceMapIndex := strings.LastIndex(lastLine, "sourceMappingURL=")
+		if sourceMapIndex == -1 {
+			return e.New("file does not contain source map url")
+		}
+		sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
+
+		// construct sourcemap url from searched file
+		sourceFileNameIndex := strings.Index(*stackTrace.FileName, path.Base(*filename))
+		if sourceFileNameIndex == -1 {
+			return e.New("source path doesn't contain file name")
+		}
+		sourceMapURL := (*stackTrace.FileName)[:sourceFileNameIndex] + sourceMapFileName
+
+		var fileBytes []byte
+		if organizationID == 113 {
+			// get file from s3 if it's battlecard
+			fileBytes, err = r.S3Client.ReadSourceMapFileFromS3(organizationID, sourceMapFileName)
+			if err != nil {
+				return e.Wrap(err, "error getting source map file from s3")
+			}
+		} else {
+			// extract information from sourcemap
+			fileBytes, _, err = fetch.fetchFile(sourceMapURL)
+			if err != nil {
+				return e.Wrap(err, "error fetching source map file")
+			}
+		}
+
+		smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
+		if err != nil {
+			return e.Wrap(err, "error parsing source map file")
+		}
+
+		var mappedStackFrame modelInputs.ErrorTrace
+		file, fn, line, col, ok := smap.Source(*stackTrace.LineNumber, *stackTrace.ColumnNumber)
+		if !ok {
+			return e.New("error extracting true error info from source map")
+		}
+		mappedStackFrame.FileName = &file
+		mappedStackFrame.FunctionName = &fn
+		mappedStackFrame.LineNumber = &line
+		mappedStackFrame.ColumnNumber = &col
+		mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+	}
+
+	mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
+	if err != nil {
+
+	}
+	mappedStackTraceString := string(mappedStackTraceBytes)
+	obj.MappedStackTrace = &mappedStackTraceString
+
+	return nil
 }

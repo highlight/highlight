@@ -6,17 +6,12 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
 	"os"
-	"path"
 	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/go-sourcemap/sourcemap"
 	"github.com/go-test/deep"
 	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/mitchellh/mapstructure"
@@ -35,7 +30,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
-	publicModelInputs "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 )
 
 var (
@@ -549,123 +543,6 @@ type ErrorObject struct {
 	Timestamp        time.Time `json:"timestamp"`
 	Payload          *string   `json:"payload"`
 	Environment      string
-}
-
-type fetcher interface {
-	fetchFile(string) ([]byte, *string, error)
-}
-
-type NetworkFetcher struct{}
-
-var fetch fetcher
-
-func init() {
-	fetch = NetworkFetcher{}
-}
-
-func (n NetworkFetcher) fetchFile(href string) ([]byte, *string, error) {
-	// check if source is a URL
-	_, err := url.ParseRequestURI(href)
-	if err != nil {
-		return nil, nil, err
-	}
-	// check if source is localhost
-	if strings.Contains(strings.ToLower(href), "localhost") {
-		return nil, nil, e.New("cannot parse localhost source")
-	}
-	// get minified file
-	res, err := http.Get(href)
-	if err != nil {
-		return nil, nil, e.Wrap(err, "error getting source file")
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		return nil, nil, e.New("status code not OK")
-	}
-
-	// unpack file into slice
-	filename := res.Request.URL.String()
-	bodyBytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return nil, nil, e.Wrap(err, "error reading response body")
-	}
-
-	return bodyBytes, &filename, nil
-}
-
-func (obj *ErrorObject) SetSourceMapElements(input *publicModelInputs.ErrorObjectInput) error {
-	var mappedStackTrace []modelInputs.ErrorTrace
-	if input.Trace == nil {
-		return e.New("stack trace input cannot be nil")
-	}
-	for _, stackTrace := range input.Trace {
-		if stackTrace == nil || (stackTrace.FileName == nil || stackTrace.LineNumber == nil || stackTrace.ColumnNumber == nil) {
-			continue
-		}
-
-		bodyBytes, filename, err := fetch.fetchFile(*stackTrace.FileName)
-		if err != nil {
-			return err
-		}
-		if filename == nil {
-			continue
-		}
-		if len(bodyBytes) > 1000000 {
-			return e.New("size of source way too big")
-		}
-		bodyString := string(bodyBytes)
-		bodyLines := strings.Split(strings.ReplaceAll(bodyString, "\rn", "\n"), "\n")
-		if len(bodyLines) < 1 {
-			return e.New("body lines empty")
-		}
-		lastLine := bodyLines[len(bodyLines)-1]
-
-		// extract sourceMappingURL file name from slice
-		var sourceMapFileName string
-		sourceMapIndex := strings.LastIndex(lastLine, "sourceMappingURL=")
-		if sourceMapIndex == -1 {
-			return e.New("file does not contain source map url")
-		}
-		sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
-
-		// construct sourcemap url from searched file
-		sourceFileNameIndex := strings.Index(*stackTrace.FileName, path.Base(*filename))
-		if sourceFileNameIndex == -1 {
-			return e.New("source path doesn't contain file name")
-		}
-		sourceMapURL := (*stackTrace.FileName)[:sourceFileNameIndex] + sourceMapFileName
-
-		// extract information from sourcemap
-		fileBytes, _, err := fetch.fetchFile(sourceMapURL)
-		if err != nil {
-			return e.Wrap(err, "error getting source map file")
-		}
-
-		smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
-		if err != nil {
-			return e.Wrap(err, "error parsing source map file")
-		}
-
-		var mappedStackFrame modelInputs.ErrorTrace
-		file, fn, line, col, ok := smap.Source(*stackTrace.LineNumber, *stackTrace.ColumnNumber)
-		if !ok {
-			return e.New("error extracting true error info from source map")
-		}
-		mappedStackFrame.FileName = &file
-		mappedStackFrame.FunctionName = &fn
-		mappedStackFrame.LineNumber = &line
-		mappedStackFrame.ColumnNumber = &col
-		mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-	}
-
-	mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
-	if err != nil {
-
-	}
-	mappedStackTraceString := string(mappedStackTraceBytes)
-	obj.MappedStackTrace = &mappedStackTraceString
-
-	return nil
 }
 
 type ErrorGroup struct {
