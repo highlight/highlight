@@ -18,7 +18,13 @@ type UserPropertyOld struct {
 }
 
 func GetPropertiesOld(obj *model.SessionAlert) ([]*UserPropertyOld, error) {
-	propertyString := *obj.TrackProperties
+	if obj == nil {
+		return nil, e.New("empty session alert object for track properties")
+	}
+	propertyString := "[]"
+	if obj.TrackProperties != nil {
+		propertyString = *obj.TrackProperties
+	}
 	var sanitizedProperties []*UserPropertyOld
 	if err := json.Unmarshal([]byte(propertyString), &sanitizedProperties); err != nil {
 		return nil, e.Wrap(err, "error unmarshalling sanitized track properties")
