@@ -26,7 +26,6 @@ jobs:
               with:
                   args: --config ./.golangci.yml
                   working-directory: backend
-                  only-new-issues: true
             - name: Build binary
               run: cd backend && go build .
     test:
@@ -58,4 +57,3 @@ jobs:
               uses: actions/setup-go@v2
             - name: Run tests
               run: cd backend && go test ./... -v
-
