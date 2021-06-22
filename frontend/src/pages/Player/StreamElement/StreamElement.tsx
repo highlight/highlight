@@ -46,6 +46,7 @@ export const StreamElement = ({
             key={e.identifier}
             className={styles.card}
             selected={isCurrent}
+            onClick={() => setSelected(!selected)}
         >
             <div
                 className={classNames(styles.streamElement, {
@@ -53,7 +54,6 @@ export const StreamElement = ({
                 })}
                 key={e.identifier}
                 id={e.identifier}
-                onClick={() => setSelected(!selected)}
             >
                 <div className={styles.headerRow}>
                     <div className={styles.iconWrapper}>
