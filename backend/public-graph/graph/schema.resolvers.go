@@ -11,7 +11,7 @@ import (
 	"os"
 	"time"
 
-	parse "github.com/highlight-run/highlight/backend/event-parse"
+	"github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
@@ -214,9 +214,9 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 	// put errors in db
 	putErrorsToDBSpan, _ := tracer.StartSpanFromContext(ctx, "public-graph.pushPayload", tracer.ResourceName("db.errors"))
 	for _, v := range errors {
-		traceBytes, err := json.Marshal(v.Trace)
+		traceBytes, err := json.Marshal(v.StackTrace)
 		if err != nil {
-			log.Errorf("Error marshaling trace: %v", v.Trace)
+			log.Errorf("Error marshaling trace: %v", v.StackTrace)
 			continue
 		}
 		traceString := string(traceBytes)
@@ -233,7 +233,7 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 			ColumnNumber:   v.ColumnNumber,
 			OS:             sessionObj.OSName,
 			Browser:        sessionObj.BrowserName,
-			Trace:          &traceString,
+			StackTrace:     &traceString,
 			Timestamp:      v.Timestamp,
 			Payload:        v.Payload,
 		}

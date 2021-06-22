@@ -124,7 +124,7 @@ type ErrorGroup {
     organization_id: Int!
     type: String!
     event: [String]!
-    trace: [ErrorTrace]!
+    stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
     state: ErrorState!

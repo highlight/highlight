@@ -538,7 +538,7 @@ type ErrorObject struct {
 	SourceMap        string
 	OS               string
 	Browser          string
-	Trace            *string   `json:"trace"`
+	StackTrace       *string   `json:"stack_trace"`
 	MappedStackTrace *string   `json:"mapped_stack_trace"`
 	Timestamp        time.Time `json:"timestamp"`
 	Payload          *string   `json:"payload"`
@@ -550,7 +550,7 @@ type ErrorGroup struct {
 	OrganizationID int
 	Event          string
 	Type           string
-	Trace          string
+	StackTrace     string
 	State          string `json:"state" gorm:"default:OPEN"`
 	Resolved       *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
 	MetadataLog    *string
