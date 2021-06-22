@@ -77,15 +77,44 @@ const FreePlanBanner = () => {
     } else {
         if (data?.organization?.trial_end_date) {
             // trial_end_date is set 2 weeks ahead of when the organization was created. We want to show the banner after the organization is 7 days old.
-            const organizationAge =
+            const remainingTrialPeriod =
                 (new Date(data?.organization.trial_end_date).getTime() -
                     new Date().getTime()) /
                 (1000 * 60 * 60 * 24);
+            const roundedPeriod = Math.round(remainingTrialPeriod);
 
-            const currentPlanUsage =
-                data?.billingDetails.meter / data?.billingDetails.plan.quota;
-            if (organizationAge >= 7 || currentPlanUsage < 0.25) {
-                return null;
+            if (remainingTrialPeriod < 7 && remainingTrialPeriod >= 0) {
+                return (
+                    <div className={styles.trialWrapper}>
+                        <Banner className={styles.bannerSvg} />
+                        <div className={classNames(styles.trialTimeText)}>
+                            You have {roundedPeriod} day
+                            {roundedPeriod == 1 ? '' : 's'} left of your free
+                            trial. Upgrade{' '}
+                            <Link
+                                className={styles.trialLink}
+                                to={`/${organization_id}/billing`}
+                            >
+                                here!
+                            </Link>
+                        </div>
+                    </div>
+                );
+            } else if (remainingTrialPeriod < 0) {
+                return (
+                    <div className={styles.trialWrapper}>
+                        <Banner className={styles.bannerSvg} />
+                        <div className={classNames(styles.trialTimeText)}>
+                            Your trial period has expired! Upgrade{' '}
+                            <Link
+                                className={styles.trialLink}
+                                to={`/${organization_id}/billing`}
+                            >
+                                here!
+                            </Link>
+                        </div>
+                    </div>
+                );
             }
         }
     }
