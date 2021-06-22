@@ -19,6 +19,7 @@ import { ReactComponent as TrackIcon } from '../../../static/track.svg';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { HighlightEvent } from '../HighlightEvent';
 import ReplayerContext from '../ReplayerContext';
+import RightPanelCard from '../RightPanelCard/RightPanelCard';
 import styles from './StreamElement.module.scss';
 import StreamElementPayload from './StreamElementPayload';
 
@@ -34,33 +35,22 @@ export const StreamElement = ({
     onGoToHandler: (event: string) => void;
 }) => {
     const [debug] = useQueryParam('debug', BooleanParam);
-    const [hover, setHover] = useState(false);
     const [selected, setSelected] = useState(false);
     const details = getEventRenderDetails(e);
     const { pause } = useContext(ReplayerContext);
     const timeSinceStart = e?.timestamp - start;
 
     return (
-        <div
-            className={styles.eventWrapper}
-            onMouseEnter={() => setHover(true)}
-            onMouseLeave={() => setHover(false)}
-            id={e.identifier}
+        <RightPanelCard
+            //     id={e.identifier}
             key={e.identifier}
+            className={styles.card}
+            selected={isCurrent}
         >
             <div
                 className={classNames(styles.streamElement, {
                     [styles.currentStreamElement]: isCurrent,
-                    [styles.selectedStreamElement]: selected,
                 })}
-                style={{
-                    backgroundColor:
-                        hover && !selected && !isCurrent
-                            ? 'var(--color-gray-100)'
-                            : isCurrent
-                            ? 'var(--color-purple)'
-                            : 'var(--color-primary-background)',
-                }}
                 key={e.identifier}
                 id={e.identifier}
                 onClick={() => setSelected(!selected)}
@@ -71,81 +61,55 @@ export const StreamElement = ({
                             <DownIcon
                                 className={classNames(styles.directionIcon, {
                                     [styles.selectedIcon]: selected,
-                                    [styles.currentIcon]: isCurrent,
                                 })}
                             />
                         ) : details.title === 'Click' ? (
                             <PointerIcon
-                                className={classNames(styles.tiltedIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
+                                className={classNames(styles.tiltedIcon)}
                             />
                         ) : details.title?.includes('Segment') ? (
                             <SegmentIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
+                                className={classNames(styles.defaultIcon)}
                             />
                         ) : details.title === 'Navigate' ? (
                             <NavigateIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
+                                className={classNames(styles.defaultIcon)}
                             />
                         ) : details.title === 'Track' ? (
                             <TrackIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
+                                className={classNames(styles.defaultIcon)}
                             />
                         ) : details.title === 'Identify' ? (
                             <IdentifyIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
+                                className={classNames(styles.defaultIcon)}
                             />
                         ) : details.title === 'Reload' ? (
                             <ReloadIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
+                                className={classNames(styles.defaultIcon)}
                             />
                         ) : details.title === 'Referrer' ? (
                             <ReferrerIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
+                                className={classNames(styles.defaultIcon)}
                             />
                         ) : details.title === 'Tab' ? (
                             <TabIcon
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
+                                className={classNames(styles.defaultIcon)}
                             />
                         ) : details.title === 'Stop' ? (
                             <FaRegStopCircle
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
+                                className={classNames(styles.defaultIcon)}
                             />
                         ) : debug ? (
-                            <FaBug
-                                className={classNames(styles.defaultIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
-                            />
+                            <FaBug className={classNames(styles.defaultIcon)} />
                         ) : (
                             <HoverIcon
-                                className={classNames(styles.tiltedIcon, {
-                                    [styles.currentIcon]: isCurrent,
-                                })}
+                                className={classNames(styles.tiltedIcon)}
                             />
                         )}
                     </div>
                     <div
                         className={classNames(styles.eventText, {
                             [styles.selectedEventText]: selected,
-                            [styles.currentEventText]: isCurrent,
                         })}
                     >
                         {details.title
@@ -231,7 +195,7 @@ export const StreamElement = ({
                     </div>
                 )}
             </div>
-        </div>
+        </RightPanelCard>
     );
 };
 

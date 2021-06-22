@@ -15,25 +15,17 @@
     display: grid;
     fill: var(--color-gray-500);
     font-family: var(--body-font-family);
+    font-size: 10px !important;
     grid-template-columns: 100px 1fr min-content;
     height: 100%;
-    margin-bottom: 6px;
-    margin-top: 6px;
-    padding: 5px 10px;
     width: 100%;
 }
 
-.selectedStreamElement {
-    border: 1px solid var(--color-gray-300);
-    padding-top: 10px;
+.card {
+    margin-bottom: var(--size-medium);
 }
 
 .currentStreamElement {
-    background-color: var(--color-purple);
-    border: 1px solid var(--color-purple);
-    color: var(--color-primary-background);
-    fill: var(--color-primary-background);
-
     .goToButton {
         color: var(--color-primary-background);
 
@@ -54,6 +46,8 @@
 }
 
 .iconWrapper {
+    background: var(--primary-color);
+    border-radius: 50%;
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -67,22 +61,24 @@
 }
 
 .directionIcon {
-    fill: inherit;
-    height: 14px;
+    color: var(--text-primary-inverted);
+    fill: var(--text-primary-inverted);
+    height: var(--size-small);
     transition: transform 0.3s;
-    width: 14px;
+    width: var(--size-small);
 }
 
 .defaultIcon {
-    fill: var(--color-gray-500);
-    height: var(--size-medium);
-    width: var(--size-medium);
+    color: var(--text-primary-inverted);
+    fill: var(--text-primary-inverted);
+    height: var(--size-small);
+    width: var(--size-small);
 }
 
 .tiltedIcon {
-    height: var(--size--medium);
+    height: var(--size-small);
     transform: rotate(-20deg);
-    width: var(--size--medium);
+    width: var(--size-small);
 }
 
 .eventContent {
@@ -112,10 +108,6 @@
 
 .selectedEventText {
     color: var(--text-primary);
-}
-
-.currentEventText {
-    color: var(--color-primary-background);
 }
 
 .codeBlockWrapper {
@@ -178,10 +170,6 @@
 .selectedIcon {
     fill: var(--text-primary);
     transform: rotate(180deg);
-}
-
-.currentIcon {
-    fill: var(--color-primary-background);
 }
 
 .headerRow {
