@@ -44,7 +44,6 @@ const ErrorModal = ({ error }: Props) => {
                             <h3>Stack Trace</h3>
                             <StackTraceSection errorGroup={data.error_group} />
 
-                            <h3>Error Frequency</h3>
                             <ErrorFrequencyGraph
                                 errorGroup={data.error_group}
                             />
