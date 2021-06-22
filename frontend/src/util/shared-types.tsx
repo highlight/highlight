@@ -14,7 +14,7 @@ export type ErrorMessage = {
     source: string;
     lineNumber: number;
     columnNumber: number;
-    trace: StackTrace.StackFrame[];
+    stackTrace: StackTrace.StackFrame[];
     /** The Unix Time of when the error was thrown. */
     timestamp: string;
     payload?: string;
