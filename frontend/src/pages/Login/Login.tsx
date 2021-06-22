@@ -30,10 +30,6 @@ export const AuthAdminRouter = () => {
             H.identify(email, {
                 id,
                 name,
-                keplerId: sessionStorage.getItem('highlightKeplerId'),
-            });
-            H.track('keplerId', {
-                id: sessionStorage.getItem('highlightKeplerId'),
             });
         }
     }, [admin]);
