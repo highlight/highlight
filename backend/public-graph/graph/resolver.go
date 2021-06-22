@@ -155,9 +155,6 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 }
 
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *model2.ErrorObjectInput, fields []*model.ErrorField, organizationID int) (*model.ErrorGroup, error) {
-	/*
-		rename trace to stack frame
-	*/
 	frames := errorInput.Trace
 	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
