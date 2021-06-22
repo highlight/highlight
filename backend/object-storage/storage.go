@@ -217,7 +217,7 @@ func (s *StorageClient) bucketFileKey(organizationId int, fileName string, key P
 }
 
 func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName string, fileBytes []byte) (*int64, error) {
-	key := s.bucketFileKey(organizationId, fileName, SourceMapFile)
+	key := s.sourceMapBucketKey(organizationId, fileName, SourceMapFile)
 	body := bytes.NewReader(fileBytes)
 	_, err := s.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(S3BucketName), Key: key, Body: body,
@@ -238,7 +238,7 @@ func (s *StorageClient) PushSourceMapFileToS3(organizationId int, fileName strin
 
 func (s *StorageClient) ReadSourceMapFileFromS3(organizationId int, fileName string) ([]byte, error) {
 	output, err := s.S3Client.GetObject(context.TODO(), &s3.GetObjectInput{Bucket: aws.String(S3BucketName),
-		Key: s.bucketFileKey(organizationId, fileName, SourceMapFile)})
+		Key: s.sourceMapBucketKey(organizationId, fileName, SourceMapFile)})
 	if err != nil {
 		return nil, errors.Wrap(err, "error getting object from s3")
 	}
