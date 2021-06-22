@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	storage "github.com/highlight-run/highlight/backend/object-storage"
+
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	_ "gorm.io/driver/postgres"
@@ -342,7 +344,15 @@ func TestSetSourceMapElements(t *testing.T) {
 		},
 	}
 
-	r := Resolver{}
+	storage, err := storage.NewStorageClient()
+	if err != nil {
+		log.Fatalf("error creating storage client: %v", err)
+	}
+
+	r := Resolver{
+		DB:       DB,
+		S3Client: storage,
+	}
 
 	// run tests
 	for name, tc := range tests {
@@ -354,7 +364,7 @@ func TestSetSourceMapElements(t *testing.T) {
 				}
 			}(DB)
 			fetch = tc.fetcher
-			var errorObj model.ErrorObject
+			errorObj := model.ErrorObject{}
 			err := r.SetSourceMapElements(&errorObj, &tc.errorObjectInput, 1)
 			if err != nil {
 				if err.Error() == tc.err.Error() {
