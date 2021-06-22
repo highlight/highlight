@@ -1,5 +1,5 @@
 {
-  "name": "@highlight.run/sourcemap-uploader",
+  "name": "@highlight-run/sourcemap-uploader",
   "version": "0.0.1",
   "description": "Command line tool to upload source maps to Highlight",
   "main": "index.js",
