@@ -26,6 +26,7 @@ jobs:
               with:
                   args: --config ./.golangci.yml
                   working-directory: backend
+                  version: latest
             - name: Build binary
               run: cd backend && go build .
     test:
