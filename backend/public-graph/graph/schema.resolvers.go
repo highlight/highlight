@@ -244,16 +244,10 @@ func (r *mutationResolver) PushPayload(ctx context.Context, sessionID int, event
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "os_name", Value: sessionObj.OSName})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "visited_url", Value: errorToInsert.URL})
 		metaFields = append(metaFields, &model.ErrorField{OrganizationID: organizationID, Name: "event", Value: errorToInsert.Event})
-		group, didUpdateGroupStackTrace, err := r.HandleErrorAndGroup(errorToInsert, v.Trace, metaFields)
+		group, err := r.HandleErrorAndGroup(errorToInsert, v, metaFields, organizationID)
 		if err != nil {
 			log.Errorf("Error updating error group: %v", errorToInsert)
 			continue
-		}
-		if didUpdateGroupStackTrace {
-			err = r.SetSourceMapElements(errorToInsert, v, organizationID)
-			if err != nil {
-				log.Error(err)
-			}
 		}
 
 		// Get ErrorAlert object and send respective alert
