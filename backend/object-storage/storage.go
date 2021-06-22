@@ -212,7 +212,7 @@ func (s *StorageClient) bucketKey(sessionId int, organizationId int, key Payload
 	return aws.String(fmt.Sprintf("%v/%v/%v", organizationId, sessionId, string(key)))
 }
 
-func (s *StorageClient) bucketFileKey(organizationId int, fileName string, key PayloadType) *string {
+func (s *StorageClient) sourceMapBucketKey(organizationId int, fileName string, key PayloadType) *string {
 	return aws.String(fmt.Sprintf("%d/%s/%s", organizationId, fileName, string(key)))
 }
 
