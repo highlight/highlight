@@ -116,17 +116,18 @@ export const StreamElement = ({
                             : styles.eventContent
                     }
                 >
-                    {!selected && (
-                        <p className={styles.eventText}>
-                            {/* Removes the starting and ending quotes */}
-                            {JSON.stringify(details.displayValue)?.replaceAll(
-                                /^\"|\"$/g,
-                                ''
-                            )}
-                        </p>
-                    )}
+                    <p className={styles.eventText}>
+                        {/* Removes the starting and ending quotes */}
+                        {JSON.stringify(details.displayValue)?.replaceAll(
+                            /^\"|\"$/g,
+                            ''
+                        )}
+                    </p>
                 </div>
-                {selected ? (
+                <div className={classNames(styles.eventTime)}>
+                    {MillisToMinutesAndSeconds(timeSinceStart)}
+                </div>
+                {selected && (
                     <>
                         {debug ? (
                             <div
@@ -143,13 +144,15 @@ export const StreamElement = ({
                                 />
                             </div>
                         ) : (
-                            <StreamElementPayload
-                                payload={
-                                    typeof details.payload === 'object'
-                                        ? JSON.stringify(details.payload)
-                                        : details.payload
-                                }
-                            />
+                            <div className={styles.payloadContainer}>
+                                <StreamElementPayload
+                                    payload={
+                                        typeof details.payload === 'object'
+                                            ? JSON.stringify(details.payload)
+                                            : details.payload
+                                    }
+                                />
+                            </div>
                         )}
                         <GoToButton
                             className={styles.goToButton}
@@ -161,19 +164,7 @@ export const StreamElement = ({
                                 pause(timeSinceStart);
                             }}
                         />
-                        <div
-                            className={classNames(
-                                styles.eventTime,
-                                styles.relativeTimeExpanded
-                            )}
-                        >
-                            {MillisToMinutesAndSeconds(timeSinceStart)}
-                        </div>
                     </>
-                ) : (
-                    <div className={styles.eventTime}>
-                        {MillisToMinutesAndSeconds(timeSinceStart)}
-                    </div>
                 )}
             </div>
         </RightPanelCard>

@@ -16,7 +16,7 @@
     fill: var(--color-gray-500);
     font-family: var(--body-font-family);
     font-size: 12px !important;
-    grid-template-columns: min-content 1fr min-content;
+    grid-template-columns: 22px 1fr min-content;
     height: 100%;
     width: 100%;
 }
@@ -41,6 +41,7 @@
     display: flex;
     font-size: 10px;
     height: 100%;
+    justify-content: flex-end;
     margin-left: 10px;
     padding: 5px;
     padding-right: 0;
@@ -100,17 +101,16 @@
 }
 
 .eventContentVerbose {
-    align-items: center;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin: 5px;
     min-width: 100%;
 }
 
 .goToButton {
     color: var(--color-gray-500);
-    grid-column-start: 1;
+    grid-column-start: 3;
+    grid-row-start: 3;
 
     &:hover {
         color: var(--text-primary);
@@ -122,8 +122,13 @@
     }
 }
 
-.relativeTimeExpanded {
-    grid-column-start: -1;
+.payloadContainer {
+    border-top: 1px solid var(--color-gray-300);
+    grid-column-end: -1;
+    grid-column-start: 1;
+    margin: 0 -18px;
+    margin-top: var(--size-xSmall);
+    padding: var(--size-xSmall) 18px;
 }
 
 .selectedIcon {
