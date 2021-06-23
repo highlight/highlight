@@ -208,22 +208,19 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	}
 	logString := string(logBytes)
 
-	newFrameString := errorGroup.Trace
 	var newMappedStackTraceString *string
-	if len(frameString) >= len(errorGroup.Trace) {
-		newFrameString = frameString
-		if organizationID == 1 {
-			mappedStackTrace, err := r.EnhanceStackTrace(errorInput.Trace)
+	newFrameString := frameString
+	if organizationID == 1 {
+		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.Trace)
+		if err != nil {
+			log.Error(err)
+		} else {
+			mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
 			if err != nil {
-				log.Error(err)
-			} else {
-				mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
-				if err != nil {
-					return nil, e.Wrap(err, "error marshalling mapped stack trace")
-				}
-				mappedStackTraceString := string(mappedStackTraceBytes)
-				newMappedStackTraceString = &mappedStackTraceString
+				return nil, e.Wrap(err, "error marshalling mapped stack trace")
 			}
+			mappedStackTraceString := string(mappedStackTraceBytes)
+			newMappedStackTraceString = &mappedStackTraceString
 		}
 	}
 
