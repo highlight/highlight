@@ -214,7 +214,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 		// TODO: don't do this for every error
 		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.Trace)
 		if err != nil {
-			log.Error(err)
+			log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
 		} else {
 			mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
 			if err != nil {
