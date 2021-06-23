@@ -560,7 +560,16 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 
 		bodyBytes, err := fetch.fetchFile(stackTraceFileName)
 		if err != nil {
-			return nil, err
+			// TODO: don't do this plz
+			var mappedStackFrame modelInputs.ErrorTrace
+			mappedStackFrame.FileName = stackTrace.FileName
+			mappedStackFrame.FunctionName = stackTrace.FunctionName
+			mappedStackFrame.LineNumber = stackTrace.LineNumber
+			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+
+			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+			log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileName))
+			continue
 		}
 		if len(bodyBytes) > 1000000 {
 			return nil, e.New("size of source way too big")
