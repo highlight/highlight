@@ -540,9 +540,11 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 		if stackTrace == nil || (stackTrace.FileName == nil || stackTrace.LineNumber == nil || stackTrace.ColumnNumber == nil) {
 			continue
 		}
+		stackTraceFileName := *stackTrace.FileName
+		stackTraceLineNumber := *stackTrace.LineNumber
+		stackTraceColumnNumber := *stackTrace.ColumnNumber
 
-		filename := stackTrace.FileName
-		bodyBytes, err := fetch.fetchFile(*filename)
+		bodyBytes, err := fetch.fetchFile(stackTraceFileName)
 		if err != nil {
 			return nil, err
 		}
@@ -565,11 +567,11 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 		sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
 
 		// construct sourcemap url from searched file
-		sourceFileNameIndex := strings.Index(*stackTrace.FileName, path.Base(*filename))
+		sourceFileNameIndex := strings.Index(stackTraceFileName, path.Base(stackTraceFileName))
 		if sourceFileNameIndex == -1 {
 			return nil, e.New("source path doesn't contain file name")
 		}
-		sourceMapURL := (*stackTrace.FileName)[:sourceFileNameIndex] + sourceMapFileName
+		sourceMapURL := (stackTraceFileName)[:sourceFileNameIndex] + sourceMapFileName
 
 		var fileBytes []byte
 		// fetch source map file
@@ -585,7 +587,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 		}
 
 		var mappedStackFrame modelInputs.ErrorTrace
-		sourceFileName, fn, line, col, ok := smap.Source(*stackTrace.LineNumber, *stackTrace.ColumnNumber)
+		sourceFileName, fn, line, col, ok := smap.Source(stackTraceLineNumber, stackTraceColumnNumber)
 		if !ok {
 			return nil, e.New("error extracting true error info from source map")
 		}
