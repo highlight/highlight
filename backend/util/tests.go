@@ -6,13 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/highlight-run/highlight/backend/model"
-
-	"gorm.io/driver/postgres"
-
 	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/highlight-run/highlight/backend/model"
 )
 
 func RunTestWithDBTeardown(t *testing.T, name string, db *gorm.DB, f func(t *testing.T)) {
