@@ -8,14 +8,13 @@ import (
 	"path"
 	"strings"
 
-	e "github.com/pkg/errors"
-
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
+	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
