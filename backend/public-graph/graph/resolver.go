@@ -221,7 +221,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 					return nil, e.Wrap(err, "error marshalling mapped stack trace")
 				}
 				mappedStackTraceString := string(mappedStackTraceBytes)
-				errorObj.MappedStackTrace = &mappedStackTraceString
+				errorGroup.MappedStackTrace = &mappedStackTraceString
 			}
 		}
 	}

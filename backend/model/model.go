@@ -526,37 +526,37 @@ type ErrorSegment struct {
 
 type ErrorObject struct {
 	Model
-	OrganizationID   int
-	SessionID        int
-	ErrorGroupID     int
-	Event            string
-	Type             string
-	URL              string
-	Source           string
-	LineNumber       int
-	ColumnNumber     int
-	SourceMap        string
-	OS               string
-	Browser          string
-	Trace            *string   `json:"trace"`
-	MappedStackTrace *string   `json:"mapped_stack_trace"`
-	Timestamp        time.Time `json:"timestamp"`
-	Payload          *string   `json:"payload"`
-	Environment      string
+	OrganizationID int
+	SessionID      int
+	ErrorGroupID   int
+	Event          string
+	Type           string
+	URL            string
+	Source         string
+	LineNumber     int
+	ColumnNumber   int
+	SourceMap      string
+	OS             string
+	Browser        string
+	Trace          *string   `json:"trace"`
+	Timestamp      time.Time `json:"timestamp"`
+	Payload        *string   `json:"payload"`
+	Environment    string
 }
 
 type ErrorGroup struct {
 	Model
-	OrganizationID int
-	Event          string
-	Type           string
-	Trace          string
-	State          string `json:"state" gorm:"default:OPEN"`
-	Resolved       *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
-	MetadataLog    *string
-	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
-	FieldGroup     *string
-	Environments   string
+	OrganizationID   int
+	Event            string
+	Type             string
+	Trace            string
+	MappedStackTrace *string
+	State            string `json:"state" gorm:"default:OPEN"`
+	Resolved         *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
+	MetadataLog      *string
+	Fields           []*ErrorField `gorm:"many2many:error_group_fields;"`
+	FieldGroup       *string
+	Environments     string
 }
 
 type ErrorField struct {
