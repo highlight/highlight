@@ -10,6 +10,17 @@ type Session {
     organization_id: ID!
 }
 
+input StackFrameInput {
+    functionName: String
+    args: [Any]
+    fileName: String
+    lineNumber: Int
+    columnNumber: Int
+    isEval: Boolean
+    isNative: Boolean
+    source: String
+}
+
 input ErrorObjectInput {
     event: String!
     type: String!
@@ -17,7 +28,7 @@ input ErrorObjectInput {
     source: String!
     lineNumber: Int!
     columnNumber: Int!
-    trace: [Any]!
+    trace: [StackFrameInput]!
     timestamp: Time!
     payload: String
 }

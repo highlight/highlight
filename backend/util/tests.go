@@ -1,11 +1,11 @@
 package util
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/highlight-run/highlight/backend/model"
-	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -42,8 +42,22 @@ func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 func ClearTablesInDB(db *gorm.DB) error {
 	for _, m := range model.Models {
 		if err := db.Unscoped().Where("1=1").Delete(m).Error; err != nil {
-			return errors.Wrap(err, "error deleting table in db")
+			return e.Wrap(err, "error deleting table in db")
 		}
 	}
 	return nil
+}
+
+func MakeIntPointer(v int) *int {
+	return &v
+}
+
+func MakeStringPointer(v string) *string {
+	return &v
+}
+
+func MakeStringPointerFromInterface(v interface{}) *string {
+	exampleErrorTraceBytes, _ := json.Marshal(&v)
+	exampleErrorTraceString := string(exampleErrorTraceBytes)
+	return &exampleErrorTraceString
 }

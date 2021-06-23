@@ -174,7 +174,6 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 	if err != nil {
 		return nil, e.Wrap(err, "error getting admin")
 	}
-	trialEnd := time.Now().AddDate(0, 0, 14)
 
 	c := &stripe.Customer{}
 	if os.Getenv("REACT_APP_ONPREM") != "true" {
@@ -189,7 +188,6 @@ func (r *mutationResolver) CreateOrganization(ctx context.Context, name string) 
 		StripeCustomerID: &c.ID,
 		Name:             &name,
 		Admins:           []model.Admin{*admin},
-		TrialEndDate:     &trialEnd,
 		BillingEmail:     admin.Email,
 	}
 	if err := r.DB.Create(org).Error; err != nil {
@@ -298,6 +296,9 @@ func (r *mutationResolver) SendAdminInvite(ctx context.Context, organizationID i
 		return nil, e.Wrap(err, "error querying org")
 	}
 	admin, err := r.Query().Admin(ctx)
+	if err != nil {
+		return nil, e.Wrap(err, "error querying admin")
+	}
 	var secret string
 	if org.Secret == nil {
 		uid := xid.New().String()
@@ -402,7 +403,7 @@ func (r *mutationResolver) AddSlackIntegrationToWorkspace(ctx context.Context, o
 	}
 	msg := slack.WebhookMessage{Text: baseMessage}
 	if err := slack.PostWebhook(resp.IncomingWebhook.URL, &msg); err != nil {
-		e.Wrap(err, "failed to send hello alert slack message")
+		log.Error(e.Wrap(err, "failed to send hello alert slack message"))
 	}
 	return &model.T, nil
 }
@@ -982,7 +983,7 @@ func (r *queryResolver) Events(ctx context.Context, sessionID int) ([]interface{
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
 		defer objectStorageSpan.Finish()
 		ret, err := r.StorageClient.ReadSessionsFromS3(sessionID, s.OrganizationID)
@@ -1108,7 +1109,7 @@ func (r *queryResolver) Messages(ctx context.Context, sessionID int) ([]interfac
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
 		defer objectStorageSpan.Finish()
 		ret, err := r.StorageClient.ReadMessagesFromS3(sessionID, s.OrganizationID)
@@ -1150,7 +1151,7 @@ func (r *queryResolver) Resources(ctx context.Context, sessionID int) ([]interfa
 	if err != nil {
 		return nil, e.Wrap(err, "admin not session owner")
 	}
-	if en := s.ObjectStorageEnabled; en != nil && *en == true {
+	if en := s.ObjectStorageEnabled; en != nil && *en {
 		objectStorageSpan, _ := tracer.StartSpanFromContext(ctx, "resolver.internal", tracer.ResourceName("db.objectStorageQuery"))
 		defer objectStorageSpan.Finish()
 		ret, err := r.StorageClient.ReadResourcesFromS3(sessionID, s.OrganizationID)
@@ -1859,7 +1860,7 @@ func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organi
 }
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
-	uid := fmt.Sprintf("%v", ctx.Value("uid"))
+	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	admin := &model.Admin{UID: &uid}
 	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
 	if err := res.Error; err != nil {

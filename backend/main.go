@@ -14,6 +14,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
+	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
@@ -38,6 +39,7 @@ var (
 	statsdHost         = os.Getenv("DD_STATSD_HOST")
 	apmHost            = os.Getenv("DD_APM_HOST")
 	landingURL         = os.Getenv("LANDING_PAGE_URI")
+	landingStagingURL  = os.Getenv("LANDING_PAGE_STAGING_URI")
 	sendgridKey        = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey       = os.Getenv("STRIPE_API_KEY")
 	runtime            = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
@@ -56,15 +58,17 @@ func init() {
 }
 
 func health(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("healthy"))
-	return
+	_, err := w.Write([]byte("healthy"))
+	if err != nil {
+		log.Error(e.Wrap(err, "error writing health response"))
+	}
 }
 
 func validateOrigin(request *http.Request, origin string) bool {
 	if runtimeParsed == util.PrivateGraph {
 		// From the highlight frontend, only the url is whitelisted.
 		isPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
-		if origin == frontendURL || origin == landingURL || isPreviewEnv {
+		if origin == frontendURL || origin == landingURL || origin == landingStagingURL || isPreviewEnv {
 			return true
 		}
 	} else if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
