@@ -156,6 +156,13 @@ const MetadataPanel = () => {
                                             }`}
                                             mb
                                         </p>
+
+                                        <p className={styles.key}>
+                                            Highlight Version
+                                        </p>
+                                        <p className={styles.value}>
+                                            {data.session.client_version}
+                                        </p>
                                     </>
                                 )}
                         </div>

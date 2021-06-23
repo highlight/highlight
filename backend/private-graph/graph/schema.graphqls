@@ -24,6 +24,7 @@ type Session {
     postal: String!
     environment: String
     app_version: String
+    client_version: String
     language: String!
     identifier: String!
     created_at: Time
