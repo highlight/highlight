@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/highlight-run/highlight/backend/model"
-
-	"firebase.google.com/go/auth"
-
 	firebase "firebase.google.com/go"
+	"firebase.google.com/go/auth"
 	e "github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+
+	"github.com/highlight-run/highlight/backend/model"
 )
 
 var (
