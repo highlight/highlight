@@ -43,26 +43,31 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
         const emptyValuesRemovedKeys = keys.filter((key) => object[key] !== '');
 
         return (
-            <div className={streamElementStyles.codeBlockWrapperVerbose}>
-                <ul className={styles.objectList}>
-                    {emptyValuesRemovedKeys.map((key) => (
-                        <li key={key} className={styles.objectRecord}>
-                            <p className={styles.payload}>
-                                <span className={styles.objectKey}>{key}</span>{' '}
-                                <span className={styles.objectValue}>
-                                    {validator.isURL(
-                                        object[key]?.toString(),
-                                        validatorUrlOptions
-                                    ) ? (
-                                        <a href={object[key]}>{object[key]}</a>
-                                    ) : (
-                                        object[key]
-                                    )}
-                                </span>
-                            </p>
-                        </li>
-                    ))}
-                </ul>
+            <div className={styles.objectList}>
+                {emptyValuesRemovedKeys.map((key) => (
+                    <>
+                        <span className={styles.objectKey}>{key}</span>{' '}
+                        <span className={styles.objectValue}>
+                            {validator.isURL(
+                                object[key]?.toString() || '',
+                                validatorUrlOptions
+                            ) ? (
+                                <a href={object[key]}>{object[key]}</a>
+                            ) : (
+                                object[key] || (
+                                    <>
+                                        undefined{' '}
+                                        <InfoTooltip
+                                            title={`No value was provided for ${key} from your application.`}
+                                            align={{ offset: [12, 0] }}
+                                            placement="topRight"
+                                        />
+                                    </>
+                                )
+                            )}
+                        </span>
+                    </>
+                ))}
             </div>
         );
     }
