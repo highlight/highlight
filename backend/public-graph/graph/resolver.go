@@ -209,6 +209,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	logString := string(logBytes)
 
 	newFrameString := errorGroup.Trace
+	var newMappedStackTraceString *string
 	if len(frameString) >= len(errorGroup.Trace) {
 		newFrameString = frameString
 		if organizationID == 1 {
@@ -221,7 +222,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 					return nil, e.Wrap(err, "error marshalling mapped stack trace")
 				}
 				mappedStackTraceString := string(mappedStackTraceBytes)
-				errorGroup.MappedStackTrace = &mappedStackTraceString
+				newMappedStackTraceString = &mappedStackTraceString
 			}
 		}
 	}
@@ -246,7 +247,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	}
 	environmentsString := string(environmentsBytes)
 
-	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Trace: newFrameString, Environments: environmentsString}).Error; err != nil {
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Trace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
 		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
