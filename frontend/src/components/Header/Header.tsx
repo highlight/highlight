@@ -81,15 +81,15 @@ const FreePlanBanner = () => {
                 (new Date(data?.organization.trial_end_date).getTime() -
                     new Date().getTime()) /
                 (1000 * 60 * 60 * 24);
-            const roundedPeriod = Math.round(remainingTrialPeriod);
-            const bannerMessage =
-                remainingTrialPeriod > 0
-                    ? `You have ${roundedPeriod} day${
-                          roundedPeriod == 1 ? '' : 's'
-                      } left of your free trial.`
-                    : `Your trial period has expired!`;
 
             if (remainingTrialPeriod < 7) {
+                const roundedPeriod = Math.round(remainingTrialPeriod);
+                const bannerMessage =
+                    remainingTrialPeriod > 0
+                        ? `You have ${roundedPeriod} day${
+                              roundedPeriod == 1 ? '' : 's'
+                          } left of your free trial.`
+                        : `Your trial period has expired!`;
                 return (
                     <div className={styles.trialWrapper}>
                         <Banner className={styles.bannerSvg} />
