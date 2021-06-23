@@ -235,5 +235,9 @@
 
 .tabContentContainer {
     height: 100%;
-    padding: var(--size-large) 0;
+    padding: var(--size-medium) 0;
+}
+
+.eventStreamTabContentContainer {
+    padding-top: 0;
 }

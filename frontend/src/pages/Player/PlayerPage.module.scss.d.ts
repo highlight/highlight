@@ -5,6 +5,7 @@ export const browserHeader: string;
 export const center: string;
 export const commentModal: string;
 export const eventStreamContainer: string;
+export const eventStreamTabContentContainer: string;
 export const header: string;
 export const headerLink: string;
 export const loadingWrapper: string;

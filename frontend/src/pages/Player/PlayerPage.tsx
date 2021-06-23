@@ -262,9 +262,10 @@ const Player = () => {
                                     title: 'Events',
                                     panelContent: (
                                         <div
-                                            className={
-                                                styles.tabContentContainer
-                                            }
+                                            className={classNames(
+                                                styles.tabContentContainer,
+                                                styles.eventStreamTabContentContainer
+                                            )}
                                         >
                                             <EventStream />
                                         </div>
