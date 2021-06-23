@@ -538,6 +538,7 @@ type ErrorObject struct {
 	SourceMap        string
 	OS               string
 	Browser          string
+	Trace            *string   `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
 	StackTrace       *string   `json:"stack_trace"`
 	MappedStackTrace *string   `json:"mapped_stack_trace"`
 	Timestamp        time.Time `json:"timestamp"`
@@ -550,6 +551,7 @@ type ErrorGroup struct {
 	OrganizationID int
 	Event          string
 	Type           string
+	Trace          string //DEPRECATED, USE STACKTRACE INSTEAD
 	StackTrace     string
 	State          string `json:"state" gorm:"default:OPEN"`
 	Resolved       *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
