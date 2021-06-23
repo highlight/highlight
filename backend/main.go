@@ -77,6 +77,9 @@ func validateOrigin(request *http.Request, origin string) bool {
 var defaultPort = "8082"
 
 func main() {
+	// initialize logger
+	log.SetReportCaller(true)
+
 	if os.Getenv("DEPLOYMENT_KEY") != "HIGHLIGHT_ONPREM_BETA" {
 		log.Fatalf("please specify a deploy key in order to run Highlight")
 	}
