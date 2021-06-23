@@ -44,7 +44,7 @@
 }
 
 .sessionTextSection {
-    max-width: 175px;
+    max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -183,7 +183,6 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    row-gap: var(--size-xxSmall);
 }
 
 .cardAnnotationContainer {
