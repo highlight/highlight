@@ -26,7 +26,6 @@ import (
 	"gorm.io/gorm/clause"
 	"gorm.io/gorm/logger"
 
-	"github.com/pkg/errors"
 	e "github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
@@ -856,43 +855,6 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 					)
 				}
 			}()
-		}
-	}
-	return nil
-}
-
-func TESTFUNCTIONCreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
-	psqlConf := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s sslmode=disable",
-		os.Getenv("PSQL_HOST"),
-		os.Getenv("PSQL_PORT"),
-		os.Getenv("PSQL_USER"),
-		os.Getenv("PSQL_PASSWORD"))
-	// Open the database object without an actual db_name.
-	db, err := gorm.Open(postgres.Open(psqlConf))
-	if err != nil {
-		return nil, e.Wrap(err, "error opening test db")
-	}
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, e.Wrap(err, "error retrieving test db")
-	}
-	defer sqlDB.Close()
-	// drop db if exists
-	if err := db.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %v;", dbName)).Error; err != nil {
-		return nil, e.Wrap(err, "error dropping db")
-	}
-	// Attempt to create the database.
-	if err := db.Exec(fmt.Sprintf("CREATE DATABASE %v;", dbName)).Error; err != nil {
-		return nil, e.Wrap(err, "error creating db")
-	}
-	return SetupDB(dbName)
-}
-
-func TESTFUNCTIONClearTablesInDB(db *gorm.DB) error {
-	for _, m := range Models {
-		if err := db.Unscoped().Where("1=1").Delete(m).Error; err != nil {
-			return errors.Wrap(err, "error deleting table in db")
 		}
 	}
 	return nil

@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
 	testLogger := log.WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
-	DB, err = model.TESTFUNCTIONCreateAndMigrateTestDB(dbName)
+	DB, err = util.CreateAndMigrateTestDB(dbName)
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
