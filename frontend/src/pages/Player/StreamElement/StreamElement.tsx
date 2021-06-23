@@ -8,15 +8,17 @@ import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import GoToButton from '../../../components/Button/GoToButton';
 import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg';
+import SvgCursorIcon from '../../../static/CursorIcon';
+import SvgFaceIdIcon from '../../../static/FaceIdIcon';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
-import { ReactComponent as IdentifyIcon } from '../../../static/identify.svg';
-import { ReactComponent as NavigateIcon } from '../../../static/navigate.svg';
+import SvgLinkIcon from '../../../static/LinkIcon';
+import SvgMaximizeIcon from '../../../static/MaximizeIcon';
 import { ReactComponent as PointerIcon } from '../../../static/pointer-up.svg';
 import { ReactComponent as ReferrerIcon } from '../../../static/referrer.svg';
 import { ReactComponent as ReloadIcon } from '../../../static/reload.svg';
 import { ReactComponent as SegmentIcon } from '../../../static/segment.svg';
 import { ReactComponent as TabIcon } from '../../../static/tab.svg';
-import { ReactComponent as TrackIcon } from '../../../static/track.svg';
+import SvgTargetIcon from '../../../static/TargetIcon';
 import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { HighlightEvent } from '../HighlightEvent';
 import ReplayerContext from '../ReplayerContext';
@@ -78,15 +80,15 @@ export const StreamElement = ({
                                 className={classNames(styles.defaultIcon)}
                             />
                         ) : details.title === 'Navigate' ? (
-                            <NavigateIcon
+                            <SvgLinkIcon
                                 className={classNames(styles.defaultIcon)}
                             />
                         ) : details.title === 'Track' ? (
-                            <TrackIcon
+                            <SvgTargetIcon
                                 className={classNames(styles.defaultIcon)}
                             />
                         ) : details.title === 'Identify' ? (
-                            <IdentifyIcon
+                            <SvgFaceIdIcon
                                 className={classNames(styles.defaultIcon)}
                             />
                         ) : details.title === 'Reload' ? (
@@ -103,6 +105,14 @@ export const StreamElement = ({
                             />
                         ) : details.title === 'Stop' ? (
                             <FaRegStopCircle
+                                className={classNames(styles.defaultIcon)}
+                            />
+                        ) : details.title === 'Viewport' ? (
+                            <SvgMaximizeIcon
+                                className={classNames(styles.defaultIcon)}
+                            />
+                        ) : details.title === 'Focus' ? (
+                            <SvgCursorIcon
                                 className={classNames(styles.defaultIcon)}
                             />
                         ) : debug ? (
