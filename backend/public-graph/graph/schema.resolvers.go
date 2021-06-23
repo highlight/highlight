@@ -28,9 +28,9 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	if os.Getenv("ENVIRONMENT") != "dev" && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
 			Sprintf("Error in InitializeSession: %q\nOccurred for organization: %q", err, organizationVerboseID)}
-		err2 := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
-		if err2 != nil {
-			log.Error(e.Wrap(err2, "failed to post webhook with error in InitializeSession"))
+		err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to post webhook with error in InitializeSession"))
 		}
 	}
 
