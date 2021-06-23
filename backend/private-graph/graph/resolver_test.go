@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
 	testLogger := log.WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
-	DB, err = model.CreateAndMigrateTestDB(dbName)
+	DB, err = model.TESTFUNCTIONCreateAndMigrateTestDB(dbName)
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
@@ -110,7 +110,7 @@ func TestHideViewedSessions(t *testing.T) {
 	}
 	// run tests
 	for name, tc := range tests {
-		util.RunTest(t, name, DB, func(t *testing.T) {
+		util.RunTestWithDBTeardown(t, name, DB, func(t *testing.T) {
 			// inserting the data
 			if err := DB.Create(&tc.sessionsToInsert).Error; err != nil {
 				t.Fatal(e.Wrap(err, "error inserting sessions"))

@@ -861,7 +861,7 @@ func (obj *Alert) SendSlackAlert(organization *Organization, sessionId int, user
 	return nil
 }
 
-func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
+func TESTFUNCTIONCreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s sslmode=disable",
 		os.Getenv("PSQL_HOST"),
@@ -889,7 +889,7 @@ func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	return SetupDB(dbName)
 }
 
-func ClearTablesInDB(db *gorm.DB) error {
+func TESTFUNCTIONClearTablesInDB(db *gorm.DB) error {
 	for _, m := range Models {
 		if err := db.Unscoped().Where("1=1").Delete(m).Error; err != nil {
 			return errors.Wrap(err, "error deleting table in db")

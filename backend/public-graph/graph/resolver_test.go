@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 	dbName := "highlight_testing_db"
 	testLogger := log.WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
 	var err error
-	DB, err = model.CreateAndMigrateTestDB("highlight_testing_db")
+	DB, err = model.TESTFUNCTIONCreateAndMigrateTestDB("highlight_testing_db")
 	if err != nil {
 		testLogger.Error(e.Wrap(err, "error creating testdb"))
 	}
@@ -182,7 +182,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	}
 	// run tests
 	for name, tc := range tests {
-		util.RunTest(t, name, DB, func(t *testing.T) {
+		util.RunTestWithDBTeardown(t, name, DB, func(t *testing.T) {
 			r := &Resolver{DB: DB}
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
@@ -323,7 +323,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 
 	// run tests
 	for name, tc := range tests {
-		util.RunTest(t, name, DB, func(t *testing.T) {
+		util.RunTestWithDBTeardown(t, name, DB, func(t *testing.T) {
 			fetch = tc.fetcher
 			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput)
 			if err != nil {
