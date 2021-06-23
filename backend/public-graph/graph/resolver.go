@@ -358,7 +358,7 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 		Longitude: 0.0,
 		State:     "",
 	}
-	ip, ok := ctx.Value("ip").(string)
+	ip, ok := ctx.Value(model.ContextKeys.IP).(string)
 	if ok {
 		fetchedLocation, err := GetLocationFromIP(ip)
 		if err != nil || fetchedLocation == nil {
@@ -370,12 +370,12 @@ func InitializeSessionImplementation(r *mutationResolver, ctx context.Context, o
 
 	// Parse the user-agent string
 	var deviceDetails DeviceDetails
-	if userAgentString, ok := ctx.Value("userAgent").(string); ok {
+	if userAgentString, ok := ctx.Value(model.ContextKeys.UserAgent).(string); ok {
 		deviceDetails = GetDeviceDetails(userAgentString)
 	}
 
 	// Get the language from the request header
-	acceptLanguageString := ctx.Value("acceptLanguage").(string)
+	acceptLanguageString := ctx.Value(model.ContextKeys.AcceptLanguage).(string)
 	n := time.Now()
 	userId := 5000 + rand.Intn(5000)
 	var fingerprintInt int = 0

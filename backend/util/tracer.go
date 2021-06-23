@@ -33,11 +33,10 @@ func (t Tracer) Validate(graphql.ExecutableSchema) error {
 func (t Tracer) InterceptField(ctx context.Context, next graphql.Resolver) (interface{}, error) {
 	// taken from: https://docs.datadoghq.com/tracing/setup_overview/custom_instrumentation/go/#manually-creating-a-new-span
 	fc := graphql.GetFieldContext(ctx)
-	rc := graphql.GetResolverContext(ctx) //nolint
 	fieldSpan, ctx := tracer.StartSpanFromContext(ctx, "operation.field", tracer.ResourceName(fc.Field.Name))
 	fieldSpan.SetTag("field.type", fc.Field.Definition.Type.String())
 
-	if b, err := json.MarshalIndent(rc.Args, "", ""); err == nil {
+	if b, err := json.MarshalIndent(fc.Args, "", ""); err == nil {
 		if bs := string(b); len(bs) <= 1000 {
 			fieldSpan.SetTag("field.arguments", bs)
 		}

@@ -37,7 +37,7 @@ type Resolver struct {
 }
 
 func (r *Resolver) isWhitelistedAccount(ctx context.Context) bool {
-	uid := fmt.Sprintf("%v", ctx.Value("uid"))
+	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	// If the user is engineering@..., we whitelist.
 	return uid == WhitelistedUID
 }

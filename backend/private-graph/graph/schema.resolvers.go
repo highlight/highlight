@@ -1862,7 +1862,7 @@ func (r *queryResolver) Organization(ctx context.Context, id int) (*model.Organi
 }
 
 func (r *queryResolver) Admin(ctx context.Context) (*model.Admin, error) {
-	uid := fmt.Sprintf("%v", ctx.Value("uid"))
+	uid := fmt.Sprintf("%v", ctx.Value(model.ContextKeys.UID))
 	admin := &model.Admin{UID: &uid}
 	res := r.DB.Where(&model.Admin{UID: &uid}).First(&admin)
 	if err := res.Error; err != nil {
