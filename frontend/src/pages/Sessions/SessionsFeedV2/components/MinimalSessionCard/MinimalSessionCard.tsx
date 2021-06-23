@@ -125,6 +125,13 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                                 </Tooltip>
                             </div>
                         </div>
+
+                        <div className={styles.cardAnnotationContainer}>
+                            <div>hi</div>
+                            <div>hi</div>
+                            <div>hi</div>
+                            <div>hi</div>
+                        </div>
                     </div>
                 </div>
             </Link>

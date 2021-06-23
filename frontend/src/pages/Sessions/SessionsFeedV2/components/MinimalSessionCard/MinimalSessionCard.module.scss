@@ -44,6 +44,7 @@
 }
 
 .sessionTextSection {
+    max-width: 175px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -173,18 +174,26 @@
 .sessionCardContentWrapper {
     align-items: center;
     column-gap: var(--size-medium);
-    display: flex;
-    flex-grow: 1;
+    display: grid;
+    grid-template-columns: 26px 1fr 0.5fr;
+    width: 100%;
 }
 
 .sessionTextSectionWrapper {
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
     justify-content: space-between;
     row-gap: var(--size-xxSmall);
+}
 
-    @media screen and (max-width: 1200px) {
-        flex-direction: column;
+.cardAnnotationContainer {
+    column-gap: var(--size-medium);
+    display: flex;
+    justify-content: flex-end;
+
+    > div {
+        background: red;
+        height: 16px;
+        width: 16px;
     }
 }

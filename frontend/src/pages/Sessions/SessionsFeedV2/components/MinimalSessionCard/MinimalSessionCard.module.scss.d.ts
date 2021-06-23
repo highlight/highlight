@@ -1,6 +1,7 @@
 export const actionIcon: string;
 export const avatarWrapper: string;
 export const bottomText: string;
+export const cardAnnotationContainer: string;
 export const middleText: string;
 export const readMarkerContainer: string;
 export const selected: string;
