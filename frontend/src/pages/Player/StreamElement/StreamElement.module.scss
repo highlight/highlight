@@ -86,6 +86,7 @@
 
 .eventText {
     color: var(--color-gray-500) !important;
+    margin: 0 !important;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

@@ -1,6 +1,7 @@
 import React from 'react';
 import validator from 'validator';
 
+import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import styles from './StreamElementPayload.module.scss';
 import { isJson } from './utils';
 
@@ -50,12 +51,21 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
                                 <span className={styles.objectKey}>{key}</span>{' '}
                                 <span className={styles.objectValue}>
                                     {validator.isURL(
-                                        object[key].toString(),
+                                        object[key]?.toString() || '',
                                         validatorUrlOptions
                                     ) ? (
                                         <a href={object[key]}>{object[key]}</a>
                                     ) : (
-                                        object[key]
+                                        object[key] || (
+                                            <>
+                                                undefined{' '}
+                                                <InfoTooltip
+                                                    title={`No value was provided for ${key} from your application.`}
+                                                    align={{ offset: [12, 0] }}
+                                                    placement="topRight"
+                                                />
+                                            </>
+                                        )
                                     )}
                                 </span>
                             </p>
