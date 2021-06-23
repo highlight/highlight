@@ -72,7 +72,29 @@ func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) (
 }
 
 func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
-	panic(fmt.Errorf("not implemented"))
+	if obj.StackTrace == "" {
+		return nil, nil
+	}
+	var stackTrace []*struct {
+		FileName     *string `json:"fileName"`
+		LineNumber   *int    `json:"lineNumber"`
+		FunctionName *string `json:"functionName"`
+		ColumnNumber *int    `json:"columnNumber"`
+	}
+	if err := json.Unmarshal([]byte(obj.StackTrace), &stackTrace); err != nil {
+		return nil, nil
+	}
+	var ret []*modelInputs.ErrorTrace
+	for _, t := range stackTrace {
+		val := &modelInputs.ErrorTrace{
+			FileName:     t.FileName,
+			LineNumber:   t.LineNumber,
+			FunctionName: t.FunctionName,
+			ColumnNumber: t.ColumnNumber,
+		}
+		ret = append(ret, val)
+	}
+	return ret, nil
 }
 
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
@@ -2019,35 +2041,3 @@ type segmentResolver struct{ *Resolver }
 type sessionResolver struct{ *Resolver }
 type sessionAlertResolver struct{ *Resolver }
 type sessionCommentResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
-	if obj.StackTrace == "" {
-		return nil, nil
-	}
-	trace := []*struct {
-		FileName     *string `json:"fileName"`
-		LineNumber   *int    `json:"lineNumber"`
-		FunctionName *string `json:"functionName"`
-		ColumnNumber *int    `json:"columnNumber"`
-	}{}
-	if err := json.Unmarshal([]byte(obj.StackTrace), &trace); err != nil {
-		return nil, nil
-	}
-	ret := []*modelInputs.ErrorTrace{}
-	for _, t := range trace {
-		val := &modelInputs.ErrorTrace{
-			FileName:     t.FileName,
-			LineNumber:   t.LineNumber,
-			FunctionName: t.FunctionName,
-			ColumnNumber: t.ColumnNumber,
-		}
-		ret = append(ret, val)
-	}
-	return ret, nil
-}
