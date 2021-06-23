@@ -14,6 +14,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
+	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
@@ -56,8 +57,10 @@ func init() {
 }
 
 func health(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("healthy"))
-	return
+	_, err := w.Write([]byte("healthy"))
+	if err != nil {
+		log.Error(e.Wrap(err, "error writing health response"))
+	}
 }
 
 func validateOrigin(request *http.Request, origin string) bool {

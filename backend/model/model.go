@@ -65,6 +65,20 @@ var ErrorGroupStates = struct {
 	IGNORED:  "IGNORED",
 }
 
+type contextString string
+
+var ContextKeys = struct {
+	IP             contextString
+	UserAgent      contextString
+	AcceptLanguage contextString
+	UID            contextString
+}{
+	IP:             "ip",
+	UserAgent:      "userAgent",
+	AcceptLanguage: "acceptLanguage",
+	UID:            "uid",
+}
+
 var Models = []interface{}{
 	&RecordingSettings{},
 	&MessagesObject{},
