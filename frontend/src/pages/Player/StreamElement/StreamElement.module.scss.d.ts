@@ -1,7 +1,4 @@
 export const card: string;
-export const codeBlock: string;
-export const codeBlockWrapper: string;
-export const codeBlockWrapperVerbose: string;
 export const currentStreamElement: string;
 export const defaultIcon: string;
 export const directionIcon: string;
@@ -15,7 +12,6 @@ export const headerRow: string;
 export const iconWrapper: string;
 export const playIcon: string;
 export const relativeTimeExpanded: string;
-export const selectedEventText: string;
 export const selectedIcon: string;
 export const streamElement: string;
 export const tiltedIcon: string;

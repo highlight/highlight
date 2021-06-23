@@ -107,17 +107,6 @@ export const StreamElement = ({
                             />
                         )}
                     </div>
-                    <div
-                        className={classNames(styles.eventText, {
-                            [styles.selectedEventText]: selected,
-                        })}
-                    >
-                        {details.title
-                            ? details.title
-                            : debug
-                            ? EventType[e.type]
-                            : ''}
-                    </div>
                 </div>
                 <div
                     className={
@@ -127,28 +116,19 @@ export const StreamElement = ({
                     }
                 >
                     {!selected && (
-                        <div
-                            className={
-                                selected
-                                    ? styles.codeBlockWrapperVerbose
-                                    : styles.codeBlockWrapper
-                            }
-                        >
-                            <span className={styles.codeBlock}>
-                                {/* Removes the starting and ending quotes */}
-                                {JSON.stringify(details.payload)?.replaceAll(
-                                    /^\"|\"$/g,
-                                    ''
-                                )}
-                            </span>
-                        </div>
+                        <p className={styles.eventText}>
+                            {/* Removes the starting and ending quotes */}
+                            {JSON.stringify(details.displayValue)?.replaceAll(
+                                /^\"|\"$/g,
+                                ''
+                            )}
+                        </p>
                     )}
                 </div>
                 {selected ? (
                     <>
                         {debug ? (
                             <div
-                                className={styles.codeBlockWrapperVerbose}
                                 onClick={(event) => {
                                     event.stopPropagation();
                                 }}
@@ -202,16 +182,40 @@ export const StreamElement = ({
 type EventRenderDetails = {
     title?: string;
     payload?: string;
+    displayValue: string;
 };
 
 export const getEventRenderDetails = (
     e: HighlightEvent
 ): EventRenderDetails => {
-    const details: EventRenderDetails = {};
+    const details: EventRenderDetails = {
+        displayValue: '',
+    };
     if (e.type === EventType.Custom) {
+        const payload = e.data.payload as any;
+
         details.title = e.data.tag;
-        const payload: any = e.data.payload;
-        details.payload = payload;
+        switch (e.data.tag) {
+            case 'Identify':
+                details.displayValue = JSON.parse(payload).user_identifier;
+                break;
+            case 'Track':
+                details.displayValue = e.identifier;
+                break;
+            case 'Viewport':
+                details.displayValue = `${payload.height} x ${payload.width}`;
+                break;
+            case 'Navigate':
+            case 'Click':
+            case 'Focus':
+            case 'Segment':
+                details.displayValue = payload;
+                break;
+            default:
+                details.displayValue = payload;
+                break;
+        }
+        details.payload = e.data.payload as string;
     }
 
     return details;

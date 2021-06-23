@@ -1,7 +1,6 @@
 import React from 'react';
 import validator from 'validator';
 
-import streamElementStyles from '../StreamElement/StreamElement.module.scss';
 import styles from './StreamElementPayload.module.scss';
 import { isJson } from './utils';
 
@@ -23,7 +22,7 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
 
     if (validator.isURL(payload, validatorUrlOptions)) {
         return (
-            <div className={streamElementStyles.codeBlockWrapperVerbose}>
+            <div>
                 <a
                     href={payload}
                     target="_blank"
@@ -43,7 +42,7 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
         const emptyValuesRemovedKeys = keys.filter((key) => object[key] !== '');
 
         return (
-            <div className={streamElementStyles.codeBlockWrapperVerbose}>
+            <div>
                 <ul className={styles.objectList}>
                     {emptyValuesRemovedKeys.map((key) => (
                         <li key={key} className={styles.objectRecord}>
@@ -67,11 +66,7 @@ const StreamElementPayload = ({ payload }: StreamElementProps) => {
         );
     }
 
-    return (
-        <div className={streamElementStyles.codeBlockWrapperVerbose}>
-            {payload}
-        </div>
-    );
+    return <div>{payload}</div>;
 };
 
 export default StreamElementPayload;
