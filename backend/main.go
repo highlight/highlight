@@ -8,6 +8,8 @@ import (
 	"path"
 	"strings"
 
+	e "github.com/pkg/errors"
+
 	"github.com/DataDog/datadog-go/statsd"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
@@ -56,7 +58,10 @@ func init() {
 }
 
 func health(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("healthy")) //nolint
+	_, err := w.Write([]byte("healthy"))
+	if err != nil {
+		log.Error(e.Wrap(err, "error writing health response"))
+	}
 }
 
 func validateOrigin(request *http.Request, origin string) bool {
