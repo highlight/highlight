@@ -211,18 +211,19 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	newFrameString := errorGroup.Trace
 	if len(frameString) >= len(errorGroup.Trace) {
 		newFrameString = frameString
-		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.Trace)
-		if err != nil {
-			log.Error(err)
-		} else {
-			mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
+		if organizationID == 1 {
+			mappedStackTrace, err := r.EnhanceStackTrace(errorInput.Trace)
 			if err != nil {
-				return nil, e.Wrap(err, "error marshalling mapped stack trace")
+				log.Error(err)
+			} else {
+				mappedStackTraceBytes, err := json.Marshal(mappedStackTrace)
+				if err != nil {
+					return nil, e.Wrap(err, "error marshalling mapped stack trace")
+				}
+				mappedStackTraceString := string(mappedStackTraceBytes)
+				errorObj.MappedStackTrace = &mappedStackTraceString
 			}
-			mappedStackTraceString := string(mappedStackTraceBytes)
-			errorObj.MappedStackTrace = &mappedStackTraceString
 		}
-
 	}
 
 	environmentsMap := make(map[string]int)
