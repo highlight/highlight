@@ -14,6 +14,8 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
+	dd "github.com/highlight-run/highlight/backend/datadog"
+
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
@@ -85,6 +87,12 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
+
+	err = dd.StatsD.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), nil, 1)
+	if err != nil {
+		log.Error(e.Wrap(err, "error submitting histogram for payload size"))
+	}
+
 	// Delete all the events_objects in the DB.
 	if len(events) > 0 {
 		if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
@@ -354,6 +362,11 @@ func (w *Worker) Start() {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			sessionsSpan.Finish()
 			continue
+		}
+		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
+		err := dd.StatsD.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1)
+		if err != nil {
+			log.Error("error sending count metric to datadog")
 		}
 		sessionsSpan.Finish()
 		for _, session := range sessions {

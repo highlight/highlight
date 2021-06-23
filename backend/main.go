@@ -8,9 +8,9 @@ import (
 	"path"
 	"strings"
 
-	"github.com/DataDog/datadog-go/statsd"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
+	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
@@ -18,7 +18,6 @@ import (
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
@@ -36,8 +35,6 @@ var (
 	env                = os.Getenv("ENVIRONMENT")
 	frontendURL        = os.Getenv("FRONTEND_URI")
 	staticFrontendPath = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
-	statsdHost         = os.Getenv("DD_STATSD_HOST")
-	apmHost            = os.Getenv("DD_APM_HOST")
 	landingURL         = os.Getenv("LANDING_PAGE_URI")
 	landingStagingURL  = os.Getenv("LANDING_PAGE_STAGING_URI")
 	sendgridKey        = os.Getenv("SENDGRID_API_KEY")
@@ -99,26 +96,10 @@ func main() {
 		port = defaultPort
 	}
 
-	if env == "prod" {
-		// Connect to the datadog daemon.
-		hostTagKey, hostTagValue := "host", os.Getenv("RENDER_SERVICE_NAME")
-		serviceTagKey, serviceTagValue := "service", os.Getenv("RENDER_SERVICE_TYPE")+"-"+os.Getenv("RENDER_INSTANCE_ID")
-		_, err := statsd.New(statsdHost, statsd.WithTags(
-			[]string{
-				hostTagKey + ":" + hostTagValue,
-				serviceTagKey + ":" + serviceTagValue,
-			},
-		))
-		if err != nil {
-			log.Fatalf("error connecting to statsd: %v", err)
-			return
-		}
-		tracer.Start(
-			tracer.WithAgentAddr(apmHost),
-			tracer.WithGlobalTag(hostTagKey, hostTagValue),
-			tracer.WithGlobalTag(serviceTagKey, serviceTagValue),
-		)
-		defer tracer.Stop()
+	if err := dd.Start(env == "prod"); err != nil {
+		log.Fatal(e.Wrap(err, "error starting dd clients"))
+	} else {
+		defer dd.Stop(env == "prod")
 	}
 
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
@@ -244,11 +225,10 @@ func main() {
 	*/
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
+	w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 	if runtimeParsed == util.Worker {
-		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		w.Start()
 	} else if runtimeParsed == util.All {
-		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		go func() {
 			w.Start()
 		}()
