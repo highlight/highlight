@@ -366,7 +366,7 @@ func (w *Worker) Start() {
 		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
 		err := dd.StatsD.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1)
 		if err != nil {
-			log.Error("error sending count metric to datadog")
+			log.Error(e.Wrap(err, "error sending count metric to datadog"))
 		}
 		sessionsSpan.Finish()
 		for _, session := range sessions {
