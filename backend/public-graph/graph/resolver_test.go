@@ -2,7 +2,6 @@ package graph
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"testing"
@@ -21,16 +20,6 @@ import (
 )
 
 var DB *gorm.DB
-
-type mockFetcher struct{}
-
-func (n mockFetcher) fetchFile(href string) ([]byte, error) {
-	inputBytes, err := ioutil.ReadFile(href)
-	if err != nil {
-		return nil, e.Wrap(err, "error fetching file from disk")
-	}
-	return inputBytes, nil
-}
 
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
@@ -259,7 +248,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					FunctionName: util.MakeStringPointer("arrayIncludesWith"),
 				},
 			},
-			fetcher: mockFetcher{},
+			fetcher: MockFetcher{},
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:no related source map": {
@@ -271,7 +260,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 				},
 			},
 			expectedStackTrace: nil,
-			fetcher:            mockFetcher{},
+			fetcher:            MockFetcher{},
 			err:                e.New("file does not contain source map url"),
 		},
 		"test source mapping invalid trace:file doesn't exist": {
@@ -313,13 +302,13 @@ func TestEnhanceStackTrace(t *testing.T) {
 		"test source mapping invalid trace:trace is nil": {
 			stackFrameInput:    nil,
 			expectedStackTrace: nil,
-			fetcher:            mockFetcher{},
+			fetcher:            MockFetcher{},
 			err:                e.New("stack trace input cannot be nil"),
 		},
 		"test source mapping invalid trace:empty stack frame doesn't update error object": {
 			stackFrameInput:    []*publicModelInput.StackFrameInput{},
 			expectedStackTrace: nil,
-			fetcher:            mockFetcher{},
+			fetcher:            MockFetcher{},
 			err:                e.New(""),
 		},
 	}

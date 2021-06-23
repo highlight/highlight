@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -488,23 +489,33 @@ type fetcher interface {
 	fetchFile(string) ([]byte, error)
 }
 
-type NetworkFetcher struct{}
+func init() {
+	if os.Getenv("ENVIRONMENT") == "dev" {
+		fetch = MockFetcher{}
+	} else {
+		fetch = NetworkFetcher{}
+	}
+}
 
 var fetch fetcher
 
-func init() {
-	fetch = NetworkFetcher{}
+type MockFetcher struct{}
+
+func (n MockFetcher) fetchFile(href string) ([]byte, error) {
+	inputBytes, err := ioutil.ReadFile(href)
+	if err != nil {
+		return nil, e.Wrap(err, "error fetching file from disk")
+	}
+	return inputBytes, nil
 }
+
+type NetworkFetcher struct{}
 
 func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 	// check if source is a URL
 	_, err := url.ParseRequestURI(href)
 	if err != nil {
 		return nil, err
-	}
-	// check if source is localhost
-	if strings.Contains(strings.ToLower(href), "localhost") {
-		return nil, e.New("cannot parse localhost source")
 	}
 	// get minified file
 	res, err := http.Get(href)
