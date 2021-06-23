@@ -72,6 +72,8 @@ const FreePlanBanner = () => {
         return null;
     }
 
+    let bannerMessage = `You've used ${data?.billingDetails.meter}/
+                ${data?.billingDetails.plan.quota} of your free sessions.`;
     if (data?.billingDetails.plan.type !== PlanType.Free) {
         return null;
     } else {
@@ -84,27 +86,14 @@ const FreePlanBanner = () => {
 
             if (remainingTrialPeriod < 7) {
                 const roundedPeriod = Math.round(remainingTrialPeriod);
-                const bannerMessage =
+                bannerMessage =
                     remainingTrialPeriod > 0
                         ? `You have ${roundedPeriod} day${
                               roundedPeriod == 1 ? '' : 's'
                           } left of your free trial.`
                         : `Your trial period has expired!`;
-                return (
-                    <div className={styles.trialWrapper}>
-                        <Banner className={styles.bannerSvg} />
-                        <div className={classNames(styles.trialTimeText)}>
-                            {bannerMessage + ' '}
-                            Upgrade{' '}
-                            <Link
-                                className={styles.trialLink}
-                                to={`/${organization_id}/billing`}
-                            >
-                                here!
-                            </Link>
-                        </div>
-                    </div>
-                );
+            } else {
+                return null;
             }
         }
     }
@@ -113,8 +102,7 @@ const FreePlanBanner = () => {
         <div className={styles.trialWrapper}>
             <Banner className={styles.bannerSvg} />
             <div className={classNames(styles.trialTimeText)}>
-                You've used {data?.billingDetails.meter}/
-                {data?.billingDetails.plan.quota} of your free sessions. Upgrade{' '}
+                {bannerMessage + ' '} Upgrade{' '}
                 <Link
                     className={styles.trialLink}
                     to={`/${organization_id}/billing`}
