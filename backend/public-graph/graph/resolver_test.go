@@ -273,9 +273,15 @@ func TestEnhanceStackTrace(t *testing.T) {
 					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
-			expectedStackTrace: nil,
-			fetcher:            NetworkFetcher{},
-			err:                e.New("status code not OK"),
+			expectedStackTrace: []modelInput.ErrorTrace{
+				{
+					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
+					LineNumber:   util.MakeIntPointer(0),
+					ColumnNumber: util.MakeIntPointer(0),
+				},
+			},
+			fetcher: NetworkFetcher{},
+			err:     e.New("status code not OK"),
 		},
 		"test source mapping invalid trace:filename is not a url": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
@@ -285,9 +291,15 @@ func TestEnhanceStackTrace(t *testing.T) {
 					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
-			expectedStackTrace: nil,
-			fetcher:            NetworkFetcher{},
-			err:                e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
+			expectedStackTrace: []modelInput.ErrorTrace{
+				{
+					FileName:     util.MakeStringPointer("/file/local/domain.js"),
+					LineNumber:   util.MakeIntPointer(0),
+					ColumnNumber: util.MakeIntPointer(0),
+				},
+			},
+			fetcher: NetworkFetcher{},
+			err:     e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
 		},
 		"test source mapping invalid trace:trace is nil": {
 			stackFrameInput:    nil,
