@@ -3,9 +3,11 @@
 
     border: 1px solid var(--color-gray-300);
     border-radius: var(--border-radius);
+    margin: 0 var(--size-large);
     overflow: hidden;
     padding: var(--size-xSmall) var(--size-medium);
     position: relative;
+    transition: box-shadow 0.1s ease-in;
 
     &:hover {
         border: 1px solid var(--color-purple);
