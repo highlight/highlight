@@ -128,7 +128,7 @@
     grid-column-start: 1;
     margin: 0 -18px;
     margin-top: var(--size-xSmall);
-    padding: var(--size-xSmall) 18px;
+    padding: var(--size-small) 18px;
 }
 
 .selectedIcon {
@@ -139,4 +139,14 @@
 .headerRow {
     align-items: center;
     display: flex;
+}
+
+.iconChangeAnimation {
+    animation: pop 0.3s ease-in-out;
+}
+
+@keyframes pop {
+    50% {
+        transform: scale(1.2);
+    }
 }

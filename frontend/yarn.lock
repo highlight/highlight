@@ -13109,6 +13109,11 @@ rc@^1.2.8:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
+react-animate-on-change@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/react-animate-on-change/-/react-animate-on-change-2.2.0.tgz#862d3d5a66d09d6b5c32308acdcd587c1bee47a4"
+  integrity sha512-cM0YHbsxIh8fshX/U24+pk4nDG7Ike9NsEy21reqJPqVt6xRA+6oYkaQHEggINKjYEMbztwK40Ro0/EHZ5naVQ==
+
 react-app-polyfill@^1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/react-app-polyfill/-/react-app-polyfill-1.0.6.tgz#890f8d7f2842ce6073f030b117de9130a5f385f0"

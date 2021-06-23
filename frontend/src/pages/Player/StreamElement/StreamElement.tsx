@@ -1,6 +1,7 @@
 import { EventType } from '@highlight-run/rrweb';
 import classNames from 'classnames/bind';
 import React, { useContext, useState } from 'react';
+import AnimateOnChange from 'react-animate-on-change';
 import { FaBug, FaRegStopCircle } from 'react-icons/fa';
 import ReactJson from 'react-json-view';
 import { BooleanParam, useQueryParam } from 'use-query-params';
@@ -57,7 +58,11 @@ export const StreamElement = ({
                 id={e.identifier}
             >
                 <div className={styles.headerRow}>
-                    <div className={styles.iconWrapper}>
+                    <AnimateOnChange
+                        baseClassName={styles.iconWrapper}
+                        animationClassName={styles.iconChangeAnimation}
+                        animate={selected}
+                    >
                         {selected ? (
                             <DownIcon
                                 className={classNames(styles.directionIcon, {
@@ -107,7 +112,7 @@ export const StreamElement = ({
                                 className={classNames(styles.tiltedIcon)}
                             />
                         )}
-                    </div>
+                    </AnimateOnChange>
                 </div>
                 <div
                     className={
