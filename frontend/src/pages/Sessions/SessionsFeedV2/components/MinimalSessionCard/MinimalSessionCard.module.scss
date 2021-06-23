@@ -56,32 +56,6 @@
     overflow: hidden;
 }
 
-.hoverBorderRight {
-    background-color: transparent;
-    border-radius: 5px;
-    height: 60px;
-    position: absolute;
-    right: -3px;
-    transition: 0.3s;
-    transition: 0.3s;
-    width: 5px;
-}
-
-.hoverBorderLeft {
-    background-color: transparent;
-    border-radius: 5px;
-    height: 60px;
-    left: -3px;
-    position: absolute;
-    transition: 0.3s;
-    transition: 0.3s;
-    width: 5px;
-}
-
-.hoverBorderOn {
-    background-color: var(--color-purple);
-}
-
 .sessionCardWrapper {
     position: relative;
 
@@ -162,8 +136,9 @@
     font-weight: 400;
     justify-content: space-between;
     margin-bottom: 14px;
-    padding: 18px;
+    padding: var(--size-medium);
     position: relative;
+    transition: box-shadow 0.1s ease-in;
 
     &:not(:first-of-type) {
         margin-top: 14px;
@@ -179,8 +154,8 @@
         opacity: 0;
         position: absolute;
         top: 0;
-        transition: opacity 0.2s ease-in-out;
-        width: 5px;
+        transition: opacity 0.1s ease-in;
+        width: 6px;
     }
 
     &.selected {
@@ -188,15 +163,18 @@
             opacity: 1;
         }
     }
+
+    &:hover {
+        border: 1px solid var(--color-purple);
+        box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
+    }
 }
 
 .sessionCardContentWrapper {
     align-items: center;
-    column-gap: var(--size-large);
+    column-gap: var(--size-medium);
     display: flex;
     flex-grow: 1;
-    padding: 0 var(--size-xLarge);
-    padding-right: 0;
 }
 
 .sessionTextSectionWrapper {
