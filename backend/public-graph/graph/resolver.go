@@ -211,6 +211,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	var newMappedStackTraceString *string
 	newFrameString := frameString
 	if organizationID == 1 {
+		// TODO: don't do this for every error
 		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.Trace)
 		if err != nil {
 			log.Error(err)
