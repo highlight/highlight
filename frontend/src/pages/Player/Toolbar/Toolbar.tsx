@@ -658,6 +658,8 @@ const TimelineAnnotationColors: {
     Segment: '--color-orange-400',
     Track: '--color-blue-300',
     Comments: '--color-green-dark',
+    Identify: '--color-orange-500',
+    Viewport: '--color-purple-light',
 };
 
 export function getAnnotationColor(

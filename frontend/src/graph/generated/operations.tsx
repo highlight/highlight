@@ -477,6 +477,7 @@ export type GetSessionQuery = { __typename?: 'Query' } & {
             | 'object_storage_enabled'
             | 'payload_size'
             | 'within_billing_quota'
+            | 'client_version'
         > & {
                 fields?: Types.Maybe<
                     Array<

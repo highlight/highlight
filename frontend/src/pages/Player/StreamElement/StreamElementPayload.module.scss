@@ -1,21 +1,25 @@
 .objectKey {
     color: var(--color-gray-500);
     display: block;
-    font-size: 10px;
+    font-size: 12px !important;
     font-style: normal;
     line-height: initial;
     margin-bottom: var(--size-xxSmall);
+    text-transform: capitalize;
 }
 
 .objectList {
-    list-style: none;
-    margin: 6px 0;
+    column-gap: var(--size-small);
+    display: grid;
+    font-family: var(--header-font-family);
+    grid-template-columns: auto 1fr;
     padding: 0;
+    row-gap: var(--size-xSmall);
 }
 
 .objectValue {
     color: var(--text-primary);
-    font-size: 12px;
+    font-size: 12px !important;
     font-style: normal;
     line-height: initial;
 }
@@ -25,12 +29,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-.objectRecord {
-    &:not(:last-of-type) {
-        margin-bottom: 6px;
-    }
 }
 
 .anchor {

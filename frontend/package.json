@@ -32,6 +32,7 @@
         "query-string": "6.14.1",
         "randomcolor": "^0.6.2",
         "react": "^16.13.1",
+        "react-animate-on-change": "^2.2.0",
         "react-collapsible": "^2.8.1",
         "react-command-palette": "0.16.0",
         "react-confetti": "^6.0.1",

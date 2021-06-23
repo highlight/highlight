@@ -1,3 +1,4 @@
+import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import { Link, useParams } from 'react-router-dom';
@@ -63,9 +64,14 @@ const MetadataPanel = () => {
                 <>
                     <section>
                         <h2>Session</h2>
-                        <p>
-                            Environment:{' '}
-                            <span className={styles.centerAlign}>
+                        <div className={styles.table}>
+                            <p className={styles.key}>Environment</p>
+                            <p
+                                className={classNames(
+                                    styles.centerAlign,
+                                    styles.value
+                                )}
+                            >
                                 <span className={styles.sentenceCase}>
                                     {data?.session?.environment || 'Production'}
                                 </span>
@@ -85,11 +91,15 @@ const MetadataPanel = () => {
                                         </>
                                     }
                                 />
-                            </span>
-                        </p>
-                        <p>
-                            App Version:{' '}
-                            <span className={styles.centerAlign}>
+                            </p>
+
+                            <p className={styles.key}>App Version</p>
+                            <p
+                                className={classNames(
+                                    styles.centerAlign,
+                                    styles.value
+                                )}
+                            >
                                 <span className={styles.sentenceCase}>
                                     {data?.session?.app_version ||
                                         'App Version Not Set'}
@@ -113,28 +123,58 @@ const MetadataPanel = () => {
                                         </>
                                     }
                                 />
-                            </span>
-                        </p>
-                        {data?.session?.city && (
-                            <p>
-                                Location: {data?.session?.city},{' '}
-                                {data?.session?.state} {data?.session?.postal}
                             </p>
-                        )}
-                        {data?.session?.object_storage_enabled &&
-                        a_data?.admin?.email.includes('highlight.run') ? (
-                            <p>
-                                Session Size:{' '}
-                                {`${data.session.payload_size / 1000000}`}
-                                mb
-                            </p>
-                        ) : (
-                            <></>
-                        )}
+
+                            {data?.session?.city && (
+                                <>
+                                    <p className={styles.key}>Location</p>
+                                    <p
+                                        className={classNames(
+                                            styles.centerAlign,
+                                            styles.value
+                                        )}
+                                    >
+                                        {data?.session?.city},{' '}
+                                        {data?.session?.state}{' '}
+                                        {data?.session?.postal}
+                                    </p>
+                                </>
+                            )}
+
+                            {data?.session?.object_storage_enabled &&
+                                a_data?.admin?.email.includes(
+                                    'highlight.run'
+                                ) && (
+                                    <>
+                                        <p className={styles.key}>
+                                            Session Size
+                                        </p>
+                                        <p className={styles.value}>
+                                            {`${
+                                                data.session.payload_size /
+                                                1000000
+                                            }`}
+                                            mb
+                                        </p>
+
+                                        <p className={styles.key}>
+                                            Highlight Version
+                                        </p>
+                                        <p className={styles.value}>
+                                            {data.session.client_version}
+                                        </p>
+                                    </>
+                                )}
+                        </div>
                     </section>
                     <section>
                         <h2>User</h2>
-                        <p>Locale: {data?.session?.language}</p>
+                        <div className={styles.table}>
+                            <p className={styles.key}>Locale</p>
+                            <p className={styles.value}>
+                                {data?.session?.language}
+                            </p>
+                        </div>
                         {!(!parsedFields?.length || loading) ? (
                             <div className={styles.tagDiv}>
                                 <div className={styles.tagWrapper}>

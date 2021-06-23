@@ -9,8 +9,9 @@
 }
 
 .comment {
-    margin: var(--size-xxSmall) var(--size-small);
+    margin: var(--size-xxSmall) var(--size-large);
     margin-bottom: var(--size-medium);
+    margin-top: 0;
 
     &:first-of-type {
         padding-top: 0;

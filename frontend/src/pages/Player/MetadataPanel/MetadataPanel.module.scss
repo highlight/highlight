@@ -1,6 +1,6 @@
 .metadataPanel {
     height: 100%;
-    padding: 0 var(--size-small);
+    padding: 0 var(--size-large);
 
     h2 {
         color: var(--text-primary);
@@ -25,6 +25,7 @@
 
     .tagDiv {
         display: flex;
+        margin-top: var(--size-medium);
         padding-right: 20px;
         width: 100%;
     }
@@ -62,4 +63,34 @@
         font-size: 12px;
         margin: 0;
     }
+}
+
+.key {
+    color: var(--color-gray-500) !important;
+    display: block;
+    font-size: 12px !important;
+    font-style: normal;
+    line-height: initial;
+    margin-bottom: var(--size-xxSmall);
+    text-transform: capitalize;
+}
+
+.table {
+    column-gap: var(--size-small);
+    display: grid;
+    font-family: var(--header-font-family);
+    grid-template-columns: 80px 1fr;
+    padding: 0;
+    row-gap: var(--size-xSmall);
+
+    p {
+        margin: 0 !important;
+    }
+}
+
+.value {
+    color: var(--text-primary) !important;
+    font-size: 12px !important;
+    font-style: normal;
+    line-height: initial;
 }

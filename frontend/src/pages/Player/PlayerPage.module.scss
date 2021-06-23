@@ -232,3 +232,12 @@
     margin: 0 auto;
     margin-top: var(--size-large);
 }
+
+.tabContentContainer {
+    height: 100%;
+    padding: var(--size-medium) 0;
+}
+
+.eventStreamTabContentContainer {
+    padding-top: 0;
+}
