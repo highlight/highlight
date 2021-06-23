@@ -3,14 +3,31 @@ import React from 'react';
 
 import styles from './RightPanelCard.module.scss';
 
-type Props = { selected: boolean } & React.HTMLProps<HTMLDivElement>;
-const RightPanelCard: React.FC<Props> = ({ children, selected, ...props }) => {
+type Props = {
+    selected: boolean;
+    /**
+     * The color used for the border and icons.
+     */
+    primaryColor: string;
+} & React.HTMLProps<HTMLDivElement>;
+
+const RightPanelCard: React.FC<Props> = ({
+    children,
+    selected,
+    primaryColor,
+    ...props
+}) => {
     return (
         <article
             {...props}
             className={classNames(styles.card, props.className, {
                 [styles.selected]: selected,
             })}
+            style={
+                {
+                    '--primary-color': `var(${primaryColor})`,
+                } as React.CSSProperties
+            }
         >
             {children}
         </article>

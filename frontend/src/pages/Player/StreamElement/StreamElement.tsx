@@ -20,6 +20,7 @@ import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { HighlightEvent } from '../HighlightEvent';
 import ReplayerContext from '../ReplayerContext';
 import RightPanelCard from '../RightPanelCard/RightPanelCard';
+import { getAnnotationColor } from '../Toolbar/Toolbar';
 import styles from './StreamElement.module.scss';
 import StreamElementPayload from './StreamElementPayload';
 
@@ -42,11 +43,11 @@ export const StreamElement = ({
 
     return (
         <RightPanelCard
-            //     id={e.identifier}
             key={e.identifier}
             className={styles.card}
             selected={isCurrent}
             onClick={() => setSelected(!selected)}
+            primaryColor={getAnnotationColor(details.title as any)}
         >
             <div
                 className={classNames(styles.streamElement, {
