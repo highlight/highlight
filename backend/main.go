@@ -225,10 +225,11 @@ func main() {
 	*/
 	log.Printf("runtime is: %v \n", runtimeParsed)
 	log.Println("process running....")
-	w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 	if runtimeParsed == util.Worker {
+		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		w.Start()
 	} else if runtimeParsed == util.All {
+		w := &worker.Worker{Resolver: privateResolver, S3Client: storage}
 		go func() {
 			w.Start()
 		}()
