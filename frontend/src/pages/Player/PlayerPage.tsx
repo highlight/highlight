@@ -405,11 +405,13 @@ const EventStream = () => {
                 {!events.length ? (
                     <div>
                         <Skeleton
-                            count={4}
-                            height={35}
+                            count={20}
+                            height={43}
+                            width="301px"
                             style={{
-                                marginTop: 8,
-                                marginBottom: 8,
+                                marginTop: 16,
+                                marginLeft: 24,
+                                marginRight: 24,
                             }}
                         />
                     </div>
