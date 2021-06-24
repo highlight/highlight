@@ -4,10 +4,6 @@ import { Link, useParams } from 'react-router-dom';
 
 import { Avatar } from '../../../../../components/Avatar/Avatar';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
-import {
-    useMarkSessionAsStarredMutation,
-    useMarkSessionAsViewedMutation,
-} from '../../../../../graph/generated/hooks';
 import { Maybe, Session } from '../../../../../graph/generated/schemas';
 import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time';
 import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker';
@@ -24,22 +20,6 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
         organization_id: string;
         segment_id: string;
     }>();
-    const [markSessionAsViewed] = useMarkSessionAsViewedMutation();
-    const [markSessionAsStarred] = useMarkSessionAsStarredMutation({
-        update(cache) {
-            cache.modify({
-                fields: {
-                    session(existingSession) {
-                        const updatedSession = {
-                            ...existingSession,
-                            starred: !existingSession.starred,
-                        };
-                        return updatedSession;
-                    },
-                },
-            });
-        },
-    });
     const containerRef = useRef<HTMLDivElement>(null);
     return (
         <div className={styles.sessionCardWrapper} key={session?.id}>
