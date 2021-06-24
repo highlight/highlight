@@ -126,7 +126,6 @@ type ErrorGroup {
     type: String!
     event: [String]!
     trace: [ErrorTrace]!
-    mapped_stack_trace: [ErrorTrace]!
     metadata_log: [ErrorMetadata]!
     field_group: [ErrorField]
     state: ErrorState!

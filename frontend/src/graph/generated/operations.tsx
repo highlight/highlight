@@ -781,17 +781,6 @@ export type GetErrorGroupQuery = { __typename?: 'Query' } & {
                         >
                     >
                 >;
-                mapped_stack_trace: Array<
-                    Types.Maybe<
-                        { __typename?: 'ErrorTrace' } & Pick<
-                            Types.ErrorTrace,
-                            | 'file_name'
-                            | 'line_number'
-                            | 'function_name'
-                            | 'column_number'
-                        >
-                    >
-                >;
                 metadata_log: Array<
                     Types.Maybe<
                         { __typename?: 'ErrorMetadata' } & Pick<

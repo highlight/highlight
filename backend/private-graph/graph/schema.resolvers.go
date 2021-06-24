@@ -72,46 +72,26 @@ func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) (
 }
 
 func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
-	if obj.Trace == "" {
+	if (obj.MappedStackTrace == nil || *obj.MappedStackTrace == "") && obj.Trace == "" {
 		return nil, nil
 	}
-	trace := []*struct {
+	var stackTrace []*struct {
 		FileName     *string `json:"fileName"`
 		LineNumber   *int    `json:"lineNumber"`
 		FunctionName *string `json:"functionName"`
 		ColumnNumber *int    `json:"columnNumber"`
-	}{}
-	if err := json.Unmarshal([]byte(obj.Trace), &trace); err != nil {
-		return nil, nil
 	}
-	ret := []*modelInputs.ErrorTrace{}
-	for _, t := range trace {
-		val := &modelInputs.ErrorTrace{
-			FileName:     t.FileName,
-			LineNumber:   t.LineNumber,
-			FunctionName: t.FunctionName,
-			ColumnNumber: t.ColumnNumber,
+	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
+		if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &stackTrace); err != nil {
+			return nil, nil
 		}
-		ret = append(ret, val)
-	}
-	return ret, nil
-}
-
-func (r *errorGroupResolver) MappedStackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
-	if obj.MappedStackTrace == nil || *obj.MappedStackTrace == "" {
-		return nil, nil
-	}
-	var mappedStackTrace []*struct {
-		FileName     *string `json:"fileName"`
-		LineNumber   *int    `json:"lineNumber"`
-		FunctionName *string `json:"functionName"`
-		ColumnNumber *int    `json:"columnNumber"`
-	}
-	if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &mappedStackTrace); err != nil {
-		return nil, nil
+	} else {
+		if err := json.Unmarshal([]byte(obj.Trace), &stackTrace); err != nil {
+			return nil, nil
+		}
 	}
 	var ret []*modelInputs.ErrorTrace
-	for _, t := range mappedStackTrace {
+	for _, t := range stackTrace {
 		val := &modelInputs.ErrorTrace{
 			FileName:     t.FileName,
 			LineNumber:   t.LineNumber,

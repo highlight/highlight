@@ -9,16 +9,9 @@ interface Props {
 }
 
 const StackTraceSection = ({ errorGroup }: Props) => {
-    let stackTrace = errorGroup?.trace;
-    if (
-        errorGroup?.mapped_stack_trace &&
-        errorGroup?.mapped_stack_trace.length !== 0
-    ) {
-        stackTrace = errorGroup?.mapped_stack_trace;
-    }
     return (
         <>
-            {stackTrace?.map((e, i) => (
+            {errorGroup?.trace.map((e, i) => (
                 <StackSection
                     key={i}
                     fileName={e?.file_name ?? ''}
