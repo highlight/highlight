@@ -1,0 +1,197 @@
+@import 'src/static/shared.scss';
+
+.avatarWrapper {
+    align-items: center;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    position: relative;
+}
+
+.readMarkerContainer {
+    align-items: center;
+    display: flex;
+    margin-left: 6px;
+    position: relative;
+    width: 8px;
+}
+
+.topText {
+    color: var(--color-gray-500);
+    font-size: 12px;
+    margin: 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.middleText {
+    color: var(--text-primary);
+    font-size: 14px;
+    margin: 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bottomText {
+    color: var(--text-primary);
+    font-size: 12px;
+    margin: 0 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sessionTextSection {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tagWrapper {
+    display: flex;
+    flex-flow: row wrap;
+    height: 28px;
+    overflow: hidden;
+}
+
+.sessionCardWrapper {
+    position: relative;
+
+    &:hover {
+        .sessionCardAction {
+            display: flex;
+        }
+    }
+}
+
+.sessionCardAction {
+    align-items: center;
+    background-color: var(--color-primary-background);
+    border: 0;
+    border-radius: var(--border-radius);
+    bottom: 0;
+    display: none;
+    height: 30px;
+    margin: auto;
+    padding: 0 6px;
+    position: absolute;
+    right: 8px;
+    top: 0;
+    width: 30px;
+
+    &:hover {
+        background-color: var(--color-gray-300);
+        cursor: pointer;
+
+        .actionIcon {
+            color: var(--text-primary);
+            fill: var(--text-primary);
+            stroke: var(--text-primary);
+        }
+    }
+}
+
+.actionIcon {
+    color: var(--color-gray-500);
+    fill: var(--color-gray-500);
+    stroke: var(--color-gray-500);
+}
+
+.starredIconWrapper {
+    bottom: 0;
+    display: flex;
+    height: 30px;
+    left: 8px;
+    margin: auto;
+    padding: 6px;
+    position: absolute;
+    top: 0;
+    width: 30px;
+    z-index: 5;
+
+    &:hover {
+        cursor: pointer;
+
+        .actionIcon {
+            color: var(--text-primary);
+            fill: var(--text-primary);
+            stroke: var(--text-primary);
+        }
+    }
+}
+
+.starredIcon {
+    color: var(--color-yellow-200);
+    fill: var(--color-yellow-200);
+    stroke: var(--color-yellow-200);
+}
+
+.sessionCard {
+    @include rounded-border;
+    align-items: center;
+    cursor: pointer;
+    display: flex;
+    font-weight: 400;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding: var(--size-medium);
+    position: relative;
+    transition: box-shadow 0.1s ease-in;
+
+    &:not(:first-of-type) {
+        margin-top: 14px;
+    }
+
+    &::before {
+        background-color: var(--color-purple);
+        border-bottom-left-radius: var(--size-xSmall);
+        border-top-left-radius: var(--size-xSmall);
+        content: '';
+        height: 100%;
+        left: 0;
+        opacity: 0;
+        position: absolute;
+        top: 0;
+        transition: opacity 0.1s ease-in;
+        width: 6px;
+    }
+
+    &.selected {
+        &::before {
+            opacity: 1;
+        }
+    }
+
+    &:hover {
+        border: 1px solid var(--color-purple);
+        box-shadow: 0 0 9px rgba(86, 41, 198, 0.25);
+    }
+}
+
+.sessionCardContentWrapper {
+    align-items: center;
+    column-gap: var(--size-medium);
+    display: grid;
+    grid-template-columns: 26px 1fr 0.5fr;
+    width: 100%;
+}
+
+.sessionTextSectionWrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.cardAnnotationContainer {
+    column-gap: var(--size-medium);
+    display: flex;
+    justify-content: flex-end;
+
+    > div {
+        height: 16px;
+        width: 16px;
+    }
+}

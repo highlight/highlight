@@ -34,17 +34,12 @@ import {
     STARRED_SEGMENT_ID,
 } from '../SearchSidebar/SegmentPicker/SegmentPicker';
 import FirstTimeDecorations from './components/FirstTimeDecorations/FirstTimeDecorations';
-import MinimalSessionCard from './components/MinimalSessionCard/MinimalSessionCard';
 import SessionSearch from './components/SessionSearch/SessionSearch';
 import styles from './SessionsFeed.module.scss';
 
 const SESSIONS_FEED_POLL_INTERVAL = 5000;
 
-interface Props {
-    minimal?: boolean;
-}
-
-export const SessionFeed = ({ minimal = false }: Props) => {
+export const SessionFeed = () => {
     const { organization_id, segment_id, session_id } = useParams<{
         organization_id: string;
         segment_id: string;
@@ -132,18 +127,16 @@ export const SessionFeed = ({ minimal = false }: Props) => {
 
     return (
         <>
-            {!minimal && (
-                <div className={styles.fixedContent}>
-                    <div className={styles.mainUserInput}>
-                        <SessionSearch />
-                    </div>
-                    <div
-                        className={styles.resultCount}
-                    >{`${formatNumberWithDelimiters(
-                        data.totalCount
-                    )} sessions`}</div>
+            <div className={styles.fixedContent}>
+                <div className={styles.mainUserInput}>
+                    <SessionSearch />
                 </div>
-            )}
+                <div
+                    className={styles.resultCount}
+                >{`${formatNumberWithDelimiters(
+                    data.totalCount
+                )} sessions`}</div>
+            </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>
                     {loading && showLoadingSkeleton ? (
@@ -163,21 +156,13 @@ export const SessionFeed = ({ minimal = false }: Props) => {
                             ) : (
                                 <>
                                     <LimitedSessionCard />
-                                    {filteredSessions.map((u) =>
-                                        minimal ? (
-                                            <MinimalSessionCard
-                                                session={u}
-                                                key={u?.id}
-                                                selected={session_id === u?.id}
-                                            />
-                                        ) : (
-                                            <SessionCard
-                                                session={u}
-                                                key={u?.id}
-                                                selected={session_id === u?.id}
-                                            />
-                                        )
-                                    )}
+                                    {filteredSessions.map((u) => (
+                                        <SessionCard
+                                            session={u}
+                                            key={u?.id}
+                                            selected={session_id === u?.id}
+                                        />
+                                    ))}
                                 </>
                             )}
                             {data.sessions.length < data.totalCount && (
