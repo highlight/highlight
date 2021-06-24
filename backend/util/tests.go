@@ -23,20 +23,6 @@ func RunTestWithDBTeardown(t *testing.T, name string, db *gorm.DB, f func(t *tes
 	t.Run(name, f)
 }
 
-func MakeIntPointer(v int) *int {
-	return &v
-}
-
-func MakeStringPointer(v string) *string {
-	return &v
-}
-
-func MakeStringPointerFromInterface(v interface{}) *string {
-	exampleErrorTraceBytes, _ := json.Marshal(&v)
-	exampleErrorTraceString := string(exampleErrorTraceBytes)
-	return &exampleErrorTraceString
-}
-
 func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	psqlConf := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s sslmode=disable",
@@ -72,4 +58,18 @@ func ClearTablesInDB(db *gorm.DB) error {
 		}
 	}
 	return nil
+}
+
+func MakeIntPointer(v int) *int {
+	return &v
+}
+
+func MakeStringPointer(v string) *string {
+	return &v
+}
+
+func MakeStringPointerFromInterface(v interface{}) *string {
+	exampleErrorTraceBytes, _ := json.Marshal(&v)
+	exampleErrorTraceString := string(exampleErrorTraceBytes)
+	return &exampleErrorTraceString
 }
