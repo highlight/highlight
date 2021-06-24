@@ -250,7 +250,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					FunctionName: util.MakeStringPointer("arrayIncludesWith"),
 				},
 			},
-			fetcher: MockFetcher{},
+			fetcher: DiskFetcher{},
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:no related source map": {
@@ -262,7 +262,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 				},
 			},
 			expectedStackTrace: nil,
-			fetcher:            MockFetcher{},
+			fetcher:            DiskFetcher{},
 			err:                e.New("file does not contain source map url"),
 		},
 		"test source mapping invalid trace:file doesn't exist": {
@@ -304,14 +304,33 @@ func TestEnhanceStackTrace(t *testing.T) {
 		"test source mapping invalid trace:trace is nil": {
 			stackFrameInput:    nil,
 			expectedStackTrace: nil,
-			fetcher:            MockFetcher{},
+			fetcher:            DiskFetcher{},
 			err:                e.New("stack trace input cannot be nil"),
 		},
 		"test source mapping invalid trace:empty stack frame doesn't update error object": {
 			stackFrameInput:    []*publicModelInput.StackFrameInput{},
 			expectedStackTrace: nil,
-			fetcher:            MockFetcher{},
+			fetcher:            DiskFetcher{},
 			err:                e.New(""),
+		},
+		"test tsx mapping": {
+			stackFrameInput: []*publicModelInput.StackFrameInput{
+				{
+					FileName:     util.MakeStringPointer("./test-files/main.8344d167.chunk.js"),
+					LineNumber:   util.MakeIntPointer(1),
+					ColumnNumber: util.MakeIntPointer(422367),
+				},
+			},
+			expectedStackTrace: []modelInput.ErrorTrace{
+				{
+					FileName:     util.MakeStringPointer("pages/Buttons/Buttons.tsx"),
+					LineNumber:   util.MakeIntPointer(13),
+					ColumnNumber: util.MakeIntPointer(30),
+					FunctionName: util.MakeStringPointer(""),
+				},
+			},
+			fetcher: DiskFetcher{},
+			err:     e.New(""),
 		},
 	}
 

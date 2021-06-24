@@ -494,7 +494,7 @@ type fetcher interface {
 
 func init() {
 	if os.Getenv("ENVIRONMENT") == "dev" {
-		fetch = MockFetcher{}
+		fetch = DiskFetcher{}
 	} else {
 		fetch = NetworkFetcher{}
 	}
@@ -502,9 +502,9 @@ func init() {
 
 var fetch fetcher
 
-type MockFetcher struct{}
+type DiskFetcher struct{}
 
-func (n MockFetcher) fetchFile(href string) ([]byte, error) {
+func (n DiskFetcher) fetchFile(href string) ([]byte, error) {
 	inputBytes, err := ioutil.ReadFile(href)
 	if err != nil {
 		return nil, e.Wrap(err, "error fetching file from disk")
@@ -571,7 +571,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 			log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileName))
 			continue
 		}
-		if len(bodyBytes) > 1000000 {
+		if len(bodyBytes) > 5000000 {
 			// TODO: don't do this plz
 			var mappedStackFrame modelInputs.ErrorTrace
 			mappedStackFrame.FileName = stackTrace.FileName
@@ -580,7 +580,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
 
 			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Error(e.Wrapf(err, "file way too big: %v", stackTraceFileName))
+			log.Errorf("file way too big: %v, size: %v", stackTraceFileName, len(bodyBytes))
 			continue
 		}
 		bodyString := string(bodyBytes)
@@ -615,7 +615,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 
 		smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
 		if err != nil {
-			return nil, e.Wrap(err, "error parsing source map file")
+			return nil, e.Wrapf(err, "error parsing source map file -> %v", sourceMapURL)
 		}
 
 		var mappedStackFrame modelInputs.ErrorTrace
