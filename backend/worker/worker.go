@@ -14,6 +14,8 @@ import (
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
+	dd "github.com/highlight-run/highlight/backend/datadog"
+
 	parse "github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
@@ -29,7 +31,7 @@ type Worker struct {
 	S3Client *storage.StorageClient
 }
 
-func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string) error {
+func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Session, migrationState *string, events []model.EventsObject) error {
 	if err := w.Resolver.DB.Model(&model.Session{}).Where(
 		&model.Session{Model: model.Model{ID: s.ID}},
 	).Updates(
@@ -38,10 +40,6 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 		return errors.Wrap(err, "error updating session to processed status")
 	}
 	fmt.Printf("starting push for: %v \n", s.ID)
-	events := []model.EventsObject{}
-	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
-		return errors.Wrap(err, "retrieving events")
-	}
 	sessionPayloadSize, err := w.S3Client.PushSessionsToS3(s.ID, s.OrganizationID, events)
 	// If this is unsucessful, return early (we treat this session as if it is stored in psql).
 	if err != nil {
@@ -85,6 +83,12 @@ func (w *Worker) pushToObjectStorageAndWipe(ctx context.Context, s *model.Sessio
 	).Error; err != nil {
 		return errors.Wrap(err, "error updating session to storage enabled")
 	}
+
+	err = dd.StatsD.Histogram("worker.pushToObjectStorageAndWipe.payloadSize", float64(totalPayloadSize), nil, 1)
+	if err != nil {
+		log.Error(e.Wrap(err, "error submitting histogram for payload size"))
+	}
+
 	// Delete all the events_objects in the DB.
 	if len(events) > 0 {
 		if err := w.Resolver.DB.Unscoped().Delete(&events).Error; err != nil {
@@ -120,6 +124,12 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err := w.Resolver.DB.Where(&model.EventsObject{SessionID: s.ID}).Order("created_at asc").Find(&events).Error; err != nil {
 		return errors.Wrap(err, "retrieving events")
 	}
+
+	err := dd.StatsD.Histogram("worker.processSession.numEventsRowsQueried", float64(len(events)), nil, 1)
+	if err != nil {
+		log.Error(e.Wrap(err, "error pushing numEventsRqosQueried histogram metric"))
+	}
+
 	// Delete the session if there's no events.
 	if len(events) == 0 {
 		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
@@ -328,7 +338,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	// Upload to s3 and wipe from the db.
 	if os.Getenv("ENABLE_OBJECT_STORAGE") == "true" {
 		state := "normal"
-		if err := w.pushToObjectStorageAndWipe(ctx, s, &state); err != nil {
+		if err := w.pushToObjectStorageAndWipe(ctx, s, &state, events); err != nil {
 			log.Errorf("error pushing to object and wiping from db (%v): %v", s.ID, err)
 		}
 	}
@@ -354,6 +364,11 @@ func (w *Worker) Start() {
 			log.Errorf("error querying unparsed, outdated sessions: %v", err)
 			sessionsSpan.Finish()
 			continue
+		}
+		// Sends a "count" metric to datadog so that we can see how many sessions are being queried.
+		err := dd.StatsD.Histogram("worker.sessionsQuery.sessionCount", float64(len(sessions)), nil, 1)
+		if err != nil {
+			log.Error(e.Wrap(err, "error sending session count metric to datadog"))
 		}
 		sessionsSpan.Finish()
 		for _, session := range sessions {

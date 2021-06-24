@@ -8,16 +8,16 @@ import (
 	"path"
 	"strings"
 
-	"github.com/DataDog/datadog-go/statsd"
 	"github.com/go-chi/chi"
 	"github.com/gorilla/handlers"
+	dd "github.com/highlight-run/highlight/backend/datadog"
 	"github.com/highlight-run/highlight/backend/model"
 	"github.com/highlight-run/highlight/backend/util"
 	"github.com/highlight-run/highlight/backend/worker"
+	e "github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/stripe/stripe-go/client"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
 	ghandler "github.com/99designs/gqlgen/graphql/handler"
 	storage "github.com/highlight-run/highlight/backend/object-storage"
@@ -35,9 +35,8 @@ var (
 	env                = os.Getenv("ENVIRONMENT")
 	frontendURL        = os.Getenv("FRONTEND_URI")
 	staticFrontendPath = os.Getenv("ONPREM_STATIC_FRONTEND_PATH")
-	statsdHost         = os.Getenv("DD_STATSD_HOST")
-	apmHost            = os.Getenv("DD_APM_HOST")
 	landingURL         = os.Getenv("LANDING_PAGE_URI")
+	landingStagingURL  = os.Getenv("LANDING_PAGE_STAGING_URI")
 	sendgridKey        = os.Getenv("SENDGRID_API_KEY")
 	stripeApiKey       = os.Getenv("STRIPE_API_KEY")
 	runtime            = flag.String("runtime", "all", "the runtime of the backend; either 1) dev (all runtimes) 2) worker 3) public-graph 4) private-graph")
@@ -56,15 +55,17 @@ func init() {
 }
 
 func health(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("healthy"))
-	return
+	_, err := w.Write([]byte("healthy"))
+	if err != nil {
+		log.Error(e.Wrap(err, "error writing health response"))
+	}
 }
 
 func validateOrigin(request *http.Request, origin string) bool {
 	if runtimeParsed == util.PrivateGraph {
 		// From the highlight frontend, only the url is whitelisted.
 		isPreviewEnv := strings.HasPrefix(origin, "https://frontend-pr-") && strings.HasSuffix(origin, ".onrender.com")
-		if origin == frontendURL || origin == landingURL || isPreviewEnv {
+		if origin == frontendURL || origin == landingURL || origin == landingStagingURL || isPreviewEnv {
 			return true
 		}
 	} else if runtimeParsed == util.PublicGraph || runtimeParsed == util.All {
@@ -76,6 +77,9 @@ func validateOrigin(request *http.Request, origin string) bool {
 var defaultPort = "8082"
 
 func main() {
+	// initialize logger
+	log.SetReportCaller(true)
+
 	if os.Getenv("DEPLOYMENT_KEY") != "HIGHLIGHT_ONPREM_BETA" {
 		log.Fatalf("please specify a deploy key in order to run Highlight")
 	}
@@ -95,26 +99,10 @@ func main() {
 		port = defaultPort
 	}
 
-	if env == "prod" {
-		// Connect to the datadog daemon.
-		hostTagKey, hostTagValue := "host", os.Getenv("RENDER_SERVICE_NAME")
-		serviceTagKey, serviceTagValue := "service", os.Getenv("RENDER_SERVICE_TYPE")+"-"+os.Getenv("RENDER_INSTANCE_ID")
-		_, err := statsd.New(statsdHost, statsd.WithTags(
-			[]string{
-				hostTagKey + ":" + hostTagValue,
-				serviceTagKey + ":" + serviceTagValue,
-			},
-		))
-		if err != nil {
-			log.Fatalf("error connecting to statsd: %v", err)
-			return
-		}
-		tracer.Start(
-			tracer.WithAgentAddr(apmHost),
-			tracer.WithGlobalTag(hostTagKey, hostTagValue),
-			tracer.WithGlobalTag(serviceTagKey, serviceTagValue),
-		)
-		defer tracer.Stop()
+	if err := dd.Start(env == "prod"); err != nil {
+		log.Fatal(e.Wrap(err, "error starting dd clients"))
+	} else {
+		defer dd.Stop(env == "prod")
 	}
 
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))

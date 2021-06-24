@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"os"
 
-	"firebase.google.com/go/auth"
-
 	firebase "firebase.google.com/go"
+	"firebase.google.com/go/auth"
 	e "github.com/pkg/errors"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
+
+	"github.com/highlight-run/highlight/backend/model"
 )
 
 var (
@@ -51,7 +52,7 @@ func PrivateMiddleware(next http.Handler) http.Handler {
 			}
 			uid = t.UID
 		}
-		ctx := context.WithValue(r.Context(), "uid", uid)
+		ctx := context.WithValue(r.Context(), model.ContextKeys.UID, uid)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})

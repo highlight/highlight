@@ -541,7 +541,7 @@ export class Highlight {
                         !r.name.includes(
                             process.env.PUBLIC_GRAPH_URI ??
                                 'https://api.highlight.run'
-                        )
+                        ) || !r.name.includes('highlight.run')
                 );
         }
 

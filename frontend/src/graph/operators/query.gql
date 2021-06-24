@@ -32,6 +32,7 @@ query GetSession($id: ID!) {
         object_storage_enabled
         payload_size
         within_billing_quota
+        client_version
     }
 }
 

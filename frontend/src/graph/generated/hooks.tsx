@@ -1507,6 +1507,7 @@ export const GetSessionDocument = gql`
             object_storage_enabled
             payload_size
             within_billing_quota
+            client_version
         }
     }
 `;

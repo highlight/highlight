@@ -58,7 +58,7 @@ const SegmentPickerForPlayer = () => {
                 setSelectedSegment(nextValue);
             }}
             className={styles.segmentSelect}
-            placeholder="Segment: None"
+            placeholder="Choose Segment"
             allowClear
             options={(data?.segments || [])
                 .map((segment) => ({

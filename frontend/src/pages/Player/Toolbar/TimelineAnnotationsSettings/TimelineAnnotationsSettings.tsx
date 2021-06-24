@@ -41,6 +41,9 @@ const EventTypeDescriptions: EventTypesKeys = {
     Track:
         'These are custom calls to Highlights track method for custom logging',
     Comments: 'These are comments created by you and other people on your team',
+    Identify:
+        'These are custom calls to Highlight identify method to add identity metadata for a session.',
+    Viewport: 'The size of the browser changed.',
 };
 
 interface Props {

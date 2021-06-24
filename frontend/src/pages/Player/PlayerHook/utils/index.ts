@@ -211,6 +211,8 @@ export const CustomEventsForTimeline = [
     'Segment',
     'Track',
     'Comments',
+    'Viewport',
+    'Identify',
 ] as const;
 const CustomEventsForTimelineSet = new Set(CustomEventsForTimeline);
 

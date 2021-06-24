@@ -256,18 +256,44 @@ const Player = () => {
                         <Tabs
                             centered
                             id="PlayerRightPanel"
+                            noPadding
                             tabs={[
                                 {
                                     title: 'Events',
-                                    panelContent: <EventStream />,
+                                    panelContent: (
+                                        <div
+                                            className={classNames(
+                                                styles.tabContentContainer,
+                                                styles.eventStreamTabContentContainer
+                                            )}
+                                        >
+                                            <EventStream />
+                                        </div>
+                                    ),
                                 },
                                 {
                                     title: 'Comments',
-                                    panelContent: <CommentStream />,
+                                    panelContent: (
+                                        <div
+                                            className={
+                                                styles.tabContentContainer
+                                            }
+                                        >
+                                            <CommentStream />
+                                        </div>
+                                    ),
                                 },
                                 {
                                     title: 'Metadata',
-                                    panelContent: <MetadataPanel />,
+                                    panelContent: (
+                                        <div
+                                            className={
+                                                styles.tabContentContainer
+                                            }
+                                        >
+                                            <MetadataPanel />
+                                        </div>
+                                    ),
                                 },
                             ]}
                         />
@@ -379,11 +405,13 @@ const EventStream = () => {
                 {!events.length ? (
                     <div>
                         <Skeleton
-                            count={4}
-                            height={35}
+                            count={20}
+                            height={43}
+                            width="301px"
                             style={{
-                                marginTop: 8,
-                                marginBottom: 8,
+                                marginTop: 16,
+                                marginLeft: 24,
+                                marginRight: 24,
                             }}
                         />
                     </div>

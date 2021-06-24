@@ -2,7 +2,6 @@ package graph
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"testing"
@@ -21,16 +20,6 @@ import (
 )
 
 var DB *gorm.DB
-
-type mockFetcher struct{}
-
-func (n mockFetcher) fetchFile(href string) ([]byte, error) {
-	inputBytes, err := ioutil.ReadFile(href)
-	if err != nil {
-		return nil, e.Wrap(err, "error fetching file from disk")
-	}
-	return inputBytes, nil
-}
 
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
@@ -144,13 +133,14 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID: 1,
-					Trace:          longTraceStr,
-					Resolved:       &model.F,
-					State:          model.ErrorGroupStates.OPEN,
-					MetadataLog:    &metaDataStr,
-					FieldGroup:     &nullStr,
-					Environments:   `{}`,
+					OrganizationID:   1,
+					Trace:            shortTraceStr,
+					Resolved:         &model.F,
+					State:            model.ErrorGroupStates.OPEN,
+					MetadataLog:      &metaDataStr,
+					FieldGroup:       &nullStr,
+					Environments:     `{}`,
+					MappedStackTrace: util.MakeStringPointer("null"),
 				},
 			},
 		},
@@ -169,13 +159,14 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
-					OrganizationID: 1,
-					Trace:          longTraceStr,
-					Resolved:       &model.F,
-					MetadataLog:    &metaDataStr,
-					FieldGroup:     &nullStr,
-					Environments:   `{}`,
-					State:          model.ErrorGroupStates.OPEN,
+					OrganizationID:   1,
+					Trace:            longTraceStr,
+					Resolved:         &model.F,
+					MetadataLog:      &metaDataStr,
+					FieldGroup:       &nullStr,
+					Environments:     `{}`,
+					State:            model.ErrorGroupStates.OPEN,
+					MappedStackTrace: util.MakeStringPointer("null"),
 				},
 			},
 		},
@@ -252,7 +243,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 					FunctionName: util.MakeStringPointer("arrayIncludesWith"),
 				},
 			},
-			fetcher: mockFetcher{},
+			fetcher: DiskFetcher{},
 			err:     e.New(""),
 		},
 		"test source mapping invalid trace:no related source map": {
@@ -264,7 +255,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 				},
 			},
 			expectedStackTrace: nil,
-			fetcher:            mockFetcher{},
+			fetcher:            DiskFetcher{},
 			err:                e.New("file does not contain source map url"),
 		},
 		"test source mapping invalid trace:file doesn't exist": {
@@ -275,9 +266,15 @@ func TestEnhanceStackTrace(t *testing.T) {
 					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
-			expectedStackTrace: nil,
-			fetcher:            NetworkFetcher{},
-			err:                e.New("status code not OK"),
+			expectedStackTrace: []modelInput.ErrorTrace{
+				{
+					FileName:     util.MakeStringPointer("https://cdnjs.cloudflare.com/ajax/libs/lodash.js"),
+					LineNumber:   util.MakeIntPointer(0),
+					ColumnNumber: util.MakeIntPointer(0),
+				},
+			},
+			fetcher: NetworkFetcher{},
+			err:     e.New("status code not OK"),
 		},
 		"test source mapping invalid trace:filename is not a url": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
@@ -287,33 +284,46 @@ func TestEnhanceStackTrace(t *testing.T) {
 					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
-			expectedStackTrace: nil,
-			fetcher:            NetworkFetcher{},
-			err:                e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
-		},
-		"test source mapping invalid trace:filename is localhost": {
-			stackFrameInput: []*publicModelInput.StackFrameInput{
+			expectedStackTrace: []modelInput.ErrorTrace{
 				{
-					FileName:     util.MakeStringPointer("http://localhost:8080/abc.min.js"),
+					FileName:     util.MakeStringPointer("/file/local/domain.js"),
 					LineNumber:   util.MakeIntPointer(0),
 					ColumnNumber: util.MakeIntPointer(0),
 				},
 			},
-			expectedStackTrace: nil,
-			fetcher:            NetworkFetcher{},
-			err:                e.New(`cannot parse localhost source`),
+			fetcher: NetworkFetcher{},
+			err:     e.New(`error getting source file: Get "/file/local/domain.js": unsupported protocol scheme ""`),
 		},
 		"test source mapping invalid trace:trace is nil": {
 			stackFrameInput:    nil,
 			expectedStackTrace: nil,
-			fetcher:            mockFetcher{},
+			fetcher:            DiskFetcher{},
 			err:                e.New("stack trace input cannot be nil"),
 		},
 		"test source mapping invalid trace:empty stack frame doesn't update error object": {
 			stackFrameInput:    []*publicModelInput.StackFrameInput{},
 			expectedStackTrace: nil,
-			fetcher:            mockFetcher{},
+			fetcher:            DiskFetcher{},
 			err:                e.New(""),
+		},
+		"test tsx mapping": {
+			stackFrameInput: []*publicModelInput.StackFrameInput{
+				{
+					FileName:     util.MakeStringPointer("./test-files/main.8344d167.chunk.js"),
+					LineNumber:   util.MakeIntPointer(1),
+					ColumnNumber: util.MakeIntPointer(422367),
+				},
+			},
+			expectedStackTrace: []modelInput.ErrorTrace{
+				{
+					FileName:     util.MakeStringPointer("pages/Buttons/Buttons.tsx"),
+					LineNumber:   util.MakeIntPointer(13),
+					ColumnNumber: util.MakeIntPointer(30),
+					FunctionName: util.MakeStringPointer(""),
+				},
+			},
+			fetcher: DiskFetcher{},
+			err:     e.New(""),
 		},
 	}
 

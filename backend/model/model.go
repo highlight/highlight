@@ -65,6 +65,20 @@ var ErrorGroupStates = struct {
 	IGNORED:  "IGNORED",
 }
 
+type contextString string
+
+var ContextKeys = struct {
+	IP             contextString
+	UserAgent      contextString
+	AcceptLanguage contextString
+	UID            contextString
+}{
+	IP:             "ip",
+	UserAgent:      "userAgent",
+	AcceptLanguage: "acceptLanguage",
+	UID:            "uid",
+}
+
 var Models = []interface{}{
 	&RecordingSettings{},
 	&MessagesObject{},
@@ -547,16 +561,17 @@ type ErrorObject struct {
 
 type ErrorGroup struct {
 	Model
-	OrganizationID int
-	Event          string
-	Type           string
-	Trace          string
-	State          string `json:"state" gorm:"default:OPEN"`
-	Resolved       *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
-	MetadataLog    *string
-	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
-	FieldGroup     *string
-	Environments   string
+	OrganizationID   int
+	Event            string
+	Type             string
+	Trace            string
+	MappedStackTrace *string
+	State            string `json:"state" gorm:"default:OPEN"`
+	Resolved         *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
+	MetadataLog      *string
+	Fields           []*ErrorField `gorm:"many2many:error_group_fields;"`
+	FieldGroup       *string
+	Environments     string
 }
 
 type ErrorField struct {

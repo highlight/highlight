@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 	"strings"
+
+	"github.com/highlight-run/highlight/backend/model"
 )
 
 func PublicMiddleware(next http.Handler) http.Handler {
@@ -30,9 +32,9 @@ func PublicMiddleware(next http.Handler) http.Handler {
 		// get the accept-language string
 		AcceptLanguage := r.Header.Get("Accept-Language")
 		// Pass the user's id, ip address, user agent, and accept-language through context.
-		ctx := context.WithValue(r.Context(), "ip", IPAddress)
-		ctx = context.WithValue(ctx, "userAgent", UserAgent)
-		ctx = context.WithValue(ctx, "acceptLanguage", AcceptLanguage)
+		ctx := context.WithValue(r.Context(), model.ContextKeys.IP, IPAddress)
+		ctx = context.WithValue(ctx, model.ContextKeys.UserAgent, UserAgent)
+		ctx = context.WithValue(ctx, model.ContextKeys.AcceptLanguage, AcceptLanguage)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	})
