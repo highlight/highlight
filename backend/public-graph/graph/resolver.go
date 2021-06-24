@@ -494,7 +494,7 @@ type fetcher interface {
 
 func init() {
 	if os.Getenv("ENVIRONMENT") == "dev" {
-		fetch = MockFetcher{}
+		fetch = DiskFetcher{}
 	} else {
 		fetch = NetworkFetcher{}
 	}
@@ -502,9 +502,9 @@ func init() {
 
 var fetch fetcher
 
-type MockFetcher struct{}
+type DiskFetcher struct{}
 
-func (n MockFetcher) fetchFile(href string) ([]byte, error) {
+func (n DiskFetcher) fetchFile(href string) ([]byte, error) {
 	inputBytes, err := ioutil.ReadFile(href)
 	if err != nil {
 		return nil, e.Wrap(err, "error fetching file from disk")
