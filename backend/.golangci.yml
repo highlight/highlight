@@ -1,5 +1,6 @@
 # options for analysis running
 run:
+  timeout: 2m
   skip-dirs:
     - private-graph/graph/generated
     - public-graph/graph/generated
