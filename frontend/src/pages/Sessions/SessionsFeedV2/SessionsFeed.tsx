@@ -2,6 +2,7 @@ import React, { RefObject, useEffect, useMemo, useState } from 'react';
 import useInfiniteScroll from 'react-infinite-scroll-hook';
 import Skeleton from 'react-loading-skeleton';
 import { useParams } from 'react-router-dom';
+import TextTransition from 'react-text-transition';
 
 import { SearchEmptyState } from '../../../components/SearchEmptyState/SearchEmptyState';
 import LimitedSessionCard from '../../../components/Upsell/LimitedSessionsCard/LimitedSessionsCard';
@@ -110,11 +111,13 @@ export const SessionFeed = () => {
     return (
         <>
             <div className={styles.fixedContent}>
-                <div
-                    className={styles.resultCount}
-                >{`${formatNumberWithDelimiters(
-                    data.totalCount
-                )} sessions`}</div>
+                <div className={styles.resultCount}>
+                    <TextTransition
+                        inline
+                        text={`${formatNumberWithDelimiters(data.totalCount)}`}
+                    />{' '}
+                    sessions
+                </div>
             </div>
             <div className={styles.feedContent}>
                 <div ref={infiniteRef as RefObject<HTMLDivElement>}>

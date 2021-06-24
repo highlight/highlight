@@ -176,8 +176,10 @@
 }
 
 .fixedContent {
+    align-items: center;
+    display: flex;
+    padding-bottom: var(--size-small);
     position: relative;
-    z-index: 99;
 }
 
 .userInputWrapper {
@@ -195,7 +197,6 @@
     font-family: var(--header-font-family);
     justify-content: space-between;
     margin: 0 -3px;
-    padding: 8px 5px 16px;
     width: 100%;
     z-index: 10;
 }
