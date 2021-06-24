@@ -151,6 +151,7 @@ export type ErrorGroup = {
     type: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
     trace: Array<Maybe<ErrorTrace>>;
+    mapped_stack_trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;

@@ -97,6 +97,32 @@ func (r *errorGroupResolver) Trace(ctx context.Context, obj *model.ErrorGroup) (
 	return ret, nil
 }
 
+func (r *errorGroupResolver) MappedStackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
+	if obj.MappedStackTrace == nil || *obj.MappedStackTrace == "" {
+		return nil, nil
+	}
+	var mappedStackTrace []*struct {
+		FileName     *string `json:"fileName"`
+		LineNumber   *int    `json:"lineNumber"`
+		FunctionName *string `json:"functionName"`
+		ColumnNumber *int    `json:"columnNumber"`
+	}
+	if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &mappedStackTrace); err != nil {
+		return nil, nil
+	}
+	var ret []*modelInputs.ErrorTrace
+	for _, t := range mappedStackTrace {
+		val := &modelInputs.ErrorTrace{
+			FileName:     t.FileName,
+			LineNumber:   t.LineNumber,
+			FunctionName: t.FunctionName,
+			ColumnNumber: t.ColumnNumber,
+		}
+		ret = append(ret, val)
+	}
+	return ret, nil
+}
+
 func (r *errorGroupResolver) MetadataLog(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorMetadata, error) {
 	ret := []*modelInputs.ErrorMetadata{}
 	if err := json.Unmarshal([]byte(*obj.MetadataLog), &ret); err != nil {
