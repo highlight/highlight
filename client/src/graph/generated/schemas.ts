@@ -42,7 +42,7 @@ export type ErrorObjectInput = {
   source: Scalars['String'];
   lineNumber: Scalars['Int'];
   columnNumber: Scalars['Int'];
-  stackTrace: Array<Maybe<StackFrameInput>>;
+  trace: Array<Maybe<StackFrameInput>>;
   timestamp: Scalars['Time'];
   payload?: Maybe<Scalars['String']>;
 };

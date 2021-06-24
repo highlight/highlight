@@ -13,6 +13,7 @@ import (
 
 	"github.com/highlight-run/highlight/backend/event-parse"
 	"github.com/highlight-run/highlight/backend/model"
+
 	"github.com/highlight-run/highlight/backend/public-graph/graph/generated"
 	customModels "github.com/highlight-run/highlight/backend/public-graph/graph/model"
 	e "github.com/pkg/errors"
@@ -28,7 +29,10 @@ func (r *mutationResolver) InitializeSession(ctx context.Context, organizationVe
 	if os.Getenv("ENVIRONMENT") != "dev" && err != nil {
 		msg := slack.WebhookMessage{Text: fmt.
 			Sprintf("Error in InitializeSession: %q\nOccurred for organization: %q", err, organizationVerboseID)}
-		slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+		err := slack.PostWebhook("https://hooks.slack.com/services/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", &msg)
+		if err != nil {
+			log.Error(e.Wrap(err, "failed to post webhook with error in InitializeSession"))
+		}
 	}
 
 	return session, err

@@ -276,7 +276,7 @@ input ErrorObjectInput {
     source: String!
     lineNumber: Int!
     columnNumber: Int!
-    stackTrace: [StackFrameInput]!
+    trace: [StackFrameInput]!
     timestamp: Time!
     payload: String
 }
@@ -2152,11 +2152,11 @@ func (ec *executionContext) unmarshalInputErrorObjectInput(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
-		case "stackTrace":
+		case "trace":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("stackTrace"))
-			it.StackTrace, err = ec.unmarshalNStackFrameInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx, v)
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("trace"))
+			it.Trace, err = ec.unmarshalNStackFrameInput2ᚕᚖgithubᚗcomᚋhighlightᚑrunᚋhighlightᚋbackendᚋpublicᚑgraphᚋgraphᚋmodelᚐStackFrameInput(ctx, v)
 			if err != nil {
 				return it, err
 			}

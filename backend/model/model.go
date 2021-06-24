@@ -65,6 +65,20 @@ var ErrorGroupStates = struct {
 	IGNORED:  "IGNORED",
 }
 
+type contextString string
+
+var ContextKeys = struct {
+	IP             contextString
+	UserAgent      contextString
+	AcceptLanguage contextString
+	UID            contextString
+}{
+	IP:             "ip",
+	UserAgent:      "userAgent",
+	AcceptLanguage: "acceptLanguage",
+	UID:            "uid",
+}
+
 var Models = []interface{}{
 	&RecordingSettings{},
 	&MessagesObject{},
@@ -540,7 +554,6 @@ type ErrorObject struct {
 	Browser          string
 	Trace            *string   `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
 	StackTrace       *string   `json:"stack_trace"`
-	MappedStackTrace *string   `json:"mapped_stack_trace"`
 	Timestamp        time.Time `json:"timestamp"`
 	Payload          *string   `json:"payload"`
 	Environment      string
@@ -548,17 +561,18 @@ type ErrorObject struct {
 
 type ErrorGroup struct {
 	Model
-	OrganizationID int
-	Event          string
-	Type           string
+	OrganizationID   int
+	Event            string
+	Type             string
 	Trace          string //DEPRECATED, USE STACKTRACE INSTEAD
 	StackTrace     string
-	State          string `json:"state" gorm:"default:OPEN"`
-	Resolved       *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
-	MetadataLog    *string
-	Fields         []*ErrorField `gorm:"many2many:error_group_fields;"`
-	FieldGroup     *string
-	Environments   string
+	MappedStackTrace *string
+	State            string `json:"state" gorm:"default:OPEN"`
+	Resolved         *bool  `json:"resolved"` // DEPRECATED, USE STATE INSTEAD
+	MetadataLog      *string
+	Fields           []*ErrorField `gorm:"many2many:error_group_fields;"`
+	FieldGroup       *string
+	Environments     string
 }
 
 type ErrorField struct {

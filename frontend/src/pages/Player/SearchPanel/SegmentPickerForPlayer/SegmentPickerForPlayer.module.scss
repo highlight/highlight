@@ -1,3 +1,8 @@
 .segmentSelect {
-    width: 100%;
+    width: 160px;
+
+    :global(.ant-select-selector) {
+        height: initial !important;
+        padding: 0 var(--size-small) !important;
+    }
 }

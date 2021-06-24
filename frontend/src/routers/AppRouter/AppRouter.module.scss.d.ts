@@ -9,7 +9,6 @@ export const rrwebPlayerDiv: string;
 export const rrwebPlayerSection: string;
 export const rrwebPlayerWrapper: string;
 export const signinWrapper: string;
-export const streamElement: string;
 export const timeSection: string;
 export const undoButtonStyle: string;
 export const undoSection: string;

@@ -21,6 +21,12 @@ jobs:
               with:
                   gofmt-path: './backend'
                   gofmt-flags: '-l -d'
+            - name: Run linter
+              uses: golangci/golangci-lint-action@v2
+              with:
+                  args: --config ./.golangci.yml
+                  working-directory: backend
+                  version: latest
             - name: Build binary
               run: cd backend && go build .
     test:
@@ -37,7 +43,7 @@ jobs:
               --health-interval 10s
               --health-timeout 5s
               --health-retries 5
-            ports:           
+            ports:
               - 5432:5432
         env:
           PSQL_HOST: "localhost"
@@ -52,4 +58,3 @@ jobs:
               uses: actions/setup-go@v2
             - name: Run tests
               run: cd backend && go test ./... -v
-
