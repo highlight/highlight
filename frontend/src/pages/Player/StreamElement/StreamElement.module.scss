@@ -139,13 +139,3 @@
     align-items: center;
     display: flex;
 }
-
-.iconChangeAnimation {
-    animation: pop 0.3s ease-in-out;
-}
-
-@keyframes pop {
-    50% {
-        transform: scale(1.2);
-    }
-}

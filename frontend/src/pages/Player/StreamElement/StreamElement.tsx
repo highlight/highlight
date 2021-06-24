@@ -1,13 +1,11 @@
 import { EventType } from '@highlight-run/rrweb';
 import classNames from 'classnames/bind';
 import React, { useContext, useState } from 'react';
-import AnimateOnChange from 'react-animate-on-change';
 import { FaBug, FaRegStopCircle } from 'react-icons/fa';
 import ReactJson from 'react-json-view';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import GoToButton from '../../../components/Button/GoToButton';
-import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg';
 import SvgCursorIcon from '../../../static/CursorIcon';
 import SvgFaceIdIcon from '../../../static/FaceIdIcon';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
@@ -60,18 +58,8 @@ export const StreamElement = ({
                 id={e.identifier}
             >
                 <div className={styles.headerRow}>
-                    <AnimateOnChange
-                        baseClassName={styles.iconWrapper}
-                        animationClassName={styles.iconChangeAnimation}
-                        animate={selected}
-                    >
-                        {selected ? (
-                            <DownIcon
-                                className={classNames(styles.directionIcon, {
-                                    [styles.selectedIcon]: selected,
-                                })}
-                            />
-                        ) : details.title === 'Click' ? (
+                    <div className={styles.iconWrapper}>
+                        {details.title === 'Click' ? (
                             <PointerIcon
                                 className={classNames(styles.tiltedIcon)}
                             />
@@ -122,7 +110,7 @@ export const StreamElement = ({
                                 className={classNames(styles.tiltedIcon)}
                             />
                         )}
-                    </AnimateOnChange>
+                    </div>
                 </div>
                 <div
                     className={
