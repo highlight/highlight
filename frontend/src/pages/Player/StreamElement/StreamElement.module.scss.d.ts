@@ -5,6 +5,7 @@ export const directionIcon: string;
 export const eventContent: string;
 export const eventContentVerbose: string;
 export const eventText: string;
+export const eventTextSelected: string;
 export const eventTime: string;
 export const eventWrapper: string;
 export const goToButton: string;

@@ -89,7 +89,12 @@
     margin: 0 !important;
     overflow: hidden;
     text-overflow: ellipsis;
+    transition: color 0.2s ease-in-out;
     white-space: nowrap;
+
+    &.eventTextSelected {
+        color: var(--text-primary) !important;
+    }
 }
 
 .eventContent {

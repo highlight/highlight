@@ -119,7 +119,11 @@ export const StreamElement = ({
                             : styles.eventContent
                     }
                 >
-                    <p className={styles.eventText}>
+                    <p
+                        className={classNames(styles.eventText, {
+                            [styles.eventTextSelected]: selected,
+                        })}
+                    >
                         {/* Removes the starting and ending quotes */}
                         {JSON.stringify(details.displayValue)?.replaceAll(
                             /^\"|\"$/g,
