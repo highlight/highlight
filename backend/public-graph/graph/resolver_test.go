@@ -313,122 +313,23 @@ func TestEnhanceStackTrace(t *testing.T) {
 			fetcher:            DiskFetcher{},
 			err:                e.New(""),
 		},
-		"test real source map stack trace": {
+		"test tsx mapping": {
 			stackFrameInput: []*publicModelInput.StackFrameInput{
 				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/js/main.8344d167.chunk.js"),
+					FileName:     util.MakeStringPointer("./test-files/main.8344d167.chunk.js"),
 					LineNumber:   util.MakeIntPointer(1),
 					ColumnNumber: util.MakeIntPointer(422367),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/js/2.426b2f38.chunk.js"),
-					LineNumber:   util.MakeIntPointer(2),
-					ColumnNumber: util.MakeIntPointer(1878787),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/js/2.426b2f38.chunk.js"),
-					LineNumber:   util.MakeIntPointer(2),
-					ColumnNumber: util.MakeIntPointer(1878930),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/js/2.426b2f38.chunk.js"),
-					LineNumber:   util.MakeIntPointer(2),
-					ColumnNumber: util.MakeIntPointer(1879076),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/js/2.426b2f38.chunk.js"),
-					LineNumber:   util.MakeIntPointer(2),
-					ColumnNumber: util.MakeIntPointer(1879162),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/js/2.426b2f38.chunk.js"),
-					LineNumber:   util.MakeIntPointer(2),
-					ColumnNumber: util.MakeIntPointer(1894753),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/js/2.426b2f38.chunk.js"),
-					LineNumber:   util.MakeIntPointer(2),
-					ColumnNumber: util.MakeIntPointer(1894563),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/js/2.426b2f38.chunk.js"),
-					LineNumber:   util.MakeIntPointer(2),
-					ColumnNumber: util.MakeIntPointer(1894919),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/js/2.426b2f38.chunk.js"),
-					LineNumber:   util.MakeIntPointer(2),
-					ColumnNumber: util.MakeIntPointer(1896127),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/js/2.426b2f38.chunk.js"),
-					LineNumber:   util.MakeIntPointer(2),
-					ColumnNumber: util.MakeIntPointer(1993309),
 				},
 			},
 			expectedStackTrace: []modelInput.ErrorTrace{
 				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/js/pages/Buttons/Buttons.tsx"),
+					FileName:     util.MakeStringPointer("pages/Buttons/Buttons.tsx"),
 					LineNumber:   util.MakeIntPointer(13),
 					ColumnNumber: util.MakeIntPointer(30),
 					FunctionName: util.MakeStringPointer(""),
 				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/node_modules/react-dom/cjs/react-dom.production.min.js"),
-					LineNumber:   util.MakeIntPointer(14),
-					ColumnNumber: util.MakeIntPointer(83),
-					FunctionName: util.MakeStringPointer("apply"),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/node_modules/react-dom/cjs/react-dom.production.min.js"),
-					LineNumber:   util.MakeIntPointer(14),
-					ColumnNumber: util.MakeIntPointer(237),
-					FunctionName: util.MakeStringPointer("apply"),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/node_modules/react-dom/cjs/react-dom.production.min.js"),
-					LineNumber:   util.MakeIntPointer(14),
-					ColumnNumber: util.MakeIntPointer(291),
-					FunctionName: util.MakeStringPointer("apply"),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/node_modules/react-dom/cjs/react-dom.production.min.js"),
-					LineNumber:   util.MakeIntPointer(15),
-					ColumnNumber: util.MakeIntPointer(74),
-					FunctionName: util.MakeStringPointer("d"),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/node_modules/react-dom/cjs/react-dom.production.min.js"),
-					LineNumber:   util.MakeIntPointer(52),
-					ColumnNumber: util.MakeIntPointer(169),
-					FunctionName: util.MakeStringPointer("oa"),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/node_modules/react-dom/cjs/react-dom.production.min.js"),
-					LineNumber:   util.MakeIntPointer(51),
-					ColumnNumber: util.MakeIntPointer(254),
-					FunctionName: util.MakeStringPointer("call"),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/node_modules/react-dom/cjs/react-dom.production.min.js"),
-					LineNumber:   util.MakeIntPointer(52),
-					ColumnNumber: util.MakeIntPointer(333),
-					FunctionName: util.MakeStringPointer("jc"),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/node_modules/react-dom/cjs/react-dom.production.min.js"),
-					LineNumber:   util.MakeIntPointer(56),
-					ColumnNumber: util.MakeIntPointer(9),
-					FunctionName: util.MakeStringPointer("mc"),
-				},
-				{
-					FileName:     util.MakeStringPointer("https://app.highlight.run/static/node_modules/react-dom/cjs/react-dom.production.min.js"),
-					LineNumber:   util.MakeIntPointer(287),
-					ColumnNumber: util.MakeIntPointer(188),
-					FunctionName: util.MakeStringPointer("a"),
-				},
 			},
-			fetcher: NetworkFetcher{},
+			fetcher: DiskFetcher{},
 			err:     e.New(""),
 		},
 	}
