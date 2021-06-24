@@ -6,6 +6,7 @@ import ReactJson from 'react-json-view';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import GoToButton from '../../../components/Button/GoToButton';
+import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import SvgCursorIcon from '../../../static/CursorIcon';
 import SvgFaceIdIcon from '../../../static/FaceIdIcon';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
@@ -21,6 +22,7 @@ import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { HighlightEvent } from '../HighlightEvent';
 import ReplayerContext from '../ReplayerContext';
 import RightPanelCard from '../RightPanelCard/RightPanelCard';
+import { EventTypeDescriptions } from '../Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { getAnnotationColor } from '../Toolbar/Toolbar';
 import styles from './StreamElement.module.scss';
 import StreamElementPayload from './StreamElementPayload';
@@ -152,6 +154,17 @@ export const StreamElement = ({
                             </div>
                         ) : (
                             <div className={styles.payloadContainer}>
+                                <h2 className={styles.payloadTitle}>
+                                    {details.title}{' '}
+                                    <InfoTooltip
+                                        title={
+                                            // @ts-ignore
+                                            EventTypeDescriptions[
+                                                (details.title as unknown) as string
+                                            ]
+                                        }
+                                    />
+                                </h2>
                                 <StreamElementPayload
                                     payload={
                                         typeof details.payload === 'object'

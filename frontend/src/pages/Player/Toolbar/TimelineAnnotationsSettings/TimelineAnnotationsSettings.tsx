@@ -16,7 +16,7 @@ type EventTypesKeys = {
     [key in EventsForTimelineKeys[number]]: string | React.ReactNode;
 };
 
-const EventTypeDescriptions: EventTypesKeys = {
+export const EventTypeDescriptions: EventTypesKeys = {
     Segment: (
         <span>
             The client-side segment installation fired a track or identify

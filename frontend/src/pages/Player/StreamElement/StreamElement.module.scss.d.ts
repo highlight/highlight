@@ -12,6 +12,7 @@ export const goToButton: string;
 export const headerRow: string;
 export const iconWrapper: string;
 export const payloadContainer: string;
+export const payloadTitle: string;
 export const playIcon: string;
 export const selectedIcon: string;
 export const streamElement: string;
