@@ -129,6 +129,7 @@ func (w *Worker) processSession(ctx context.Context, s *model.Session) error {
 	if err != nil {
 		log.Error(e.Wrap(err, "error pushing numEventsRqosQueried histogram metric"))
 	}
+
 	// Delete the session if there's no events.
 	if len(events) == 0 {
 		if err := w.Resolver.DB.Delete(&model.Session{Model: model.Model{ID: s.ID}}).Error; err != nil {
