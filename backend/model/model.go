@@ -549,7 +549,6 @@ type ErrorObject struct {
 	Source         string
 	LineNumber     int
 	ColumnNumber   int
-	SourceMap      string
 	OS             string
 	Browser        string
 	Trace          *string   `json:"trace"` //DEPRECATED, USE STACKTRACE INSTEAD
