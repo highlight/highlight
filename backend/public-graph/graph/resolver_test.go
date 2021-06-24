@@ -134,7 +134,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					OrganizationID:   1,
-					StackTrace:            shortTraceStr,
+					StackTrace:       shortTraceStr,
 					Resolved:         &model.F,
 					State:            model.ErrorGroupStates.OPEN,
 					MetadataLog:      &metaDataStr,
@@ -160,7 +160,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					OrganizationID:   1,
-					StackTrace:            longTraceStr,
+					StackTrace:       longTraceStr,
 					Resolved:         &model.F,
 					MetadataLog:      &metaDataStr,
 					FieldGroup:       &nullStr,
