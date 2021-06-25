@@ -83,10 +83,12 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 	}
 	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
 		if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &stackTrace); err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
 			return nil, nil
 		}
 	} else {
 		if err := json.Unmarshal([]byte(obj.StackTrace), &stackTrace); err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling StackTrace"))
 			return nil, nil
 		}
 	}
