@@ -566,6 +566,8 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 			mappedStackFrame.FunctionName = stackTrace.FunctionName
 			mappedStackFrame.LineNumber = stackTrace.LineNumber
 			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+			errString := err.Error()
+			mappedStackFrame.Error = &errString
 
 			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
 			log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileName))
@@ -578,6 +580,8 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 			mappedStackFrame.FunctionName = stackTrace.FunctionName
 			mappedStackFrame.LineNumber = stackTrace.LineNumber
 			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+			errString := "minified source file over 5mb"
+			mappedStackFrame.Error = &errString
 
 			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
 			log.Errorf("file way too big: %v, size: %v", stackTraceFileName, len(bodyBytes))
