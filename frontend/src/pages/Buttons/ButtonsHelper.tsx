@@ -13,5 +13,5 @@ export const DefaultError = () => {
 };
 
 const DefaultErrorDeeper = () => {
-    H.error('error is being thrown yo!');
+    throw new Error('errors page');
 };

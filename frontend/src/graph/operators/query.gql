@@ -244,7 +244,7 @@ query GetErrorGroup($id: ID!) {
         event
         resolved
         state
-        trace {
+        stack_trace {
             file_name
             line_number
             function_name
@@ -283,7 +283,7 @@ query GetErrorGroups(
             resolved
             state
             environments
-            trace {
+            stack_trace {
                 file_name
                 line_number
                 function_name
@@ -316,7 +316,7 @@ fragment errorFields on ErrorObject {
     source
     line_number
     column_number
-    trace
+    stack_trace
     timestamp
     payload
 }

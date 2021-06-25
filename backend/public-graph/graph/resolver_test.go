@@ -60,7 +60,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					OrganizationID: 1,
-					Trace:          nullStr,
+					StackTrace:     nullStr,
 					Resolved:       &model.F,
 					State:          model.ErrorGroupStates.OPEN,
 					MetadataLog:    &metaDataStr,
@@ -85,7 +85,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					OrganizationID: 1,
-					Trace:          nullStr,
+					StackTrace:     nullStr,
 					Resolved:       &model.F,
 					State:          model.ErrorGroupStates.OPEN,
 					MetadataLog:    &metaDataStr,
@@ -109,7 +109,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					OrganizationID: 1,
-					Trace:          nullStr,
+					StackTrace:     nullStr,
 					Resolved:       &model.F,
 					State:          model.ErrorGroupStates.OPEN,
 					MetadataLog:    &metaDataStr,
@@ -123,18 +123,18 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				{
 					OrganizationID: 1,
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
-					Trace:          &longTraceStr,
+					StackTrace:     &longTraceStr,
 				},
 				{
 					OrganizationID: 1,
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
-					Trace:          &shortTraceStr,
+					StackTrace:     &shortTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					OrganizationID:   1,
-					Trace:            shortTraceStr,
+					StackTrace:       shortTraceStr,
 					Resolved:         &model.F,
 					State:            model.ErrorGroupStates.OPEN,
 					MetadataLog:      &metaDataStr,
@@ -149,18 +149,18 @@ func TestHandleErrorAndGroup(t *testing.T) {
 				{
 					OrganizationID: 1,
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 1},
-					Trace:          &shortTraceStr,
+					StackTrace:     &shortTraceStr,
 				},
 				{
 					OrganizationID: 1,
 					Model:          model.Model{CreatedAt: time.Date(2000, 8, 1, 0, 0, 0, 0, time.UTC), ID: 2},
-					Trace:          &longTraceStr,
+					StackTrace:     &longTraceStr,
 				},
 			},
 			expectedErrorGroups: []model.ErrorGroup{
 				{
 					OrganizationID:   1,
-					Trace:            longTraceStr,
+					StackTrace:       longTraceStr,
 					Resolved:         &model.F,
 					MetadataLog:      &metaDataStr,
 					FieldGroup:       &nullStr,
@@ -173,24 +173,17 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	}
 	// run tests
 	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			defer func(db *gorm.DB) {
-				err := util.ClearTablesInDB(db)
-				if err != nil {
-					t.Fatal(e.Wrap(err, "error clearing database"))
-				}
-			}(DB)
-			// test logic
+		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
 			r := &Resolver{DB: DB}
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
 				var frames []*publicModelInput.StackFrameInput
-				if errorObj.Trace != nil {
-					if err := json.Unmarshal([]byte(*errorObj.Trace), &frames); err != nil {
+				if errorObj.StackTrace != nil {
+					if err := json.Unmarshal([]byte(*errorObj.StackTrace), &frames); err != nil {
 						t.Fatal(e.Wrap(err, "error unmarshalling error stack trace frames"))
 					}
 				}
-				errorGroup, err := r.HandleErrorAndGroup(&errorObj, &publicModelInput.ErrorObjectInput{Trace: frames}, nil, 1)
+				errorGroup, err := r.HandleErrorAndGroup(&errorObj, &publicModelInput.ErrorObjectInput{StackTrace: frames}, nil, 1)
 				if err != nil {
 					t.Fatal(e.Wrap(err, "error handling error and group"))
 				}
@@ -340,13 +333,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 
 	// run tests
 	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-			defer func(db *gorm.DB) {
-				err := util.ClearTablesInDB(db)
-				if err != nil {
-					t.Fatal(e.Wrap(err, "error clearing database"))
-				}
-			}(DB)
+		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
 			fetch = tc.fetcher
 			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput)
 			if err != nil {

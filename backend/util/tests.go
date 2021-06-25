@@ -4,12 +4,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"testing"
 
-	"github.com/highlight-run/highlight/backend/model"
 	e "github.com/pkg/errors"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"github.com/highlight-run/highlight/backend/model"
 )
+
+func RunTestWithDBWipe(t *testing.T, name string, db *gorm.DB, f func(t *testing.T)) {
+	defer func(db *gorm.DB) {
+		err := ClearTablesInDB(db)
+		if err != nil {
+			t.Fatal(e.Wrap(err, "error clearing database"))
+		}
+	}(db)
+	t.Run(name, f)
+}
 
 func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
 	psqlConf := fmt.Sprintf(

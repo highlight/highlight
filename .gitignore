@@ -15,3 +15,4 @@ yalc.lock
 **/*.test
 **/.swp
 **/build
+**/coverage.out
