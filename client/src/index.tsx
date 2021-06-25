@@ -210,7 +210,7 @@ export class Highlight {
             source: frames[0].fileName ?? '',
             lineNumber: frames[0].lineNumber ?? 0,
             columnNumber: frames[0].columnNumber ?? 0,
-            trace: frames,
+            stackTrace: frames,
             timestamp: new Date().toISOString(),
             payload: payload,
         });
@@ -417,7 +417,7 @@ export class Highlight {
                                 columnNumber: c.trace[0].columnNumber
                                     ? c.trace[0].columnNumber
                                     : 0,
-                                trace: c.trace,
+                                stackTrace: c.trace,
                                 timestamp: new Date().toISOString(),
                             });
                         highlightThis.messages.push(c);

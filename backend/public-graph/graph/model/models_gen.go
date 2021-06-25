@@ -13,7 +13,7 @@ type ErrorObjectInput struct {
 	Source       string             `json:"source"`
 	LineNumber   int                `json:"lineNumber"`
 	ColumnNumber int                `json:"columnNumber"`
-	Trace        []*StackFrameInput `json:"trace"`
+	StackTrace   []*StackFrameInput `json:"stackTrace"`
 	Timestamp    time.Time          `json:"timestamp"`
 	Payload      *string            `json:"payload"`
 }

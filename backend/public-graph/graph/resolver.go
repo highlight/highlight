@@ -154,7 +154,7 @@ func (r *Resolver) AppendFields(fields []*model.Field, session *model.Session) e
 }
 
 func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *model2.ErrorObjectInput, fields []*model.ErrorField, organizationID int) (*model.ErrorGroup, error) {
-	frames := errorInput.Trace
+	frames := errorInput.StackTrace
 	firstFrameBytes, err := json.Marshal(frames)
 	if err != nil {
 		return nil, e.Wrap(err, "Error marshalling first frame")
@@ -173,7 +173,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 		newErrorGroup := &model.ErrorGroup{
 			OrganizationID: errorObj.OrganizationID,
 			Event:          errorObj.Event,
-			Trace:          frameString,
+			StackTrace:     frameString,
 			Type:           errorObj.Type,
 			Resolved:       &model.F,
 		}
@@ -212,7 +212,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	newFrameString := frameString
 	if organizationID == 1 {
 		// TODO: don't do this for every error
-		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.Trace)
+		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace)
 		if err != nil {
 			log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
 		} else {
@@ -245,7 +245,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	}
 	environmentsString := string(environmentsBytes)
 
-	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, Trace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
+	if err := r.DB.Model(errorGroup).Updates(&model.ErrorGroup{MetadataLog: &logString, StackTrace: newFrameString, MappedStackTrace: newMappedStackTraceString, Environments: environmentsString}).Error; err != nil {
 		return nil, e.Wrap(err, "Error updating error group metadata log or environments")
 	}
 
