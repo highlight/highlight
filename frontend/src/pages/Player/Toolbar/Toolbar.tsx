@@ -647,7 +647,7 @@ const SessionSegment = ({
     );
 };
 
-const TimelineAnnotationColors: {
+export const TimelineAnnotationColors: {
     [key in EventsForTimelineKeys[number]]: string;
 } = {
     Click: '--color-purple-light',
