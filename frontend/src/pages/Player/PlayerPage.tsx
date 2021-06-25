@@ -358,7 +358,7 @@ export const EventStream = () => {
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
-                {!events.length || true ? (
+                {!events.length ? (
                     <div>
                         <Skeleton
                             count={20}
