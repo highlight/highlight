@@ -28,7 +28,7 @@ input ErrorObjectInput {
     source: String!
     lineNumber: Int!
     columnNumber: Int!
-    trace: [StackFrameInput]!
+    stackTrace: [StackFrameInput]!
     timestamp: Time!
     payload: String
 }

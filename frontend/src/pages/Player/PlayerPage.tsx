@@ -260,16 +260,7 @@ const Player = () => {
                             tabs={[
                                 {
                                     title: 'Events',
-                                    panelContent: (
-                                        <div
-                                            className={classNames(
-                                                styles.tabContentContainer,
-                                                styles.eventStreamTabContentContainer
-                                            )}
-                                        >
-                                            <EventStream />
-                                        </div>
-                                    ),
+                                    panelContent: <EventStream />,
                                 },
                                 {
                                     title: 'Comments',
@@ -424,6 +415,8 @@ const EventStream = () => {
                             onMouseLeave={() => {
                                 setIsInteractingWithStreamEvents(false);
                             }}
+                            // @ts-ignore
+                            components={{ List: VirtuosoList }}
                             ref={virtuoso}
                             data={usefulEvents}
                             overscan={500}
@@ -474,3 +467,8 @@ const usefulEvent = (e: eventWithTime): boolean => {
 };
 
 export default Player;
+
+const VirtuosoList = React.forwardRef((props, ref) => {
+    // @ts-ignore
+    return <div {...props} ref={ref} className={styles.virtualList} />;
+});
