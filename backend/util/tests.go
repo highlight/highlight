@@ -13,7 +13,7 @@ import (
 	"github.com/highlight-run/highlight/backend/model"
 )
 
-func RunTestWithDBTeardown(t *testing.T, name string, db *gorm.DB, f func(t *testing.T)) {
+func RunTestWithDBWipe(t *testing.T, name string, db *gorm.DB, f func(t *testing.T)) {
 	defer func(db *gorm.DB) {
 		err := ClearTablesInDB(db)
 		if err != nil {

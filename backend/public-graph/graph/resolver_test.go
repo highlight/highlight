@@ -173,7 +173,7 @@ func TestHandleErrorAndGroup(t *testing.T) {
 	}
 	// run tests
 	for name, tc := range tests {
-		util.RunTestWithDBTeardown(t, name, DB, func(t *testing.T) {
+		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
 			r := &Resolver{DB: DB}
 			receivedErrorGroups := make(map[string]model.ErrorGroup)
 			for _, errorObj := range tc.errorsToInsert {
@@ -333,7 +333,7 @@ func TestEnhanceStackTrace(t *testing.T) {
 
 	// run tests
 	for name, tc := range tests {
-		util.RunTestWithDBTeardown(t, name, DB, func(t *testing.T) {
+		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
 			fetch = tc.fetcher
 			mappedStackTrace, err := r.EnhanceStackTrace(tc.stackFrameInput)
 			if err != nil {
