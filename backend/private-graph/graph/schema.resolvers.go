@@ -72,8 +72,16 @@ func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) (
 }
 
 func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
-	if obj.StackTrace == "" {
+	if (obj.MappedStackTrace == nil || *obj.MappedStackTrace == "") && obj.StackTrace == "" {
 		return nil, nil
+	}
+	var ret []*modelInputs.ErrorTrace
+	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
+		if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &ret); err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
+			return nil, nil
+		}
+		return ret, nil
 	}
 	var stackTrace []*struct {
 		FileName     *string `json:"fileName"`
@@ -82,9 +90,9 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 		ColumnNumber *int    `json:"columnNumber"`
 	}
 	if err := json.Unmarshal([]byte(obj.StackTrace), &stackTrace); err != nil {
+		log.Error(e.Wrap(err, "error unmarshalling StackTrace"))
 		return nil, nil
 	}
-	var ret []*modelInputs.ErrorTrace
 	for _, t := range stackTrace {
 		val := &modelInputs.ErrorTrace{
 			FileName:     t.FileName,
