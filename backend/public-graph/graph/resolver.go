@@ -15,8 +15,6 @@ import (
 	"strings"
 	"time"
 
-	storage "github.com/highlight-run/highlight/backend/object-storage"
-
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
@@ -24,6 +22,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/highlight-run/highlight/backend/model"
+	storage "github.com/highlight-run/highlight/backend/object-storage"
 	"github.com/highlight-run/highlight/backend/pricing"
 	modelInputs "github.com/highlight-run/highlight/backend/private-graph/graph/model"
 	model2 "github.com/highlight-run/highlight/backend/public-graph/graph/model"
