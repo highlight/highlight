@@ -75,24 +75,24 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 	if (obj.MappedStackTrace == nil || *obj.MappedStackTrace == "") && obj.StackTrace == "" {
 		return nil, nil
 	}
+	var ret []*modelInputs.ErrorTrace
+	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
+		if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &ret); err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
+			return nil, nil
+		}
+		return ret, nil
+	}
 	var stackTrace []*struct {
 		FileName     *string `json:"fileName"`
 		LineNumber   *int    `json:"lineNumber"`
 		FunctionName *string `json:"functionName"`
 		ColumnNumber *int    `json:"columnNumber"`
 	}
-	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
-		if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &stackTrace); err != nil {
-			log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
-			return nil, nil
-		}
-	} else {
-		if err := json.Unmarshal([]byte(obj.StackTrace), &stackTrace); err != nil {
-			log.Error(e.Wrap(err, "error unmarshalling StackTrace"))
-			return nil, nil
-		}
+	if err := json.Unmarshal([]byte(obj.StackTrace), &stackTrace); err != nil {
+		log.Error(e.Wrap(err, "error unmarshalling StackTrace"))
+		return nil, nil
 	}
-	var ret []*modelInputs.ErrorTrace
 	for _, t := range stackTrace {
 		val := &modelInputs.ErrorTrace{
 			FileName:     t.FileName,
