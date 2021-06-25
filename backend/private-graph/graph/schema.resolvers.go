@@ -72,7 +72,7 @@ func (r *errorGroupResolver) Event(ctx context.Context, obj *model.ErrorGroup) (
 }
 
 func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGroup) ([]*modelInputs.ErrorTrace, error) {
-	if obj.StackTrace == "" {
+	if (obj.MappedStackTrace == nil || *obj.MappedStackTrace == "") && obj.StackTrace == "" {
 		return nil, nil
 	}
 	var stackTrace []*struct {
@@ -81,8 +81,16 @@ func (r *errorGroupResolver) StackTrace(ctx context.Context, obj *model.ErrorGro
 		FunctionName *string `json:"functionName"`
 		ColumnNumber *int    `json:"columnNumber"`
 	}
-	if err := json.Unmarshal([]byte(obj.StackTrace), &stackTrace); err != nil {
-		return nil, nil
+	if obj.MappedStackTrace != nil && *obj.MappedStackTrace != "" {
+		if err := json.Unmarshal([]byte(*obj.MappedStackTrace), &stackTrace); err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling MappedStackTrace"))
+			return nil, nil
+		}
+	} else {
+		if err := json.Unmarshal([]byte(obj.StackTrace), &stackTrace); err != nil {
+			log.Error(e.Wrap(err, "error unmarshalling StackTrace"))
+			return nil, nil
+		}
 	}
 	var ret []*modelInputs.ErrorTrace
 	for _, t := range stackTrace {
