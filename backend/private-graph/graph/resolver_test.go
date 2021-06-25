@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	e "github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 	_ "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 
@@ -15,17 +14,8 @@ import (
 	"github.com/highlight-run/highlight/backend/util"
 )
 
-var DB *gorm.DB
-
 // Gets run once; M.run() calls the tests in this file.
 func TestMain(m *testing.M) {
-	dbName := "highlight_testing_db"
-	testLogger := log.WithFields(log.Fields{"DB_HOST": os.Getenv("PSQL_HOST"), "DB_NAME": dbName})
-	var err error
-	DB, err = util.CreateAndMigrateTestDB(dbName)
-	if err != nil {
-		testLogger.Error(e.Wrap(err, "error creating testdb"))
-	}
 	code := m.Run()
 	os.Exit(code)
 }
@@ -110,7 +100,7 @@ func TestHideViewedSessions(t *testing.T) {
 	}
 	// run tests
 	for name, tc := range tests {
-		util.RunTestWithDBWipe(t, name, DB, func(t *testing.T) {
+		util.ExperimentalRunTestWithDBWipe(t, name, func(t *testing.T, DB *gorm.DB) {
 			// inserting the data
 			if err := DB.Create(&tc.sessionsToInsert).Error; err != nil {
 				t.Fatal(e.Wrap(err, "error inserting sessions"))

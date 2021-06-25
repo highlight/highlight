@@ -1,10 +1,14 @@
 package util
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"testing"
+	"time"
+	"unsafe"
 
 	e "github.com/pkg/errors"
 	"gorm.io/driver/postgres"
@@ -21,6 +25,54 @@ func RunTestWithDBWipe(t *testing.T, name string, db *gorm.DB, f func(t *testing
 		}
 	}(db)
 	t.Run(name, f)
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyz"
+const (
+	letterIdxBits = 6                    // 6 bits to represent a letter index
+	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
+	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
+)
+
+var src = rand.NewSource(time.Now().UnixNano())
+
+func RandStringBytesMaskImprSrcUnsafe(n int) string {
+	b := make([]byte, n)
+	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
+	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
+		if remain == 0 {
+			cache, remain = src.Int63(), letterIdxMax
+		}
+		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
+			b[i] = letterBytes[idx]
+			i--
+		}
+		cache >>= letterIdxBits
+		remain--
+	}
+
+	return *(*string)(unsafe.Pointer(&b))
+}
+
+func ExperimentalRunTestWithDBWipe(t *testing.T, name string, f func(t *testing.T, db *gorm.DB)) {
+	dbName := fmt.Sprintf("test_db_%v", RandStringBytesMaskImprSrcUnsafe(10))
+	DB, err := CreateAndMigrateTestDB(dbName)
+	if err != nil {
+		fmt.Println(fmt.Errorf("riparooni: %w", err))
+		return
+	}
+	rawDB, err := DB.DB()
+	if err != nil {
+		fmt.Println(fmt.Errorf("rip: %w", err))
+	}
+	defer func(*sql.DB, string) {
+		if _, err := rawDB.Exec(fmt.Sprintf("DROP DATABASE IF EXISTS %v;", dbName)); err != nil {
+			t.Fatal(e.Wrap(err, "error dropping db"))
+		}
+	}(rawDB, dbName)
+	t.Run(name, func(t *testing.T) {
+		f(t, DB)
+	})
 }
 
 func CreateAndMigrateTestDB(dbName string) (*gorm.DB, error) {
