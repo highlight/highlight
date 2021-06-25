@@ -112,11 +112,19 @@ export const SessionFeed = () => {
         <>
             <div className={styles.fixedContent}>
                 <div className={styles.resultCount}>
-                    <TextTransition
-                        inline
-                        text={`${formatNumberWithDelimiters(data.totalCount)}`}
-                    />{' '}
-                    sessions
+                    {data.totalCount === -1 ? (
+                        <Skeleton width="100px" />
+                    ) : (
+                        <>
+                            <TextTransition
+                                inline
+                                text={`${formatNumberWithDelimiters(
+                                    data.totalCount
+                                )}`}
+                            />{' '}
+                            sessions
+                        </>
+                    )}
                 </div>
             </div>
             <div className={styles.feedContent}>
