@@ -106,72 +106,86 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
 
                         <div className={styles.cardAnnotationContainer}>
                             <div>
-                                {!session?.viewed && (
-                                    <Tooltip title="This session hasn't been viewed by you.">
-                                        <span
-                                            className={styles.cardAnnotation}
-                                            style={
-                                                {
-                                                    '--primary-color':
-                                                        'var(--color-blue-400)',
-                                                } as React.CSSProperties
-                                            }
-                                        >
-                                            <SvgEyeOffIcon />
-                                        </span>
-                                    </Tooltip>
-                                )}
+                                <Tooltip
+                                    title={
+                                        !session?.viewed
+                                            ? `This session hasn't been viewed.`
+                                            : 'This session has been viewed.'
+                                    }
+                                >
+                                    <span
+                                        className={styles.cardAnnotation}
+                                        style={
+                                            {
+                                                '--primary-color': !session?.viewed
+                                                    ? 'var(--color-blue-400)'
+                                                    : 'var(--color-gray-300)',
+                                            } as React.CSSProperties
+                                        }
+                                    >
+                                        <SvgEyeOffIcon />
+                                    </span>
+                                </Tooltip>
                             </div>
                             <div>
-                                {session?.first_time && (
-                                    <Tooltip title="This session is for a new user.">
-                                        <span
-                                            className={styles.cardAnnotation}
-                                            style={
-                                                {
-                                                    '--primary-color':
-                                                        'var(--color-red)',
-                                                } as React.CSSProperties
-                                            }
-                                        >
-                                            <SvgUserPlusIcon />
-                                        </span>
-                                    </Tooltip>
-                                )}
+                                <Tooltip
+                                    title={
+                                        session?.first_time
+                                            ? 'This session is the first time this user has used your app.'
+                                            : 'This session is for a user that has used your app before.'
+                                    }
+                                >
+                                    <span
+                                        className={styles.cardAnnotation}
+                                        style={
+                                            {
+                                                '--primary-color': session?.first_time
+                                                    ? 'var(--color-red)'
+                                                    : 'var(--color-gray-300)',
+                                            } as React.CSSProperties
+                                        }
+                                    >
+                                        <SvgUserPlusIcon />
+                                    </span>
+                                </Tooltip>
                             </div>
                             <div>
-                                {session?.identifier && (
-                                    <Tooltip title="This session is for a known user.">
-                                        <span
-                                            className={styles.cardAnnotation}
-                                            style={
-                                                {
-                                                    '--primary-color':
-                                                        'var(--color-orange-400)',
-                                                } as React.CSSProperties
-                                            }
-                                        >
-                                            <SvgFaceIdIcon />
-                                        </span>
-                                    </Tooltip>
-                                )}
+                                <Tooltip title="This session is for a known user.">
+                                    <span
+                                        className={styles.cardAnnotation}
+                                        style={
+                                            {
+                                                '--primary-color': session?.identifier
+                                                    ? 'var(--color-orange-400)'
+                                                    : 'var(--color-gray-300)',
+                                            } as React.CSSProperties
+                                        }
+                                    >
+                                        <SvgFaceIdIcon />
+                                    </span>
+                                </Tooltip>
                             </div>
                             <div>
-                                {session?.processed && (
-                                    <Tooltip title="This is a live, in-progress session.">
-                                        <span
-                                            className={styles.cardAnnotation}
-                                            style={
-                                                {
-                                                    '--primary-color':
-                                                        'var(--color-purple-400)',
-                                                } as React.CSSProperties
-                                            }
-                                        >
-                                            <SvgFastForwardIcon />
-                                        </span>
-                                    </Tooltip>
-                                )}
+                                <Tooltip
+                                    title={
+                                        !session?.processed
+                                            ? 'This is a live, in-progress session.'
+                                            : 'This is not a live, in-progress session.'
+                                    }
+                                >
+                                    <span
+                                        className={styles.cardAnnotation}
+                                        style={
+                                            {
+                                                '--primary-color': !session?.processed
+                                                    ? 'var(--color-purple-400)'
+                                                    : 'var(--color-gray-300)',
+                                            } as React.CSSProperties
+                                        }
+                                    >
+                                        <SvgFastForwardIcon />
+                                    </span>
+                                </Tooltip>
                             </div>
                         </div>
                     </div>
