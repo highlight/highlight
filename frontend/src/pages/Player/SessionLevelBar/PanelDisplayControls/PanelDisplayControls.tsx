@@ -4,10 +4,6 @@ import React from 'react';
 
 import Button from '../../../../components/Button/Button/Button';
 import Tooltip from '../../../../components/Tooltip/Tooltip';
-import useFeatureFlag, {
-    Feature,
-} from '../../../../hooks/useFeatureFlag/useFeatureFlag';
-import useHighlightAdminFlag from '../../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 import SvgPanelBottomIcon from '../../../../static/PanelBottomIcon';
 import SvgPanelRightIcon from '../../../../static/PanelRightIcon';
 import styles from './PanelDisplayControls.module.scss';
