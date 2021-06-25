@@ -368,6 +368,7 @@ export const EventStream = () => {
                                 marginTop: 16,
                                 marginLeft: 24,
                                 marginRight: 24,
+                                borderRadius: 8,
                             }}
                         />
                     </div>
@@ -380,7 +381,7 @@ export const EventStream = () => {
                             onMouseLeave={() => {
                                 setIsInteractingWithStreamEvents(false);
                             }}
-                            // @ts-ignore
+                            //     @ts-ignore
                             components={{ List: VirtuosoList }}
                             ref={virtuoso}
                             data={usefulEvents}

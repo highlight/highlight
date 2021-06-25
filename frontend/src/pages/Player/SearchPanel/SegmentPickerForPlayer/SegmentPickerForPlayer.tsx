@@ -10,6 +10,7 @@ import {
     useEditSegmentMutation,
     useGetSegmentsQuery,
 } from '../../../../graph/generated/hooks';
+import useHighlightAdminFlag from '../../../../hooks/useHighlightAdminFlag/useHighlightAdminFlag';
 import SvgPlayIcon from '../../../../static/PlayIcon';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
@@ -41,6 +42,7 @@ const SegmentPickerForPlayer = () => {
     const [editSegment] = useEditSegmentMutation({
         refetchQueries: ['GetSegments'],
     });
+    const { isHighlightAdmin } = useHighlightAdminFlag();
 
     const currentSegment = data?.segments?.find(
         (s) => s?.id === selectedSegment?.id
@@ -112,47 +114,59 @@ const SegmentPickerForPlayer = () => {
                 loading={loading}
                 hasAccent
             />
-            <Button
-                trackingId="CreateSessionSegment"
-                onClick={() => {
-                    if (showUpdateSegmentOption && segment_id) {
-                        editSegment({
-                            variables: {
-                                organization_id,
-                                id: segment_id,
-                                params: searchParams,
-                            },
-                        })
-                            .then(() => {
-                                message.success('Updated Segment!', 5);
-                                setExistingParams(searchParams);
-                            })
-                            .catch(() => {
-                                message.error('Error updating segment!', 5);
-                            });
-                    } else {
-                        setShowCreateSegmentModal(true);
-                    }
-                }}
-                type="ghost"
-                small
-                className={styles.segmentButton}
-            >
-                <SvgPlayIcon />
-                <span>
-                    <TextTransition
-                        text={showUpdateSegmentOption ? 'Update' : 'Create'}
-                        inline
-                    />{' '}
-                    Segment
-                </span>
-            </Button>
-            <CreateSegmentModal
-                showModal={showCreateSegmentModal}
-                onHideModal={() => {
-                    setShowCreateSegmentModal(false);
-                }}
-            />
+
+            {isHighlightAdmin && (
+                <>
+                    <Button
+                        trackingId="CreateSessionSegment"
+                        onClick={() => {
+                            if (showUpdateSegmentOption && segment_id) {
+                                editSegment({
+                                    variables: {
+                                        organization_id,
+                                        id: segment_id,
+                                        params: searchParams,
+                                    },
+                                })
+                                    .then(() => {
+                                        message.success('Updated Segment!', 5);
+                                        setExistingParams(searchParams);
+                                    })
+                                    .catch(() => {
+                                        message.error(
+                                            'Error updating segment!',
+                                            5
+                                        );
+                                    });
+                            } else {
+                                setShowCreateSegmentModal(true);
+                            }
+                        }}
+                        type="ghost"
+                        small
+                        className={styles.segmentButton}
+                    >
+                        <SvgPlayIcon />
+                        <span>
+                            <TextTransition
+                                text={
+                                    showUpdateSegmentOption
+                                        ? 'Update'
+                                        : 'Create'
+                                }
+                                inline
+                            />{' '}
+                            Segment
+                        </span>
+                    </Button>
+                    <CreateSegmentModal
+                        showModal={showCreateSegmentModal}
+                        onHideModal={() => {
+                            setShowCreateSegmentModal(false);
+                        }}
+                    />
+                </>
+            )}
         </section>
     );
 };
