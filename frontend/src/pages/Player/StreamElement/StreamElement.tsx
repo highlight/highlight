@@ -1,13 +1,12 @@
 import { EventType } from '@highlight-run/rrweb';
 import classNames from 'classnames/bind';
 import React, { useContext, useState } from 'react';
-import AnimateOnChange from 'react-animate-on-change';
 import { FaBug, FaRegStopCircle } from 'react-icons/fa';
 import ReactJson from 'react-json-view';
 import { BooleanParam, useQueryParam } from 'use-query-params';
 
 import GoToButton from '../../../components/Button/GoToButton';
-import { ReactComponent as DownIcon } from '../../../static/chevron-down-icon.svg';
+import InfoTooltip from '../../../components/InfoTooltip/InfoTooltip';
 import SvgCursorIcon from '../../../static/CursorIcon';
 import SvgFaceIdIcon from '../../../static/FaceIdIcon';
 import { ReactComponent as HoverIcon } from '../../../static/hover.svg';
@@ -23,6 +22,7 @@ import { MillisToMinutesAndSeconds } from '../../../util/time';
 import { HighlightEvent } from '../HighlightEvent';
 import ReplayerContext from '../ReplayerContext';
 import RightPanelCard from '../RightPanelCard/RightPanelCard';
+import { EventTypeDescriptions } from '../Toolbar/TimelineAnnotationsSettings/TimelineAnnotationsSettings';
 import { getAnnotationColor } from '../Toolbar/Toolbar';
 import styles from './StreamElement.module.scss';
 import StreamElementPayload from './StreamElementPayload';
@@ -60,18 +60,8 @@ export const StreamElement = ({
                 id={e.identifier}
             >
                 <div className={styles.headerRow}>
-                    <AnimateOnChange
-                        baseClassName={styles.iconWrapper}
-                        animationClassName={styles.iconChangeAnimation}
-                        animate={selected}
-                    >
-                        {selected ? (
-                            <DownIcon
-                                className={classNames(styles.directionIcon, {
-                                    [styles.selectedIcon]: selected,
-                                })}
-                            />
-                        ) : details.title === 'Click' ? (
+                    <div className={styles.iconWrapper}>
+                        {details.title === 'Click' ? (
                             <PointerIcon
                                 className={classNames(styles.tiltedIcon)}
                             />
@@ -122,7 +112,7 @@ export const StreamElement = ({
                                 className={classNames(styles.tiltedIcon)}
                             />
                         )}
-                    </AnimateOnChange>
+                    </div>
                 </div>
                 <div
                     className={
@@ -131,7 +121,11 @@ export const StreamElement = ({
                             : styles.eventContent
                     }
                 >
-                    <p className={styles.eventText}>
+                    <p
+                        className={classNames(styles.eventText, {
+                            [styles.eventTextSelected]: selected,
+                        })}
+                    >
                         {/* Removes the starting and ending quotes */}
                         {JSON.stringify(details.displayValue)?.replaceAll(
                             /^\"|\"$/g,
@@ -160,6 +154,17 @@ export const StreamElement = ({
                             </div>
                         ) : (
                             <div className={styles.payloadContainer}>
+                                <h2 className={styles.payloadTitle}>
+                                    {details.title}{' '}
+                                    <InfoTooltip
+                                        title={
+                                            // @ts-ignore
+                                            EventTypeDescriptions[
+                                                (details.title as unknown) as string
+                                            ]
+                                        }
+                                    />
+                                </h2>
                                 <StreamElementPayload
                                     payload={
                                         typeof details.payload === 'object'

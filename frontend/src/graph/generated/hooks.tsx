@@ -12,7 +12,7 @@ export const ErrorFieldsFragmentDoc = gql`
         source
         line_number
         column_number
-        trace
+        stack_trace
         timestamp
         payload
     }
@@ -2356,7 +2356,7 @@ export const GetErrorGroupDocument = gql`
             event
             resolved
             state
-            trace {
+            stack_trace {
                 file_name
                 line_number
                 function_name
@@ -2445,7 +2445,7 @@ export const GetErrorGroupsDocument = gql`
                 resolved
                 state
                 environments
-                trace {
+                stack_trace {
                     file_name
                     line_number
                     function_name

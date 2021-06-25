@@ -78,9 +78,9 @@ const ErrorPage = () => {
                                 type="text"
                                 onClick={() => {
                                     if (data?.error_group) {
-                                        const traceLines = data.error_group.trace.map(
-                                            (trace) => {
-                                                return `${trace?.file_name} in ${trace?.function_name} at line ${trace?.line_number}:${trace?.column_number}`;
+                                        const traceLines = data.error_group.stack_trace.map(
+                                            (stack_trace) => {
+                                                return `${stack_trace?.file_name} in ${stack_trace?.function_name} at line ${stack_trace?.line_number}:${stack_trace?.column_number}`;
                                             }
                                         );
 

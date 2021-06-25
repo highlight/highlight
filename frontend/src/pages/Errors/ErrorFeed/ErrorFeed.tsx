@@ -199,7 +199,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                 style={{ width: '240px' }}
                             >
                                 <div className={styles.topText} dir="rtl">
-                                    {errorGroup?.trace[0]?.file_name}
+                                    {errorGroup?.stack_trace[0]?.file_name}
                                 </div>
                                 <div
                                     className={classNames(
@@ -210,12 +210,13 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                                     {parseErrorDescription(errorGroup?.event)}
                                 </div>
                                 <div className={styles.tagWrapper}>
-                                    {errorGroup?.trace[0]?.function_name && (
+                                    {errorGroup?.stack_trace[0]
+                                        ?.function_name && (
                                         <Field
                                             color={'normal'}
                                             k={'function'}
                                             v={
-                                                errorGroup.trace[0]
+                                                errorGroup.stack_trace[0]
                                                     .function_name
                                             }
                                         />
@@ -225,7 +226,7 @@ const ErrorCard = ({ errorGroup }: { errorGroup: Maybe<ErrorGroup> }) => {
                             <div className={styles.errorTextSection}>
                                 <div
                                     className={styles.topText}
-                                >{`Line ${errorGroup?.trace[0]?.line_number}`}</div>
+                                >{`Line ${errorGroup?.stack_trace[0]?.line_number}`}</div>
                                 {errorGroup?.metadata_log[0] ? (
                                     <>
                                         <div className={styles.bottomText}>

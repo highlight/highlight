@@ -132,7 +132,7 @@ export type ErrorObject = {
     source?: Maybe<Scalars['String']>;
     line_number?: Maybe<Scalars['Int']>;
     column_number?: Maybe<Scalars['Int']>;
-    trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
+    stack_trace?: Maybe<Array<Maybe<Scalars['Any']>>>;
     timestamp?: Maybe<Scalars['Time']>;
     payload?: Maybe<Scalars['String']>;
 };
@@ -150,7 +150,7 @@ export type ErrorGroup = {
     organization_id: Scalars['Int'];
     type: Scalars['String'];
     event: Array<Maybe<Scalars['String']>>;
-    trace: Array<Maybe<ErrorTrace>>;
+    stack_trace: Array<Maybe<ErrorTrace>>;
     metadata_log: Array<Maybe<ErrorMetadata>>;
     field_group?: Maybe<Array<Maybe<ErrorField>>>;
     state: ErrorState;

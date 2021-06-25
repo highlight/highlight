@@ -99,10 +99,16 @@ func main() {
 		port = defaultPort
 	}
 
-	if err := dd.Start(env == "prod"); err != nil {
-		log.Fatal(e.Wrap(err, "error starting dd clients"))
+	shouldStartDatadog := (env == "prod" && os.Getenv("REACT_APP_ONPREM") != "true")
+	if shouldStartDatadog {
+		log.Info("Running dd client setup process...")
+		if err := dd.Start(); err != nil {
+			log.Fatal(e.Wrap(err, "error starting dd clients"))
+		} else {
+			defer dd.Stop()
+		}
 	} else {
-		defer dd.Stop(env == "prod")
+		log.Info("Excluding dd client setup process...")
 	}
 
 	db, err := model.SetupDB(os.Getenv("PSQL_DB"))
