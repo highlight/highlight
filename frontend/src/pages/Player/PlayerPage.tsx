@@ -381,7 +381,7 @@ export const EventStream = () => {
                             onMouseLeave={() => {
                                 setIsInteractingWithStreamEvents(false);
                             }}
-                            // @ts-ignore
+                            //     @ts-ignore
                             components={{ List: VirtuosoList }}
                             ref={virtuoso}
                             data={usefulEvents}
@@ -390,11 +390,9 @@ export const EventStream = () => {
                                 <StreamElement
                                     e={event}
                                     key={index}
-                                    // @ts-ignore
                                     start={replayer.getMetaData().startTime}
                                     isCurrent={
                                         event.timestamp -
-                                            // @ts-ignore
                                             replayer.getMetaData().startTime ===
                                             time ||
                                         event.identifier === currEvent
