@@ -144,8 +144,8 @@ type ComplexityRoot struct {
 		Payload        func(childComplexity int) int
 		SessionID      func(childComplexity int) int
 		Source         func(childComplexity int) int
+		StackTrace     func(childComplexity int) int
 		Timestamp      func(childComplexity int) int
-		Trace          func(childComplexity int) int
 		Type           func(childComplexity int) int
 		URL            func(childComplexity int) int
 	}
@@ -433,7 +433,7 @@ type ErrorGroupResolver interface {
 type ErrorObjectResolver interface {
 	Event(ctx context.Context, obj *model1.ErrorObject) ([]*string, error)
 
-	Trace(ctx context.Context, obj *model1.ErrorObject) ([]interface{}, error)
+	StackTrace(ctx context.Context, obj *model1.ErrorObject) ([]interface{}, error)
 }
 type ErrorSegmentResolver interface {
 	Params(ctx context.Context, obj *model1.ErrorSegment) (*model1.ErrorSearchParams, error)
@@ -934,19 +934,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ErrorObject.Source(childComplexity), true
 
+	case "ErrorObject.stack_trace":
+		if e.complexity.ErrorObject.StackTrace == nil {
+			break
+		}
+
+		return e.complexity.ErrorObject.StackTrace(childComplexity), true
+
 	case "ErrorObject.timestamp":
 		if e.complexity.ErrorObject.Timestamp == nil {
 			break
 		}
 
 		return e.complexity.ErrorObject.Timestamp(childComplexity), true
-
-	case "ErrorObject.trace":
-		if e.complexity.ErrorObject.Trace == nil {
-			break
-		}
-
-		return e.complexity.ErrorObject.Trace(childComplexity), true
 
 	case "ErrorObject.type":
 		if e.complexity.ErrorObject.Type == nil {
@@ -2766,7 +2766,7 @@ type ErrorObject {
     source: String
     line_number: Int
     column_number: Int
-    trace: [Any]
+    stack_trace: [Any]
     timestamp: Time
     payload: String
 }
@@ -6884,7 +6884,7 @@ func (ec *executionContext) _ErrorObject_column_number(ctx context.Context, fiel
 	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
+func (ec *executionContext) _ErrorObject_stack_trace(ctx context.Context, field graphql.CollectedField, obj *model1.ErrorObject) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -6902,7 +6902,7 @@ func (ec *executionContext) _ErrorObject_trace(ctx context.Context, field graphq
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ErrorObject().Trace(rctx, obj)
+		return ec.resolvers.ErrorObject().StackTrace(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15762,7 +15762,7 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._ErrorObject_line_number(ctx, field, obj)
 		case "column_number":
 			out.Values[i] = ec._ErrorObject_column_number(ctx, field, obj)
-		case "trace":
+		case "stack_trace":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -15770,7 +15770,7 @@ func (ec *executionContext) _ErrorObject(ctx context.Context, sel ast.SelectionS
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._ErrorObject_trace(ctx, field, obj)
+				res = ec._ErrorObject_stack_trace(ctx, field, obj)
 				return res
 			})
 		case "timestamp":

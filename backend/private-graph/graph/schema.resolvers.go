@@ -148,7 +148,7 @@ func (r *errorObjectResolver) Event(ctx context.Context, obj *model.ErrorObject)
 	return util.JsonStringToStringArray(obj.Event), nil
 }
 
-func (r *errorObjectResolver) Trace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
+func (r *errorObjectResolver) StackTrace(ctx context.Context, obj *model.ErrorObject) ([]interface{}, error) {
 	frames := []interface{}{}
 	if obj.StackTrace != nil {
 		if err := json.Unmarshal([]byte(*obj.StackTrace), &frames); err != nil {
@@ -1101,6 +1101,7 @@ func (r *queryResolver) ErrorGroups(ctx context.Context, organizationID int, cou
 }
 
 func (r *queryResolver) ErrorGroup(ctx context.Context, id int) (*model.ErrorGroup, error) {
+	log.Info("yoyoyoyo")
 	return r.isAdminErrorGroupOwner(ctx, id)
 }
 

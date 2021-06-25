@@ -109,7 +109,7 @@ type ErrorObject {
     source: String
     line_number: Int
     column_number: Int
-    trace: [Any]
+    stack_trace: [Any]
     timestamp: Time
     payload: String
 }
