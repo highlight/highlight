@@ -1,13 +1,16 @@
 import classNames from 'classnames';
-import React, { useRef } from 'react';
+import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { Avatar } from '../../../../../components/Avatar/Avatar';
 import Tooltip from '../../../../../components/Tooltip/Tooltip';
 import { Maybe, Session } from '../../../../../graph/generated/schemas';
+import SvgEyeOffIcon from '../../../../../static/EyeOffIcon';
+import SvgFaceIdIcon from '../../../../../static/FaceIdIcon';
+import SvgFastForwardIcon from '../../../../../static/FastForwardIcon';
+import SvgUserPlusIcon from '../../../../../static/UserPlusIcon';
 import { MillisToMinutesAndSecondsVerbose } from '../../../../../util/time';
 import { LIVE_SEGMENT_ID } from '../../../SearchSidebar/SegmentPicker/SegmentPicker';
-import FirstTimeDecorations from '../../../SessionsFeed/components/FirstTimeDecorations/FirstTimeDecorations';
 import styles from './MinimalSessionCard.module.scss';
 
 interface Props {
@@ -20,7 +23,7 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
         organization_id: string;
         segment_id: string;
     }>();
-    const containerRef = useRef<HTMLDivElement>(null);
+
     return (
         <div className={styles.sessionCardWrapper} key={session?.id}>
             <Link to={`/${organization_id}/sessions/${session?.id}`}>
@@ -28,12 +31,7 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                     className={classNames(styles.sessionCard, {
                         [styles.selected]: selected,
                     })}
-                    ref={containerRef}
                 >
-                    <FirstTimeDecorations
-                        containerRef={containerRef}
-                        session={session}
-                    />
                     <div className={styles.sessionCardContentWrapper}>
                         <div className={styles.avatarWrapper}>
                             <Avatar
@@ -107,10 +105,74 @@ const MinimalSessionCard = ({ session, selected }: Props) => {
                         </div>
 
                         <div className={styles.cardAnnotationContainer}>
-                            <div>hi</div>
-                            <div>hi</div>
-                            <div>hi</div>
-                            <div>hi</div>
+                            <div>
+                                {!session?.viewed && (
+                                    <Tooltip title="This session hasn't been viewed by you.">
+                                        <span
+                                            className={styles.cardAnnotation}
+                                            style={
+                                                {
+                                                    '--primary-color':
+                                                        'var(--color-blue-400)',
+                                                } as React.CSSProperties
+                                            }
+                                        >
+                                            <SvgEyeOffIcon />
+                                        </span>
+                                    </Tooltip>
+                                )}
+                            </div>
+                            <div>
+                                {session?.first_time && (
+                                    <Tooltip title="This session is for a new user.">
+                                        <span
+                                            className={styles.cardAnnotation}
+                                            style={
+                                                {
+                                                    '--primary-color':
+                                                        'var(--color-red)',
+                                                } as React.CSSProperties
+                                            }
+                                        >
+                                            <SvgUserPlusIcon />
+                                        </span>
+                                    </Tooltip>
+                                )}
+                            </div>
+                            <div>
+                                {session?.identifier && (
+                                    <Tooltip title="This session is for a known user.">
+                                        <span
+                                            className={styles.cardAnnotation}
+                                            style={
+                                                {
+                                                    '--primary-color':
+                                                        'var(--color-orange-400)',
+                                                } as React.CSSProperties
+                                            }
+                                        >
+                                            <SvgFaceIdIcon />
+                                        </span>
+                                    </Tooltip>
+                                )}
+                            </div>
+                            <div>
+                                {session?.processed && (
+                                    <Tooltip title="This is a live, in-progress session.">
+                                        <span
+                                            className={styles.cardAnnotation}
+                                            style={
+                                                {
+                                                    '--primary-color':
+                                                        'var(--color-purple-400)',
+                                                } as React.CSSProperties
+                                            }
+                                        >
+                                            <SvgFastForwardIcon />
+                                        </span>
+                                    </Tooltip>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

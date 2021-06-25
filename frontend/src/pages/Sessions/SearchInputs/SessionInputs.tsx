@@ -1,13 +1,13 @@
+import { Checkbox } from 'antd';
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 
 import { SearchMatchOption } from '../../../components/Option/Option';
-import Switch from '../../../components/Switch/Switch';
 import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
-import { ReactComponent as URLIcon } from '../../../static/link.svg';
-import { ReactComponent as ReferrerIcon } from '../../../static/refer.svg';
+import SvgLinkIcon from '../../../static/LinkIcon';
+import SvgReferrer from '../../../static/Referrer';
 import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { useSearchContext } from '../SearchContext/SearchContext';
 import { EmptySessionsSearchParams } from '../SessionsPage';
@@ -48,7 +48,7 @@ export const VisitedUrlInput = () => {
     };
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <AsyncCreatableSelect
                 placeholder={'Visited URL'}
                 styles={SharedSelectStyleProps}
@@ -64,7 +64,7 @@ export const VisitedUrlInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <URLIcon fill="#808080" />
+                            <SvgLinkIcon />
                         </div>
                     ),
                     Option: (props) => <SearchMatchOption {...props} />,
@@ -120,7 +120,7 @@ export const ReferrerInput = () => {
     );
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <AsyncCreatableSelect
                 placeholder={'Referrer'}
                 cacheOptions
@@ -138,7 +138,7 @@ export const ReferrerInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <ReferrerIcon fill="#808080" />
+                            <SvgReferrer />
                         </div>
                     ),
                     Option: (props) => <SearchMatchOption {...props} />,
@@ -157,16 +157,20 @@ export const ViewedSessionsSwitch = () => {
     const { searchParams, setSearchParams } = useSearchContext();
 
     return (
-        <Switch
-            label="Hide viewed sessions"
+        <Checkbox
             checked={searchParams.hide_viewed}
-            onChange={(val: boolean) => {
+            onChange={(e) => {
                 setSearchParams((params) => ({
                     ...params,
-                    hide_viewed: val,
+                    hide_viewed: e.target.checked,
                 }));
             }}
-        />
+            className={
+                searchParams.hide_viewed ? '' : inputStyles.checkboxUnselected
+            }
+        >
+            Hide viewed sessions
+        </Checkbox>
     );
 };
 
@@ -174,12 +178,14 @@ export const LiveSessionsSwitch = () => {
     const { hideLiveSessions, setHideLiveSessions } = useSearchContext();
 
     return (
-        <Switch
+        <Checkbox
             checked={hideLiveSessions}
-            onChange={(val: boolean) => {
-                setHideLiveSessions(val);
+            onChange={(params) => {
+                setHideLiveSessions(params.target.checked);
             }}
-            label="Hide live sessions"
-        />
+            className={hideLiveSessions ? '' : inputStyles.checkboxUnselected}
+        >
+            Hide live sessions
+        </Checkbox>
     );
 };

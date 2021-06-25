@@ -47,7 +47,7 @@ export const EventInput = () => {
     };
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <AsyncCreatableSelect
                 placeholder={'Search by the body of your error...'}
                 styles={SharedSelectStyleProps}

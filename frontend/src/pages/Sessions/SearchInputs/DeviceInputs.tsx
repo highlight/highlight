@@ -5,9 +5,9 @@ import { OptionsType, OptionTypeBase, ValueType } from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import { useGetFieldSuggestionQuery } from '../../../graph/generated/hooks';
-import { ReactComponent as BrowserIcon } from '../../../static/browser.svg';
+import SvgBrowser from '../../../static/Browser';
 import SvgMonitorIcon from '../../../static/MonitorIcon';
-import { ReactComponent as OSIcon } from '../../../static/os.svg';
+import SvgOs from '../../../static/Os';
 import { SessionPageSearchParams } from '../../Player/utils/utils';
 import { useSearchContext } from '../SearchContext/SearchContext';
 import { EmptySessionsSearchParams } from '../SessionsPage';
@@ -45,9 +45,9 @@ export const OperatingSystemInput = () => {
     };
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <AsyncSelect
-                placeholder={'Operating System'}
+                placeholder="Mac, Windows, Linux..."
                 isClearable
                 cacheOptions
                 value={
@@ -60,7 +60,7 @@ export const OperatingSystemInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <OSIcon />
+                            <SvgOs />
                         </div>
                     ),
                     IndicatorSeparator: () => null,
@@ -103,9 +103,9 @@ export const BrowserInput = () => {
     };
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <AsyncSelect
-                placeholder={'Browser'}
+                placeholder="Chrome, Firefox, Edge..."
                 isClearable
                 cacheOptions
                 value={
@@ -120,7 +120,7 @@ export const BrowserInput = () => {
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <BrowserIcon />
+                            <SvgBrowser />
                         </div>
                     ),
                     IndicatorSeparator: () => null,
@@ -171,7 +171,7 @@ export const DeviceIdInput = () => {
     );
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
+        <div>
             <AsyncSelect
                 placeholder={'Device ID'}
                 isClearable

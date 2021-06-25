@@ -1,0 +1,20 @@
+.playerRightPanelContainer {
+    background: var(--color-primary-background);
+    border-left: 1px solid var(--color-gray-300);
+    box-sizing: content-box;
+    width: 350px;
+}
+
+.playerRightPanelCollapsible {
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: calc(100vh - 115px);
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.tabContentContainer {
+    height: 100%;
+    padding: var(--size-medium) 0;
+}

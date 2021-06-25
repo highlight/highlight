@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-function SvgChevronDownIcon(props: React.SVGProps<SVGSVGElement>) {
+function SvgFastForwardIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             width="1em"
@@ -14,10 +14,10 @@ function SvgChevronDownIcon(props: React.SVGProps<SVGSVGElement>) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={1.5}
-                d="M15.25 10.75L12 14.25l-3.25-3.5"
+                d="M8 15.86l-3.25 2.39V5.75L8 8.14M19.25 12l-8.5-6.25v12.5l8.5-6.25z"
             />
         </svg>
     );
 }
 
-export default SvgChevronDownIcon;
+export default SvgFastForwardIcon;

@@ -11,4 +11,9 @@
 
 .contentContainer {
     padding-bottom: var(--size-xxSmall);
+
+    &.large {
+        padding: var(--size-small);
+        padding-bottom: var(--size-xSmall);
+    }
 }

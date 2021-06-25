@@ -25,16 +25,15 @@
 
 .iconWrapper {
     display: flex;
-    fill: var(--color-gray-500) !important;
     margin: 0 10px 0 0;
 
     > svg {
-        fill: var(--color-gray-500) !important;
+        color: var(--color-gray-400) !important;
         height: var(--size-medium);
         width: var(--size-medium);
 
         &.fill {
-            color: var(--color-gray-500) !important;
+            color: var(--color-gray-400) !important;
             fill: none !important;
         }
     }

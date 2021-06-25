@@ -25,6 +25,12 @@
     }
 }
 
+.endContainer {
+    display: flex;
+    justify-content: space-between;
+    width: 350px;
+}
+
 .skeletonContainer {
     width: 100%;
 }
