@@ -42,3 +42,19 @@
         transform: scale(1);
     }
 }
+
+.title {
+    align-items: center;
+    column-gap: var(--size-xSmall);
+    display: flex;
+    font-weight: 700;
+    margin-bottom: var(--size-small);
+}
+
+.iconContainer {
+    align-items: center;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    padding: var(--size-xxSmall);
+}

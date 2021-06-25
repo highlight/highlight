@@ -4,10 +4,15 @@ import React, { useContext, useState } from 'react';
 import Popover from '../../../../components/Popover/Popover';
 import { EventsForTimeline } from '../../PlayerHook/utils';
 import ReplayerContext, { ParsedHighlightEvent } from '../../ReplayerContext';
-import { getEventRenderDetails } from '../../StreamElement/StreamElement';
+import {
+    getEventRenderDetails,
+    getPlayerEventIcon,
+} from '../../StreamElement/StreamElement';
 import StreamElementPayload from '../../StreamElement/StreamElementPayload';
+import { TimelineAnnotationColors } from '../Toolbar';
 import styles from '../Toolbar.module.scss';
 import TimelineAnnotation from './TimelineAnnotation';
+import timelineAnnotationStyles from './TimelineAnnotation.module.scss';
 
 interface Props {
     event: ParsedHighlightEvent;
@@ -28,6 +33,7 @@ const TimelineEventAnnotation = ({ event }: Props) => {
     ) {
         return null;
     }
+    const Icon = getPlayerEventIcon(details.title || '');
 
     return (
         <Popover
@@ -43,7 +49,22 @@ const TimelineEventAnnotation = ({ event }: Props) => {
                     />
                 </div>
             }
-            title={details.title}
+            title={
+                <span className={timelineAnnotationStyles.title}>
+                    <span
+                        className={timelineAnnotationStyles.iconContainer}
+                        style={{
+                            background: `var(${
+                                // @ts-ignore
+                                TimelineAnnotationColors[details.title]
+                            })`,
+                        }}
+                    >
+                        {Icon}
+                    </span>
+                    {details.title}
+                </span>
+            }
             onVisibleChange={(visible) => {
                 setIsTooltipOpen(visible);
             }}
