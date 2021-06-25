@@ -15,6 +15,8 @@ import (
 	"strings"
 	"time"
 
+	storage "github.com/highlight-run/highlight/backend/object-storage"
+
 	"github.com/go-sourcemap/sourcemap"
 	"github.com/mssola/user_agent"
 	e "github.com/pkg/errors"
@@ -33,7 +35,8 @@ import (
 // It serves as dependency injection for your app, add any dependencies you require here.
 
 type Resolver struct {
-	DB *gorm.DB
+	DB            *gorm.DB
+	StorageClient *storage.StorageClient
 }
 
 type Location struct {
@@ -212,7 +215,7 @@ func (r *Resolver) HandleErrorAndGroup(errorObj *model.ErrorObject, errorInput *
 	newFrameString := frameString
 	if organizationID == 1 {
 		// TODO: don't do this for every error
-		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace)
+		mappedStackTrace, err := r.EnhanceStackTrace(errorInput.StackTrace, organizationID)
 		if err != nil {
 			log.Error(e.Wrapf(err, "error group: %+v error object: %+v", errorGroup, errorObj))
 		} else {
@@ -545,7 +548,7 @@ func (n NetworkFetcher) fetchFile(href string) ([]byte, error) {
 * fetches the sourcemap from remote
 * maps the error info into slice
  */
-func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelInputs.ErrorTrace, error) {
+func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizationId int) ([]modelInputs.ErrorTrace, error) {
 	if input == nil {
 		return nil, e.New("stack trace input cannot be nil")
 	}
@@ -558,18 +561,28 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 		stackTraceLineNumber := *stackTrace.LineNumber
 		stackTraceColumnNumber := *stackTrace.ColumnNumber
 
-		bodyBytes, err := fetch.fetchFile(stackTraceFileName)
+		// try to get file from s3
+		bodyBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, stackTraceFileName)
 		if err != nil {
-			// TODO: don't do this plz
-			var mappedStackFrame modelInputs.ErrorTrace
-			mappedStackFrame.FileName = stackTrace.FileName
-			mappedStackFrame.FunctionName = stackTrace.FunctionName
-			mappedStackFrame.LineNumber = stackTrace.LineNumber
-			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+			// if not in s3, get from url and put in s3
+			bodyBytes, err = fetch.fetchFile(stackTraceFileName)
+			if err != nil {
+				// TODO: don't do this plz
+				// fallback if we can't get the source file at all
+				var mappedStackFrame modelInputs.ErrorTrace
+				mappedStackFrame.FileName = stackTrace.FileName
+				mappedStackFrame.FunctionName = stackTrace.FunctionName
+				mappedStackFrame.LineNumber = stackTrace.LineNumber
+				mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
 
-			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileName))
-			continue
+				mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+				log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileName))
+				continue
+			}
+			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, stackTraceFileName, bodyBytes)
+			if err != nil {
+				log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFileName))
+			}
 		}
 		if len(bodyBytes) > 5000000 {
 			// TODO: don't do this plz
@@ -605,12 +618,29 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput) ([]modelIn
 		}
 		sourceMapURL := (stackTraceFileName)[:sourceFileNameIndex] + sourceMapFileName
 
-		var fileBytes []byte
 		// fetch source map file
-		fileBytes, err = fetch.fetchFile(sourceMapURL)
+		// try to get file from s3
+		fileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, sourceMapFileName)
 		if err != nil {
-			log.Error(e.Wrap(err, "error fetching source map file"))
-			continue
+			// if not in s3, get from url and put in s3
+			bodyBytes, err = fetch.fetchFile(sourceMapURL)
+			if err != nil {
+				// TODO: don't do this plz
+				// fallback if we can't get the source file at all
+				var mappedStackFrame modelInputs.ErrorTrace
+				mappedStackFrame.FileName = stackTrace.FileName
+				mappedStackFrame.FunctionName = stackTrace.FunctionName
+				mappedStackFrame.LineNumber = stackTrace.LineNumber
+				mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
+
+				mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
+				log.Error(e.Wrapf(err, "error fetching file: %v", sourceMapFileName))
+				continue
+			}
+			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, sourceMapFileName, fileBytes)
+			if err != nil {
+				log.Error(e.Wrapf(err, "error pushing file to s3: %v", sourceMapFileName))
+			}
 		}
 
 		smap, err := sourcemap.Parse(sourceMapURL, fileBytes)
