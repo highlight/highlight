@@ -358,7 +358,7 @@ export const EventStream = () => {
     return (
         <>
             <div id="wrapper" className={styles.eventStreamContainer}>
-                {!events.length ? (
+                {!events.length || true ? (
                     <div>
                         <Skeleton
                             count={20}
@@ -368,6 +368,7 @@ export const EventStream = () => {
                                 marginTop: 16,
                                 marginLeft: 24,
                                 marginRight: 24,
+                                borderRadius: 8,
                             }}
                         />
                     </div>
@@ -389,9 +390,11 @@ export const EventStream = () => {
                                 <StreamElement
                                     e={event}
                                     key={index}
+                                    // @ts-ignore
                                     start={replayer.getMetaData().startTime}
                                     isCurrent={
                                         event.timestamp -
+                                            // @ts-ignore
                                             replayer.getMetaData().startTime ===
                                             time ||
                                         event.identifier === currEvent
