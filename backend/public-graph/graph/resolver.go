@@ -586,9 +586,9 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 				log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileURL))
 				continue
 			}
-			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, stackTraceFileURL, bodyBytes)
+			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, stackTraceFileName, bodyBytes)
 			if err != nil {
-				log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFileURL))
+				log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFileName))
 			}
 		}
 		if len(bodyBytes) > 5000000 {
