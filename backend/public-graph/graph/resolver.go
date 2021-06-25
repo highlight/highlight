@@ -556,15 +556,23 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		if stackTrace == nil || (stackTrace.FileName == nil || stackTrace.LineNumber == nil || stackTrace.ColumnNumber == nil) {
 			continue
 		}
-		stackTraceFileName := *stackTrace.FileName
+		stackTraceFileURL := *stackTrace.FileName
 		stackTraceLineNumber := *stackTrace.LineNumber
 		stackTraceColumnNumber := *stackTrace.ColumnNumber
+
+		// get file name from URL
+		var stackTraceFileName string
+		stackFileNameIndex := strings.Index(stackTraceFileURL, path.Base(stackTraceFileURL))
+		if stackFileNameIndex == -1 {
+			return nil, e.New("source path doesn't contain file name")
+		}
+		stackTraceFileName = stackTraceFileURL[stackFileNameIndex:]
 
 		// try to get file from s3
 		bodyBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, stackTraceFileName)
 		if err != nil {
 			// if not in s3, get from url and put in s3
-			bodyBytes, err = fetch.fetchFile(stackTraceFileName)
+			bodyBytes, err = fetch.fetchFile(stackTraceFileURL)
 			if err != nil {
 				// TODO: don't do this plz
 				// fallback if we can't get the source file at all
@@ -575,12 +583,12 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 				mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
 
 				mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-				log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileName))
+				log.Error(e.Wrapf(err, "error fetching file: %v", stackTraceFileURL))
 				continue
 			}
-			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, stackTraceFileName, bodyBytes)
+			_, err = r.StorageClient.PushSourceMapFileToS3(organizationId, stackTraceFileURL, bodyBytes)
 			if err != nil {
-				log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFileName))
+				log.Error(e.Wrapf(err, "error pushing file to s3: %v", stackTraceFileURL))
 			}
 		}
 		if len(bodyBytes) > 5000000 {
@@ -592,7 +600,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 			mappedStackFrame.ColumnNumber = stackTrace.ColumnNumber
 
 			mappedStackTrace = append(mappedStackTrace, mappedStackFrame)
-			log.Errorf("file way too big: %v, size: %v", stackTraceFileName, len(bodyBytes))
+			log.Errorf("file way too big: %v, size: %v", stackTraceFileURL, len(bodyBytes))
 			continue
 		}
 		bodyString := string(bodyBytes)
@@ -611,11 +619,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		sourceMapFileName = lastLine[sourceMapIndex+len("sourceMappingURL="):]
 
 		// construct sourcemap url from searched file
-		sourceFileNameIndex := strings.Index(stackTraceFileName, path.Base(stackTraceFileName))
-		if sourceFileNameIndex == -1 {
-			return nil, e.New("source path doesn't contain file name")
-		}
-		sourceMapURL := (stackTraceFileName)[:sourceFileNameIndex] + sourceMapFileName
+		sourceMapURL := (stackTraceFileURL)[:stackFileNameIndex] + sourceMapFileName
 
 		// fetch source map file
 		// try to get file from s3
