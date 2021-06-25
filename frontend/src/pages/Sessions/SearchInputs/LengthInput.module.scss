@@ -1,0 +1,14 @@
+.sessionLengthInput {
+    height: 100%;
+}
+
+.sessionLengthInputLabel {
+    color: var(--text-primary);
+    font-size: 10px;
+}
+
+.slider {
+    :global(.ant-slider-mark-text) {
+        font-size: 10px !important;
+    }
+}

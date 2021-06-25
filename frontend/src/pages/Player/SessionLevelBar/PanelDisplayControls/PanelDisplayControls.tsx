@@ -25,28 +25,22 @@ const PanelDisplayControls = () => {
         showLeftPanelPreference,
         setShowLeftPanelPreference,
     ] = useLocalStorage('highlightMenuShowLeftPanel', false);
-    const { isHighlightAdmin } = useHighlightAdminFlag();
-    const { hasAccessToFeature } = useFeatureFlag(Feature.PlayerLeftPanel);
-
-    const canUseLeftPanel = isHighlightAdmin || hasAccessToFeature;
 
     return (
         <div className={styles.buttonContainer}>
-            {canUseLeftPanel && (
-                <PanelButton
-                    tooltipText="Activate the Sessions panel to search for sessions."
-                    onClick={() => {
-                        setShowLeftPanelPreference(!showLeftPanelPreference);
-                    }}
-                >
-                    <SvgPanelRightIcon
-                        className={classNames([
-                            { [styles.active]: showLeftPanelPreference },
-                            styles.leftPanelIcon,
-                        ])}
-                    />
-                </PanelButton>
-            )}
+            <PanelButton
+                tooltipText="Activate the Sessions panel to search for sessions."
+                onClick={() => {
+                    setShowLeftPanelPreference(!showLeftPanelPreference);
+                }}
+            >
+                <SvgPanelRightIcon
+                    className={classNames([
+                        { [styles.active]: showLeftPanelPreference },
+                        styles.leftPanelIcon,
+                    ])}
+                />
+            </PanelButton>
             <PanelButton
                 tooltipText="Activate the DevTools to see console logs, errors, and network requests."
                 onClick={() => {

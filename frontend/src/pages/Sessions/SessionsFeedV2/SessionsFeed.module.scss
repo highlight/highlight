@@ -164,10 +164,8 @@
     flex-direction: column;
     flex-grow: 1;
     height: 200px;
-    margin-top: -24px;
     overflow-x: hidden;
     overflow-y: auto;
-    padding-top: 16px;
     width: 100%;
 
     &::-webkit-scrollbar {
@@ -196,9 +194,7 @@
     color: var(--color-gray-500);
     font-family: var(--header-font-family);
     justify-content: space-between;
-    margin: 0 -3px;
     width: 100%;
-    z-index: 10;
 }
 
 .sessionCardWrapper {

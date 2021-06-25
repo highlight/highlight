@@ -195,3 +195,19 @@
         width: 16px;
     }
 }
+
+.cardAnnotation {
+    align-items: center;
+    background: var(--primary-color);
+    border-radius: 2.5px;
+    color: var(--text-primary-inverted);
+    display: flex;
+    height: var(--size-medium);
+    justify-content: center;
+    width: var(--size-medium);
+
+    svg {
+        height: var(--size-xSmall);
+        width: var(--size-xSmall);
+    }
+}

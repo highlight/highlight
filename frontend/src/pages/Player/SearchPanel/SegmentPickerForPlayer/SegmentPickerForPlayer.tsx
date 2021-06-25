@@ -1,3 +1,4 @@
+import { message } from 'antd';
 import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -6,19 +7,20 @@ import TextTransition from 'react-text-transition';
 import Button from '../../../../components/Button/Button/Button';
 import Select from '../../../../components/Select/Select';
 import {
-    useCreateSegmentMutation,
     useEditSegmentMutation,
     useGetSegmentsQuery,
 } from '../../../../graph/generated/hooks';
 import SvgPlayIcon from '../../../../static/PlayIcon';
 import { gqlSanitize } from '../../../../util/gqlSanitize';
 import { useSearchContext } from '../../../Sessions/SearchContext/SearchContext';
+import CreateSegmentModal from '../../../Sessions/SearchSidebar/SegmentButtons/CreateSegmentModal';
 import { EmptySessionsSearchParams } from '../../../Sessions/SessionsPage';
 import styles from './SegmentPickerForPlayer.module.scss';
 
 const SegmentPickerForPlayer = () => {
-    const { organization_id } = useParams<{
+    const { organization_id, segment_id } = useParams<{
         organization_id: string;
+        segment_id?: string;
     }>();
     const {
         setSearchParams,
@@ -35,14 +37,8 @@ const SegmentPickerForPlayer = () => {
         { value: string; id: string } | undefined
     >(undefined);
     const [paramsIsDifferent, setParamsIsDifferent] = useState(false);
-    const [editSegment, editSegmentOptions] = useEditSegmentMutation({
-        refetchQueries: ['GetSegments'],
-    });
-
-    const [
-        createSegment,
-        { loading: createSegmentLoading },
-    ] = useCreateSegmentMutation({
+    const [showCreateSegmentModal, setShowCreateSegmentModal] = useState(false);
+    const [editSegment] = useEditSegmentMutation({
         refetchQueries: ['GetSegments'],
     });
 
@@ -77,6 +73,8 @@ const SegmentPickerForPlayer = () => {
             )
         );
     }, [searchParams, existingParams]);
+
+    const showUpdateSegmentOption = paramsIsDifferent && segmentName;
 
     return (
         <section className={styles.segmentPickerSection}>
@@ -116,7 +114,26 @@ const SegmentPickerForPlayer = () => {
             />
             <Button
                 trackingId="CreateSessionSegment"
-                // onClick={() => setCreateClicked(true)}
+                onClick={() => {
+                    if (showUpdateSegmentOption && segment_id) {
+                        editSegment({
+                            variables: {
+                                organization_id,
+                                id: segment_id,
+                                params: searchParams,
+                            },
+                        })
+                            .then(() => {
+                                message.success('Updated Segment!', 5);
+                                setExistingParams(searchParams);
+                            })
+                            .catch(() => {
+                                message.error('Error updating segment!', 5);
+                            });
+                    } else {
+                        setShowCreateSegmentModal(true);
+                    }
+                }}
                 type="ghost"
                 small
                 className={styles.segmentButton}
@@ -124,16 +141,18 @@ const SegmentPickerForPlayer = () => {
                 <SvgPlayIcon />
                 <span>
                     <TextTransition
-                        text={
-                            paramsIsDifferent && segmentName
-                                ? 'Update'
-                                : 'Create'
-                        }
+                        text={showUpdateSegmentOption ? 'Update' : 'Create'}
                         inline
                     />{' '}
                     Segment
                 </span>
             </Button>
+            <CreateSegmentModal
+                showModal={showCreateSegmentModal}
+                onHideModal={() => {
+                    setShowCreateSegmentModal(false);
+                }}
+            />
         </section>
     );
 };

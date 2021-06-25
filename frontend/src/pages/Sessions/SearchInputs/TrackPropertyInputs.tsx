@@ -5,7 +5,7 @@ import AsyncCreatableSelect from 'react-select/async-creatable';
 
 import { PropertyOption } from '../../../components/Option/Option';
 import { useGetTrackSuggestionQuery } from '../../../graph/generated/hooks';
-import { ReactComponent as UserIcon } from '../../../static/user.svg';
+import SvgTargetIcon from '../../../static/TargetIcon';
 import {
     SearchParams,
     UserProperty,
@@ -61,7 +61,7 @@ export const TrackPropertyInput = ({
                     }),
                 }}
                 cacheOptions
-                placeholder={'Select a property...'}
+                placeholder={'Select a track property...'}
                 isClearable={false}
                 defaultOptions
                 onChange={(options) => {
@@ -110,7 +110,7 @@ export const TrackPropertyInput = ({
                 components={{
                     DropdownIndicator: () => (
                         <div className={inputStyles.iconWrapper}>
-                            <UserIcon fill="var(--color-gray-500)" />
+                            <SvgTargetIcon />
                         </div>
                     ),
                     Option: (props) => <PropertyOption {...props} />,

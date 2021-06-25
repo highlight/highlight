@@ -149,11 +149,10 @@ export const SessionFeed = () => {
                             )}
                             {data.sessions.length < data.totalCount && (
                                 <Skeleton
-                                    height={110}
+                                    height={74}
                                     style={{
                                         borderRadius: 8,
-                                        marginTop: 14,
-                                        marginBottom: 14,
+                                        marginBottom: 24,
                                     }}
                                 />
                             )}

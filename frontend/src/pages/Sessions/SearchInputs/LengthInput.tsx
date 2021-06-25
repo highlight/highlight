@@ -4,7 +4,7 @@ import { Slider } from 'antd';
 import React, { useEffect, useState } from 'react';
 
 import { useSearchContext } from '../SearchContext/SearchContext';
-import inputStyles from './InputStyles.module.scss';
+import styles from './LengthInput.module.scss';
 
 export const LengthInput = () => {
     const { searchParams, setSearchParams } = useSearchContext();
@@ -38,10 +38,13 @@ export const LengthInput = () => {
     }, [searchParams.length_range]);
 
     return (
-        <div className={inputStyles.commonInputWrapper}>
-            <div className={inputStyles.subTitle}>Length (minutes)</div>
+        <div className={styles.sessionLengthInput}>
+            <span className={styles.sessionLengthInputLabel}>
+                Length (minutes)
+            </span>
             <Slider
                 range
+                className={styles.slider}
                 tooltipPlacement={'bottom'}
                 disabled={false}
                 min={0}
