@@ -626,7 +626,7 @@ func (r *Resolver) EnhanceStackTrace(input []*model2.StackFrameInput, organizati
 		fileBytes, err := r.StorageClient.ReadSourceMapFileFromS3(organizationId, sourceMapFileName)
 		if err != nil {
 			// if not in s3, get from url and put in s3
-			bodyBytes, err = fetch.fetchFile(sourceMapURL)
+			fileBytes, err = fetch.fetchFile(sourceMapURL)
 			if err != nil {
 				// TODO: don't do this plz
 				// fallback if we can't get the source file at all
